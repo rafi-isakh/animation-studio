@@ -1,0 +1,23 @@
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .gridItem {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: center;
+  }
+  
+  .gridItem img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .gridItem h3 {
+    margin: 8px 0;
+  }
+  

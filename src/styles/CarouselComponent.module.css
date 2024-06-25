@@ -1,0 +1,35 @@
+/* components/CarouselComponent.module.css */
+.carouselContainer {
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 20px auto;
+  width: 80%;
+  text-align: center;
+}
+
+.carouselItem {
+    margin: auto;
+    height: 200px;
+    width: 120px;
+}
+
+.slick-dots li button:before {
+  color: #000;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: #000;
+}
+
+.slick-slide > div {
+    display: grid;
+    place-items: center;
+    width: 80%;
+    margin-top: 50px;
+    margin: auto;
+    height: 500px;
+    padding: 0px;
+    background: red;
+}

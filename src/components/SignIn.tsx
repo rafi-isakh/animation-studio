@@ -5,7 +5,7 @@ export function GoogleSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("google")
+        await signIn("google",{ redirectTo: "/" })
       }}
     >
       <button className="rounded-full bg-blue-500 py-1 px-2 text-white font-bold" type="submit">Signin with Google</button>

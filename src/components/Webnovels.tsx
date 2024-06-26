@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import CarouselComponent from '@/components/CarouselComponent';
+import Image from "next/image"
+
 
 
 interface Webnovel {
@@ -25,7 +26,7 @@ const Webnovels = () => {
         <div className="snap-x overflow-x-scroll flex m-10">
           {webnovels.map((item, index) => (
           <div className="snap-center flex-shrink-0 w-80 p-4" key={index}>
-            <img src={`http://localhost:5000/api/images/${item.cover_art}`} alt={item.title} />
+            <Image src={`http://localhost:5000/api/images/${item.cover_art}`} width={200} height={120} alt={item.title} />
             <center><h3 className="text-lg font-semibold mb-2">{item.title}</h3></center>
           </div>
         ))}

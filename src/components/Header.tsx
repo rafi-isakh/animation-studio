@@ -11,6 +11,7 @@ const Header = () => {
       try {
         const response = await fetch('/api/session');
         const data = await response.json();
+        console.log(data);
         setIsLoggedIn(data);
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -21,13 +22,13 @@ const Header = () => {
 
   return (
     <div>
-        <div className="flex flex-row-reverse space-x-4 space-x-reverse m-4">
+        <nav className="flex flex-row-reverse space-x-4 space-x-reverse m-4">
             <Link href={isLoggedIn ? '/profile' : '/signin'}>
                 {isLoggedIn ? '프로필' : '로그인'}
             </Link>
             <div>언어 선택</div>
             <div>검색</div>
-        </div>
+        </nav>
         <div className="flex space-x-4 m-4">
             <div className="text-xl">로판</div>
             <div className="text-xl">로맨스</div>

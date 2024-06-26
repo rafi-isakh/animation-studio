@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from "next/image"
 
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -11,8 +12,7 @@ const Header = () => {
       try {
         const response = await fetch('/api/session');
         const data = await response.json();
-        console.log(data);
-        setIsLoggedIn(data);
+        setIsLoggedIn(data["loggedIn"]);
       } catch (error) {
         console.error('Error checking auth:', error);
       }
@@ -22,7 +22,7 @@ const Header = () => {
 
   return (
     <div>
-        <nav className="flex flex-row-reverse space-x-4 space-x-reverse m-4">
+        <nav className="container flex flex-row-reverse space-x-4 space-x-reverse m-4">
             <Link href={isLoggedIn ? '/profile' : '/signin'}>
                 {isLoggedIn ? '프로필' : '로그인'}
             </Link>

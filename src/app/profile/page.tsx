@@ -1,5 +1,5 @@
 import { auth, signOut } from "@/auth"
-import Link from 'next/link';
+
  
 export default async function Profile() {
   const session = await auth()
@@ -11,8 +11,15 @@ export default async function Profile() {
         <div>
         <center>
           <h2>{session.user.name}</h2>
-          <img src={session.user.image} alt="User Avatar" />
-          <Link href="/signout">Sign out</Link>
+          <img src={session.user.image} alt="Profile" />
+          <form
+            action={async (formData) => {
+              "use server"
+              await signOut({redirectTo:"/"})
+            }}
+          >
+            <button type="submit">Sign out</button>
+          </form>
         </center>
         </div>
     )

@@ -1,5 +1,6 @@
 import { signIn } from "@/auth"
- 
+import Image from "next/image"
+
 export function GoogleSignIn() {
   return (
     <form
@@ -7,8 +8,8 @@ export function GoogleSignIn() {
         "use server"
         await signIn("google",{ redirectTo: "/" })
       }}
-    >
-      <button className="rounded-full bg-blue-500 py-1 px-2 text-white font-bold" type="submit">Signin with Google</button>
+    > 
+      <button type="submit"><Image src="/google_logo.svg" alt="Google Sign In" width={50} height={50}></Image></button>
     </form>
   )
 } 
@@ -18,10 +19,10 @@ export function KakaoSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("kakao")
+        await signIn("kakao", {redirectTo: "/"})
       }}
     >
-      <button className="rounded-full bg-blue-500 py-1 px-2 text-white font-bold" type="submit">Signin with Kakao</button>
+      <button type="submit"><Image src="/kakao_logo.png" alt="Kakao Sign In" width={50} height={50}></Image></button>
     </form>
   )
 } 
@@ -31,10 +32,10 @@ export function NaverSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("naver")
+        await signIn("naver", {redirectTo: "/"})
       }}
     >
-      <button className="rounded-full bg-blue-500 py-1 px-2 text-white font-bold" type="submit">Signin with Naver</button>
+      <button><Image src="/naver_logo.png" alt="Naver Sign In" width={50} height={50}></Image></button>
     </form>
   )
 } 

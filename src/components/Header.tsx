@@ -2,33 +2,22 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/components/AuthContext';
 import Image from "next/image"
 
 const Header = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-    useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/session');
-        const data = await response.json();
-        setIsLoggedIn(data["loggedIn"]);
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      }
-    };
-    checkAuth();
-  }, []);
+  const { isLoggedIn } = useAuth();
 
   return (
     <div>
-        <nav className="container flex flex-row-reverse space-x-4 space-x-reverse m-4">
+        <nav className="flex flex-row-reverse space-x-4 space-x-reverse m-4">
             <Link href={isLoggedIn ? '/profile' : '/signin'}>
                 {isLoggedIn ? '프로필' : '로그인'}
             </Link>
             <div>언어 선택</div>
             <div>검색</div>
         </nav>
+        <Link href="/"><Image className="m-4" src="/logo.png" alt="Stelland Logo" width={100} height={100}/></Link>
         <div className="flex space-x-4 m-4">
             <div className="text-xl">로판</div>
             <div className="text-xl">로맨스</div>

@@ -3,21 +3,20 @@
 import { useEffect, useState } from 'react';
 import Image from "next/image"
 
-
-
 interface Webnovel {
   id: number;
   title: string;
   cover_art: string;
+  user_id: number;
+  user_name: string;
+  user_email: string;
 }
 
 const Webnovels = () => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/webnovels', {
-        cache: "force-cache"
-      })
+    fetch('http://localhost:5000/api/get_webnovels')
       .then(response => response.json())
       .then(data => setWebnovels(data));
   }, []);
@@ -28,11 +27,11 @@ const Webnovels = () => {
           <div className="snap-center flex-shrink-0 w-80 p-4" key={index}>
             <Image src={`http://localhost:5000/api/images/${item.cover_art}`} width={200} height={120} alt={item.title} />
             <center><h3 className="text-lg font-semibold mb-2">{item.title}</h3></center>
+            <center><h3 className="text-lg font-semibold mb-2">{item.user_name}</h3></center>
           </div>
         ))}
         </div>
       )
-
 
 /*<CarouselComponent items={webnovels} type="Webnovel" />*/
 

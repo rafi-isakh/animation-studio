@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Image from "next/image"
 import Link from 'next/link';
 
-
 export interface Webnovel {
   id: number;
   title: string;
@@ -28,9 +27,11 @@ const Webnovels = () => {
         <div className="snap-x overflow-x-scroll flex m-10">
           {webnovels.map((item, index) => (
           <div className="snap-center flex-shrink-0 w-80 p-4" key={index}>
-            <Image src={`http://localhost:5000/api/images/${item.cover_art}`} width={200} height={120} alt={item.title} />
-            <Link href={`/novel_view/${item.title}`}><center><h3 className="text-lg font-semibold mb-2">{item.title}</h3></center></Link>
-            <center><h3 className="text-lg font-semibold mb-2">{item.user_name}</h3></center>
+            <center>
+              <Link href={`/novel_view/${item.id}`}><Image src={`/upload/${item.cover_art}`} width={200} height={120} alt={item.cover_art} /></Link>
+              <Link href={`/novel_view/${item.id}`}><h3 className="text-lg font-semibold mb-2">{item.title}</h3></Link>
+              <h3 className="text-lg font-semibold mb-2">{item.user_name}</h3>
+            </center>
           </div>
         ))}
         </div>

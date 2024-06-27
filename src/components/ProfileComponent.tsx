@@ -7,7 +7,7 @@ const ProfileComponent = ({ user }: { user: { name: string, image: string } }) =
   const { setIsLoggedIn } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [coverArt, setCoverArt] = useState('');
+  const [coverArt, setCoverArt] = useState<File | null>(null);
 
   const handleSignOut = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -28,13 +28,16 @@ const ProfileComponent = ({ user }: { user: { name: string, image: string } }) =
 
   const handleAddWebnovel = async (event: React.FormEvent) => {
     event.preventDefault();
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    if (coverArt) {
+      formData.append('coverArt', coverArt)
+    }
 
     const res = await fetch('/api/add-webnovel', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title, content, coverArt }),
+      body: formData,
     });
   };
 
@@ -59,10 +62,12 @@ const ProfileComponent = ({ user }: { user: { name: string, image: string } }) =
             onChange={(e) => setContent(e.target.value)}
           />
           <input
-            type="text"
-            placeholder="Cover Art"
-            value={coverArt}
-            onChange={(e) => setCoverArt(e.target.value)}
+            type="file"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setCoverArt(e.target.files[0])}
+              }
+            }
           />
           <button type="submit">Add Webnovel</button>
         </form>

@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Image from "next/image"
+import Link from 'next/link';
 
-interface Webnovel {
+
+export interface Webnovel {
   id: number;
   title: string;
   cover_art: string;
+  content: string;
   user_id: number;
   user_name: string;
   user_email: string;
@@ -26,7 +29,7 @@ const Webnovels = () => {
           {webnovels.map((item, index) => (
           <div className="snap-center flex-shrink-0 w-80 p-4" key={index}>
             <Image src={`http://localhost:5000/api/images/${item.cover_art}`} width={200} height={120} alt={item.title} />
-            <center><h3 className="text-lg font-semibold mb-2">{item.title}</h3></center>
+            <Link href={`/novel_view/${item.title}`}><center><h3 className="text-lg font-semibold mb-2">{item.title}</h3></center></Link>
             <center><h3 className="text-lg font-semibold mb-2">{item.user_name}</h3></center>
           </div>
         ))}

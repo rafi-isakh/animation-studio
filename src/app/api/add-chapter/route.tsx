@@ -16,38 +16,20 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   const title = formData.get('title')
-  const description = formData.get('description')
-  const coverArt = formData.get('coverArt') as File
+  const content = formData.get('content')
+  const webnovel_id = formData.get('webnovel_id')
 
- if (!title || !description || !coverArt) {
+ if (!title || !content ) {
     return NextResponse.json({ error: 'Missing web novel data' }, { status: 400 });
   }
 
-
-  const destinationDirPath = path.join(process.cwd(), "public/upload");
-
-  const fileArrayBuffer = await coverArt.arrayBuffer();
-
-  if (!existsSync(destinationDirPath)) {
-    fs.mkdir(destinationDirPath, { recursive: true });
-  }
-  const coverArtPath = path.join(destinationDirPath, coverArt.name)
-
-  await fs.writeFile(
-    coverArtPath,
-    Buffer.from(fileArrayBuffer)
-  );
-
   const data = {
-    userId: session.user?.id,
-    userName: session.user?.name,
-    userEmail: session.user?.email,
     title: title,
-    description: description,
-    coverArt: coverArt.name
+    content: content,
+    webnovel_id: webnovel_id
   };
 
-  const response = await fetch('http://localhost:5000/api/add_webnovel', {
+  const response = await fetch('http://localhost:5000/api/add_chapter', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -57,7 +39,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!response.ok) {
     return NextResponse.json({
-        "message": "Add webnovel failed",
+        "message": "Add chapter failed",
         "status": response.status
     });
   }

@@ -1,6 +1,8 @@
 
 async function fetchWebnovel(id: string) {
-  const res = await fetch(`http://localhost:5000/api/get_webnovel?id=${id}`)
+  const res = await fetch(`http://localhost:5000/api/get_webnovel?id=${id}`,
+                        {cache: 'no-cache'}
+  )
 
   if (!res.ok) {
     // This will activate the closest `error.js` Error Boundary
@@ -20,7 +22,9 @@ export default async function NovelView({
               <center>
                 <p>Title: {webnovel.title}</p>
                 <p>Name: {webnovel.user_name}</p>
-                <p>Content: {webnovel.content}</p>
+                <ul>
+                  Chapters: {webnovel.chapters?.map((c, key: number) => <li>{key}: {c.title}</li>)}
+                </ul>
               </center>
             </div>
 }

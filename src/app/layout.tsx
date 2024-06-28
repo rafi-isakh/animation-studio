@@ -22,6 +22,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <Header />
             {children}
           </AuthProvider>
+          <script src="/backend/flowbite/flowbite.min.js"></script>
       </body>
     </html>
   );

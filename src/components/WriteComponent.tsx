@@ -2,23 +2,21 @@
 
 import {useState} from 'react';
 import { useRouter } from 'next/navigation'
+import React from 'react';
+import {WebnovelIdProps} from "@/components/Types"
 
-const WriteComponent = () => {
+const WriteComponent : React.FC<WebnovelIdProps> = ({webnovelId}) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [coverArt, setCoverArt] = useState<File | null>(null);
     const router = useRouter(); 
 
-    const handleAddWebnovel = async (event: React.FormEvent) => {
+    const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
-        if (coverArt) {
-            formData.append('coverArt', coverArt)
-        }
-
-        const res = await fetch('/api/add-webnovel', {
+        formData.append('webnovel_id', webnovelId);
+        const res = await fetch('/api/add-chapter', {
             method: 'POST',
             body: formData,
         });
@@ -27,7 +25,7 @@ const WriteComponent = () => {
 
     return (
     <div className="m-4 flex space-y-4 items-center justify-center">
-        <form onSubmit={handleAddWebnovel}>
+        <form onSubmit={handleAddChapter}>
             <input
                 type="text"
                 placeholder="Title"
@@ -41,16 +39,6 @@ const WriteComponent = () => {
                 value={content}
                 className='textarea textarea-lg textarea-bordered'
                 onChange={(e) => setContent(e.target.value)}
-            />
-            <br/><br/>
-            <input
-                type="file"
-                className="file-input file-input-bordered"
-                onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                    setCoverArt(e.target.files[0])}
-                }
-                }
             />
             <br/><br/>
             <button className='btn' type="submit">Submit</button>

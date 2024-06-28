@@ -1,8 +1,10 @@
 "use client"
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const SearchComponent = () => {
   const [query, setQuery] = useState('');
+  const router = useRouter();
 
   const handleChange = (e) => {
     setQuery(e.target.value);
@@ -10,7 +12,11 @@ const SearchComponent = () => {
 
   const handleKeyDown = async (e) => {
     if (e.key === 'Enter') {
-      await fetch(`/api/search?query=${query}`);
+      const response = await fetch(`/api/search?query=${query}`)
+      const data = await response.json();
+      console.log(data);
+      localStorage.setItem('searchData', JSON.stringify(data));
+      router.push("/search");
     }
   }
 

@@ -20,7 +20,8 @@ const WriteComponent : React.FC<WebnovelIdProps> = ({webnovelId}) => {
             method: 'POST',
             body: formData,
         });
-        router.push("/")
+        const res_json = await res.json();
+        router.push("/search")
   };
 
     return (

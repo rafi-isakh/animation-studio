@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
   const formData = await req.formData();
 
-  if (!session) {
+  if (!session || !session.user) {
     return NextResponse.json({
         "message": "Unauthorized",
         "status": 401
@@ -39,9 +39,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   );
 
   const data = {
-    userId: session.user?.id,
-    userName: session.user?.name,
-    userEmail: session.user?.email,
+    userEmail: session.user.email,
     title: title,
     description: description,
     coverArt: coverArt.name

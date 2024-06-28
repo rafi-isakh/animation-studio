@@ -6,7 +6,7 @@ export function GoogleSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("google",{ redirectTo: "/" })
+        await signIn("google",{ redirectTo: "/new_user" })
       }}
     > 
       <button type="submit"><Image src="/google_logo.svg" alt="Google Sign In" width={50} height={50}></Image></button>

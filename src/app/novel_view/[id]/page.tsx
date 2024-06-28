@@ -1,7 +1,7 @@
 
 async function fetchWebnovel(id: string) {
-  const res = await fetch(`http://localhost:5000/api/get_webnovel?id=${id}`,
-                        {cache: 'no-cache'}
+  const res = await fetch(`http://localhost:5000/api/get_webnovel_byid?id=${id}`,
+                        {cache: 'force-cache'}
   )
 
   if (!res.ok) {

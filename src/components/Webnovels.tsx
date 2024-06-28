@@ -1,18 +1,7 @@
 "use client"
-
+import { Webnovel } from '@/components/Types'
 import { useEffect, useState } from 'react';
-import Image from "next/image"
-import Link from 'next/link';
-
-export interface Webnovel {
-  id: number;
-  title: string;
-  cover_art: string;
-  content: string;
-  user_id: number;
-  user_name: string;
-  user_email: string;
-}
+import WebnovelComponent from "@/components/WebnovelComponent"
 
 const Webnovels = () => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -28,9 +17,7 @@ const Webnovels = () => {
           {webnovels.map((item, index) => (
           <div className="snap-center flex-shrink-0 w-80 p-4" key={index}>
             <center>
-              <Link href={`/novel_view/${item.id}`}><Image src={`/upload/${item.cover_art}`} width={200} height={120} alt={item.cover_art} /></Link>
-              <Link href={`/novel_view/${item.id}`}><h3 className="text-lg font-semibold mb-2">{item.title}</h3></Link>
-              <h3 className="text-lg font-semibold mb-2">{item.user_name}</h3>
+              <WebnovelComponent webnovel={item}/>
             </center>
           </div>
         ))}

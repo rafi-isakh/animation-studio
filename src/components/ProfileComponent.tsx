@@ -11,7 +11,6 @@ const ProfileComponent = ({ user }: { user: { name: string, image: string } }) =
       <center>
         <h2>{user.name}</h2>
         {<img src={user.image} alt="Profile" />}
-        <Link href="/write">Write</Link>
       </center>
     </div>
   );

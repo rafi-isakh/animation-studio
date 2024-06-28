@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import {useAuth} from "@/components/AuthContext";
+import WebnovelComponent from "@/components/WebnovelComponent";
 import { redirect } from "next/navigation";
 
 const MyWebnovels = async () => {
@@ -9,7 +10,9 @@ const MyWebnovels = async () => {
                         {cache: 'force-cache'}).then(r => r.json());
         return (
             <div>
-                {JSON.stringify(res)}
+                <center>
+                    <WebnovelComponent webnovel={res}/>
+                </center>
             </div>
         );
     } else {

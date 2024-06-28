@@ -1,3 +1,4 @@
+import WebnovelComponent from "@/components/WebnovelComponent";
 
 async function fetchWebnovel(id: string) {
   const res = await fetch(`http://localhost:5000/api/get_webnovel_byid?id=${id}`,
@@ -9,7 +10,8 @@ async function fetchWebnovel(id: string) {
     throw new Error('Failed to fetch data')
   }
 
-  return res.json()
+  const data = await res.json();
+  return data;
 }
 
 export default async function NovelView({
@@ -20,11 +22,7 @@ export default async function NovelView({
     const webnovel = await fetchWebnovel(id);
     return <div>
               <center>
-                <p>Title: {webnovel.title}</p>
-                <p>Name: {webnovel.user_name}</p>
-                <ul>
-                  Chapters: {webnovel.chapters?.map((c, key: number) => <li>{key}: {c.title}</li>)}
-                </ul>
+                <WebnovelComponent webnovel={webnovel}/>
               </center>
             </div>
 }

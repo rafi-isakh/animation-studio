@@ -1,20 +1,29 @@
 "use client"
-
+import { Webnovel } from '@/components/Types';
+import WebnovelComponent from '@/components/WebnovelComponent';
 import {useState, useEffect} from 'react';
 const Search = () => {
 
-    const [data, setData] = useState(null);
+    const [data, setData] = useState<Webnovel>();
 
     useEffect(() => {
-        const storedData = localStorage.getItem('searchData');
+        const storedData = sessionStorage.getItem('searchData');
         if (storedData) {
             setData(JSON.parse(storedData));
+        } else {
+          setData(null);
         }
-    }, []);
+    }, [data]);
 
   return (
     <div>
-      {JSON.stringify(data)}
+      <center>
+        {
+          data?
+          <WebnovelComponent webnovel={data}/>
+        : <main></main>
+        }
+      </center>
     </div>
   );
 };

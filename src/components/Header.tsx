@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
+import React from 'react';
 import { useAuth } from '@/components/AuthContext';
 import SearchComponent from '@/components/SearchComponent';
 
@@ -55,17 +54,23 @@ const Header = () => {
         </svg></button>
                   <div id="dropdownNavbar" className="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
                       <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
-                        {isLoggedIn? <li>
-                          <a href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</a>
-                        </li>:
-                        <li>
-                          <a href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</a>
-                        </li>}
                         {isLoggedIn?
                         <li>
                           <a href="/profile" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">프로필</a>
                         </li>:<main></main>
                         }
+                        {isLoggedIn?
+                        <li>
+                          <a href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">글쓰기</a>
+                        </li>:<main></main>
+                        }
+                        {isLoggedIn? 
+                        <li>
+                          <a href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</a>
+                        </li>:
+                        <li>
+                          <a href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</a>
+                        </li>}
                       </ul>
                   </div>
               </li>

@@ -22,7 +22,7 @@ export function KakaoSignIn() {
         await signIn("kakao", {redirectTo: "/"})
       }}
     >
-      <button type="submit"><Image src="/kakao_logo.png" alt="Kakao Sign In" width={50} height={50}></Image></button>
+      <button type="submit"><Image src="/kakao_logo.svg" alt="Kakao Sign In" width={50} height={50}></Image></button>
     </form>
   )
 } 
@@ -35,7 +35,7 @@ export function NaverSignIn() {
         await signIn("naver", {redirectTo: "/"})
       }}
     >
-      <button><Image src="/naver_logo.png" alt="Naver Sign In" width={50} height={50}></Image></button>
+      <button><Image src="/naver_logo.svg" alt="Naver Sign In" width={50} height={50}></Image></button>
     </form>
   )
 } 

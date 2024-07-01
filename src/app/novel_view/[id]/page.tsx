@@ -1,4 +1,7 @@
+import { auth } from "@/auth"
+import { User } from "@/components/Types"
 import WebnovelComponent from "@/components/WebnovelComponent";
+import CommentComponent from "@/components/CommentComponent";
 
 async function fetchWebnovel(id: string) {
   const res = await fetch(`http://localhost:5000/api/get_webnovel_byid?id=${id}`,
@@ -19,10 +22,12 @@ export default async function NovelView({
 }: {
   params: { id: string }
 }) {
+    const session = await auth();
     const webnovel = await fetchWebnovel(id);
     return <div>
               <center>
                 <WebnovelComponent webnovel={webnovel}/>
+                <CommentComponent webnovelId={id} user={session?.user} />
               </center>
             </div>
 }

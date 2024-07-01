@@ -9,9 +9,15 @@ export interface Chapter {
 }
 
 export interface User {
-  id: string;
   email: string;
   name: string;
+}
+
+export interface Comment {
+  user: User;
+  content: string;
+  upvotes: number;
+  webnovel_id: string;
 }
 
 export interface Webnovel {
@@ -19,6 +25,7 @@ export interface Webnovel {
   title: string;
   cover_art: string;
   chapters: Chapter[];
+  comments: Comment[];
   description: string;
   genre: string;
   user: User;

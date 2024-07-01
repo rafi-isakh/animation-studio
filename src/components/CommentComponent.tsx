@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Comment, User } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 
@@ -35,20 +35,27 @@ const CommentComponent = ({ webnovelId, user }: { webnovelId: string, user: User
             if (!response.ok) {
                 setAllComments(allComments.filter(comment => comment !== newComment));
             } else {
-                await fetchComments();
+                const res = await fetch(`http://localhost:5000/api/get_comments?webnovelId=${webnovelId}`)
+                    .then(data => data.json())
+                if (Array.isArray(res)) {
+                    setAllComments(res);
+                }
             }
 
             setCommentContent('');
         }
     };
 
-    const fetchComments = async () => {
-        const res = await fetch(`http://localhost:5000/api/get_comments?webnovelId=${webnovelId}`)
-            .then(data => data.json())
-        if (Array.isArray(res)) {
-            setAllComments(res);
+    useEffect(() => {
+        const fetchComments = async () => {
+            const res = await fetch(`http://localhost:5000/api/get_comments?webnovelId=${webnovelId}`)
+                .then(data => data.json())
+            if (Array.isArray(res)) {
+                setAllComments(res);
+            }
         }
-    }
+        fetchComments();
+    }, [webnovelId]);
 
     return (
         <div>

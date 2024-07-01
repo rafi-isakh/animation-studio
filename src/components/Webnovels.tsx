@@ -15,7 +15,7 @@ const Webnovels = () => {
   return (
         <div className="snap-x overflow-x-scroll flex m-10">
           {webnovels.map((item, index) => (
-          <div className="snap-center flex-shrink-0 w-80 p-4" key={index}>
+          <div className="max-w-screen-xl flex mx-auto snap-center flex-shrink-0 w-80 p-4" key={index}>
             <center>
               <WebnovelComponent webnovel={item}/>
             </center>

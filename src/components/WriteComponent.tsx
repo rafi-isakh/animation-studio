@@ -15,13 +15,13 @@ const WriteComponent : React.FC<WebnovelIdProps> = ({webnovelId}) => {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
-        formData.append('webnovel_id', webnovelId);
+        formData.append('webnovel_id', webnovelId.toString());
         const res = await fetch('/api/add-chapter', {
             method: 'POST',
             body: formData,
         });
         const res_json = await res.json();
-        router.push("/search")
+        router.push(`/novel_view/${webnovelId}`)
   };
 
     return (

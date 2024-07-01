@@ -1,20 +1,13 @@
 import { auth } from "@/auth";
-import {useAuth} from "@/components/AuthContext";
-import WebnovelComponent from "@/components/WebnovelComponent";
 import { redirect } from "next/navigation";
+import MyWebnovelsComponent from "@/components/MyWebnovels";
 
 const MyWebnovels = async () => {
     const session = await auth();
     if (session && session.user) {
-        const res = await fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${session.user.email}`,
-                        {cache: 'force-cache'}).then(r => r.json());
         return (
-            <div>
-                <center>
-                    <WebnovelComponent webnovel={res}/>
-                </center>
-            </div>
-        );
+            <MyWebnovelsComponent email={session.user.email}/>
+        )
     } else {
         redirect('/signin');
     };

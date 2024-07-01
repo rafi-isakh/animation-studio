@@ -79,7 +79,7 @@ const Header = () => {
         </div>
       </nav>
 
-      <div className="flex space-x-4 m-4">
+        <div className="max-w-screen-xl flex flex-wrap items-center space-x-4 mx-auto p-4">
         <div className="text-xl">로판</div>
         <div className="text-xl">로맨스</div>
         <div className="text-xl">BL</div>

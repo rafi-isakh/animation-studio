@@ -1,13 +1,25 @@
 export interface WebnovelIdProps {
-    webnovelId: string;
+    webnovelId: number;
+}
+
+export interface Chapter {
+  content: string;
+  title: string;
+  webnovelId: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
 }
 
 export interface Webnovel {
   id: number;
   title: string;
   cover_art: string;
-  content: string;
-  user_id: number;
-  user_name: string;
-  user_email: string;
+  chapters: Chapter[];
+  description: string;
+  genre: string;
+  user: User;
 }

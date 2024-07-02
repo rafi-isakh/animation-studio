@@ -12,11 +12,13 @@ const SearchComponent = () => {
 
   const handleKeyDown = async (e) => {
     if (e.key === 'Enter') {
+      console.log('hoho');
       const response = await fetch(`/api/search?query=${query}`);
       const data = await response.json();
       sessionStorage.setItem('searchData', JSON.stringify(data));
-      console.log(sessionStorage.getItem('searchData'));
-      router.push("/search");
+      console.log('hehe');
+      router.push('/search');
+      router.refresh();
     }
   }
 

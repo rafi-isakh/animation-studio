@@ -1,27 +1,37 @@
 "use client"
 import { Webnovel } from '@/components/Types';
 import WebnovelComponent from '@/components/WebnovelComponent';
-import {useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 const Search = () => {
+  const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
 
-    const [data, setData] = useState<Webnovel>();
+  useEffect(() => {
+    console.log("haha");
+  }, []);
 
-    useEffect(() => {
-        const storedData = sessionStorage.getItem('searchData');
-        if (storedData) {
-            setData(JSON.parse(storedData));
-        } else {
-          setData(null);
-        }
-    }, [data]);
+  useEffect(() => {
+    const storedData = sessionStorage.getItem('searchData');
+    var json;
+    if (storedData) {
+      json = JSON.parse(storedData);
+    }
+    if (json) {
+      setWebnovels(json);
+    } else {
+      setWebnovels([]);
+      sessionStorage.setItem('searchData', '')
+    }
+  }, [webnovels]);
 
   return (
     <div>
       <center>
         {
-          data?
-          <WebnovelComponent webnovel={data}/>
-        : <main></main>
+          (webnovels.length) ?
+            webnovels.map((webnovel, index) => (
+              <WebnovelComponent key={index} webnovel={webnovel} />
+            )) :
+            <main>검색결과가 없습니다</main>
         }
       </center>
     </div>

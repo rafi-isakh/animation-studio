@@ -36,7 +36,7 @@ const AddWebnovelComponent = () => {
     };
 
     return (
-         <div className="flex space-y-4 items-center justify-center max-h-screen max-w-4-xl mx-auto">
+        <div className="flex space-y-4 items-center justify-center max-h-screen max-w-4-xl mx-auto">
             <form className="max-w-4xl w-full" onSubmit={handleAddWebnovel}>
                 <div className="flex flex-row space-x-4">
                     <div className="mr-4 w-3/4">
@@ -53,25 +53,27 @@ const AddWebnovelComponent = () => {
                         <p className="text-lg">작품 소개</p>
                         <textarea
                             value={description}
-                            rows={4}
-                            className='textarea textarea-lg textarea-bordered w-full h-full'
+                            rows={8}
+                            className='textarea textarea-lg textarea-bordered w-full'
                             onChange={(e) => setDescription(e.target.value)}
                         />
                         <br /><br />
                         <button type="submit" className="text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                     </div>
-                    <div>
+                    <div className="w-1/4">
+                        {coverArtPreview ?
+                            <div className="mt-4">
+                                <img src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs" />
+                            </div> :
+                            <svg className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                                <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
+                            </svg>
+                        }
                         <input
                             type="file"
-                            className="file-input file-input-bordered"
+                            className="mt-4 file-input file-input-bordered"
                             onChange={handleFileChange}
                         />
-                        {coverArtPreview && ( // Add this block
-                            <div className="mt-4">
-                                <img src={coverArtPreview} alt="Cover Art Preview" className="max-h-64" />
-                            </div>
-                        )}
-                        <br /><br />
                     </div>
                 </div>
             </form>

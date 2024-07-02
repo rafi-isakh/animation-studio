@@ -1,34 +1,18 @@
-/* components/CarouselComponent.module.css */
-.carouselContainer {
+.slick-track {
+  margin:auto;
+}
+
+.carousel-container {
+  display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
-  margin: 20px auto;
-  width: 80%;
-  text-align: center;
-}
-
-.slick-dots li button:before {
-  color: #000;
-}
-
-.slick-prev:before,
-.slick-next:before {
-  color: #000; /* Set the arrow color */
-  background-color: #fff; /* Optional: Add a background color to make arrows more visible */
-  padding: 5px; /* Optional: Add padding for better appearance */
-  border-radius: 50%; /* Optional: Make arrows circular */
-  font-size: 20px; /* Optional: Increase the size of the arrows */
-  line-height: 1; /* Ensure the content is centered */
 }
 
 .slick-slide > div {
-    display: grid;
-    place-items: center;
-    width: 80%;
-    margin-top: 50px;
-    margin: auto;
-    height: 500px;
-    padding: 0px;
-    background: red;
+  display: flex;
+  justify-content: center;
+}
+
+.slick-slide img {
+  margin: auto;
 }

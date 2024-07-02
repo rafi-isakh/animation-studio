@@ -5,7 +5,7 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Image from 'next/image'
-import '@/styles/CarouselComponent.module.css';
+import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 
 const CarouselComponentReactSlick = () => {
@@ -40,20 +40,25 @@ const CarouselComponentReactSlick = () => {
 
   const settings = {
     slidesToShow: 1,
-    centerMode: true,
+    slidesToScroll: 1,
     swipeToSlide: true,
     infinite: true,
+    speed: 500,
+    autoplay: true,
     dots: true,
+    className: "center",
+    centerMode: true,
+    centerPadding: "60px",
     nextArrow: <SampleNextArrow/>,
     prevArrow: <SamplePrevArrow/>
   };
   return (
-    <div className='flex max-w-screen-2xl justify-center mx-auto items-center'>
-      <div className="max-w-full md:w-4/5 lg:w-3/5">
+    <div className={`flex max-w-screen-xl w-full mx-auto items-center justify-center ${styles.carouselContainer}`}>
+      <div className="w-full items-center justify-center">
         <Slider {...settings}>
           {carouselItems.map((item, index) => (
-            <div key={index}>
-              <Image src={`/upload/${item.image}`} width={1020} height={402} alt={item.image} />
+            <div key={index} className={styles.carouselContainer}>
+              <Image src={`/upload/${item.image}`} width={1280} height={504} alt={item.image} />
             </div>
           ))}
         </Slider>

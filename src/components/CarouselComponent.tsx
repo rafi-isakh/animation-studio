@@ -1,7 +1,6 @@
 "use client"
 import { SlickCarouselItem } from "@/components/Types";
 import { useEffect, useState } from "react";
-import { Carousel } from "flowbite-react";
 import Image from 'next/image'
 
 const CarouselComponent = () => {

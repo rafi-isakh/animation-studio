@@ -5,20 +5,24 @@ import { useRouter } from 'next/navigation';
 const SearchComponent = () => {
   const [query, setQuery] = useState('');
   const router = useRouter();
+  let keyPressed = false
 
   const handleChange = (e) => {
     setQuery(e.target.value);
   }
 
-  const handleKeyDown = async (e) => {
+  const handleKeyUp = (e) => {
+    if (e.key == 'Enter') {
+      keyPressed = false;
+    }
+  }
+
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      console.log('hoho');
-      const response = await fetch(`/api/search?query=${query}`);
-      const data = await response.json();
-      sessionStorage.setItem('searchData', JSON.stringify(data));
-      console.log('hehe');
-      router.push('/search');
-      router.refresh();
+      if (!keyPressed) {
+        keyPressed = true;
+        router.push(`/search?query=${query}`);
+      }
     }
   }
 
@@ -37,7 +41,7 @@ const SearchComponent = () => {
           </svg>
           <span className="sr-only">Search icon</span>
         </div>
-        <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" placeholder="검색하세요..." />
+        <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" placeholder="검색하세요..." />
       </div>
       <button data-collapse-toggle="navbar-search" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-search" aria-expanded="false">
         <span className="sr-only">Open main menu</span>

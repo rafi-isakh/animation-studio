@@ -78,14 +78,6 @@ const Header = () => {
           </div>
         </div>
       </nav>
-
-        <div className="max-w-screen-xl flex flex-wrap items-center space-x-4 mx-auto p-4">
-        <div className="text-xl">로판</div>
-        <div className="text-xl">로맨스</div>
-        <div className="text-xl">BL</div>
-        <div className="text-xl">현판</div>
-        <div className="text-xl">게임물</div>
-      </div>
   </div>
   );
 };

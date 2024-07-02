@@ -20,6 +20,11 @@ export interface Comment {
   webnovel_id: string;
 }
 
+export interface SlickCarouselItem {
+  image: string;
+  description: string;
+}
+
 export interface Webnovel {
   id: number;
   title: string;

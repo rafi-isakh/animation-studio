@@ -6,20 +6,8 @@ import MyWebnovelsComponent from "@/components/MyWebnovelsComponent";
 import { useEffect } from "react";
 
 const MyWebnovels = () => {
-
-    const { isLoggedIn } = useAuth();
-    if (isLoggedIn) {
-        useEffect(() => {
-            if (!isLoggedIn) {
-                redirect('/signin');
-            }
-        })
-        return (
-            <MyWebnovelsComponent />
-        )
-    }
     return (
-        <div></div>
+        <MyWebnovelsComponent />
     )
 }
 

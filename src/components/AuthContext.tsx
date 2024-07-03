@@ -3,11 +3,11 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 interface AuthContextProps {
   isLoggedIn: boolean | null;
-  setIsLoggedIn: (loggedIn: boolean) => void;
+  setIsLoggedIn: (loggedIn: boolean | null) => void;
   email: string | null;
-  setEmail: (email: string) => void;
+  setEmail: (email: string | null) => void;
   username: string | null;
-  setUsername: (username: string) => void;
+  setUsername: (username: string | null) => void;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);

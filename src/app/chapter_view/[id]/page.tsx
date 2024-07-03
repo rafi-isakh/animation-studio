@@ -26,6 +26,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     }
 
+    const newlineToBr = (text: string) => {
+        text = text.replaceAll("\r\n", "<br>");
+        text = text.replaceAll("\n", "<br>");
+        return text;
+    }
+
     if (webnovel && chapter) {
         return (
             <div className='max-w-md flex flex-col items-left justify-center mx-auto'>
@@ -42,7 +48,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 {/* Title and content */}
                 <div className="max-w-full flex flex-col space-y-4">
                     <p className="text-2xl mt-10 mb-10">{chapter.title}</p>
-                    <p className="text-sm">{chapter.content}</p>
+                    <p className="text-sm" dangerouslySetInnerHTML={{ __html: newlineToBr(chapter.content) }}></p>
                 </div>
                 {/* Novel title, chapter number, button to next chapter */}
                 <div>

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/components/AuthContext"
 import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent';
 
-const MyWebnovelsComponent = () => {
+const ViewWebnovelsComponent = () => {
 
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const searchParams = useSearchParams();
@@ -16,17 +16,20 @@ const MyWebnovelsComponent = () => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
+        fetch(`http://localhost:5000/api/get_webnovel_byid?id=${id}`)
             .then(response => response.json())
             .then(data => {
-                if (data.length > 0) {
-                    setWebnovels(data)
-                    const ids = data.map((w: Webnovel) => w.id);
-                    const first = Math.min(...ids)
-                    window.history.pushState(null, '', `?id=${first}`)
-                }
+                const webnovel: Webnovel = data;
+                const email = webnovel.user.email;
+                fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            setWebnovels(data)
+                        }
+                    })
             })
-    }, [email]);
+    }, [id]);
 
     const getGenre = () => {
         const webnovel = getWebnovel();
@@ -131,5 +134,5 @@ const MyWebnovelsComponent = () => {
     }
 };
 
-export default MyWebnovelsComponent;
+export default ViewWebnovelsComponent;
 

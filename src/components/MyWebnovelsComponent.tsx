@@ -13,28 +13,32 @@ const MyWebnovelsComponent = () => {
     const id = searchParams.get('id');
     const { email, username } = useAuth();
     const router = useRouter();
-    const webnovel = webnovels.find(w => w.id.toString() == id)
 
     useEffect(() => {
         fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
             .then(response => response.json())
             .then(data => {
                 setWebnovels(data)
-                const ids = data.map((w: Webnovel) => w.id);
-                const first = Math.min(...ids)
-                window.history.pushState(null, '', `?id=${first}`)
+                if (data.length > 0) {
+                    const ids = data.map((w: Webnovel) => w.id);
+                    const first = Math.min(...ids)
+                    window.history.pushState(null, '', `?id=${first}`)
+                }
             })
     }, [email]);
 
     const getGenre = () => {
+        const webnovel = getWebnovel();
         return webnovel?.genre
     }
 
     const getTitle = () => {
+        const webnovel = getWebnovel();
         return webnovel?.title
     }
 
     const getUpvotes = () => {
+        const webnovel = getWebnovel();
         return webnovel?.upvotes
     }
 
@@ -42,7 +46,15 @@ const MyWebnovelsComponent = () => {
         router.push(`/new_chapter?id=${id}`);
     }
 
-    if (webnovel) {
+    const getCoverArt = () => {
+        const webnovel = getWebnovel();
+        return webnovel?.cover_art
+    }
+    const getWebnovel = () => {
+        return webnovels.find(w => w.id.toString() == id)
+    }
+
+    if (webnovels.length > 0) {
         return (
             <div className='max-w-screen-xl w-full flex flex-row justify-center mx-auto'>
                 {/* Aside component, titles of webnovels*/}
@@ -64,7 +76,7 @@ const MyWebnovelsComponent = () => {
                             <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {getUpvotes()}</p>
                         </div>
                         <div>
-                            <Image src={`/upload/${webnovel.cover_art}`} alt={webnovel.cover_art} width={120} height={200} />
+                            <Image src={`/upload/${getCoverArt()}`} alt={getCoverArt()} width={120} height={200} />
                         </div>
                     </div>
                     {/* Upload new chapter component */}
@@ -95,7 +107,8 @@ const MyWebnovelsComponent = () => {
                             </thead>
                             <tbody>
                                 {(() => {
-                                    const chapters = webnovel.chapters;
+                                    const webnovel = getWebnovel();
+                                    const chapters = webnovel?.chapters;
                                     return (
                                         chapters?.map((chapter) => (
                                             <tr className="bg-white">
@@ -115,10 +128,12 @@ const MyWebnovelsComponent = () => {
                     </div>
                 </div>
             </div >
-        );
+        )
     }
     else {
-        return <div></div>
+        return (
+            <div></div>
+        )
     }
 };
 

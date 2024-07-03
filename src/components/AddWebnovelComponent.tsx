@@ -1,15 +1,29 @@
 "use client"
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'
-import SidebarComponent from '@/components/SidebarComponent';
+import { Webnovel } from '@/components//Types';
+import { useAuth } from '@/components/AuthContext';
+import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [coverArt, setCoverArt] = useState<File | null>(null);
     const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null);
+    const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
+    const { email, username } = useAuth();
     const router = useRouter();
+
+    useEffect(() => {
+        fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    setWebnovels(data)
+                }
+            })
+    }, [email]);
 
     const handleAddWebnovel = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -36,8 +50,9 @@ const AddWebnovelComponent = () => {
     };
 
     return (
-        <div className="flex space-y-4 items-center justify-center max-h-screen mx-auto">
-            <form className="max-w-screen-xl w-full" onSubmit={handleAddWebnovel}>
+        <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
+            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username}/>
+            <form className="w-3/4" onSubmit={handleAddWebnovel}>
                 <div className="flex flex-row space-x-4">
                     <div className="mr-4 w-2/3">
                         <p className="text-2xl">새 작품 쓰기</p>
@@ -53,14 +68,14 @@ const AddWebnovelComponent = () => {
                         <p className="text-lg">작품 소개</p>
                         <textarea
                             value={description}
-                            rows={8}
+                            rows={4}
                             className='textarea textarea-lg textarea-bordered w-full'
                             onChange={(e) => setDescription(e.target.value)}
                         />
                         <br /><br />
                         <button type="submit" className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                     </div>
-                    <div className="w-1/3">
+                    <div className="w-1/4">
                         {coverArtPreview ?
                             <div className="mt-4">
                                 <img src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs" />

@@ -1,4 +1,4 @@
-import AddWebnovelComponent from "@/components/AddWebnovelComponent"
+import AddWebnovelComponent from '@/components/AddWebnovelComponent';
 
 const NewNovel = () => {
     return (

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/components/AuthContext"
+import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent';
 
 const MyWebnovelsComponent = () => {
 
@@ -18,8 +19,8 @@ const MyWebnovelsComponent = () => {
         fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
             .then(response => response.json())
             .then(data => {
-                setWebnovels(data)
                 if (data.length > 0) {
+                    setWebnovels(data)
                     const ids = data.map((w: Webnovel) => w.id);
                     const first = Math.min(...ids)
                     window.history.pushState(null, '', `?id=${first}`)
@@ -56,17 +57,10 @@ const MyWebnovelsComponent = () => {
 
     if (webnovels.length > 0) {
         return (
-            <div className='max-w-screen-xl w-full flex flex-row justify-center mx-auto'>
+            <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
                 {/* Aside component, titles of webnovels*/}
-                <div className="flex flex-col space-y-4 w-1/3">
-                    <p className="text-2xl">{username}님의 작품</p>
-                    <div className="flex flex-col space-y-4">
-                        {webnovels.map(webnovel => (
-                            <Link href={`/my_webnovels?id=${webnovel.id}`} className="text-md hover:text-pink-600">{webnovel.title}</Link>
-                        ))}
-                    </div>
-                </div>
-                <div className='ml-20 w-2/3'>
+                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username}/>
+                <div className='w-3/4'>
                     {/* Top component, webnovel information and picture*/}
                     <div className='flex flex-row justify-between'>
                         <div className="flex flex-col space-y-4">
@@ -76,7 +70,7 @@ const MyWebnovelsComponent = () => {
                             <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {getUpvotes()}</p>
                         </div>
                         <div>
-                            <Image src={`/upload/${getCoverArt()}`} alt={getCoverArt()} width={120} height={200} />
+                            <Image src={`/upload/${getCoverArt()}`} alt={getCoverArt()} width={240} height={400} />
                         </div>
                     </div>
                     {/* Upload new chapter component */}

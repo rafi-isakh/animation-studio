@@ -1,6 +1,6 @@
 "use client"
 
-import WriteComponent from "@/components/WriteComponent"
+import AddChapterComponent from "@/components/AddChapterComponent";
 import { useSearchParams } from "next/navigation";
 
 function NewChapter() {
@@ -8,7 +8,7 @@ function NewChapter() {
     const id = searchParams.get('id');
     if (id) {
         return (
-            <WriteComponent webnovelId={id} />
+            <AddChapterComponent webnovelId={id} />
         );
     }
     else {

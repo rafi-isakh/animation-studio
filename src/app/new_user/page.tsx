@@ -8,7 +8,6 @@ const NewUser = async () => {
         'user_email': session.user.email,
         'user_name': session.user.name
     }
-    console.log(session.user.email);
     const res = await fetch('http://localhost:5000/api/add_user', {
         method: 'POST',
         headers: {

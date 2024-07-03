@@ -3,9 +3,10 @@ export interface WebnovelIdProps {
 }
 
 export interface Chapter {
+  id: number;
   content: string;
   title: string;
-  webnovelId: string;
+  webnovel_id: string;
 }
 
 export interface User {
@@ -34,4 +35,5 @@ export interface Webnovel {
   description: string;
   genre: string;
   user: User;
+  upvotes: number;
 }

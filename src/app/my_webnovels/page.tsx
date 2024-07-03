@@ -1,16 +1,26 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import MyWebnovelsComponent from "@/components/MyWebnovels";
+"use client"
 
-const MyWebnovels = async () => {
-    const session = await auth();
-    if (session && session.user) {
+import { redirect } from "next/navigation";
+import { useAuth } from '@/components/AuthContext';
+import MyWebnovelsComponent from "@/components/MyWebnovelsComponent";
+import { useEffect } from "react";
+
+const MyWebnovels = () => {
+
+    const { isLoggedIn } = useAuth();
+    if (isLoggedIn) {
+        useEffect(() => {
+            if (!isLoggedIn) {
+                redirect('/signin');
+            }
+        })
         return (
-            <MyWebnovelsComponent email={session.user.email}/>
+            <MyWebnovelsComponent />
         )
-    } else {
-        redirect('/signin');
-    };
+    }
+    return (
+        <div></div>
+    )
 }
 
 export default MyWebnovels;

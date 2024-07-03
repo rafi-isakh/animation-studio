@@ -22,7 +22,7 @@ const CarouselComponentReactSlick = () => {
     return (
       <div
         className={className}
-        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-50px)'}} // Change to desired color and size
+        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-50px) scale(2)'}}
         onClick={onClick}
       />
     );
@@ -32,7 +32,7 @@ const CarouselComponentReactSlick = () => {
     return (
       <div
         className={className}
-        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(50px)'}}
+        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(50px) scale(2)'}}
         onClick={onClick}
       />
     );
@@ -47,8 +47,6 @@ const CarouselComponentReactSlick = () => {
     autoplay: true,
     dots: true,
     className: "center",
-    centerMode: true,
-    centerPadding: "60px",
     nextArrow: <SampleNextArrow/>,
     prevArrow: <SamplePrevArrow/>
   };

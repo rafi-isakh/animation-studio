@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import React from 'react';
 import {WebnovelIdProps} from "@/components/Types"
 
-const WriteComponent : React.FC<WebnovelIdProps> = ({webnovelId}) => {
+const WriteComponent = ({webnovelId} : {webnovelId: string}) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const router = useRouter(); 
@@ -15,7 +15,7 @@ const WriteComponent : React.FC<WebnovelIdProps> = ({webnovelId}) => {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
-        formData.append('webnovel_id', webnovelId.toString());
+        formData.append('webnovel_id', webnovelId);
         const res = await fetch('/api/add-chapter', {
             method: 'POST',
             body: formData,

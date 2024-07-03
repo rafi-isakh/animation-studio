@@ -36,10 +36,10 @@ const AddWebnovelComponent = () => {
     };
 
     return (
-        <div className="flex space-y-4 items-center justify-center max-h-screen max-w-4-xl mx-auto">
-            <form className="max-w-4xl w-full" onSubmit={handleAddWebnovel}>
+        <div className="flex space-y-4 items-center justify-center max-h-screen mx-auto">
+            <form className="max-w-screen-xl w-full" onSubmit={handleAddWebnovel}>
                 <div className="flex flex-row space-x-4">
-                    <div className="mr-4 w-3/4">
+                    <div className="mr-4 w-2/3">
                         <p className="text-2xl">새 작품 쓰기</p>
                         <br />
                         <p className="text-lg">작품 제목</p>
@@ -58,9 +58,9 @@ const AddWebnovelComponent = () => {
                             onChange={(e) => setDescription(e.target.value)}
                         />
                         <br /><br />
-                        <button type="submit" className="text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
+                        <button type="submit" className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                     </div>
-                    <div className="w-1/4">
+                    <div className="w-1/3">
                         {coverArtPreview ?
                             <div className="mt-4">
                                 <img src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs" />

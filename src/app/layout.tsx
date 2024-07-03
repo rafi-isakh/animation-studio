@@ -24,6 +24,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             {children}
           </AuthProvider>
           <script src="/backend/flowbite/flowbite.min.js"/>
+          <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous"></script>
       </body>
     </html>
   );

@@ -12,7 +12,6 @@ const CommentComponent = ({ webnovelId, user }: { webnovelId: string, user: User
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (!user) {
-            console.log('pushin')
             router.push("/signin");
         } else {
             var newComment = {

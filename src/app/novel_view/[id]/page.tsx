@@ -27,7 +27,6 @@ export default async function NovelView({
     return <div>
               <center>
                 <WebnovelComponent webnovel={webnovel}/>
-                <CommentComponent webnovelId={id} user={session?.user} />
               </center>
             </div>
 }

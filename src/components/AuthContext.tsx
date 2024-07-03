@@ -2,8 +2,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AuthContextProps {
-  isLoggedIn: boolean;
+  isLoggedIn: boolean | null;
   setIsLoggedIn: (loggedIn: boolean) => void;
+  email: string | null;
+  setEmail: (email: string) => void;
+  username: string | null;
+  setUsername: (username: string) => void;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -13,7 +17,9 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [username, setUsername] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,6 +27,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const response = await fetch('/api/session');
         const data = await response.json();
         setIsLoggedIn(data.loggedIn);
+        setUsername(data.username);
+        setEmail(data.email);
       } catch (error) {
         console.error('Error checking auth:', error);
       }
@@ -29,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <authContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+    <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, email, setEmail, username, setUsername}}>
       {children}
     </authContext.Provider>
   );

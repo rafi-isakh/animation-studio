@@ -18,16 +18,19 @@ const ViewWebnovelsComponent = () => {
         fetch(`http://localhost:5000/api/get_webnovel_byid?id=${id}`)
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 const webnovel: Webnovel = data;
-                setEmail(webnovel.user.email);
-                setUsername(webnovel.user.name);
+                const email = data.user.email;
+                setEmail(webnovel.user?.email);
+                setUsername(webnovel.user?.name);
                 fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
                     .then(response => response.json())
                     .then(data => {
+                        console.log(data)
                         setWebnovels(data)
                     })
             })
-    }, [id]);
+    }, []);
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}`);

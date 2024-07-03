@@ -61,7 +61,7 @@ const Header = () => {
                     }
                     {isLoggedIn ?
                       <li>
-                        <a href="/my_webnovels" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</a>
+                        <a href="/my_webnovels_redirect" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</a>
                       </li> : <main></main>
                     }
                     {isLoggedIn ?

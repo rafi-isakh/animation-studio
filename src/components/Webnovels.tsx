@@ -13,7 +13,7 @@ const Webnovels = () => {
   }, []);
 
   return (
-        <div className="max-w-screen-xl mx-auto snap-x overflow-x-scroll flex m-10">
+        <div className="scrollbar-hide max-w-screen-xl mx-auto snap-x overflow-x-scroll flex m-10">
           {webnovels.map((item, index) => (
           <div className="max-w-screen-sm flex mx-auto snap-center flex-shrink-0 w-80 p-4" key={index}>
             <center>

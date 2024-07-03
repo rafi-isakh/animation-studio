@@ -39,7 +39,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 <div className="flex flex-row max-w-full w-full justify-between">
                     <div>
                     <i className="fa-solid fa-chevron-left"></i>
-                    <Link className='ml-2' href={`/view_webnovels?id=${id}`}>{webnovel.title}</Link>
+                    <Link className='ml-2' href={`/view_webnovels?id=${webnovel.id}`}>{webnovel.title}</Link>
                     </div>
                     <div>
                     <i onClick={handleLikeClick} className="fa-regular fa-heart"></i>

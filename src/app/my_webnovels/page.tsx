@@ -1,14 +1,7 @@
-"use client"
-
-import { redirect } from "next/navigation";
-import { useAuth } from '@/components/AuthContext';
-import MyWebnovelsComponent from "@/components/MyWebnovelsComponent";
-import { useEffect } from "react";
+import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 
 const MyWebnovels = () => {
-    return (
-        <MyWebnovelsComponent />
-    )
+    <ViewWebnovelsComponent/>
 }
 
 export default MyWebnovels;

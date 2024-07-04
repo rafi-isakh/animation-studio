@@ -19,7 +19,7 @@ export function KakaoSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("kakao", {redirectTo: "/"})
+        await signIn("kakao", {redirectTo: "/new_user"})
       }}
     >
       <button type="submit"><Image src="/kakao_logo.svg" alt="Kakao Sign In" width={50} height={50}></Image></button>
@@ -32,7 +32,7 @@ export function NaverSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("naver", {redirectTo: "/"})
+        await signIn("naver", {redirectTo: "/new_user"})
       }}
     >
       <button><Image src="/naver_logo.svg" alt="Naver Sign In" width={50} height={50}></Image></button>
@@ -45,7 +45,7 @@ export function AppleSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("apple")
+        await signIn("apple", {redirectTo: '/new_user'})
       }}
     >
       <button className="rounded-full" type="submit">Signin with Apple</button>
@@ -58,7 +58,7 @@ export function FacebookSignIn() {
     <form
       action={async () => {
         "use server"
-        await signIn("facebook")
+        await signIn("facebook", {redirectTo: 'new_user'})
       }}
     >
       <button className="rounded-full" type="submit">Signin with Faecebook</button>

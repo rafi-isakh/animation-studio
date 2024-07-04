@@ -8,6 +8,8 @@ interface AuthContextProps {
   setEmail: (email: string | null) => void;
   username: string | null;
   setUsername: (username: string | null) => void;
+  id: string | null;
+  setId: (username: string | null) => void;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -20,6 +22,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [email, setEmail] = useState(null);
   const [username, setUsername] = useState(null);
+  const [id, setId] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,6 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn(data.loggedIn);
         setUsername(data.username);
         setEmail(data.email);
+        setId(data.id);
       } catch (error) {
         console.error('Error checking auth:', error);
       }
@@ -37,7 +41,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, email, setEmail, username, setUsername}}>
+    <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, 
+                                    email, setEmail, 
+                                    username, setUsername,
+                                    id, setId}}>
       {children}
     </authContext.Provider>
   );

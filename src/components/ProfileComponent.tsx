@@ -3,10 +3,11 @@
 import React from 'react';
 import { useAuth } from '@/components/AuthContext';
 import Link from 'next/link'
+import { redirect } from 'next/navigation';
 
 const ProfileComponent = ({ user }: { user: { name: string, image: string } }) => {
-  const { username } = useAuth();
-  if (username) {
+  const { isLoggedIn, username } = useAuth();
+  if (isLoggedIn) {
     return (
       <div>
         <center>
@@ -17,6 +18,7 @@ const ProfileComponent = ({ user }: { user: { name: string, image: string } }) =
     );
   }
   else {
+    if (isLoggedIn == null) {
     return (
       <div>
         <div role="status" className="space-y-8 animate-pulse md:space-y-0 md:space-x-8 rtl:space-x-reverse md:flex md:items-center">
@@ -37,6 +39,9 @@ const ProfileComponent = ({ user }: { user: { name: string, image: string } }) =
         </div>
       </div>
     )
+  } else if (isLoggedIn == false) {
+    redirect('/signin')
+  }
   }
 };
 

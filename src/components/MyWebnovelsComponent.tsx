@@ -36,7 +36,7 @@ const MyWebnovelsComponent = () => {
     if (webnovels.length > 0) {
         return (
             <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username} referrer="author"/>
+                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username}/>
                 <div className='w-3/4'>
                     <WebNovelInfoAndPictureComponent webnovel={getWebnovel()}/>
                     <div>

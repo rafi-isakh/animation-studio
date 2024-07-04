@@ -7,18 +7,20 @@ export interface Chapter {
   content: string;
   title: string;
   webnovel_id: string;
+  comments: Comment[];
 }
 
 export interface User {
   email: string;
   name: string;
+  token_id: string;
 }
 
 export interface Comment {
   user: User;
   content: string;
   upvotes: number;
-  webnovel_id: string;
+  chapterId: number;
 }
 
 export interface SlickCarouselItem {

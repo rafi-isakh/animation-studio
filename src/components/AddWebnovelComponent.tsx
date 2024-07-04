@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Webnovel } from '@/components//Types';
 import { useAuth } from '@/components/AuthContext';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
+import Image from 'next/image'
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');

@@ -9,14 +9,14 @@ export async function GET(request: NextRequest) {
         loggedIn: true,
         username: session.user.name,
         email: session.user.email,
-        id: session.user.id,
+        tokenId: session.user.id,
       });
     } else {
       return NextResponse.json({ 
         loggedIn: false,
         username: "",
         email: "",
-        id: "",
+        tokenId: "",
       });
     }
   } catch (error) {

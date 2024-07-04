@@ -6,7 +6,8 @@ const NewUser = async () => {
   if (session && session.user) {
     const data = {
         'user_email': session.user.email,
-        'user_name': session.user.name
+        'user_name': session.user.name,
+        'id': session.user.id
     }
     const res = await fetch('http://localhost:5000/api/add_user', {
         method: 'POST',

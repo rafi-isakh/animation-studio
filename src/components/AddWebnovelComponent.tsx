@@ -39,7 +39,9 @@ const AddWebnovelComponent = () => {
             method: 'POST',
             body: formData,
         });
-        router.push("/")
+        const data = await res.json();
+        console.log("data:", data);
+        router.push(`/view_webnovels?id=${data["id"]}`)
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

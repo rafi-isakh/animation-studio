@@ -53,6 +53,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     body: JSON.stringify(data),
   });
 
+  const r = await response.json();
+
   if (!response.ok) {
     return NextResponse.json({
         "message": "Add webnovel failed",
@@ -62,6 +64,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   return NextResponse.json({
         "message": "Success",
-        "status": 200
+        "status": 200,
+        "id": r["id"]
     });
 }

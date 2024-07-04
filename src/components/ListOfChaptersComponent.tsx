@@ -36,6 +36,12 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel }) => {
                                     <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
                                         <Link href={`/chapter_view/${chapter.id}`} className="text-md">{chapter.title}</Link>
                                     </th>
+                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
+                                        <p>{chapter.created_at}</p>
+                                    </th>
+                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
+                                        <p>{chapter.views}</p>
+                                    </th>
                                 </tr>
                             ))
                         )

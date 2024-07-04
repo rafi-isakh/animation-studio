@@ -8,6 +8,8 @@ export interface Chapter {
   title: string;
   webnovel_id: string;
   comments: Comment[];
+  created_at: string;
+  views: number;
 }
 
 export interface User {

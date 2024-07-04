@@ -26,7 +26,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     })
             }
             )
-        fetch(`http://localhost:5000/api/increase_views?chapter_id${id}&user_email=${email}`)
+        fetch(`http://localhost:5000/api/increase_views?chapter_id=${id}&user_email=${email}`)
     }, []);
 
     const handleLikeClick = async () => {

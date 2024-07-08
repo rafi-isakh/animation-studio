@@ -12,6 +12,7 @@ const AddWebnovelComponent = () => {
     const [description, setDescription] = useState('');
     const [coverArt, setCoverArt] = useState<File | null>(null);
     const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null);
+    const [genre, setGenre] = useState('Romance Fantasy');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const { email, username } = useAuth();
     const router = useRouter();
@@ -34,12 +35,13 @@ const AddWebnovelComponent = () => {
         if (coverArt) {
             formData.append('coverArt', coverArt)
         }
+        formData.append('genre', genre);
 
         const res = await fetch('/api/add-webnovel', {
             method: 'POST',
             body: formData,
         });
-        router.push("/")
+        router.push("/my_webnovels_redirect")
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,30 +52,48 @@ const AddWebnovelComponent = () => {
         }
     };
 
+    const handleChangeGenre = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setGenre(e.target.value);
+    }
+
     return (
         <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username}/>
+            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username ?? ''} />
             <form className="w-3/4" onSubmit={handleAddWebnovel}>
                 <div className="flex flex-row space-x-4">
                     <div className="mr-4 w-2/3">
                         <p className="text-2xl">새 작품 쓰기</p>
                         <br />
-                        <p className="text-lg">작품 제목</p>
-                        <input
-                            type="text"
-                            value={title}
-                            className='input input-bordered w-full'
-                            onChange={(e) => setTitle(e.target.value)}
-                        />
-                        <br /><br />
-                        <p className="text-lg">작품 소개</p>
-                        <textarea
-                            value={description}
-                            rows={4}
-                            className='textarea textarea-lg textarea-bordered w-full'
-                            onChange={(e) => setDescription(e.target.value)}
-                        />
-                        <br /><br />
+                        <div className="flex flex-row space-x-4">
+                            <p className="text-md w-20">작품 제목</p>
+                            <input
+                                type="text"
+                                value={title}
+                                className='input input-bordered w-full'
+                                onChange={(e) => setTitle(e.target.value)}
+                            />
+                        </div>
+                        <br />
+                        <div className="flex flex-row space-x-4">
+                        <label htmlFor="genre" className="text-md w-16">장르</label>
+                            <select id="genre" onChange={handleChangeGenre}>
+                                <option value="Romance Fantasy">로판</option>
+                                <option value="Romance">로맨스</option>
+                                <option value="BL">BL</option>
+                                <option value="Fantasy">판타지</option>
+                            </select>
+                        </div>
+                        <br/>
+                        <div className="flex flex-row space-x-4">
+                        <p className="text-md w-20">작품 소개</p>
+                            <textarea
+                                value={description}
+                                rows={4}
+                                className='textarea textarea-lg textarea-bordered w-full'
+                                onChange={(e) => setDescription(e.target.value)}
+                            />
+                        </div>
+                        <br />
                         <button type="submit" className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                     </div>
                     <div className="w-1/4">

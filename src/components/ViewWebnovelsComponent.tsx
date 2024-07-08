@@ -45,29 +45,18 @@ const ViewWebnovelsComponent = () => {
         return webnovels.find(w => w.id.toString() == id)
     }
 
-    if (getWebnovel()) {
-        return (
-            <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username} />
-                <div className='w-3/4'>
-                    <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                    <div>
-                        <button onClick={handleNewChapter} className="mt-4 text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">새 글 업로드</button>
-                    </div>
-                    <ListOfChaptersComponent webnovel={getWebnovel()} />
+    return (
+        <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
+            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username} />
+            <div className='w-3/4'>
+                <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
+                <div>
+                    <button onClick={handleNewChapter} className="mt-4 text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">새 글 업로드</button>
                 </div>
-            </div >
-        )
-    }
-    else {
-        return (
-            <div>
-            <div className='max-w-screen-md w-full flex flex-col justify-center mx-auto'>
-                웹소설이 없습니다.
+                <ListOfChaptersComponent webnovel={getWebnovel()} />
             </div>
-            </div>
-        )
-    }
+        </div >
+    )
 };
 
 export default ViewWebnovelsComponent;

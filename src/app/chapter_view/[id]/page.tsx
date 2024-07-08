@@ -31,7 +31,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, []);
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/increase_views?chapter_id=${id}&user_email=${email}`)
+        if (email) {
+            fetch(`http://localhost:5000/api/increase_views?chapter_id=${id}&user_email=${email}`)
+        }
     }, [email])
 
     const handleLikeClick = async () => {

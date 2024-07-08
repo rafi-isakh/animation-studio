@@ -31,7 +31,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel }) => {
                             chapters?.map((chapter, index) => (
                                 <tr key={index} className="bg-white">
                                     <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
-                                        <p>{chapter.id}</p>
+                                        <p>{index + 1}</p>
                                     </th>
                                     <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
                                         <Link href={`/chapter_view/${chapter.id}`} className="text-md">{chapter.title}</Link>
@@ -41,6 +41,9 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel }) => {
                                     </th>
                                     <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
                                         <p>{chapter.views}</p>
+                                    </th>
+                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
+                                        <p>{chapter.upvotes}</p>
                                     </th>
                                 </tr>
                             ))

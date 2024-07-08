@@ -12,6 +12,7 @@ export interface Chapter {
   comments: Comment[];
   created_at: string;
   views: number;
+  upvotes: number;
 }
 
 export interface User {

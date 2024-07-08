@@ -65,7 +65,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   return NextResponse.json({
-        "message": "Success",
+        "message": "Success!!",
         "status": 200,
         "id": r["id"]
     });

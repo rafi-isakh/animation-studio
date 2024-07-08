@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/components/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 

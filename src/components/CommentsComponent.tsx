@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Chapter, Comment, User } from '@/components/Types'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/components/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
 // user could be undefined if not logged in

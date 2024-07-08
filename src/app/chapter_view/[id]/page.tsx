@@ -2,9 +2,11 @@
 
 import { Chapter, Webnovel } from "@/components/Types"
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/components/AuthContext"
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext"
 import ViewerFooter from "@/components/ViewerFooter";
+import SSEComponent from "@/components/SSEComponent";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -26,8 +28,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     })
             }
             )
-        fetch(`http://localhost:5000/api/increase_views?chapter_id=${id}&user_email=${email}`)
     }, []);
+
+    useEffect(() => {
+        fetch(`http://localhost:5000/api/increase_views?chapter_id=${id}&user_email=${email}`)
+    }, [email])
 
     const handleLikeClick = async () => {
         if (likeToggle) {
@@ -44,16 +49,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         }
     }
 
-    const newlineToBr = (text: string) => {
-        text = text.replaceAll("\r\n", "<br>");
-        text = text.replaceAll("\n", "<br>");
-        return text;
-    }
-
     if (webnovel && chapter) {
         return (
             <div>
-                <div className='max-w-md max-h-dvh flex flex-col items-left mx-auto'>
+                <div className='max-w-md max-h-dvh flex flex-col items-left mx-auto pb-40'>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <div>
@@ -74,9 +73,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </div>
                     </div>
                     {/* Title and content */}
-                    <div className="max-w-full flex flex-col space-y-4">
+                    <div className="max-w-full flex flex-col space-y-4 pb-24">
                         <p className="text-2xl mt-10 mb-10">{chapter.title}</p>
-                        <p className="text-sm" dangerouslySetInnerHTML={{ __html: newlineToBr(chapter.content) }}></p>
+                        {/*<p className="text-sm" dangerouslySetInnerHTML={{ __html: newlineToBr(chapter.content) }}></p>*/}
+                        <SSEComponent content={chapter.content} chapterId={id}/>
                     </div>
                     {/* Novel title, chapter number, button to next chapter */}
                     <div>
@@ -85,7 +85,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <div>
                     </div>
                 </div>
-                <ViewerFooter webnovel={webnovel} chapter={chapter}/>
+                <ViewerFooter webnovel={webnovel} chapter={chapter} />
             </div>
         )
     }

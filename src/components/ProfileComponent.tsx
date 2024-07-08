@@ -1,18 +1,19 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/components/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link'
 import { redirect } from 'next/navigation';
 
 const ProfileComponent = ({ user }: { user: { name: string, image: string } }) => {
-  const { isLoggedIn, username } = useAuth();
+  const { isLoggedIn, username, email } = useAuth();
   if (isLoggedIn) {
     return (
       <div>
         <center>
           <h2>{username}</h2>
           {<img src={user.image} alt="Profile" />}
+          {email}
         </center>
       </div>
     );

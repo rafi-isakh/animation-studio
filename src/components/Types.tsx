@@ -2,6 +2,8 @@ export interface WebnovelIdProps {
     webnovelId: number;
 }
 
+export type Language = 'en' | 'ko' | 'ja' | 'ar';
+
 export interface Chapter {
   id: number;
   content: string;

@@ -1,13 +1,16 @@
 "use client"
 
 import React from 'react';
-import { useAuth } from '@/components/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import SearchComponent from '@/components/SearchComponent';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Language } from '@/components/Types';
 
 const Header = () => {
 
   const { setIsLoggedIn } = useAuth();
   const { isLoggedIn } = useAuth();
+  const { language, setLanguage } = useLanguage();
 
   const handleSignOut = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -26,8 +29,12 @@ const Header = () => {
     }
   };
 
+  const handleLanguageChange = ( language: Language ) => {
+    setLanguage(language);
+  }
+
   return (
-    <div className='dark'>
+    <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -58,22 +65,22 @@ const Header = () => {
                 <div id="dropdownNavbarLanguage" className="z-10 hidden font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                     <li>
-                        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <a href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         한국어
                         </a>
                     </li>
                     <li>
-                        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <a href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         English
                         </a>
                     </li>
                     <li>
-                        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <a href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         日本語
                         </a>
                     </li>
                     <li>
-                        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <a href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         العربية
                         </a>
                     </li>

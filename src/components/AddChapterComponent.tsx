@@ -33,7 +33,7 @@ const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
             method: 'POST',
             body: formData,
         });
-        router.push("/")
+        router.push(`/view_webnovels?id=${webnovelId}`)
     };
 
     return (

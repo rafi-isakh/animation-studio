@@ -28,18 +28,18 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel }) => {
                     {(() => {
                         const chapters = webnovel?.chapters;
                         return (
-                            chapters?.map((chapter) => (
-                                <tr className="bg-white">
-                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
+                            chapters?.map((chapter, index) => (
+                                <tr key={index} className="bg-white">
+                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
                                         <p>{chapter.id}</p>
                                     </th>
                                     <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
                                         <Link href={`/chapter_view/${chapter.id}`} className="text-md">{chapter.title}</Link>
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
+                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
                                         <p>{chapter.created_at}</p>
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap hover:text-pink-600">
+                                    <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
                                         <p>{chapter.views}</p>
                                     </th>
                                 </tr>

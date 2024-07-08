@@ -1,8 +1,8 @@
-import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
+import ViewWebnovelsComponentWrapper from "@/components/ViewWebnovelsComponent";
 
 const ViewWebnovels = () => {
     return (
-        <ViewWebnovelsComponent/>
+        <ViewWebnovelsComponentWrapper/>
     )
 }
 

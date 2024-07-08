@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent';
 import WebNovelInfoAndPictureComponent from './WebnovelInfoAndPictureComponent';
 import ListOfChaptersComponent from './ListOfChaptersComponent';
+import { Suspense } from 'react'
+
 
 const ViewWebnovelsComponent = () => {
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -59,5 +61,13 @@ const ViewWebnovelsComponent = () => {
     )
 };
 
-export default ViewWebnovelsComponent;
+const ViewWebnovelsComponentWrapper = () => {
+    return (
+        <Suspense>
+            <ViewWebnovelsComponent />
+        </Suspense>
+    )
+}
+
+export default ViewWebnovelsComponentWrapper;
 

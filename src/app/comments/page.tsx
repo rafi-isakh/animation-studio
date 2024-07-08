@@ -3,6 +3,8 @@
 import CommentsComponent from "@/components/CommentsComponent";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Suspense } from 'react'
+
 
 const Comments = () => {
     const searchParams = useSearchParams();
@@ -13,4 +15,12 @@ const Comments = () => {
     )
 }
 
-export default Comments;
+const CommentsWrapper = () => {
+    return (
+        <Suspense>
+            <Comments/>
+        </Suspense>
+    )
+}
+
+export default CommentsWrapper;

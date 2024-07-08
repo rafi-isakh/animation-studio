@@ -2,6 +2,8 @@
 
 import AddChapterComponent from "@/components/AddChapterComponent";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from 'react'
+
 
 function NewChapter() {
     const searchParams = useSearchParams();
@@ -18,4 +20,12 @@ function NewChapter() {
     }
 };
 
-export default NewChapter;
+const NewChapterWrapper = () => {
+    return (
+        <Suspense>
+            <NewChapter/>
+        </Suspense>
+    )
+}
+
+export default NewChapterWrapper;

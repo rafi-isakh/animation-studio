@@ -6,7 +6,7 @@ import { useAuth } from '@/components/AuthContext';
 import Link from 'next/link';
 
 // user could be undefined if not logged in
-const CommentsComponent = ({ chapterId, chapterTitle }: { chapterId: number, chapterTitle: string }) => {
+const CommentsComponent = ({ chapterId }: { chapterId: string | null }) => {
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>([]);
     const [chapter, setChapter] = useState<Chapter>();
@@ -90,8 +90,8 @@ const CommentsComponent = ({ chapterId, chapterTitle }: { chapterId: number, cha
                 </form>
                 <div>
                     <ul>
-                        {allComments.map((comment) => (
-                            <div className='flex flex-col'>
+                        {allComments.map((comment, index) => (
+                            <div key={index} className='flex flex-col'>
                                 <li className='font-bold'>{comment.user.name}</li>
                                 <li>{comment.content}</li>
                                 <hr/>

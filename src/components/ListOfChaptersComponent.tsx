@@ -28,8 +28,8 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel }) => {
                     {(() => {
                         const chapters = webnovel?.chapters;
                         return (
-                            chapters?.map((chapter) => (
-                                <tr className="bg-white">
+                            chapters?.map((chapter, index) => (
+                                <tr key={index} className="bg-white">
                                     <th scope="row" className="px-6 py-4 font-medium text-black whitespace-nowrap">
                                         <p>{chapter.id}</p>
                                     </th>

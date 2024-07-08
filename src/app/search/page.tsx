@@ -3,6 +3,8 @@ import { Webnovel } from '@/components/Types';
 import WebnovelComponent from '@/components/WebnovelComponent';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Suspense } from 'react'
+
 const Search = () => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
   const searchParams = useSearchParams();
@@ -29,4 +31,12 @@ const Search = () => {
   );
 };
 
-export default Search;
+const SearchWrapper = () => {
+  return (
+    <Suspense>
+      <Search/>
+    </Suspense>
+  )
+}
+
+export default SearchWrapper;

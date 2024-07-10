@@ -1,4 +1,4 @@
-import Webnovels from '@/components/Webnovels'
+import WebnovelsWrapper from '@/components/Webnovels'
 import GenresComponent from '@/components/GenresComponent';
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 
@@ -7,7 +7,7 @@ export default function Home() {
     <div>
       <CarouselComponentReactSlick />
       <GenresComponent/>
-      <Webnovels />
+      <WebnovelsWrapper />
     </div>
   );
 }

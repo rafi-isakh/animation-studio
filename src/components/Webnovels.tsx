@@ -43,9 +43,11 @@ const Webnovels = () => {
 };
 
 const WebnovelsWrapper = () => {
+  return (
   <Suspense>
     <Webnovels/>
   </Suspense>
+  )
 }
 
 export default WebnovelsWrapper;

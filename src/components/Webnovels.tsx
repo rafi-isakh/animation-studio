@@ -3,6 +3,7 @@ import { Webnovel } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import WebnovelComponent from "@/components/WebnovelComponent"
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react'
 
 const Webnovels = () => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -41,5 +42,10 @@ const Webnovels = () => {
       )
 };
 
-export default Webnovels;
+const WebnovelsWrapper = () => {
+  <Suspense>
+    <Webnovels/>
+  </Suspense>
+}
 
+export default WebnovelsWrapper;

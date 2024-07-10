@@ -6,26 +6,25 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
 // user could be undefined if not logged in
-const CommentsComponent = ({ chapterId }: { chapterId: string | null }) => {
+const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>([]);
     const [chapter, setChapter] = useState<Chapter>();
     const router = useRouter();
-    const { email, username, tokenId } = useAuth();
+    const { email, username } = useAuth();
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
             const user: User = {
                 "email": email,
-                "name": username,
-                "token_id": tokenId
+                "name": username
             }
             event.preventDefault();
             if (!user) {
                 router.push("/signin");
             } else {
-                var newComment = {
+                var newComment : Comment = {
                     "user": user,
                     "content": commentContent,
                     "upvotes": 0,

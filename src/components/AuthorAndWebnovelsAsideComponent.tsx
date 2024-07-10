@@ -2,7 +2,7 @@ import { Webnovel } from "@/components/Types"
 import Link from "next/link"
 
 const AuthorAndWebnovelsAsideComponent = ({webnovels, username}: 
-    {webnovels: Webnovel[], username: string}) => {
+    {webnovels: Webnovel[], username: string | null}) => {
 
     return (
         <div className="hidden md:block flex flex-col space-y-4 w-1/4 mr-10">

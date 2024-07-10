@@ -1,7 +1,7 @@
 import { Webnovel } from "@/components/Types";
 import Link from "next/link";
 
-const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel }) => {
+const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
     return (
         <div className="relative overflow-x-auto mt-4">
             <table className="w-full text-sm text-left rtl:text-right text-white">

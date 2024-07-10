@@ -23,9 +23,14 @@ const ViewWebnovelsComponent = () => {
             .then(data => {
                 console.log(data);
                 const webnovel: Webnovel = data;
-                const email = webnovel.user?.email;
-                setEmail(email);
-                setUsername(webnovel.user?.name);
+                const email = webnovel.user.email;
+                const name = webnovel.user.name;
+                if (email) {
+                    setEmail(email);
+                }
+                if (name) {
+                    setUsername(name);
+                }
                 if (email) {
                     fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
                         .then(response => response.json())

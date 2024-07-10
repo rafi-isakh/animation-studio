@@ -17,7 +17,7 @@ const CarouselComponentReactSlick = () => {
       .then(data => setCarouselItems(data));
   }, []);
 
-  function SampleNextArrow(props) {
+  function SampleNextArrow(props: any) {
     const { className, style, onClick } = props;
     return (
       <div
@@ -27,7 +27,7 @@ const CarouselComponentReactSlick = () => {
       />
     );
   }
-  function SamplePrevArrow(props) {
+  function SamplePrevArrow(props: any) {
     const { className, style, onClick } = props;
     return (
       <div

@@ -1,7 +1,7 @@
 import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 
-const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel}) => {
+const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undefined}) => {
     return (
         <div className='flex flex-row justify-between'>
             <div className="flex flex-col space-y-4">
@@ -11,7 +11,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel}) => {
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>
             </div>
             <div>
-                <Image src={`/upload/${webnovel?.cover_art}`} alt={webnovel?.cover_art} width={240} height={400} />
+                <Image src={`/upload/${webnovel?.cover_art}`} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} />
             </div>
         </div>
     )

@@ -3,13 +3,11 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 interface AuthContextProps {
   isLoggedIn: boolean | null;
-  setIsLoggedIn: (loggedIn: boolean | null) => void;
+  setIsLoggedIn: (loggedIn: boolean | null ) => void;
   email: string | null;
   setEmail: (email: string | null) => void;
   username: string | null;
   setUsername: (username: string | null) => void;
-  tokenId: string | null;
-  setTokenId: (username: string | null) => void;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -19,10 +17,9 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(null);
-  const [email, setEmail] = useState(null);
-  const [username, setUsername] = useState(null);
-  const [tokenId, setTokenId] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,7 +29,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn(data.loggedIn);
         setUsername(data.username);
         setEmail(data.email);
-        setTokenId(data.id);
       } catch (error) {
         console.error('Error checking auth:', error);
       }
@@ -43,8 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return (
     <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, 
                                     email, setEmail, 
-                                    username, setUsername,
-                                    tokenId, setTokenId}}>
+                                    username, setUsername}}>
       {children}
     </authContext.Provider>
   );

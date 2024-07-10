@@ -4,15 +4,16 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link'
 import { redirect } from 'next/navigation';
+import { User } from '@/components/Types';
 
-const ProfileComponent = ({ user }: { user: { name: string, image: string } }) => {
+const ProfileComponent = ({ user }: { user: User }) => {
   const { isLoggedIn, username, email } = useAuth();
   if (isLoggedIn) {
     return (
       <div>
         <center>
           <h2>{username}</h2>
-          {<img src={user.image} alt="Profile" />}
+          {<img src={user.image? user.image: "not found"} alt="Profile" />}
           {email}
         </center>
       </div>

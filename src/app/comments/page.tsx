@@ -10,15 +10,20 @@ const Comments = () => {
     const searchParams = useSearchParams();
     const chapterId = searchParams.get('chapter_id')
 
-    return (
-        <CommentsComponent chapterId={chapterId}/>
-    )
+    if (chapterId) {
+        return (
+            <CommentsComponent chapterId={chapterId} />
+        )
+    }
+    else {
+        return (<div></div>)
+    }
 }
 
 const CommentsWrapper = () => {
     return (
         <Suspense>
-            <Comments/>
+            <Comments />
         </Suspense>
     )
 }

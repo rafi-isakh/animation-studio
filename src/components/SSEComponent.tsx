@@ -15,7 +15,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
     fetchRef.current = true;
 
     const handleTranslate = async () => {
-      const response = await fetch(`http://localhost:5000/api/get_translation?id=${chapterId}&language=${language}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?id=${chapterId}&language=${language}`)
       const data = await response.json();
       if (data.text) {
         setText(data.text)
@@ -25,7 +25,6 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
       // initialized.current is bc useEffect runs twice
       // submitContent with ongoing translation
       if (!data.done && !initialized.current) {
-
         submitContent(data.text);
         initialized.current = true;
       }
@@ -38,7 +37,8 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
   }, [text]);
 
   useEffect(() => {
-    if (changeCount > 100) {
+    // save every 200 tokens
+    if (changeCount > 200) {
       if (!finished && initialized.current) {
         saveTranslationToDB(false);
       }
@@ -60,7 +60,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
         "chapterId": chapterId,
         "done": done
       }
-      const res = await fetch('http://localhost:5000/api/save_translation', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_translation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
 
   const submitContent = async (translation: string) => {
     try {
-      const response = await fetch('http://localhost:5000/api/send_content', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
   };
 
   const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
-    const eventSource = new EventSource(`http://localhost:5000/api/translate/${textId}?target=${language}&cvid=${cvid}&to_continue=${to_continue}`);
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}&cvid=${cvid}&to_continue=${to_continue}`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);

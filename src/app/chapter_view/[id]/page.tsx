@@ -14,14 +14,20 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useAuth();
+    const [ key, setKey ] = useState(0); // for remounting SSEComponent
+    const { language } = useLanguage();
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/get_chapter_byid?id=${id}`)
+        setKey(prevKey => prevKey + 1)
+    }, [language])
+
+    useEffect(() => {
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${id}`)
             .then(response => response.json())
             .then(data => {
                 setChapter(data);
                 setUpvotes(data.upvotes)
-                fetch(`http://localhost:5000/api/get_webnovel_byid?id=${data.webnovel_id}`)
+                fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${data.webnovel_id}`)
                     .then(response2 => response2.json())
                     .then(data2 => {
                         setWebnovel(data2)
@@ -32,19 +38,19 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     useEffect(() => {
         if (email) {
-            fetch(`http://localhost:5000/api/increase_views?chapter_id=${id}&user_email=${email}`)
+            fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/increase_views?chapter_id=${id}&user_email=${email}`)
         }
     }, [email])
 
     const handleLikeClick = async () => {
         if (likeToggle) {
-            const res = await fetch(`http://localhost:5000/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(false);
         }
         else {
-            const res = await fetch(`http://localhost:5000/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(true);
@@ -78,7 +84,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <div className="max-w-full flex flex-col space-y-4 pb-24">
                         <p className="text-2xl mt-10 mb-10">{chapter.title}</p>
                         {/*<p className="text-sm" dangerouslySetInnerHTML={{ __html: newlineToBr(chapter.content) }}></p>*/}
-                        <SSEComponent content={chapter.content} chapterId={id}/>
+                        <SSEComponent key={key} content={chapter.content} chapterId={id}/>
                     </div>
                     {/* Novel title, chapter number, button to next chapter */}
                     <div>

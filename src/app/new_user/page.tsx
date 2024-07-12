@@ -9,7 +9,7 @@ const NewUser = async () => {
         'user_name': session.user.name,
         'id': session.user.id
     }
-    const res = await fetch('http://localhost:5000/api/add_user', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user`, {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',

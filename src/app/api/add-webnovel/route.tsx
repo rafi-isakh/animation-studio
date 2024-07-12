@@ -49,7 +49,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     language: language
   };
 
-  const response = await fetch('http://localhost:5000/api/add_webnovel', {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webnovel`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -11,7 +11,7 @@ const Search = () => {
   const query = searchParams.get('query');
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/search?query=${query}`)
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/search?query=${query}`)
       .then(r => r.json())
       .then(r => setWebnovels(r));
   }, [query]);

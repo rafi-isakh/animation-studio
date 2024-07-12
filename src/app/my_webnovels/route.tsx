@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
     let url = new URL(`${baseUrl}/view_webnovels`);
     if (session && session.user) {
-        const response = await fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${session.user.email}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${session.user.email}`)
         const data = await response.json();
         if (data.length > 0) {
             const ids = data.map((w: Webnovel) => w.id);

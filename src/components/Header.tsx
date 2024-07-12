@@ -33,7 +33,6 @@ const Header = () => {
 
   const handleLanguageChange = ( language: Language ) => {
     setLanguage(language);
-    window.location.reload();
   }
 
   return (

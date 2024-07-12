@@ -16,7 +16,7 @@ const CarouselComponentReactSlick = () => {
   const [carouselItems, setCarouselItems] = useState<SlickCarouselItem[]>([placeholder, placeholder]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/get_carousel_items')
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
       .then(response => response.json())
       .then(data => setCarouselItems(data));
   }, []);

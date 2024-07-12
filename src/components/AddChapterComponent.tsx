@@ -14,7 +14,7 @@ const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${email}`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {

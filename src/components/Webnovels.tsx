@@ -11,7 +11,7 @@ const Webnovels = () => {
   const genre = searchParams.get("genre");
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/get_webnovels')
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`)
       .then(response => response.json())
       .then(data => setWebnovels(data));
   }, []);

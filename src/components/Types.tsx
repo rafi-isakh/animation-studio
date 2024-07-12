@@ -43,4 +43,5 @@ export interface Webnovel {
   genre: string;
   user: User;
   upvotes: number;
+  language: string;
 }

@@ -12,8 +12,9 @@ const AddWebnovelComponent = () => {
     const [description, setDescription] = useState('');
     const [coverArt, setCoverArt] = useState<File | null>(null);
     const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null);
-    const [genre, setGenre] = useState('Romance Fantasy');
+    const [genre, setGenre] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
+    const [language, setLanguage] = useState('');
     const { email, username } = useAuth();
     const router = useRouter();
 
@@ -36,6 +37,7 @@ const AddWebnovelComponent = () => {
             formData.append('coverArt', coverArt)
         }
         formData.append('genre', genre);
+        formData.append('language', language);
 
         const res = await fetch('/api/add-webnovel', {
             method: 'POST',
@@ -56,6 +58,10 @@ const AddWebnovelComponent = () => {
 
     const handleChangeGenre = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setGenre(e.target.value);
+    }
+
+    const handleChangeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLanguage(e.target.value);
     }
 
     return (
@@ -79,10 +85,22 @@ const AddWebnovelComponent = () => {
                         <div className="flex flex-row space-x-4">
                         <label htmlFor="genre" className="text-md w-16">장르</label>
                             <select id="genre" onChange={handleChangeGenre}>
+                                <option value=""></option>
                                 <option value="Romance Fantasy">로판</option>
                                 <option value="Romance">로맨스</option>
                                 <option value="BL">BL</option>
                                 <option value="Fantasy">판타지</option>
+                            </select>
+                        </div>
+                        <br/>
+                        <div className="flex flex-row space-x-4">
+                        <label htmlFor="language" className="text-md w-16">언어</label>
+                            <select id="language" onChange={handleChangeLanguage}>
+                                <option value=""></option>
+                                <option value="ko">한국어</option>
+                                <option value="en">영어</option>
+                                <option value="ja">일본어</option>
+                                <option value="ar">아랍어</option>
                             </select>
                         </div>
                         <br/>

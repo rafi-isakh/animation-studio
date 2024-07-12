@@ -19,6 +19,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const description = formData.get('description')
   const coverArt = formData.get('coverArt') as File
   const genre = formData.get('genre')
+  const language = formData.get('language')
 
  if (!title || !description || !coverArt || !genre) {
     return NextResponse.json({ error: 'Missing web novel data' }, { status: 400 });
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     description: description,
     coverArt: coverArt.name,
     genre: genre,
+    language: language
   };
 
   const response = await fetch('http://localhost:5000/api/add_webnovel', {

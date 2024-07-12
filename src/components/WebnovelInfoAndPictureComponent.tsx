@@ -8,6 +8,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <p className="text-sm">{webnovel?.genre}</p>
                 <p className="text-xl">{webnovel?.title}</p>
                 <p className="text-sm">{webnovel?.user.name}</p>
+                <p className="text-sm">{webnovel?.language}</p>
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>
             </div>
             <div>

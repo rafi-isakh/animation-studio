@@ -11,7 +11,7 @@ const Webnovels = () => {
   const genre = searchParams.get("genre");
 
   useEffect(() => {
-    fetch('https://stellandai.com:5000/api/get_webnovels')
+    fetch('https://stellandai.com/api/get_webnovels')
       .then(response => response.json())
       .then(data => setWebnovels(data));
   }, []);

@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     genre: genre,
   };
 
-  const response = await fetch('https://stellandai.com:5000/api/add_webnovel', {
+  const response = await fetch('https://stellandai.com/api/add_webnovel', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

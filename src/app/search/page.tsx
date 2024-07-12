@@ -11,7 +11,7 @@ const Search = () => {
   const query = searchParams.get('query');
 
   useEffect(() => {
-    fetch(`https://stellandai.com:5000/api/search?query=${query}`)
+    fetch(`https://stellandai.com/api/search?query=${query}`)
       .then(r => r.json())
       .then(r => setWebnovels(r));
   }, [query]);

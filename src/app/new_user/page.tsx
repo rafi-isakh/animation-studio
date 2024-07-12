@@ -9,7 +9,7 @@ const NewUser = async () => {
         'user_name': session.user.name,
         'id': session.user.id
     }
-    const res = await fetch('https://stellandai.com:5000/api/add_user', {
+    const res = await fetch('https://stellandai.com/api/add_user', {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',

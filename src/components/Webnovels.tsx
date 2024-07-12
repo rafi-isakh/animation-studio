@@ -11,7 +11,7 @@ const Webnovels = () => {
   const genre = searchParams.get("genre");
 
   useEffect(() => {
-    fetch('https://toonyzbackend.site/api/get_webnovels')
+    fetch('http://localhost:5000/api/get_webnovels')
       .then(response => response.json())
       .then(data => setWebnovels(data));
   }, []);

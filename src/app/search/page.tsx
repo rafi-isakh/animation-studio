@@ -11,7 +11,7 @@ const Search = () => {
   const query = searchParams.get('query');
 
   useEffect(() => {
-    fetch(`https://toonyzbackend.site/api/search?query=${query}`)
+    fetch(`http://localhost:5000/api/search?query=${query}`)
       .then(r => r.json())
       .then(r => setWebnovels(r));
   }, [query]);

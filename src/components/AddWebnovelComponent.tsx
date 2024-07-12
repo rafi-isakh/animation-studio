@@ -18,7 +18,7 @@ const AddWebnovelComponent = () => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`https://toonyzbackend.site/api/get_webnovel_byuser?user_email=${email}`)
+        fetch(`http://localhost:5000/api/get_webnovel_byuser?user_email=${email}`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {

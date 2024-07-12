@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     genre: genre,
   };
 
-  const response = await fetch('https://toonyzbackend.site/api/add_webnovel', {
+  const response = await fetch('http://localhost:5000/api/add_webnovel', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

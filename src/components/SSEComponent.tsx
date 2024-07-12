@@ -4,18 +4,18 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const SSEComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
   const [text, setText] = useState('');
-  const [loading, setLoading] = useState('Loading');
   const { language } = useLanguage();
   const initialized = useRef(false);
   const fetchRef = useRef(false);
   const [finished, setFinished] = useState(false)
+  const [changeCount, setChangeCount] = useState(0)
 
   useEffect(() => {
     if (fetchRef.current) return;
     fetchRef.current = true;
 
     const handleTranslate = async () => {
-      const response = await fetch(`https://toonyzbackend.site/api/get_translation?id=${chapterId}&language=${language}`)
+      const response = await fetch(`http://localhost:5000/api/get_translation?id=${chapterId}&language=${language}`)
       const data = await response.json();
       if (data.text) {
         setText(data.text)
@@ -23,9 +23,10 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
 
       // If there's no translation in the DB
       // initialized.current is bc useEffect runs twice
-      if (!data.text && !initialized.current) {
+      // submitContent with ongoing translation
+      if (!data.done && !initialized.current) {
 
-        submitContent();
+        submitContent(data.text);
         initialized.current = true;
       }
     }
@@ -33,19 +34,33 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
   }, []);
 
   useEffect(() => {
+    setChangeCount((prevCount) => prevCount + 1);
+  }, [text]);
+
+  useEffect(() => {
+    if (changeCount > 100) {
+      if (!finished && initialized.current) {
+        saveTranslationToDB(false);
+      }
+      setChangeCount(0);
+    }
+  })
+
+  useEffect(() => {
     if (initialized.current) {
-      saveTranslationToDB();
+      saveTranslationToDB(true);
     }
   }, [finished])
 
-  const saveTranslationToDB = async () => {
+  const saveTranslationToDB = async (done: boolean) => {
     if (text) {
       const data = {
         "text": text,
         "language": language,
-        "chapterId": chapterId
+        "chapterId": chapterId,
+        "done": done
       }
-      const res = await fetch('https://toonyzbackend.site/api/save_translation', {
+      const res = await fetch('http://localhost:5000/api/save_translation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,15 +75,16 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
     }
   }
 
-  const submitContent = async () => {
+  const submitContent = async (translation: string) => {
     try {
-      const response = await fetch('https://toonyzbackend.site/api/send_content', {
+      const response = await fetch('http://localhost:5000/api/send_content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          'text': content
+          'original': content,
+          'translation': translation
         })
       });
 
@@ -83,18 +99,11 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
     }
   };
 
-  const newlineToBr = (text: string) => {
-    text = text.replaceAll("\r\n", "<br>");
-    text = text.replaceAll("\n", "<br>");
-    return text;
-  }
-
   const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
-    const eventSource = new EventSource(`https://toonyzbackend.site/api/translate/${textId}?target=${language}&cvid=${cvid}&to_continue=${to_continue}`);
+    const eventSource = new EventSource(`http://localhost:5000/api/translate/${textId}?target=${language}&cvid=${cvid}&to_continue=${to_continue}`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      // if translation is complete, save to DB
       if (data.ended == 0) {
         setText(text => text + data.token);
       } else if (data.ended == 1) {

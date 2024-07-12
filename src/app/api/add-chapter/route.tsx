@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     webnovel_id: webnovel_id
   };
 
-  const response = await fetch('https://toonyzbackend.site/api/add_chapter', {
+  const response = await fetch('http://localhost:5000/api/add_chapter', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -16,12 +16,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { email } = useAuth();
 
     useEffect(() => {
-        fetch(`https://stellandai.com/api/get_chapter_byid?id=${id}`)
+        fetch(`https://toonyzbackend.site/api/get_chapter_byid?id=${id}`)
             .then(response => response.json())
             .then(data => {
                 setChapter(data);
                 setUpvotes(data.upvotes)
-                fetch(`https://stellandai.com/api/get_webnovel_byid?id=${data.webnovel_id}`)
+                fetch(`https://toonyzbackend.site/api/get_webnovel_byid?id=${data.webnovel_id}`)
                     .then(response2 => response2.json())
                     .then(data2 => {
                         setWebnovel(data2)
@@ -32,19 +32,19 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     useEffect(() => {
         if (email) {
-            fetch(`https://stellandai.com/api/increase_views?chapter_id=${id}&user_email=${email}`)
+            fetch(`https://toonyzbackend.site/api/increase_views?chapter_id=${id}&user_email=${email}`)
         }
     }, [email])
 
     const handleLikeClick = async () => {
         if (likeToggle) {
-            const res = await fetch(`https://stellandai.com/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
+            const res = await fetch(`https://toonyzbackend.site/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(false);
         }
         else {
-            const res = await fetch(`https://stellandai.com/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
+            const res = await fetch(`https://toonyzbackend.site/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(true);

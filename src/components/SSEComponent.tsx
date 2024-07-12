@@ -15,7 +15,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
     fetchRef.current = true;
 
     const handleTranslate = async () => {
-      const response = await fetch(`https://stellandai.com/api/get_translation?id=${chapterId}&language=${language}`)
+      const response = await fetch(`https://toonyzbackend.site/api/get_translation?id=${chapterId}&language=${language}`)
       const data = await response.json();
       if (data.text) {
         setText(data.text)
@@ -45,7 +45,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
         "language": language,
         "chapterId": chapterId
       }
-      const res = await fetch('https://stellandai.com/api/save_translation', {
+      const res = await fetch('https://toonyzbackend.site/api/save_translation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
 
   const submitContent = async () => {
     try {
-      const response = await fetch('https://stellandai.com/api/send_content', {
+      const response = await fetch('https://toonyzbackend.site/api/send_content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
   }
 
   const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
-    const eventSource = new EventSource(`https://stellandai.com/api/translate/${textId}?target=${language}&cvid=${cvid}&to_continue=${to_continue}`);
+    const eventSource = new EventSource(`https://toonyzbackend.site/api/translate/${textId}?target=${language}&cvid=${cvid}&to_continue=${to_continue}`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);

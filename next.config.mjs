@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    env: {
+        backend: 'http://stellandai.com:5000'
+    },
     images: {
         remotePatterns: [
             {

@@ -18,7 +18,7 @@ const ViewWebnovelsComponent = () => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`https://stellandai.com/api/get_webnovel_byid?id=${id}`)
+        fetch(`https://toonyzbackend.site/api/get_webnovel_byid?id=${id}`)
             .then(response => response.json())
             .then(data => {
                 console.log(data);
@@ -32,7 +32,7 @@ const ViewWebnovelsComponent = () => {
                     setUsername(name);
                 }
                 if (email) {
-                    fetch(`https://stellandai.com/api/get_webnovel_byuser?user_email=${email}`)
+                    fetch(`https://toonyzbackend.site/api/get_webnovel_byuser?user_email=${email}`)
                         .then(response => response.json())
                         .then(data => {
                             console.log(data)

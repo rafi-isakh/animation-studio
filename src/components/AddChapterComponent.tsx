@@ -14,7 +14,7 @@ const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`https://stellandai.com/api/get_webnovel_byuser?user_email=${email}`)
+        fetch(`https://toonyzbackend.site/api/get_webnovel_byuser?user_email=${email}`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {

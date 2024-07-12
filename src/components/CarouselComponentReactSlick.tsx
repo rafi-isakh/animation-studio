@@ -12,7 +12,7 @@ const CarouselComponentReactSlick = () => {
   const [carouselItems, setCarouselItems] = useState<SlickCarouselItem[]>([]);
 
   useEffect(() => {
-    fetch('https://stellandai.com/api/get_carousel_items')
+    fetch('https://toonyzbackend.site/api/get_carousel_items')
       .then(response => response.json())
       .then(data => setCarouselItems(data));
   }, []);

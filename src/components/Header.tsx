@@ -5,9 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import SearchComponent from '@/components/SearchComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
+import { useRouter } from 'next/navigation';
 
 const Header = () => {
 
+  const router = useRouter();
   const { setIsLoggedIn } = useAuth();
   const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
@@ -31,6 +33,7 @@ const Header = () => {
 
   const handleLanguageChange = ( language: Language ) => {
     setLanguage(language);
+    window.location.reload();
   }
 
   return (

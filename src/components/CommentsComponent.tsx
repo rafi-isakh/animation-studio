@@ -32,7 +32,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 }
                 // optimistic update
                 setAllComments([...allComments, newComment]);
-                const response = await fetch('http://localhost:5000/api/add_comment', {
+                const response = await fetch('http://stellandai.com:5000/api/add_comment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 if (!response.ok) {
                     setAllComments(allComments.filter(comment => comment !== newComment));
                 } else {
-                    const res = await fetch(`http://localhost:5000/api/get_comments?chapterId=${chapterId}`)
+                    const res = await fetch(`http://stellandai.com:5000/api/get_comments?chapterId=${chapterId}`)
                         .then(data => data.json())
                     if (Array.isArray(res)) {
                         setAllComments(res);
@@ -57,14 +57,14 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
 
     useEffect(() => {
         const fetchComments = async () => {
-            const res = await fetch(`http://localhost:5000/api/get_comments?chapterId=${chapterId}`)
+            const res = await fetch(`http://stellandai.com:5000/api/get_comments?chapterId=${chapterId}`)
                 .then(data => data.json())
             if (Array.isArray(res)) {
                 setAllComments(res);
             }
         }
         const fetchChapter = async() => {
-            const res = await fetch(`http://localhost:5000/api/get_chapter_byid?id=${chapterId}`)
+            const res = await fetch(`http://stellandai.com:5000/api/get_chapter_byid?id=${chapterId}`)
                 .then(data => data.json());
             setChapter(res);
         }

@@ -9,7 +9,11 @@ import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 
 const CarouselComponentReactSlick = () => {
-  const [carouselItems, setCarouselItems] = useState<SlickCarouselItem[]>([]);
+  const placeholder : SlickCarouselItem = {
+    image: "placeholder_blank.png",
+    description: "placeholder"
+  }
+  const [carouselItems, setCarouselItems] = useState<SlickCarouselItem[]>([placeholder, placeholder]);
 
   useEffect(() => {
     fetch('https://toonyzbackend.site/api/get_carousel_items')
@@ -56,7 +60,7 @@ const CarouselComponentReactSlick = () => {
         <Slider {...settings}>
           {carouselItems.map((item, index) => (
             <div key={index} className={styles.carouselContainer}>
-              <Image src={`/upload/${item.image}`} width={1280} height={504} alt={item.image} />
+              <Image src={`/upload/${item.image}`} width={1280} height={504} alt={item.description} />
             </div>
           ))}
         </Slider>

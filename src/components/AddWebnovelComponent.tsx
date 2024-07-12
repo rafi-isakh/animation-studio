@@ -18,7 +18,7 @@ const AddWebnovelComponent = () => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`http://stellandai.com:5000/api/get_webnovel_byuser?user_email=${email}`)
+        fetch(`https://stellandai.com:5000/api/get_webnovel_byuser?user_email=${email}`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {

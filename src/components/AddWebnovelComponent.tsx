@@ -15,7 +15,7 @@ const AddWebnovelComponent = () => {
     const [genre, setGenre] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [language, setLanguage] = useState('');
-    const { email, username } = useAuth();
+    const { email, nickname } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
@@ -66,7 +66,7 @@ const AddWebnovelComponent = () => {
 
     return (
         <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username ?? ''} />
+            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname ?? ''} />
             <form className="w-3/4" onSubmit={handleAddWebnovel}>
                 <div className="flex flex-row space-x-4">
                     <div className="mr-4 w-2/3">

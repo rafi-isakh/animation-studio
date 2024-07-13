@@ -11,7 +11,7 @@ import { Suspense } from 'react'
 const ViewWebnovelsComponent = () => {
     const [loading, setLoading] = useState("Loading");
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-    const [username, setUsername] = useState("");
+    const [nickname, setNickname] = useState("");
     const [email, setEmail] = useState("");
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
@@ -24,12 +24,12 @@ const ViewWebnovelsComponent = () => {
                 console.log(data);
                 const webnovel: Webnovel = data;
                 const email = webnovel.user.email;
-                const name = webnovel.user.name;
+                const name = webnovel.user.nickname;
                 if (email) {
                     setEmail(email);
                 }
                 if (name) {
-                    setUsername(name);
+                    setNickname(name);
                 }
                 if (email) {
                     fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${email}`)
@@ -58,7 +58,7 @@ const ViewWebnovelsComponent = () => {
         if (webnovels.length > 0) {
             return (
                 <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-                    <AuthorAndWebnovelsAsideComponent webnovels={webnovels} username={username} />
+                    <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
                     <div className='w-3/4'>
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
                         <div>

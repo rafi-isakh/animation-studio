@@ -17,8 +17,7 @@ export interface Chapter {
 
 export interface User {
   email: string | null | undefined;
-  name: string | null | undefined;
-  image?: string | null | undefined;
+  nickname: string | null | undefined;
 }
 
 export interface Comment {

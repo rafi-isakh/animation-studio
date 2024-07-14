@@ -8,7 +8,7 @@ const WebnovelComponent = ({ webnovel }: { webnovel: Webnovel }) => {
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
             <Image src={`/upload/${webnovel.cover_art}`} width={200} height={120} alt={webnovel.cover_art} /></Link>
             <Link href={`/view_webnovels?id=${webnovel.id}`}><h3 className="text-lg mt-2">{webnovel.title}</h3></Link>
-            <h3 className="text-lg mt-2">{webnovel.user.name}</h3>
+            <h3 className="text-lg mt-2">{webnovel.user.nickname}</h3>
         </div>
     )
 }

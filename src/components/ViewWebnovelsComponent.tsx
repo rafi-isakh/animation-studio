@@ -1,51 +1,59 @@
 "use client"
 import { Webnovel } from '@/components/Types'
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent';
 import WebNovelInfoAndPictureComponent from './WebnovelInfoAndPictureComponent';
 import ListOfChaptersComponent from './ListOfChaptersComponent';
-import { Suspense } from 'react'
 
-
-const ViewWebnovelsComponent = () => {
+const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const [loading, setLoading] = useState("Loading");
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [nickname, setNickname] = useState("");
     const [email, setEmail] = useState("");
-    const searchParams = useSearchParams();
-    const id = searchParams.get('id');
+    const id = searchParams.id;
+
+    if (typeof id === 'string') {
+    } else if (Array.isArray(id)) {
+        throw new Error("there should be only one id param")
+    } else {
+    }
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                const webnovel: Webnovel = data;
-                const email = webnovel.user.email;
-                const name = webnovel.user.nickname;
-                if (email) {
-                    setEmail(email);
+        async function fetchData() {
+            try {
+                const webnovelResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${id}`);
+                const webnovelData = await webnovelResponse.json();
+
+                if (Object.keys(webnovelData).length === 0) {
+                    setLoading("No data");
+                    return;
                 }
-                if (name) {
-                    setNickname(name);
+
+                const webnovel : Webnovel = webnovelData;
+                const { email: user_email, nickname: user_nickname } = webnovel.user;
+
+                if (user_nickname) setNickname(user_nickname);
+                if (user_email) {
+                    setEmail(user_email);
+                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${user_email}`);
+                    const userWebnovelsData = await userWebnovelsResponse.json();
+
+                    if (Object.keys(userWebnovelsData).length !== 0) {
+                        setWebnovels(userWebnovelsData);
+                    }
                 }
-                if (email) {
-                    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${email}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log(data)
-                            // check if data is empty object
-                            // only set if it isn't, because webnovels should be [] otherwise
-                            if (data != "{}") {
-                                setWebnovels(data)
-                            }
-                        })
-                }
-            })
-        setLoading("Loaded");
-    }, []);
+
+                setLoading("Loaded");
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                setLoading("Error");
+            }
+        }
+
+        fetchData();
+    }, [id]); // Add id to dependency array if it's expected to change
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}`);
@@ -84,13 +92,5 @@ const ViewWebnovelsComponent = () => {
     }
 };
 
-const ViewWebnovelsComponentWrapper = () => {
-    return (
-        <Suspense>
-            <ViewWebnovelsComponent />
-        </Suspense>
-    )
-}
-
-export default ViewWebnovelsComponentWrapper;
+export default ViewWebnovelsComponent;
 

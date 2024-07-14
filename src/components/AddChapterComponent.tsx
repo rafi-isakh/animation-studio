@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 
@@ -10,7 +10,7 @@ const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-    const { email, nickname } = useAuth();
+    const { email, nickname } = useUser();
     const router = useRouter();
 
     useEffect(() => {

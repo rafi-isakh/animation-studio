@@ -1,8 +1,8 @@
 "use client"
 import { useEffect, useState } from 'react';
 import { Chapter, Comment, User } from '@/components/Types'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation'
+import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
 
 // user could be undefined if not logged in
@@ -11,14 +11,14 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [allComments, setAllComments] = useState<Comment[]>([]);
     const [chapter, setChapter] = useState<Chapter>();
     const router = useRouter();
-    const { email, username } = useAuth();
+    const { email, nickname } = useUser();
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
             const user: User = {
                 "email": email,
-                "name": username
+                "nickname": nickname
             }
             event.preventDefault();
             if (!user) {
@@ -91,7 +91,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     <ul>
                         {allComments.map((comment, index) => (
                             <div key={index} className='flex flex-col'>
-                                <li className='font-bold'>{comment.user.name}</li>
+                                <li className='font-bold'>{comment.user.nickname}</li>
                                 <li>{comment.content}</li>
                                 <hr/>
                             </div>

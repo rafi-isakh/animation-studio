@@ -3,7 +3,7 @@
 import { Chapter, Webnovel } from "@/components/Types"
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext"
+import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import SSEComponent from "@/components/SSEComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +13,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [chapter, setChapter] = useState<Chapter>();
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
-    const { email } = useAuth();
+    const { email } = useUser();
     const [ key, setKey ] = useState(0); // for remounting SSEComponent
     const { language } = useLanguage();
 

@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 async function createUser(formData: FormData) {
   'use server';
@@ -30,7 +30,23 @@ async function createUser(formData: FormData) {
   redirect('/');
 }
 
-export default function NewUser() {
+async function isUserInDB() {
+  const session = await auth();
+  if (session && session.user) {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/check_user?email=${session.user.email}`);
+    const data = await res.json();
+    return data.exists;
+  }
+  return false;
+}
+
+export default async function NewUser() {
+  const userExists = await isUserInDB();
+  if (userExists) {
+    redirect('/');
+    return null;
+  }
+
   return (
     <form action={createUser}>
       <input

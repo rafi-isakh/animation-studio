@@ -3,10 +3,10 @@
 import { auth } from '@/auth';
 import ProfileComponent from '@/components/ProfileComponent';
 import { User } from '@/components/Types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 
 export default function Profile() {
-  const { nickname, email } = useAuth();
+  const { nickname, email } = useUser();
 
   const user: User = {
     email: email,

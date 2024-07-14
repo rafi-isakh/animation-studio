@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/UserContext';
 import SearchComponent from '@/components/SearchComponent';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';

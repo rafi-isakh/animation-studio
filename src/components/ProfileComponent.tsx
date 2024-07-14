@@ -1,9 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link'
-import { redirect } from 'next/navigation';
 import { User } from '@/components/Types';
 
 const ProfileComponent = ({ user }: { user: User }) => {

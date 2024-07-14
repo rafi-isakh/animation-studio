@@ -2,13 +2,15 @@
 import { Webnovel } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import WebnovelComponent from "@/components/WebnovelComponent"
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react'
 
-const Webnovels = () => {
+const Webnovels = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-  const searchParams = useSearchParams();
-  const genre = searchParams.get("genre");
+  const genre = searchParams.genre;
+  if (typeof genre === 'string') {
+  } else if (Array.isArray(genre)) {
+      throw new Error("there should be only one genre param")
+  } else {
+  }
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`)
@@ -42,12 +44,4 @@ const Webnovels = () => {
       )
 };
 
-const WebnovelsWrapper = () => {
-  return (
-  <Suspense>
-    <Webnovels/>
-  </Suspense>
-  )
-}
-
-export default WebnovelsWrapper;
+export default Webnovels;

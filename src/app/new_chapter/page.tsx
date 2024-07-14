@@ -1,13 +1,20 @@
 "use client"
 
 import AddChapterComponent from "@/components/AddChapterComponent";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from 'react'
 
 
-function NewChapter() {
-    const searchParams = useSearchParams();
-    const id = searchParams.get('id');
+function NewChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+    const id = searchParams.id;
+    if (typeof id === 'string') {
+    // Handle single string value
+    } else if (Array.isArray(id)) {
+    // Handle array of strings
+        throw new Error("there should be only one id param")
+    } else {
+    // Handle undefined case
+        throw new Error("id param should be present")
+    }
+
     if (id) {
         return (
             <AddChapterComponent webnovelId={id} />
@@ -20,12 +27,4 @@ function NewChapter() {
     }
 };
 
-const NewChapterWrapper = () => {
-    return (
-        <Suspense>
-            <NewChapter/>
-        </Suspense>
-    )
-}
-
-export default NewChapterWrapper;
+export default NewChapter;

@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.36",
+    "ai": "^3.2.22",
     "flowbite": "^2.4.1",
     "formidable": "^3.5.1",
     "gapi-script": "^1.2.0",
@@ -19,7 +21,8 @@
     "react-slick": "^0.30.2",
     "slick-carousel": "^1.8.1",
     "tailwind-scrollbar-hide": "^1.1.7",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5",

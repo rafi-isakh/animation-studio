@@ -1,14 +1,17 @@
 "use client"
 import { Webnovel } from '@/components/Types';
 import WebnovelComponent from '@/components/WebnovelComponent';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Suspense } from 'react'
 
-const Search = () => {
+const Search = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-  const searchParams = useSearchParams();
-  const query = searchParams.get('query');
+  const query = searchParams.query;
+
+  if (typeof query === 'string') {
+  } else if (Array.isArray(query)) {
+      throw new Error("there should be only one query param")
+  } else {
+  }
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/search?query=${query}`)
@@ -31,12 +34,4 @@ const Search = () => {
   );
 };
 
-const SearchWrapper = () => {
-  return (
-    <Suspense>
-      <Search/>
-    </Suspense>
-  )
-}
-
-export default SearchWrapper;
+export default Search;

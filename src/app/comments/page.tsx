@@ -1,14 +1,14 @@
-"use client"
-
 import CommentsComponent from "@/components/CommentsComponent";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Suspense } from 'react'
 
+const Comments = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+    const chapterId = searchParams.chapter_id;
 
-const Comments = () => {
-    const searchParams = useSearchParams();
-    const chapterId = searchParams.get('chapter_id')
+    if (typeof chapterId === 'string') {
+    } else if (Array.isArray(chapterId)) {
+        throw new Error("there should be only one chapterId param")
+    } else {
+        throw new Error("chapterId param should be present")
+    }
 
     if (chapterId) {
         return (
@@ -20,12 +20,4 @@ const Comments = () => {
     }
 }
 
-const CommentsWrapper = () => {
-    return (
-        <Suspense>
-            <Comments />
-        </Suspense>
-    )
-}
-
-export default CommentsWrapper;
+export default Comments;

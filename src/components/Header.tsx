@@ -1,8 +1,8 @@
 "use client"
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import SearchComponent from '@/components/SearchComponent';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
 import { useRouter } from 'next/navigation';
@@ -11,7 +11,7 @@ const Header = () => {
 
   const router = useRouter();
   const { setIsLoggedIn } = useAuth();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, loading } = useAuth();
   const { language, setLanguage } = useLanguage();
 
   const handleSignOut = async (event: React.FormEvent) => {
@@ -31,7 +31,7 @@ const Header = () => {
     }
   };
 
-  const handleLanguageChange = ( language: Language ) => {
+  const handleLanguageChange = (language: Language) => {
     setLanguage(language);
   }
 
@@ -67,24 +67,24 @@ const Header = () => {
                 <div id="dropdownNavbarLanguage" className="z-10 hidden font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                     <li>
-                        <a href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <a href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         한국어
-                        </a>
+                      </a>
                     </li>
                     <li>
-                        <a href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <a href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         English
-                        </a>
+                      </a>
                     </li>
                     <li>
-                        <a href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <a href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         日本語
-                        </a>
+                      </a>
                     </li>
                     <li>
-                        <a href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <a href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         العربية
-                        </a>
+                      </a>
                     </li>
                   </ul>
                 </div>
@@ -93,37 +93,46 @@ const Header = () => {
                 <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" className="block px-4 py-5 flex items-center justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
                   <i className="fa-solid fa-user"></i>
                   <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                </svg></button>
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                  </svg></button>
                 <div id="dropdownNavbar" className="z-10 hidden font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
-                    {isLoggedIn ?
+                    {loading ? (
                       <li>
-                        <a href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</a>
-                      </li> : <main></main>
-                    }
-                    {isLoggedIn ?
-                      <li>
-                        <a href="/my_webnovels" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</a>
-                      </li> : <main></main>
-                    }
-                    {isLoggedIn ?
-                      <li>
-                        <a href="/library" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</a>
-                      </li> : <main></main>
-                    }
-                    {isLoggedIn ?
-                      <li>
-                        <a href="/profile" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</a>
-                      </li> : <main></main>
-                    }
-                    {isLoggedIn ?
-                      <li>
-                        <a href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</a>
-                      </li> :
-                      <li>
-                        <a href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</a>
-                      </li>}
+                        <div role="status">
+                          <svg aria-hidden="true" className="w-6 h-6 m-2 text-gray-200 animate-spin dark:text-gray-600 fill-pink-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                          </svg>
+                          <span className="sr-only">Loading...</span>
+                        </div>
+                      </li>
+                    )
+                      :
+                      isLoggedIn ? (
+                        <>
+                          <li>
+                            <a href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</a>
+                          </li>
+                          <li>
+                            <a href="/my_webnovels" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</a>
+                          </li>
+                          <li>
+                            <a href="/library" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</a>
+                          </li>
+                          <li>
+                            <a href="/profile" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</a>
+                          </li>
+                          <li>
+                            <a href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</a>
+                          </li>
+                        </>
+                      )
+                        : (
+                          <li>
+                            <a href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</a>
+                          </li>
+                        )}
                   </ul>
                 </div>
               </li>
@@ -134,19 +143,4 @@ const Header = () => {
     </div>
   );
 };
-
-/*
-<div>
-<nav className="flex flex-row-reverse space-x-4 space-x-reverse m-4">
-    <Link href={isLoggedIn ? '/profile' : '/signin'}>
-        {isLoggedIn ? '프로필' : '로그인'}
-    </Link>
-    <div>언어 선택</div>
-    <div>검색</div>
-</nav>
-<Link href="/"><Image className="m-4" src="/logo.png" alt="Stelland Logo" width={100} height={100}/></Link>
-
-</div>
-*/
-
 export default Header;

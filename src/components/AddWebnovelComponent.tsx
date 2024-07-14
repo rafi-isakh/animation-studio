@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'
 import { Webnovel } from '@/components//Types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import Image from 'next/image'
 
@@ -15,7 +15,7 @@ const AddWebnovelComponent = () => {
     const [genre, setGenre] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [language, setLanguage] = useState('');
-    const { email, nickname } = useAuth();
+    const { email, nickname } = useUser();
     const router = useRouter();
 
     useEffect(() => {

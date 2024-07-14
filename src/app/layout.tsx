@@ -4,8 +4,9 @@ import { ReactNode } from 'react';
 import React from 'react';
 import Head from 'next/head';
 import Header from '@/components/Header';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { UserProvider } from '@/contexts/UserContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -20,16 +21,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </Head>
       <body>
         <LanguageProvider>
-          <AuthProvider>
-            <Header />
-            <div className="pt-24">
-              {children}
-            </div>
-          </AuthProvider>
+          <UserProvider>
+            <AuthProvider>
+              <Header />
+              <div className="pt-24">
+                {children}
+              </div>
+            </AuthProvider>
+          </UserProvider>
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
       </body>
-    </html>
+    </html >
   );
 }

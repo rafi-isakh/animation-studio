@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {auth} from '@/auth';
 import { User } from '@/components/Types';
-export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,13 +12,11 @@ export async function GET(request: NextRequest) {
       const user: User = data;
 
       return NextResponse.json({ 
-        loggedIn: true,
         nickname: user.nickname,
         email: user.email,
       });
     } else {
       return NextResponse.json({ 
-        loggedIn: false,
         nickname: "",
         email: "",
       });

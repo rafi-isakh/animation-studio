@@ -1,8 +1,8 @@
-import ViewWebnovelsComponentWrapper from "@/components/ViewWebnovelsComponent";
+import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 
-const ViewWebnovels = () => {
+const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     return (
-        <ViewWebnovelsComponentWrapper/>
+        <ViewWebnovelsComponent searchParams={searchParams}/>
     )
 }
 

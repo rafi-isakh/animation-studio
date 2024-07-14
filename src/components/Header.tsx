@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const Header = () => {
 
@@ -13,6 +14,12 @@ const Header = () => {
   const { setIsLoggedIn } = useAuth();
   const { isLoggedIn, loading } = useAuth();
   const { language, setLanguage } = useLanguage();
+  const pathname = usePathname();
+
+  // special handling for new_user page
+  const inNewUser = () => {
+    return pathname == '/new_user'
+  }
 
   const handleSignOut = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -22,7 +29,7 @@ const Header = () => {
       });
       if (response.ok) {
         setIsLoggedIn(false);
-        window.location.href = '/';
+        window.location.reload();
       } else {
         console.error('Failed to sign out');
       }
@@ -109,7 +116,7 @@ const Header = () => {
                       </li>
                     )
                       :
-                      isLoggedIn ? (
+                      isLoggedIn && !inNewUser() ? (
                         <>
                           <li>
                             <a href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</a>

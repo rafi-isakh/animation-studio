@@ -46,20 +46,29 @@ export default async function NewUser() {
     redirect('/');
     return null;
   }
-
-  return (
-    <form action={createUser}>
-      <input
-        type="text"
-        name="nickname"
-        className='input input-bordered w-full'
-      />
-      <button 
-        type="submit" 
-        className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
-      >
-        제출
-      </button>
-    </form>
-  )
+  else {
+    return (
+      <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
+        <form action={createUser}>
+          <div className="flex flex-row space-x-4">
+            <div className="mr-4 w-full">
+              <p className="text-lg">닉네임</p>
+              <input
+                type="text"
+                name="nickname"
+                className='input input-bordered w-full'
+              />
+              <br/>
+              <br/>
+              <button
+                type="submit"
+                className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
+                제출
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    )
+  }
 }

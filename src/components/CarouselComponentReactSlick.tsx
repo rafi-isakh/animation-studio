@@ -49,7 +49,6 @@ const CarouselComponentReactSlick = () => {
     infinite: true,
     speed: 500,
     autoplay: true,
-    dots: true,
     className: "center",
     nextArrow: <SampleNextArrow/>,
     prevArrow: <SamplePrevArrow/>
@@ -60,7 +59,7 @@ const CarouselComponentReactSlick = () => {
         <Slider {...settings}>
           {carouselItems.map((item, index) => (
             <div key={index} className={styles.carouselContainer}>
-              <Image src={`/upload/${item.image}`} width={1280} height={504} alt={item.description} />
+              <Image src={`/upload/${item.image}`} width={1280} height={504} sizes="(max-width: 768px) 100vw, 50vw" alt={item.description} />
             </div>
           ))}
         </Slider>

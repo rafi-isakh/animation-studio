@@ -12,11 +12,13 @@ export async function GET(request: NextRequest) {
       const user: User = data;
 
       return NextResponse.json({ 
+        loggedIn: true,
         nickname: user.nickname,
         email: user.email,
       });
     } else {
       return NextResponse.json({ 
+        loggedIn: false,
         nickname: "",
         email: "",
       });

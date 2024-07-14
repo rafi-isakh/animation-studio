@@ -27,7 +27,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                 const webnovelData = await webnovelResponse.json();
 
                 if (Object.keys(webnovelData).length === 0) {
-                    setLoading("No data");
+                    setLoading("Loaded");
                     return;
                 }
 
@@ -44,7 +44,6 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                         setWebnovels(userWebnovelsData);
                     }
                 }
-
                 setLoading("Loaded");
             } catch (error) {
                 console.error("Error fetching data:", error);

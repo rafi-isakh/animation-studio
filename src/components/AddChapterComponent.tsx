@@ -28,6 +28,9 @@ const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
+        if (!title || !content) {
+            return;
+        }
         formData.append('webnovel_id', webnovelId);
         const res = await fetch('/api/add-chapter', {
             method: 'POST',

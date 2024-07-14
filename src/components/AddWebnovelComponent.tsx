@@ -38,6 +38,9 @@ const AddWebnovelComponent = () => {
         }
         formData.append('genre', genre);
         formData.append('language', language);
+        if (!title || !description || !coverArt || !genre || !language){
+            return;
+        }
 
         const res = await fetch('/api/add-webnovel', {
             method: 'POST',

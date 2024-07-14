@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from 'react';
-import SearchComponent from '@/components/SearchComponent';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';

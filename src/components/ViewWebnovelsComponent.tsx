@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent';
 import WebNovelInfoAndPictureComponent from './WebnovelInfoAndPictureComponent';
 import ListOfChaptersComponent from './ListOfChaptersComponent';
+import { useUser } from '@/contexts/UserContext';
 
 const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const [loading, setLoading] = useState("Loading");
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [nickname, setNickname] = useState("");
-    const [email, setEmail] = useState("");
+    const [authorEmail, setAuthorEmail] = useState("");
+    const { email } = useUser();
     const id = searchParams.id;
 
     if (typeof id === 'string') {
@@ -30,14 +32,15 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                     setLoading("Loaded");
                     return;
                 }
+                console.log("here");
 
                 const webnovel : Webnovel = webnovelData;
-                const { email: user_email, nickname: user_nickname } = webnovel.user;
+                const { email: author_email, nickname: user_nickname } = webnovel.user;
 
                 if (user_nickname) setNickname(user_nickname);
-                if (user_email) {
-                    setEmail(user_email);
-                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${user_email}`);
+                if (author_email) {
+                    setAuthorEmail(author_email);
+                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${author_email}`);
                     const userWebnovelsData = await userWebnovelsResponse.json();
 
                     if (Object.keys(userWebnovelsData).length !== 0) {
@@ -69,7 +72,12 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                     <div className='w-3/4'>
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
                         <div>
+                            {
+                            (authorEmail == email)?
                             <button onClick={handleNewChapter} className="mt-4 text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">새 글 업로드</button>
+                            :
+                            <div></div>
+                            }
                         </div>
                         <ListOfChaptersComponent webnovel={getWebnovel()} />
                     </div>

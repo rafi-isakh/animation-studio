@@ -4,6 +4,7 @@ import { Chapter, Comment, User } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 // user could be undefined if not logged in
 const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
@@ -12,6 +13,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [chapter, setChapter] = useState<Chapter>();
     const router = useRouter();
     const { email, nickname } = useUser();
+    const { isLoggedIn } = useAuth();
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -21,8 +23,8 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 "nickname": nickname
             }
             event.preventDefault();
-            if (!user) {
-                router.push("/signin");
+            if (!isLoggedIn) {
+                return;
             } else {
                 var newComment : Comment = {
                     "user": user,

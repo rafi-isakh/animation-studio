@@ -54,12 +54,12 @@ const CarouselComponentReactSlick = () => {
     prevArrow: <SamplePrevArrow/>
   };
   return (
-    <div className={`flex max-w-screen-xl w-full mx-auto items-center justify-center ${styles.carouselContainer}`}>
-      <div className="w-full items-center justify-center">
+    <div className={`max-w-screen-xl w-full mx-auto items-center justify-center ${styles.carouselContainer}`}>
+      <div>
         <Slider {...settings}>
           {carouselItems.map((item, index) => (
-            <div key={index} className={styles.carouselContainer}>
-              <Image src={`/upload/${item.image}`} width={1280} height={504} sizes="(max-width: 768px) 100vw, 50vw" alt={item.description} />
+            <div className="relative w-full h-[30rem] overflow-hidden" key={index} >
+              <Image className="w-full h-full" src={`/upload/${item.image}`} layout="fill" objectFit="cover"  alt={item.description} />
             </div>
           ))}
         </Slider>

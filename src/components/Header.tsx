@@ -71,12 +71,14 @@ const Header = () => {
             <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
           </a>
           <div className="flex md:order-1">
+            {/*Search*/}
             <button type="button" data-collapse-toggle="navbar-search" aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 me-1">
               <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
               </svg>
               <span className="sr-only">Search</span>
             </button>
+            {/*Search bar*/}
             <div className="relative hidden md:block">
               <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
@@ -86,6 +88,7 @@ const Header = () => {
               </div>
               <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..." />
             </div>
+            {/*Main menu in mobile screen (md:hidden)*/}
             <button data-collapse-toggle="navbar-search" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
               <span className="sr-only">Open main menu</span>
               <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
@@ -94,6 +97,7 @@ const Header = () => {
             </button>
           </div>
           <div className="items-center justify-between hidden w-full md:flex md:w-auto md:order-2" id="navbar-search">
+            {/*Search bar in mobile screen (md:hidden)*/}
             <div className="relative mt-3 md:hidden">
               <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
@@ -103,13 +107,15 @@ const Header = () => {
               <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..." />
             </div>
             <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-black dark:border-gray-700">
+              {/*News menu*/}
               <li>
-                <a href="/news" className="flex block px-4 py-2 text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                  <i className="fas fa-newspaper"></i></a>
+                <a href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                  <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'> 뉴스</p></a>
               </li>
+              {/*Language menu*/}
               <li className="py-2">
-                <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbarLanguage" className="block px-4 py-5 flex items-center justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                  <i className="fa-solid fa-globe"></i>
+                <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbarLanguage" className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                  <i className="fa-solid fa-globe"></i><p className='ml-2 md:hidden'> 언어</p>
                   <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                   </svg></button>
@@ -138,9 +144,10 @@ const Header = () => {
                   </ul>
                 </div>
               </li>
+              {/*User menu*/}
               <li className="py-2">
-                <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" className="block px-4 py-5 flex items-center justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                  <i className="fa-solid fa-user"></i>
+                <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                  <i className="fa-solid fa-user"></i><p className='ml-2 md:hidden'> 프로필</p>
                   <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                   </svg></button>

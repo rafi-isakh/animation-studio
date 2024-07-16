@@ -30,7 +30,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     "user": user,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapterId": chapterId
+                    "chapter_id": chapterId
                 }
                 // optimistic update
                 setAllComments([...allComments, newComment]);
@@ -46,7 +46,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 if (!response.ok) {
                     setAllComments(allComments.filter(comment => comment !== newComment));
                 } else {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapterId=${chapterId}`)
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
                         .then(data => data.json())
                     if (Array.isArray(res)) {
                         setAllComments(res);
@@ -59,7 +59,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
 
     useEffect(() => {
         const fetchComments = async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapterId=${chapterId}`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
                 .then(data => data.json())
             if (Array.isArray(res)) {
                 setAllComments(res);

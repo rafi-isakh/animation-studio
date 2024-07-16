@@ -24,7 +24,7 @@ export interface Comment {
   user: User;
   content: string;
   upvotes: number;
-  chapterId: string;
+  chapter_id: string;
 }
 
 export interface SlickCarouselItem {

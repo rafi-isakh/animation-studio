@@ -41,10 +41,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
   );
 
   const data = {
-    userEmail: session.user.email,
+    user_email: session.user.email,
     title: title,
     description: description,
-    coverArt: coverArt.name,
+    cover_art: coverArt.name,
     genre: genre,
     language: language
   };

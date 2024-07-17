@@ -67,7 +67,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             <Link href={`/view_webnovels?id=${webnovel.id}`}><i className="fa-solid fa-chevron-left"></i> {webnovel.title}</Link>
                         </div>
                         <div className="flex flex-row items-center">
-                            <a href="#">
+                            <Link href="#">
                                 <div className="text-center">
                                     {
                                         likeToggle ?
@@ -76,7 +76,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                             <i onClick={handleLikeClick} className="fa-regular fa-heart"></i>
                                     }
                                 </div>
-                            </a>
+                            </Link>
                             <p className='ml-2 w-6'>{upvotes}</p>
                         </div>
                     </div>

@@ -6,6 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
+import Link from 'next/link';
 
 const Header = () => {
 
@@ -13,6 +15,7 @@ const Header = () => {
   const { setIsLoggedIn } = useAuth();
   const { isLoggedIn, loading } = useAuth();
   const { language, setLanguage } = useLanguage();
+  const { email, nickname } = useUser();
   const pathname = usePathname();
   const [query, setQuery] = useState('');
 
@@ -66,10 +69,10 @@ const Header = () => {
     <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
             <img src="/toonyz_logo_pink.svg" className="h-8" alt="Stelland Logo" />
             <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
-          </a>
+          </Link>
           <div className="flex md:order-1">
             {/*Search*/}
             <button type="button" data-collapse-toggle="navbar-search" aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 me-1">
@@ -109,8 +112,8 @@ const Header = () => {
             <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-black dark:border-gray-700">
               {/*News menu*/}
               <li>
-                <a href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                  <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'> 뉴스</p></a>
+                <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                  <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'> 뉴스</p></Link>
               </li>
               {/*Language menu*/}
               <li className="py-2">
@@ -122,24 +125,24 @@ const Header = () => {
                 <div id="dropdownNavbarLanguage" className="z-10 hidden font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
                   <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                     <li>
-                      <a href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         한국어
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <Link href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         English
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <Link href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         日本語
-                      </a>
+                      </Link>
                     </li>
                     <li>
-                      <a href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                      <Link href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                         العربية
-                      </a>
+                      </Link>
                     </li>
                   </ul>
                 </div>
@@ -168,25 +171,25 @@ const Header = () => {
                       isLoggedIn && !inNewUser() ? (
                         <>
                           <li>
-                            <a href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</a>
+                            <Link href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</Link>
                           </li>
                           <li>
-                            <a href="/my_webnovels" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</a>
+                            <Link href="/my_webnovels" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</Link>
                           </li>
                           <li>
-                            <a href="/library" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</a>
+                            <Link href="/library" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</Link>
                           </li>
                           <li>
-                            <a href="/profile" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</a>
+                            <Link href={`/profile?email=${email}`} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</Link>
                           </li>
                           <li>
-                            <a href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</a>
+                            <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</Link>
                           </li>
                         </>
                       )
                         : (
                           <li>
-                            <a href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</a>
+                            <Link href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</Link>
                           </li>
                         )}
                   </ul>

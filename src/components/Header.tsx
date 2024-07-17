@@ -52,17 +52,27 @@ const Header = () => {
       });
       if (response.ok) {
         setIsLoggedIn(false);
-        window.location.reload();
+        router.push('/')
+        handleUserItemClick();
       } else {
         console.error('Failed to sign out');
       }
     } catch (error) {
       console.error('Error signing out:', error);
     }
+    finally {
+    }
   };
 
   const handleLanguageChange = (language: Language) => {
     setLanguage(language);
+    const dropdownButton = document.getElementById('dropdownNavbarLanguageLink')
+    dropdownButton?.click()
+  }
+
+  const handleUserItemClick = () => {
+    const dropdownButton = document.getElementById('dropdownNavbarUserLink')
+    dropdownButton?.click()
   }
 
   return (
@@ -117,7 +127,7 @@ const Header = () => {
               </li>
               {/*Language menu*/}
               <li className="py-2">
-                <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbarLanguage" className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                <button id="dropdownNavbarLanguageLink" data-dropdown-toggle="dropdownNavbarLanguage" className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
                   <i className="fa-solid fa-globe"></i><p className='ml-2 md:hidden'> 언어</p>
                   <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
@@ -149,7 +159,7 @@ const Header = () => {
               </li>
               {/*User menu*/}
               <li className="py-2">
-                <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                <button id="dropdownNavbarUserLink" data-dropdown-toggle="dropdownNavbar" className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
                   <i className="fa-solid fa-user"></i><p className='ml-2 md:hidden'> 프로필</p>
                   <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
@@ -171,16 +181,16 @@ const Header = () => {
                       isLoggedIn && !inNewUser() ? (
                         <>
                           <li>
-                            <Link href="/new_webnovel" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</Link>
+                            <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</Link>
                           </li>
                           <li>
-                            <Link href="/my_webnovels" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</Link>
+                            <Link href="/my_webnovels" onClick={() => handleUserItemClick()}className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</Link>
                           </li>
                           <li>
-                            <Link href="/library" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</Link>
+                            <Link href="/library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</Link>
                           </li>
                           <li>
-                            <Link href={`/profile?email=${email}`} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</Link>
+                            <Link href={`/profile?email=${email}`} onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</Link>
                           </li>
                           <li>
                             <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</Link>
@@ -189,7 +199,7 @@ const Header = () => {
                       )
                         : (
                           <li>
-                            <Link href="/signin" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</Link>
+                            <Link href="/signin" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</Link>
                           </li>
                         )}
                   </ul>

@@ -32,7 +32,6 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                     setLoading("Loaded");
                     return;
                 }
-                console.log("here");
 
                 const webnovel : Webnovel = webnovelData;
                 const { email: author_email, nickname: user_nickname } = webnovel.user;
@@ -40,7 +39,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                 if (user_nickname) setNickname(user_nickname);
                 if (author_email) {
                     setAuthorEmail(author_email);
-                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?user_email=${author_email}`);
+                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?email=${author_email}`);
                     const userWebnovelsData = await userWebnovelsResponse.json();
 
                     if (Object.keys(userWebnovelsData).length !== 0) {
@@ -54,7 +53,9 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
             }
         }
 
-        fetchData();
+        // my_webnovels passes in id only if there's at least one webnovel by logged in user
+        if (id) fetchData();
+        else setLoading("Loaded")
     }, [id]); // Add id to dependency array if it's expected to change
 
     const handleNewChapter = () => {

@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
+import { User } from '@/components/Types';
 import { redirect } from 'next/navigation'
-import { useEffect, useState } from 'react';
 
 async function createUser(formData: FormData) {
   'use server';
@@ -9,10 +9,9 @@ async function createUser(formData: FormData) {
   const nickname = formData.get('nickname') as string;
 
   if (session && session.user) {
-    const data = {
-      'user_email': session.user.email,
-      'user_name': session.user.name,
-      'id': session.user.id,
+    console.log(session.user.email)
+    const data : User = {
+      'email': session.user.email,
       'nickname': nickname
     }
 

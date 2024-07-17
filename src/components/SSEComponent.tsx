@@ -57,7 +57,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
       const data = {
         "text": text,
         "language": language,
-        "chapterId": chapterId,
+        "chapter_id": chapterId,
         "done": done
       }
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_translation`, {
@@ -76,6 +76,7 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
   }
 
   const submitContent = async (translation: string) => {
+    if (!translation) translation = "";
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
         method: 'POST',

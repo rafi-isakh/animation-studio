@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
@@ -18,8 +18,19 @@ const Header = () => {
   const { email, nickname } = useUser();
   const pathname = usePathname();
   const [query, setQuery] = useState('');
-
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   let keyPressed = false
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -92,19 +103,43 @@ const Header = () => {
   return (
     <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
-        <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        <div className="max-w-screen-xl flex flex-col md:flex-row flex-wrap items-center justify-between mx-auto p-4">
+          {
+            isMobile? (
+              <div className='flex flex-row justify-between mx-auto w-full mb-2'>
+                <Link href="/webtoon">
+                  <p className='mt-1 md:text-xl text-white hover:text-pink-600'>웹툰</p>
+                </Link>
+                <Link href="/manhwa">
+                  <p className='mt-1 md:text-xl text-white hover:text-pink-600'>만화</p>
+                </Link>
+                <Link href="/">
+                  <p className='mt-1 md:text-xl text-white hover:text-pink-600'>웹소설</p>
+                </Link>
+              </div>
+            ):<></>
+          }
+          <div className='flex flex-row justify-between mx-auto w-full'>
           {/**/}
           <div className='flex flex-row space-x-4'>
             <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
               <img src="/toonyz_logo_pink.svg" className="h-8" alt="Stelland Logo" />
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
             </Link>
-            <Link href="/webtoon">
-              <p className='mt-1 text-xl text-white hover:text-pink-600'>웹툰</p>
-            </Link>
-            <Link href="/">
-              <p className='mt-1 text-xl text-white hover:text-pink-600'>웹소설</p>
-            </Link>
+            {!isMobile ? (
+              <>
+                <Link href="/webtoon">
+                  <p className='mt-1 text-xl text-white hover:text-pink-600'>웹툰</p>
+                </Link>
+                <Link href="/manhwa">
+                  <p className='mt-1 text-xl text-white hover:text-pink-600'>만화</p>
+                </Link>
+                <Link href="/">
+                  <p className='mt-1 text-xl text-white hover:text-pink-600'>웹소설</p>
+                </Link>
+              </>
+            ):<></>
+            }
           </div>
           <div className="flex md:order-1">
             {/*Search icon in mobile screen (md:hidden)*/}
@@ -229,6 +264,7 @@ const Header = () => {
                 </div>
               </li>
             </ul>
+          </div>
           </div>
         </div>
       </nav>

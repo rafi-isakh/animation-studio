@@ -24,7 +24,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <UserProvider>
             <AuthProvider>
               <Header />
-              <div className="pt-24 md:pl-12 md:pr-12 pl-4 pr-4">
+              <div className="pt-36 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4">
                 {children}
               </div>
             </AuthProvider>

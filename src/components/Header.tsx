@@ -109,7 +109,7 @@ const Header = () => {
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
         <div className="max-w-screen-xl flex flex-col md:flex-row flex-wrap items-center justify-between mx-auto p-4">
           <MobileContainer>
-            <div className="flex flex-row w-full justify-between">
+            <div className="flex flex-row w-[95vw] justify-between px-4 mb-2">
               <Link href="/webtoon">
                 <p className='mt-1 md:text-xl text-white hover:text-pink-600'>웹툰</p>
               </Link>

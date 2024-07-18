@@ -102,7 +102,7 @@ const Header = () => {
             <p className='md:text-xl text-white hover:text-pink-600'>웹소설</p>
           </Link>
         </div>
-        <div className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto py-2 px-4">
+        <div className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto pt-2 md:pt-4 pb-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
             <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">

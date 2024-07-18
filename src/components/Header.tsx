@@ -66,13 +66,27 @@ const Header = () => {
 
   const handleLanguageChange = (language: Language) => {
     setLanguage(language);
-    const dropdownButton = document.getElementById('dropdownNavbarLanguageLink')
-    dropdownButton?.click()
+    clickToCollapse('dropdownNavbarLanguageLink')
   }
 
   const handleUserItemClick = () => {
-    const dropdownButton = document.getElementById('dropdownNavbarUserLink')
-    dropdownButton?.click()
+    clickToCollapse('dropdownNavbarUserLink')
+  }
+
+  const clickToCollapse = (id: string) => {
+    const dropdownButton = document.getElementById(id)
+    dropdownButton?.click();
+    const mobileHamburger = document.getElementById('mobile-hamburger')
+    if (!isElementHidden(mobileHamburger)) {
+      mobileHamburger?.click();
+    }
+  }
+
+  function isElementHidden(element: Element | null) {
+    if (element) {
+      const style = window.getComputedStyle(element);
+      return (style.display === 'none' || style.visibility === 'hidden');
+    }
   }
 
   return (
@@ -94,7 +108,7 @@ const Header = () => {
               <span className="sr-only">Search</span>
             </button>
             {/*Main menu in mobile screen (md:hidden)*/}
-            <button data-collapse-toggle="navbar-search" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+            <button id="mobile-hamburger" data-collapse-toggle="navbar-search" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
               <span className="sr-only">Open main menu</span>
               <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />

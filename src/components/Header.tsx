@@ -8,22 +8,6 @@ import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
-import styled from 'styled-components';
-
-const MobileContainer = styled.div`
-  display: none;
-  @media (max-width: 767px) {
-    display: block;
-  }
-`;
-
-const DesktopContainer = styled.div`
-  display: block;
-
-  @media (max-width: 767px) {
-    display: none;
-  }
-`;
 
 const Header = () => {
 
@@ -108,8 +92,8 @@ const Header = () => {
     <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
         <div className="max-w-screen-xl flex flex-col md:flex-row flex-wrap items-center justify-between mx-auto p-4">
-          <MobileContainer>
-            <div className="flex flex-row w-[95vw] justify-between px-4 mb-2">
+          <div className="block md:hidden w-full">
+            <div className="flex flex-row w-full justify-between px-4 mb-2">
               <Link href="/webtoon">
                 <p className='mt-1 md:text-xl text-white hover:text-pink-600'>웹툰</p>
               </Link>
@@ -120,7 +104,7 @@ const Header = () => {
                 <p className='mt-1 md:text-xl text-white hover:text-pink-600'>웹소설</p>
               </Link>
             </div>
-          </MobileContainer>
+          </div>
           <div className='flex flex-row justify-between mx-auto w-full'>
             {/**/}
             <div className='flex flex-row space-x-4'>
@@ -128,7 +112,7 @@ const Header = () => {
                 <img src="/toonyz_logo_pink.svg" className="h-8" alt="Stelland Logo" />
                 <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
               </Link>
-              <DesktopContainer>
+              <div className="hidden md:block">
                 <div className="flex flex-row space-x-4">
                   <Link href="/webtoon">
                     <p className='mt-1 text-xl text-white hover:text-pink-600'>웹툰</p>
@@ -140,7 +124,7 @@ const Header = () => {
                     <p className='mt-1 text-xl text-white hover:text-pink-600'>웹소설</p>
                   </Link>
                 </div>
-              </DesktopContainer>
+              </div>
             </div>
             <div className="flex md:order-1">
               {/*Search icon in mobile screen (md:hidden)*/}

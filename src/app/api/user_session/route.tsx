@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         loggedIn: true,
         nickname: user.nickname,
-        email: user.email,
+        email: email,
       });
     } else {
       return NextResponse.json({ 

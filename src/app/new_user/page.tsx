@@ -9,7 +9,6 @@ async function createUser(formData: FormData) {
   const nickname = formData.get('nickname') as string;
 
   if (session && session.user) {
-    console.log(session.user.email)
     const data : User = {
       'email': session.user.email,
       'nickname': nickname
@@ -22,8 +21,6 @@ async function createUser(formData: FormData) {
       },
       body: JSON.stringify(data),
     });
-
-    // You might want to check the response and handle any errors here
   }
 
   redirect('/');

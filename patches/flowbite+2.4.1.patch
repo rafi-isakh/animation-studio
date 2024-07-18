@@ -1,0 +1,37 @@
+diff --git a/node_modules/flowbite/plugin.js b/node_modules/flowbite/plugin.js
+index 6d844f7..9edd498 100644
+--- a/node_modules/flowbite/plugin.js
++++ b/node_modules/flowbite/plugin.js
+@@ -371,7 +371,7 @@ module.exports = plugin.withOptions(
+                         background: 'unset',
+                         'border-color': 'inherit',
+                         'border-width': '0',
+-                        'border-radius': '0',
++                        'border-radius': borderRadius.DEFAULT,
+                         padding: '0',
+                         'font-size': 'unset',
+                         'line-height': 'inherit',
+@@ -381,8 +381,9 @@ module.exports = plugin.withOptions(
+                     },
+                     [[`input[type=file]::file-selector-button`]]: {
+                         color: 'white',
+-                        background: theme('colors.gray.800', colors.gray[800]),
++                        background: theme('colors.black', colors.black),
+                         border: 0,
++                        'border-radius': borderRadius.DEFAULT,
+                         'font-weight': theme('fontWeight.medium'),
+                         'font-size': theme('fontSize.sm'),
+                         cursor: 'pointer',
+@@ -393,9 +394,9 @@ module.exports = plugin.withOptions(
+                         'margin-inline-start': '-1rem',
+                         'margin-inline-end': '1rem',
+                         '&:hover': {
+-                            background: theme(
+-                                'colors.gray.700',
+-                                colors.gray[700]
++                            color: theme(
++                                'colors.pink.600',
++                                colors.pink[600]
+                             ),
+                         },
+                     },

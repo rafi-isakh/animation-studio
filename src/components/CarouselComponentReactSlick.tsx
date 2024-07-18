@@ -59,7 +59,7 @@ const CarouselComponentReactSlick = () => {
         <Slider {...settings}>
           {carouselItems.map((item, index) => (
             <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden" key={index} >
-              <Image className="object-cover object-center w-full h-full" src={`/upload/${item.image}`} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill  alt={item.description} />
+              <Image className="object-cover object-center w-full h-full rounded" src={`/upload/${item.image}`} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill  alt={item.description} />
             </div>
           ))}
         </Slider>

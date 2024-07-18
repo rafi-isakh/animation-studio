@@ -8,7 +8,7 @@ const Webnovels = ({ searchParams }: { searchParams: { [key: string]: string | s
   const genre = searchParams.genre;
   if (typeof genre === 'string') {
   } else if (Array.isArray(genre)) {
-      throw new Error("there should be only one genre param")
+    throw new Error("there should be only one genre param")
   } else {
   }
 
@@ -30,18 +30,18 @@ const Webnovels = ({ searchParams }: { searchParams: { [key: string]: string | s
   }
 
   return (
-        <div className="max-w-screen-xl mx-auto snap-x overflow-x-scroll flex m-4">
-          {webnovels
-            .filter(item => filter_by_genre(item)) 
-            .map((item, index) => (
-          <div className="max-w-screen-sm flex mx-auto snap-center flex-shrink-0 w-80" key={index}>
+    <div className="max-w-screen-xl mx-auto snap-x overflow-x-scroll flex m-4">
+      {webnovels
+        .filter(item => filter_by_genre(item))
+        .map((item, index) => (
+          <div className="max-w-screen-sm flex-grow min-w-[120px] min-h-[73px] mx-auto snap-center p-4" key={index}>
             <center>
-              <WebnovelComponent webnovel={item}/>
+              <WebnovelComponent webnovel={item} />
             </center>
           </div>
         ))}
-        </div>
-      )
+    </div>
+  )
 };
 
 export default Webnovels;

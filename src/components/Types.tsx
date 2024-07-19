@@ -21,10 +21,13 @@ export interface User {
 }
 
 export interface Comment {
+  id: number;
+  parent_id: number;
   user: User;
   content: string;
   upvotes: number;
   chapter_id: string;
+  replies: Comment[];
 }
 
 export interface SlickCarouselItem {

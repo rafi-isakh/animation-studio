@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 
-const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
+const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -40,31 +40,36 @@ const AddChapterComponent = ({webnovelId} : {webnovelId: string}) => {
     };
 
     return (
-        <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-            <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname}/>
-            <form className="w-3/4" onSubmit={handleAddChapter}>
-                <div className="flex flex-row space-x-4">
-                    <div className="mr-4 w-full">
-                        <p className="text-2xl">새 글 쓰기</p>
-                        <br />
-                        <p className="text-lg">글 제목</p>
+        <div className='max-w-screen-md w-full flex flex-col md:flex-row justify-center mx-auto'>
+            <div className='w-full md:w-1/4'>
+                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
+                <hr className='block md:hidden mt-4 mb-4 bg-black h-1' />
+            </div>
+            <form className="md:w-3/4 w-full" onSubmit={handleAddChapter}>
+                <div className="mr-4 w-full">
+                    <p className="text-2xl">새 글 쓰기</p>
+                    <br />
+                    <div className="flex flex-row space-x-4">
+                        <p className="text-md w-24">글 제목</p>
                         <input
                             type="text"
                             value={title}
-                            className='input input-bordered w-full'
+                            className='input border-none rounded focus:ring-pink-600 w-full bg-gray-200'
                             onChange={(e) => setTitle(e.target.value)}
                         />
-                        <br /><br />
-                        <p className="text-lg">내용</p>
+                    </div>
+                    <br />
+                    <div className="flex flex-row space-x-4">
+                        <p className="text-md w-24">내용</p>
                         <textarea
                             value={content}
                             rows={8}
-                            className='textarea textarea-lg textarea-bordered w-full'
+                            className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 textarea-lg'
                             onChange={(e) => setContent(e.target.value)}
                         />
-                        <br /><br />
-                        <button type="submit" className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                     </div>
+                    <br /><br />
+                    <button type="submit" className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                 </div>
             </form>
         </div>

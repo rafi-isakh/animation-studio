@@ -52,7 +52,7 @@ export default async function NewUser() {
               <input
                 type="text"
                 name="nickname"
-                className='input input-bordered w-full'
+                className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
               />
               <br/>
               <br/>

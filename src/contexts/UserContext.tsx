@@ -23,6 +23,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       try {
         const response = await fetch('/api/user_session');
         const data = await response.json();
+        console.log("UserContext fetched data", data)
         setNickname(data.nickname);
         setEmail(data.email);
       } catch (error) {

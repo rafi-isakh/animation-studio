@@ -9,7 +9,11 @@ export function GoogleSignIn() {
         await signIn("google",{ redirectTo: "/new_user" })
       }}
     > 
-      <button type="submit"><Image src="/google_logo.svg" alt="Google Sign In" width={50} height={50}></Image></button>
+      <button type="submit">
+        <Image src="/google_logo.svg" alt="Google Sign In" width={50} height={50}
+        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+        >
+        </Image></button>
     </form>
   )
 } 
@@ -22,7 +26,10 @@ export function KakaoSignIn() {
         await signIn("kakao", {redirectTo: "/new_user"})
       }}
     >
-      <button type="submit"><Image src="/kakao_logo.svg" alt="Kakao Sign In" width={50} height={50}></Image></button>
+      <button type="submit"><Image src="/kakao_logo.svg" alt="Kakao Sign In" width={50} height={50}
+        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+        >
+      </Image></button>
     </form>
   )
 } 
@@ -35,7 +42,9 @@ export function NaverSignIn() {
         await signIn("naver", {redirectTo: "/new_user"})
       }}
     >
-      <button><Image src="/naver_logo.svg" alt="Naver Sign In" width={50} height={50}></Image></button>
+      <button><Image src="/naver_logo.svg" alt="Naver Sign In" width={50} height={50}
+        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+      ></Image></button>
     </form>
   )
 } 

@@ -20,7 +20,9 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>
             </div>
             <div className="ml-4">
-                <Image className='rounded' src={`/upload/${webnovel?.cover_art}`} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} />
+                <Image className='rounded' src={`/upload/${webnovel?.cover_art}`} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} 
+                placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+                />
             </div>
         </div>
     )

@@ -91,18 +91,7 @@ const Header = () => {
   return (
     <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
-        <div className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-between pt-4 px-4">
-          <Link href="/webtoon">
-            <p className='md:text-xl text-white hover:text-pink-600'>웹툰</p>
-          </Link>
-          <Link href="/manhwa">
-            <p className='md:text-xl text-white hover:text-pink-600'>만화</p>
-          </Link>
-          <Link href="/">
-            <p className='md:text-xl text-white hover:text-pink-600'>웹소설</p>
-          </Link>
-        </div>
-        <div className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto pt-2 md:pt-4 pb-4 px-4">
+        <div className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
             <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -247,6 +236,17 @@ const Header = () => {
               </li>
             </ul>
           </div>
+        </div>
+        <div className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-between pb-4 px-4">
+          <Link href="/webtoon">
+            <p className='md:text-xl text-white hover:text-pink-600 px-5 pl-10'>웹툰</p>
+          </Link>
+          <Link href="/manhwa">
+            <p className='md:text-xl text-white hover:text-pink-600 px-5'>만화</p>
+          </Link>
+          <Link href="/">
+            <p className='md:text-xl text-white hover:text-pink-600 px-5 pr-10'>웹소설</p>
+          </Link>
         </div>
       </nav>
     </div>

@@ -18,6 +18,7 @@ const Header = () => {
   const { email, nickname } = useUser();
   const pathname = usePathname();
   const [query, setQuery] = useState('');
+  const [belowHeaderToggle, setBelowHeaderToggle] = useState(true);
   let keyPressed = false
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,10 +89,25 @@ const Header = () => {
     }
   }
 
+  const hideBelowHeader = () => {
+    const belowHeader = document.getElementById('below-header');
+    const aboveHeader = document.getElementById('above-header');
+    if (belowHeaderToggle) {
+      belowHeader?.classList.add('hidden')
+      aboveHeader?.classList.remove('pb-2')
+      aboveHeader?.classList.add('pb-4')
+    } else {
+      belowHeader?.classList.remove('hidden')
+      aboveHeader?.classList.add('pb-2')
+      aboveHeader?.classList.remove('pb-4')
+    }
+    setBelowHeaderToggle(!belowHeaderToggle);
+  }
+
   return (
     <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
-        <div className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
+        <div id='above-header' className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
             <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -114,14 +130,14 @@ const Header = () => {
           </div>
           <div className="flex md:order-1">
             {/*Search icon in mobile screen (md:hidden)*/}
-            <button type="button" data-collapse-toggle="navbar-search" aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded text-sm p-2.5 me-1">
+            <button type="button" onClick={hideBelowHeader} data-collapse-toggle="navbar-search" aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded text-sm p-2.5 me-1">
               <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
               </svg>
               <span className="sr-only">Search</span>
             </button>
             {/*Main menu in mobile screen (md:hidden)*/}
-            <button id="mobile-hamburger" data-collapse-toggle="navbar-search" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+            <button id="mobile-hamburger" onClick={hideBelowHeader}data-collapse-toggle="navbar-search" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
               <span className="sr-only">Open main menu</span>
               <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
@@ -237,7 +253,7 @@ const Header = () => {
             </ul>
           </div>
         </div>
-        <div className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-between pb-4 px-4">
+        <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-between pb-4 px-4">
           <Link href="/webtoon">
             <p className='md:text-xl text-white hover:text-pink-600 px-5 pl-10'>웹툰</p>
           </Link>

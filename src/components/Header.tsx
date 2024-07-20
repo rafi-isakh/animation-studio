@@ -80,6 +80,7 @@ const Header = () => {
       if (hamburgerRef.current && !hamburgerRef.current.contains(event.target as Node)
         && (searchRef.current && !searchRef.current.contains(event.target as Node))) {
         setIsMobileMenuOpen(false);
+        openBelowHeader();
       }
     }
     if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
@@ -130,7 +131,7 @@ const Header = () => {
     setIsUserDropdownOpen(false);
   }
 
-  const hideBelowHeader = () => {
+  const toggleBelowHeader = () => {
     const belowHeader = document.getElementById('below-header');
     const aboveHeader = document.getElementById('above-header');
     if (belowHeaderToggle) {
@@ -145,8 +146,17 @@ const Header = () => {
     setBelowHeaderToggle(!belowHeaderToggle);
   }
 
+  const openBelowHeader = () => {
+    const belowHeader = document.getElementById('below-header');
+    const aboveHeader = document.getElementById('above-header');
+    belowHeader?.classList.remove('hidden')
+    aboveHeader?.classList.add('pb-2')
+    aboveHeader?.classList.remove('pb-4')
+    setBelowHeaderToggle(true);
+  }
+
   const handleMobileMenuClick = () => {
-    hideBelowHeader();
+    toggleBelowHeader();
     setIsMobileMenuOpen(!isMobileMenuOpen);
   }
 
@@ -278,7 +288,7 @@ const Header = () => {
                     </svg></button>
                 </div>
                 {isUserDropdownOpen && (
-                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} md:right-0 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600`}>
+                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600`}>
                     <ul className="py-2 text-sm rounded text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       {loading ? (
                         <li>

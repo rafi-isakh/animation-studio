@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
@@ -24,6 +24,9 @@ const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const device = useDevice();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   let keyPressed = false
 
@@ -34,7 +37,17 @@ const Header = () => {
     } else {
       document.getElementById('menu')?.classList.add('hidden')
     }
-  })
+  });
+
+  useEffect(() => {
+    // Add event listener to detect clicks outside the menu
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -55,6 +68,20 @@ const Header = () => {
       }
     }
   }
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setIsMobileMenuOpen(false);
+    }
+    if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+      setIsUserDropdownOpen(false);
+    }
+    if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
+      setIsLanguageDropdownOpen(false);
+    }
+    console.log('clicking outside')
+  }
+
   // special handling for new_user page
   const inNewUser = () => {
     return pathname == '/new_user'
@@ -87,13 +114,6 @@ const Header = () => {
 
   const handleUserItemClick = () => {
     setIsUserDropdownOpen(false);
-  }
-
-  function isElementHidden(element: Element | null) {
-    if (element) {
-      const style = window.getComputedStyle(element);
-      return (style.display === 'none' || style.visibility === 'hidden');
-    }
   }
 
   const hideBelowHeader = () => {
@@ -165,7 +185,7 @@ const Header = () => {
               </svg>
             </button>
           </div>
-          <div id="menu" className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
+          <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
             {/*Search bar in mobile screen (md:hidden)*/}
             <div className="relative mt-3 md:hidden">
               <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
@@ -199,7 +219,7 @@ const Header = () => {
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                   </svg></button>
                 {isLanguageDropdownOpen && (
-                  <div id="dropdownNavbarLanguage" className="absolute md:right-8 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
+                  <div id="dropdownNavbarLanguage" ref={languageDropdownRef} className="absolute md:right-8 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
                     <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       <li>
                         <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -233,7 +253,7 @@ const Header = () => {
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                   </svg></button>
                 {isUserDropdownOpen && (
-                  <div id="dropdownNavbar" className="absolute md:right-0 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
+                  <div id="dropdownNavbar" ref={userDropdownRef} className="absolute md:right-0 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
                     <ul className="py-2 text-sm rounded text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       {loading ? (
                         <li>

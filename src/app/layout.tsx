@@ -6,8 +6,9 @@ import Header from '@/components/Header';
 import { UserProvider } from '@/contexts/UserContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { DeviceProvider } from '@/contexts/DeviceContext';
 import { Metadata } from 'next'
- 
+
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -25,10 +26,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <LanguageProvider>
           <UserProvider>
             <AuthProvider>
-              <Header />
-              <div className="pt-32 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4">
-                {children}
-              </div>
+              <DeviceProvider>
+                <Header />
+                <div className="pt-32 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4">
+                  {children}
+                </div>
+              </DeviceProvider>
             </AuthProvider>
           </UserProvider>
         </LanguageProvider>

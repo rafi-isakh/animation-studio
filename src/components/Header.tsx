@@ -9,6 +9,8 @@ import { usePathname } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { useDevice } from '@/contexts/DeviceContext';
 import Link from 'next/link';
+import styles from '@/styles/Header.module.css';
+
 
 const Header = () => {
 
@@ -27,6 +29,10 @@ const Header = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
 
   let keyPressed = false
 
@@ -71,15 +77,23 @@ const Header = () => {
 
   const handleClickOutside = (event: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-      setIsMobileMenuOpen(false);
+      if (hamburgerRef.current && !hamburgerRef.current.contains(event.target as Node)
+        && (searchRef.current && !searchRef.current.contains(event.target as Node))) {
+        setIsMobileMenuOpen(false);
+      }
     }
     if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
-      setIsUserDropdownOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserDropdownOpen(false);
+      }
     }
     if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
-      setIsLanguageDropdownOpen(false);
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        setIsLanguageDropdownOpen(false);
+      }
     }
     console.log('clicking outside')
+    console.log(event.target);
   }
 
   // special handling for new_user page
@@ -139,10 +153,12 @@ const Header = () => {
   const toggleUserDropdown = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
     setIsLanguageDropdownOpen(false);
+    console.log("toggling user dropdown")
   }
   const toggleLanguageDropdown = () => {
     setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
     setIsUserDropdownOpen(false);
+    console.log("toggling language dropdown")
   }
 
   return (
@@ -171,19 +187,23 @@ const Header = () => {
           </div>
           <div className="flex md:order-1">
             {/*Search icon in mobile screen (md:hidden)*/}
-            <button type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded text-sm p-2.5 me-1">
-              <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-              </svg>
-              <span className="sr-only">Search</span>
-            </button>
+            <div ref={searchRef}>
+              <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded text-sm p-2.5 me-1">
+                <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                </svg>
+                <span className="sr-only">Search</span>
+              </button>
+            </div>
             {/*Main menu in mobile screen (md:hidden)*/}
-            <button id="mobile-hamburger" onClick={handleMobileMenuClick} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
-              <span className="sr-only">Open main menu</span>
-              <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
-              </svg>
-            </button>
+            <div ref={hamburgerRef}>
+              <button id="mobile-hamburger" onClick={handleMobileMenuClick} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                <span className="sr-only">Open main menu</span>
+                <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
+                </svg>
+              </button>
+            </div>
           </div>
           <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
             {/*Search bar in mobile screen (md:hidden)*/}
@@ -212,14 +232,17 @@ const Header = () => {
                   <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'> 뉴스</p></Link>
               </li>
               {/*Language menu*/}
-              <li className="py-2">
-                <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                  <i className="fa-solid fa-globe"></i><p className='ml-2 md:hidden'> 언어</p>
-                  <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                  </svg></button>
+              <li className="py-2 relative">
+                <div ref={languageMenuRef}>
+                  <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                    <i className="fa-solid fa-globe"></i><p className='ml-2 md:hidden'> 언어</p>
+                    <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                    </svg>
+                  </button>
+                </div>
                 {isLanguageDropdownOpen && (
-                  <div id="dropdownNavbarLanguage" ref={languageDropdownRef} className="absolute md:right-8 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
+                  <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600`}>
                     <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       <li>
                         <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -246,14 +269,16 @@ const Header = () => {
                 )}
               </li>
               {/*User menu*/}
-              <li className="py-2">
-                <button id="dropdownNavbarUserLink" onClick={toggleUserDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                  <i className="fa-solid fa-user"></i><p className='ml-2 md:hidden'> 프로필</p>
-                  <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                  </svg></button>
+              <li className="py-2 relative">
+                <div ref={userMenuRef}>
+                  <button id="dropdownNavbarUserLink" onClick={toggleUserDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                    <i className="fa-solid fa-user"></i><p className='ml-2 md:hidden'> 프로필</p>
+                    <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                    </svg></button>
+                </div>
                 {isUserDropdownOpen && (
-                  <div id="dropdownNavbar" ref={userDropdownRef} className="absolute md:right-0 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600">
+                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} md:right-0 rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600`}>
                     <ul className="py-2 text-sm rounded text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       {loading ? (
                         <li>

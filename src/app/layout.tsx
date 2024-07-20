@@ -2,23 +2,25 @@
 import '@/styles/globals.css';
 import { ReactNode } from 'react';
 import React from 'react';
-import Head from 'next/head';
 import Header from '@/components/Header';
 import { UserProvider } from '@/contexts/UserContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { Metadata } from 'next'
+ 
 
 interface RootLayoutProps {
   children: ReactNode;
+}
+
+export const metadata: Metadata = {
+  title: 'Toonyz',
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <html>
-      <Head>
-        <title>Stelland Web Novel Platform</title>
-      </Head>
       <body>
         <LanguageProvider>
           <UserProvider>

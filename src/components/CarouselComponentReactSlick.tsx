@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick-theme.css";
 import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
+import { getImageURL } from '@/utils/cloudfront';
 
 const CarouselComponentReactSlick = () => {
   const placeholder : SlickCarouselItem = {
@@ -59,7 +60,7 @@ const CarouselComponentReactSlick = () => {
         <Slider {...settings}>
           {carouselItems.map((item, index) => (
             <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden" key={index} >
-              <Image className="object-cover object-center w-full h-full rounded" src={`/upload/${item.image}`} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill  alt={item.description} 
+              <Image className="object-cover object-center w-full h-full rounded" src={getImageURL(item.image)} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill  alt={item.description} 
                  placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
               />
             </div>

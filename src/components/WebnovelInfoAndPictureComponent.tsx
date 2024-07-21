@@ -2,11 +2,13 @@ import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 import { code_to_language } from "@/utils"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"
 
 const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undefined}) => {
 
     const { language } = useLanguage();
+    const imageSrc = getImageURL(webnovel?.cover_art)
 
     return (
         <div className='flex flex-row justify-between'>
@@ -20,7 +22,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>
             </div>
             <div className="ml-4">
-                <Image className='rounded' src={`/upload/${webnovel?.cover_art}`} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} 
+                <Image className='rounded' src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} 
                 placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 />
             </div>

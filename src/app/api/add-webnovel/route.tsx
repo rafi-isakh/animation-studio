@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { existsSync } from "fs";
-import fs from "fs/promises";
-import path from "path";
-import AWS from 'aws-sdk';
-
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
-
-const s3 = new AWS.S3();
+import { uploadFile } from '@/utils/s3'
 
 export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
@@ -35,22 +24,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
 
-  const destinationDirPath = path.join(process.cwd(), "public/upload");
-
   const fileName = coverArt.name;
   const fileType = coverArt.type;
   const fileContent = Buffer.from(await coverArt.arrayBuffer());
 
-  const awsParams = {
-    Bucket: process.env.AWS_BUCKET_NAME ?? "",
-    Key: fileName,
-    Body: fileContent,
-    ContentType: fileType,
-    ACL: 'public-read'
-  }
-
   try {
-    await s3.upload(awsParams).promise();
+    const response = await uploadFile(fileContent, fileName, fileType)
+    console.log(response);
   } catch (error) {
     console.error('Error uploading file to s3:', error);
   }

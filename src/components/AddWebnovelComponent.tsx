@@ -47,7 +47,6 @@ const AddWebnovelComponent = () => {
             body: formData,
         });
         const data = await res.json();
-        console.log("data:", data);
         router.push(`/view_webnovels?id=${data["id"]}`)
     };
 

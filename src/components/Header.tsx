@@ -123,10 +123,16 @@ const Header = () => {
   const handleLanguageChange = (language: Language) => {
     setLanguage(language);
     setIsLanguageDropdownOpen(false);
+    if (device === 'mobile') {
+      handleMobileMenuClick();
+    }
   }
 
   const handleUserItemClick = () => {
     setIsUserDropdownOpen(false);
+    if (device === 'mobile') {
+      handleMobileMenuClick();
+    }
   }
 
   const toggleBelowHeader = () => {

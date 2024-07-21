@@ -1,12 +1,14 @@
 import { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
+import { getImageURL } from "@/utils/cloudfront"
 
 const WebnovelComponent = ({ webnovel }: { webnovel: Webnovel }) => {
+    const imageSrc = getImageURL(webnovel.cover_art);
     return (
         <div>
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
-            <Image src={`/upload/${webnovel.cover_art}`} width={200} height={120} alt={webnovel.cover_art} className="rounded"
+            <Image src={imageSrc} width={200} height={120} alt={webnovel.cover_art} className="rounded"
             placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
             />
             </Link>

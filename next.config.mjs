@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    env: {
-        backend: 'http://stellandai.com:5000'
-    },
     images: {
         remotePatterns: [
             {
@@ -11,11 +8,12 @@ const nextConfig = {
                 port: '3000',
                 pathname: '/api/images/**',
             },
+        ],
+        remotePatterns: [
             {
-                protocol: 'http',
-                hostname: 'localhost',
-                port: '5000',
-                pathname: '/api/images/**',
+                protocol: 'https',
+                hostname: `${process.env.NEXT_PUBLIC_CLOUDFRONT}`,
+                pathname: '/**',
             },
         ],
     },

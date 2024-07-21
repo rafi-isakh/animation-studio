@@ -3,6 +3,15 @@ import { auth } from '@/auth';
 import { existsSync } from "fs";
 import fs from "fs/promises";
 import path from "path";
+import AWS from 'aws-sdk';
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+});
+
+const s3 = new AWS.S3();
 
 export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
@@ -10,8 +19,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!session || !session.user) {
     return NextResponse.json({
-        "message": "Unauthorized",
-        "status": 401
+      "message": "Unauthorized",
+      "status": 401
     });
   }
 
@@ -21,24 +30,31 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const genre = formData.get('genre')
   const language = formData.get('language')
 
- if (!title || !description || !coverArt || !genre) {
+  if (!title || !description || !coverArt || !genre) {
     return NextResponse.json({ error: 'Missing web novel data' }, { status: 400 });
   }
 
 
   const destinationDirPath = path.join(process.cwd(), "public/upload");
 
-  const fileArrayBuffer = await coverArt.arrayBuffer();
+  const fileName = coverArt.name;
+  const fileType = coverArt.type;
+  const fileContent = Buffer.from(await coverArt.arrayBuffer());
 
-  if (!existsSync(destinationDirPath)) {
-    fs.mkdir(destinationDirPath, { recursive: true });
+  const awsParams = {
+    Bucket: process.env.AWS_BUCKET_NAME ?? "",
+    Key: fileName,
+    Body: fileContent,
+    ContentType: fileType,
+    ACL: 'public-read'
   }
-  const coverArtPath = path.join(destinationDirPath, coverArt.name)
 
-  await fs.writeFile(
-    coverArtPath,
-    Buffer.from(fileArrayBuffer)
-  );
+  try {
+    await s3.upload(awsParams).promise();
+  } catch (error) {
+    console.error('Error uploading file to s3:', error);
+  }
+
 
   const data = {
     user_email: session.user.email,
@@ -61,14 +77,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!response.ok) {
     return NextResponse.json({
-        "message": "Add webnovel failed",
-        "status": response.status
+      "message": "Add webnovel failed",
+      "status": response.status
     });
   }
 
   return NextResponse.json({
-        "message": "Success!!",
-        "status": 200,
-        "id": r["id"]
-    });
+    "message": "Success!!",
+    "status": 200,
+    "id": r["id"]
+  });
 }

@@ -16,7 +16,7 @@
     "flowbite": "^2.4.1",
     "formidable": "^3.5.1",
     "gapi-script": "^1.2.0",
-    "next": "^14.2.4",
+    "next": "14.2.4",
     "next-auth": "^5.0.0-beta.19",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

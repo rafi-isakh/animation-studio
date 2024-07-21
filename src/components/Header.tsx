@@ -174,7 +174,7 @@ const Header = () => {
   return (
     <div className='fixed top-0 left-0 right-0 dark z-50'>
       <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
-        <div id='above-header' className="max-w-screen-xl flex flex-row flex-wrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
+        <div id='above-header' className="max-w-screen-xl flex flex-row items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
             <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">

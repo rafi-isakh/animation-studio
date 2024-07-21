@@ -1,6 +1,8 @@
 .rightmostItem {
   @apply absolute left-1/2 transform -translate-x-1/2;
-  @media (max-width: 1280px) {
+}
+@media (max-width: 1280px) {
+  .rightmostItem {
     right: 0;
     left: auto;
     transform: translateX(9%);

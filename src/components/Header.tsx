@@ -93,8 +93,6 @@ const Header = () => {
         setIsLanguageDropdownOpen(false);
       }
     }
-    console.log('clicking outside')
-    console.log(event.target);
   }
 
   // special handling for new_user page
@@ -163,12 +161,10 @@ const Header = () => {
   const toggleUserDropdown = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
     setIsLanguageDropdownOpen(false);
-    console.log("toggling user dropdown")
   }
   const toggleLanguageDropdown = () => {
     setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
     setIsUserDropdownOpen(false);
-    console.log("toggling language dropdown")
   }
 
   return (

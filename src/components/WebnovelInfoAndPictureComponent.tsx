@@ -9,6 +9,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
 
     const { language } = useLanguage();
     const imageSrc = getImageURL(webnovel?.cover_art)
+    const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0)? webnovel.chapters[0].id: -1
 
     return (
         <div className='flex flex-row justify-between'>
@@ -22,9 +23,11 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>
             </div>
             <div className="ml-4">
-                <Image className='rounded' src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} 
+                <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">
+                    <Image className='rounded' src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400} 
                 placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 />
+                </Link>
             </div>
         </div>
     )

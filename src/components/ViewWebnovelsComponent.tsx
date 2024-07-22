@@ -6,6 +6,8 @@ import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent
 import WebNovelInfoAndPictureComponent from './WebnovelInfoAndPictureComponent';
 import ListOfChaptersComponent from './ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
+import '@/styles/globals.css';
+
 
 const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const [loading, setLoading] = useState("Loading");
@@ -78,7 +80,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                         <div>
                             {
                                 (authorEmail == email) ?
-                                    <button onClick={handleNewChapter} className="rounded mt-4 text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">새 글 업로드</button>
+                                    <button onClick={handleNewChapter} className="button-style px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">새 글 업로드</button>
                                     :
                                     <div></div>
                             }

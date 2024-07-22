@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { UserCreate } from '@/components/Types';
 import { redirect } from 'next/navigation'
+import '@/styles/globals.css'
 
 async function createUser(formData: FormData) {
   'use server';
@@ -68,7 +69,7 @@ export default async function NewUser() {
               <br/>
               <button
                 type="submit"
-                className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
+                className="button-style px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
                 제출
               </button>
             </div>

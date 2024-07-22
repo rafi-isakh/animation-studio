@@ -6,6 +6,8 @@ import { Webnovel } from '@/components//Types';
 import { useUser } from '@/contexts/UserContext';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import styles from "@/styles/KoreanText.module.css"
+import '@/styles/globals.css'
+
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
@@ -121,7 +123,7 @@ const AddWebnovelComponent = () => {
                             </div>
                             <br />
                             <div className='flex justify-end'>
-                                <button type="submit" className="self-end rounded text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
+                                <button type="submit" className="self-end button-style px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
                             </div>
                         </div>
                         <div className="md:w-1/4">

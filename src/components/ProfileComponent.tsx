@@ -81,13 +81,13 @@ const ProfileComponent = ({ user }: { user: User }) => {
         </div>
       </div>
       <div className='flex flex-row'>
-        <div className='flex flex-col'>
+        <div className='flex flex-col space-y-4'>
           <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-black'>작가 소개</p></Link>
           <p id="bio">{user.bio}</p>
         </div>
-        <div>
-          <Link href="#" onClick={handleViewClick}><p id='view' className='text-xl px-4 border-b-2 border-gray'>작품 보기</p></Link>
-          <div id="works" className="hidden">
+        <div className="flex flex-col space-y-4">
+          <Link href="#" onClick={handleViewClick}><p id='view' className='w-28 text-xl px-4 border-b-2 border-gray'>작품 보기</p></Link>
+          <div id="works" className="hidden flex flex-row -translate-x-28 space-x-4">
             {novels.map((item, index) => (
               <div key={index}>
                 <WebnovelComponent webnovel={item}/>

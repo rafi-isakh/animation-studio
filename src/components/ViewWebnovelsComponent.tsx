@@ -39,7 +39,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                 if (user_nickname) setNickname(user_nickname);
                 if (author_email) {
                     setAuthorEmail(author_email);
-                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?email=${author_email}`);
+                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${author_email}`);
                     const userWebnovelsData = await userWebnovelsResponse.json();
 
                     if (Object.keys(userWebnovelsData).length !== 0) {

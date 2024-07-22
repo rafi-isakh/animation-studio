@@ -1,4 +1,3 @@
-
 import { GoogleSignIn, KakaoSignIn, NaverSignIn, AppleSignIn, FacebookSignIn } from '@/components/SignIn';
 
 export default function SignIn() {

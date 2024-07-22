@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
-import { Chapter, Comment, User } from '@/components/Types'
+import { Chapter, Comment, User, UserCreate } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
@@ -22,7 +22,9 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
         if (commentContent) {
             const user: User = {
                 "email": email,
-                "nickname": nickname
+                "nickname": nickname,
+                "bio": "",
+                "id": -1
             }
             if (!isLoggedIn) {
                 return;
@@ -112,7 +114,9 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
         if (commentContent) {
             const user: User = {
                 "email": email,
-                "nickname": nickname
+                "nickname": nickname,
+                "bio": "",
+                "id": -1
             }
             if (!isLoggedIn) {
                 return;

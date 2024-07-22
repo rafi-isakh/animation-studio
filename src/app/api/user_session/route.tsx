@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         loggedIn: true,
         nickname: user.nickname,
+        bio: user.bio,
         id: user.id,
         email: email,
       });
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         loggedIn: false,
         nickname: "",
+        bio: "",
         id: "",
         email: "",
       });

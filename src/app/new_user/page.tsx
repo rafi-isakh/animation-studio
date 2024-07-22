@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { User } from '@/components/Types';
+import { UserCreate } from '@/components/Types';
 import { redirect } from 'next/navigation'
 
 async function createUser(formData: FormData) {
@@ -7,11 +7,14 @@ async function createUser(formData: FormData) {
 
   const session = await auth();
   const nickname = formData.get('nickname') as string;
+  const bio = formData.get('bio') as string;
+
 
   if (session && session.user) {
-    const data : User = {
-      'email': session.user.email,
-      'nickname': nickname
+    const data : UserCreate = {
+      'email': session.user.email?? "",
+      'nickname': nickname,
+      'bio': bio
     }
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user`, {
@@ -40,8 +43,8 @@ export default async function NewUser() {
   const userExists = await isUserInDB();
   if (userExists) {
     redirect('/');
-    return null;
   }
+  
   else {
     return (
       <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
@@ -52,6 +55,13 @@ export default async function NewUser() {
               <input
                 type="text"
                 name="nickname"
+                className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
+              />
+              <br/>
+              <p className="text-lg">소개</p>
+              <input
+                type="text"
+                name="bio"
                 className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
               />
               <br/>

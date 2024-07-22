@@ -7,19 +7,21 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     if (session && session.user) {
       const email = session.user.email
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user?email=${email}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byemail?email=${email}`)
       const data = await response.json();
       const user: User = data;
 
       return NextResponse.json({ 
         loggedIn: true,
         nickname: user.nickname,
+        id: user.id,
         email: email,
       });
     } else {
       return NextResponse.json({ 
         loggedIn: false,
         nickname: "",
+        id: "",
         email: "",
       });
     }

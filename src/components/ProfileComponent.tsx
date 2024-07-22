@@ -5,11 +5,8 @@ import { User } from '@/components/Types';
 
 const ProfileComponent = ({ user }: { user: User }) => {
   return (
-    <div>
-      <center>
-        <h2>{user.nickname}</h2>
-        <h2>{user.email}</h2>
-      </center>
+    <div className='max-w-screen-sm mx-auto'>
+        <p className='text-lg font-bold'>{user.nickname}</p>
     </div>
   );
 }

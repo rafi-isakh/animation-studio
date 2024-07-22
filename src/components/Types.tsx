@@ -16,8 +16,16 @@ export interface Chapter {
 }
 
 export interface User {
-  email: string | null | undefined;
-  nickname: string | null | undefined;
+  id: number;
+  email: string;
+  nickname: string;
+  bio: string;
+}
+
+export interface UserCreate {
+  email: string;
+  nickname: string;
+  bio: string;
 }
 
 export interface Comment {

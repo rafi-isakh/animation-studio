@@ -1,17 +1,21 @@
 import { auth } from '@/auth';
-import { User } from '@/components/Types';
+import { UserCreate } from '@/components/Types';
 import { redirect } from 'next/navigation'
+import '@/styles/globals.css'
 
 async function createUser(formData: FormData) {
   'use server';
 
   const session = await auth();
   const nickname = formData.get('nickname') as string;
+  const bio = formData.get('bio') as string;
+
 
   if (session && session.user) {
-    const data : User = {
-      'email': session.user.email,
-      'nickname': nickname
+    const data : UserCreate = {
+      'email': session.user.email?? "",
+      'nickname': nickname,
+      'bio': bio
     }
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user`, {
@@ -40,8 +44,8 @@ export default async function NewUser() {
   const userExists = await isUserInDB();
   if (userExists) {
     redirect('/');
-    return null;
   }
+  
   else {
     return (
       <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
@@ -55,10 +59,17 @@ export default async function NewUser() {
                 className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
               />
               <br/>
+              <p className="text-lg">소개</p>
+              <input
+                type="text"
+                name="bio"
+                className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
+              />
+              <br/>
               <br/>
               <button
                 type="submit"
-                className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
+                className="button-style px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
                 제출
               </button>
             </div>

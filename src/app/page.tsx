@@ -1,6 +1,7 @@
 import Webnovels from '@/components/Webnovels'
 import GenresComponent from '@/components/GenresComponent';
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
+import Link from 'next/link';
 
 async function getCarouselItems() {
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)

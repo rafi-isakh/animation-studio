@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
+import '@/styles/globals.css'
+
 
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
@@ -14,7 +16,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const router = useRouter();
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byuser?email=${email}`)
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {
@@ -69,7 +71,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                         />
                     </div>
                     <br /><br />
-                    <button type="submit" className="text-white bg-black hover:text-pink-600 font-medium text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">저장</button>
+                    <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">저장</button>
                 </div>
             </form>
         </div>

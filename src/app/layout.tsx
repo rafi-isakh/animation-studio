@@ -28,8 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <AuthProvider>
               <DeviceProvider>
                 <Header />
-                <div className="fixed left-0 right-0 -top-[150vh] h-[200vh] border-l-4 border-r-4 border-black"></div>
-                <div className="border-4 border-left-extend min-h-screen border-black border-t-0 rounded pt-32 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4">
+                <div className="pt-32 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4">
                   {children}
                 </div>
               </DeviceProvider>

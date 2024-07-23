@@ -4,6 +4,7 @@ import {useState} from 'react';
 import { useRouter } from 'next/navigation'
 import React from 'react';
 import {WebnovelIdProps} from "@/components/Types"
+import '@/styles/globals.css'
 
 const WriteComponent = ({webnovelId} : {webnovelId: string}) => {
     const [title, setTitle] = useState('');
@@ -42,7 +43,7 @@ const WriteComponent = ({webnovelId} : {webnovelId: string}) => {
                 onChange={(e) => setContent(e.target.value)}
             />
             <br/><br/>
-            <button className='btn' type="submit">Submit</button>
+            <button className='btn button-style' type="submit">Submit</button>
             </form>
         </div>
     )

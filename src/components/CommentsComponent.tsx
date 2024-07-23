@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
-import { Chapter, Comment, User } from '@/components/Types'
+import { Chapter, Comment, User, UserCreate } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
@@ -16,13 +16,16 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [replyContent, setReplyContent] = useState<string[]>([]);
     const [showForm, setShowForm] = useState<Boolean[]>([]);
     const [initialFetch, setInitialFetch] = useState(false);
+    const [loaded, setLoaded] = useState(false);
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
             const user: User = {
                 "email": email,
-                "nickname": nickname
+                "nickname": nickname,
+                "bio": "",
+                "id": -1
             }
             if (!isLoggedIn) {
                 return;
@@ -112,7 +115,9 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
         if (commentContent) {
             const user: User = {
                 "email": email,
-                "nickname": nickname
+                "nickname": nickname,
+                "bio": "",
+                "id": -1
             }
             if (!isLoggedIn) {
                 return;
@@ -157,7 +162,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         ...comment,
                         replies: comment.id === parent_comment_id ? parent_replies : comment.replies
                     }));
-
+                    setLoaded(true);
                     return updatedComments;
                 });
             }
@@ -165,6 +170,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     }
 
     return (
+        loaded && 
         <div className='max-w-md flex flex-col items-left mx-auto space-y-4'>
             <Link href={`/chapter_view/${chapterId}`}><i className="fa-solid fa-chevron-left"></i> {chapter?.title}</Link>
             <div className='flex flex-col'>

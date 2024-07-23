@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { MouseEventHandler, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
@@ -25,6 +25,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [ whichCategory, setWhichCategory ] = useState(0); // 0 = webnovel, 1 = webtoon, 2 = manhwa
   const device = useDevice();
   const menuRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
@@ -54,6 +55,22 @@ const Header = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const handleCategoryClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const webnovel = document.getElementsByClassName('webnovel'); 
+    const webtoon = document.getElementsByClassName('webtoon');
+    const manhwa = document.getElementsByClassName('manhwa');
+
+    if (event.target == webnovel[0] || event.target == webnovel[1]) { // two webnovel classes bc one for desktop, one for mobile
+      setWhichCategory(0);
+    }
+    else if (event.target == webtoon[0] || event.target == webtoon[1]) {
+      setWhichCategory(1);
+    }
+    else if (event.target == manhwa[0] || event.target == manhwa[1]) {
+      setWhichCategory(2);
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -185,14 +202,14 @@ const Header = () => {
             </Link>
             <div className="hidden md:block">
               <div className="flex flex-row space-x-4">
-                <Link href="/webtoon">
-                  <p className='mt-1 text-xl text-white hover:text-pink-600'>웹툰</p>
+                <Link href="/" onClick={handleCategoryClick}>
+                  <p className={`${whichCategory == 0? 'text-pink-500 font-bold': ''} webnovel mt-1 text-xl text-white hover:text-pink-600`}>웹소설</p>
                 </Link>
-                <Link href="/manhwa">
-                  <p className='mt-1 text-xl text-white hover:text-pink-600'>만화</p>
+                <Link href="/webtoon" onClick={handleCategoryClick}>
+                  <p className={`${whichCategory == 1? 'text-pink-500 font-bold': ''} webtoon mt-1 text-xl text-white hover:text-pink-600`}>웹툰</p>
                 </Link>
-                <Link href="/">
-                  <p className='mt-1 text-xl text-white hover:text-pink-600'>웹소설</p>
+                <Link href="/manhwa" onClick={handleCategoryClick}>
+                  <p className={`${whichCategory == 2? 'text-pink-500 font-bold': ''} manhwa mt-1 text-xl text-white hover:text-pink-600`}>만화</p>
                 </Link>
               </div>
             </div>
@@ -316,7 +333,7 @@ const Header = () => {
                               <Link href="/library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</Link>
                             </li>
                             <li>
-                              <Link href={`/profile?email=${email}`} onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</Link>
+                              <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</Link>
                             </li>
                             <li>
                               <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</Link>
@@ -336,14 +353,14 @@ const Header = () => {
           </div>
         </div>
         <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-between pb-4 px-4">
-          <Link href="/webtoon">
-            <p className='md:text-xl text-white hover:text-pink-600 px-5 pl-10'>웹툰</p>
+          <Link href="/" onClick={handleCategoryClick}>
+            <p className={`${whichCategory == 0? 'text-pink-500 font-bold': ''} webnovel mt-1 text-xl text-white hover:text-pink-600`}>웹소설</p>
           </Link>
-          <Link href="/manhwa">
-            <p className='md:text-xl text-white hover:text-pink-600 px-5'>만화</p>
+          <Link href="/webtoon" onClick={handleCategoryClick}>
+            <p className={`${whichCategory == 1? 'text-pink-500 font-bold': ''} webtoon mt-1 text-xl text-white hover:text-pink-600`}>웹툰</p>
           </Link>
-          <Link href="/">
-            <p className='md:text-xl text-white hover:text-pink-600 px-5 pr-10'>웹소설</p>
+          <Link href="/manhwa" onClick={handleCategoryClick}>
+            <p className={`${whichCategory == 2? 'text-pink-500 font-bold': ''} manhwa mt-1 text-xl text-white hover:text-pink-600`}>만화</p>
           </Link>
         </div>
       </nav>

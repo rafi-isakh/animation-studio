@@ -7,19 +7,38 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     if (session && session.user) {
       const email = session.user.email
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user?email=${email}`)
+      if (!email) {
+        return NextResponse.json({ loggedIn: false, error: 'User email not in session' }, { status: 500 });
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byemail?email=${email}`)
+
+      if (!response.ok) {
+        console.error('Error fetching user by email:', response.statusText);
+        return NextResponse.json({ loggedIn: false, error: 'Failed to fetch user' }, { status: response.status });
+      }
+
       const data = await response.json();
+
+      if (!data || !data.id || !data.nickname) {
+        console.error('Invalid user data:', data);
+        return NextResponse.json({ loggedIn: false, error: 'Invalid user data' }, { status: 500 });
+      }
+
       const user: User = data;
 
       return NextResponse.json({ 
         loggedIn: true,
         nickname: user.nickname,
+        bio: user.bio,
+        id: user.id,
         email: email,
       });
     } else {
       return NextResponse.json({ 
         loggedIn: false,
         nickname: "",
+        bio: "",
+        id: "",
         email: "",
       });
     }

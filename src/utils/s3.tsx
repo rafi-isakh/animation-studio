@@ -18,9 +18,8 @@ const s3Client = new S3Client({
 
 
 
-export const uploadFile = async (fileBuffer: Buffer, fileType: string) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
-  const fileName = await response.json();
+export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType: string) => {
+
   const params = {
     Bucket: BUCKET_NAME,
     Key: fileName,

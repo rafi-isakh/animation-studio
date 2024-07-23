@@ -26,9 +26,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const fileType = coverArt.type;
   const fileContent = Buffer.from(await coverArt.arrayBuffer());
 
+  const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
+  const fileName = await fileNameResponse.json();
+
   try {
-    const response = await uploadFile(fileContent, fileType)
-    console.log(response);
+
+    const s3Response = await uploadFile(fileContent, fileName, fileType);
+    console.log(s3Response);
   } catch (error) {
     console.error('Error uploading file to s3:', error);
     return NextResponse.json({
@@ -42,7 +46,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     user_email: session.user.email,
     title: title,
     description: description,
-    cover_art: coverArt.name,
+    cover_art: fileName,
     genre: genre,
     language: language
   };

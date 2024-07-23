@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, ObjectCannedACL } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const REGION = process.env.NEXT_PUBLIC_AWS_REGION;
 const BUCKET_NAME = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME;
@@ -15,7 +15,12 @@ const s3Client = new S3Client({
   region: REGION
 });
 
-export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType: string) => {
+
+
+
+export const uploadFile = async (fileBuffer: Buffer, fileType: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
+  const fileName = await response.json();
   const params = {
     Bucket: BUCKET_NAME,
     Key: fileName,

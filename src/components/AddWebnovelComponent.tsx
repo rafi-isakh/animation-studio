@@ -59,6 +59,10 @@ const AddWebnovelComponent = () => {
             method: 'POST',
             body: formData,
         });
+
+        if (!res.ok) {
+            throw new Error("Add webnovel failed");
+        }
         const data = await res.json();
         setIsSubmitting(true);
 

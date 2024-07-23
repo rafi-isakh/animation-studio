@@ -30,11 +30,11 @@ const Webnovels = ({ searchParams }: { searchParams: { [key: string]: string | s
   }
 
   return (
-    <div className="max-w-screen-xl mx-auto snap-x overflow-x-scroll flex">
+    <div className="max-w-screen-xl mx-auto flex grow md:grow-0 snap-x overflow-x-scroll flex">
       {webnovels
         .filter(item => filter_by_genre(item))
         .map((item, index) => (
-          <div className="max-w-screen-sm flex-grow min-w-[120px] min-h-[73px] mx-auto snap-center p-2" key={index}>
+          <div className="min-w-[120px] min-h-[73px] mx-auto snap-center p-2" key={index}>
             <center>
               <WebnovelComponent webnovel={item} />
             </center>

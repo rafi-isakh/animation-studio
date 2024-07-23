@@ -16,6 +16,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [replyContent, setReplyContent] = useState<string[]>([]);
     const [showForm, setShowForm] = useState<Boolean[]>([]);
     const [initialFetch, setInitialFetch] = useState(false);
+    const [loaded, setLoaded] = useState(false);
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -161,7 +162,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         ...comment,
                         replies: comment.id === parent_comment_id ? parent_replies : comment.replies
                     }));
-
+                    setLoaded(true);
                     return updatedComments;
                 });
             }
@@ -169,6 +170,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     }
 
     return (
+        loaded && 
         <div className='max-w-md flex flex-col items-left mx-auto space-y-4'>
             <Link href={`/chapter_view/${chapterId}`}><i className="fa-solid fa-chevron-left"></i> {chapter?.title}</Link>
             <div className='flex flex-col'>

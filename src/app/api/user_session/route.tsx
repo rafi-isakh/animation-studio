@@ -7,6 +7,9 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     if (session && session.user) {
       const email = session.user.email
+      if (!email) {
+        return NextResponse.json({ loggedIn: false, error: 'User email not in session' }, { status: 500 });
+      }
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byemail?email=${email}`)
 
       if (!response.ok) {

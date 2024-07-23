@@ -23,16 +23,18 @@ export async function POST(req: NextRequest, res: NextResponse) {
     return NextResponse.json({ error: 'Missing web novel data' }, { status: 400 });
   }
 
-
-  const fileName = coverArt.name;
   const fileType = coverArt.type;
   const fileContent = Buffer.from(await coverArt.arrayBuffer());
 
   try {
-    const response = await uploadFile(fileContent, fileName, fileType)
+    const response = await uploadFile(fileContent, fileType)
     console.log(response);
   } catch (error) {
     console.error('Error uploading file to s3:', error);
+    return NextResponse.json({
+      "message": "Upload to s3 failed",
+      "status": 500
+    });
   }
 
 

@@ -324,7 +324,7 @@ const Header = () => {
                         isLoggedIn && !inNewUser() ? (
                           <>
                             <li>
-                              <Link href="/new_webnovel" legacyBehavior><a onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</a></Link>
+                              <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</Link>
                             </li>
                             <li>
                               <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</Link>

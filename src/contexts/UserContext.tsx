@@ -1,4 +1,5 @@
 "use client"
+import { usePathname } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface UserContextProps {
@@ -20,7 +21,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [email, setEmail] = useState<string>("");
   const [nickname, setNickname] = useState<string>("");
   const [bio, setBio] = useState<string>("");
-
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -39,7 +40,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
     };
     checkUser();
-  }, []);
+  }, [pathname]);
 
   return (
     <userContext.Provider value={{  email, setEmail, 

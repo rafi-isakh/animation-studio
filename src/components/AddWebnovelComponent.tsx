@@ -9,7 +9,7 @@ import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 
 
-const AddWebnovelComponent = ({email, nickname}: {email: string, nickname: string}) => {
+const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [coverArt, setCoverArt] = useState<File | null>(null);
@@ -19,6 +19,7 @@ const AddWebnovelComponent = ({email, nickname}: {email: string, nickname: strin
     const [language, setLanguage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const buttonRef = useRef(null);
+    const {email, nickname} = useUser();
     const router = useRouter();
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
 

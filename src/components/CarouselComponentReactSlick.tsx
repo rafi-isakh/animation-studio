@@ -9,18 +9,7 @@ import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 import { getImageURL } from '@/utils/cloudfront';
 
-const CarouselComponentReactSlick = () => {
-  const placeholder : SlickCarouselItem = {
-    image: "placeholder_blank.png",
-    description: "placeholder"
-  }
-  const [carouselItems, setCarouselItems] = useState<SlickCarouselItem[]>([placeholder, placeholder]);
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
-      .then(response => response.json())
-      .then(data => setCarouselItems(data));
-  }, []);
+const CarouselComponentReactSlick = ({items}: {items: SlickCarouselItem[]}) => {
 
   function SampleNextArrow(props: any) {
     const { className, style, onClick } = props;
@@ -58,7 +47,7 @@ const CarouselComponentReactSlick = () => {
     <div className={`max-w-screen-xl w-full mx-auto items-center justify-center ${styles.carouselContainer}`}>
       <div>
         <Slider {...settings}>
-          {carouselItems.map((item, index) => (
+          {items.map((item, index) => (
             <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden" key={index} >
               <Image className="object-cover object-center w-full h-full rounded" src={getImageURL(item.image)} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill  alt={item.description} 
                  placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가

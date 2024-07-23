@@ -2,10 +2,18 @@ import Webnovels from '@/components/Webnovels'
 import GenresComponent from '@/components/GenresComponent';
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 
-export default function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+async function getCarouselItems() {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
+  const data = await response.json()
+  return data;
+}
+
+export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+  const items = await getCarouselItems();
+
   return (
     <div>
-      <CarouselComponentReactSlick />
+      <CarouselComponentReactSlick items={items}/>
       <GenresComponent/>
       <Webnovels searchParams={searchParams}/>
     </div>

@@ -50,6 +50,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
 
                     if (Object.keys(userWebnovelsData).length !== 0) {
                         setWebnovels(userWebnovelsData);
+                        setAtLeastOneWebnovel(true);
                     }
                 }
                 setLoading(false);
@@ -58,10 +59,9 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
             }
         }
 
-        // my_webnovels passes in id only if there's at least one webnovel by logged in user
         if (id) fetchData();
         else setLoading(false)
-    }, [id, refreshKey]); // Add id to dependency array if it's expected to change
+    }, [id, refreshKey]);
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}`);
@@ -70,8 +70,15 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
     const handleDelete = async () => {
         try {
             await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_webnovel?id=${id}`);
-            router.push('/my_webnovels');
-            setRefreshKey(prevKey => prevKey + 1);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`,
+                                        {cache: 'no-store'})
+            const webnovels = await response.json(); // same code as in my_webnovels
+            const ids = webnovels.map((w: Webnovel) => w.id);
+            const first = Math.min(...ids);
+            ids.length > 0 ? router.push(`/view_webnovels?id=${first.toString()}`)
+                           : router.push('/view_webnovels')
+            setRefreshKey(prevKey => prevKey + 1)
+
         } catch (error) {
             console.log(`Couldn't delete webnovel ${id}`, error)
         }

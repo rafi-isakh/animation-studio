@@ -27,7 +27,7 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
                         `break-words rounded text-md font-bold hover:text-pink-600 
                         ${params.get('id') == webnovel.id.toString()? "text-pink-600": ""}`}>
                     <OtherTranslateComponent key={key} content={webnovel.title} 
-                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" large={false}/>
+                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>
                     </Link>
                 ))}
             </div>

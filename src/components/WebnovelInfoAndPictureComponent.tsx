@@ -6,27 +6,31 @@ import { getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 
 const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undefined}) => {
 
     const { language } = useLanguage();
     const imageSrc = getImageURL(webnovel?.cover_art)
     const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0)? webnovel.chapters[0].id: -1
-    const [key, setKey] = useState(0);
+    const [key1, setKey1] = useState(0);
+    const [key2, setKey2] = useState(10);
+    const params = useSearchParams();
     
     useEffect(() => {
-        setKey(prevKey => prevKey + 1)
-    }, [language, webnovel])
+        setKey1(prevKey => prevKey + 1)
+        setKey2(prevKey => prevKey + 1)
+    }, [language, params])
     
     return webnovel && (
         
         <div className='flex flex-row justify-between'>
             <div className="flex flex-col space-y-4 w-full">
                 <p className="text-sm">{webnovel?.genre}</p>
-                <OtherTranslateComponent key={key} content={webnovel.title} 
-                elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>
-                <OtherTranslateComponent key={key} content={webnovel.description} 
-                elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="description"/>
+                <OtherTranslateComponent key={key1} content={webnovel.title} 
+                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-xl"/>
+                <OtherTranslateComponent key={key2} content={webnovel.description} 
+                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="description"/>
                 <hr/>
                 <Link href={`/view_profile/${webnovel?.user.id}`}>
                     <p className="text-sm font-bold hover:text-pink-600">{webnovel?.user.nickname}</p>

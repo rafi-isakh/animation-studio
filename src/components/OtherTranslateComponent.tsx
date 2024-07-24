@@ -3,9 +3,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype } from '@/components/Types';
 
-const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype }: { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype }) => {
+const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, classParams="" }: { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, classParams?: string }) => {
   const [text, setText] = useState('');
-  const [text_2, setText_2] = useState('');
   const { language, isRtl } = useLanguage();
   const initialized = useRef(false);
   const fetchRef = useRef(false);
@@ -21,26 +20,10 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
       const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : ''
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
       const data = await response.json();
-      if (elementType == 'webnovel') {
-        if (elementSubtype == 'title') {
-          if (data.text) {
-            setText(data.text);
-            setText_2('');
-          }
-        }
-        else if (elementSubtype == 'description') {
-          if (data.text_2) {
-            setText_2(data.text_2);
-            setText('');
-          }
-        }
-      } else {
-        if (data.text) {
-          setText(data.text);
-        }
+      console.log(elementSubtype, data)
+      if (data.text) {
+        setText(data.text);
       }
-
-
 
       // If there's no translation in the DB
       // initialized.current is bc useEffect runs twice
@@ -74,10 +57,9 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
   }, [finished])
 
   const saveTranslationToDB = async (done: boolean) => {
-    if (text || text_2) {
+    if (text) {
       const data = {
         "text": text,
-        "text_2": text_2,
         "language": language,
         "element_id": elementId,
         "element_type": elementType,
@@ -151,9 +133,8 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
   type Direction = 'ltr' | 'rtl';
 
   return (
-    <div style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
-
-      {text ? text : text_2}
+    <div className={`${classParams}`} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+      {text}
     </div>
   );
 };

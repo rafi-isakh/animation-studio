@@ -2,7 +2,7 @@ export interface WebnovelIdProps {
     webnovelId: number;
 }
 
-export type Language = 'en' | 'ko' | 'ja' | 'ar';
+export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' 
 
 export interface Chapter {
   id: number;
@@ -54,4 +54,12 @@ export interface Webnovel {
   user: User;
   upvotes: number;
   language: string;
+}
+
+export interface Dictionary {
+  [key: string]: Entry
+}
+
+interface Entry {
+  [key: string]: string
 }

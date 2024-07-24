@@ -17,7 +17,6 @@ const Header = () => {
   const router = useRouter();
   const { setIsLoggedIn } = useAuth();
   const { isLoggedIn, loading } = useAuth();
-  const { language, setLanguage } = useLanguage();
   const { email, nickname } = useUser();
   const pathname = usePathname();
   const [query, setQuery] = useState('');
@@ -34,6 +33,7 @@ const Header = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const languageMenuRef = useRef<HTMLDivElement>(null);
+  const {dictionary, language, setLanguage} = useLanguage();
 
   let keyPressed = false
 
@@ -289,8 +289,33 @@ const Header = () => {
                         </Link>
                       </li>
                       <li>
+                        <Link href="#" onClick={() => handleLanguageChange('zh-CN')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                          中国语（繁体）
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="#" onClick={() => handleLanguageChange('zh-TW')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                          中國語（簡體）
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="#" onClick={() => handleLanguageChange('th')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                          ภาษาไทย
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="#" onClick={() => handleLanguageChange('id')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                          Bahasa Indonesia
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="#" onClick={() => handleLanguageChange('vi')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                          Tiếng Việt
+                        </Link>
+                      </li>
+                      <li>
                         <Link href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                          العربية
+                        العربية 
                         </Link>
                       </li>
                     </ul>
@@ -342,7 +367,7 @@ const Header = () => {
                         )
                           : (
                             <li>
-                              <Link href="/signin" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그인</Link>
+                              <Link href="/signin" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{Object.keys(dictionary).length != 0 && dictionary["login"][language]}</Link>
                             </li>
                           )}
                     </ul>

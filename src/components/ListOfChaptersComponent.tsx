@@ -1,26 +1,28 @@
 import { Webnovel } from "@/components/Types";
+import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 
 const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
+    const {dictionary, language} = useLanguage();
     return (
         <div className="relative overflow-x-auto mt-4 rounded">
             <table className="w-full text-sm text-center text-white border border-2 border-black">
                 <thead className="text-xs text-white uppercase bg-black">
                     <tr>
                         <th scope="col" className="px-2 md:px-6 py-3">
-                            회차
+                        {Object.keys(dictionary).length != 0 && dictionary["number"][language]}
                         </th>
                         <th scope="col" className="px-2 md:px-6 py-3">
-                            작품명
+                        {Object.keys(dictionary).length != 0 && dictionary["webnovelTitle"][language]}
                         </th>
                         <th scope="col" className="px-2 md:px-6 py-3">
-                            작품등록일
+                        {Object.keys(dictionary).length != 0 && dictionary["uploadDate"][language]}
                         </th>
                         <th scope="col" className="px-2 md:px-6 py-3">
-                            조회
+                        {Object.keys(dictionary).length != 0 && dictionary["views"][language]}
                         </th>
                         <th scope="col" className="px-2 md:px-6 py-3">
-                            좋아요
+                        {Object.keys(dictionary).length != 0 && dictionary["likes"][language]}
                         </th>
                     </tr>
                 </thead>

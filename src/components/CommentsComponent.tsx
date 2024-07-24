@@ -17,6 +17,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [showForm, setShowForm] = useState<Boolean[]>([]);
     const [initialFetch, setInitialFetch] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const router = useRouter();
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -28,7 +29,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 "id": -1
             }
             if (!isLoggedIn) {
-                return;
+                router.push('/signin')
             } else {
                 var newComment: Comment = {
                     "id": -1, // throwaway, won't use in backend
@@ -88,6 +89,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             allComments.map((comment, index) => {
                 setAllReplies(index); //fetches in this fn
             })
+            setLoaded(true);
         }
         fetchReplies();
     }, [initialFetch])
@@ -120,7 +122,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 "id": -1
             }
             if (!isLoggedIn) {
-                return;
+                router.push('/signin')
             } else {
                 const parent_comment_id = allComments[index].id;
                 var newComment: Comment = {
@@ -162,7 +164,6 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         ...comment,
                         replies: comment.id === parent_comment_id ? parent_replies : comment.replies
                     }));
-                    setLoaded(true);
                     return updatedComments;
                 });
             }

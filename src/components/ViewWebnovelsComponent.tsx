@@ -7,6 +7,7 @@ import WebNovelInfoAndPictureComponent from './WebnovelInfoAndPictureComponent';
 import ListOfChaptersComponent from './ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 
 const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
@@ -18,6 +19,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
     const id = searchParams.id;
     const [refreshKey, setRefreshKey] = useState(0);
+    const {language, dictionary} = useLanguage();
 
     if (typeof id === 'string') {
     } else if (Array.isArray(id)) {
@@ -103,10 +105,10 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                                 (authorEmail == email) &&
                                 <div className='flex flex-col w-32'>
                                     <button onClick={handleNewChapter} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                        새 글 업로드
+                                    {Object.keys(dictionary).length != 0 && dictionary["uploadNewChapter"][language]}
                                     </button>
                                     <button onClick={handleDelete} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                        삭제
+                                    {Object.keys(dictionary).length != 0 && dictionary["deleteWebnovel"][language]}
                                     </button>
                                 </div>
                             }
@@ -119,7 +121,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
         else {
             return (
                 <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-                    웹소설이 없습니다.
+                    {Object.keys(dictionary).length != 0 && dictionary["noWebnovelsFound"][language]}
                 </div>
             )
         }

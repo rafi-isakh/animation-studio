@@ -70,7 +70,6 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
       if (!res.ok) {
         console.error("Saving translation to DB failed");
       } else {
-        console.log("Successfully saved")
       }
     }
   }

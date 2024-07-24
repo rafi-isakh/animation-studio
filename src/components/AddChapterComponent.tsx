@@ -6,6 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import '@/styles/globals.css'
+import { useLanguage } from '@/contexts/LanguageContext';
 
 
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
@@ -13,6 +14,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [content, setContent] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const { email, nickname } = useUser();
+    const {language, dictionary} = useLanguage();
     const router = useRouter();
 
     useEffect(() => {
@@ -49,10 +51,10 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             </div>
             <form className="md:w-3/4 w-full" onSubmit={handleAddChapter}>
                 <div className="mr-4 w-full">
-                    <p className="text-2xl">새 글 쓰기</p>
+                    <p className="text-2xl">{Object.keys(dictionary).length != 0 && dictionary["newChapter"][language]}</p>
                     <br />
                     <div className="flex flex-row space-x-4">
-                        <p className="text-md w-24">글 제목</p>
+                        <p className="text-md w-24">{Object.keys(dictionary).length != 0 && dictionary["chapterTitle"][language]}</p>
                         <input
                             type="text"
                             value={title}
@@ -62,7 +64,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     </div>
                     <br />
                     <div className="flex flex-row space-x-4">
-                        <p className="text-md w-24">내용</p>
+                        <p className="text-md w-24">{Object.keys(dictionary).length != 0 && dictionary["content"][language]}</p>
                         <textarea
                             value={content}
                             rows={8}
@@ -71,7 +73,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                         />
                     </div>
                     <br /><br />
-                    <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">저장</button>
+                    <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{Object.keys(dictionary).length != 0 && dictionary["save"][language]}</button>
                 </div>
             </form>
         </div>

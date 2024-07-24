@@ -17,7 +17,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <p className="text-sm">{webnovel?.genre}</p>
                 <p className="text-xl">{webnovel?.title}</p>
                 <hr/>
-                <Link href={`/profile/?email=${webnovel?.user.email}`}>
+                <Link href={`/view_profile/?email=${webnovel?.user.email}`}>
                     <p className="text-sm font-bold hover:text-pink-600">{webnovel?.user.nickname}</p>
                 </Link>
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>

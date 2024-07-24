@@ -5,6 +5,7 @@ import { User, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import Webnovels from '@/components/Webnovels';
 import WebnovelComponent from './WebnovelComponent';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ProfileComponent = ({ user }: { user: User }) => {
 
@@ -14,6 +15,7 @@ const ProfileComponent = ({ user }: { user: User }) => {
   const [numberOfLikes, setNumberOfLikes] = useState(0);
   const [introActive, setIntroActive] = useState<boolean>(true);
   const [viewActive, setViewActive] = useState<boolean>(false);
+  const {language, dictionary} = useLanguage();
 
 
   useEffect(() => {
@@ -68,25 +70,25 @@ const ProfileComponent = ({ user }: { user: User }) => {
       </div>
       <div className="flex flex-row space-x-8">
         <div className='flex flex-col justify-center items-center'>
-          <p>작품수</p>
+          <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p>
           <p>{numberOfNovels}</p>
         </div>
         <div className='flex flex-col justify-center items-center'>
-          <p>총 연재 글수</p>
+          <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p>
           <p>{numberOfChapters}</p>
         </div>
         <div className='flex flex-col justify-center items-center'>
-          <p><i className="fa-regular fa-heart"></i>좋아요</p>
+          <p><i className="fa-regular fa-heart"></i>{Object.keys(dictionary).length != 0 && dictionary["likes"][language]}</p>
           <p>{numberOfLikes}</p>
         </div>
       </div>
       <div className='flex flex-row'>
         <div className='flex flex-col space-y-4'>
-          <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-black'>작가 소개</p></Link>
+          <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-black'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p></Link>
           <p id="bio">{user.bio}</p>
         </div>
         <div className="flex flex-col space-y-4">
-          <Link href="#" onClick={handleViewClick}><p id='view' className='w-28 text-xl px-4 border-b-2 border-gray'>작품 보기</p></Link>
+          <Link href="#" onClick={handleViewClick}><p id='view' className='w-28 text-xl px-4 border-b-2 border-gray'>{Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}</p></Link>
           <div id="works" className="hidden flex flex-row -translate-x-28 space-x-4">
             {novels.map((item, index) => (
               <div key={index}>

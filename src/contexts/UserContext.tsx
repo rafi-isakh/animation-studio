@@ -28,7 +28,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       try {
         const response = await fetch('/api/user_session');
         const data = await response.json();
-        console.log("UserContext fetched data", data)
         if (!data.nickname || !data.email) {
           throw new Error("nickname and email should be present in response from /api/user_session")
         }

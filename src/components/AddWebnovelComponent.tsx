@@ -8,6 +8,7 @@ import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsi
 import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
+import {phrase} from '@/utils/phrases';
 
 
 const AddWebnovelComponent = () => {
@@ -91,16 +92,16 @@ const AddWebnovelComponent = () => {
         <div className='max-w-screen-md w-full flex md:flex-row flex-col justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
                 <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname ?? ''} />
-                <hr className='block md:hidden mt-4 mb-4 bg-black h-1' />
+                <hr className='block md:hidden mt-4 mb-4 bg-[#333333] h-1' />
             </div>
             <div className='md:w-3/4 w-full'>
                 <form onSubmit={handleAddWebnovel}>
                     <div className="flex flex-col md:flex-row md:space-x-4 items-center md:items-start">
                         <div className="mr-4 w-full md:w-2/3">
-                            <p className={`text-2xl ${styles.korean}`}>{Object.keys(dictionary).length != 0 && dictionary["uploadNewWebnovel"][language]}</p>
+                            <p className={`text-2xl ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <p className={`text-md w-24 ${styles.korean}`}>{Object.keys(dictionary).length != 0 && dictionary["webnovelTitle"][language]}</p>
+                                <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "webnovelTitle", language)}</p>
                                 <input
                                     type="text"
                                     value={title}
@@ -110,34 +111,34 @@ const AddWebnovelComponent = () => {
                             </div>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <label htmlFor="genre" className="text-md w-24">{Object.keys(dictionary).length != 0 && dictionary["genre"][language]}</label>
+                                <label htmlFor="genre" className="text-md w-24">{phrase(dictionary, "genre", language)}</label>
                                 <select id="genre" className='border-none rounded focus:ring-pink-600 bg-gray-200 w-full' onChange={handleChangeGenre}>
                                     <option value=""></option>
-                                    <option value="Romance Fantasy">{Object.keys(dictionary).length != 0 && dictionary["romanceFantasy"][language]}</option>
-                                    <option value="Romance">{Object.keys(dictionary).length != 0 && dictionary["romance"][language]}</option>
-                                    <option value="BL">{Object.keys(dictionary).length != 0 && dictionary["bl"][language]}</option>
-                                    <option value="Fantasy">{Object.keys(dictionary).length != 0 && dictionary["fantasy"][language]}</option>
-                                    <option value="SF">{Object.keys(dictionary).length != 0 && dictionary["sf"][language]}</option>
+                                    <option value="Romance Fantasy">{phrase(dictionary, "romanceFantasy", language)}</option>
+                                    <option value="Romance">{phrase(dictionary, "romance", language)}</option>
+                                    <option value="BL">{phrase(dictionary, "bl", language)}</option>
+                                    <option value="Fantasy">{phrase(dictionary, "fantasy", language)}</option>
+                                    <option value="SF">{phrase(dictionary, "sf", language)}</option>
                                 </select>
                             </div>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <label htmlFor="language" className="text-md w-24">{Object.keys(dictionary).length != 0 && dictionary["language"][language]}</label>
+                                <label htmlFor="language" className="text-md w-24">{phrase(dictionary, "language", language)}</label>
                                 <select id="language" className="border-none rounded focus:ring-pink-600 bg-gray-200 w-full" onChange={handleChangeLanguage}>
                                     <option value=""></option>
-                                    <option value="ko">{Object.keys(dictionary).length != 0 && dictionary["korean"][language]}</option>
-                                    <option value="en">{Object.keys(dictionary).length != 0 && dictionary["english"][language]}</option>
-                                    <option value="ja">{Object.keys(dictionary).length != 0 && dictionary["japanese"][language]}</option>
-                                    <option value="zh-CN">{Object.keys(dictionary).length != 0 && dictionary["chineseSimplified"][language]}</option>
-                                    <option value="zh-TW">{Object.keys(dictionary).length != 0 && dictionary["chineseTraditional"][language]}</option>
-                                    <option value="id">{Object.keys(dictionary).length != 0 && dictionary["indonesian"][language]}</option>
-                                    <option value="vi">{Object.keys(dictionary).length != 0 && dictionary["vietnamese"][language]}</option>
-                                    <option value="ar">{Object.keys(dictionary).length != 0 && dictionary["arabic"][language]}</option>
+                                    <option value="ko">{phrase(dictionary, "korean", language)}</option>
+                                    <option value="en">{phrase(dictionary, "english", language)}</option>
+                                    <option value="ja">{phrase(dictionary, "japanese", language)}</option>
+                                    <option value="zh-CN">{phrase(dictionary, "chineseSimplified", language)}</option>
+                                    <option value="zh-TW">{phrase(dictionary, "chineseTraditional", language)}</option>
+                                    <option value="id">{phrase(dictionary, "indonesian", language)}</option>
+                                    <option value="vi">{phrase(dictionary, "vietnamese", language)}</option>
+                                    <option value="ar">{phrase(dictionary, "arabic", language)}</option>
                                 </select>
                             </div>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <p className={`text-md w-24 ${styles.korean}`}>{Object.keys(dictionary).length != 0 && dictionary["description"][language]}</p>
+                                <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "description", language)}</p>
                                 <textarea
                                     value={description}
                                     rows={4}
@@ -159,7 +160,7 @@ const AddWebnovelComponent = () => {
                                             <span className="sr-only">Loading...</span>
                                         </div>
                                         :
-                                        "저장"}
+                                        phrase(dictionary, "save", language)}
                                         </button>
                             </div>
                         </div>

@@ -7,6 +7,7 @@ import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
+import { phrase } from '@/utils/phrases';
 
 
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
@@ -14,8 +15,11 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [content, setContent] = useState('');
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const { email, nickname } = useUser();
-    const {language, dictionary} = useLanguage();
+    const { language, dictionary } = useLanguage();
     const router = useRouter();
+    const maxText = 10000;
+    const [maxExceeded, setMaxExceeded] = useState(false);
+    const [currText, setCurrText] = useState(0);
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`)
@@ -27,6 +31,15 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             })
     }, [email]);
 
+    useEffect(() => {
+        setCurrText(content.length);
+        if (content.length > maxText) {
+            setMaxExceeded(true);
+        } else {
+            setMaxExceeded(false);
+        }
+    }, [content])
+
     const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
         const formData = new FormData();
@@ -36,25 +49,27 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             return;
         }
         formData.append('webnovel_id', webnovelId);
-        const res = await fetch('/api/add-chapter', {
-            method: 'POST',
-            body: formData,
-        });
-        router.push(`/view_webnovels?id=${webnovelId}`)
+        if (!maxExceeded) {
+            const res = await fetch('/api/add-chapter', {
+                method: 'POST',
+                body: formData,
+            });
+            router.push(`/view_webnovels?id=${webnovelId}`)
+        }
     };
 
     return (
         <div className='max-w-screen-md w-full flex flex-col md:flex-row justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
                 <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                <hr className='block md:hidden mt-4 mb-4 bg-black h-1' />
+                <hr className='block md:hidden mt-4 mb-4 bg-[#333333] h-1' />
             </div>
             <form className="md:w-3/4 w-full" onSubmit={handleAddChapter}>
                 <div className="mr-4 w-full">
-                    <p className="text-2xl">{Object.keys(dictionary).length != 0 && dictionary["newChapter"][language]}</p>
+                    <p className="text-2xl">{phrase(dictionary, "newChapter", language)}</p>
                     <br />
                     <div className="flex flex-row space-x-4">
-                        <p className="text-md w-24">{Object.keys(dictionary).length != 0 && dictionary["chapterTitle"][language]}</p>
+                        <p className="text-md w-24">{phrase(dictionary, "chapterTitle", language)}</p>
                         <input
                             type="text"
                             value={title}
@@ -64,16 +79,22 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     </div>
                     <br />
                     <div className="flex flex-row space-x-4">
-                        <p className="text-md w-24">{Object.keys(dictionary).length != 0 && dictionary["content"][language]}</p>
+                        <p className="text-md w-24">{phrase(dictionary, "content", language)}</p>
                         <textarea
                             value={content}
-                            rows={8}
+                            rows={16}
                             className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 textarea-lg'
                             onChange={(e) => setContent(e.target.value)}
                         />
                     </div>
-                    <br /><br />
-                    <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{Object.keys(dictionary).length != 0 && dictionary["save"][language]}</button>
+                    <div className='flex justify-end'>
+                        <p className={`text-sm ${maxExceeded && "text-pink-600"}`}>{`${currText}/${maxText} ${phrase(dictionary, "chars", language)}`}</p>
+                    </div>
+                    <br />
+                    <div className='flex justify-end'>
+
+                        <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{phrase(dictionary, "save", language)}</button>
+                    </div>
                 </div>
             </form>
         </div>

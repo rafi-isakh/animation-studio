@@ -10,6 +10,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useDevice } from '@/contexts/DeviceContext';
 import Link from 'next/link';
 import styles from '@/styles/Header.module.css';
+import {phrase} from '@/utils/phrases';
 
 
 const Header = () => {
@@ -191,8 +192,8 @@ const Header = () => {
   }
 
   return (
-    <div className='fixed top-0 left-0 right-0 dark z-50'>
-      <nav className="bg-white border-gray-200 dark:bg-black dark:border-gray-700">
+    <div className='fixed top-0 left-0 right-0 dark z-50 mx-auto'>
+      <nav className="bg-[#333333]">
         <div id='above-header' className="max-w-screen-xl flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
@@ -203,13 +204,13 @@ const Header = () => {
             <div className="hidden md:block">
               <div className="flex flex-row space-x-4">
                 <Link href="/" onClick={handleCategoryClick}>
-                  <p className={`${whichCategory == 0? 'text-pink-500 font-bold': ''} webnovel mt-1 text-xl text-white hover:text-pink-600`}>웹소설</p>
+                  <p className={`${whichCategory == 0? 'text-pink-600 font-bold': ''} webnovel mt-1 text-xl text-white hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                 </Link>
                 <Link href="/webtoon" onClick={handleCategoryClick}>
-                  <p className={`${whichCategory == 1? 'text-pink-500 font-bold': ''} webtoon mt-1 text-xl text-white hover:text-pink-600`}>웹툰</p>
+                  <p className={`${whichCategory == 1? 'text-pink-600 font-bold': ''} webtoon mt-1 text-xl text-white hover:text-pink-600`}>{phrase(dictionary, "webtoons", language)}</p>
                 </Link>
                 <Link href="/manhwa" onClick={handleCategoryClick}>
-                  <p className={`${whichCategory == 2? 'text-pink-500 font-bold': ''} manhwa mt-1 text-xl text-white hover:text-pink-600`}>만화</p>
+                  <p className={`${whichCategory == 2? 'text-pink-600 font-bold': ''} manhwa mt-1 text-xl text-white hover:text-pink-600`}>{phrase(dictionary, "manhwa", language)}</p>
                 </Link>
               </div>
             </div>
@@ -217,7 +218,7 @@ const Header = () => {
           <div className="flex md:order-1">
             {/*Search icon in mobile screen (md:hidden)*/}
             <div ref={searchRef}>
-              <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded text-sm p-2.5 me-1">
+              <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded text-sm p-2.5 me-1">
                 <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                 </svg>
@@ -226,7 +227,7 @@ const Header = () => {
             </div>
             {/*Main menu in mobile screen (md:hidden)*/}
             <div ref={hamburgerRef}>
-              <button id="mobile-hamburger" onClick={handleMobileMenuClick} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+              <button id="mobile-hamburger" onClick={handleMobileMenuClick} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                 <span className="sr-only">Open main menu</span>
                 <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
@@ -242,7 +243,7 @@ const Header = () => {
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                 </svg>
               </div>
-              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-gray-50 focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-[#333333] focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
             </div>
             {/*Search bar visible in screens larger than md (md:block)*/}
             <div className="relative hidden md:block mr-6">
@@ -252,18 +253,18 @@ const Header = () => {
                 </svg>
                 <span className="sr-only">Search icon</span>
               </div>
-              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-gray-50 focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-[#333333] focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
             </div>
-            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-100 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 bg-gray-800 md:bg-black border-gray-700">
+            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 bg-[#333333] rounded md:bg-[#333333]">
               {/*News menu*/}
               <li>
-                <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-[#333333] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                   <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'> 뉴스</p></Link>
               </li>
               {/*Language menu*/}
               <li className="py-2 relative">
                 <div ref={languageMenuRef}>
-                  <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                  <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#333333] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                     <i className="fa-solid fa-globe"></i><p className='ml-2 md:hidden'> 언어</p>
                     <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
@@ -271,7 +272,7 @@ const Header = () => {
                   </button>
                 </div>
                 {isLanguageDropdownOpen && (
-                  <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600`}>
+                  <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-[#333333] dark:divide-gray-600`}>
                     <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       <li>
                         <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -325,14 +326,14 @@ const Header = () => {
               {/*User menu*/}
               <li className="py-2 relative">
                 <div ref={userMenuRef}>
-                  <button id="dropdownNavbarUserLink" onClick={toggleUserDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-black rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
+                  <button id="dropdownNavbarUserLink" onClick={toggleUserDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#333333] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                     <i className="fa-solid fa-user"></i><p className='ml-2 md:hidden'> 프로필</p>
                     <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                     </svg></button>
                 </div>
                 {isUserDropdownOpen && (
-                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-black dark:divide-gray-600`}>
+                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-[#333333] dark:divide-gray-600`}>
                     <ul className="py-2 text-sm rounded text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       {loading ? (
                         <li>
@@ -349,25 +350,25 @@ const Header = () => {
                         isLoggedIn && !inNewUser() ? (
                           <>
                             <li>
-                              <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">새 작품</Link>
+                              <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "newWebnovel", language)}</Link>
                             </li>
                             <li>
-                              <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 작품</Link>
+                              <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "myWebnovels", language)}</Link>
                             </li>
                             <li>
-                              <Link href="/library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">내 서재</Link>
+                              <Link href="/library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "myLibrary", language)}</Link>
                             </li>
                             <li>
-                              <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">계정설정</Link>
+                              <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "profile", language)}</Link>
                             </li>
                             <li>
-                              <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">로그아웃</Link>
+                              <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "logout", language)}</Link>
                             </li>
                           </>
                         )
                           : (
                             <li>
-                              <Link href="/signin" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{Object.keys(dictionary).length != 0 && dictionary["login"][language]}</Link>
+                              <Link href="/signin" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "login", language)}</Link>
                             </li>
                           )}
                     </ul>
@@ -379,13 +380,13 @@ const Header = () => {
         </div>
         <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-between pb-4 px-4">
           <Link href="/" onClick={handleCategoryClick}>
-            <p className={`${whichCategory == 0? 'text-pink-500 font-bold': ''} webnovel mt-1 text-xl text-white hover:text-pink-600`}>웹소설</p>
+            <p className={`${whichCategory == 0? 'text-pink-600 font-bold': ''} webnovel mt-1 text-xl text-white hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
           </Link>
           <Link href="/webtoon" onClick={handleCategoryClick}>
-            <p className={`${whichCategory == 1? 'text-pink-500 font-bold': ''} webtoon mt-1 text-xl text-white hover:text-pink-600`}>웹툰</p>
+            <p className={`${whichCategory == 1? 'text-pink-600 font-bold': ''} webtoon mt-1 text-xl text-white hover:text-pink-600`}>{phrase(dictionary, "webtoons", language)}</p>
           </Link>
           <Link href="/manhwa" onClick={handleCategoryClick}>
-            <p className={`${whichCategory == 2? 'text-pink-500 font-bold': ''} manhwa mt-1 text-xl text-white hover:text-pink-600`}>만화</p>
+            <p className={`${whichCategory == 2? 'text-pink-600 font-bold': ''} manhwa mt-1 text-xl text-white hover:text-pink-600`}>{phrase(dictionary, "manhwa", language)}</p>
           </Link>
         </div>
       </nav>

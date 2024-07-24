@@ -1,13 +1,14 @@
 "use client"
 
 import { useLanguage } from "@/contexts/LanguageContext"
+import {phrase} from '@/utils/phrases';
 
 const NewUserBioComponent = () => {
     const { dictionary, language } = useLanguage();
 
     return (
         <div>
-            <p className="text-lg">{Object.keys(dictionary).length != 0 && dictionary["intro"][language]}</p>
+            <p className="text-lg">{phrase(dictionary, "intro", language)}</p>
             <textarea
                 name="bio"
                 rows={4}

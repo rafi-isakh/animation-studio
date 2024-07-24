@@ -30,7 +30,7 @@ const Webnovels = ({ searchParams }: { searchParams: { [key: string]: string | s
   }
 
   return (
-    <div className="max-w-screen-xl mx-auto flex grow md:grow-0 snap-x overflow-x-scroll flex">
+    <div className="max-w-screen-xl mx-auto flex grow md:grow-0 snap-x overflow-x-scroll">
       {webnovels
         .filter(item => filter_by_genre(item))
         .map((item, index) => (

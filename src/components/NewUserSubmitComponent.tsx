@@ -1,6 +1,7 @@
 "use client"
 
 import { useLanguage } from "@/contexts/LanguageContext"
+import {phrase} from '@/utils/phrases';
 
 
 const NewUserSubmitComponent = () => {
@@ -10,7 +11,7 @@ const NewUserSubmitComponent = () => {
         <button
             type="submit"
             className="button-style px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
-            {Object.keys(dictionary).length != 0 && dictionary["register"][language]}
+            {phrase(dictionary, "register", language)}
         </button>
     )
 }

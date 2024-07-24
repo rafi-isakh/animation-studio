@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
-import SSEComponent from "@/components/SSEComponent";
+import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
@@ -14,7 +14,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
-    const [ key, setKey ] = useState(0); // for remounting SSEComponent
+    const [ key, setKey ] = useState(0); // for remounting WebnovelTranslateComponent
     const { language } = useLanguage();
 
     useEffect(() => {
@@ -84,7 +84,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <div className="max-w-full flex flex-col space-y-4 pb-24">
                         <p className="text-2xl mt-10 mb-10">{chapter.title}</p>
                         {/*<p className="text-sm" dangerouslySetInnerHTML={{ __html: newlineToBr(chapter.content) }}></p>*/}
-                        <SSEComponent key={key} content={chapter.content} chapterId={id}/>
+                        <WebnovelTranslateComponent key={key} content={chapter.content} chapterId={id}/>
                     </div>
                     {/* Novel title, chapter number, button to next chapter */}
                     <div>

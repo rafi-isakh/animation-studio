@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {phrase} from '@/utils/phrases'
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
 
@@ -20,15 +21,15 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
   }
 
   return (
-    <div className="z-50 fixed bg-black bottom-0 left-0 right-0">
+    <div className="z-50 fixed bg-[#333333] bottom-0 left-0 right-0">
       <div className="max-w-md text-white flex flex-wrap items-center justify-between mx-auto p-4">
         <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
-          <p className='hover:text-pink-600'>{Object.keys(dictionary).length != 0 && dictionary["list"][language]}</p></Link>
+          <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
         <Link href={`/library`}>
-          <p className='hover:text-pink-600'>{Object.keys(dictionary).length != 0 && dictionary["myLibrary"][language]}</p></Link>
+          <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link>
         <Link href={`/comments?chapter_id=${chapterId.toString()}`}>
-          <p className='hover:text-pink-600'>{Object.keys(dictionary).length != 0 && dictionary["comments"][language]}</p></Link>
-        <p onClick={adjustViewSettings} className='hover:text-pink-600'>{Object.keys(dictionary).length != 0 && dictionary["viewSettings"][language]}</p>
+          <p className='hover:text-pink-600'>{phrase(dictionary, "comments", language)}</p></Link>
+        <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p>
       </div>
     </div>
   );

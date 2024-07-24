@@ -1,13 +1,14 @@
 "use client"
 
 import { useLanguage } from "@/contexts/LanguageContext"
+import {phrase} from '@/utils/phrases';
 
 const NewUserNicknameComponent = () => {
   const {dictionary, language} = useLanguage();
 
   return (
     <div>
-      <p className="text-lg">{Object.keys(dictionary).length != 0 && dictionary["nickname"][language]}</p>
+      <p className="text-lg">{phrase(dictionary, "nickname", language)}</p>
       <input
         type="text"
         name="nickname"

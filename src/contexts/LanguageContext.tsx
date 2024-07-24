@@ -8,6 +8,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   dictionary: Dictionary;
+  isRtl: string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const [language, setLanguage] = useState(getInitialLanguage);
   const [dictionary, setDictionary] = useState<Dictionary>({});
+  const [isRtl, setIsRtl] = useState("ltr");
   
   useEffect(() => {
     const fetchPhrases = async () => {
@@ -37,10 +39,16 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (typeof window !== 'undefined') {
       localStorage.setItem('language', language);
     }
+    if (language == 'ar'){
+      setIsRtl("rtl");
+    }
+    else {
+      setIsRtl("ltr")
+    }
   }, [language]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, dictionary }}>
+    <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>
       {children}
     </LanguageContext.Provider>
   );

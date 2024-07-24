@@ -8,6 +8,7 @@ import ListOfChaptersComponent from './ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {phrase} from '@/utils/phrases'
 
 
 const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
@@ -96,7 +97,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                 <div className='max-w-screen-md flex md:flex-row flex-col justify-center mx-auto'>
                     <div className='w-full md:w-1/4'>
                         <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                        <hr className='block md:hidden mt-4 mb-4 bg-black h-1' />
+                        <hr className='block md:hidden mt-4 mb-4 bg-[#333333] h-1' />
                     </div>
                     <div className='w-full md:w-3/4'>
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
@@ -105,10 +106,10 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                                 (authorEmail == email) &&
                                 <div className='flex flex-col w-32'>
                                     <button onClick={handleNewChapter} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                    {Object.keys(dictionary).length != 0 && dictionary["uploadNewChapter"][language]}
+                                    {phrase(dictionary, "uploadNewChapter", language)}
                                     </button>
                                     <button onClick={handleDelete} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                    {Object.keys(dictionary).length != 0 && dictionary["deleteWebnovel"][language]}
+                                    {phrase(dictionary, "deleteWebnovel", language)}
                                     </button>
                                 </div>
                             }
@@ -121,7 +122,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
         else {
             return (
                 <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-                    {Object.keys(dictionary).length != 0 && dictionary["noWebnovelsFound"][language]}
+                    {phrase(dictionary, "noWebnovelsFound", language)}
                 </div>
             )
         }

@@ -2,9 +2,9 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 
-const SSEComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
+const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
   const [text, setText] = useState('');
-  const { language } = useLanguage();
+  const { language, isRtl } = useLanguage();
   const initialized = useRef(false);
   const fetchRef = useRef(false);
   const [finished, setFinished] = useState(false)
@@ -118,18 +118,19 @@ const SSEComponent = ({ content, chapterId }: { content: string, chapterId: stri
       console.error('EventSource failed:', error);
       eventSource.close();
     };
-
     return () => {
       eventSource.close();
     };
   };
 
+  type Direction = 'ltr' | 'rtl';
+
   return (
-    <div style={{ whiteSpace: 'pre-wrap' }}>
+    <div style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction}}>
 
       {text}
     </div>
   );
 };
 
-export default SSEComponent;
+export default WebnovelTranslateComponent;

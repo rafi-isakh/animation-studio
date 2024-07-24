@@ -1,21 +1,26 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { User, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import Webnovels from '@/components/Webnovels';
 import WebnovelComponent from './WebnovelComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {phrase} from '@/utils/phrases'
 
-const ProfileComponent = ({ user }: { user: User }) => {
+const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
-  const [novels, setNovels] = useState<Webnovel[]>([]);
   const [numberOfNovels, setNumberOfNovels] = useState(0);
   const [numberOfChapters, setNumberOfChapters] = useState(0);
   const [numberOfLikes, setNumberOfLikes] = useState(0);
   const [introActive, setIntroActive] = useState<boolean>(true);
   const [viewActive, setViewActive] = useState<boolean>(false);
-  const {language, dictionary} = useLanguage();
+  const { language, dictionary } = useLanguage();
+  const viewRef = useRef<HTMLDivElement>(null);
+  const introRef = useRef<HTMLDivElement>(null);
+  const novelsRef = useRef<HTMLDivElement>(null);
+  const [introWidth, setIntroWidth] = useState<string>("0px")
+  const [viewWidth, setViewWidth] = useState(0)
 
 
   useEffect(() => {
@@ -24,21 +29,36 @@ const ProfileComponent = ({ user }: { user: User }) => {
       .then(data => {
         console.log("webnovels data", data);
         setNumberOfNovels(data.length);
-        setNovels(data);
       }
       )
+
   }, [])
+
+  useEffect(() => {
+
+    if (introRef.current) {
+      const width = introRef.current.offsetWidth + 1 + 'px';
+      setIntroWidth(width);
+    }
+  }, [language])
+
+  useEffect(() => {
+    if (novelsRef.current) {
+      novelsRef.current.style.transform = `translateX(-${introWidth})`
+    }
+  }, [introWidth])
+
 
   const handleIntroClick = () => {
     setIntroActive(true);
     setViewActive(false);
     const intro = document.getElementById('intro');
     intro?.classList.add('font-bold');
-    intro?.classList.add('border-black')
+    intro?.classList.add('border-[#333333]')
     intro?.classList.remove('border-gray')
     const view = document.getElementById('view');
     view?.classList.remove('font-bold');
-    view?.classList.remove('border-black')
+    view?.classList.remove('border-[#333333]')
     view?.classList.add('border-gray')
     const bio = document.getElementById('bio');
     bio?.classList.remove('hidden');
@@ -51,11 +71,11 @@ const ProfileComponent = ({ user }: { user: User }) => {
     setViewActive(true);
     const intro = document.getElementById('intro');
     intro?.classList.remove('font-bold');
-    intro?.classList.remove('border-black')
+    intro?.classList.remove('border-[#333333]')
     intro?.classList.add('border-gray')
     const view = document.getElementById('view');
     view?.classList.add('font-bold');
-    view?.classList.add('border-black')
+    view?.classList.add('border-[#333333]')
     view?.classList.remove('border-gray')
     const bio = document.getElementById('bio');
     bio?.classList.add('hidden');
@@ -83,16 +103,17 @@ const ProfileComponent = ({ user }: { user: User }) => {
         </div>
       </div>
       <div className='flex flex-row'>
-        <div className='flex flex-col space-y-4'>
-          <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-black'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p></Link>
+        <div className='flex flex-shrink-0 flex-col space-y-4' ref={introRef}>
+          <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-[#333333]'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p></Link>
           <p id="bio">{user.bio}</p>
         </div>
-        <div className="flex flex-col space-y-4">
-          <Link href="#" onClick={handleViewClick}><p id='view' className='w-28 text-xl px-4 border-b-2 border-gray'>{Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}</p></Link>
-          <div id="works" className="hidden flex flex-row -translate-x-28 space-x-4">
+        <div className="flex flex-shrink-0 flex-col space-y-4" ref={viewRef} >
+          <Link href="#" onClick={handleViewClick}>
+            <p id='view' className='text-xl w-fit px-4 border-b-2 border-gray'>{Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}</p></Link>
+          <div id="works" ref={novelsRef} className={`max-w-screen-sm hidden flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
             {novels.map((item, index) => (
-              <div key={index}>
-                <WebnovelComponent webnovel={item}/>
+              <div key={index} className='mx-auto'>
+                <WebnovelComponent webnovel={item} />
               </div>
             ))}
           </div>

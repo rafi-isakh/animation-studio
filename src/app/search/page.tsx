@@ -3,6 +3,7 @@ import { Webnovel } from '@/components/Types';
 import WebnovelComponent from '@/components/WebnovelComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect } from 'react';
+import {phrase} from '@/utils/phrases';
 
 const Search = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -29,7 +30,7 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
             webnovels.map((webnovel, index) => (
               <WebnovelComponent key={index} webnovel={webnovel} />
             )) :
-            <main>{Object.keys(dictionary).length != 0 && dictionary["noSearchResults"][language]}</main>
+            <main>{phrase(dictionary, "noSearchResults", language)}</main>
         }
       </center>
     </div>

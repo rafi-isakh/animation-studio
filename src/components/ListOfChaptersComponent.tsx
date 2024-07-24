@@ -2,13 +2,21 @@ import { Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import {phrase} from '@/utils/phrases';
+import OtherTranslateComponent from "./OtherTranslateComponent";
+import { useEffect, useState } from "react";
 
 const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
     const {dictionary, language} = useLanguage();
+    const [key, setKey] = useState(0);
+    
+    useEffect(() => {
+        setKey(prevKey => prevKey + 1)
+    }, [language])
+    
     return (
         <div className="relative overflow-x-auto mt-4 rounded">
-            <table className="w-full text-sm text-center text-white border border-2 border-[#333333]">
-                <thead className="text-xs text-white uppercase bg-[#333333]">
+            <table className="w-full text-sm text-center text-white border border-2 border-[#142448]">
+                <thead className="text-xs text-white uppercase bg-[#142448]">
                     <tr>
                         <th scope="col" className="px-2 md:px-6 py-3">
                         {phrase(dictionary, "number", language)}
@@ -33,19 +41,20 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                         return (
                             chapters?.map((chapter, index) => (
                                 <tr key={index} className="bg-white">
-                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#333333] whitespace-nowrap">
+                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#142448] whitespace-nowrap">
                                         <p>{index + 1}</p>
                                     </th>
-                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#333333] whitespace-nowrap hover:text-pink-600">
-                                        <Link href={`/chapter_view/${chapter.id}`} className="text-md font-bold">{chapter.title}</Link>
+                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#142448] whitespace-nowrap hover:text-pink-600">
+                                        <Link href={`/chapter_view/${chapter.id}`} className="text-md font-bold">
+                                            <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter"/></Link>
                                     </th>
-                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#333333] whitespace-nowrap">
+                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#142448] whitespace-nowrap">
                                         <p>{chapter.created_at}</p>
                                     </th>
-                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#333333] whitespace-nowrap">
+                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#142448] whitespace-nowrap">
                                         <p>{chapter.views}</p>
                                     </th>
-                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#333333] whitespace-nowrap">
+                                    <th scope="row" className="px-2 md:px-6 py-4 font-medium text-[#142448] whitespace-nowrap">
                                         <p>{chapter.upvotes}</p>
                                     </th>
                                 </tr>

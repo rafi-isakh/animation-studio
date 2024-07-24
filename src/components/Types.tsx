@@ -4,6 +4,10 @@ export interface WebnovelIdProps {
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' 
 
+export type ElementType = 'webnovel' | 'chapter' | 'user'
+
+export type ElementSubtype = 'title' | 'description' 
+
 export interface Chapter {
   id: number;
   content: string;

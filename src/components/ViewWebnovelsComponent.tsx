@@ -2,9 +2,9 @@
 import { Webnovel } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthorAndWebnovelsAsideComponent from './AuthorAndWebnovelsAsideComponent';
-import WebNovelInfoAndPictureComponent from './WebnovelInfoAndPictureComponent';
-import ListOfChaptersComponent from './ListOfChaptersComponent';
+import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
+import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
+import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -97,7 +97,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                 <div className='max-w-screen-md flex md:flex-row flex-col justify-center mx-auto'>
                     <div className='w-full md:w-1/4'>
                         <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                        <hr className='block md:hidden mt-4 mb-4 bg-[#333333] h-1' />
+                        <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
                     </div>
                     <div className='w-full md:w-3/4'>
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />

@@ -21,7 +21,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
   }
 
   return (
-    <div className="z-50 fixed bg-[#333333] bottom-0 left-0 right-0">
+    <div className="z-50 fixed bg-[#142448] bottom-0 left-0 right-0">
       <div className="max-w-md text-white flex flex-wrap items-center justify-between mx-auto p-4">
         <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
           <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>

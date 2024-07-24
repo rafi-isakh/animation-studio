@@ -4,18 +4,27 @@ import { code_to_language } from "@/utils"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"
+import OtherTranslateComponent from "./OtherTranslateComponent"
+import { useEffect, useState } from "react"
 
 const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undefined}) => {
 
     const { language } = useLanguage();
     const imageSrc = getImageURL(webnovel?.cover_art)
     const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0)? webnovel.chapters[0].id: -1
-
-    return (
+    const [key, setKey] = useState(0);
+    
+    useEffect(() => {
+        setKey(prevKey => prevKey + 1)
+    }, [language])
+    
+    return webnovel && (
+        
         <div className='flex flex-row justify-between'>
             <div className="flex flex-col space-y-4 w-full">
                 <p className="text-sm">{webnovel?.genre}</p>
-                <p className="text-xl">{webnovel?.title}</p>
+                <OtherTranslateComponent key={key} content={webnovel.title} 
+                elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>
                 <hr/>
                 <Link href={`/view_profile/${webnovel?.user.id}`}>
                     <p className="text-sm font-bold hover:text-pink-600">{webnovel?.user.nickname}</p>

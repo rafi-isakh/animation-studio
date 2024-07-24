@@ -193,7 +193,7 @@ const Header = () => {
 
   return (
     <div className='fixed top-0 left-0 right-0 dark z-50 mx-auto'>
-      <nav className="bg-[#333333]">
+      <nav className="bg-[#142448]">
         <div id='above-header' className="max-w-screen-xl flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
@@ -243,7 +243,7 @@ const Header = () => {
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                 </svg>
               </div>
-              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-[#333333] focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-[#142448] focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
             </div>
             {/*Search bar visible in screens larger than md (md:block)*/}
             <div className="relative hidden md:block mr-6">
@@ -253,18 +253,18 @@ const Header = () => {
                 </svg>
                 <span className="sr-only">Search icon</span>
               </div>
-              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-[#333333] focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+              <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded bg-[#142448] focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-pink-500 dark:focus:border-pink-500" />
             </div>
-            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 bg-[#333333] rounded md:bg-[#333333]">
+            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 bg-[#142448] rounded md:bg-[#142448]">
               {/*News menu*/}
               <li>
-                <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-[#333333] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-[#142448] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                   <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'> 뉴스</p></Link>
               </li>
               {/*Language menu*/}
               <li className="py-2 relative">
                 <div ref={languageMenuRef}>
-                  <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#333333] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                  <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                     <i className="fa-solid fa-globe"></i><p className='ml-2 md:hidden'> 언어</p>
                     <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
@@ -272,7 +272,7 @@ const Header = () => {
                   </button>
                 </div>
                 {isLanguageDropdownOpen && (
-                  <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-[#333333] dark:divide-gray-600`}>
+                  <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-[#142448] dark:divide-gray-600`}>
                     <ul className="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       <li>
                         <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -326,14 +326,14 @@ const Header = () => {
               {/*User menu*/}
               <li className="py-2 relative">
                 <div ref={userMenuRef}>
-                  <button id="dropdownNavbarUserLink" onClick={toggleUserDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#333333] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                  <button id="dropdownNavbarUserLink" onClick={toggleUserDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448] rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                     <i className="fa-solid fa-user"></i><p className='ml-2 md:hidden'> 프로필</p>
                     <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                     </svg></button>
                 </div>
                 {isUserDropdownOpen && (
-                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-[#333333] dark:divide-gray-600`}>
+                  <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded z-10 font-normal bg-white divide-y divide-gray-100 shadow w-44 dark:bg-[#142448] dark:divide-gray-600`}>
                     <ul className="py-2 text-sm rounded text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
                       {loading ? (
                         <li>

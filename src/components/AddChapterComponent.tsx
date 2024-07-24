@@ -62,7 +62,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
         <div className='max-w-screen-md w-full flex flex-col md:flex-row justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
                 <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                <hr className='block md:hidden mt-4 mb-4 bg-[#333333] h-1' />
+                <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
             </div>
             <form className="md:w-3/4 w-full" onSubmit={handleAddChapter}>
                 <div className="mr-4 w-full">

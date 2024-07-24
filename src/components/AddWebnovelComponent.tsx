@@ -92,7 +92,7 @@ const AddWebnovelComponent = () => {
         <div className='max-w-screen-md w-full flex md:flex-row flex-col justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
                 <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname ?? ''} />
-                <hr className='block md:hidden mt-4 mb-4 bg-[#333333] h-1' />
+                <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
             </div>
             <div className='md:w-3/4 w-full'>
                 <form onSubmit={handleAddWebnovel}>
@@ -131,6 +131,7 @@ const AddWebnovelComponent = () => {
                                     <option value="ja">{phrase(dictionary, "japanese", language)}</option>
                                     <option value="zh-CN">{phrase(dictionary, "chineseSimplified", language)}</option>
                                     <option value="zh-TW">{phrase(dictionary, "chineseTraditional", language)}</option>
+                                    <option value="id">{phrase(dictionary, "thai", language)}</option>
                                     <option value="id">{phrase(dictionary, "indonesian", language)}</option>
                                     <option value="vi">{phrase(dictionary, "vietnamese", language)}</option>
                                     <option value="ar">{phrase(dictionary, "arabic", language)}</option>

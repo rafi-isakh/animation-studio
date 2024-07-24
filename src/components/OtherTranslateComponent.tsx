@@ -1,9 +1,11 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
+import { ElementType, ElementSubtype } from '@/components/Types';
 
-const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
+const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype }: { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype }) => {
   const [text, setText] = useState('');
+  const [text_2, setText_2] = useState('');
   const { language, isRtl } = useLanguage();
   const initialized = useRef(false);
   const fetchRef = useRef(false);
@@ -15,11 +17,21 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     fetchRef.current = true;
 
     const handleTranslate = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
+      // elmeentId is either chapter_id (for chapter title) or webnovel_id (for webnovel title and description) or user_id (for user bio)
+      const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : ''
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
       const data = await response.json();
-      if (data.text) {
-        setText(data.text)
+      if (elementSubtype == 'title') {
+        if (data.text) {
+          setText(data.text)
+        }
       }
+      else if (elementSubtype == 'description') {
+        if (data.text_2) {
+          setText_2(data.text_2)
+        }
+      }
+
 
       // If there's no translation in the DB
       // initialized.current is bc useEffect runs twice
@@ -53,14 +65,31 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
   }, [finished])
 
   const saveTranslationToDB = async (done: boolean) => {
-    if (text) {
-      const data = {
-        "text": text,
-        "language": language,
-        "chapter_id": chapterId,
-        "done": done
+    if (text || text_2) {
+      let data = {}
+      if (elementSubtype) {
+        data = {
+          "text": text,
+          "text_2": text_2,
+          "language": language,
+          "element_id": elementId,
+          "element_type": elementType,
+          "element_subtype": elementSubtype,
+          "done": done
+        }
+      } else {
+        data = {
+          "text": text,
+          "text_2": text_2,
+          "language": language,
+          "element_id": elementId,
+          "element_type": elementType,
+          "element_subtype": "",
+          "done": done
+        }
       }
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_translation`, {
+      console.log(data);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_other_translation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,9 +116,11 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
           'translation': translation
         })
       });
+      console.log(content);
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
         startEventSource(data.text_id);
       } else {
         console.error('Failed to submit words');
@@ -99,7 +130,7 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     }
   };
 
-  const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
+  const startEventSource = (textId: string) => {
     const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
 
     eventSource.onmessage = (event) => {
@@ -108,9 +139,6 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
         setText(text => text + data.token);
       } else if (data.ended == 1) {
         setFinished(true);
-      } else if (data.ended == -1) { // continue case
-        eventSource.close();
-        startEventSource(textId, data.cvid, 1);
       }
     };
 
@@ -126,11 +154,11 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
   type Direction = 'ltr' | 'rtl';
 
   return (
-    <div style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction}}>
+    <div style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
 
-      {text}
+      {text ? text : text_2}
     </div>
   );
 };
 
-export default WebnovelTranslateComponent;
+export default OtherTranslateComponent;

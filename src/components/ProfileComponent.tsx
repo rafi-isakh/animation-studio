@@ -6,7 +6,8 @@ import Link from 'next/link';
 import Webnovels from '@/components/Webnovels';
 import WebnovelComponent from './WebnovelComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {phrase} from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
+import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
@@ -21,7 +22,11 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   const novelsRef = useRef<HTMLDivElement>(null);
   const [introWidth, setIntroWidth] = useState<string>("0px")
   const [viewWidth, setViewWidth] = useState(0)
+  const [key, setKey] = useState(0);
 
+  useEffect(() => {
+    setKey(prevKey => prevKey + 1)
+  }, [language])
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${user.email}`)
@@ -54,11 +59,11 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     setViewActive(false);
     const intro = document.getElementById('intro');
     intro?.classList.add('font-bold');
-    intro?.classList.add('border-[#333333]')
+    intro?.classList.add('border-[#142448]')
     intro?.classList.remove('border-gray')
     const view = document.getElementById('view');
     view?.classList.remove('font-bold');
-    view?.classList.remove('border-[#333333]')
+    view?.classList.remove('border-[#142448]')
     view?.classList.add('border-gray')
     const bio = document.getElementById('bio');
     bio?.classList.remove('hidden');
@@ -71,11 +76,11 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     setViewActive(true);
     const intro = document.getElementById('intro');
     intro?.classList.remove('font-bold');
-    intro?.classList.remove('border-[#333333]')
+    intro?.classList.remove('border-[#142448]')
     intro?.classList.add('border-gray')
     const view = document.getElementById('view');
     view?.classList.add('font-bold');
-    view?.classList.add('border-[#333333]')
+    view?.classList.add('border-[#142448]')
     view?.classList.remove('border-gray')
     const bio = document.getElementById('bio');
     bio?.classList.add('hidden');
@@ -104,8 +109,8 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
       </div>
       <div className='flex flex-row'>
         <div className='flex flex-shrink-0 flex-col space-y-4' ref={introRef}>
-          <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-[#333333]'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p></Link>
-          <p id="bio">{user.bio}</p>
+          <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl px-4 font-bold border-b-2 border-[#142448]'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p></Link>
+          <OtherTranslateComponent key={key} content={user.bio} elementId={user.id.toString()} elementType='user' />
         </div>
         <div className="flex flex-shrink-0 flex-col space-y-4" ref={viewRef} >
           <Link href="#" onClick={handleViewClick}>

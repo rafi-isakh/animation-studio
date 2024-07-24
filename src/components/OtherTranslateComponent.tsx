@@ -21,16 +21,25 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
       const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : ''
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
       const data = await response.json();
-      if (elementSubtype == 'title') {
+      if (elementType == 'webnovel') {
+        if (elementSubtype == 'title') {
+          if (data.text) {
+            setText(data.text);
+            setText_2('');
+          }
+        }
+        else if (elementSubtype == 'description') {
+          if (data.text_2) {
+            setText_2(data.text_2);
+            setText('');
+          }
+        }
+      } else {
         if (data.text) {
-          setText(data.text)
+          setText(data.text);
         }
       }
-      else if (elementSubtype == 'description') {
-        if (data.text_2) {
-          setText_2(data.text_2)
-        }
-      }
+
 
 
       // If there's no translation in the DB
@@ -66,28 +75,16 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
 
   const saveTranslationToDB = async (done: boolean) => {
     if (text || text_2) {
-      let data = {}
-      if (elementSubtype) {
-        data = {
-          "text": text,
-          "text_2": text_2,
-          "language": language,
-          "element_id": elementId,
-          "element_type": elementType,
-          "element_subtype": elementSubtype,
-          "done": done
-        }
-      } else {
-        data = {
-          "text": text,
-          "text_2": text_2,
-          "language": language,
-          "element_id": elementId,
-          "element_type": elementType,
-          "element_subtype": "",
-          "done": done
-        }
+      const data = {
+        "text": text,
+        "text_2": text_2,
+        "language": language,
+        "element_id": elementId,
+        "element_type": elementType,
+        "element_subtype": elementSubtype || null,
+        "done": done
       }
+
       console.log(data);
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_other_translation`, {
         method: 'POST',

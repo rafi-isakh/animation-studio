@@ -16,7 +16,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
     
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
-    }, [language])
+    }, [language, webnovel])
     
     return webnovel && (
         
@@ -25,6 +25,8 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <p className="text-sm">{webnovel?.genre}</p>
                 <OtherTranslateComponent key={key} content={webnovel.title} 
                 elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>
+                <OtherTranslateComponent key={key} content={webnovel.description} 
+                elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="description"/>
                 <hr/>
                 <Link href={`/view_profile/${webnovel?.user.id}`}>
                     <p className="text-sm font-bold hover:text-pink-600">{webnovel?.user.nickname}</p>

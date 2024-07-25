@@ -9,7 +9,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { DeviceProvider } from '@/contexts/DeviceContext';
 import { Metadata } from 'next'
 
-
 interface RootLayoutProps {
   children: ReactNode;
 }

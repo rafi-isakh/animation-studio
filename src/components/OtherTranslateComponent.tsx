@@ -3,7 +3,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype } from '@/components/Types';
 
-const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, classParams="" }: { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, classParams?: string }) => {
+const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, classParams="" }: 
+    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, classParams?: string }) => {
   const [text, setText] = useState('');
   const { language, isRtl } = useLanguage();
   const initialized = useRef(false);
@@ -133,7 +134,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
   type Direction = 'ltr' | 'rtl';
 
   return (
-    <div className={`${classParams}`} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+    <div className={`${classParams}`} style={{ direction: `${isRtl}` as Direction }}>
       {text}
     </div>
   );

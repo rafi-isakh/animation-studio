@@ -22,19 +22,13 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
-            const user: User = {
-                "email": email,
-                "nickname": nickname,
-                "bio": "",
-                "id": -1
-            }
             if (!isLoggedIn) {
                 router.push('/signin')
             } else {
-                var newComment: Comment = {
-                    "id": -1, // throwaway, won't use in backend
-                    "parent_id": -1, // no parent, this isn't a reply
-                    "user": user,
+                var newComment = {
+                    "id": null,
+                    "parent_id": null,
+                    "email": email,
                     "content": commentContent,
                     "upvotes": 0,
                     "chapter_id": chapterId,
@@ -115,20 +109,14 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
         const index = event.currentTarget.id.split('.')[1] as unknown as number
         const commentContent = replyContent[index]
         if (commentContent) {
-            const user: User = {
-                "email": email,
-                "nickname": nickname,
-                "bio": "",
-                "id": -1
-            }
             if (!isLoggedIn) {
                 router.push('/signin')
             } else {
                 const parent_comment_id = allComments[index].id;
-                var newComment: Comment = {
-                    "id": -1,
+                var newComment = {
+                    "id": null,
                     "parent_id": parent_comment_id,
-                    "user": user,
+                    "email": email,
                     "content": commentContent,
                     "upvotes": 0,
                     "chapter_id": chapterId,

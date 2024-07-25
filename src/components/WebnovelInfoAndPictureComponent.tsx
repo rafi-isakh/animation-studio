@@ -7,10 +7,11 @@ import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { phrase } from "@/utils/phrases"
 
 const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undefined}) => {
 
-    const { language } = useLanguage();
+    const { language, dictionary } = useLanguage();
     const imageSrc = getImageURL(webnovel?.cover_art)
     const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0)? webnovel.chapters[0].id: -1
     const [key1, setKey1] = useState(0);
@@ -26,16 +27,17 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
         
         <div className='flex flex-row justify-between'>
             <div className="flex flex-col space-y-4 w-full">
-                <p className="text-sm">{webnovel?.genre}</p>
+                <p className="text-sm">{phrase(dictionary, webnovel.genre, language)}</p>
                 <OtherTranslateComponent key={key1} content={webnovel.title} 
                     elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-xl"/>
                 <OtherTranslateComponent key={key2} content={webnovel.description} 
                     elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="description"/>
                 <hr/>
-                <Link href={`/view_profile/${webnovel?.user.id}`}>
-                    <p className="text-sm font-bold hover:text-pink-600">{webnovel?.user.nickname}</p>
+                <Link href={`/view_profile/${webnovel.user.id}`}>
+                    <p className="text-sm font-bold hover:text-pink-600">{webnovel.user.nickname}</p>
                 </Link>
-                <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel?.upvotes}</p>
+                <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel.upvotes}</p>
+                <p className='mt-4 text-sm'><i className="fa-solid fa-eye"></i> {webnovel.views}</p>
             </div>
             <div className="ml-4">
                 <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">

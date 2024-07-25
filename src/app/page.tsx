@@ -1,4 +1,4 @@
-import Webnovels from '@/components/Webnovels'
+import PopularWebnovels from '@/components/PopularWebnovels'
 import GenresComponent from '@/components/GenresComponent';
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     <div>
       <CarouselComponentReactSlick items={items}/>
       <GenresComponent/>
-      <Webnovels searchParams={searchParams}/>
+      <PopularWebnovels searchParams={searchParams}/>
     </div>
   );
 }

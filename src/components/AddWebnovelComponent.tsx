@@ -9,6 +9,8 @@ import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import {phrase} from '@/utils/phrases';
+import Image from 'next/image'
+import Link from 'next/link';
 
 
 const AddWebnovelComponent = () => {
@@ -76,7 +78,7 @@ const AddWebnovelComponent = () => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setCoverArt(file);
-            setCoverArtPreview(URL.createObjectURL(file)); // Add this line
+            setCoverArtPreview(URL.createObjectURL(file));
         }
     };
 
@@ -86,6 +88,10 @@ const AddWebnovelComponent = () => {
 
     const handleChangeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setNovelLanguage(e.target.value);
+    }
+
+    const handleCoverArtUpload = () => {
+        document.getElementById('coverArtFile')?.click();
     }
 
     return (
@@ -114,11 +120,11 @@ const AddWebnovelComponent = () => {
                                 <label htmlFor="genre" className="text-md w-24">{phrase(dictionary, "genre", language)}</label>
                                 <select id="genre" className='border-none rounded focus:ring-pink-600 bg-gray-200 w-full' onChange={handleChangeGenre}>
                                     <option value=""></option>
-                                    <option value="Romance Fantasy">{phrase(dictionary, "romanceFantasy", language)}</option>
-                                    <option value="Romance">{phrase(dictionary, "romance", language)}</option>
-                                    <option value="BL">{phrase(dictionary, "bl", language)}</option>
-                                    <option value="Fantasy">{phrase(dictionary, "fantasy", language)}</option>
-                                    <option value="SF">{phrase(dictionary, "sf", language)}</option>
+                                    <option value="romanceFantasy">{phrase(dictionary, "romanceFantasy", language)}</option>
+                                    <option value="romance">{phrase(dictionary, "romance", language)}</option>
+                                    <option value="bl">{phrase(dictionary, "bl", language)}</option>
+                                    <option value="fantasy">{phrase(dictionary, "fantasy", language)}</option>
+                                    <option value="sf">{phrase(dictionary, "sf", language)}</option>
                                 </select>
                             </div>
                             <br />
@@ -166,19 +172,24 @@ const AddWebnovelComponent = () => {
                             </div>
                         </div>
                         <div className="md:w-1/4">
+                            <Link href="#">
                             {coverArtPreview ?
                                 <div className="mt-4">
-                                    <img src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs rounded" />
+                                    <a onClick={handleCoverArtUpload} >
+                                    <Image src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs rounded" width={200} height={120} />
+                                    </a>
                                 </div> :
                                 <div className='mt-4 md:mt-14'>
-                                    <svg className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                                    <svg onClick={handleCoverArtUpload} className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
                                         <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
                                     </svg>
                                 </div>
                             }
+                            </Link>
                             <input
                                 type="file"
-                                className="mt-4"
+                                className="hidden"
+                                id='coverArtFile'
                                 onChange={handleFileChange}
                             />
                         </div>

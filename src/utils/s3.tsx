@@ -15,9 +15,6 @@ const s3Client = new S3Client({
   region: REGION
 });
 
-
-
-
 export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType: string) => {
 
   const params = {
@@ -26,6 +23,9 @@ export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType:
     Body: fileBuffer,
     ContentType: fileType
   };
+
+  console.log("credentials", credentials)
+  console.log(BUCKET_NAME)
 
   try {
     const data = await s3Client.send(new PutObjectCommand(params));

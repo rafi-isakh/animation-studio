@@ -24,6 +24,7 @@ export interface User {
   email: string;
   nickname: string;
   bio: string;
+  picture: string;
 }
 
 export interface UserCreate {
@@ -58,6 +59,7 @@ export interface Webnovel {
   user: User;
   upvotes: number;
   language: string;
+  views: number;
 }
 
 export interface Dictionary {

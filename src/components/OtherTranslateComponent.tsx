@@ -68,7 +68,6 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
         "done": done
       }
 
-      console.log(data);
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_other_translation`, {
         method: 'POST',
         headers: {

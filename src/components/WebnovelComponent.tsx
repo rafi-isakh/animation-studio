@@ -4,7 +4,7 @@ import Image from "next/image"
 import { getImageURL } from "@/utils/cloudfront"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useEffect, useState } from "react"
-import { Oleo_Script_Swash_Caps } from '@next/font/google'
+import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { useLanguage } from "@/contexts/LanguageContext"
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
@@ -26,12 +26,12 @@ const WebnovelComponent = ({ webnovel, index, ranking, width, height }: { webnov
             </Link>
             <div className="flex flex-row mt-2 space-x-4">
                 <div>
-                    {ranking && <p className={`text-6xl ${oleoScriptSwashCaps.className}`}>{index + 1}</p>}
+                    {ranking && <p className={`text-4xl translate-y-1.5 md:text-6xl ${oleoScriptSwashCaps.className}`}>{index + 1}</p>}
                 </div>
                 <div className="mt-1">
-                    <p className="text-lg">{webnovel.user.nickname}</p>
+                    <p className="text-sm md:text-lg">{webnovel.user.nickname}</p>
                     <Link href={`/view_webnovels?id=${webnovel.id}`}><OtherTranslateComponent key={key} content={webnovel.title}
-                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-lg" /></Link>
+                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-sm md:text-lg" /></Link>
                 </div>
             </div>
         </div>

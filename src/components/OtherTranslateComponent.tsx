@@ -21,7 +21,6 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
       const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : ''
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
       const data = await response.json();
-      console.log(elementSubtype, data)
       if (data.text) {
         setText(data.text);
       }

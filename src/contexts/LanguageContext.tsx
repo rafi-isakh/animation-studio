@@ -28,7 +28,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     const fetchPhrases = async () => {
       const dictionary = await phrases();
-      console.log(dictionary);
       setDictionary(dictionary)
     }
     fetchPhrases();

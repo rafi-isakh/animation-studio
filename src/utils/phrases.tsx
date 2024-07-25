@@ -15,5 +15,6 @@ const phrases = async () => {
 export default phrases
 
 export const phrase = (dictionary: Dictionary, variable: string, language: Language) => {
+    console.log(variable)
     return Object.keys(dictionary).length != 0 && dictionary[variable][language]
 }

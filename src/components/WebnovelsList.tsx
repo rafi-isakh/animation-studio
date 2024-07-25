@@ -79,7 +79,9 @@ const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]
   return (
     <div className='max-w-screen-xl mx-auto flex flex-col'>
       <div className='text-2xl md:text-4xl p-2 font-bold'>
-        {phrase(dictionary, text, language)}
+        {(webnovels.length > 0) ?
+          phrase(dictionary, text, language) : <></>
+        } 
       </div>
       <div className="flex justify-start grow md:grow-0 mt-4 overflow-x-scroll">
         {webnovels

@@ -96,10 +96,10 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                   {index == 1 &&
                     <div>
                       <div className='absolute top-8 right-2 md:top-64 md:right-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
-                        {item.title}</div>
+                      <OtherTranslateComponent content={item.title} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='title' /></div>
                       <div className='absolute top-16 right-2 md:top-80 md:right-20 z-10 text-black md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
-                        {item.hook}</div>
-                    </div>}
+                      <OtherTranslateComponent content={item.hook} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='hook' /></div>
+                      </div>}
                   {index == 2 &&
                     <div>
                       <div className='absolute top-2 md:top-32 left-6 md:left-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>

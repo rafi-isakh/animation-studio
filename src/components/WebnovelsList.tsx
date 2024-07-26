@@ -33,11 +33,12 @@ const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]
   }, []);
 
   const filter_by_genre = (item: Webnovel) => {
-    if (genre == "All" || genre == null) {
+    if (genre == "all" || genre == null) {
       return item;
     }
     else {
       if (genre == item.genre) {
+        console.log(item.genre)
         return item;
       }
     }

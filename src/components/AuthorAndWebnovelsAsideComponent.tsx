@@ -15,7 +15,6 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1);
-        console.log('params', params);
     }, [params, language])
 
     return (

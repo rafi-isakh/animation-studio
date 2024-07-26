@@ -94,11 +94,9 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
           'translation': translation
         })
       });
-      console.log(content);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
         startEventSource(data.text_id);
       } else {
         console.error('Failed to submit words');

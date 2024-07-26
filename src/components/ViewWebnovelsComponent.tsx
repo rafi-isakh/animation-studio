@@ -8,7 +8,7 @@ import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {phrase} from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
 
 
 const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
@@ -20,7 +20,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
     const id = searchParams.id;
     const [refreshKey, setRefreshKey] = useState(0);
-    const {language, dictionary} = useLanguage();
+    const { language, dictionary } = useLanguage();
 
     if (typeof id === 'string') {
     } else if (Array.isArray(id)) {
@@ -32,6 +32,12 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
     useEffect(() => {
         async function fetchData() {
             try {
+                if (email) {
+                    const addToLibraryResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_to_library?email=${email}&webnovel_id=${id}`)
+                    if (!addToLibraryResponse.ok) {
+                        console.error(`Add to library failed for ${email}, webnovel ${id}`)
+                    }
+                }
                 const webnovelResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${id}`);
                 if (!webnovelResponse.ok) {
                     if (webnovelResponse.status == 404) {
@@ -64,6 +70,7 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
 
         if (id) fetchData();
         else setLoading(false)
+        // refreshKey updated on delete webnovel
     }, [id, refreshKey]);
 
     const handleNewChapter = () => {
@@ -74,12 +81,12 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
         try {
             await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_webnovel?id=${id}`);
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`,
-                                        {cache: 'no-store'})
+                { cache: 'no-store' })
             const webnovels = await response.json(); // same code as in my_webnovels
             const ids = webnovels.map((w: Webnovel) => w.id);
             const first = Math.min(...ids);
             ids.length > 0 ? router.push(`/view_webnovels?id=${first.toString()}`)
-                           : router.push('/view_webnovels')
+                : router.push('/view_webnovels')
             setRefreshKey(prevKey => prevKey + 1)
 
         } catch (error) {
@@ -106,10 +113,10 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                                 (authorEmail == email) &&
                                 <div className='flex flex-col w-32'>
                                     <button onClick={handleNewChapter} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                    {phrase(dictionary, "uploadNewChapter", language)}
+                                        {phrase(dictionary, "uploadNewChapter", language)}
                                     </button>
                                     <button onClick={handleDelete} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                    {phrase(dictionary, "deleteWebnovel", language)}
+                                        {phrase(dictionary, "deleteWebnovel", language)}
                                     </button>
                                 </div>
                             }

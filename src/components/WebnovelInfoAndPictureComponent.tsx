@@ -7,7 +7,7 @@ import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { phrase } from "@/utils/phrases"
+import { phrase, code_to_lang } from "@/utils/phrases"
 
 const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undefined}) => {
 
@@ -36,6 +36,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                 <Link href={`/view_profile/${webnovel.user.id}`}>
                     <p className="text-sm font-bold hover:text-pink-600">{webnovel.user.nickname}</p>
                 </Link>
+                <p className="text-sm">{phrase(dictionary, "original", language)}: {phrase(dictionary, code_to_lang(webnovel.language), language)}</p>
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel.upvotes}</p>
                 <p className='my-4 text-sm '><i className="fa-solid fa-eye"></i> {webnovel.views}</p>
             </div>

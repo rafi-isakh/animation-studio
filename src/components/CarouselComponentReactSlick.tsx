@@ -58,11 +58,11 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
 
   function getHref(index: number) {
     if (index == 0) {
-      return '/view_webnovels?id=';
+      return '/view_webnovels?id=2';
     } else if (index == 1) {
-      return '/view_webnovels?id=';
+      return '/view_webnovels?id=4';
     } else if (index == 2) {
-      return '/view_webnovels?id=';
+      return '/view_webnovels?id=6';
     }
     return '#';
   }
@@ -88,23 +88,23 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                 <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden"  >
                   {index == 0 &&
                     <div>
-                      <div className='absolute top-32 left-10 z-10 text-white text-4xl font-bold md:w-[400px] flex flex-wrap'>
+                      <div className='absolute top-2 left-2 md:top-32 md:left-10 z-10 text-white md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent key={key1} content={item.title} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='title' /></div>
-                      <div className='absolute top-48 left-10 z-10 text-white text-lg font-bold md:w-[400px] flex flex-wrap'>
+                      <div className='absolute top-14 left-2 md:top-48 md:left-10 z-10 text-white md:text-lg text-xs font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent key={key2} content={item.hook} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='hook' /></div>
                     </div>}
                   {index == 1 &&
                     <div>
-                      <div className='absolute top-64 right-20 z-10 text-black text-4xl font-bold md:w-[400px] flex flex-wrap'>
+                      <div className='absolute top-8 right-2 md:top-64 md:right-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent key={key3} content={item.title} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='title' /></div>
-                      <div className='absolute top-80 right-20 z-10 text-black text-lg font-bold md:w-[400px] flex flex-wrap'>
+                      <div className='absolute top-16 right-2 md:top-80 md:right-20 z-10 text-black md:text-lg text-sm font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent key={key4} content={item.hook} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='hook' /></div>
                     </div>}
                   {index == 2 &&
                     <div>
-                      <div className='absolute top-32 left-20 z-10 text-black text-4xl font-bold w-64 flex flex-wrap'>
+                      <div className='absolute top-2 md:top-32 left-6 md:left-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent key={key5} content={item.title} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='title' /></div>
-                      <div className='absolute top-48 left-20 z-10 text-black text-lg font-bold w-64 flex flex-wrap'>
+                      <div className='absolute top-14 md:top-48 left-6 md:left-20 z-10 text-black md:text-lg text-sm font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent key={key6} content={item.hook} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='hook' /></div>
                     </div>}
                   <Image className="object-cover object-center w-full h-full rounded" src={getImageURL(item.image)} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill alt={item.description}

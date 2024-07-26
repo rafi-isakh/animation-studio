@@ -117,7 +117,7 @@ const AddWebnovelComponent = () => {
                             <p className={`text-2xl ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "webnovelTitle", language)}</p>
+                                <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "webnovelTitle", language)}*</p>
                                 <input
                                     type="text"
                                     value={title}
@@ -127,7 +127,7 @@ const AddWebnovelComponent = () => {
                             </div>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <label htmlFor="genre" className="text-md w-24">{phrase(dictionary, "genre", language)}</label>
+                                <label htmlFor="genre" className="text-md w-24">{phrase(dictionary, "genre", language)}*</label>
                                 <select id="genre" className='border-none rounded focus:ring-pink-600 bg-gray-200 w-full' onChange={handleChangeGenre}>
                                     <option value=""></option>
                                     <option value="romanceFantasy">{phrase(dictionary, "romanceFantasy", language)}</option>
@@ -139,7 +139,7 @@ const AddWebnovelComponent = () => {
                             </div>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <label htmlFor="language" className="text-md w-24">{phrase(dictionary, "language", language)}</label>
+                                <label htmlFor="language" className="text-md w-24">{phrase(dictionary, "language", language)}*</label>
                                 <select id="language" className="border-none rounded focus:ring-pink-600 bg-gray-200 w-full" onChange={handleChangeLanguage}>
                                     <option value=""></option>
                                     <option value="ko">{phrase(dictionary, "korean", language)}</option>
@@ -155,7 +155,7 @@ const AddWebnovelComponent = () => {
                             </div>
                             <br />
                             <div className="flex flex-row space-x-4">
-                                <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "description", language)}</p>
+                                <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "description", language)}*</p>
                                 <div className='flex flex-col w-full'>
                                     <textarea
                                         value={description}
@@ -198,6 +198,7 @@ const AddWebnovelComponent = () => {
                                         <svg onClick={handleCoverArtUpload} className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
                                             <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
                                         </svg>
+                                        *
                                     </div>
                                 }
                             </Link>

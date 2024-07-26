@@ -6,8 +6,7 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import moment from 'moment';
 
-const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
-  const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
+const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[]}) => {
   const genre = searchParams.genre;
   const { dictionary, language } = useLanguage();
 
@@ -26,12 +25,6 @@ const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]
   } else {
   }
 
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`)
-      .then(response => response.json())
-      .then(data => setWebnovels(data));
-  }, []);
-
   const filter_by_genre = (item: Webnovel) => {
     if (genre == "all" || genre == null) {
       return item;
@@ -46,9 +39,9 @@ const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]
 
   const sortByFn = (a: Webnovel, b: Webnovel): number => {
     if (sortBy == 'views') {
-      return a.views - b.views
+      return b.views - a.views
     } else if (sortBy == 'likes') {
-      return a.upvotes - b.upvotes
+      return b.upvotes - a.upvotes
     } else if (sortBy == 'date') {
       let latestDateA = new Date(0);
       let latestDateB = new Date(0);

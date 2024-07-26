@@ -90,7 +90,7 @@ const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]
           .sort(sortByFn)
           .map((item, index) => (
             <div className="min-w-[120px] min-h-[73px] md:min-w-[225px] md:min-h-[135px] p-4 overflow-y-hidden" key={index}>
-              <WebnovelComponent webnovel={item} index={index} ranking={true} width={225} height={135} />
+              <WebnovelComponent webnovel={item} index={index} ranking={true} width={225} height={135}/>
             </div>
           ))}
       </div>

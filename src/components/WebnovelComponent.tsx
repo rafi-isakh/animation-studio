@@ -19,11 +19,13 @@ const WebnovelComponent = ({ webnovel, index, ranking, width, height }: { webnov
 
     return (
         <div>
+            <div className="h-[150px] md:h-[300px] overflow-hidden">
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
                 <Image src={imageSrc} width={width} height={height} alt={webnovel.cover_art} className="rounded"
                     placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 />
             </Link>
+            </div>
             <div className="flex flex-row mt-2 space-x-4">
                 <div>
                     {ranking && <p className={`text-4xl translate-y-1.5 md:text-6xl ${oleoScriptSwashCaps.className}`}>{index + 1}</p>}

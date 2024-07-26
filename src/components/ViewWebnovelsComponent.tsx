@@ -108,14 +108,14 @@ const ViewWebnovelsComponent = ({ searchParams }: { searchParams: { [key: string
                     </div>
                     <div className='w-full md:w-3/4'>
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                        <div>
+                        <div className="mt-4">
                             {
                                 (authorEmail == email) &&
                                 <div className='flex flex-col w-32'>
-                                    <button onClick={handleNewChapter} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                                    <button onClick={handleNewChapter} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                         {phrase(dictionary, "uploadNewChapter", language)}
                                     </button>
-                                    <button onClick={handleDelete} className="button-style me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                                    <button onClick={handleDelete} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                         {phrase(dictionary, "deleteWebnovel", language)}
                                     </button>
                                 </div>

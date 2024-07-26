@@ -37,7 +37,7 @@ const WebNovelInfoAndPictureComponent = ({webnovel}: {webnovel: Webnovel | undef
                     <p className="text-sm font-bold hover:text-pink-600">{webnovel.user.nickname}</p>
                 </Link>
                 <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel.upvotes}</p>
-                <p className='mt-4 text-sm'><i className="fa-solid fa-eye"></i> {webnovel.views}</p>
+                <p className='my-4 text-sm '><i className="fa-solid fa-eye"></i> {webnovel.views}</p>
             </div>
             <div className="ml-4">
                 <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">

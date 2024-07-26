@@ -84,7 +84,7 @@ const WebnovelsList = ({ searchParams, sortBy }: { searchParams: { [key: string]
           phrase(dictionary, text, language) : <></>
         } 
       </div>
-      <div className="flex justify-start grow md:grow-0 mt-4 overflow-x-scroll">
+      <div className="flex scrollbar-hide justify-start grow md:grow-0 mt-4 overflow-x-scroll">
         {webnovels
           .filter(item => filter_by_genre(item))
           .sort(sortByFn)

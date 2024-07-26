@@ -29,7 +29,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   const novelsRef = useRef<HTMLDivElement>(null);
   const [introWidth, setIntroWidth] = useState<string>("0px")
   const [viewWidth, setViewWidth] = useState(0)
-  const [key, setKey] = useState(0);
+  const [key, setKey] = useState(1000);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const { email } = useUser();
@@ -159,6 +159,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   return (
     <div className='max-w-screen-lg mx-auto flex flex-col md:flex-row my-auto justify-center md:items-start items-center md:justify-between'>
       {/*Left component*/}
+      
       <div className='flex flex-col space-y-8 w-full md:w-3/4 order-2 md:order-1'>
         <div>
           <p className='text-xl font-bold'>{user.nickname}</p>
@@ -191,9 +192,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
           </div>
         </div>
         <div className="flex flex-shrink-0 -translate-y-12" ref={viewRef} >
-          <div id="works" ref={novelsRef} className={`max-w-screen-sm md:max-w-screen-md hidden flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
+          <div id="works" ref={novelsRef} className={`max-w-screen-sm md:max-w-screen-md flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
             {novels.map((item, index) => (
-              <div key={index} className='mx-2'>
+              <div key={index} className='mx-2'> {/* This key may conflict with OtherTranslateComponent's key if  len(webnovels) > 1000. */}
                 <WebnovelComponent webnovel={item} index={index} ranking={false} width={200} height={120} />
               </div>
             ))}

@@ -31,7 +31,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, width, height }: { webnov
                 <div className="mt-1">
                     <p className="text-sm md:text-lg">{webnovel.user.nickname}</p>
                     <Link href={`/view_webnovels?id=${webnovel.id}`}><OtherTranslateComponent key={key} content={webnovel.title}
-                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-sm md:text-lg" /></Link>
+                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-sm md:text-lg max-w-32 md:max-w-48 whitespace-nowrap truncate" /></Link>
                 </div>
             </div>
         </div>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import OtherTranslateComponent from './OtherTranslateComponent';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // user could be undefined if not logged in
 const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
@@ -18,6 +20,14 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [initialFetch, setInitialFetch] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const router = useRouter();
+    const [key1, setKey1] = useState(0);
+    const [key2, setKey2] = useState(10);
+    const {language} = useLanguage();
+
+    useEffect(() => {
+        setKey1(prevKey => prevKey + 1)
+        setKey2(prevKey => prevKey + 1)
+    }, [language])
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -182,8 +192,9 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         {allComments.map((comment, index) => (
                             (!comment.parent_id) ? (
                                 <div key={index} className='flex flex-col'>
-                                    <li className='font-bold'>{comment.user.nickname}</li>
-                                    <li className='flex flex-row justify-between w-full'>{comment.content}
+                                    <Link href={`/view_profile/${comment.user.id}`}><li className='font-bold'>{comment.user.nickname}</li></Link>
+                                    <li className='flex flex-row justify-between w-full'>
+                                        {<OtherTranslateComponent key={key1} content={comment.content} elementId={comment.id.toString()} elementType='comment'/>}
                                         <a href="#"><i onClick={() => updateShowForm(index, !showForm[index])} className='fa-solid fa-reply'></i>
                                         </a>
                                     </li>
@@ -192,7 +203,9 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                                         {comment.replies ? comment.replies.map((reply, j) => (
                                             <div key={j}>
                                                 <li className='font-bold'>{reply.user.nickname}</li>
-                                                <li>{reply.content}</li>
+                                                <li>
+                                                {<OtherTranslateComponent key={key2} content={reply.content} elementId={reply.id.toString()} elementType='comment'/>}
+                                                </li>
                                                 <hr />
                                             </div>
                                         )) : <></>
@@ -201,7 +214,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                                     <li>
                                         {showForm[index] ? (
                                             <form id={`replyForm.${index}`} onSubmit={handleReply}>
-                                                <div className='flex flex-row space-x-4'>
+                                                <div className='flex flex-row space-x-4 ml-4'>
                                                     <textarea
                                                         value={replyContent[index]}
                                                         rows={1}

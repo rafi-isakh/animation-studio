@@ -17,7 +17,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const { email, nickname } = useUser();
     const { language, dictionary } = useLanguage();
     const router = useRouter();
-    const maxText = 10000;
+    const maxText = 20000;
     const [maxExceeded, setMaxExceeded] = useState(false);
     const [currText, setCurrText] = useState(0);
 
@@ -88,7 +88,8 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                         />
                     </div>
                     <div className='flex justify-end'>
-                        <p className={`text-sm ${maxExceeded && "text-pink-600"}`}>{`${currText}/${maxText} ${phrase(dictionary, "chars", language)}`}</p>
+                        <p className={`text-sm ${maxExceeded && "text-pink-600"}`}>
+                            {`${currText}/${(maxText).toLocaleString()} ${phrase(dictionary, "chars", language)}`}</p>
                     </div>
                     <br />
                     <div className='flex justify-end'>

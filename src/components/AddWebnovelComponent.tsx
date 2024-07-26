@@ -8,7 +8,7 @@ import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsi
 import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
-import {phrase} from '@/utils/phrases';
+import { phrase } from '@/utils/phrases';
 import Image from 'next/image'
 import Link from 'next/link';
 
@@ -23,10 +23,22 @@ const AddWebnovelComponent = () => {
     const [novelLanguage, setNovelLanguage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const buttonRef = useRef(null);
-    const {email, nickname} = useUser();
-    const {language, dictionary} = useLanguage();
+    const { email, nickname } = useUser();
+    const { language, dictionary } = useLanguage();
     const router = useRouter();
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
+    const maxText = 500;
+    const [currText, setCurrText] = useState(0);
+    const [content, setContent] = useState('');
+
+    useEffect(() => {
+        setCurrText(content.length);
+    }, [content])
+
+    const trim = (text: string, max: number) => {
+        text = text.substring(0, max)
+        return text
+    }
 
     useEffect(() => {
         if (buttonRef.current) {
@@ -112,7 +124,7 @@ const AddWebnovelComponent = () => {
                                     type="text"
                                     value={title}
                                     className='input border-none rounded focus:ring-pink-600 w-full bg-gray-200'
-                                    onChange={(e) => setTitle(e.target.value)}
+                                    onChange={(e) => setTitle(trim(e.target.value, 50))}
                                 />
                             </div>
                             <br />
@@ -146,17 +158,22 @@ const AddWebnovelComponent = () => {
                             <br />
                             <div className="flex flex-row space-x-4">
                                 <p className={`text-md w-24 ${styles.korean}`}>{phrase(dictionary, "description", language)}</p>
-                                <textarea
-                                    value={description}
-                                    rows={4}
-                                    className='textarea border-none rounded focus:ring-pink-600 w-full textarea-lg bg-gray-200 textarea-bordered w-full'
-                                    onChange={(e) => setDescription(e.target.value)}
-                                />
+                                <div className='flex flex-col w-full'>
+                                    <textarea
+                                        value={description}
+                                        rows={4}
+                                        className='textarea border-none rounded focus:ring-pink-600 w-full textarea-lg bg-gray-200 textarea-bordered w-full'
+                                        onChange={(e) => setDescription(trim(e.target.value, 500))}
+                                    />
+                                    <div className='flex justify-end'>
+                                        <p className={`text-sm`}>{`${currText}/${500} ${phrase(dictionary, "chars", language)}`}</p>
+                                    </div>
+                                </div>
                             </div>
                             <br />
                             <div className='flex flex-nowrap justify-end'>
-                                <button ref={buttonRef} type="submit" disabled={isSubmitting} style={{ width: buttonSize.width, height: buttonSize.height }} 
-                                className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                                <button ref={buttonRef} type="submit" disabled={isSubmitting} style={{ width: buttonSize.width, height: buttonSize.height }}
+                                    className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
                                     {isSubmitting ?
                                         <div role="status" className='mx-auto -translate-y-0.5'>
@@ -168,23 +185,23 @@ const AddWebnovelComponent = () => {
                                         </div>
                                         :
                                         phrase(dictionary, "save", language)}
-                                        </button>
+                                </button>
                             </div>
                         </div>
                         <div className="md:w-1/4">
                             <Link href="#">
-                            {coverArtPreview ?
-                                <div className="mt-4">
-                                    <a onClick={handleCoverArtUpload} >
-                                    <Image src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs rounded" width={200} height={120} />
-                                    </a>
-                                </div> :
-                                <div className='mt-4 md:mt-14'>
-                                    <svg onClick={handleCoverArtUpload} className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-                                        <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
-                                    </svg>
-                                </div>
-                            }
+                                {coverArtPreview ?
+                                    <div className="mt-4">
+                                        <a onClick={handleCoverArtUpload} >
+                                            <Image src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs rounded" width={200} height={120} />
+                                        </a>
+                                    </div> :
+                                    <div className='mt-4 md:mt-14'>
+                                        <svg onClick={handleCoverArtUpload} className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+                                            <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
+                                        </svg>
+                                    </div>
+                                }
                             </Link>
                             <input
                                 type="file"

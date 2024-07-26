@@ -83,9 +83,9 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
       <div>
         <Slider {...settings}>
           {items.map((item, index) => (
-            <Link href={getHref(index)}>
+            <Link href={getHref(index)} key={index}>
               <div>
-                <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden" key={index} >
+                <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden"  >
                   {index == 0 &&
                     <div>
                       <div className='absolute top-32 left-10 z-10 text-white text-4xl font-bold md:w-[400px] flex flex-wrap'>

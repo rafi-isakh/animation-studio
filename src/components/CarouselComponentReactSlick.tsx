@@ -17,11 +17,11 @@ import Link from 'next/link';
 const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) => {
 
   const [key1, setKey1] = useState(0);
-  const [key2, setKey2] = useState(2);
-  const [key3, setKey3] = useState(4);
-  const [key4, setKey4] = useState(6);
-  const [key5, setKey5] = useState(8);
-  const [key6, setKey6] = useState(10);
+  const [key2, setKey2] = useState(1000);
+  const [key3, setKey3] = useState(2000);
+  const [key4, setKey4] = useState(3000);
+  const [key5, setKey5] = useState(4000);
+  const [key6, setKey6] = useState(5000);
 
 
   const { language, dictionary } = useLanguage();

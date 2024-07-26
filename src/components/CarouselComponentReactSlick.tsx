@@ -16,7 +16,7 @@ const CarouselComponentReactSlick = ({items}: {items: SlickCarouselItem[]}) => {
     return (
       <div
         className={className}
-        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-50px) scale(2)'}}
+        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-32px)'}}
         onClick={onClick}
       />
     );
@@ -26,7 +26,7 @@ const CarouselComponentReactSlick = ({items}: {items: SlickCarouselItem[]}) => {
     return (
       <div
         className={className}
-        style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(50px) scale(2)'}}
+        style={{ ...style, zIndex: "10", transform: 'translateX(32px)'}}
         onClick={onClick}
       />
     );

@@ -1,6 +1,7 @@
 "use client"
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserContextProps {
   email: string;
@@ -22,6 +23,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [nickname, setNickname] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const pathname = usePathname();
+  const {isLoggedIn} = useAuth();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -38,7 +40,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         console.error('Error checking user:', error);
       }
     };
-    checkUser();
+    if (isLoggedIn) checkUser();
   }, [pathname]);
 
   return (

@@ -52,10 +52,10 @@ export default async function NewUser() {
 
   else {
     return (
-      <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
+      <div className='max-w-screen-sm w-full flex flex-col justify-center mx-auto'>
         <form action={createUser}>
-          <div className="flex flex-row space-x-4">
-            <div className="mr-4 w-full">
+          <div className="flex flex-col space-x-4">
+            <div className="mr-4 w-1/2 mx-auto">
               <NewUserNicknameComponent />
               <br />
               <NewUserBioComponent />

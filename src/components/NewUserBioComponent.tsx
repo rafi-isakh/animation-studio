@@ -24,7 +24,7 @@ const NewUserBioComponent = () => {
             <p className="text-lg">{phrase(dictionary, "intro", language)}</p>
             <textarea
                 name="bio"
-                rows={4}
+                rows={6}
                 value={content}
                 onChange={(e) => setContent(trim(e.target.value))}
                 className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'

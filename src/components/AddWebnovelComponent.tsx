@@ -27,13 +27,11 @@ const AddWebnovelComponent = () => {
     const { language, dictionary } = useLanguage();
     const router = useRouter();
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
-    const maxText = 500;
     const [currText, setCurrText] = useState(0);
-    const [content, setContent] = useState('');
 
     useEffect(() => {
-        setCurrText(content.length);
-    }, [content])
+        setCurrText(description.length);
+    }, [description])
 
     const trim = (text: string, max: number) => {
         text = text.substring(0, max)

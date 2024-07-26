@@ -9,7 +9,7 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
 
     return (
         <div className="flex flex-col space-y-8">
-            { library?
+            { library.length > 0?
             <div className="text-2xl font-bold">{phrase(dictionary, "myLibrary", language)}</div>
             : <div>{phrase(dictionary, "noWebnovelsFound", language)}</div>}
             <div className="flex flex-wrap space-x-4">

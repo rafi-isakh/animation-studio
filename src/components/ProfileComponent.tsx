@@ -11,6 +11,10 @@ import { uploadFile } from '@/utils/s3';
 import { useUser } from '@/contexts/UserContext';
 import { getImageURL } from '@/utils/cloudfront';
 import Image from 'next/image'
+import '@/styles/globals.css'
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
@@ -29,6 +33,8 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const { email } = useUser();
+  const router = useRouter();
+  const {setIsLoggedIn} = useAuth();
 
   useEffect(() => {
     setKey(prevKey => prevKey + 1)
@@ -95,7 +101,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   }
 
   const handleProfilePictureUpload = () => {
-    document.getElementById('profilePicture')?.click();
+    if (user.email == email) {
+      document.getElementById('profilePicture')?.click();
+    }
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +132,29 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
       }
     }
   };
+
+  const handleDeleteAccount = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_account?email=${email}`)
+    if (!response.ok) {
+      console.error("Failed to delete account", email)
+      return
+    }
+    try {
+      const response = await fetch('/api/signout', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        setIsLoggedIn(false);
+        router.push('/')
+      } else {
+        console.error('Failed to sign out');
+      }
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    finally {
+    }
+  }
 
   return (
     <div className='max-w-screen-lg mx-auto flex flex-col md:flex-row my-auto justify-center md:items-start items-center md:justify-between'>
@@ -168,11 +199,12 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             ))}
           </div>
         </div>
+        {email == user.email && <button className='button-style w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "deleteAccount", language)}</button>}
       </div>
       {/*Right component*/}
       <div className='w-full md:w-1/4 order-1 md:order-2 mb-10 md:mb-0'>
         <div className="w-[200px] h-[200px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-          <Link href="#">
+          <Link href={email == user.email ? "#" : ""}>
             {profilePicturePreview || user.picture ?
               <div className="mt-4">
                 {profilePicturePreview ?

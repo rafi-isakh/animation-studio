@@ -23,6 +23,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(10);
     const {language} = useLanguage();
+    const [repliesKey, setRepliesKey] = useState(20);
 
     useEffect(() => {
         setKey1(prevKey => prevKey + 1)
@@ -61,6 +62,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
 
                 if (Array.isArray(comments_sans_replies)) {
                     setAllComments(comments_sans_replies);
+                    setRepliesKey(prevKey => prevKey + 1)
                 }
 
                 setCommentContent('');
@@ -96,7 +98,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             setLoaded(true);
         }
         fetchReplies();
-    }, [initialFetch])
+    }, [initialFetch, repliesKey])
 
     const updateShowForm = (index: number, value: boolean) => {
         setShowForm(prevState => {

@@ -23,8 +23,8 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
             <div className="flex flex-col space-y-4">
                 {webnovels.map((webnovel, index) => (
                     <Link key={index} href={`/view_webnovels?id=${webnovel.id}`} className={
-                        `break-words rounded text-md font-bold hover:text-pink-600 
-                        ${params.get('id') == webnovel.id.toString()? "text-pink-600": ""}`}>
+                        `break-words rounded text-md hover:text-pink-600 
+                        ${params.get('id') == webnovel.id.toString()? "font-bold": ""}`}>
                     <OtherTranslateComponent key={key} content={webnovel.title} 
                         elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>
                     </Link>

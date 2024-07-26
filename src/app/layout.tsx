@@ -54,8 +54,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html>
       <body>
         <LanguageProvider>
-          <UserProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <UserProvider>
               <DeviceProvider>
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
@@ -65,8 +65,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   </div>
                 </div>
               </DeviceProvider>
-            </AuthProvider>
-          </UserProvider>
+            </UserProvider>
+          </AuthProvider>
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>

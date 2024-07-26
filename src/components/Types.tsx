@@ -4,9 +4,9 @@ export interface WebnovelIdProps {
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' 
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem'
 
-export type ElementSubtype = 'title' | 'description' 
+export type ElementSubtype = 'title' | 'description' | 'hook'
 
 export type SortBy = 'views' | 'likes' | 'date'
 
@@ -46,8 +46,12 @@ export interface Comment {
 }
 
 export interface SlickCarouselItem {
+  id: number;
   image: string;
   description: string;
+  title: string;
+  hook: string;
+  webnovel_id: number;
 }
 
 export interface Webnovel {

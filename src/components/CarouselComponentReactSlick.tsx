@@ -89,7 +89,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                   {index == 0 &&
                     <div>
                       <div className='absolute top-2 left-2 md:top-32 md:left-10 z-10 text-white md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
-                        {item.title}</div>
+                        <OtherTranslateComponent content={item.title} elementId={item.id.toString()} elementType={'carouselItem'} elementSubtype='title' /></div>
                       <div className='absolute top-14 left-2 md:top-48 md:left-10 z-10 text-white md:text-lg text-xs w-[200px] md:w-[400px] flex flex-wrap'>
                         {item.hook}</div>
                     </div>}

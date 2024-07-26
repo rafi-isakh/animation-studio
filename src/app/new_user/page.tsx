@@ -55,7 +55,7 @@ export default async function NewUser() {
       <div className='max-w-screen-sm w-full flex flex-col mx-auto'>
         <form action={createUser}>
           <div className="flex flex-col">
-            <div className="w-2/3 mx-auto">
+            <div className="w-1/2 md:w-2/3 mx-auto">
               <NewUserNicknameComponent />
               <br />
               <NewUserBioComponent />

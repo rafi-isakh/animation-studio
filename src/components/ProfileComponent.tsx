@@ -28,7 +28,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   const [key, setKey] = useState(0);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
-  const {email} = useUser();
+  const { email } = useUser();
 
   useEffect(() => {
     setKey(prevKey => prevKey + 1)
@@ -147,49 +147,52 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
           </div>
         </div>
         <div className='flex flex-row'>
-          <div className='flex flex-shrink-0 flex-col space-y-4' ref={introRef}>
-            <Link href="#" onClick={handleIntroClick}><p id='intro' className='text-xl w-fit px-4 font-bold border-b-2 border-[#142448]'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p></Link>
-            <div id='bio'>
-              <OtherTranslateComponent key={key} content={user.bio} elementId={user.id.toString()} elementType='user' />
-            </div>
+          <Link href="#" onClick={handleIntroClick}>
+            <p id='intro' className='text-xl w-fit px-4 font-bold border-b-2 border-[#142448]'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p>
+          </Link>
+          <Link href="#" onClick={handleViewClick}>
+            <p id='view' className='text-xl w-fit px-4 border-b-2 border-gray'>{Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}</p>
+          </Link>
+        </div>
+        <div className='flex flex-shrink-0 -translate-y-4' ref={introRef}>
+          <div id='bio'>
+            <OtherTranslateComponent key={key} content={user.bio} elementId={user.id.toString()} elementType='user' />
           </div>
-          <div className="flex flex-shrink-0 flex-col space-y-4" ref={viewRef} >
-            <Link href="#" onClick={handleViewClick}>
-              <p id='view' className='text-xl w-fit px-4 border-b-2 border-gray'>{Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}</p></Link>
-            <div id="works" ref={novelsRef} className={`max-w-screen-sm md:max-w-screen-md hidden flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
-              {novels.map((item, index) => (
-                <div key={index} className='mx-2'>
-                  <WebnovelComponent webnovel={item} index={index} ranking={false} width={200} height={120} />
-                </div>
-              ))}
-            </div>
+        </div>
+        <div className="flex flex-shrink-0 -translate-y-12" ref={viewRef} >
+          <div id="works" ref={novelsRef} className={`max-w-screen-sm md:max-w-screen-md hidden flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
+            {novels.map((item, index) => (
+              <div key={index} className='mx-2'>
+                <WebnovelComponent webnovel={item} index={index} ranking={false} width={200} height={120} />
+              </div>
+            ))}
           </div>
         </div>
       </div>
       {/*Right component*/}
       <div className='w-full md:w-1/4 order-1 md:order-2 mb-10 md:mb-0'>
-      <div className="w-[200px] h-[200px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-        <Link href="#">
-          {profilePicturePreview || user.picture ?
-            <div className="mt-4">
-              {profilePicturePreview ?
-                <a onClick={handleProfilePictureUpload}> <Image src={profilePicturePreview} alt="Profile Picture Preview" className="max-w-xs m-auto" width={200} height={200}/>
-                </a>
-                :
-                user.picture ?
-                  <a onClick={handleProfilePictureUpload}>
-                    <Image src={getImageURL(user.picture)} className="max-w-xs m-auto -translate-y-10" alt="Profile Picture Preview" width={200} height={200} />
+        <div className="w-[200px] h-[200px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+          <Link href="#">
+            {profilePicturePreview || user.picture ?
+              <div className="mt-4">
+                {profilePicturePreview ?
+                  <a onClick={handleProfilePictureUpload}> <Image src={profilePicturePreview} alt="Profile Picture Preview" className="max-w-xs m-auto" width={200} height={200} />
                   </a>
-                  : <></>
-              }
-            </div>
-            :
-            <div className='mt-4'>
-              <svg onClick={handleProfilePictureUpload} className="w-[240px] h-[240px] text-gray-400 -translate-x-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
-            </div>
-          }
-        </Link>
-        <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
+                  :
+                  user.picture ?
+                    <a onClick={handleProfilePictureUpload}>
+                      <Image src={getImageURL(user.picture)} className="max-w-xs m-auto -translate-y-10" alt="Profile Picture Preview" width={200} height={200} />
+                    </a>
+                    : <></>
+                }
+              </div>
+              :
+              <div className='mt-4'>
+                <svg onClick={handleProfilePictureUpload} className="w-[240px] h-[240px] text-gray-400 -translate-x-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+              </div>
+            }
+          </Link>
+          <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
         </div>
       </div>
 

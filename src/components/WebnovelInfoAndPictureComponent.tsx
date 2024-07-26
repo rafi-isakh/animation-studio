@@ -1,6 +1,5 @@
 import { Webnovel } from "@/components/Types"
 import Image from "next/image"
-import { code_to_language } from "@/utils"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"

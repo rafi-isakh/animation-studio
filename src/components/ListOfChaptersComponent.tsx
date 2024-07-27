@@ -22,7 +22,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
     }
     
     return (
-        <div className="relative overflow-x-auto mt-4 rounded">
+        <div className="relative overflow-x-auto mt-4 mb-4 rounded">
             <table className="w-full text-sm text-center text-white border border-2 border-[#142448]">
                 <thead className="text-xs text-white uppercase bg-[#142448]">
                     <tr>
@@ -30,7 +30,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                         {phrase(dictionary, "number", language)}
                         </th>
                         <th scope="col" className="px-1 md:px-3 py-3">
-                        {phrase(dictionary, "webnovelTitle", language)}
+                        {phrase(dictionary, "chapterTitle", language)}
                         </th>
                         <th scope="col" className="px-1 md:px-3 py-3">
                         {phrase(dictionary, "uploadDate", language)}

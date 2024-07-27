@@ -92,16 +92,16 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                       <div key={key1} className='absolute top-2 left-2 md:top-10 md:left-10 z-10 text-white md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent content={item.title} elementId={item.id.toString()} 
                         elementType={'carouselItem'} elementSubtype='title' showLoading={false} /></div>
-                      <div key={key2} className='absolute top-14 left-2 md:top-[7rem] md:left-10 z-10 text-white md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
+                      <div key={key2} className='absolute top-10 left-2 md:top-[7rem] md:left-10 z-10 text-white md:text-lg text-sm w-[230px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent content={item.hook} elementId={item.id.toString()} 
                         elementType={'carouselItem'} elementSubtype='hook' showLoading={false} /></div>
                     </div>}
                   {index == 1 &&
                     <div className="relative">
-                      <div key={key3} className='absolute top-16 right-2 md:top-64 md:right-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
+                      <div key={key3} className='absolute top-4 right-2 md:top-64 md:right-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                       <OtherTranslateComponent content={item.title} elementId={item.id.toString()} 
                       elementType={'carouselItem'} elementSubtype='title' showLoading={false} /></div>
-                      <div key={key4} className='absolute top-24 right-2 md:top-80 md:right-20 z-10 text-black md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
+                      <div key={key4} className='absolute top-16 right-2 md:top-80 md:right-20 z-10 text-black md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
                       <OtherTranslateComponent content={item.hook} elementId={item.id.toString()} 
                       elementType={'carouselItem'} elementSubtype='hook' showLoading={false}/></div>
                       </div>}

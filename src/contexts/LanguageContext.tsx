@@ -24,12 +24,19 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [language, setLanguage] = useState(getInitialLanguage);
   const [dictionary, setDictionary] = useState<Dictionary>({});
   const [isRtl, setIsRtl] = useState("ltr");
-  
+
   useEffect(() => {
+
     const fetchPhrases = async () => {
       const dictionary = await phrases();
-      setDictionary(dictionary)
+      setDictionary(dictionary);
+      localStorage.setItem("dictionary", JSON.stringify(dictionary));
+      
     }
+    const localDictionary = localStorage.getItem("dictionary")
+    if (localDictionary) {
+      setDictionary(JSON.parse(localDictionary));
+    } 
     fetchPhrases();
   }, [])
 
@@ -38,7 +45,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (typeof window !== 'undefined') {
       localStorage.setItem('language', language);
     }
-    if (language == 'ar'){
+    if (language == 'ar') {
       setIsRtl("rtl");
     }
     else {

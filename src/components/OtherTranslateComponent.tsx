@@ -25,22 +25,22 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
       if (localData) {
         setText(localData)
         setLoading(false)
-      } else {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
-        const data = await response.json();
-        if (data.text) {
-          setText(data.text);
-          setLoading(false)
-          localStorage.setItem(localKey, data.text)
-        }
-        // If there's no translation in the DB
-        // initialized.current is bc useEffect runs twice
-        // submitContent with ongoing translation
-        if (!data.done && !initialized.current) {
-          submitContent(data.text);
-          initialized.current = true;
-        }
       }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
+      const data = await response.json();
+      if (data.text) {
+        setText(data.text);
+        setLoading(false)
+        localStorage.setItem(localKey, data.text)
+      }
+      // If there's no translation in the DB
+      // initialized.current is bc useEffect runs twice
+      // submitContent with ongoing translation
+      if (!data.done && !initialized.current) {
+        submitContent(data.text);
+        initialized.current = true;
+      }
+
     }
     handleTranslate();
   }, []);

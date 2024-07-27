@@ -14,6 +14,12 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language])
+
+    const sortFn = (a, b) => {
+        const aDate = new Date(a).getTime()
+        const bDate = new Date(b).getTime()
+        return aDate - bDate
+    }
     
     return (
         <div className="relative overflow-x-auto mt-4 rounded">
@@ -41,7 +47,8 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                     {(() => {
                         const chapters = webnovel?.chapters;
                         return (
-                            chapters?.map((chapter, index) => (
+                            chapters?.sort(sortFn)
+                            .map((chapter, index) => (
                                 <tr key={index} className="bg-white">
                                     <th scope="row" className="px-1 md:px-3 py-1 font-medium text-[#142448] whitespace-nowrap">
                                         <p>{index + 1}</p>

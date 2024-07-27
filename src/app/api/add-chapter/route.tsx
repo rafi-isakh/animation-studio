@@ -33,10 +33,11 @@ export async function POST(req: NextRequest, res: NextResponse) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.accessToken}`
     },
     body: JSON.stringify(data),
   });
-
+  console.log(session.accessToken);
   if (!response.ok) {
     return NextResponse.json({
         "message": "Add chapter failed",

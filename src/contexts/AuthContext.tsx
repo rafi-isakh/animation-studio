@@ -22,6 +22,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const response = await fetch('/api/auth_session');
         const data = await response.json();
+        console.log(data);
+        console.log('data.accessToken', data.accessToken)
+        console.log("data.loggedIn", data.loggedIn)
         setIsLoggedIn(data.loggedIn);
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -30,6 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
     checkAuth();
+    console.log("useAuth firing");
   }, []);
 
   return (

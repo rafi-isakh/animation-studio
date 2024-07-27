@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (session && session.user) {
+      console.log("session.token", session.token)
       return NextResponse.json({ 
         loggedIn: true,
       });

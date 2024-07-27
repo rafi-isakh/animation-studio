@@ -23,15 +23,22 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [nickname, setNickname] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const pathname = usePathname();
-  const {isLoggedIn} = useAuth();
+  const { isLoggedIn, loading } = useAuth();
 
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const response = await fetch('/api/user_session');
-        const data = await response.json();
-        if (!data.nickname || !data.email) {
-          throw new Error("nickname and email should be present in response from /api/user_session")
+        let data: any;
+        const sessionStorageUser = sessionStorage.getItem("userr");
+        if (sessionStorageUser) {
+          data = sessionStorageUser;
+        } else {
+          const response = await fetch('/api/user_session');
+          data = await response.json();
+          if (!data.nickname || !data.email) {
+            throw new Error("nickname and email should be present in response from /api/user_session")
+          }
+          sessionStorage.setItem("user", data); // Make sure to clear this when updating user's bio, nickname, or other info.
         }
         setNickname(data.nickname);
         setEmail(data.email);
@@ -40,13 +47,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         console.error('Error checking user:', error);
       }
     };
-    if (isLoggedIn) checkUser();
-  }, [pathname]);
+    if (isLoggedIn) {
+      console.log("UserContext firing")
+      checkUser();
+    }
+  }, [pathname, loading]);
 
   return (
-    <userContext.Provider value={{  email, setEmail, 
-                                    nickname, setNickname,
-                                    bio, setBio}}>
+    <userContext.Provider value={{
+      email, setEmail,
+      nickname, setNickname,
+      bio, setBio
+    }}>
       {children}
     </userContext.Provider>
   );

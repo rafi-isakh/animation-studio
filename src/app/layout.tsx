@@ -56,15 +56,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <LanguageProvider>
           <AuthProvider>
             <UserProvider>
-              <DeviceProvider>
-                <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
+                <DeviceProvider>
+                  <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                  <Header />
-                  <div className={`pt-32 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4`}>
-                    {children}
+                    <Header />
+                    <div className={`pt-32 md:pt-24 md:pl-12 md:pr-12 pl-4 pr-4 min-h-screen`}>
+                      {children}
+                    </div>
                   </div>
-                </div>
-              </DeviceProvider>
+                </DeviceProvider>
             </UserProvider>
           </AuthProvider>
         </LanguageProvider>

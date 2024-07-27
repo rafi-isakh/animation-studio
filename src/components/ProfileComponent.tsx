@@ -34,7 +34,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const { email } = useUser();
   const router = useRouter();
-  const {setIsLoggedIn} = useAuth();
+  const { setIsLoggedIn } = useAuth();
 
   useEffect(() => {
     setKey(prevKey => prevKey + 1)
@@ -44,7 +44,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${user.email}`)
       .then(response => response.json())
       .then(data => {
-        console.log("webnovels data", data);
         setNumberOfNovels(data.length);
       }
       )
@@ -61,7 +60,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
   useEffect(() => {
     if (novelsRef.current) {
-      novelsRef.current.style.transform = `translateX(-${introWidth})`
+      novelsRef.current.style.transform = `translateX(-${introWidth}px)`
     }
   }, [introWidth])
 
@@ -134,32 +133,32 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   };
 
   const handleDeleteAccount = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_account?email=${email}`)
+    const response = await fetch(`/api/delete-account?email=${email}`);
     if (!response.ok) {
-      console.error("Failed to delete account", email)
-      return
-    }
-    try {
-      const response = await fetch('/api/signout', {
-        method: 'POST',
-      });
-      if (response.ok) {
-        setIsLoggedIn(false);
-        router.push('/')
-      } else {
-        console.error('Failed to sign out');
+      console.error("Deleting account failed");
+    } else {
+      try {
+        const response = await fetch('/api/signout', {
+          method: 'POST',
+        });
+        if (response.ok) {
+          setIsLoggedIn(false);
+          router.push('/')
+        } else {
+          console.error('Failed to sign out');
+        }
+      } catch (error) {
+        console.error('Error signing out:', error);
       }
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-    finally {
+      finally {
+      }
     }
   }
 
   return (
     <div className='max-w-screen-lg mx-auto flex flex-col md:flex-row my-auto justify-center md:items-start items-center md:justify-between'>
       {/*Left component*/}
-      
+
       <div className='flex flex-col space-y-8 w-full md:w-3/4 order-2 md:order-1'>
         <div>
           <p className='text-xl font-bold'>{user.nickname}</p>
@@ -192,18 +191,17 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
           </div>
         </div>
         <div className="flex flex-shrink-0 -translate-y-12" ref={viewRef} >
-          <div id="works" ref={novelsRef} className={`max-w-screen-sm md:max-w-screen-md flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
+          <div id="works" ref={novelsRef} className={`max-w-screen-sm hidden md:max-w-screen-md flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
             {novels.map((item, index) => (
-              <div key={index} className='mx-2'> {/* This key may conflict with OtherTranslateComponent's key if  len(webnovels) > 1000. */}
+              <div key={index} className='mx-2'> {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                 <WebnovelComponent webnovel={item} index={index} ranking={false} width={200} height={120} />
               </div>
             ))}
           </div>
         </div>
-        {email == user.email && <button className='button-style w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "deleteAccount", language)}</button>}
       </div>
       {/*Right component*/}
-      <div className='w-full md:w-1/4 order-1 md:order-2 mb-10 md:mb-0'>
+      <div className='w-full md:w-1/4 flex flex-col justify-center items-center order-1 md:order-2 mb-10 md:mb-0'>
         <div className="w-[200px] h-[200px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
           <Link href={email == user.email ? "#" : ""}>
             {profilePicturePreview || user.picture ?
@@ -226,7 +224,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             }
           </Link>
           <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
+
         </div>
+        {email == user.email && <button className='mt-10 button-style w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "deleteAccount", language)}</button>}
       </div>
 
     </div>

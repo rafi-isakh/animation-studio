@@ -32,7 +32,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
   try {
 
     const s3Response = await uploadFile(fileContent, fileName, fileType);
-    console.log(s3Response);
   } catch (error) {
     console.error('Error uploading file to s3:', error);
     return NextResponse.json({

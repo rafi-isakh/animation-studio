@@ -48,7 +48,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
     };
     if (isLoggedIn) {
-      console.log("UserContext firing")
       checkUser();
     }
   }, [pathname, loading]);

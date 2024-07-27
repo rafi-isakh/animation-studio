@@ -37,7 +37,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
     },
     body: JSON.stringify(data),
   });
-  console.log(session.accessToken);
   if (!response.ok) {
     return NextResponse.json({
         "message": "Add chapter failed",

@@ -54,7 +54,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     body: JSON.stringify(newComment),
                 });
                 if (!response.ok) {
-                    console.log("Error adding comment");
+                    console.error("Error adding comment");
                 }
 
                 const comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
@@ -143,7 +143,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     body: JSON.stringify(newComment),
                 });
                 if (!response.ok) {
-                    console.log("Error adding comment");
+                    console.error("Error adding comment");
                 }
                 setAllReplies(index);
                 updateReplyContent(index, '');

@@ -31,7 +31,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
     else {
       if (genre == item.genre) {
-        console.log(item.genre)
         return item;
       }
     }

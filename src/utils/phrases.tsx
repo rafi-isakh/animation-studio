@@ -7,7 +7,7 @@ const phrases = async () => {
         return dictionary;
     }
     catch (error) {
-        console.log("Error retrieving dictionary", error);
+        console.error("Error retrieving dictionary", error);
         throw new Error("Error retrieving dictionary",);
     }
 }

@@ -8,7 +8,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
   const id = searchParams.get("id")
 
   if (!session || !session.user) {
-    console.log("!session || !session.user")
     return NextResponse.json({
       "message": "Unauthorized!!",
       "status": 401

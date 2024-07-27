@@ -93,7 +93,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel }: { searchParams: { [k
                 setRefreshKey(prevKey => prevKey + 1);
             }
         } catch (error) {
-            console.log(`Couldn't delete webnovel ${id}`, error)
+            console.error(`Couldn't delete webnovel ${id}`, error)
         }
     }
 

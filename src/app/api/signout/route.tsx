@@ -7,7 +7,7 @@ export async function POST() {
     await signOut();
     return NextResponse.json({ message: 'Signed out' });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
     return NextResponse.json({ message: 'Failed to sign out' }, { status: 500 });
   }

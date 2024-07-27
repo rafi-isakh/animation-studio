@@ -1,4 +1,4 @@
-import { Webnovel } from "@/components/Types";
+import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import {phrase} from '@/utils/phrases';
@@ -15,9 +15,9 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
         setKey(prevKey => prevKey + 1)
     }, [language])
 
-    const sortFn = (a, b) => {
-        const aDate = new Date(a).getTime()
-        const bDate = new Date(b).getTime()
+    const sortFn = (a: Chapter, b: Chapter) => {
+        const aDate = new Date(a.created_at).getTime()
+        const bDate = new Date(b.created_at).getTime()
         return aDate - bDate
     }
     

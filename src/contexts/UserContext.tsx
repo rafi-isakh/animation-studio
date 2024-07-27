@@ -1,5 +1,5 @@
 "use client"
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -23,6 +23,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [nickname, setNickname] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {isLoggedIn} = useAuth();
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
     };
     if (isLoggedIn) checkUser();
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   return (
     <userContext.Provider value={{  email, setEmail, 

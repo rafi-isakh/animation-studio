@@ -25,7 +25,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
       <div className="max-w-md text-white flex flex-wrap items-center justify-between mx-auto p-4">
         <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
           <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
-        <Link href={`/library`}>
+        <Link href={`/my_library`}>
           <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link>
         <Link href={`/comments?chapter_id=${chapterId.toString()}`}>
           <p className='hover:text-pink-600'>{phrase(dictionary, "comments", language)}</p></Link>

@@ -357,7 +357,7 @@ const Header = () => {
                               <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "myWebnovels", language)}</Link>
                             </li>
                             <li>
-                              <Link href="/library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "myLibrary", language)}</Link>
+                              <Link href="/my_library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "myLibrary", language)}</Link>
                             </li>
                             <li>
                               <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{phrase(dictionary, "profile", language)}</Link>

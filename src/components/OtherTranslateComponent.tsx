@@ -144,7 +144,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     <div className={`${classParams}`} style={{ direction: `${isRtl}` as Direction }}>
       {
         loading && showLoading ?
-          <div role="status" className='-translate-y-0.5 w-4'>
+          <div role="status" className='w-4'>
             {/*Spinny*/}
 
             <svg aria-hidden="true" className="text-gray-200 animate-spin dark:text-gray-600 fill-pink-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">

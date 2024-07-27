@@ -88,33 +88,33 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
               <div>
                 <div className="relative w-full h-auto aspect-[10/5] md:aspect-[1280/500] max-w-[1280px] mx-auto overflow-hidden"  >
                   {index == 0 &&
-                    <div>
-                      <div key={key1} className='absolute top-2 left-2 md:top-32 md:left-10 z-10 text-white md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
+                    <div className='relative'>
+                      <div key={key1} className='absolute top-2 left-2 md:top-10 md:left-10 z-10 text-white md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent content={item.title} elementId={item.id.toString()} 
                         elementType={'carouselItem'} elementSubtype='title' showLoading={false} /></div>
-                      <div key={key2} className='absolute top-14 left-2 md:top-48 md:left-10 z-10 text-white md:text-lg text-xs w-[200px] md:w-[400px] flex flex-wrap'>
+                      <div key={key2} className='absolute top-14 left-2 md:top-[7rem] md:left-10 z-10 text-white md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
                         <OtherTranslateComponent content={item.hook} elementId={item.id.toString()} 
                         elementType={'carouselItem'} elementSubtype='hook' showLoading={false} /></div>
                     </div>}
                   {index == 1 &&
-                    <div>
-                      <div key={key3} className='absolute top-8 right-2 md:top-64 md:right-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
+                    <div className="relative">
+                      <div key={key3} className='absolute top-16 right-2 md:top-64 md:right-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                       <OtherTranslateComponent content={item.title} elementId={item.id.toString()} 
                       elementType={'carouselItem'} elementSubtype='title' showLoading={false} /></div>
-                      <div key={key4} className='absolute top-16 right-2 md:top-80 md:right-20 z-10 text-black md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
+                      <div key={key4} className='absolute top-24 right-2 md:top-80 md:right-20 z-10 text-black md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
                       <OtherTranslateComponent content={item.hook} elementId={item.id.toString()} 
                       elementType={'carouselItem'} elementSubtype='hook' showLoading={false}/></div>
                       </div>}
                   {index == 2 &&
-                    <div>
-                      <div key={key5} className='absolute top-2 md:top-32 left-6 md:left-20 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
+                    <div className="relative">
+                      <div key={key5} className='absolute top-2 md:top-10 left-6 md:left-10 z-10 text-black md:text-4xl text-2xl font-bold w-[200px] md:w-[400px] flex flex-wrap'>
                       <OtherTranslateComponent content={item.title} elementId={item.id.toString()} 
                       elementType={'carouselItem'} elementSubtype='title' showLoading={false}/></div>
-                      <div key={key6} className='absolute top-14 md:top-48 left-6 md:left-20 z-10 text-black md:text-lg text-sm w-[200px] md:w-[400px] flex flex-wrap'>
+                      <div key={key6} className='absolute top-14 md:top-[7rem] left-6 md:left-10 z-10 text-black md:text-lg text-sm w-[135px] md:w-[400px] flex flex-wrap'>
                       <OtherTranslateComponent content={item.hook} elementId={item.id.toString()} 
                       elementType={'carouselItem'} elementSubtype='hook' showLoading={false}/></div>
                       </div>}
-                  <Image className="object-cover object-center w-full h-full rounded" src={getImageURL(item.image)} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px" fill alt={item.description}
+                  <Image className="object-cover object-center w-full h-full rounded" src={getImageURL(item.image)}  fill alt={item.description}
                     placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                   />
                 </div>

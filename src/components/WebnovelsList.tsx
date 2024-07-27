@@ -58,11 +58,11 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         }
       }
       if (latestDateA > latestDateB) {
-        return 1;
+        return -1;
       } else if (latestDateA == latestDateB) {
         return 0;
       } else {
-        return -1;
+        return 1;
       }
     } else {
       return 0;

@@ -19,7 +19,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, width, height }: { webnov
 
     return (
         <div>
-            <div className="h-[200px] md:h-[300px] overflow-hidden flex items-center">
+            <div className="h-[200px] md:h-[350px] overflow-hidden flex items-center">
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
                 <Image src={imageSrc} width={width} height={height} alt={webnovel.cover_art} className="rounded"
                     placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가

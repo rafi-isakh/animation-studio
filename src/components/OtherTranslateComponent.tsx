@@ -19,11 +19,11 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
 
     const handleTranslate = async () => {
       // elmeentId is either chapter_id (for chapter title) or webnovel_id (for webnovel title and description) or user_id (for user bio)
-      const localKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
+      const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
       const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
-      const localData = localStorage.getItem(localKey)
-      if (localData) {
-        setText(localData)
+      const sessionData = sessionStorage.getItem(sessionKey)
+      if (sessionData) {
+        setText(sessionData)
         setLoading(false)
       }
       else {
@@ -32,7 +32,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
         if (data.text) {
           setText(data.text);
           setLoading(false)
-          localStorage.setItem(localKey, data.text)
+          sessionStorage.setItem(sessionKey, data.text)
         }
 
         // If there's no translation in the DB

@@ -21,7 +21,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
       // elmeentId is either chapter_id (for chapter title) or webnovel_id (for webnovel title and description) or user_id (for user bio)
       const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
       const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
-      const sessionData = sessionStorage.getItem(sessionKey)
+      const sessionData = localStorage.getItem(sessionKey)
       if (sessionData) {
         setText(sessionData)
         setLoading(false)
@@ -32,7 +32,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
         if (data.text) {
           setText(data.text);
           setLoading(false)
-          sessionStorage.setItem(sessionKey, data.text)
+          localStorage.setItem(sessionKey, data.text)
         }
 
         // If there's no translation in the DB

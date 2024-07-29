@@ -71,9 +71,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className="text-center">
                                     {
                                         likeToggle ?
-                                            <i onClick={handleLikeClick} className="fa-solid fa-heart"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart"></i>
                                             :
-                                            <i onClick={handleLikeClick} className="fa-regular fa-heart"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart"></i>
                                     }
                                 </div>
                             </Link>

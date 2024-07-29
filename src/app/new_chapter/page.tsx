@@ -1,9 +1,18 @@
-"use client"
-
+import { auth } from "@/auth";
+import AIEditorComponent from "@/components/AIEditorComponent";
 import AddChapterComponent from "@/components/AddChapterComponent";
 
 
-function NewChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+async function getWebnovels() {
+    const session = await auth();
+    const email = session?.user.email;
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`)
+    const data = await response.json();
+    return data;
+}
+
+async function NewChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const id = searchParams.id;
     if (typeof id === 'string') {
     // Handle single string value
@@ -17,7 +26,7 @@ function NewChapter({ searchParams }: { searchParams: { [key: string]: string | 
 
     if (id) {
         return (
-            <AddChapterComponent webnovelId={id} />
+            <AddChapterComponent webnovelId={id} webnovels={await getWebnovels()} />
         );
     }
     else {

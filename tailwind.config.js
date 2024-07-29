@@ -1,3 +1,5 @@
+const flowbite = require("flowbite-react/tailwind");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'selector',
@@ -9,6 +11,7 @@ module.exports = {
     // Or if using `src` directory:
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./node_modules/flowbite/**/*.js",
+    flowbite.content(),
   ],
   theme: {
     extend: {},
@@ -18,6 +21,7 @@ module.exports = {
   },
   plugins: [
     require('flowbite/plugin'),
-    require('tailwind-scrollbar-hide')
+    require('tailwind-scrollbar-hide'),
+    flowbite.plugin(),
   ],
 }

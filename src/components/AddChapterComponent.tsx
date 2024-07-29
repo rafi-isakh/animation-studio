@@ -8,29 +8,22 @@ import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsi
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
+import { Button, Modal, Select } from "flowbite-react";
+import AIEditorComponent from '@/components/AIEditorComponent';
 
 
-const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
+const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const { email, nickname } = useUser();
     const { language, dictionary } = useLanguage();
     const router = useRouter();
     const maxText = 20000;
     const [maxExceeded, setMaxExceeded] = useState(false);
     const [currText, setCurrText] = useState(0);
-
-    useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.length > 0) {
-                    setWebnovels(data)
-                }
-            })
-    }, [email]);
-
+    const [openModal, setOpenModal] = useState(true);
+    const [modalPlacement, setModalPlacement] = useState('center')
+    
     useEffect(() => {
         setCurrText(content.length);
         if (content.length > maxText) {
@@ -98,6 +91,19 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     </div>
                 </div>
             </form>
+            <Modal
+                show={openModal}
+                position={modalPlacement}
+                onClose={() => setOpenModal(false)}
+            >
+                <Modal.Header>Characters</Modal.Header>
+                <Modal.Body>
+                    <AIEditorComponent />
+                </Modal.Body>
+                <Modal.Footer>
+                    <button className='button-style' onClick={() => setOpenModal(false)}>Save</button>
+                </Modal.Footer>
+            </Modal>
         </div>
     )
 }

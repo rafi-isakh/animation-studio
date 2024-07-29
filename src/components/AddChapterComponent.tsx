@@ -21,7 +21,7 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
     const maxText = 20000;
     const [maxExceeded, setMaxExceeded] = useState(false);
     const [currText, setCurrText] = useState(0);
-    const [openModal, setOpenModal] = useState(true);
+    const [openModal, setOpenModal] = useState(false);
     const [modalPlacement, setModalPlacement] = useState('center')
     
     useEffect(() => {

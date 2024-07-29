@@ -42,9 +42,8 @@ const AIEditorCharactersComponent = ({ openModal, setOpenModal }: { openModal: b
                     <div className="font-bold">{phrase(dictionary, "properNouns", language)}</div>
                     <div>{phrase(dictionary, "properNounsDescription", language)}</div>
                     {names?.map((item, index) => (
-                        <div className="relative">
+                        <div key={index} className="relative">
                             <input
-                                key={index}
                                 type="text"
                                 value={item}
                                 className='input border-none rounded focus:ring-pink-600 w-full bg-gray-200'

@@ -191,16 +191,21 @@ const Header = () => {
     setIsUserDropdownOpen(false);
   }
 
+  const handleIconClick = () => {
+    router.push('/');
+    router.refresh();
+  }
+
   return (
     <div className='fixed top-0 left-0 right-0 dark z-50 mx-auto'>
       <nav className="bg-[#142448]">
         <div id='above-header' className="max-w-screen-xl flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
-            <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+            <button onClick={handleIconClick} className="flex items-center space-x-3 rtl:space-x-reverse">
               <img src="/toonyz_logo_pink.svg" className="h-8" alt="Stelland Logo" />
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
-            </Link>
+            </button>
             {/*<div className="hidden md:block">
               <div className="flex flex-row space-x-4">
                 <Link href="/" onClick={handleCategoryClick}>

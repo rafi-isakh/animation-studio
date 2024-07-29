@@ -48,6 +48,7 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
                 body: formData,
             });
             router.push(`/view_webnovels?id=${webnovelId}`)
+            router.refresh();
         }
     };
 
@@ -96,7 +97,7 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
                 position={modalPlacement}
                 onClose={() => setOpenModal(false)}
             >
-                <Modal.Header>Characters</Modal.Header>
+                <Modal.Header>{phrase(dictionary, "properNouns", language)}</Modal.Header>
                 <Modal.Body>
                     <AIEditorComponent />
                 </Modal.Body>

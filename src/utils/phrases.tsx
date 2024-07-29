@@ -15,7 +15,11 @@ const phrases = async () => {
 export default phrases
 
 export const phrase = (dictionary: Dictionary, variable: string, language: Language) => {
-    return Object.keys(dictionary).length != 0 && dictionary[variable][language];
+    try  {
+        return Object.keys(dictionary).length != 0 && dictionary[variable][language];
+    } catch {
+        return "ERROR";
+    }
 }
 
 export const code_to_lang = (iso_code: string) => {

@@ -10,16 +10,16 @@ import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 
-const ViewWebnovelsComponent = ({ searchParams, webnovel }: { searchParams: { [key: string]: string | string[] | undefined }, webnovel: Webnovel }) => {
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }: { searchParams: { [key: string]: string | string[] | undefined }, 
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, email: string | undefined }) => {
     const [loading, setLoading] = useState(true);
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-    const [nickname, setNickname] = useState("");
-    const [authorEmail, setAuthorEmail] = useState("");
-    const { email } = useUser();
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
     const id = searchParams.id;
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary } = useLanguage();
+    const nickname = webnovel?.user.nickname;
+    const author_email = webnovel?.user.email;
 
     if (typeof id === 'string') {
     } else if (Array.isArray(id)) {
@@ -29,47 +29,18 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel }: { searchParams: { [k
     const router = useRouter();
 
     useEffect(() => {
-        async function fetchData() {
-            try {
-                if (Object.keys(webnovel).length != 0) {
-                    setAtLeastOneWebnovel(true);
-                } else {
-                    setLoading(false);
-                }
-                const { email: author_email, nickname: user_nickname } = webnovel.user;
-
-                if (user_nickname) setNickname(user_nickname);
-                if (author_email) {
-                    setAuthorEmail(author_email);
-                    const userWebnovelsResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${author_email}`);
-                    const userWebnovelsData = await userWebnovelsResponse.json();
-
-                    if (Object.keys(userWebnovelsData).length !== 0) {
-                        setWebnovels(userWebnovelsData);
-                        setAtLeastOneWebnovel(true);
-                    }
-                }
-                setLoading(false);
-                if (email) {
-                    const addToLibraryResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_to_library?email=${email}&webnovel_id=${id}`)
-                    if (!addToLibraryResponse.ok) {
-                        console.error(`Add to library failed for ${email}, webnovel ${id}`)
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        }
-
-        if (id) {
-            fetchData();
-        }
-        else {
-            setLoading(false);
+        if (webnovel) {
+            setAtLeastOneWebnovel(true);
+        } else {
             setAtLeastOneWebnovel(false);
         }
-        // refreshKey updated on delete webnovel
-    }, [id, refreshKey]);
+        if (userWebnovels) {
+            setAtLeastOneWebnovel(true);
+            setWebnovels(userWebnovels);
+        }
+        console.log('atLeastOneWebnovel', atLeastOneWebnovel);
+        setLoading(false);
+    });
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}`);
@@ -90,7 +61,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel }: { searchParams: { [k
                 router.push(`/view_webnovels?id=${first.toString()}`)
             } else {
                 router.push('/view_webnovels')
-                setRefreshKey(prevKey => prevKey + 1);
+                router.refresh();
             }
         } catch (error) {
             console.error(`Couldn't delete webnovel ${id}`, error)
@@ -113,7 +84,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel }: { searchParams: { [k
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
                         <div className="mt-4">
                             {
-                                (authorEmail == email) &&
+                                (author_email == email) &&
                                 <div className='flex flex-col w-32'>
                                     <button onClick={handleNewChapter} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                         {phrase(dictionary, "uploadNewChapter", language)}

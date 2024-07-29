@@ -1,10 +1,22 @@
+import { auth } from '@/auth';
 import AddWebnovelComponent from '@/components/AddWebnovelComponent';
 import { Suspense } from 'react';
 
-const NewNovel = () => {
+async function getWebnovels() {
+    const session = await auth();
+    const email = session?.user.email;
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`);
+    if (!response.ok) {
+        throw new Error(`User ${email} not found`);
+    }
+    const data = await response.json();
+    return data;
+}
+
+const NewNovel = async () => {
     return (
         <Suspense>
-        <AddWebnovelComponent/>
+            <AddWebnovelComponent webnovels={await getWebnovels()} />
         </Suspense>
     );
 };

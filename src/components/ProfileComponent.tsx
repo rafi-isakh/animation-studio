@@ -18,9 +18,6 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
-  const [numberOfNovels, setNumberOfNovels] = useState(0);
-  const [numberOfChapters, setNumberOfChapters] = useState(0);
-  const [numberOfLikes, setNumberOfLikes] = useState(0);
   const [introActive, setIntroActive] = useState<boolean>(true);
   const [viewActive, setViewActive] = useState<boolean>(false);
   const { language, dictionary } = useLanguage();
@@ -28,7 +25,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   const introRef = useRef<HTMLDivElement>(null);
   const novelsRef = useRef<HTMLDivElement>(null);
   const [introWidth, setIntroWidth] = useState<string>("0px")
-  const [viewWidth, setViewWidth] = useState(0)
   const [key, setKey] = useState(1000);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
@@ -39,16 +35,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   useEffect(() => {
     setKey(prevKey => prevKey + 1)
   }, [language])
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${user.email}`)
-      .then(response => response.json())
-      .then(data => {
-        setNumberOfNovels(data.length);
-      }
-      )
-
-  }, [])
 
   useEffect(() => {
 
@@ -155,6 +141,22 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
   }
 
+  const getNumberOfChapters = () => {
+    let chapters = 0;
+    for (let i = 0; i < novels.length; i++) {
+      chapters += novels[i].chapters.length;
+    }
+    return chapters;
+  }
+
+  const getNumberOfLikes = () => {
+    let likes = 0;
+    for (let i = 0; i < novels.length; i++) {
+      likes += novels[i].upvotes;
+    }
+    return likes;
+  }
+
   return (
     <div className='max-w-screen-lg mx-auto flex flex-col md:flex-row my-auto justify-center md:items-start items-center md:justify-between'>
       {/*Left component*/}
@@ -166,15 +168,15 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
         <div className="flex flex-row space-x-8">
           <div className='flex flex-col justify-center items-center'>
             <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p>
-            <p>{numberOfNovels}</p>
+            <p>{novels.length}</p>
           </div>
           <div className='flex flex-col justify-center items-center'>
             <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p>
-            <p>{numberOfChapters}</p>
+            <p>{getNumberOfChapters()}</p>
           </div>
           <div className='flex flex-col justify-center items-center'>
             <p><i className="fa-regular fa-heart"></i>{Object.keys(dictionary).length != 0 && dictionary["likes"][language]}</p>
-            <p>{numberOfLikes}</p>
+            <p>{getNumberOfLikes()}</p>
           </div>
         </div>
         <div className='flex flex-row'>

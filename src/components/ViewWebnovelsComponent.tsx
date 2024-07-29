@@ -68,6 +68,10 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
         }
     }
 
+    const handleAIEditor = () => {
+        
+    }
+
     const getWebnovel = () => {
         return webnovels.find(w => w.id.toString() == id)
     }
@@ -86,6 +90,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
                             {
                                 (author_email == email) &&
                                 <div className='flex flex-col w-32'>
+                                    <button onClick={handleAIEditor} className="button-style mb-2">
+                                        {phrase(dictionary, "aieditor", language)}
+                                    </button>
                                     <button onClick={handleNewChapter} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                         {phrase(dictionary, "uploadNewChapter", language)}
                                     </button>

@@ -55,7 +55,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                                     </th>
                                     <th scope="row" className="px-1 md:px-3 py-1 font-medium text-[#142448] whitespace-nowrap hover:text-pink-600">
                                         <Link href={`/chapter_view/${chapter.id}`} className="text-md font-bold">
-                                            <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-32 md:max-w-48 truncate whitespace-nowrap"/>
+                                            <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-32 md:max-w-64 truncate whitespace-nowrap"/>
                                         </Link>
                                     </th>
                                     <th scope="row" className="px-1 md:px-3 py-1 font-medium text-[#142448] whitespace-nowrap">

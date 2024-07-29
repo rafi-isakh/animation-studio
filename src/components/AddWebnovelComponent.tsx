@@ -13,9 +13,10 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { Button, Modal } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import AIEditorCharactersComponent from './AIEditorCharactersComponent';
 
 
-const AddWebnovelComponent = ({webnovels}: {webnovels: Webnovel[]}) => {
+const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [coverArt, setCoverArt] = useState<File | null>(null);
@@ -30,6 +31,7 @@ const AddWebnovelComponent = ({webnovels}: {webnovels: Webnovel[]}) => {
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
     const [currText, setCurrText] = useState(0);
     const [openModal, setOpenModal] = useState(false);
+    const [openAIEditor, setOpenAIEditor] = useState(false);
 
     useEffect(() => {
         setCurrText(description.length);
@@ -98,6 +100,11 @@ const AddWebnovelComponent = ({webnovels}: {webnovels: Webnovel[]}) => {
         document.getElementById('coverArtFile')?.click();
     }
 
+    const handleClickAIEditor = (event: React.FormEvent) => {
+        event.preventDefault(); 
+        setOpenAIEditor(true);
+    }
+
     return (
         <div className='max-w-screen-md w-full flex md:flex-row flex-col justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
@@ -163,7 +170,9 @@ const AddWebnovelComponent = ({webnovels}: {webnovels: Webnovel[]}) => {
                                 </div>
                             </div>
                             <br />
-                            <div className='flex flex-nowrap justify-end'>
+                            <div className='flex flex-col space-y-4 items-end'>
+                                <button className="button-style" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</button>
+
                                 <button ref={buttonRef} type="submit" disabled={isSubmitting}
                                     className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
@@ -203,6 +212,7 @@ const AddWebnovelComponent = ({webnovels}: {webnovels: Webnovel[]}) => {
                                 onChange={handleFileChange}
                             />
                         </div>
+
                         <Modal show={openModal} size="md" onClose={() => setOpenModal(false)} popup>
                             <Modal.Header />
                             <Modal.Body>
@@ -221,6 +231,7 @@ const AddWebnovelComponent = ({webnovels}: {webnovels: Webnovel[]}) => {
                         </Modal>
                     </div>
                 </form>
+                <AIEditorCharactersComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} />
             </div>
         </div>
     )

@@ -33,7 +33,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.accessToken}`
+      'Authorization': `Bearer ${session.accessToken}`,
+      'Provider': session.provider
     },
     body: JSON.stringify(data),
   });

@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_account?email=${email}`, {
         headers: {
-            'Authorization': `Bearer ${session.accessToken}`
+            'Authorization': `Bearer ${session.accessToken}`,
+            'Provider': session.provider
           }
     })
     

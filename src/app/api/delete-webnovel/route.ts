@@ -16,7 +16,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_webnovel?id=${id}`, {
     headers: {
-        'Authorization': `Bearer ${session.accessToken}`
+        'Authorization': `Bearer ${session.accessToken}`,
+        'Provider': session.provider
       }
     }
   );

@@ -14,6 +14,7 @@ async function createUser(formData: FormData) {
   const session = await auth();
   const nickname = formData.get('nickname') as string;
   const bio = formData.get('bio') as string;
+  const promoCode = formData.get('promoCode') as string;
 
   if (session && session.user) {
     const data: UserCreate = {
@@ -23,7 +24,7 @@ async function createUser(formData: FormData) {
       'provider': session.provider
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user?promo_code=${promoCode}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,6 +74,8 @@ export default async function NewUser() {
               <NewUserCodeComponent />
               <br />
               <NewUserSubmitComponent />
+              <br/>
+              <p>웹사이트에 등록하시면 웹사이트 이용을 위해 이메일 정보가 수집됩니다.</p>
             </div>
           </div>
         </form>

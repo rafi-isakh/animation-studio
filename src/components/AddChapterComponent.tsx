@@ -9,7 +9,6 @@ import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { Button, Modal, Select } from "flowbite-react";
-import AIEditorComponent from '@/components/AIEditorComponent';
 
 
 const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, webnovels: Webnovel[] }) => {
@@ -92,19 +91,6 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
                     </div>
                 </div>
             </form>
-            <Modal
-                show={openModal}
-                position={modalPlacement}
-                onClose={() => setOpenModal(false)}
-            >
-                <Modal.Header>{phrase(dictionary, "properNouns", language)}</Modal.Header>
-                <Modal.Body>
-                    <AIEditorComponent />
-                </Modal.Body>
-                <Modal.Footer>
-                    <button className='button-style' onClick={() => setOpenModal(false)}>Save</button>
-                </Modal.Footer>
-            </Modal>
         </div>
     )
 }

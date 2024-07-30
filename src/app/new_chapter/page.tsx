@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import AIEditorComponent from "@/components/AIEditorComponent";
 import AddChapterComponent from "@/components/AddChapterComponent";
 
 

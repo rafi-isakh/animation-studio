@@ -12,7 +12,6 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
     const {language, dictionary} = useLanguage();
     const [key, setKey] = useState(0);
     const params = useSearchParams();
-    console.log('webnovels', webnovels);
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1);

@@ -38,7 +38,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
             setAtLeastOneWebnovel(true);
             setWebnovels(userWebnovels);
         }
-        console.log('atLeastOneWebnovel', atLeastOneWebnovel);
         setLoading(false);
     });
 

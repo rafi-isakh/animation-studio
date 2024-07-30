@@ -6,6 +6,7 @@ import NewUserNicknameComponent from '@/components/NewUserNicknameComponent';
 import NewUserSubmitComponent from '@/components/NewUserSubmitComponent';
 import NewUserBioComponent from '@/components/NewUserBioComponent';
 import NewUserCodeComponent from '@/components/NewUserCodeComponent';
+import UserWithSameEmailExistsModalComponent from '@/components/UserWithSameEmailExistsModalComponent';
 
 async function createUser(formData: FormData) {
   'use server';
@@ -13,7 +14,6 @@ async function createUser(formData: FormData) {
   const session = await auth();
   const nickname = formData.get('nickname') as string;
   const bio = formData.get('bio') as string;
-
 
   if (session && session.user) {
     const data: UserCreate = {
@@ -48,10 +48,16 @@ async function isUserInDB() {
 export default async function NewUser() {
   const data = await isUserInDB();
   const {user_exists, user_with_same_email_exists} = data;
-  console.log("NewUser data", data)
-
   if (user_exists) {
     redirect('/');
+  } else if (user_with_same_email_exists) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/signout`, {
+      method: 'POST',
+    });
+    console.log(response);
+    return (
+      <UserWithSameEmailExistsModalComponent />
+    )
   }
 
   else {

@@ -33,6 +33,7 @@ export interface UserCreate {
   email: string;
   nickname: string;
   bio: string;
+  provider: string;
 }
 
 export interface Comment {

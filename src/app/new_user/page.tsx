@@ -5,6 +5,7 @@ import '@/styles/globals.css'
 import NewUserNicknameComponent from '@/components/NewUserNicknameComponent';
 import NewUserSubmitComponent from '@/components/NewUserSubmitComponent';
 import NewUserBioComponent from '@/components/NewUserBioComponent';
+import NewUserCodeComponent from '@/components/NewUserCodeComponent';
 
 async function createUser(formData: FormData) {
   'use server';
@@ -18,7 +19,8 @@ async function createUser(formData: FormData) {
     const data: UserCreate = {
       'email': session.user.email ?? "",
       'nickname': nickname,
-      'bio': bio
+      'bio': bio,
+      'provider': session.provider
     }
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user`, {
@@ -36,17 +38,19 @@ async function createUser(formData: FormData) {
 async function isUserInDB() {
   const session = await auth();
   if (session && session.user) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/check_user?email=${session.user.email}`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/check_user?email=${session.user.email}&provider=${session.provider}`);
     const data = await res.json();
-    return data.exists;
+    return data;
   }
-  return false;
+  return null;
 }
 
 export default async function NewUser() {
-  const userExists = await isUserInDB();
+  const data = await isUserInDB();
+  const {user_exists, user_with_same_email_exists} = data;
+  console.log("NewUser data", data)
 
-  if (userExists) {
+  if (user_exists) {
     redirect('/');
   }
 
@@ -59,6 +63,8 @@ export default async function NewUser() {
               <NewUserNicknameComponent />
               <br />
               <NewUserBioComponent />
+              <br />
+              <NewUserCodeComponent />
               <br />
               <NewUserSubmitComponent />
             </div>

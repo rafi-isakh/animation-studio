@@ -7,6 +7,7 @@ import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -15,10 +16,13 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
     const [ key, setKey ] = useState(0); // for remounting WebnovelTranslateComponent
+    const [ key2, setKey2 ] = useState(0); // for remounting OtherTranslation for webnovel title
+
     const { language } = useLanguage();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
+        setKey2(prevKey => prevKey + 1)
     }, [language])
 
     useEffect(() => {
@@ -64,7 +68,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <div>
-                            <Link href={`/view_webnovels?id=${webnovel.id}`}><i className="fa-solid fa-chevron-left"></i> {webnovel.title}</Link>
+                            <Link href={`/view_webnovels?id=${webnovel.id}`}><i className="fa-solid fa-chevron-left"></i> <OtherTranslateComponent key={key2} content={webnovel.title} 
+                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>{webnovel.title}</Link>
                         </div>
                         <div className="flex flex-row items-center">
                             <Link href="#">

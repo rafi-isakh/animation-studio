@@ -9,9 +9,10 @@ import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { Button, Modal, Select } from "flowbite-react";
+import AIEditorComponent from '@/components/AIEditorComponent';
 
 
-const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, webnovels: Webnovel[] }) => {
+const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnovelId: string, webnovels: Webnovel[], novelLanguage: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const { email, nickname } = useUser();
@@ -20,9 +21,8 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
     const maxText = 20000;
     const [maxExceeded, setMaxExceeded] = useState(false);
     const [currText, setCurrText] = useState(0);
-    const [openModal, setOpenModal] = useState(false);
-    const [modalPlacement, setModalPlacement] = useState('center')
-    
+    const [openAIEditor, setOpenAIEditor] = useState(false);
+
     useEffect(() => {
         setCurrText(content.length);
         if (content.length > maxText) {
@@ -49,6 +49,11 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
             router.push(`/view_webnovels?id=${webnovelId}`)
             router.refresh();
         }
+    };
+
+    const handleClickAIEditor = (event: React.FormEvent) => {
+        event.preventDefault(); 
+        setOpenAIEditor(true);
     };
 
     return (
@@ -85,12 +90,16 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
                             {`${currText}/${(maxText).toLocaleString()} ${phrase(dictionary, "chars", language)}`}</p>
                     </div>
                     <br />
-                    <div className='flex justify-end'>
 
+                    <div className='flex flex-col items-end'>
                         <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{phrase(dictionary, "save", language)}</button>
+                        <button className="button-style px-5 py-2.5 me-2 mb-2" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</button>
+
                     </div>
                 </div>
             </form>
+            <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/>
+
         </div>
     )
 }

@@ -42,7 +42,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     });
 
     const handleNewChapter = () => {
-        router.push(`/new_chapter?id=${id}`);
+        router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
     }
 
     const handleDelete = async () => {
@@ -68,7 +68,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     }
 
     const handleAIEditor = () => {
-        
+        router.push(`/ai_editor?id=${id}`)
     }
 
     const getWebnovel = () => {

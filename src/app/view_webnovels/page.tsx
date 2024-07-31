@@ -36,7 +36,7 @@ const ViewWebnovels = async ({ searchParams }: { searchParams: { [key: string]: 
         const { email: author_email, nickname: user_nickname } = webnovel.user;
         const userWebnovels = await getUserWebnovels(author_email);
 
-        const session = await auth();
+        const session = await auth();   
         const email = session?.user.email;
 
         if (email) {
@@ -52,7 +52,6 @@ const ViewWebnovels = async ({ searchParams }: { searchParams: { [key: string]: 
         return (
             <ViewWebnovelsComponent searchParams={searchParams} webnovel={null} userWebnovels={null} email=""/>
         )
-    
     }
 
 }

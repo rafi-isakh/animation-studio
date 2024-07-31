@@ -11,7 +11,7 @@ const NewUserNicknameComponent = () => {
       <p className="text-lg">{phrase(dictionary, "promotion", language)}</p>
       <input
         type="text"
-        name="promotion"
+        name="promoCode"
         className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
       />
     </div>

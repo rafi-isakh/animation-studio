@@ -11,7 +11,9 @@ async function getCarouselItems() {
 }
 
 async function getWebnovels() {
-  const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`)
+  const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`, {
+    cache: 'no-store'
+  })
   const data = (await response).json();
   return data;
 

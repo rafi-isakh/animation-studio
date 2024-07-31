@@ -202,10 +202,10 @@ const Header = () => {
         <div id='above-header' className="max-w-screen-xl flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto pb-2 md:pb-4 pt-4 px-4">
           {/**/}
           <div className='flex flex-row space-x-4'>
-            <button onClick={handleIconClick} className="flex items-center space-x-3 rtl:space-x-reverse">
+            <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
               <img src="/toonyz_logo_pink.svg" className="h-8" alt="Stelland Logo" />
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"></span>
-            </button>
+            </Link>
             {/*<div className="hidden md:block">
               <div className="flex flex-row space-x-4">
                 <Link href="/" onClick={handleCategoryClick}>

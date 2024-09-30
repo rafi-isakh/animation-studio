@@ -25,7 +25,7 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
 
     return webnovel && (
 
-        <div className='flex flex-row justify-between'>
+        <div className='flex flex-row space-x-4 justify-between'>
             <div className="flex flex-col space-y-4 w-full">
                 <p className="text-sm">{phrase(dictionary, webnovel.genre, language)}</p>
                 <OtherTranslateComponent key={key1} content={webnovel.title}

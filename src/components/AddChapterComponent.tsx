@@ -56,6 +56,10 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
         setOpenAIEditor(true);
     };
 
+    const replaceSmartQuotes = (str: string) => {
+        return str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+    };
+
     return (
         <div className='max-w-screen-md w-full flex flex-col md:flex-row justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
@@ -82,7 +86,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
                             value={content}
                             rows={16}
                             className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 textarea-lg'
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={(e) => setContent(replaceSmartQuotes(e.target.value))}
                         />
                     </div>
                     <div className='flex justify-end'>

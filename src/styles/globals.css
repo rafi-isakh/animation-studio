@@ -22,3 +22,12 @@
         border: 2px solid #000;
     }
 }
+
+.hero-poster img {
+    vertical-align: middle;
+    border-style: none;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+}

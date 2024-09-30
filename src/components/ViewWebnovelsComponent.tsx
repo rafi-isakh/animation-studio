@@ -78,7 +78,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     if (!loading) {
         if (atLeastOneWebnovel) {
             return (
-                <div className='max-w-screen-md flex md:flex-row flex-col justify-center mx-auto'>
+                <div className='max-w-screen-xl flex md:flex-row flex-col justify-center mx-auto'>
                     <div className='w-full md:w-1/4'>
                         <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
                         <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />

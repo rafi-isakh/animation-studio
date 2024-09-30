@@ -1,5 +1,6 @@
 "use client"
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 interface AuthContextProps {
   isLoggedIn: boolean | null;
@@ -16,6 +17,8 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -30,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
     checkAuth();
-  }, []);
+  }, [pathname, searchParams]);
 
   return (
     <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading}}>

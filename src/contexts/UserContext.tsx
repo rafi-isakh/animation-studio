@@ -23,6 +23,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [nickname, setNickname] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { isLoggedIn, loading } = useAuth();
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (isLoggedIn) {
       checkUser();
     }
-  }, [pathname, loading]);
+  }, [pathname, searchParams, loading]);
 
   return (
     <userContext.Provider value={{

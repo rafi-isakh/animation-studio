@@ -1,18 +1,4 @@
-.slick-track {
-  margin:auto;
-}
 
-.carousel-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.slick-slide > div {
-  display: flex;
-  justify-content: center;
-}
-
-.slick-slide img {
-  margin: auto;
+.slick-list {
+  overflow: visible !important;
 }

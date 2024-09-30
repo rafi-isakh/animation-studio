@@ -70,7 +70,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
 
   return (
-    <div className='max-w-screen-xl mx-auto flex flex-col'>
+    <div className='w-full max-w-screen-xl mx-auto flex flex-col'>
       <div className='text-2xl md:text-4xl p-2 font-bold'>
         {(webnovels.length > 0) ?
           phrase(dictionary, text, language) : <></>

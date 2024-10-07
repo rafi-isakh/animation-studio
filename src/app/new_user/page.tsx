@@ -75,7 +75,7 @@ export default async function NewUser() {
               <br />
               <NewUserSubmitComponent />
               <br/>
-              <p>웹사이트에 등록하시면 웹사이트 이용을 위해 이메일 정보가 수집됩니다.</p>
+              <p>등록하시면 이메일 정보가 수집됩니다.</p>
             </div>
           </div>
         </form>

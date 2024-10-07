@@ -25,7 +25,7 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
 
     return webnovel && (
 
-        <div className='flex flex-row justify-between'>
+        <div className='flex flex-row space-x-4 justify-between'>
             <div className="flex flex-col space-y-4 w-full">
                 <p className="text-sm">{phrase(dictionary, webnovel.genre, language)}</p>
                 <OtherTranslateComponent key={key1} content={webnovel.title}
@@ -42,7 +42,7 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
             </div>
             <div className={`ml-4 ${isLoading ? 'animate-pulse' : ''}`}>
                 <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">
-                    <Image className='rounded' src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={240} height={400}
+                    <Image src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={640} height={1171}
                         placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                         onLoad={() => setIsLoading(false)}
                     />

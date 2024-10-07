@@ -10,8 +10,10 @@ import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }: { searchParams: { [key: string]: string | string[] | undefined }, 
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, email: string | undefined }) => {
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }: {
+    searchParams: { [key: string]: string | string[] | undefined },
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, email: string | undefined
+}) => {
     const [loading, setLoading] = useState(true);
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
@@ -42,7 +44,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     });
 
     const handleNewChapter = () => {
-        router.push(`/new_chapter?id=${id}`);
+        router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
     }
 
     const handleDelete = async () => {
@@ -68,7 +70,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     }
 
     const handleAIEditor = () => {
-        
+        router.push(`/ai_editor?id=${id}`)
     }
 
     const getWebnovel = () => {
@@ -78,8 +80,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     if (!loading) {
         if (atLeastOneWebnovel) {
             return (
-                <div className='max-w-screen-md flex md:flex-row flex-col justify-center mx-auto'>
-                    <div className='w-full md:w-1/4'>
+                <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
+                    <div className='w-full md:w-1/4 p-4'>
                         <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
                         <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
                     </div>
@@ -87,17 +89,23 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
                         <div className="mt-4">
                             {
-                                (author_email == email) &&
-                                <div className='flex flex-col w-32'>
-                                    <button onClick={handleAIEditor} className="button-style mb-2">
-                                        {phrase(dictionary, "aieditor", language)}
-                                    </button>
-                                    <button onClick={handleNewChapter} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                        {phrase(dictionary, "uploadNewChapter", language)}
-                                    </button>
-                                    <button onClick={handleDelete} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                        {phrase(dictionary, "deleteWebnovel", language)}
-                                    </button>
+                                <div className='flex flex-row'>
+                                    {(author_email == email) &&
+                                        <div className='flex flex-col w-32'>
+                                            <button onClick={handleAIEditor} className="button-style mb-2">
+                                                {phrase(dictionary, "aieditor", language)}
+                                            </button>
+                                            <button onClick={handleNewChapter} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                                                {phrase(dictionary, "uploadNewChapter", language)}
+                                            </button>
+                                            <button onClick={handleDelete} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                                                {phrase(dictionary, "deleteWebnovel", language)}
+                                            </button>
+                                        </div>
+                                    }
+                                    <div className='w-32 h-32'>
+
+                                    </div>
                                 </div>
                             }
                         </div>

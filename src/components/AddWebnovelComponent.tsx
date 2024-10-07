@@ -31,7 +31,6 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
     const [currText, setCurrText] = useState(0);
     const [openModal, setOpenModal] = useState(false);
-    const [openAIEditor, setOpenAIEditor] = useState(false);
 
     useEffect(() => {
         setCurrText(description.length);
@@ -100,10 +99,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
         document.getElementById('coverArtFile')?.click();
     }
 
-    const handleClickAIEditor = (event: React.FormEvent) => {
-        event.preventDefault(); 
-        setOpenAIEditor(true);
-    }
+
 
     return (
         <div className='max-w-screen-md w-full flex md:flex-row flex-col justify-center mx-auto'>
@@ -171,7 +167,6 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             </div>
                             <br />
                             <div className='flex flex-col space-y-4 items-end'>
-                                <button className="button-style" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</button>
 
                                 <button ref={buttonRef} type="submit" disabled={isSubmitting}
                                     className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
@@ -231,7 +226,6 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                         </Modal>
                     </div>
                 </form>
-                <AIEditorCharactersComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} />
             </div>
         </div>
     )

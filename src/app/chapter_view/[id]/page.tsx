@@ -15,8 +15,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
-    const [ key, setKey ] = useState(0); // for remounting WebnovelTranslateComponent
-    const [ key2, setKey2 ] = useState(0); // for remounting OtherTranslation for webnovel title
+    const [key, setKey] = useState(0); // for remounting WebnovelTranslateComponent
+    const [key2, setKey2] = useState(0); // for remounting OtherTranslation for webnovel title
 
     const { language } = useLanguage();
 
@@ -64,12 +64,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <div>
-                <div className='max-w-md max-h-dvh flex flex-col items-left mx-auto pb-40'>
+                <div className='max-w-screen-sm max-h-dvh flex flex-col items-left mx-auto pb-40'>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <div>
-                            <Link href={`/view_webnovels?id=${webnovel.id}`}><i className="fa-solid fa-chevron-left"></i> <OtherTranslateComponent key={key2} content={webnovel.title} 
-                        elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>{webnovel.title}</Link>
+                            <Link href={`/view_webnovels?id=${webnovel.id}`}><i className="fa-solid fa-chevron-left"></i>
+                                <OtherTranslateComponent key={key2} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" /></Link>
                         </div>
                         <div className="flex flex-row items-center">
                             <Link href="#">
@@ -87,9 +87,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </div>
                     {/* Title and content */}
                     <div className="max-w-full flex flex-col space-y-4 pb-24">
-                        <p className="text-2xl mt-10 mb-10">{chapter.title}</p>
-                        {/*<p className="text-sm" dangerouslySetInnerHTML={{ __html: newlineToBr(chapter.content) }}></p>*/}
-                        <WebnovelTranslateComponent key={key} content={chapter.content} chapterId={id}/>
+                        <div key={key}>
+                            <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-10 mb-10" />
+                            <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
+                        </div>
                     </div>
                     {/* Novel title, chapter number, button to next chapter */}
                     <div>

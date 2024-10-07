@@ -4,35 +4,96 @@ import React, { useEffect, useState } from 'react';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {phrase} from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
+import { Button, Modal } from 'flowbite-react';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
+    const [webnovelId, setWebnovelId] = useState(0);
+    const [chapterId, setChapterId] = useState(0);
+    const { language, dictionary } = useLanguage();
+    const [showIsLastChapterModal, setShowIsLastChapterModal] = useState(false);
+    const [showIsFirstChapterModal, setShowIsFirstChapterModal] = useState(false);
+    const [nextChapterLink, setNextChapterLink] = useState('');
+    const [prevChapterLink, setPrevChapterLink] = useState('');
 
-  const [webnovelId, setWebnovelId] = useState(0);
-  const [chapterId, setChapterId] = useState(0);
-  const {language, dictionary} = useLanguage();
-  useEffect(() => {
-    setWebnovelId(webnovel.id);
-    setChapterId(chapter.id);
-  }, [])
+    useEffect(() => {
+        setWebnovelId(webnovel.id);
+        setChapterId(chapter.id);
+        
+        const nextId = getNextChapterId(chapter.id);
+        const prevId = getPrevChapterId(chapter.id);
+        
+        setNextChapterLink(`/chapter_view/${nextId.toString()}`);
+        setPrevChapterLink(`/chapter_view/${prevId.toString()}`);
+        console.log(webnovel.chapters)
+    }, [webnovel, chapter])
 
-  const adjustViewSettings = () => {
+    const adjustViewSettings = () => {
 
-  }
+    }
 
-  return (
-    <div className="z-50 fixed bg-[#142448] bottom-0 left-0 right-0">
-      <div className="max-w-md text-white flex flex-wrap items-center justify-between mx-auto p-4">
-        <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
-          <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
-        <Link href={`/my_library`}>
-          <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link>
-        <Link href={`/comments?chapter_id=${chapterId.toString()}`}>
-          <p className='hover:text-pink-600'>{phrase(dictionary, "comments", language)}</p></Link>
-        <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p>
-      </div>
-    </div>
-  );
+    const getNextChapterId = (currentChapterId: number) => {
+        console.log(webnovel.chapters)
+        const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
+        if (index === webnovel.chapters.length - 1) {
+            return currentChapterId; // Stay on the same chapter if it's the last one
+        }
+        return webnovel.chapters[index + 1].id;
+    }
+
+    const getPrevChapterId = (currentChapterId: number) => {
+        const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
+        if (index === 0) {
+            return currentChapterId; // Stay on the same chapter if it's the first one
+        }
+        return webnovel.chapters[index - 1].id;
+    }
+
+    const handleNextChapter = () => {
+        if (chapterId === webnovel.chapters[webnovel.chapters.length - 1].id) {
+            setShowIsLastChapterModal(true);
+        }
+    }
+
+    const handlePrevChapter = () => {
+        if (chapterId === webnovel.chapters[0].id) {
+            setShowIsFirstChapterModal(true);
+        }
+    }
+
+    return (
+        <>
+        <div className="z-50 fixed w-[95vw] mx-auto mb-8 bg-white border-black border-2 bottom-0 left-0 right-0">
+            <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-4">
+                <Link href={prevChapterLink} onClick={handlePrevChapter}>
+                    <p className='hover:text-pink-600'>{phrase(dictionary, "prevChapter", language)}</p>
+                </Link>
+                <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
+                    <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
+                <Link href={`/my_library`}>
+                    <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link>
+                <Link href={`/comments?chapter_id=${chapterId.toString()}`}>
+                    <p className='hover:text-pink-600'>{phrase(dictionary, "comments", language)}</p></Link>
+                <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p>
+                <Link href={nextChapterLink} onClick={handleNextChapter}>
+                    <p className='hover:text-pink-600'>{phrase(dictionary, "nextChapter", language)}</p>
+                </Link>
+            </div>
+            </div>
+            <Modal show={showIsLastChapterModal} onClose={() => setShowIsLastChapterModal(false)}>
+                <Modal.Body>
+                    <p>{phrase(dictionary, "isLastChapter", language)}</p>
+                    <Button onClick={() => setShowIsLastChapterModal(false)}>{phrase(dictionary, "close", language)}</Button>
+                </Modal.Body>
+            </Modal>
+            <Modal show={showIsFirstChapterModal} onClose={() => setShowIsFirstChapterModal(false)}>
+                <Modal.Body>
+                    <p>{phrase(dictionary, "isFirstChapter", language)}</p>
+                    <Button onClick={() => setShowIsFirstChapterModal(false)}>{phrase(dictionary, "close", language)}</Button>
+                </Modal.Body>
+            </Modal>
+        </>
+    );
 };
 
 export default ViewerFooter;

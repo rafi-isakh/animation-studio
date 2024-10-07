@@ -9,9 +9,10 @@ import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { Button, Modal, Select } from "flowbite-react";
+import AIEditorComponent from '@/components/AIEditorComponent';
 
 
-const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, webnovels: Webnovel[] }) => {
+const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnovelId: string, webnovels: Webnovel[], novelLanguage: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const { email, nickname } = useUser();
@@ -20,9 +21,8 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
     const maxText = 20000;
     const [maxExceeded, setMaxExceeded] = useState(false);
     const [currText, setCurrText] = useState(0);
-    const [openModal, setOpenModal] = useState(false);
-    const [modalPlacement, setModalPlacement] = useState('center')
-    
+    const [openAIEditor, setOpenAIEditor] = useState(false);
+
     useEffect(() => {
         setCurrText(content.length);
         if (content.length > maxText) {
@@ -51,6 +51,15 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
         }
     };
 
+    const handleClickAIEditor = (event: React.FormEvent) => {
+        event.preventDefault(); 
+        setOpenAIEditor(true);
+    };
+
+    const replaceSmartQuotes = (str: string) => {
+        return str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+    };
+
     return (
         <div className='max-w-screen-md w-full flex flex-col md:flex-row justify-center mx-auto'>
             <div className='w-full md:w-1/4'>
@@ -77,7 +86,7 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
                             value={content}
                             rows={16}
                             className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 textarea-lg'
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={(e) => setContent(replaceSmartQuotes(e.target.value))}
                         />
                     </div>
                     <div className='flex justify-end'>
@@ -85,12 +94,16 @@ const AddChapterComponent = ({ webnovelId, webnovels }: { webnovelId: string, we
                             {`${currText}/${(maxText).toLocaleString()} ${phrase(dictionary, "chars", language)}`}</p>
                     </div>
                     <br />
-                    <div className='flex justify-end'>
 
+                    <div className='flex flex-col items-end'>
                         <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{phrase(dictionary, "save", language)}</button>
+                        <button className="button-style px-5 py-2.5 me-2 mb-2" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</button>
+
                     </div>
                 </div>
             </form>
+            <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/>
+
         </div>
     )
 }

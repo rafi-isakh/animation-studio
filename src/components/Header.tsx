@@ -185,15 +185,15 @@ const Header = () => {
 
   return (
     <div className='fixed top-6 left-0 right-0 z-50 mx-auto'>
-      <nav className="border border-black border-2 w-[95vw] mx-auto bg-white">
-        <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-6 md:pt-6 pt-4 pb-3 px-4">
+      <nav className="border border-black border-2 rounded-xl max-w-screen-xl mx-auto bg-white">
+        <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 pb-1 px-4">
           {/**/}
           <div className='flex flex-row items-center justify-center space-x-4'>
             <button onClick={handleIconClick} className="flex items-center space-x-3 rtl:space-x-reverse">
               <img src="/toonyzLogo.png" className="h-8" alt="Toonyz Logo" />
               <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-black"></span>
             </button>
-            {/*<div className="hidden md:block">
+            {/* <div className="hidden md:block">
               <div className="flex flex-row space-x-4">
                 <Link href="/" onClick={handleCategoryClick}>
                   <p className={`${whichCategory == 0? 'text-pink-600 font-bold': ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
@@ -205,7 +205,7 @@ const Header = () => {
                   <p className={`${whichCategory == 2? 'text-pink-600 font-bold': ''} manhwa mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "manhwa", language)}</p>
                 </Link>
               </div>
-            </div>*/}
+            </div> */}
           </div>
           <div className="flex md:order-1">
             {/*Search icon in mobile screen (md:hidden)*/}

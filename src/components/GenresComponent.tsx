@@ -38,8 +38,8 @@ const GenresComponent = () => {
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
     return (
-        <div className="scrollbar-hide max-w-screen bg-[indigo] mx-auto h-32 snap-x justify-between overflow-x-scroll flex px-2">
-            <div className="flex justify-evenly items-center w-[30vw] mx-auto">
+        <div className="scrollbar-hide w-screen bg-[#d9a8ff] h-32 mt-8 justify-between overflow-x-scroll flex">
+            <div className="flex justify-evenly items-center mx-auto">
                 {genres.map((genre, index) => (
                     <Link
                         key={genre}
@@ -51,7 +51,7 @@ const GenresComponent = () => {
                             }
                         }}
                     >
-                        <h6 className="font-bold tracking-tight hover:text-pink-600 text-[indigo] whitespace-nowrap">
+                        <h6 className="font-bold tracking-tight hover:text-pink-600 text-[#d9a8ff] whitespace-nowrap">
                             {phrase(dictionary, genre, language)}
                         </h6>
                     </Link>

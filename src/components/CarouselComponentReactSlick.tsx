@@ -40,7 +40,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         return (
             <div
                 className={className}
-                style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-148px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
                 onClick={onClick}
             />
         );
@@ -50,7 +50,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         return (
             <div
                 className={className}
-                style={{ ...style, zIndex: "10", transform: 'translateX(148px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
                 onClick={onClick}
             />
         );
@@ -86,38 +86,38 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         speed: 1000,
         autoplaySpeed: 6000,
         autoplay: true,
-        // className: "center",
-        // centerMode: true,
-        // centerPadding: '200px',
+        className: "center",
+        centerMode: true,
+        centerPadding: '32px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />
     };
     return (
-        <div className={`slider-container -mx-6 md:-mt-48 ${styles.carouselContainer}`}>
+        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full`}>
             <div className='flex flex-col relative'>
-                <Slider {...settings} afterChange={(current) => {setItemIndex(current)}}>
+                <Slider {...settings} afterChange={(current) => { setItemIndex(current) }}>
                     {items.map((item, index) => {
                         return (
-                        <div key={index}>
-                            <div className="relative aspect-[10/5] md:aspect-[1280/500] mx-auto"  >
-                                <Link href={getHref(index)}>
-                                    <Image className="object-cover object-center border-2 border-black" src={getImageURL(item.image)} fill alt={item.description}
-                                        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                    />
-                                </Link>
-                            </div>
+                            <div key={index} className="px-4">
+                                <div className="relative aspect-[10/5] md:aspect-[1280/500] mx-auto"  >
+                                    <Link href={getHref(index)}>
+                                        <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.description}
+                                            placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                        />
+                                    </Link>
+                                </div>
                             </div>
                         )
                     })}
                 </Slider>
-                <div className='hero border-2 border-black bg-white'>
+                {/* <div className='absolute rounded-xl bottom-10 right-20 w-96 border-2 border-black bg-white'>
                     <div className='flex flex-col justify-around h-full'>
-                        <OtherTranslateComponent key={`title-${itemIndex}-${language}`} content={items[itemIndex].title} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-4xl text-lg font-bold px-2 p-4`}
+                        <OtherTranslateComponent key={`title-${itemIndex}-${language}`} content={items[itemIndex].title} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4`}
                             elementType={'carouselItem'} elementSubtype='title' showLoading={false} />
-                        <OtherTranslateComponent key={`hook-${itemIndex}-${language}`} content={items[itemIndex].hook} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-sm px-2 p-4`}
+                        <OtherTranslateComponent key={`hook-${itemIndex}-${language}`} content={items[itemIndex].hook} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-xl text-sm px-2 p-4`}
                             elementType={'carouselItem'} elementSubtype='hook' showLoading={false} />
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     );

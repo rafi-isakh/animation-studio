@@ -24,10 +24,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     return (
         <div>
             <CarouselComponentReactSlick items={items} />
-            {/* <GenresComponent /> */}
-            <div className='mt-16'>
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+            <GenresComponent />
+            <div className='mt-4'>
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
             </div>
         </div>
     );

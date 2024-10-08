@@ -21,6 +21,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/material": "^6.1.2",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/marked": "^5.0.2",
     "ai": "^3.2.22",
     "bootstrap": "^5.3.3",
     "flowbite": "^2.4.1",

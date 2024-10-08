@@ -38,13 +38,13 @@ const GenresComponent = () => {
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
     return (
-        <div className="scrollbar-hide w-screen bg-[#d9a8ff] h-32 mt-8 justify-between overflow-x-scroll flex">
-            <div className="flex justify-evenly items-center mx-auto">
+        <div className="scrollbar-hide w-full bg-[#d9a8ff] h-32 mt-8 justify-between overflow-x-scroll flex">
+            <div className="flex md:w-[1280px] px-4 justify-between items-center mx-auto">
                 {genres.map((genre, index) => (
                     <Link
                         key={genre}
                         href={`?genre=${genre}`}
-                        className="flex-grow w-1/6 min-w-[120px] min-h-[60px] h-16 mr-4 text-center block p-4 flex flex-col justify-center items-center hover:text-pink-600 bg-white rounded-full"
+                        className="flex-grow min-w-[120px] min-h-[60px] h-16 mr-4 text-center block p-4 flex flex-col justify-center items-center hover:text-pink-600 bg-white rounded-full"
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;

@@ -1,7 +1,7 @@
 import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { getImageURL } from "@/utils/cloudfront"
+import { getCloudfrontImageURL, getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
 import { useEffect, useState } from "react"
@@ -11,7 +11,7 @@ import { phrase, code_to_lang } from "@/utils/phrases"
 const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
 
     const { language, dictionary } = useLanguage();
-    const imageSrc = getImageURL(webnovel?.cover_art)
+    const imageSrc = getCloudfrontImageURL(webnovel?.cover_art)
     const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0) ? webnovel.chapters[0].id : -1
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(10);
@@ -42,7 +42,7 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
             </div>
             <div className={`ml-4 ${isLoading ? 'animate-pulse' : ''}`}>
                 <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">
-                    <Image src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={640} height={1171}
+                    <Image src={imageSrc} alt={webnovel?.title ?? "webnovel not found"} width={262} height={480}
                         placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                         onLoad={() => setIsLoading(false)}
                     />

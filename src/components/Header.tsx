@@ -184,7 +184,7 @@ const Header = () => {
   }
 
   return (
-    <div className='fixed top-6 left-0 right-0 z-50 mx-auto'>
+    <div className='fixed p-2 left-0 top-0 right-0 z-50 mx-auto'>
       <nav className="border border-black border-2 rounded-xl max-w-screen-xl mx-auto bg-white">
         <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 pb-1 px-4">
           {/**/}

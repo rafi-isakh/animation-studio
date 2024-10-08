@@ -11,9 +11,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image'
 import Link from 'next/link';
-import { Button, Modal } from "flowbite-react";
+import { Button, Modal, Box } from '@mui/material';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import AIEditorCharactersComponent from './AIEditorCharactersComponent';
+import { NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 
 
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
@@ -167,8 +168,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             </div>
                             <br />
                             <div className='flex flex-col space-y-4 items-end'>
-
-                                <button ref={buttonRef} type="submit" disabled={isSubmitting}
+                                <NoCapsButton color='bw' variant='contained' ref={buttonRef} type="submit" disabled={isSubmitting}
                                     className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
                                     {isSubmitting ?
@@ -181,7 +181,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                         </div>
                                         :
                                         phrase(dictionary, "save", language)}
-                                </button>
+                                </NoCapsButton>
                             </div>
                         </div>
                         <div className="md:w-1/4">
@@ -208,21 +208,20 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             />
                         </div>
 
-                        <Modal show={openModal} size="md" onClose={() => setOpenModal(false)} popup>
-                            <Modal.Header />
-                            <Modal.Body>
+                        <Modal open={openModal} onClose={() => setOpenModal(false)}>
+                            <Box>
                                 <div className="text-center">
                                     <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
                                     <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
                                         {phrase(dictionary, "inputAllInfo", language)}
                                     </h3>
                                     <div className="flex justify-center gap-4">
-                                        <button className="button-style" color="gray" onClick={() => setOpenModal(false)}>
+                                        <Button className="button-style" onClick={() => setOpenModal(false)}>
                                             {phrase(dictionary, "ok", language)}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
-                            </Modal.Body>
+                            </Box>
                         </Modal>
                     </div>
                 </form>

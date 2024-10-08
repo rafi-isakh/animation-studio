@@ -8,7 +8,7 @@ import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsi
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
-import { Button, Modal, Select } from "flowbite-react";
+import { Button } from '@mui/material';
 import AIEditorComponent from '@/components/AIEditorComponent';
 
 
@@ -96,8 +96,8 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
                     <br />
 
                     <div className='flex flex-col items-end'>
-                        <button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{phrase(dictionary, "save", language)}</button>
-                        <button className="button-style px-5 py-2.5 me-2 mb-2" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</button>
+                        <Button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{phrase(dictionary, "save", language)}</Button>
+                        <Button className="button-style px-5 py-2.5 me-2 mb-2" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button>
 
                     </div>
                 </div>

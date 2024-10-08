@@ -40,7 +40,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         return (
             <div
                 className={className}
-                style={{ ...style, display: "block", zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
                 onClick={onClick}
             />
         );
@@ -92,6 +92,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />
     };
+
     return (
         <div className={`slider-container max-w-screen-xl items-center mx-auto w-full`}>
             <div className='flex flex-col relative'>
@@ -101,7 +102,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                             <div key={index} className="px-4">
                                 <div className="relative aspect-[10/5] md:aspect-[1280/500] mx-auto"  >
                                     <Link href={getHref(index)}>
-                                        <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.description}
+                                        <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
                                             placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                         />
                                     </Link>

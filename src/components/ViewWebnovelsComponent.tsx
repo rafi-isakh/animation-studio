@@ -1,6 +1,6 @@
 "use client"
 import { Webnovel } from '@/components/Types'
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
@@ -9,6 +9,11 @@ import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
+import { Button, ThemeProvider } from '@mui/material';
+import { bwTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
+import { styled } from '@mui/system';
+
+
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -76,42 +81,47 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     const getWebnovel = () => {
         return webnovels.find(w => w.id.toString() == id)
     }
-
     if (!loading) {
         if (atLeastOneWebnovel) {
             return (
-                <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
-                    <div className='w-full md:w-1/4 p-4'>
-                        <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                        <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
-                    </div>
-                    <div className='w-full md:w-3/4'>
-                        <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                        <div className="mt-4">
-                            {
-                                <div className='flex flex-row'>
-                                    {(author_email == email) &&
-                                        <div className='flex flex-col w-32'>
-                                            <button onClick={handleAIEditor} className="button-style mb-2">
-                                                {phrase(dictionary, "aieditor", language)}
-                                            </button>
-                                            <button onClick={handleNewChapter} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                                {phrase(dictionary, "uploadNewChapter", language)}
-                                            </button>
-                                            <button onClick={handleDelete} className="button-style mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                                                {phrase(dictionary, "deleteWebnovel", language)}
-                                            </button>
-                                        </div>
-                                    }
-                                    <div className='w-32 h-32'>
-
-                                    </div>
-                                </div>
-                            }
+                <ThemeProvider theme={bwTheme}>
+                    <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
+                        <div className='w-full md:w-1/4 p-4'>
+                            <Suspense>
+                                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
+                            </Suspense>
+                            <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
                         </div>
-                        <ListOfChaptersComponent webnovel={getWebnovel()} />
-                    </div>
-                </div >
+                        <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
+                            <Suspense>
+                                <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
+                            </Suspense>
+                            <div className="mt-4">
+                                {
+                                    <div className='flex flex-row'>
+                                        {(author_email == email) &&
+                                            <div className='flex flex-col space-y-4 w-32'>
+                                                <NoCapsButton color='bw' variant='contained' onClick={handleAIEditor}>
+                                                    {phrase(dictionary, "aieditor", language)}
+                                                </NoCapsButton>
+                                                <NoCapsButton color='bw' variant='contained' onClick={handleNewChapter}>
+                                                    {phrase(dictionary, "uploadNewChapter", language)}
+                                                </NoCapsButton>
+                                                <NoCapsButton color='bw' variant='contained' onClick={handleDelete}>
+                                                    {phrase(dictionary, "deleteWebnovel", language)}
+                                                </NoCapsButton>
+                                            </div>
+                                        }
+                                        <div className='w-32 h-32'>
+
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <ListOfChaptersComponent webnovel={getWebnovel()} />
+                        </div>
+                    </div >
+                </ThemeProvider>
             )
         }
         else {

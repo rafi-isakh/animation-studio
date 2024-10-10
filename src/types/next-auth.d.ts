@@ -11,4 +11,5 @@ declare module "next-auth" {
     token: string,
     provider: string
   }
+
 }

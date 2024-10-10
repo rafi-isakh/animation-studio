@@ -27,7 +27,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
         setNextChapterLink(`/chapter_view/${nextId.toString()}`);
         setPrevChapterLink(`/chapter_view/${prevId.toString()}`);
-        console.log(webnovel.chapters)
     }, [webnovel, chapter])
 
     const adjustViewSettings = () => {
@@ -35,7 +34,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     const getNextChapterId = (currentChapterId: number) => {
-        console.log(webnovel.chapters)
         const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
         if (index === webnovel.chapters.length - 1) {
             return currentChapterId; // Stay on the same chapter if it's the last one

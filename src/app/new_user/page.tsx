@@ -55,7 +55,6 @@ export default async function NewUser() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/signout`, {
       method: 'POST',
     });
-    console.log(response);
     return (
       <UserWithSameEmailExistsModalComponent />
     )

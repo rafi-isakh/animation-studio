@@ -31,7 +31,6 @@ const AIEditorAdviceComponent = ({ content, novelLanguage }: { content: string, 
   const submitContent = async (translation: string) => {
     if (!translation) translation = "";
     try {
-      console.log('submitContent.text', content)
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
         method: 'POST',
         headers: {

@@ -45,7 +45,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                     isMediumScreen ?
                         <div
                             className={className}
-                            style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                            style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.2rem black)' }}
                             onClick={onClick}
                         />
                         :
@@ -62,7 +62,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                     isMediumScreen ?
                         <div
                             className={className}
-                            style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                            style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.2rem black)' }}
                             onClick={onClick}
                         />
                         :

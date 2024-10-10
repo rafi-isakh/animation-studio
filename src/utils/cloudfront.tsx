@@ -7,6 +7,5 @@ export const getImageURL = (fileName: string | undefined) => {
 
 export const getCloudfrontImageURL = (fileName: string | undefined) => {
     const image_src = `https://${CLOUDFRONT}/${fileName}`;
-    console.log(image_src)
     return image_src;
 }

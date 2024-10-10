@@ -16,7 +16,6 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
-        console.log(webnovel?.chapters)
     }, [language])
 
     const sortFn = (a: Chapter, b: Chapter) => {

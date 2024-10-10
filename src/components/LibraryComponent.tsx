@@ -14,7 +14,7 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
             : <div>{phrase(dictionary, "noWebnovelsFound", language)}</div>}
             <div className="flex flex-wrap space-x-4">
             {library.map((item, index) => (
-                <WebnovelComponent key={index} webnovel={item} index={index} ranking={false} width={200} height={120} />
+                <WebnovelComponent key={index} webnovel={item} index={index} ranking={false} />
             ))}
             </div>
         </div>

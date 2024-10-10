@@ -12,6 +12,7 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Link from 'next/link';
+import { useMediaQuery } from '@mui/material';
 
 
 const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) => {
@@ -23,6 +24,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
     const [key5, setKey5] = useState(4000);
     const [key6, setKey6] = useState(5000);
     const [itemIndex, setItemIndex] = useState(0);
+    const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     const { language, dictionary } = useLanguage();
 
@@ -38,21 +40,35 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
     function SampleNextArrow(props: any) {
         const { className, style, onClick } = props;
         return (
-            <div
-                className={className}
-                style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
-                onClick={onClick}
-            />
+            <>
+                {
+                    isMediumScreen ?
+                        <div
+                            className={className}
+                            style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                            onClick={onClick}
+                        />
+                        :
+                        <></>
+                }
+            </>
         );
     }
     function SamplePrevArrow(props: any) {
         const { className, style, onClick } = props;
         return (
-            <div
-                className={className}
-                style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
-                onClick={onClick}
-            />
+            <>
+                {
+                    isMediumScreen ?
+                        <div
+                            className={className}
+                            style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.5rem black)' }}
+                            onClick={onClick}
+                        />
+                        :
+                        <></>
+                }
+            </>
         );
     }
 
@@ -99,7 +115,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                 <Slider {...settings} afterChange={(current) => { setItemIndex(current) }}>
                     {items.map((item, index) => {
                         return (
-                            <div key={index} className="px-4">
+                            <div key={index} className="px-2 md:px-4">
                                 <div className="relative aspect-[10/5] md:aspect-[1280/500] mx-auto"  >
                                     <Link href={getHref(index)}>
                                         <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}

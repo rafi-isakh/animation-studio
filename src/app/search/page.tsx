@@ -28,7 +28,7 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
         {
           (webnovels.length) ?
             webnovels.map((webnovel, index) => (
-              <WebnovelComponent key={index} webnovel={webnovel} ranking={false} width={200} height={120} index={index}/>
+              <WebnovelComponent key={index} webnovel={webnovel} ranking={false} index={index}/>
             )) :
             <main>{phrase(dictionary, "noSearchResults", language)}</main>
         }

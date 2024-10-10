@@ -5,7 +5,7 @@ import { phrase } from '@/utils/phrases';
 import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
+import { Button, Card, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
 import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
 import { styled } from '@mui/system';
 
@@ -47,7 +47,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                                                         <h2 className="text-xl font-bold">{index + 1}</h2>
                                                         <div>
                                                             <div className="flex flex-row space-x-4">
-                                                                <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-32 md:max-w-64 truncate whitespace-nowrap" />
+                                                                <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-64 md:max-w-128 truncate whitespace-nowrap" />
                                                             </div>
                                                             <div className="flex flex-row space-x-4">
                                                                 <p>{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>

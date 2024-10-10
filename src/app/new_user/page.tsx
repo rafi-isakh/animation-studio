@@ -24,6 +24,8 @@ async function createUser(formData: FormData) {
       'provider': session.provider
     }
 
+    console.log("data:",data)
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user?promo_code=${promoCode}`, {
       method: 'POST',
       headers: {
@@ -31,6 +33,7 @@ async function createUser(formData: FormData) {
       },
       body: JSON.stringify(data),
     });
+    console.log("res:",res)
   }
 
   redirect('/');

@@ -1,6 +1,7 @@
 import WebnovelsList from '@/components/WebnovelsList'
 import GenresComponent from '@/components/GenresComponent';
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
+import Footer from '@/components/Footer';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`, {
@@ -29,6 +30,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
             </div>
+            <hr/>
+            <Footer />
         </div>
     );
 }

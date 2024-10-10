@@ -10,6 +10,7 @@ import { DeviceProvider } from '@/contexts/DeviceContext';
 import { Metadata } from 'next'
 import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP, Noto_Sans_TC, Noto_Sans_SC } from 'next/font/google'
+import Footer from '@/components/Footer';
 
 
 const notoSans = Noto_Sans({

@@ -1,5 +1,4 @@
-import NextAuth from "next-auth"
-import { User } from "@/components/Types"
+import NextAuth, { User } from "next-auth"
 import { AdapterUser } from "next-auth/adapters";
 
 import Google from "next-auth/providers/google"
@@ -13,25 +12,39 @@ import jwt from 'jsonwebtoken';
 
 async function refreshAccessToken(token: any) {
   try {
-    // Implement the refresh token logic here
-    // This will depend on the provider and their specific refresh token process
-    // For example, for Google:
-    const url = "https://oauth2.googleapis.com/token"
-    const response = await fetch(url, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      method: "POST",
-      body: new URLSearchParams({
+    let url: string;
+    let body: URLSearchParams;
+
+    if (token.provider === 'google') {
+      url = "https://oauth2.googleapis.com/token";
+      body = new URLSearchParams({
         client_id: process.env.AUTH_GOOGLE_ID!,
         client_secret: process.env.AUTH_GOOGLE_SECRET!,
         grant_type: "refresh_token",
         refresh_token: token.refreshToken,
-      }),
-    })
+      });
+    } else if (token.provider === 'kakao') {
+      url = "https://kauth.kakao.com/oauth/token";
+      body = new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: process.env.AUTH_KAKAO_ID!,
+        refresh_token: token.refreshToken,
+        client_secret: process.env.AUTH_KAKAO_SECRET!,
+      });
+    } else {
+      throw new Error("Unsupported provider for token refresh");
+    }
 
-    const refreshedTokens = await response.json()
+    const response = await fetch(url, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: "POST",
+      body: body,
+    });
+
+    const refreshedTokens = await response.json();
 
     if (!response.ok) {
-      throw refreshedTokens
+      throw refreshedTokens;
     }
 
     return {
@@ -39,12 +52,12 @@ async function refreshAccessToken(token: any) {
       accessToken: refreshedTokens.access_token,
       accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
-    }
+    };
   } catch (error) {
     return {
       ...token,
       error: "RefreshAccessTokenError",
-    }
+    };
   }
 }
 
@@ -70,9 +83,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // Return previous token if the access token has not expired yet
-      if (Date.now() < (token.accessTokenExpires as number)) {
-        return token
-      }
+      // if (Date.now() < (token.accessTokenExpires as number)) {
+      //   return token
+      // }
 
       // Access token has expired, try to update it
       return refreshAccessToken(token)

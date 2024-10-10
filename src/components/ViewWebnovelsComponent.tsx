@@ -10,7 +10,7 @@ import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Button, ThemeProvider } from '@mui/material';
-import { bwTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
+import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { styled } from '@mui/system';
 
 
@@ -84,7 +84,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     if (!loading) {
         if (atLeastOneWebnovel) {
             return (
-                <ThemeProvider theme={bwTheme}>
+                <ThemeProvider theme={grayTheme}>
                     <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
                         <div className='w-full md:w-1/4 p-4'>
                             <Suspense>
@@ -101,13 +101,13 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
                                     <div className='flex flex-row'>
                                         {(author_email == email) &&
                                             <div className='flex flex-col space-y-4 w-32'>
-                                                <NoCapsButton color='bw' variant='contained' onClick={handleAIEditor}>
+                                                {/* <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
                                                     {phrase(dictionary, "aieditor", language)}
-                                                </NoCapsButton>
-                                                <NoCapsButton color='bw' variant='contained' onClick={handleNewChapter}>
+                                                </NoCapsButton> */}
+                                                <NoCapsButton color='gray' variant='outlined' onClick={handleNewChapter}>
                                                     {phrase(dictionary, "uploadNewChapter", language)}
                                                 </NoCapsButton>
-                                                <NoCapsButton color='bw' variant='contained' onClick={handleDelete}>
+                                                <NoCapsButton color='gray' variant='outlined' onClick={handleDelete}>
                                                     {phrase(dictionary, "deleteWebnovel", language)}
                                                 </NoCapsButton>
                                             </div>

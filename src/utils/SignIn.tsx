@@ -1,5 +1,17 @@
 import { signIn } from "@/auth"
+import { Session } from "next-auth"
 import Image from "next/image"
+
+export function getSessionUserEmail(session: Session) {
+  if (session && session.user) {
+    if (session.provider === "google") {
+      return session.user.email;
+    } else if (session.provider === "kakao") {
+      return session.user.kakao_account?.email;
+    }
+  }
+  return null
+}
 
 export function GoogleSignIn() {
   return (

@@ -126,9 +126,7 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     type Direction = 'ltr' | 'rtl';
 
     return (
-        <div style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
-
-            {text}
+        <div dangerouslySetInnerHTML={{ __html: text }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
         </div>
     );
 };

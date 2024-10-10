@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Button, Modal, ThemeProvider } from '@mui/material';
-import { bwTheme } from '@/styles/BlackWhiteButtonStyle';
+import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -62,7 +62,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     return (
-        <ThemeProvider theme={bwTheme}>
+        <ThemeProvider theme={grayTheme}>
             <div className="z-50 fixed w-[95vw] mx-auto mb-8 bg-white border-black border-2 bottom-0 left-0 right-0">
                 <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-4">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>

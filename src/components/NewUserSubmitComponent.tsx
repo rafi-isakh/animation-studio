@@ -1,18 +1,24 @@
 "use client"
 
 import { useLanguage } from "@/contexts/LanguageContext"
-import {phrase} from '@/utils/phrases';
+import { phrase } from '@/utils/phrases';
+import { Button, ThemeProvider } from "@mui/material";
+import { bwTheme, grayTheme } from "@/styles/BlackWhiteButtonStyle";
 
 
 const NewUserSubmitComponent = () => {
     const { dictionary, language } = useLanguage();
 
     return (
-        <button
-            type="submit"
-            className="button-style px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" >
-            {phrase(dictionary, "register", language)}
-        </button>
+        <ThemeProvider theme={grayTheme}>
+            <Button
+                type="submit"
+                variant="contained"
+                color="gray"
+            >
+                {phrase(dictionary, "register", language)}
+            </Button>
+        </ThemeProvider>
     )
 }
 

@@ -5,11 +5,13 @@ declare module '@mui/material/styles' {
     interface Palette {
         bw: Palette['primary'];
         wb: Palette['primary'];
+        gray: Palette['primary'];
     }
 
     interface PaletteOptions {
         bw?: PaletteOptions['primary'];
         wb?: PaletteOptions['primary'];
+        gray?: PaletteOptions['primary'];
     }
 }
 
@@ -35,13 +37,24 @@ export const wbTheme = createTheme({
     },
 });
 
+export const grayTheme = createTheme({
+    palette: {
+        gray: {
+            main: '#1e293b',
+            light: '#A9A9A9',
+            dark: '#696969',
+            contrastText: '#000000'
+        },
+    },
+});
+
 declare module '@mui/material/Button' {
     interface ButtonPropsColorOverrides {
         bw: true;
         wb: true;
+        gray: true; 
     }
 }
-
 
 export const NoCapsButton = styled(Button)({
     textTransform: 'none',

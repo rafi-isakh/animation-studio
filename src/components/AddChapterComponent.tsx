@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
@@ -8,8 +8,15 @@ import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsi
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
-import { Button } from '@mui/material';
+import { Button, ThemeProvider } from '@mui/material';
 import AIEditorComponent from '@/components/AIEditorComponent';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.bubble.css';
+import 'react-quill/dist/quill.snow.css';
+import '@/styles/quill-custom.css'; // Add this import
+import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
+
+
 
 
 const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnovelId: string, webnovels: Webnovel[], novelLanguage: string }) => {
@@ -22,6 +29,8 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
     const [maxExceeded, setMaxExceeded] = useState(false);
     const [currText, setCurrText] = useState(0);
     const [openAIEditor, setOpenAIEditor] = useState(false);
+    const titleRef = useRef<ReactQuill>(null);
+    const contentRef = useRef<ReactQuill>(null);
 
     useEffect(() => {
         setCurrText(content.length);
@@ -32,10 +41,27 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
         }
     }, [content])
 
+    useEffect(() => {
+        if (titleRef.current) {
+            const quillEditor = titleRef.current.getEditor();
+            if (quillEditor) {
+                quillEditor.root.dataset.placeholder = phrase(dictionary, "chapterTitle", language);
+            }
+        }
+        if (contentRef.current) {
+            const quillEditor = contentRef.current.getEditor();
+            if (quillEditor) {
+                quillEditor.root.dataset.placeholder = phrase(dictionary, "content", language);
+            }
+        }
+    }, [dictionary, language, titleRef.current, contentRef.current])
+
+
     const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
         const formData = new FormData();
-        formData.append('title', title);
+        const quillEditor = titleRef.current?.getEditor();
+        formData.append('title', quillEditor?.getText() || "");
         formData.append('content', content);
         if (!title || !content) {
             return;
@@ -52,7 +78,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
     };
 
     const handleClickAIEditor = (event: React.FormEvent) => {
-        event.preventDefault(); 
+        event.preventDefault();
         setOpenAIEditor(true);
     };
 
@@ -61,48 +87,28 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
     };
 
     return (
-        <div className='max-w-screen-md w-full flex flex-col md:flex-row justify-center mx-auto'>
-            <div className='w-full md:w-1/4'>
-                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
-            </div>
-            <form className="md:w-3/4 w-full" onSubmit={handleAddChapter}>
-                <div className="mr-4 w-full">
-                    <p className="text-2xl">{phrase(dictionary, "newChapter", language)}</p>
-                    <br />
-                    <div className="flex flex-row space-x-4">
-                        <p className="text-md w-24">{phrase(dictionary, "chapterTitle", language)}</p>
-                        <input
-                            type="text"
-                            value={title}
-                            className='input border-none rounded focus:ring-pink-600 w-full bg-gray-200'
-                            onChange={(e) => setTitle(e.target.value)}
-                        />
+        <div className='md:w-[720px] p-6 mb-10 flex flex-col justify-center mx-auto border-gray-300 border rounded-xl'>
+            <form onSubmit={handleAddChapter}>
+                <ThemeProvider theme={grayTheme}>
+                    <div className="mr-4 flex flex-col space-y-4 w-full">
+                        <div className='flex flex-col space-y-4 items-start'>
+                            <Button type="submit" variant="outlined" color="gray">{phrase(dictionary, "publish", language)}</Button>
+                            {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}
+                        </div>
+                        <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
+                            <ReactQuill ref={titleRef} theme="bubble" value={title} onChange={setTitle} className="title-editor" />
+                        </div>
+                        <hr />
+                        <div className="flex flex-col space-y-4">
+                            <div className='w-full max-w-full rounded-xl border border-gray-300'>
+                                <ReactQuill ref={contentRef} theme="bubble" value={content} onChange={setContent} className="content-editor" />
+                            </div>
+                        </div>
+                        <br />
                     </div>
-                    <br />
-                    <div className="flex flex-row space-x-4">
-                        <p className="text-md w-24">{phrase(dictionary, "content", language)}</p>
-                        <textarea
-                            value={content}
-                            rows={16}
-                            className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 textarea-lg'
-                            onChange={(e) => setContent(replaceSmartQuotes(e.target.value))}
-                        />
-                    </div>
-                    <div className='flex justify-end'>
-                        <p className={`text-sm ${maxExceeded && "text-pink-600"}`}>
-                            {`${currText}/${(maxText).toLocaleString()} ${phrase(dictionary, "chars", language)}`}</p>
-                    </div>
-                    <br />
-
-                    <div className='flex flex-col items-end'>
-                        <Button type="submit" className="button-style px-5 py-2.5 me-2 mb-2">{phrase(dictionary, "save", language)}</Button>
-                        <Button className="button-style px-5 py-2.5 me-2 mb-2" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button>
-
-                    </div>
-                </div>
+                </ThemeProvider>
             </form>
-            <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/>
+            {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
 
         </div>
     )

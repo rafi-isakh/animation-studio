@@ -1,5 +1,4 @@
 import NextAuth from "next-auth"
-import {User} from "@/components/Types"
 
 declare module "next-auth" {
   /**
@@ -10,6 +9,17 @@ declare module "next-auth" {
     accessToken: string,
     token: string,
     provider: string
+  }
+
+  interface User {
+    id: number;
+    email: string;
+    nickname: string;
+    bio: string;
+    picture: string;
+    kakao_account?: {
+      email: string;
+    };
   }
 
 }

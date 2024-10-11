@@ -6,7 +6,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
     const session = await auth();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("webnovel_id")
-    const email = searchParams.get("email")
 
     if (!session || !session.user) {
         return NextResponse.json({
@@ -14,6 +13,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
             "status": 401
         });
     }
+
+    const email = session.user.email;
 
     if (!id || !email) {
         return NextResponse.json({

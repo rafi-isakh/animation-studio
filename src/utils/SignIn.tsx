@@ -1,6 +1,6 @@
 "use client"
 import { signIn } from "@/auth"
-import { grayTheme } from "@/styles/BlackWhiteButtonStyle";
+import { grayTheme, NoCapsButton } from "@/styles/BlackWhiteButtonStyle";
 import { Button, ThemeProvider } from "@mui/material";
 import { Session } from "next-auth"
 import Image from "next/image"
@@ -24,12 +24,15 @@ export function GoogleSignIn() {
     const { login } = useAuth();
     return (
         <div className="flex flex-row items-center justify-center">
-            <Button color='gray' variant='outlined' onClick={() => login('google', true, `/new_user`)} className='rounded-full border-2 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
+            <NoCapsButton color='gray' variant='outlined' onClick={() => login('google', true, `/new_user`)} className='rounded-full border-2 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
                 <Image src="/google_logo.svg" alt="Google Sign In" width={50} height={50}
                     placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 >
-                </Image><p className="ml-4 text-lg m-auto">{phrase(dictionary, "google_signin", language)}</p>
-            </Button>
+                </Image>
+                <div className="flex flex-row items-center justify-center mx-auto">
+                    <p className="text-lg">{phrase(dictionary, "google_signin", language)}</p>
+                </div>
+            </NoCapsButton>
         </div>
     )
 }
@@ -39,12 +42,15 @@ export function KakaoSignIn() {
     const { login } = useAuth();
     return (
         <div className="flex flex-row items-center justify-center">
-            <Button color='gray' variant='outlined' onClick={() => login('kakao', true, `/new_user`)} className='rounded-full border-2 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
+            <NoCapsButton color='gray' variant='outlined' onClick={() => login('kakao', true, `/new_user`)} className='rounded-full border-2 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
                 <Image src="/kakao_logo.svg" alt="Kakao Sign In" width={50} height={50}
                     placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 >
-                </Image><p className="ml-4 text-lg m-auto">{phrase(dictionary, "kakao_signin", language)}</p>
-            </Button>
+                </Image>
+                <div className="flex flex-row items-center justify-center mx-auto">
+                    <p className="text-lg">{phrase(dictionary, "kakao_signin", language)}</p>
+                </div>
+            </NoCapsButton>
         </div>
     )
 }

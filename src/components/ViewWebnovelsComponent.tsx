@@ -15,9 +15,9 @@ import { styled } from '@mui/system';
 
 
 
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }: {
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, email: string | undefined | null
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null
 }) => {
     const [loading, setLoading] = useState(true);
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -27,6 +27,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
     const { language, dictionary } = useLanguage();
     const nickname = webnovel?.user.nickname;
     const author_email = webnovel?.user.email;
+    const { email } = useUser();
 
     if (typeof id === 'string') {
     } else if (Array.isArray(id)) {

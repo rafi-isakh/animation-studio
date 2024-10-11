@@ -20,18 +20,15 @@ const NewUserBioComponent = () => {
     }
     
     return (
-        <div>
-            <p className="text-lg">{phrase(dictionary, "intro", language)}</p>
+        <div className='w-full'>
             <textarea
+                placeholder={phrase(dictionary, "intro", language)}
                 name="bio"
                 rows={6}
                 value={content}
                 onChange={(e) => setContent(trim(e.target.value))}
-                className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
+                className='input rounded-xl w-full border border-gray-300'
             />
-            <div className='flex justify-end'>
-                <p className={`text-sm`}>{`${currText}/${maxText} ${phrase(dictionary, "chars", language)}`}</p>
-            </div>
         </div>
 
     )

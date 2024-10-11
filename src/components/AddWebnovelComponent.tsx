@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image'
 import Link from 'next/link';
+import { style } from '@/styles/ModalStyles';
 import { Button, Modal, Box, Typography, ThemeProvider } from '@mui/material';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import AIEditorCharactersComponent from './AIEditorCharactersComponent';
@@ -48,20 +49,6 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
             setButtonSize({ width: offsetWidth, height: offsetHeight })
         }
     }, [language])
-
-    const style = {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        border: '1px solid #e5e5e5',
-        borderRadius: '12px',
-        p: 4,
-      };
-
-
 
     const handleAddWebnovel = async (event: React.FormEvent) => {
         event.preventDefault();

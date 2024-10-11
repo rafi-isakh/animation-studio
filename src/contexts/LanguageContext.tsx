@@ -30,13 +30,12 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     const fetchPhrases = async () => {
       const dictionary = await phrases();
       setDictionary(dictionary);
-      localStorage.setItem("dictionary", JSON.stringify(dictionary));
-      
+      // localStorage.setItem("dictionary", JSON.stringify(dictionary));
     }
-    const localDictionary = localStorage.getItem("dictionary")
-    if (localDictionary) {
-      setDictionary(JSON.parse(localDictionary));
-    } 
+    // const localDictionary = localStorage.getItem("dictionary")
+    // if (localDictionary) {
+    //   setDictionary(JSON.parse(localDictionary));
+    // } 
     fetchPhrases();
   }, [])
 

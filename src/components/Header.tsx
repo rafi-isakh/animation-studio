@@ -21,7 +21,7 @@ const Header = () => {
 
     const router = useRouter();
     const { setIsLoggedIn } = useAuth();
-    const { isLoggedIn, loading } = useAuth();
+    const { isLoggedIn, loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
     const [query, setQuery] = useState('');
@@ -126,14 +126,14 @@ const Header = () => {
         }
     }
 
-    // special handling for new_user page
-    const inNewUser = () => {
-        return pathname == '/new_user'
-    }
+    // // special handling for new_user page
+    // const inNewUser = () => {
+    //     return pathname == '/new_user'
+    // }
 
     const handleSignOut = async (event: React.FormEvent) => {
         event.preventDefault();
-        signOut();
+        logout(true, '/');
     };
 
     const handleLanguageChange = (language: Language) => {
@@ -240,17 +240,17 @@ const Header = () => {
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                             </div>
-                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black border rounded-md border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
                         </div>
                         {/*Search bar visible in screens larger than md (md:block)*/}
                         <div className="relative hidden md:block mr-6">
                             <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                <svg className="w-4 h-4 text-black dark:text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                <svg className="w-4 h-4 text-black dark:text-black rounded" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                                 <span className="sr-only">Search icon</span>
                             </div>
-                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black  border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
                         </div>
                         <ul className="border border-black flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 border border-black">
                             {/* News menu
@@ -269,8 +269,8 @@ const Header = () => {
                                     </button>
                                 </div>
                                 {isLanguageDropdownOpen && (
-                                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item}  z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
-                                        <ul className="py-2 text-sm border border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
+                                        <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                             <li>
                                                 <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
                                                     한국어
@@ -330,8 +330,8 @@ const Header = () => {
                                         </svg></button>
                                 </div>
                                 {isUserDropdownOpen && (
-                                    <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem}  z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-white dark:divide-gray-600`}>
-                                        <ul className="py-2 text-sm border border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                    <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-white dark:divide-gray-600`}>
+                                        <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                             {loading ? (
                                                 <li>
                                                     <div role="status">
@@ -344,7 +344,7 @@ const Header = () => {
                                                 </li>
                                             )
                                                 :
-                                                isLoggedIn && !inNewUser() ? (
+                                                isLoggedIn ? (
                                                     <>
                                                         <li>
                                                             <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "newWebnovel", language)}</Link>
@@ -380,7 +380,7 @@ const Header = () => {
                         <p className={`${whichCategory == 0 ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                     </Link>
                     <Link href="/studio" onClick={handleCategoryClick}>
-                        <p className={`${whichCategory == 1 ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webtoons", language)}</p>
+                        <p className={`${whichCategory == 1 ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
                     </Link>
                 </div>
 

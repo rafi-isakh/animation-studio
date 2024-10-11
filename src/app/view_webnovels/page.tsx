@@ -1,3 +1,4 @@
+"use client"
 import { auth } from "@/auth";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 
@@ -36,21 +37,13 @@ const ViewWebnovels = async ({ searchParams }: { searchParams: { [key: string]: 
         const { email: author_email, nickname: user_nickname } = webnovel.user;
         const userWebnovels = await getUserWebnovels(author_email);
 
-        const session = await auth();   
-        const email = session?.user.email;
-
-        if (email) {
-            const addToLibraryResponse = await fetch(`/api/add_to_library?email=${email}&webnovel_id=${searchParams.id}`)
-            if (!addToLibraryResponse.ok) {
-                console.error(`Add to library failed for ${email}, webnovel ${searchParams.id}`)
-            }
-        }
+        await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
         return (
-            <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} email={email} />
+            <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
         )
     } else {
         return (
-            <ViewWebnovelsComponent searchParams={searchParams} webnovel={null} userWebnovels={null} email=""/>
+            <ViewWebnovelsComponent searchParams={searchParams} webnovel={null} userWebnovels={null} />
         )
     }
 

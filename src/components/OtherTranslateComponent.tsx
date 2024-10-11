@@ -44,7 +44,12 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                 }
             }
         }
-        handleTranslate();
+        if (content) {
+            handleTranslate();
+        } else {
+            setText("");
+            setLoading(false);
+        }
     }, []);
 
     useEffect(() => {
@@ -96,7 +101,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const submitContent = async (translation: string) => {
         if (!translation) translation = "";
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
+            const response = await fetch(`/api/send_content`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

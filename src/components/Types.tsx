@@ -34,6 +34,7 @@ export interface UserCreate {
   nickname: string;
   bio: string;
   provider: string;
+  picture?: string;
 }
 
 export interface Comment {

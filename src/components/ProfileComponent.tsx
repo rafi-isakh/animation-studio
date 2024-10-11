@@ -192,7 +192,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </div>
                 </div>
                 <div className="flex flex-shrink-0 -translate-y-12" ref={viewRef} >
-                    <div id="works" ref={novelsRef} className={`max-w-screen-sm hidden md:max-w-screen-md flex flex-row flex-wrap after:content-[''] after:flex-auto`}>
+                    <div id="works" ref={novelsRef} className={`max-w-screen-sm hidden md:max-w-screen-md flex flex-row gap-x-2 gap-y-4 flex-wrap after:content-[''] after:flex-auto`}>
                         {novels.map((item, index) => (
                             <div key={index} className='mx-2'> {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                                 <WebnovelComponent webnovel={item} index={index} ranking={false} />

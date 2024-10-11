@@ -47,6 +47,13 @@ const Header = () => {
     let keyPressed = false
 
     useEffect(() => {
+        for (const lang of langPairList) {
+            setHighlightLanguage(prev => ({ ...prev, [lang.code as Language]: false }));
+        }
+        setHighlightLanguage(prev => ({ ...prev, [language]: true }));
+    }, [language])
+
+    useEffect(() => {
         if (isDesktop) {
             setLogoWidth(141);
             setLogoHeight(32);
@@ -128,10 +135,6 @@ const Header = () => {
     const handleLanguageChange = (language: Language) => {
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
-        for (const lang of langPairList) {
-            setHighlightLanguage(prev => ({ ...prev, [lang.code as Language]: false }));
-        }
-        setHighlightLanguage(prev => ({ ...prev, [language]: true }));
         if (device === 'mobile') {
             handleMobileMenuClick();
         }

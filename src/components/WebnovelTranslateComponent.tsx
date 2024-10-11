@@ -127,7 +127,9 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     type Direction = 'ltr' | 'rtl';
 
     return (
-        <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+        <div className="mb-16">
+            <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+            </div>
         </div>
     );
 };

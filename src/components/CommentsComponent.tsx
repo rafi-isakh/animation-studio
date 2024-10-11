@@ -89,7 +89,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             const data = await response.json();
             setChapter(data);
             setChapterTitle(data.title);
-            setKey3(prevKey => prevKey + 1)
+            setKey3(prevKey => prevKey + 1) // remount OtherTranslateComponent with retrieved chapter title
         }
         fetchComments();
         fetchChapter();

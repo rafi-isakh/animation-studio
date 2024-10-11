@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 export async function POST(req: NextRequest, res: NextResponse) {
-    const { content, translation } = await req.json();
+    const { original, translation } = await req.json();
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
         method: 'POST',
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            'original': content,
+            'original': original,
             'translation': translation
         })
     });
@@ -20,9 +20,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
         });
     }
 
-    return NextResponse.json({
-        "message": "Send content success",
-        "status": 200,
-    });
+    console.log(response);
+    const data = await response.json();
+    return NextResponse.json(data);
 }
 

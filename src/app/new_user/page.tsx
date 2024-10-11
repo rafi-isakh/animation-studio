@@ -15,7 +15,6 @@ import { useRouter } from 'next/navigation';
 import { CircularProgress } from '@mui/material';
 
 async function createUser() {
-    console.log("createUser")
     let nickname = "Anonymous";
     let bio = "";
 
@@ -67,6 +66,7 @@ async function isUserInDB() {
 export default function NewUser() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [userExists, setUserExists] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -75,6 +75,7 @@ export default function NewUser() {
             await createUser();
             const { user_exists, user_with_same_email_exists } = data;
             if (user_exists) {
+                setUserExists(true);
                 router.push('/');
             } else if (user_with_same_email_exists) {
                 signOut();
@@ -86,6 +87,10 @@ export default function NewUser() {
         }
         fetchData();
     }, [])
+
+    if (userExists) {
+        return null;
+    }
 
     return (
         loading ? 

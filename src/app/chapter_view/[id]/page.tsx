@@ -8,6 +8,7 @@ import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import { Button } from "@mui/material";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -64,12 +65,16 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <div>
-                <div className='max-w-screen-sm max-h-dvh flex flex-col items-left mx-auto pb-40'>
+                <div className='max-w-screen-sm p-4 max-h-dvh flex flex-col items-left mx-auto pb-40'>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <div>
-                            <Link href={`/view_webnovels?id=${webnovel.id}`}><i className="fa-solid fa-chevron-left"></i>
-                                <OtherTranslateComponent key={key2} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" /></Link>
+                            <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>
+                                <div className="flex flex-row space-x-2 items-center">
+                                <i className="fa-solid fa-chevron-left"></i>
+                                <OtherTranslateComponent key={key2} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                                </div>
+                            </Button>
                         </div>
                         <div className="flex flex-row items-center">
                             <Link href="#">
@@ -86,7 +91,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </div>
                     </div>
                     {/* Title and content */}
-                    <div className="max-w-full flex flex-col space-y-4 pb-24">
+                    <div className="flex flex-col space-y-4 pb-24">
                         <div key={key}>
                             <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-10 mb-10" />
                             <WebnovelTranslateComponent content={chapter.content} chapterId={id} />

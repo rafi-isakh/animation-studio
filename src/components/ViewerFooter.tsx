@@ -68,13 +68,13 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "prevChapter", language)}</p>
                     </Link>
-                    <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
+                    {/* <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
                     <Link href={`/my_library`}>
-                        <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link>
+                        <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link> */}
                     <Link href={`/comments?chapter_id=${chapterId.toString()}`}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "comments", language)}</p></Link>
-                    <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p>
+                    {/* <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p> */}
                     <Link href={nextChapterLink} onClick={handleNextChapter}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "nextChapter", language)}</p>
                     </Link>

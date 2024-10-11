@@ -174,7 +174,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         <p>{getNumberOfChapters()}</p>
                     </div>
                     <div className='flex flex-col justify-center items-center'>
-                        <p><i className="fa-regular fa-heart"></i>{Object.keys(dictionary).length != 0 && dictionary["likes"][language]}</p>
+                        <p><i className="fa-regular fa-heart"></i> {Object.keys(dictionary).length != 0 && dictionary["likes"][language]}</p>
                         <p>{getNumberOfLikes()}</p>
                     </div>
                 </div>

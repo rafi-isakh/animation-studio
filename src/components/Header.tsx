@@ -14,8 +14,7 @@ import { phrase } from '@/utils/phrases';
 import { signOut } from "next-auth/react"
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
-
-
+import { langPairList } from '@/utils/phrases';
 
 const Header = () => {
 
@@ -42,6 +41,9 @@ const Header = () => {
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
     const [logoWidth, setLogoWidth] = useState(141);
     const [logoHeight, setLogoHeight] = useState(32);
+    const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
+        Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
+    );
 
     let keyPressed = false
 
@@ -139,6 +141,10 @@ const Header = () => {
     const handleLanguageChange = (language: Language) => {
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
+        for (const lang of langPairList) {
+            setHighlightLanguage(prev => ({ ...prev, [lang.code as Language]: false }));
+        }
+        setHighlightLanguage(prev => ({ ...prev, [language]: true }));
         if (device === 'mobile') {
             handleMobileMenuClick();
         }
@@ -271,51 +277,13 @@ const Header = () => {
                                 {isLanguageDropdownOpen && (
                                     <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
                                         <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    한국어
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    English
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    日本語
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('zh-CN')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    中国语（繁体）
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('zh-TW')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    中國語（簡體）
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('th')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    ภาษาไทย
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('id')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    Bahasa Indonesia
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('vi')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    Tiếng Việt
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    العربية
-                                                </Link>
-                                            </li>
+                                            {langPairList.map((langPair, index) => (
+                                                <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
+                                                    <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        {langPair.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
                                         </ul>
                                     </div>
                                 )}

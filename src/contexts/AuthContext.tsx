@@ -29,7 +29,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setLoading(true);
                 const response = await fetch('/api/auth_session');
                 const data = await response.json();
-                console.log("data:", data)
                 setIsLoggedIn(data.loggedIn);
             } catch (error) {
                 console.error('Error checking auth:', error);

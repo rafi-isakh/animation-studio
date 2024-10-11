@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import OtherTranslateComponent from './OtherTranslateComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ChevronLeftIcon } from '@heroicons/react/24/solid';
+import { Button } from '@mui/material';
 
 // user could be undefined if not logged in
 const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
@@ -20,14 +22,17 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [initialFetch, setInitialFetch] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const router = useRouter();
-    const [key1, setKey1] = useState(0);
-    const [key2, setKey2] = useState(10);
+    const [key1, setKey1] = useState(1000);
+    const [key2, setKey2] = useState(2000);
+    const [key3, setKey3] = useState(3000);
     const {language} = useLanguage();
-    const [repliesKey, setRepliesKey] = useState(20);
+    const [repliesKey, setRepliesKey] = useState(4000);
+    const [chapterTitle, setChapterTitle] = useState("");
 
     useEffect(() => {
         setKey1(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
+        setKey3(prevKey => prevKey + 1)
     }, [language])
 
     const handleAddComment = async (event: React.FormEvent) => {
@@ -72,18 +77,19 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
 
     useEffect(() => {
         const fetchComments = async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
-                .then(data => data.json())
-            if (Array.isArray(res)) {
-                setAllComments(res);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                setAllComments(data);
                 setInitialFetch(true);
             }
-            return res;
         }
         const fetchChapter = async () => {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${chapterId}`)
-                .then(data => data.json());
-            setChapter(res);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${chapterId}`)
+            const data = await response.json();
+            setChapter(data);
+            setChapterTitle(data.title);
+            setKey3(prevKey => prevKey + 1)
         }
         fetchComments();
         fetchChapter();
@@ -171,9 +177,14 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     }
 
     return (
-        loaded && 
+        loaded &&
         <div className='max-w-md flex flex-col items-left mx-auto space-y-4'>
-            <Link href={`/chapter_view/${chapterId}`}><i className="fa-solid fa-chevron-left"></i> {chapter?.title}</Link>
+            <Button color='gray' variant='text' href={`/chapter_view/${chapterId}`} className='w-24'>
+                <div className="flex flex-row space-x-1 items-center">
+                    <ChevronLeftIcon className="w-6 h-6" />
+                    <OtherTranslateComponent key={key3} content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
+                </div>
+            </Button>
             <div className='flex flex-col'>
                 <form onSubmit={handleAddComment}>
                     <div className='flex flex-row items-end'>

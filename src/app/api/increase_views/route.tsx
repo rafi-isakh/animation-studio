@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { uploadFile } from '@/utils/s3'
 
 export async function GET(req: NextRequest, res: NextResponse) {
+    console.log("increase views")
     const session = await auth();
     const { searchParams } = new URL(req.url);
     const chapter_id = searchParams.get("chapter_id")

@@ -63,8 +63,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <ThemeProvider theme={grayTheme}>
-            <div className="z-50 fixed w-[95vw] mx-auto mb-8 bg-white border-black border-2 bottom-0 left-0 right-0">
-                <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-4">
+            <div className="z-50 fixed max-w-screen-sm mx-auto mb-2 bg-white border-black border-2 bottom-0 left-2 right-2 rounded-lg">
+                <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-2">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "prevChapter", language)}</p>
                     </Link>

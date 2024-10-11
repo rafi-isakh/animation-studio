@@ -157,8 +157,7 @@ return (
         {
             loading && showLoading ?
                 <div role="status" className='w-4'>
-                    {/*Spinny*/}
-                    <CircularProgress size="0.5rem" color='secondary' />
+                    <CircularProgress size="0.8rem" color='secondary' />
                 </div> :
                 text
         }

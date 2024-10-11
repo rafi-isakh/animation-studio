@@ -9,7 +9,7 @@ const NewUserNicknameComponent = () => {
   return (
     <div className='w-full'>
       <input
-        placeholder={phrase(dictionary, "promotion", language)}j
+        placeholder={phrase(dictionary, "promotion", language)}
         type="text"
         name="promoCode"
         className='input rounded-xl w-full border border-gray-300'

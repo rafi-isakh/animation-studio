@@ -76,7 +76,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         if (index == 0) {
             return '/view_webnovels?id=2';
         } else if (index == 1) {
-            return '/view_webnovels?id=4';
+            return '/view_webnovels?id=12';
         } else if (index == 2) {
             return '/view_webnovels?id=6';
         }

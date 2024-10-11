@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { User, Webnovel } from '@/components/Types';
+import { Webnovel, User } from '@/components/Types';
 import Link from 'next/link';
 import WebnovelComponent from './WebnovelComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -107,7 +107,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
       formData.append('nickname', user.nickname)
       formData.append('file', file)
 
-      const response = await fetch('/api/update-user', {
+      const response = await fetch('/api/update_user', {
         method: 'POST',
         body: formData,
       });
@@ -119,7 +119,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
   };
 
   const handleDeleteAccount = async () => {
-    const response = await fetch(`/api/delete-account?email=${email}`);
+    const response = await fetch(`/api/delete_account?email=${email}`);
     if (!response.ok) {
       console.error("Deleting account failed");
     } else {

@@ -17,7 +17,12 @@ export default phrases
 export const phrase = (dictionary: Dictionary, variable: string, language: Language) => {
     try  {
         if (Object.keys(dictionary).length != 0) {
-            return dictionary[variable][language];
+            const result = dictionary[variable][language];
+            if (result) {
+                return result;
+            } else {
+                return dictionary[variable]['en']; // default to english if translation is not found
+            }
         }
         return "";
     } catch {

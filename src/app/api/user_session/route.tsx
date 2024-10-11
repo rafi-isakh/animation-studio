@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import {auth} from '@/auth';
-import { User } from 'next-auth';
+import { User } from '@/components/Types';
 
 export async function GET(request: NextRequest) {
   try {

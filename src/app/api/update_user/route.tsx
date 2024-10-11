@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadFile } from '@/utils/s3'
+import { auth } from '@/auth';
 
 export async function POST(req: NextRequest, res: NextResponse) {
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json({
+      "message": "Unauthorized",
+      "status": 401
+    });
+  }
   const formData = await req.formData();
   const file = formData.get('file') as File;
   const email = formData.get('email');
@@ -34,6 +42,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.accessToken}`,
+      'Provider': session.provider
     },
     body: JSON.stringify(userData),
   });

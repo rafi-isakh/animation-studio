@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { signOut } from '@/auth';
 
 export async function POST() {
+  // todo: don't do this, use client side signout
   try {
     "use server"
     await signOut();

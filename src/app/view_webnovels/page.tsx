@@ -40,7 +40,7 @@ const ViewWebnovels = async ({ searchParams }: { searchParams: { [key: string]: 
         const email = session?.user.email;
 
         if (email) {
-            const addToLibraryResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_to_library?email=${email}&webnovel_id=${searchParams.id}`)
+            const addToLibraryResponse = await fetch(`/api/add_to_library?email=${email}&webnovel_id=${searchParams.id}`)
             if (!addToLibraryResponse.ok) {
                 console.error(`Add to library failed for ${email}, webnovel ${searchParams.id}`)
             }

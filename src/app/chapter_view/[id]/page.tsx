@@ -48,13 +48,13 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     const handleLikeClick = async () => {
         if (likeToggle) {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
+            const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(false);
         }
         else {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
+            const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(true);

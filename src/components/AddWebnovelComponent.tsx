@@ -79,7 +79,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
         }
         setIsSubmitting(true);
 
-        const res = await fetch('/api/add-webnovel', {
+        const res = await fetch('/api/add_webnovel', {
             method: 'POST',
             body: formData,
         });

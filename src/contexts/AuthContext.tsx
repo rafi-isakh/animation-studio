@@ -1,11 +1,14 @@
 "use client"
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { signIn, signOut } from 'next-auth/react';
 
 interface AuthContextProps {
   isLoggedIn: boolean | null;
-  setIsLoggedIn: (loggedIn: boolean | null ) => void;
+  setIsLoggedIn: (loggedIn: boolean | null) => void;
   loading: boolean | null;
+  login: (provider: string, redirect: boolean, callbackUrl: string) => void;
+  logout: (redirect: boolean, callbackUrl: string) => void;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -34,8 +37,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, [pathname]);
 
+
+  function login(provider: string, redirect: boolean, callbackUrl: string) {
+    signIn(provider, { redirect: redirect, callbackUrl: callbackUrl });
+  }
+
+  function logout(redirect: boolean, callbackUrl: string) {
+    signOut({ redirect: redirect, callbackUrl: callbackUrl });
+  }
+
   return (
-    <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading}}>
+    <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading, login, logout }}>
       {children}
     </authContext.Provider>
   );

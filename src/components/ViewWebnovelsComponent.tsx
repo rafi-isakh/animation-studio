@@ -17,7 +17,7 @@ import { styled } from '@mui/system';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, email: string | undefined
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, email: string | undefined | null
 }) => {
     const [loading, setLoading] = useState(true);
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
@@ -54,7 +54,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, email }
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`/api/delete-webnovel?id=${id}`);
+            const response = await fetch(`/api/delete_webnovel?id=${id}`);
             if (!response.ok) {
                 console.error("Delete webnovel failed");
                 return;

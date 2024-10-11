@@ -28,7 +28,6 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
-    const [whichCategory, setWhichCategory] = useState(0); // 0 = webnovel, 1 = webtoon, 2 = manhwa
     const device = useDevice();
     const menuRef = useRef<HTMLDivElement>(null);
     const languageDropdownRef = useRef<HTMLDivElement>(null);
@@ -75,18 +74,6 @@ const Header = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
-    const handleCategoryClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        const webnovel = document.getElementsByClassName('webnovel');
-        const studio = document.getElementsByClassName('studio');
-
-        if (event.target == webnovel[0] || event.target == webnovel[1]) {  // there's two of them: one for md, one for smaller
-            setWhichCategory(0);
-        }
-        else if (event.target == studio[0] || event.target == studio[1]) {
-            setWhichCategory(1);
-        }
-    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
@@ -200,6 +187,14 @@ const Header = () => {
         router.refresh();
     }
 
+    // Add this function to determine the active category
+    const isActive = (path: string) => {
+        if (path === '/') {
+            return pathname === '/' || pathname.startsWith('/webnovel');
+        }
+        return pathname.startsWith(path);
+    };
+
     return (
         <div className='fixed p-2 left-0 top-0 right-0 z-50 mx-auto'>
             <nav className="border border-black border-2 rounded-xl max-w-screen-xl mx-auto bg-white">
@@ -210,11 +205,11 @@ const Header = () => {
                             <Image src="/toonyzLogo.png" alt="Toonyz Logo" width={logoWidth} height={logoHeight} />
                         </button>
                         <div className="flex flex-row space-x-4 items-center justify-center">
-                            <Link href="/" onClick={handleCategoryClick}>
-                                <p className={`${whichCategory == 0 ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                            <Link href="/">
+                                <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                             </Link>
-                            <Link href="/studio" onClick={handleCategoryClick}>
-                                <p className={`${whichCategory == 1 ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
+                            <Link href="/studio">
+                                <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
                             </Link>
                         </div>
                     </div>
@@ -344,11 +339,11 @@ const Header = () => {
                     </div>
                 </div>
                 <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 pb-2 px-4">
-                    <Link href="/" onClick={handleCategoryClick}>
-                        <p className={`${whichCategory == 0 ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                    <Link href="/">
+                        <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                     </Link>
-                    <Link href="/studio" onClick={handleCategoryClick}>
-                        <p className={`${whichCategory == 1 ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
+                    <Link href="/studio">
+                        <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
                     </Link>
                 </div>
 

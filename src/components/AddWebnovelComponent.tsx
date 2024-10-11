@@ -169,7 +169,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
                                     {isSubmitting ?
-                                        <CircularProgress color='secondary' />
+                                        <CircularProgress size="0.5rem" color='secondary' />
                                         :
                                         phrase(dictionary, "save", language)}
                                 </NoCapsButton>

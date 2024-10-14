@@ -179,7 +179,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
 
     return (
         loaded &&
-        <div className='max-w-md flex flex-col items-left mx-auto space-y-4'>
+        <div className='max-w-md flex flex-col items-left mx-auto space-y-4 p-4'>
             <Button color='gray' variant='text' href={`/chapter_view/${chapterId}`} className='w-full'>
                 <div className="flex flex-row !items-left justify-start flex-1">
                     <ChevronLeftIcon className="w-6 h-6" />
@@ -200,7 +200,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         />
                         <br />
                         <button type="submit" className='rounded absolute'>
-                            <i className="fa-solid fa-paper-plane ml-2 relative left-[25.5rem] -top-[0.5rem]" aria-hidden="true"></i>
+                            <i className="fa-solid fa-paper-plane ml-2 relative -top-[0.5rem] !sm:left-[25.5rem] md:left-[25.5rem] lg:left-[25.5rem] " aria-hidden="true"></i>
                         </button>
                     </div>
                 </form>

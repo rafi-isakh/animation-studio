@@ -9,6 +9,7 @@ import OtherTranslateComponent from './OtherTranslateComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
 import { Button } from '@mui/material';
+import { phrase } from '@/utils/phrases';
 
 // user could be undefined if not logged in
 const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
@@ -25,7 +26,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [key1, setKey1] = useState(1000);
     const [key2, setKey2] = useState(2000);
     const [key3, setKey3] = useState(3000);
-    const {language} = useLanguage();
+    const {language, dictionary} = useLanguage();
     const [repliesKey, setRepliesKey] = useState(4000);
     const [chapterTitle, setChapterTitle] = useState("");
 
@@ -178,9 +179,9 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
 
     return (
         loaded &&
-        <div className='max-w-md flex flex-col items-left mx-auto space-y-4'>
-            <Button color='gray' variant='text' href={`/chapter_view/${chapterId}`} className='w-24'>
-                <div className="flex flex-row space-x-1 items-center">
+        <div className='max-w-md flex flex-col items-left mx-auto space-y-4 p-4'>
+            <Button color='gray' variant='text' href={`/chapter_view/${chapterId}`} className='w-full'>
+                <div className="flex flex-row !items-left justify-start flex-1">
                     <ChevronLeftIcon className="w-6 h-6" />
                     <OtherTranslateComponent key={key3} content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
                 </div>
@@ -188,15 +189,18 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             <div className='flex flex-col'>
                 <form onSubmit={handleAddComment}>
                     <div className='flex flex-row items-end'>
+
                         <textarea
                             value={commentContent}
-                            rows={4}
-                            className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 resize-none'
+                            rows={6}
+                            className='textarea rounded-xl focus:ring-pink-600 w-full resize-none border border-gray-300 '
                             onChange={(e) => setCommentContent(e.target.value)}
+                            placeholder={phrase(dictionary, "typeYourComment", language)}
+                            
                         />
                         <br />
-                        <button type="submit">
-                            <i className="fa-solid fa-paper-plane ml-2" aria-hidden="true"></i>
+                        <button type="submit" className='rounded absolute'>
+                            <i className="fa-solid fa-paper-plane ml-2 relative -top-[0.5rem] -right-[24rem]" aria-hidden="true"></i>
                         </button>
                     </div>
                 </form>
@@ -204,19 +208,23 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     <ul>
                         {allComments.map((comment, index) => (
                             (!comment.parent_id) ? (
-                                <div key={index} className='flex flex-col'>
-                                    <Link href={`/view_profile/${comment.user.id}`}><li className='font-bold'>{comment.user.nickname}</li></Link>
+                                <div key={index} className='flex flex-col py-3'>
+                                    <Link href={`/view_profile/${comment.user.id}`}>
+                                    <li className='font-extrabold mb-2 text-slate-600'>{comment.user.nickname}</li>
+                                   
+                                    </Link>
                                     <li className='flex flex-row justify-between w-full'>
                                         {<OtherTranslateComponent key={key1} content={comment.content} elementId={comment.id.toString()} elementType='comment'/>}
-                                        <a href="#"><i onClick={() => updateShowForm(index, !showForm[index])} className='fa-solid fa-reply'></i>
+                                        <a href="#">
+                                            <i onClick={() => updateShowForm(index, !showForm[index])} className='fa-solid fa-reply mb-3'></i>
                                         </a>
                                     </li>
                                     <hr />
-                                    <li className='ml-4'>
+                                    <li className='ml-4 py-3'>
                                         {comment.replies ? comment.replies.map((reply, j) => (
                                             <div key={j}>
-                                                <li className='font-bold'>{reply.user.nickname}</li>
-                                                <li>
+                                                <li className='font-extrabold mb-2 text-slate-600'>{reply.user.nickname}</li>
+                                                <li className='mb-2'>
                                                 {<OtherTranslateComponent key={key2} content={reply.content} elementId={reply.id.toString()} elementType='comment'/>}
                                                 </li>
                                                 <hr />
@@ -227,20 +235,32 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                                     <li>
                                         {showForm[index] ? (
                                             <form id={`replyForm.${index}`} onSubmit={handleReply}>
-                                                <div className='flex flex-row space-x-4 ml-4'>
+                                                <div className='flex flex-row space-x-4 ml-4 '>
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" 
+                                                width="24" height="24" 
+                                                viewBox="0 0 24 24" fill="none" 
+                                                stroke="currentColor" stroke-width="2" 
+                                                stroke-linecap="round" 
+                                                stroke-linejoin="round" 
+                                                className="lucide lucide-corner-down-right"
+                                                >
+                                                <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
+                                                </svg>
+
                                                     <textarea
                                                         value={replyContent[index]}
                                                         rows={1}
-                                                        className='textarea border-none rounded focus:ring-pink-600 w-full bg-gray-200 resize-none'
+                                                        className='textarea rounded focus:ring-pink-600 w-full resize-none border border-gray-300'
                                                         onChange={(e) => updateReplyContent(index, e.target.value)}
                                                     />
-                                                    <button type="submit">
+                                                    <button type="submit" className=''>
                                                         <i className="fa-solid fa-paper-plane" aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                             </form>
                                         )
-                                            : <hr />
+                                            : <></>
                                         }
                                     </li>
                                 </div>

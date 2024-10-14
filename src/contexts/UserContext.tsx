@@ -29,16 +29,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         const checkUser = async () => {
             try {
                 let data: any;
-                const sessionStorageUser = sessionStorage.getItem("userr");
-                if (sessionStorageUser) {
-                    data = sessionStorageUser;
-                } else {
-                    const response = await fetch('/api/user_session');
-                    data = await response.json();
-                    if (!data.nickname || !data.email) {
-                        throw new Error("nickname and email should be present in response from /api/user_session")
-                    }
-                    sessionStorage.setItem("user", data); // Make sure to clear this when updating user's bio, nickname, or other info.
+                const response = await fetch('/api/user_session');
+                data = await response.json();
+                if (!data.email) {
+                    throw new Error("email should be present in response from /api/user_session")
                 }
                 setNickname(data.nickname);
                 setEmail(data.email);

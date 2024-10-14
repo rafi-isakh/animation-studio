@@ -14,14 +14,13 @@ import { phrase } from '@/utils/phrases';
 import { signOut } from "next-auth/react"
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
-
-
+import { langPairList } from '@/utils/phrases';
 
 const Header = () => {
 
     const router = useRouter();
     const { setIsLoggedIn } = useAuth();
-    const { isLoggedIn, loading } = useAuth();
+    const { isLoggedIn, loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
     const [query, setQuery] = useState('');
@@ -29,7 +28,6 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
-    const [whichCategory, setWhichCategory] = useState(0); // 0 = webnovel, 1 = webtoon, 2 = manhwa
     const device = useDevice();
     const menuRef = useRef<HTMLDivElement>(null);
     const languageDropdownRef = useRef<HTMLDivElement>(null);
@@ -42,8 +40,18 @@ const Header = () => {
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
     const [logoWidth, setLogoWidth] = useState(141);
     const [logoHeight, setLogoHeight] = useState(32);
+    const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
+        Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
+    );
 
     let keyPressed = false
+
+    useEffect(() => {
+        for (const lang of langPairList) {
+            setHighlightLanguage(prev => ({ ...prev, [lang.code as Language]: false }));
+        }
+        setHighlightLanguage(prev => ({ ...prev, [language]: true }));
+    }, [language])
 
     useEffect(() => {
         if (isDesktop) {
@@ -73,18 +81,6 @@ const Header = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
-    const handleCategoryClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        const webnovel = document.getElementsByClassName('webnovel');
-        const studio = document.getElementsByClassName('studio');
-
-        if (event.target == webnovel[0] || event.target == webnovel[1]) {  // there's two of them: one for md, one for smaller
-            setWhichCategory(0);
-        }
-        else if (event.target == studio[0] || event.target == studio[1]) {
-            setWhichCategory(1);
-        }
-    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);
@@ -126,14 +122,14 @@ const Header = () => {
         }
     }
 
-    // special handling for new_user page
-    const inNewUser = () => {
-        return pathname == '/new_user'
-    }
+    // // special handling for new_user page
+    // const inNewUser = () => {
+    //     return pathname == '/new_user'
+    // }
 
     const handleSignOut = async (event: React.FormEvent) => {
         event.preventDefault();
-        signOut();
+        logout(true, '/');
     };
 
     const handleLanguageChange = (language: Language) => {
@@ -194,6 +190,14 @@ const Header = () => {
         router.refresh();
     }
 
+    // Add this function to determine the active category
+    const isActive = (path: string) => {
+        if (path === '/') {
+            return pathname === '/' || pathname.startsWith('/webnovel');
+        }
+        return pathname.startsWith(path);
+    };
+
     return (
         <div className='fixed p-2 left-0 top-0 right-0 z-50 mx-auto'>
             <nav className="border border-black border-2 rounded-xl max-w-screen-xl mx-auto bg-white">
@@ -204,11 +208,11 @@ const Header = () => {
                             <Image src="/toonyzLogo.png" alt="Toonyz Logo" width={logoWidth} height={logoHeight} />
                         </button>
                         <div className="flex flex-row space-x-4 items-center justify-center">
-                            <Link href="/" onClick={handleCategoryClick}>
-                                <p className={`${whichCategory == 0 ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                            <Link href="/">
+                                <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                             </Link>
-                            <Link href="/studio" onClick={handleCategoryClick}>
-                                <p className={`${whichCategory == 1 ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
+                            <Link href="/studio">
+                                <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
                             </Link>
                         </div>
                     </div>
@@ -240,17 +244,17 @@ const Header = () => {
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                             </div>
-                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black border rounded-md border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
                         </div>
                         {/*Search bar visible in screens larger than md (md:block)*/}
                         <div className="relative hidden md:block mr-6">
                             <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                <svg className="w-4 h-4 text-black dark:text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                <svg className="w-4 h-4 text-black dark:text-black rounded" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                                 <span className="sr-only">Search icon</span>
                             </div>
-                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black  border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
+                            <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
                         </div>
                         <ul className="border border-black flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 border border-black">
                             {/* News menu
@@ -269,53 +273,15 @@ const Header = () => {
                                     </button>
                                 </div>
                                 {isLanguageDropdownOpen && (
-                                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item}  z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
-                                        <ul className="py-2 text-sm border border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('ko')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    한국어
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('en')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    English
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('ja')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    日本語
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('zh-CN')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    中国语（繁体）
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('zh-TW')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    中國語（簡體）
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('th')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    ภาษาไทย
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('id')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    Bahasa Indonesia
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('vi')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    Tiếng Việt
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link href="#" onClick={() => handleLanguageChange('ar')} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                    العربية
-                                                </Link>
-                                            </li>
+                                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
+                                        <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                            {langPairList.map((langPair, index) => (
+                                                <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
+                                                    <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        {langPair.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
                                         </ul>
                                     </div>
                                 )}
@@ -330,8 +296,8 @@ const Header = () => {
                                         </svg></button>
                                 </div>
                                 {isUserDropdownOpen && (
-                                    <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem}  z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-white dark:divide-gray-600`}>
-                                        <ul className="py-2 text-sm border border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                    <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-white dark:divide-gray-600`}>
+                                        <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                             {loading ? (
                                                 <li>
                                                     <div role="status">
@@ -344,7 +310,7 @@ const Header = () => {
                                                 </li>
                                             )
                                                 :
-                                                isLoggedIn && !inNewUser() ? (
+                                                isLoggedIn ? (
                                                     <>
                                                         <li>
                                                             <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "newWebnovel", language)}</Link>
@@ -379,11 +345,11 @@ const Header = () => {
                     </div>
                 </div>
                 <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 pb-2 px-4">
-                    <Link href="/" onClick={handleCategoryClick}>
-                        <p className={`${whichCategory == 0 ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                    <Link href="/">
+                        <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                     </Link>
-                    <Link href="/studio" onClick={handleCategoryClick}>
-                        <p className={`${whichCategory == 1 ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webtoons", language)}</p>
+                    <Link href="/studio">
+                        <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
                     </Link>
                 </div>
 

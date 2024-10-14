@@ -8,11 +8,11 @@ const NewUserNicknameComponent = () => {
 
   return (
     <div className='w-full'>
-      <p className="text-lg">{phrase(dictionary, "promotion", language)}</p>
       <input
+        placeholder={phrase(dictionary, "promotion", language)}
         type="text"
         name="promoCode"
-        className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
+        className='input rounded-xl w-full border border-gray-300'
       />
     </div>
   )

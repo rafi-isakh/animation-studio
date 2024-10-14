@@ -359,6 +359,9 @@ const Header = () => {
                                                             <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "profile", language)}</Link>
                                                         </li>
                                                         <li>
+                                                            <Link href="/points" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "points", language)}</Link>
+                                                        </li>
+                                                        <li>
                                                             <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "logout", language)}</Link>
                                                         </li>
                                                     </>

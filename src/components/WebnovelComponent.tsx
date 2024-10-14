@@ -29,7 +29,7 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
             <Card className='p-2 rounded-xl'>
-                <div className="overflow-hidden w-[244px] h-[116px] md:w-[325px] md:h-[155px]">
+                <div className="overflow-hidden flex items-center w-[244px] h-[116px] md:w-[325px] md:h-[155px]">
                     <div className="flex flex-row mt-2 space-x-4 items-center">
                         <Image src={imageSrc} width={imageWidth} height={imageHeight} alt={webnovel.cover_art} className="rounded-xl"
                             placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가

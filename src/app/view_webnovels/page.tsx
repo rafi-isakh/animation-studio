@@ -1,5 +1,8 @@
+"use client"
 import { auth } from "@/auth";
+import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
+import { useEffect, useState } from "react";
 
 async function getWebnovel(id: string | string[] | undefined) {
     if (Array.isArray(id)) {
@@ -30,30 +33,26 @@ async function getUserWebnovels(email: string) {
     return data;
 }
 
-const ViewWebnovels = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
-    const webnovel = await getWebnovel(searchParams.id);
-    if (webnovel) {
-        const { email: author_email, nickname: user_nickname } = webnovel.user;
-        const userWebnovels = await getUserWebnovels(author_email);
+const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+    const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
+    const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
+    useEffect(() => {
+        const fetchData = async () => {
+            const webnovel = await getWebnovel(searchParams.id);
+            if (webnovel) {
+                setWebnovel(webnovel);
+                const { email: author_email, nickname: user_nickname } = webnovel.user;
+                const userWebnovels = await getUserWebnovels(author_email);
+                setUserWebnovels(userWebnovels);
 
-        const session = await auth();   
-        const email = session?.user.email;
-
-        if (email) {
-            const addToLibraryResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_to_library?email=${email}&webnovel_id=${searchParams.id}`)
-            if (!addToLibraryResponse.ok) {
-                console.error(`Add to library failed for ${email}, webnovel ${searchParams.id}`)
+                await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
             }
         }
-        return (
-            <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} email={email} />
-        )
-    } else {
-        return (
-            <ViewWebnovelsComponent searchParams={searchParams} webnovel={null} userWebnovels={null} email=""/>
-        )
-    }
-
+        fetchData();
+    }, [])
+    return (
+        <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+    )
 }
 
 export default ViewWebnovels;

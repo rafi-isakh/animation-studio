@@ -1,5 +1,3 @@
-import { User } from "next-auth";
-
 export interface WebnovelIdProps {
     webnovelId: number;
 }
@@ -23,11 +21,20 @@ export interface Chapter {
   upvotes: number;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  nickname: string;
+  bio: string;
+  picture: string;
+}
+
 export interface UserCreate {
   email: string;
   nickname: string;
   bio: string;
   provider: string;
+  picture?: string;
 }
 
 export interface Comment {

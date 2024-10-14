@@ -94,6 +94,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = token.user as AdapterUser & User
       session.accessToken = token.accessToken as string
       session.provider = token.provider as string
+      if (session.provider === 'kakao' && session.user.kakao_account) {
+        session.user.email = session.user.kakao_account.email;
+      }
       return session
     },
   },

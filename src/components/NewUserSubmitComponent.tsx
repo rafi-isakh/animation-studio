@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases';
 import { Button, ThemeProvider } from "@mui/material";
-import { bwTheme, grayTheme } from "@/styles/BlackWhiteButtonStyle";
+import { bwTheme, grayTheme, NoCapsButton } from "@/styles/BlackWhiteButtonStyle";
 
 
 const NewUserSubmitComponent = () => {
@@ -11,13 +11,14 @@ const NewUserSubmitComponent = () => {
 
     return (
         <ThemeProvider theme={grayTheme}>
-            <Button
+            <NoCapsButton
+                className='w-32 mx-auto'
                 type="submit"
-                variant="contained"
+                variant="outlined"
                 color="gray"
             >
                 {phrase(dictionary, "register", language)}
-            </Button>
+            </NoCapsButton>
         </ThemeProvider>
     )
 }

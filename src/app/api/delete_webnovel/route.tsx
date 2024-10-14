@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   if (!session || !session.user) {
     return NextResponse.json({
-      "message": "Unauthorized!!",
+      "message": "Unauthorized",
       "status": 401
     });
   }

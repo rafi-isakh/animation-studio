@@ -12,11 +12,6 @@ declare module "next-auth" {
   }
 
   interface User {
-    id: number;
-    email: string;
-    nickname: string;
-    bio: string;
-    picture: string;
     kakao_account?: {
       email: string;
     };

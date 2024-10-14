@@ -68,7 +68,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
         }
         formData.append('webnovel_id', webnovelId);
         if (!maxExceeded) {
-            const res = await fetch('/api/add-chapter', {
+            const res = await fetch('/api/add_chapter', {
                 method: 'POST',
                 body: formData,
             });

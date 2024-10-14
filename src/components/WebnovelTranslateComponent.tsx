@@ -1,5 +1,6 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
+import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 
 const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
@@ -126,7 +127,9 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     type Direction = 'ltr' | 'rtl';
 
     return (
-        <div dangerouslySetInnerHTML={{ __html: text }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+        <div className="mb-16">
+            <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+            </div>
         </div>
     );
 };

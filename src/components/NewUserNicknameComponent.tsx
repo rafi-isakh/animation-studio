@@ -1,21 +1,22 @@
 "use client"
 
 import { useLanguage } from "@/contexts/LanguageContext"
-import {phrase} from '@/utils/phrases';
+import { phrase } from '@/utils/phrases';
 
 const NewUserNicknameComponent = () => {
-  const {dictionary, language} = useLanguage();
+    const { dictionary, language } = useLanguage();
 
-  return (
-    <div>
-      <p className="text-lg">{phrase(dictionary, "nickname", language)}</p>
-      <input
-        type="text"
-        name="nickname"
-        className='input border-none rounded focus:ring-pink-600 bg-gray-200 w-full'
-      />
-    </div>
-  )
+    return (
+        <div className='w-full'>
+            <input
+                placeholder={phrase(dictionary, "nickname", language)}
+                type="text"
+                name="nickname"
+                required
+                className='input rounded-xl w-full border border-gray-300'
+            />
+        </div>
+    )
 }
 
 export default NewUserNicknameComponent;

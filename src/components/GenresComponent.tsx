@@ -38,7 +38,7 @@ const GenresComponent = () => {
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
     return (
-        <div className="scrollbar-hide w-full bg-[#d9a8ff] h-16 md:h-32 mt-4 md:mt-8 justify-between overflow-x-scroll flex">
+        <div className="scrollbar-hide w-full bg-[#d9a8ff] h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex">
             <div className="flex w-[720px] md:w-[1280px] px-4 justify-between items-center mx-auto">
                 {genres.map((genre, index) => (
                     <Link

@@ -1,5 +1,44 @@
 import { Dictionary, Language } from "@/components/Types"
 
+export const langPairList = [
+    {
+        code: 'ko',
+        name: '한국어'
+    },
+    {
+        code: 'en',
+        name: 'English'
+    },
+    {
+        code: 'ja',
+        name: '日本語'
+    },
+    {
+        code: 'zh-CN',
+        name: '中国语（繁体）'
+    },
+    {
+        code: 'zh-TW',
+        name: '中國語（簡體）'
+    },
+    {
+        code: 'th',
+        name: 'ภาษาไทย'
+    },
+    {
+        code: 'id',
+        name: 'Bahasa Indonesia'
+    },
+    {
+        code: 'vi',
+        name: 'Tiếng Việt'
+    },
+    {
+        code: 'ar',
+        name: 'العربية'
+    }
+]
+
 const phrases = async () => {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_phrases`);
@@ -17,7 +56,12 @@ export default phrases
 export const phrase = (dictionary: Dictionary, variable: string, language: Language) => {
     try  {
         if (Object.keys(dictionary).length != 0) {
-            return dictionary[variable][language];
+            const result = dictionary[variable][language];
+            if (result) {
+                return result;
+            } else {
+                return dictionary[variable]['en']; // default to english if translation is not found
+            }
         }
         return "";
     } catch {

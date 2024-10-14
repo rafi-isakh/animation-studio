@@ -59,3 +59,5 @@ declare module '@mui/material/Button' {
 export const NoCapsButton = styled(Button)({
     textTransform: 'none',
 });
+
+

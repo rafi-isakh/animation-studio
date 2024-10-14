@@ -200,7 +200,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         />
                         <br />
                         <button type="submit" className='rounded absolute'>
-                            <i className="fa-solid fa-paper-plane ml-2 relative -top-[0.5rem] !sm:left-[25.5rem] md:left-[25.5rem] lg:left-[25.5rem] " aria-hidden="true"></i>
+                            <i className="fa-solid fa-paper-plane ml-2 relative -top-[0.5rem] -right-[24rem]" aria-hidden="true"></i>
                         </button>
                     </div>
                 </form>
@@ -254,8 +254,8 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                                                         className='textarea rounded focus:ring-pink-600 w-full resize-none border border-gray-300'
                                                         onChange={(e) => updateReplyContent(index, e.target.value)}
                                                     />
-                                                    <button type="submit" className='absolute'>
-                                                        <i className="fa-solid fa-paper-plane relative left-[24rem] top-[0.4rem]" aria-hidden="true"></i>
+                                                    <button type="submit" className=''>
+                                                        <i className="fa-solid fa-paper-plane" aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                             </form>

@@ -15,6 +15,7 @@ import { signOut } from "next-auth/react"
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
+import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 
 const Header = () => {
 
@@ -340,6 +341,9 @@ const Header = () => {
                                         </ul>
                                     </div>
                                 )}
+                            </li>
+                            <li className="mt-1 relative">
+                                <ChargePointsTemporary/>
                             </li>
                         </ul>
                     </div>

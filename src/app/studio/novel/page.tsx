@@ -2,13 +2,9 @@
 import { Button } from "@mui/material";
 import { useState, useEffect } from "react";
 
-export default function StudioPage() {
+export default function NovelStudioPage() {
     const [genres, setGenres] = useState("");
     const [keywords, setKeywords] = useState("");
-    const [logline, setLogline] = useState("");
-    const [mainCharacterSentence, setMainCharacterSentence] = useState("");
-    const [subCharacterSentence, setSubCharacterSentence] = useState("");
-    const [synopsis, setSynopsis] = useState("");
     const [streamedEpisodeConfig, setStreamedEpisodeConfig] = useState("");
     const [isGeneratingEpisodeConfig, setIsGeneratingEpisodeConfig] = useState(false);
     const [streamedLogline, setStreamedLogline] = useState("");
@@ -57,7 +53,7 @@ export default function StudioPage() {
         setStreamedLogline("");
 
         try {
-            const response = await fetch('/api/onoma-fabulator/logline', {
+            const response = await fetch('/api/onoma/fabulator/logline', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,7 +78,7 @@ export default function StudioPage() {
         setMainCharacter("");
 
         try {
-            const response = await fetch('/api/onoma-fabulator/main-character', {
+            const response = await fetch('/api/onoma/fabulator/main-character', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +103,7 @@ export default function StudioPage() {
         setStreamedMainCharacterSentence("");
 
         try {
-            const response = await fetch('/api/onoma-fabulator/main-character-sentence', {
+            const response = await fetch('/api/onoma/fabulator/main-character-sentence', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -129,7 +125,7 @@ export default function StudioPage() {
         setIsGeneratingSubCharacter(true);
         setSubCharacter("");
         try {
-            const response = await fetch('/api/onoma-fabulator/sub-character', {
+            const response = await fetch('/api/onoma/fabulator/sub-character', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -153,7 +149,7 @@ export default function StudioPage() {
         setIsGeneratingSubCharacterSentence(true);
         setStreamedSubCharacterSentence("");
         try {
-            const response = await fetch('/api/onoma-fabulator/sub-character-sentence', {
+            const response = await fetch('/api/onoma/fabulator/sub-character-sentence', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -176,7 +172,7 @@ export default function StudioPage() {
         setIsGeneratingEpisodeConfig(true);
         setStreamedEpisodeConfig("");
         try {
-            const response = await fetch('/api/onoma-fabulator/episode-config', {
+            const response = await fetch('/api/onoma/fabulator/episode-config', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -201,7 +197,7 @@ export default function StudioPage() {
         setIsGeneratingSynopsis(true);
         setStreamedSynopsis("");
         try {
-            const response = await fetch('/api/onoma-fabulator/synopsis', {
+            const response = await fetch('/api/onoma/fabulator/synopsis', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

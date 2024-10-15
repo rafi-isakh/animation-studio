@@ -42,7 +42,8 @@ export default function PicturesStudioPage() {
     return (
         <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto">
          
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full h-full">
+         <div className="flex justify-center w-full">
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-auto">
              {pictures.length > 0 ? (
                     pictures.map((image, index) => (
                         <div key={index} className="w-80 h-80">
@@ -56,13 +57,18 @@ export default function PicturesStudioPage() {
                         </div>
                     ))
                 ) : (
-                    <div className="flex flex-col justify-center items-center w-full h-full text-center">
-                        <span className="font-bold !text-center">여러분의 Feed를 생성해 보세요.</span>
-                        <span> 구체적인 프롬프트와 키워드로 인물의 행동과 외모, 배경 및 분위기를 묘사해주세요. 예시) 한 소녀, 금발의 공주, 화이트 드레스, 목걸이, 진주 귀걸이 </span>
+                    <div className="col-span-full flex justify-center items-center h-full">
+                        <div className="text-center max-w-md">
+                            <p className="font-bold mb-2">여러분의 Feed를 생성해 보세요.</p>
+                            <p className="text-sm">
+                                구체적인 프롬프트와 키워드로 인물의 행동과 외모, 배경 및 분위기를 묘사해주세요. 
+                                예시) 한 소녀, 금발의 공주, 화이트 드레스, 목걸이, 진주 귀걸이
+                            </p>
+                            </div>
                     </div>
                 )}
+              </div>
             </div>
-
 
          <div className="flex flex-row fixed bottom-5">
             <textarea 
@@ -78,7 +84,13 @@ export default function PicturesStudioPage() {
             disabled={isGeneratingPictures}
             className='px-4 py-3 font-bold border border-gray-600 ml-4 bg-white'
             >
-                {isGeneratingPictures ? (<p className="text-[10px]">Generating...</p>) : <p className="text-[10px]">Generate</p> }
+                {isGeneratingPictures ? (
+                    // Generating..
+                    <p className="text-[10px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
+                    ) : (
+                    // Generate
+                    <p className="text-[10px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
+                    }
                   {/* Palette icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 
                     width="18" 

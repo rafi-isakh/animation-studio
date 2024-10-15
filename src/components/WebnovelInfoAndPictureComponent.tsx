@@ -7,6 +7,8 @@ import OtherTranslateComponent from "./OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { phrase, code_to_lang } from "@/utils/phrases"
+import Comments from "@/app/comments/page"
+import CommentsComponent from "./CommentsComponent"
 
 const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
 

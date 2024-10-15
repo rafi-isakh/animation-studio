@@ -1,3 +1,4 @@
+"use client"
 import { loadPaymentWidget, PaymentWidgetInstance } from "@tosspayments/payment-widget-sdk"
 // import { ANONYMOUS } from "@tosspayments/payment-widget-sdk"
 import { nanoid } from "nanoid"

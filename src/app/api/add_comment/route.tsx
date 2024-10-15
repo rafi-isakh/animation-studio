@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { existsSync } from "fs";
+import fs from "fs/promises";
+import path from "path";
+
+export async function POST(req: NextRequest, res: NextResponse) {
+  const session = await auth();
+  const data = await req.json();
+  console.log(data)
+
+  if (!session) {
+    return NextResponse.json({
+        "message": "Unauthorized",
+        "status": 401
+    });
+  }
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_comment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.accessToken}`,
+      'Provider': session.provider
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    return NextResponse.json({
+        "message": "Add comment failed",
+        "status": response.status
+    });
+  }
+
+  return NextResponse.json({
+        "message": "Success",
+        "status": 200
+    });
+}

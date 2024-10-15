@@ -3,54 +3,8 @@ import { Button } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
+import CharacterInfo from '@/components/CharacterInfo';
 
-
-const CharacterSection: React.FC<{ title: string; data: Record<string, string> }> = ({ title, data }) => (
-    <section className="bg-gray-100 border rounded border-gray-200 px-3">
-      <h2 className="font-bold text-lg py-2 border-gray border-b-2">{title}</h2>
-      <div className="py-6 space-y-4">
-        {Object.entries(data).map(([key, value]) => (
-          <div key={key} className="w-full flex flex-row">
-            <span className="border-pink-200 rounded-md px-4 bg-pink-200 w-32 text-[12px] justify-center self-center text-center">
-                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </span> 
-            <p className="ml-4">{value}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-
-
-// Main character component start //
-const CharacterInfo: React.FC<{ data: string; title?: string }> = ({ data, title }) => {
-    if (!data) return null;
-  
-    const parsedData = JSON.parse(data);
-
-    // Filter out the "status" key
-    const filteredData = Object.fromEntries(
-        Object.entries(parsedData).filter(([key]) => key !== "status")
-    );
-  
-    return (
-      <div className="space-y-4">
-        <h1 className="font-bold mb-10">{title}</h1>
-        {Object.entries(filteredData).map(([sectionKey, sectionData]) => (
-          <CharacterSection
-            key={sectionKey}
-            title={sectionKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            data={sectionData as Record<string, string>}
-          />
-        ))}
-      </div>
-    );
-  };
-
-
-
-
-// 
 export default function NovelStudioPage() {
     const [genres, setGenres] = useState("");
     const [keywords, setKeywords] = useState("");

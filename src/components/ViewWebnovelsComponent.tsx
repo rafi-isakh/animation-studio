@@ -90,12 +90,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             return (
                 <ThemeProvider theme={grayTheme}>
                     <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
-                        <div className='w-full md:w-1/4 p-4'>
-                            <Suspense>
-                                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                            </Suspense>
-                            <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
-                        </div>
+                       
                         <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
                             <Suspense>
                                 <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
@@ -104,25 +99,50 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 {
                                     <div className='flex flex-row'>
                                         {(author_email == email) &&
-                                            <div className='flex flex-col space-y-4 w-32'>
-                                                {/* <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
-                                                    {phrase(dictionary, "aieditor", language)}
-                                                </NoCapsButton> */}
-                                                <NoCapsButton color='gray' variant='outlined' onClick={handleNewChapter}>
+                                            <div className='flex flex-row gap-4 w-full justify-end py-6'>
+                                                {/* 
+                                                    <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
+                                                        {phrase(dictionary, "aieditor", language)}
+                                                    </NoCapsButton> 
+                                                */}
+                                                <NoCapsButton 
+                                                    color='gray' 
+                                                    variant='outlined' 
+                                                    onClick={handleNewChapter}
+                                                    className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                                >
                                                     {phrase(dictionary, "uploadNewChapter", language)}
                                                 </NoCapsButton>
-                                                <NoCapsButton color='gray' variant='outlined' onClick={() => setShowDeleteModal(true)}>
+                                                <NoCapsButton 
+                                                    color='gray' 
+                                                    variant='outlined' 
+                                                    onClick={() => setShowDeleteModal(true)}
+                                                    className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                                >
                                                     {phrase(dictionary, "deleteWebnovel", language)}
                                                 </NoCapsButton>
                                             </div>
                                         }
-                                        <div className='w-32 h-32'>
-
-                                        </div>
+                                        {/*
+                                         <div className='w-32 h-32'>
+                                        </div> 
+                                        */}
                                     </div>
                                 }
                             </div>
+                            
                             <ListOfChaptersComponent webnovel={getWebnovel()} />
+                          
+                           {/* writer's other works */}
+                           {/*
+                             <div className='w-full md:w-1/4 p-4'>
+                                <Suspense>
+                                    <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
+                                </Suspense>
+                                <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
+                             </div> 
+                           */}
+
                         </div>
                     </div >
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>

@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
+import ViewVideos from './ViewVideos';
 
 const Header = () => {
 
@@ -264,6 +265,12 @@ const Header = () => {
                                     <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "news", language)}</p></Link>
                             </li> */}
                             {/*Language menu*/}
+                            <li className="mt-1 relative px-4 py-5 md:p-0">
+                                <ChargePointsTemporary/>
+                            </li>
+                            <li className="mt-1 relative px-4 py-5 md:p-0">
+                                <ViewVideos/>
+                            </li>
                             <li className="py-2 relative">
                                 <div ref={languageMenuRef}>
                                     <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
@@ -326,9 +333,6 @@ const Header = () => {
                                                             <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "profile", language)}</Link>
                                                         </li>
                                                         <li>
-                                                            <Link href="/points" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "points", language)}</Link>
-                                                        </li>
-                                                        <li>
                                                             <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "logout", language)}</Link>
                                                         </li>
                                                     </>
@@ -341,9 +345,6 @@ const Header = () => {
                                         </ul>
                                     </div>
                                 )}
-                            </li>
-                            <li className="mt-1 relative">
-                                <ChargePointsTemporary/>
                             </li>
                         </ul>
                     </div>

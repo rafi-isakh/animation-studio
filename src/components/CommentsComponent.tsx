@@ -141,16 +141,18 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     "replies": []
                 }
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_comment`, {
+                const response = await fetch(`/api/add_comment`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(newComment),
                 });
+
                 if (!response.ok) {
                     console.error("Error adding comment");
                 }
+
                 setAllReplies(index);
                 updateReplyContent(index, '');
             }

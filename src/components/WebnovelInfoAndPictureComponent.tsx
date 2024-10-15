@@ -29,7 +29,7 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
             <div className="flex flex-col space-y-4 w-full">
                 <p className="text-sm">{phrase(dictionary, webnovel.genre, language)}</p>
                 <OtherTranslateComponent key={key1} content={webnovel.title}
-                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-xl" />
+                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-4xl" />
                 <OtherTranslateComponent key={key2} content={webnovel.description}
                     elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="description" />
                 <hr />

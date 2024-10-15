@@ -1,5 +1,6 @@
 import React from 'react';
 import CharacterSection from './CharacterSection';
+import { formatTitle } from '../utils/stringUtils';
 
 const CharacterInfo: React.FC<{ data: string; title?: string }> = ({ data, title }) => {
     if (!data) return null;
@@ -17,7 +18,7 @@ const CharacterInfo: React.FC<{ data: string; title?: string }> = ({ data, title
         {Object.entries(filteredData).map(([sectionKey, sectionData]) => (
           <CharacterSection
             key={sectionKey}
-            title={sectionKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            title={formatTitle(sectionKey)}
             data={sectionData as Record<string, string>}
           />
         ))}

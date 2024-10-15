@@ -162,6 +162,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
             <div className='flex flex-col space-y-8 w-full md:w-3/4 order-2 md:order-1'>
                 <div>
+                    {/* profile nickname */}
                     <p className='text-xl font-bold'>{user.nickname}</p>
                 </div>
                 <div className="flex flex-row space-x-8">
@@ -232,6 +233,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
                 <Box sx={style}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>
+                        {/* Delete */}
                         <p className='text-lg font-bold'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "yes", language)}</Button>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(false)}>{phrase(dictionary, "no", language)}</Button>

@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 
 
 // main character component start //
-
-const CharacterInfo = ({ data }) => {
+const CharacterInfo: React.FC<{ data: string }> = ({ data }) => {
     if (!data) return null;
 
     const { basic_info, appearance, personality, governing_values, relationships } = JSON.parse(data);

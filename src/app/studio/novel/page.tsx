@@ -1,74 +1,56 @@
 "use client"
 import { Button } from "@mui/material";
 import { useState, useEffect } from "react";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { phrase } from '@/utils/phrases';
 
 
-// main character component start //
-const CharacterInfo: React.FC<{ data: string }> = ({ data }) => {
+const CharacterSection: React.FC<{ title: string; data: Record<string, string> }> = ({ title, data }) => (
+    <section className="bg-gray-100 border rounded border-gray-200 px-3">
+      <h2 className="font-bold text-lg py-2 border-gray border-b-2">{title}</h2>
+      <div className="py-6 space-y-4">
+        {Object.entries(data).map(([key, value]) => (
+          <div key={key} className="w-full flex flex-row">
+            <span className="border-pink-200 rounded-md px-4 bg-pink-200 w-32 text-[12px] justify-center self-center text-center">
+                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </span> 
+            <p className="ml-4">{value}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+
+
+// Main character component start //
+const CharacterInfo: React.FC<{ data: string; title?: string }> = ({ data, title }) => {
     if (!data) return null;
+  
+    const parsedData = JSON.parse(data);
 
-    const { basic_info, appearance, personality, governing_values, relationships } = JSON.parse(data);
-
-    return (
-        <div className="space-y-4">
-            <section className="bg-gray-100 border rounded border-gray-200 px-3">
-                <h2 className="font-bold text-lg py-2 border-gray border-b-2">Basic Info</h2>
-                <div className="py-6 space-y-4">
-                <p><strong>Name:</strong> {basic_info.name}</p>
-                <p><strong>Age:</strong> {basic_info.age}</p>
-                <p><strong>Gender:</strong> {basic_info.gender}</p>
-                <p><strong>Job:</strong> {basic_info.job}</p>
-                <p><strong>Background:</strong> {basic_info.background}</p>
-                </div>
-            </section>
-
-            <section className="bg-gray-100 border rounded border-gray-200 px-3">
-                <h2 className="font-bold text-lg py-2 border-gray border-b-2">Appearance</h2>
-                <div className="py-6 space-y-4">
-                    <p><strong>Hair Color:</strong> {appearance.hair_color}</p>
-                    <p><strong>Hair Style:</strong> {appearance.hair_style}</p>
-                    <p><strong>Eye Color:</strong> {appearance.eye_color}</p>
-                    <p><strong>Skin Color:</strong> {appearance.skin_color}</p>
-                    <p><strong>Symbolic Feature:</strong> {appearance.symbolic_feature}</p>
-                    <p><strong>Costume:</strong> {appearance.costume}</p>
-                    <p><strong>Body Type:</strong> {appearance.body_type}</p>
-                </div>
-            </section>
-
-            <section className="bg-gray-100 border rounded border-gray-200 px-3">
-                <h2 className="font-bold text-lg py-2 border-gray border-b-2">Personality</h2>
-                <div className="py-6 space-y-4">
-                    <p><strong>Basic Personality:</strong> {personality.basic_personality}</p>
-                    <p><strong>Charm Point:</strong> {personality.charm_point}</p>
-                    <p><strong>Weakness:</strong> {personality.weakness}</p>
-                </div>
-            </section>
-
-            <section className="bg-gray-100 border rounded border-gray-200 px-3">
-                <h2 className="font-bold text-lg">Governing Values</h2>
-                <p><strong>Belief:</strong> {governing_values.belief}</p>
-                <p><strong>Motivation:</strong> {governing_values.motivation}</p>
-                <p><strong>Goals:</strong> {governing_values.goals}</p>
-                <p><strong>Conflict:</strong> {governing_values.conflict}</p>
-            </section>
-
-            <section>
-                <h2 className="font-bold text-lg">Relationships</h2>
-                <p><strong>Alliance:</strong> {relationships.alliance}</p>
-                <p><strong>Enemy:</strong> {relationships.enemy}</p>
-                <p><strong>Family Relationship:</strong> {relationships.family_relationship}</p>
-                <p><strong>Friendship:</strong> {relationships.friendship}</p>
-                <p><strong>Acquaintance:</strong> {relationships.acquaintance}</p>
-                <p><strong>Social Relationship:</strong> {relationships.social_relationship}</p>
-                <p><strong>Love Interest:</strong> {relationships.love_interest}</p>
-            </section>
-        </div>
+    // Filter out the "status" key
+    const filteredData = Object.fromEntries(
+        Object.entries(parsedData).filter(([key]) => key !== "status")
     );
-};
+  
+    return (
+      <div className="space-y-4">
+        <h1 className="font-bold mb-10">{title}</h1>
+        {Object.entries(filteredData).map(([sectionKey, sectionData]) => (
+          <CharacterSection
+            key={sectionKey}
+            title={sectionKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            data={sectionData as Record<string, string>}
+          />
+        ))}
+      </div>
+    );
+  };
 
 
 
 
+// 
 export default function NovelStudioPage() {
     const [genres, setGenres] = useState("");
     const [keywords, setKeywords] = useState("");
@@ -86,6 +68,8 @@ export default function NovelStudioPage() {
     const [streamedSubCharacterSentence, setStreamedSubCharacterSentence] = useState("");
     const [streamedSynopsis, setStreamedSynopsis] = useState("");
     const [isGeneratingSynopsis, setIsGeneratingSynopsis] = useState(false);
+    const {language, dictionary} = useLanguage();
+
 
     const processSSEResponse = async (response: Response, callback: (data: any) => void, setIsGenerating: (isGenerating: boolean) => void) => {
         if (!response.ok) {
@@ -140,6 +124,7 @@ export default function NovelStudioPage() {
         }
     }
 
+    // main character
     const generateMainCharacter = async () => {
         setIsGeneratingMainCharacter(true);
         setMainCharacter("");
@@ -189,6 +174,9 @@ export default function NovelStudioPage() {
             console.error("Error generating main character sentence:", error);
         }
     }
+
+    //Sub Character
+
     const generateSubCharacter = async () => {
         setIsGeneratingSubCharacter(true);
         setSubCharacter("");
@@ -213,6 +201,8 @@ export default function NovelStudioPage() {
             setIsGeneratingSubCharacter(false);
         }
     }
+
+
     const generateSubCharacterSentence = async () => {
         setIsGeneratingSubCharacterSentence(true);
         setStreamedSubCharacterSentence("");
@@ -288,37 +278,51 @@ export default function NovelStudioPage() {
     }
 
     return (
-        <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto">
+        <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto mb-24">
             <div className="w-[450px] sm:w-[720px] text-left pt-10">
-              <h1 className="font-bold">세계관 설정</h1>
+              <h1 className="font-bold">
+                {/* 세계관 설정 : Worldview setting */}
+                {phrase(dictionary, "worldviewSetting", language)}
+              </h1>
             </div>
-            <div className="border rounded-xl py-6 px-6 w-[450px] sm:w-[720px] mt-10">
-            <h1 className="font-bold mb-10">장르 및 키워드</h1>
+            <div className="border rounded-xl py-10 px-6 w-[450px] sm:w-[720px] mt-10">
+            <h1 className="font-bold mb-10">
+              {/* 장르 및 키워드 :  */}
+              {phrase(dictionary, "genresAndKeyword", language)}
+            </h1>
             <div className="flex flex-col gap-4 ">
-                <label htmlFor="">Genres</label>
+                <label htmlFor="">
+                    {/* Genres */}
+                    {phrase(dictionary, "genre", language)}
+                </label>
                 <input 
                 className="rounded-md focus:ring-pink-600 focus:border-pink-600" 
                 type="text" 
                 value={genres} 
                 onChange={(e) => setGenres(e.target.value)} 
-                placeholder="작품의 Genres 를 입력해 주세요." />
+                placeholder={phrase(dictionary, "genrePlaceholder", language)} /> 
 
-                <label htmlFor="">Keywords</label>
+                <label htmlFor="">
+                    {/* Keywords */}
+                    {phrase(dictionary, "keyword", language)}
+                </label>
                 <input 
                 className="rounded-md focus:ring-pink-600 focus:border-pink-600 " 
                 type="text" 
                 value={keywords} 
                 onChange={(e) => setKeywords(e.target.value)} 
-                placeholder="작품의 Keywords를 입력해 주세요." />
-
+                placeholder={phrase(dictionary, "keywordPlaceholder", language)} />
+                <div className="flex flex-row justify-center space-y-3 pb-4">
                 <Button
                     variant="outlined"
                     color="gray"
                     onClick={generateLogline}
                     disabled={isGeneratingLogline}
-                    className="w-64 self-end font-bold border border-gray-600 ml-4 bg-white"
+                    className="w-64 self-end font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
                 >
-                    {isGeneratingLogline ? "Generating..." : "Generate Logline"}
+                    {isGeneratingLogline ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p> ) 
+                                         : (<p>{phrase(dictionary, "generatingLogline", language)}</p> )
+                    }
                     {/* writing icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 
                         width="18" 
@@ -337,65 +341,191 @@ export default function NovelStudioPage() {
                     </svg>
 
                  </Button>
+
+                 <Button
+                    variant="outlined"
+                    color="gray"
+                    className="w-64 self-end font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                     >　
+                     {phrase(dictionary, "generateAll", language)}
+                　</Button>
+                </div>
+
                 </div>
             </div>
 
-            <div className="w-[450px] sm:w-[720px] text-left">
-                <h1 className="font-bold">로그라인</h1>
+            <div className="w-[450px] sm:w-[720px] text-left pt-6">
+                <h1 className="font-bold">
+                    {/* 로그라인 */}
+                    {phrase(dictionary, "logline", language)}
+
+                </h1>
             </div>
 
-            {/* Logline part */}
+             {/* Logline part */}
             <div className="bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
-                <div className="bg-gray-100 p-4">
+
+            <div className="flex flex-col gap-4 ">                
+                <div className="bg-gray-100 p-4 leading-loose">
                     {streamedLogline}
                 </div>
-            </div>
-            
-            <div className="w-[450px] sm:w-[720px] text-left">
-                <h1 className="font-bold">캐릭터 설정</h1>
-            </div>
-            <div className="bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
-                
-                <Button variant="contained" color="gray" onClick={generateMainCharacter} disabled={isGeneratingMainCharacter}>
-                    {isGeneratingMainCharacter ? "Generating..." : "Generate Main Character "}
+
+                <Button 
+                variant="outlined" 
+                color="gray" 
+                onClick={generateMainCharacter} 
+                disabled={isGeneratingMainCharacter}
+                className=" self-center font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                >
+                    {isGeneratingMainCharacter ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                               : (<p>{phrase(dictionary, "createMainCharacter", language)}</p>)}
+
+                    <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="18" 
+                            height="18" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            stroke-width="2" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round" 
+                            className="lucide lucide-brush ml-3"
+                        >
+                          <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/>
+                          <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/>
+                        </svg>
+
                 </Button>
-                <div className=" p-4">
+                <div className="">
                         {isGeneratingMainCharacter ? (
-                            <p>Loading...</p>
+                            <></>
                         ) : (
-                            <CharacterInfo data={mainCharacter} />
+                            <CharacterInfo data={mainCharacter} title="주연 캐릭터" />
                         )}
                 </div>
-                <Button variant="contained" color="gray" onClick={generateMainCharacterSentence} disabled={isGeneratingMainCharacterSentence}>
-                    {isGeneratingMainCharacterSentence ? "Generating..." : "Generate Main Character Sentence"}
-                </Button>
-                <div className="bg-gray-100 p-4">
+            </div>
+            </div>
+            
+            <div className="w-[450px] sm:w-[720px] text-left pt-6">
+                <h1 className="font-bold">
+                    {/* 캐릭터 설정 */}
+                    <p>{phrase(dictionary, "characterSetting", language)}</p>
+                </h1>
+            </div>
+        
+            <div className="flex flex-col bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
+                <Button 
+                    variant="outlined" 
+                    color="gray" 
+                    onClick={generateSubCharacter} 
+                    disabled={isGeneratingSubCharacter}
+                    className="self-center font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                    >
+                        {isGeneratingSubCharacter ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                                  : (<p>{phrase(dictionary, "createSubCharacter", language)}</p>)}
+
+                        <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="18" 
+                            height="18" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            stroke-width="2" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round" 
+                            className="lucide lucide-brush ml-3"
+                        >
+                          <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/>
+                          <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/>
+                        </svg>
+
+                    </Button>
+
+                    <div className="">
+                        {subCharacter && <CharacterInfo data={subCharacter} title="조연 캐릭터" />}
+                    
+                     </div>
+            </div>
+
+
+            <div className="w-[450px] sm:w-[720px] text-left pt-6">
+                <h1 className="font-bold">
+                    {/* 줄거리 synopsis */}
+                    <p>{phrase(dictionary, "synopsis", language)}</p>
+                </h1>
+            </div>
+
+
+            <div className="flex flex-col justify-center bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
+                
+               <div className="bg-gray-100 p-4 leading-loose">
                     {streamedMainCharacterSentence}
-                </div>
-                <Button variant="contained" color="gray" onClick={generateSubCharacter} disabled={isGeneratingSubCharacter}>
-                    {isGeneratingSubCharacter ? "Generating..." : "Generate Sub Character "}
+                </div> 
+                        
+                <Button 
+                    variant="outlined" 
+                    color="gray" 
+                    onClick={generateMainCharacterSentence} 
+                    disabled={isGeneratingMainCharacterSentence}
+                    className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                >
+                    {isGeneratingMainCharacterSentence ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                                       : (<p>{phrase(dictionary, "createMainCharacterSentence", language)}</p>)}
                 </Button>
-                <div className="bg-gray-100 p-4">
-                    {subCharacter}
-                </div>
-                <Button variant="contained" color="gray" onClick={generateSubCharacterSentence} disabled={isGeneratingSubCharacterSentence}>
-                    {isGeneratingSubCharacterSentence ? "Generating..." : "Generate Sub Character Sentence"}
-                </Button>
-                <div className="bg-gray-100 p-4">
+              
+
+                <div className="bg-gray-100 p-4 leading-loose">
                     {streamedSubCharacterSentence}
                 </div>
-                <Button variant="contained" color="gray" onClick={generateEpisodeConfig} disabled={isGeneratingEpisodeConfig}>
-                    {isGeneratingEpisodeConfig ? "Generating..." : "Generate Episode Config"}
+
+
+                <Button 
+                    variant="outlined" 
+                    color="gray" 
+                    onClick={generateSubCharacterSentence}
+                    disabled={isGeneratingSubCharacterSentence}
+                    className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                >
+                    {isGeneratingSubCharacterSentence ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p> ) 
+                                                      : (<p>{phrase(dictionary, "createSubCharacterSentence", language)}</p>)}
                 </Button>
-                <div className="bg-gray-100 p-4">
+
+                <div className="bg-gray-100 p-4 leading-loose">
                     {streamedEpisodeConfig}
                 </div>
-                <Button variant="contained" color="gray" onClick={generateSynopsis} disabled={isGeneratingSynopsis}>
-                    {isGeneratingSynopsis ? "Generating..." : "Generate Synopsis"}
+
+
+                <Button 
+                    variant="outlined" 
+                    color="gray" 
+                    onClick={generateEpisodeConfig} 
+                    disabled={isGeneratingEpisodeConfig}
+                    className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                >
+                    {isGeneratingEpisodeConfig ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                               : (<p>{phrase(dictionary, "createEpisode", language)}</p>)}
                 </Button>
-                <div className="bg-gray-100 p-4">
+
+
+                <div className="bg-gray-100 p-4 leading-loose">
                     {streamedSynopsis}
                 </div>
+
+                <Button 
+                variant="outlined" 
+                color="gray" 
+                onClick={generateSynopsis} 
+                disabled={isGeneratingSynopsis}
+                className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                >
+                    {isGeneratingSynopsis ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p> ) 
+                                          : (<p>{phrase(dictionary, "createSynopsis", language)}</p>)}
+                </Button>
+
+             
+
             </div>
         </div>
     )

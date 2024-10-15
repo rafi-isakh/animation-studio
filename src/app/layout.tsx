@@ -64,7 +64,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
                   <Header />
-                  <div className={`children min-h-screen pt-32 md:pt-24`}>
+                  <div className={`children min-h-screen pt-32 md:pt-24 mb-4`}>
                     {children}
                   </div>
                 </div>

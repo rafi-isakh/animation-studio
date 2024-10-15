@@ -7,6 +7,8 @@ import OtherTranslateComponent from "./OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { phrase, code_to_lang } from "@/utils/phrases"
+import Comments from "@/app/comments/page"
+import CommentsComponent from "./CommentsComponent"
 
 const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
 
@@ -25,9 +27,22 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
 
     return webnovel && (
 
-        <div className='flex flex-col md:flex-row space-x-4 justify-between'>
-            {/* Novel Thumbnail */}
-            <div className={`md:mr-6 mr-0 md:self-start self-center ${isLoading ? 'animate-pulse' : ''}`}>
+        <div className='flex flex-row space-x-4 justify-between'>
+            <div className="flex flex-col space-y-4 w-full">
+                <p className="text-sm">{phrase(dictionary, webnovel.genre, language)}</p>
+                <OtherTranslateComponent key={key1} content={webnovel.title}
+                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-4xl" />
+                <OtherTranslateComponent key={key2} content={webnovel.description}
+                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="description" />
+                <hr />
+                <Link href={`/view_profile/${webnovel.user.id}`}>
+                    <p className="text-sm font-bold hover:text-pink-600">{webnovel.user.nickname}</p>
+                </Link>
+                <p className="text-sm">{phrase(dictionary, "original", language)}: {phrase(dictionary, code_to_lang(webnovel.language), language)}</p>
+                <p className='mt-10 text-sm'><i className="fa-regular fa-heart"></i> {webnovel.upvotes}</p>
+                <p className='my-4 text-sm '><i className="fa-solid fa-eye"></i> {webnovel.views}</p>
+            </div>
+            <div className={`ml-4 ${isLoading ? 'animate-pulse' : ''}`}>
                 <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">
                     <Image 
                         src={imageSrc} 

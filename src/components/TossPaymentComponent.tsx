@@ -32,8 +32,8 @@ export default function TossPaymentComponent() {
                     try {
                         await paymentWidget?.requestPayment({
                             orderId: nanoid(),
-                            orderName: "토스 티셔츠 외 2건",
-                            customerName: "김토스",
+                            orderName: "100 포인트",
+                            customerName: "김독자",
                             customerEmail: "customer123@gmail.com",
                             successUrl: `${process.env.NEXT_PUBLIC_HOST}/success`,
                             failUrl: `${process.env.NEXT_PUBLIC_HOST}/fail`,
@@ -48,4 +48,3 @@ export default function TossPaymentComponent() {
         </div>
     )
 }
-

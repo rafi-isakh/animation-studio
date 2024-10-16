@@ -9,7 +9,8 @@ import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@mui/material";
-import { ChevronLeftIcon } from "@heroicons/react/24/solid";
+import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/navigation";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -19,8 +20,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { email } = useUser();
     const [key, setKey] = useState(0); // for remounting WebnovelTranslateComponent
     const [key2, setKey2] = useState(0); // for remounting OtherTranslation for webnovel title
-
+    const [deleteModal, setDeleteModal] = useState(false);
+    const [isAuthor, setIsAuthor] = useState(false);
     const { language } = useLanguage();
+    const router = useRouter();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -44,6 +47,14 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     useEffect(() => {
         if (email) {
+            if (webnovel?.user.email === email) {
+                setIsAuthor(true);
+            }
+        }
+    }, [email, webnovel])
+
+    useEffect(() => {
+        if (email) {
             fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
         }
     }, [email])
@@ -60,6 +71,13 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             const data = await res.json();
             setUpvotes(data);
             setLikeToggle(true);
+        }
+    }
+
+    const handleDelete = async () => {
+        const res = await fetch(`/api/delete_chapter?id=${id}`);
+        if (res.ok) {
+            router.push(`/view_webnovels?id=${webnovel?.id}`);
         }
     }
 
@@ -80,9 +98,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className="text-center">
                                     {
                                         likeToggle ?
-                                        <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart"></i>
-                                        :
-                                        <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart"></i>
+                                            :
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart"></i>
                                     }
                                 </div>
                             </Link>
@@ -92,7 +110,13 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     {/* Title and content */}
                     <div className="flex flex-col space-y-4">
                         <div key={key}>
-                            <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
+                            <div className='flex justify-between'>
+                                <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
+                                {isAuthor && <Button color='gray' variant='text' onClick={handleDelete}>
+                                    <TrashIcon className="w-6 h-6" />
+                                </Button>
+                                }
+                            </div>
                             <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
                         </div>
                     </div>

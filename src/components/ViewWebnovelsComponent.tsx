@@ -65,6 +65,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
             setWebnovels(webnovels_after_deletion)
             setDeletedWebnovelId(id);
+            setShowDeleteModal(false);
             const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
             const first = Math.min(...ids);
             if (ids.length > 0) {

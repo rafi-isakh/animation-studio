@@ -60,12 +60,23 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
     const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
         const formData = new FormData();
-        const quillEditor = titleRef.current?.getEditor();
-        formData.append('title', quillEditor?.getText() || "");
-        formData.append('content', content);
-        if (!title || !content) {
+        
+        // Get plain text from title editor
+        const titleEditor = titleRef.current?.getEditor();
+        const titleText = titleEditor?.getText().trim() || "";
+        
+        // Get plain text from content editor
+        const contentEditor = contentRef.current?.getEditor();
+        const contentText = contentEditor?.getText().trim() || "";
+        console.log(contentText);
+
+        formData.append('title', titleText);
+        formData.append('content', contentText);
+
+        if (!titleText || !contentText) {
             return;
         }
+
         formData.append('webnovel_id', webnovelId);
         if (!maxExceeded) {
             const res = await fetch('/api/add_chapter', {

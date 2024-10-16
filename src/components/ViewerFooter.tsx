@@ -5,8 +5,9 @@ import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Button, Modal, ThemeProvider } from '@mui/material';
+import { Box, Button, Modal, ThemeProvider } from '@mui/material';
 import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
+import { style } from '@/styles/ModalStyles';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -81,16 +82,20 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 </div>
             </div>
             <Modal open={showIsLastChapterModal} onClose={() => setShowIsLastChapterModal(false)}>
-                <div className='flex flex-col space-y-4'>
-                    <p>{phrase(dictionary, "isLastChapter", language)}</p>
-                    <Button onClick={() => setShowIsLastChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
-                </div>
+                <Box sx={style}>
+                    <div className='flex flex-col space-y-4'>
+                        <p>{phrase(dictionary, "isLastChapter", language)}</p>
+                        <Button color="gray" variant="outlined" onClick={() => setShowIsLastChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
+                    </div>
+                </Box>
             </Modal>
             <Modal open={showIsFirstChapterModal} onClose={() => setShowIsFirstChapterModal(false)}>
-                <div className='flex flex-col space-y-4'>
-                    <p>{phrase(dictionary, "isFirstChapter", language)}</p>
-                    <Button onClick={() => setShowIsFirstChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
-                </div>
+                <Box sx={style}>
+                    <div className='flex flex-col space-y-4'>
+                        <p>{phrase(dictionary, "isFirstChapter", language)}</p>
+                        <Button color="gray" variant="outlined" onClick={() => setShowIsFirstChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
+                    </div>
+                </Box>
             </Modal>
         </ThemeProvider>
     );

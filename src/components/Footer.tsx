@@ -15,8 +15,8 @@ export default function Footer() {
             </div>
             <div className="flex flex-col justify-center items-center">
                 Copyright © 
-                {language == 'ko' ? (<p className="text-center">주식회사 스텔라앤 (Stella& Inc.)<br/></p>)
-                                  : (<p className="text-center">Stelland International, Inc.</p>)
+                {language == 'ko' ? (<p className="text-center">주식회사 스텔라앤 (Stella& Inc.) <br/></p>)
+                                  : (<p className="text-center">Stelland International, Inc.</p> )
                 } 
                 2024 All rights reserved.<br/>
             </div>

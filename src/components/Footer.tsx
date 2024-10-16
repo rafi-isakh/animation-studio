@@ -11,7 +11,9 @@ export default function Footer() {
     return (
         <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2'>
             <div>
-                {language == 'ko'? <Link href="/terms">이용약관</Link>:<></>}
+                {language == 'ko' ? (<Link href="/terms">이용약관</Link>) 
+                                  : <></>
+                }
             </div>
             <div className="flex flex-col justify-center items-center">
                 Copyright © 

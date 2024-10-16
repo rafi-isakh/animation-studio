@@ -23,8 +23,8 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
     const [key4, setKey4] = useState(3000);
     const [key5, setKey5] = useState(4000);
     const [key6, setKey6] = useState(5000);
-    const [itemIndex, setItemIndex] = useState(0);
-    const [nextItemIndex, setNextItemIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [nextIndex, setNextIndex] = useState(1);
     const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     const { language, dictionary } = useLanguage();
@@ -109,39 +109,51 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
-            setNextItemIndex(next);
+            setNextIndex(next);
         },
         afterChange: (current: number) => {
-            setItemIndex(current);
-            setNextItemIndex(current);
+            setCurrentIndex(current);
+            setNextIndex((current + 1) % items.length);
         },
     };
 
     return (
         <div className={`slider-container max-w-screen-xl items-center mx-auto w-full`}>
             <div className='flex flex-col relative'>
-                <Slider {...settings} afterChange={(current) => { setItemIndex(current) }}>
-                    {items.map((item, index) => {
-                        return (
-                            <div key={index} className="px-2 md:px-4">
-                                <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto"  >
-                                    <Link href={getHref(index)}>
-                                        <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
-                                            placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                <Slider {...settings}>
+                    {items.map((item, index) => (
+                        <div key={index} className="px-2 md:px-4">
+                            <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
+                                <Link href={getHref(index)}>
+                                    <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
+                                        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    />
+                                </Link>
+                                <div className='absolute rounded-xl top-4 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
+                                    <div className='flex flex-col justify-around h-full'>
+                                        <OtherTranslateComponent 
+                                            key={`title-${index}-${language}`} 
+                                            content={item.title} 
+                                            elementId={item.id.toString()} 
+                                            classParams={`${breakKeepOrNot()} md:text-4xl text-2xl font-extrabold px-2 p-4 outlined-text`}
+                                            elementType={'carouselItem'} 
+                                            elementSubtype='title' 
+                                            showLoading={false} 
                                         />
-                                    </Link>
-                                    <div className='absolute rounded-xl top-4 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
-                                        <div className='flex flex-col justify-around h-full'>
-                                            <OtherTranslateComponent key={`title-${nextItemIndex}-${language}`} content={items[nextItemIndex].title} elementId={items[nextItemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-4xl text-2xl font-extrabold px-2 p-4 outlined-text`}
-                                                elementType={'carouselItem'} elementSubtype='title' showLoading={false} />
-                                            <OtherTranslateComponent key={`hook-${nextItemIndex}-${language}`} content={items[nextItemIndex].hook} elementId={items[nextItemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4 outlined-text`}
-                                                elementType={'carouselItem'} elementSubtype='hook' showLoading={false} />
-                                        </div>
+                                        <OtherTranslateComponent 
+                                            key={`hook-${index}-${language}`} 
+                                            content={item.hook} 
+                                            elementId={item.id.toString()} 
+                                            classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4 outlined-text`}
+                                            elementType={'carouselItem'} 
+                                            elementSubtype='hook' 
+                                            showLoading={false} 
+                                        />
                                     </div>
                                 </div>
                             </div>
-                        )
-                    })}
+                        </div>
+                    ))}
                 </Slider>
             </div>
             <style jsx>{`

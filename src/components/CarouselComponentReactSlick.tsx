@@ -116,9 +116,9 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                     {items.map((item, index) => {
                         return (
                             <div key={index} className="px-2 md:px-4">
-                                <div className="relative aspect-[10/5] md:aspect-[1280/500] mx-auto"  >
+                                <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto"  >
                                     <Link href={getHref(index)}>
-                                        <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
+                                        <Image className="object-cover object-top rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
                                             placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                         />
                                     </Link>
@@ -127,14 +127,14 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                         )
                     })}
                 </Slider>
-                {/* <div className='absolute rounded-xl bottom-10 right-20 w-96 border-2 border-black bg-white'>
+                <div className='absolute rounded-xl bottom-10 right-20 w-96 border-2 border-black bg-white'>
                     <div className='flex flex-col justify-around h-full'>
                         <OtherTranslateComponent key={`title-${itemIndex}-${language}`} content={items[itemIndex].title} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4`}
                             elementType={'carouselItem'} elementSubtype='title' showLoading={false} />
                         <OtherTranslateComponent key={`hook-${itemIndex}-${language}`} content={items[itemIndex].hook} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-xl text-sm px-2 p-4`}
                             elementType={'carouselItem'} elementSubtype='hook' showLoading={false} />
                     </div>
-                </div> */}
+                </div>
             </div>
         </div>
     );

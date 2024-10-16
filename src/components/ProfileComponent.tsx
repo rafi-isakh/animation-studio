@@ -16,6 +16,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Box, Button, Modal } from '@mui/material';
 import { style } from '@/styles/ModalStyles';
+import { Book, Pencil, Heart } from 'lucide-react';
+
 
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
@@ -158,27 +160,96 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
     return (
         <div className='max-w-screen-lg mx-auto p-4 flex flex-col md:flex-row my-auto justify-center md:items-start items-center md:justify-between'>
-            {/*Left component*/}
+            {/*Left component :: Profile picture */}
 
-            <div className='flex flex-col space-y-8 w-full md:w-3/4 order-2 md:order-1'>
+            <div className='w-full md:w-1/4 flex flex-col space-y-4 justify-center items-center order-1  mb-10 md:mb-0'>
+                <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                    <Link href={email == user.email ? "#" : ""}>
+                        {profilePicturePreview || user.picture ?
+                            <div className="mt-4">
+                                {profilePicturePreview ?
+                                    <a onClick={handleProfilePictureUpload}> 
+                                    <Image 
+                                    src={profilePicturePreview} 
+                                    alt="Profile Picture Preview" 
+                                    className="max-w-xs m-auto" 
+                                    width={80} 
+                                    height={80} />
+                                    </a>
+                                    :
+                                    user.picture ?
+                                        <a onClick={handleProfilePictureUpload}>
+                                            <Image 
+                                            src={getCloudfrontImageURL(user.picture)} 
+                                            className="max-w-xs m-auto -translate-y-10" 
+                                            alt="Profile Picture Preview" 
+                                            width={80} 
+                                            height={80}
+                                             />
+                                        </a>
+                                        : <></>
+                                }
+                            </div>
+                            :
+                            <div className='mt-4'>
+                                <svg 
+                                onClick={handleProfilePictureUpload} 
+                                className="w-[240px] h-[240px] text-gray-400 -translate-x-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        }
+                    </Link>
+
+                    <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
+
+                </div>
+
                 <div>
-                    {/* profile nickname */}
-                    <p className='text-xl font-bold'>{user.nickname}</p>
+                    <p className="flex flex-row  font-bold hover:text-pink-600">
+                    <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                      {phrase(dictionary, "author", language)}
+                        </span>
+                       {user.nickname}
+                    </p>
                 </div>
                 <div className="flex flex-row space-x-8">
                     <div className='flex flex-col justify-center items-center'>
-                        <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p>
+                        {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p> */}
+                        <Book size={18} />
                         <p>{novels.length}</p>
                     </div>
                     <div className='flex flex-col justify-center items-center'>
-                        <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p>
+                        {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p> */}
+                        <Pencil size={18} />
                         <p>{getNumberOfChapters()}</p>
                     </div>
                     <div className='flex flex-col justify-center items-center'>
-                        <p><i className="fa-regular fa-heart"></i> {Object.keys(dictionary).length != 0 && dictionary["likes"][language]}</p>
+                        <p>
+                        <Heart size={18} />
+                        {/* {Object.keys(dictionary).length != 0 && dictionary["likes"][language]} */}
+                        </p>
                         <p>{getNumberOfLikes()}</p>
                     </div>
                 </div>
+
+
+                {email == user.email && <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>}
+            </div>
+
+
+            {/*Right component :: Author bio & view webnovel */}
+            <div className='flex flex-col space-y-8 w-full md:w-3/4 order-2 md:order-1'>
+                {/* <div>
+                   <p className="flex flex-row  font-bold hover:text-pink-600">
+                    <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                      {phrase(dictionary, "author", language)}
+                        </span>
+                       {user.nickname}
+                    </p>
+                </div> 
+                */}
+                
                 <div className='flex flex-row'>
                     <Link href="#" onClick={handleIntroClick}>
                         <p id='intro' className='text-xl w-fit px-4 font-bold border-b-2 border-[#142448]'>{Object.keys(dictionary).length != 0 && dictionary["authorBio"][language]}</p>
@@ -202,34 +273,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </div>
                 </div>
             </div>
-            {/*Right component*/}
-            <div className='w-full md:w-1/4 flex flex-col space-y-4 justify-center items-center order-1 md:order-2 mb-10 md:mb-0'>
-                <div className="w-[200px] h-[200px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                    <Link href={email == user.email ? "#" : ""}>
-                        {profilePicturePreview || user.picture ?
-                            <div className="mt-4">
-                                {profilePicturePreview ?
-                                    <a onClick={handleProfilePictureUpload}> <Image src={profilePicturePreview} alt="Profile Picture Preview" className="max-w-xs m-auto" width={200} height={200} />
-                                    </a>
-                                    :
-                                    user.picture ?
-                                        <a onClick={handleProfilePictureUpload}>
-                                            <Image src={getCloudfrontImageURL(user.picture)} className="max-w-xs m-auto -translate-y-10" alt="Profile Picture Preview" width={200} height={200} />
-                                        </a>
-                                        : <></>
-                                }
-                            </div>
-                            :
-                            <div className='mt-4'>
-                                <svg onClick={handleProfilePictureUpload} className="w-[240px] h-[240px] text-gray-400 -translate-x-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
-                            </div>
-                        }
-                    </Link>
-                    <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
 
-                </div>
-                {email == user.email && <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>}
-            </div>
+            
+
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
                 <Box sx={style}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>

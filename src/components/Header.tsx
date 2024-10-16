@@ -297,7 +297,7 @@ const Header = () => {
                             {/*User menu*/}
                             <li className="py-2 relative">
                                 <div ref={userMenuRef}>
-                                    <button id="dropdownNavbarUserLink" onClick={isLoggedIn? () => toggleUserDropdown: () => router.push('/signin')} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                    <button id="dropdownNavbarUserLink" onClick={isLoggedIn? () => toggleUserDropdown: () => {console.log("signin page"); router.push('/signin')}} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                                         <i className="fa-solid fa-user text-black"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "profile", language)}</p>
                                         <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                             <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />

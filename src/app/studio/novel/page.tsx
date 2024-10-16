@@ -35,22 +35,26 @@ export default function NovelStudioPage() {
         }
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let accumulatedData = '';
 
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
 
             const chunk = decoder.decode(value);
-            console.log(chunk);
             const elements = chunk.split('\n');
             for (const element of elements) {
                 if (element.startsWith('data: ')) {
                     const eventData = element.slice(6); // Remove 'data: ' prefix
-                    callback(eventData);
+                    const parsedData = JSON.parse(eventData);
+                    const text = parsedData.text;
+                    callback(text);
+                    accumulatedData = text;
                 }
             }
         }
         setIsGenerating(false);
+        return accumulatedData;
     }
 
     const generateLogline = async () => {
@@ -69,9 +73,10 @@ export default function NovelStudioPage() {
                 }),
             });
 
-            processSSEResponse(response, (data) => {
-                setStreamedLogline(JSON.parse(data).text);
+            const generatedLogline = await processSSEResponse(response, (data) => {
+                setStreamedLogline(data);
             }, setIsGeneratingLogline);
+            return generatedLogline;
 
         } catch (error) {
             console.error("Error generating logline:", error);
@@ -79,7 +84,7 @@ export default function NovelStudioPage() {
     }
 
     // main character
-    const generateMainCharacter = async () => {
+    const generateMainCharacter = async (logline: string) => {
         setIsGeneratingMainCharacter(true);
         setMainCharacter("");
 
@@ -90,12 +95,13 @@ export default function NovelStudioPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    logline: streamedLogline,
+                    logline: logline,
                 }),
             });
 
             const responseData = await response.json();
             setMainCharacter(JSON.stringify(responseData));
+            return JSON.stringify(responseData);
 
         } catch (error) {
             console.error("Error generating logline:", error);
@@ -105,7 +111,7 @@ export default function NovelStudioPage() {
     }
 
 
-    const generateMainCharacterSentence = async () => {
+    const generateMainCharacterSentence = async (mainCharacter: string) => {
         setIsGeneratingMainCharacterSentence(true);
         setStreamedMainCharacterSentence("");
 
@@ -120,9 +126,10 @@ export default function NovelStudioPage() {
                 }),
             });
 
-            processSSEResponse(response, (data) => {
-                setStreamedMainCharacterSentence(JSON.parse(data).text);
+            const generatedMainCharacterSentence = await processSSEResponse(response, (data) => {
+                setStreamedMainCharacterSentence(data);
             }, setIsGeneratingMainCharacterSentence);
+            return generatedMainCharacterSentence;
 
         } catch (error) {
             console.error("Error generating main character sentence:", error);
@@ -131,9 +138,10 @@ export default function NovelStudioPage() {
 
     //Sub Character
 
-    const generateSubCharacter = async () => {
+    const generateSubCharacter = async (mainCharacter: string, logline: string) => {
         setIsGeneratingSubCharacter(true);
         setSubCharacter("");
+        console.log("mainCharacter", mainCharacter);
         try {
             const response = await fetch('/api/onoma/fabulator/sub-character', {
                 method: 'POST',
@@ -141,13 +149,14 @@ export default function NovelStudioPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    logline: streamedLogline,
+                    logline: logline,
                     characters: JSON.stringify([mainCharacter]),
                 }),
             });
 
             const responseData = await response.json();
             setSubCharacter(JSON.stringify(responseData));
+            return JSON.stringify(responseData);
 
         } catch (error) {
             console.error("Error generating sub character sentence:", error);
@@ -157,7 +166,7 @@ export default function NovelStudioPage() {
     }
 
 
-    const generateSubCharacterSentence = async () => {
+    const generateSubCharacterSentence = async (subCharacter: string) => {
         setIsGeneratingSubCharacterSentence(true);
         setStreamedSubCharacterSentence("");
         try {
@@ -171,16 +180,17 @@ export default function NovelStudioPage() {
                 }),
             });
 
-            processSSEResponse(response, (data) => {
-                setStreamedSubCharacterSentence(JSON.parse(data).text);
+            const generatedSubCharacterSentence = await processSSEResponse(response, (data) => {
+                setStreamedSubCharacterSentence(data);
             }, setIsGeneratingSubCharacterSentence);
+            return generatedSubCharacterSentence;
 
         } catch (error) {
             console.error("Error generating sub character sentence:", error);
         }
     }
 
-    const generateEpisodeConfig = async () => {
+    const generateEpisodeConfig = async (mainCharacter: string, subCharacter: string, logline: string) => {
         setIsGeneratingEpisodeConfig(true);
         setStreamedEpisodeConfig("");
         try {
@@ -190,22 +200,23 @@ export default function NovelStudioPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    logline: streamedLogline,
+                    logline: logline,
                     mainCharacters: JSON.stringify([mainCharacter]),
                     subCharacters: JSON.stringify([subCharacter]),
                 }),
             });
 
-            processSSEResponse(response, (data) => {
-                setStreamedEpisodeConfig(JSON.parse(data).text);
+            const generatedEpisodeConfig = await processSSEResponse(response, (data) => {
+                setStreamedEpisodeConfig(data);
             }, setIsGeneratingEpisodeConfig);
+            return generatedEpisodeConfig;
 
         } catch (error) {
             console.error("Error generating episode config:", error);
         }
     }
 
-    const generateSynopsis = async () => {
+    const generateSynopsis = async (mainCharacter: string, subCharacter: string, logline: string, episodeConfig: string) => {
         setIsGeneratingSynopsis(true);
         setStreamedSynopsis("");
         try {
@@ -215,22 +226,29 @@ export default function NovelStudioPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    logline: streamedLogline,
+                    logline: logline,
                     mainCharacters: JSON.stringify([mainCharacter]),
                     subCharacters: JSON.stringify([subCharacter]),
-                    episodeConfig: streamedEpisodeConfig,
+                    episodeConfig: episodeConfig,
                 }),
             });
 
-            processSSEResponse(response, (data) => {
-                setStreamedSynopsis(JSON.parse(data).text);
+            const generatedSynopsis = await processSSEResponse(response, (data) => {
+                setStreamedSynopsis(data);
             }, setIsGeneratingSynopsis);
+            return generatedSynopsis;
 
         } catch (error) {
             console.error("Error generating synopsis:", error);
         }
     }
-
+    const generateAll = async () => {
+        const generatedLogline = await generateLogline();
+        const generatedMainCharacter = await generateMainCharacter(generatedLogline);
+        const generatedSubCharacter = await generateSubCharacter(generatedMainCharacter, generatedLogline);
+        const generatedEpisodeConfig = await generateEpisodeConfig(generatedMainCharacter, generatedSubCharacter, generatedLogline!);
+        const generatedSynopsis = await generateSynopsis(generatedMainCharacter, generatedSubCharacter, generatedLogline!, generatedEpisodeConfig!);
+    }
     return (
         <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto mb-24">
             <div className="w-[450px] sm:w-[720px] text-left pt-10">
@@ -299,6 +317,7 @@ export default function NovelStudioPage() {
                  <Button
                     variant="outlined"
                     color="gray"
+                    onClick={generateAll}
                     className="w-64 self-end font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
                      >　
                      {phrase(dictionary, "generateAll", language)}
@@ -327,7 +346,7 @@ export default function NovelStudioPage() {
                 <Button 
                 variant="outlined" 
                 color="gray" 
-                onClick={generateMainCharacter} 
+                onClick={() => generateMainCharacter(streamedLogline)} 
                 disabled={isGeneratingMainCharacter}
                 className=" self-center font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
                 >
@@ -372,7 +391,7 @@ export default function NovelStudioPage() {
                 <Button 
                     variant="outlined" 
                     color="gray" 
-                    onClick={generateSubCharacter} 
+                    onClick={() => generateSubCharacter(mainCharacter, streamedLogline)} 
                     disabled={isGeneratingSubCharacter}
                     className="self-center font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
                     >
@@ -414,14 +433,14 @@ export default function NovelStudioPage() {
 
             <div className="flex flex-col justify-center bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
                 
-               <div className="bg-gray-100 p-4 leading-loose">
+               {/* <div className="bg-gray-100 p-4 leading-loose">
                     {streamedMainCharacterSentence}
                 </div> 
                         
                 <Button 
                     variant="outlined" 
                     color="gray" 
-                    onClick={generateMainCharacterSentence} 
+                    onClick={() => generateMainCharacterSentence(mainCharacter)} 
                     disabled={isGeneratingMainCharacterSentence}
                     className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
                 >
@@ -438,13 +457,13 @@ export default function NovelStudioPage() {
                 <Button 
                     variant="outlined" 
                     color="gray" 
-                    onClick={generateSubCharacterSentence}
+                    onClick={() => generateSubCharacterSentence(subCharacter)}
                     disabled={isGeneratingSubCharacterSentence}
                     className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
                 >
                     {isGeneratingSubCharacterSentence ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p> ) 
                                                       : (<p>{phrase(dictionary, "createSubCharacterSentence", language)}</p>)}
-                </Button>
+                </Button> */}
 
                 <div className="bg-gray-100 p-4 leading-loose">
                     {streamedEpisodeConfig}
@@ -454,7 +473,7 @@ export default function NovelStudioPage() {
                 <Button 
                     variant="outlined" 
                     color="gray" 
-                    onClick={generateEpisodeConfig} 
+                    onClick={() => generateEpisodeConfig(mainCharacter, subCharacter, streamedLogline)} 
                     disabled={isGeneratingEpisodeConfig}
                     className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
                 >
@@ -470,7 +489,7 @@ export default function NovelStudioPage() {
                 <Button 
                 variant="outlined" 
                 color="gray" 
-                onClick={generateSynopsis} 
+                onClick={() => generateSynopsis(mainCharacter, subCharacter, streamedLogline, streamedEpisodeConfig)} 
                 disabled={isGeneratingSynopsis}
                 className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
                 >

@@ -189,24 +189,30 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 </div>
             </Button>
             <div className='flex flex-col'>
+                {/* comments  */}
                 <form onSubmit={handleAddComment}>
-                    <div className='flex flex-row items-end'>
-
+                    <div className='flex flex-col'>
+                     
                         <textarea
                             value={commentContent}
                             rows={6}
-                            className='textarea rounded-xl focus:ring-pink-600 w-full resize-none border border-gray-300 '
+                            className='textarea rounded-t-xl focus:ring-pink-600 w-full resize-none border border-gray-300'
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder={phrase(dictionary, "typeYourComment", language)}
                             
                         />
-                        <br />
-                        <button type="submit" className='rounded absolute'>
-                            <i className="fa-solid fa-paper-plane ml-2 relative -top-[0.5rem] -right-[24rem]" aria-hidden="true"></i>
-                        </button>
+                        <div className='border-gray-400 border border-t-0 flex justify-end rounded-b-xl'>
+                           <span className='justify-start self-start text-gray-300 mr-4 mt-[9px]'> character 0/500 </span>
+                          <button type="submit" className='group/item rounded-br-xl bg-pink-600 px-4 py-3 group-hover/item:bg-pink-200'>
+                         
+                          <i className="fa-solid fa-paper-plane group-hover/item:text-white" aria-hidden="true"></i>
+                          </button>
+                        </div>
+                     
                     </div>
                 </form>
-                <div>
+
+                <div className='mt-4'>
                     <ul>
                         {allComments.map((comment, index) => (
                             (!comment.parent_id) ? (

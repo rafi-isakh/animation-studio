@@ -76,12 +76,12 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     phrase(dictionary, text, language) : <></>
                 }
             </div>
-            <div className="flex flex-col md:flex-row scrollbar-hide justify-start grow md:grow-0 overflow-x-scroll">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {webnovels
                     .filter(item => filter_by_genre(item))
                     .sort(sortByFn)
                     .map((item, index) => (
-                        <div className="min-w-[325px] min-h-[135px] p-2 p-4 overflow-y-hidden" key={index}>
+                        <div className="px-2 md:px-4" key={index}>
                             <WebnovelComponent webnovel={item} index={index} ranking={true} />
                         </div>
                     ))}

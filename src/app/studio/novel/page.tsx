@@ -250,14 +250,15 @@ export default function NovelStudioPage() {
         const generatedSynopsis = await generateSynopsis(generatedMainCharacter!, generatedSubCharacter!, generatedLogline!, generatedEpisodeConfig!);
     }
     return (
-        <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto mb-24">
-            <div className="w-[450px] sm:w-[720px] text-left pt-10">
+        <div className="max-[300px]:w-[350px] md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto mb-24">
+            <div className="max-[300px]:w-[350px] sm:w-[720px] text-left pt-10">
               <h1 className="font-bold">
                 {/* 세계관 설정 : Worldview setting */}
                 {phrase(dictionary, "worldviewSetting", language)}
               </h1>
             </div>
-            <div className="border rounded-xl py-10 px-6 w-[450px] sm:w-[720px] mt-10">
+
+            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] border rounded-xl py-10 px-6 mt-10">
             <h1 className="font-bold mb-10">
               {/* 장르 및 키워드 :  */}
               {phrase(dictionary, "genresAndKeyword", language)}
@@ -284,7 +285,8 @@ export default function NovelStudioPage() {
                 value={keywords} 
                 onChange={(e) => setKeywords(e.target.value)} 
                 placeholder={phrase(dictionary, "keywordPlaceholder", language)} />
-                <div className="flex flex-row justify-center space-y-3 pb-4">
+                <div className="flex flex-row justify-center space-y-3 pb-4 gap-4">
+               
                 <Button
                     variant="outlined"
                     color="gray"
@@ -305,7 +307,7 @@ export default function NovelStudioPage() {
                         stroke-width="2" 
                         stroke-linecap="round" 
                         stroke-linejoin="round" 
-                        className="lucide lucide-pencil-line ml-3 "
+                        className="lucide lucide-pencil-line ml-3 hidden min-[635px]:block md:block"
                     >
                     <path d="M12 20h9"/>
                     <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>
@@ -318,16 +320,17 @@ export default function NovelStudioPage() {
                     variant="outlined"
                     color="gray"
                     onClick={generateAll}
-                    className="w-64 self-end font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                    className="w-64 self-end font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
                      >　
                      {phrase(dictionary, "generateAll", language)}
                 　</Button>
+
                 </div>
 
                 </div>
             </div>
 
-            <div className="w-[450px] sm:w-[720px] text-left pt-6">
+            <div className="min-[300px]:w-[350px] sm:w-[720px] text-left pt-6">
                 <h1 className="font-bold">
                     {/* 로그라인 */}
                     {phrase(dictionary, "logline", language)}
@@ -336,7 +339,7 @@ export default function NovelStudioPage() {
             </div>
 
              {/* Logline part */}
-            <div className="bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
+            <div className="min-[300px]:w-[350px] w-[350px] sm:w-[720px] bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
 
             <div className="flex flex-col gap-4 ">                
                 <div className="bg-gray-100 p-4 leading-loose">
@@ -348,7 +351,7 @@ export default function NovelStudioPage() {
                 color="gray" 
                 onClick={() => generateMainCharacter(streamedLogline)} 
                 disabled={isGeneratingMainCharacter}
-                className=" self-center font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
                 >
                     {isGeneratingMainCharacter ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
                                                : (<p>{phrase(dictionary, "createMainCharacter", language)}</p>)}
@@ -380,20 +383,20 @@ export default function NovelStudioPage() {
             </div>
             </div>
             
-            <div className="w-[450px] sm:w-[720px] text-left pt-6">
+            <div className="max-[300px]:w-[350px] sm:w-[720px] text-left pt-6">
                 <h1 className="font-bold">
                     {/* 캐릭터 설정 */}
                     <p>{phrase(dictionary, "characterSetting", language)}</p>
                 </h1>
             </div>
         
-            <div className="flex flex-col bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
+            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col bg-white rounded-xl border py-6 px-6  mt-10 space-y-4">
                 <Button 
                     variant="outlined" 
                     color="gray" 
                     onClick={() => generateSubCharacter(mainCharacter, streamedLogline)} 
                     disabled={isGeneratingSubCharacter}
-                    className="self-center font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                    className="self-center font-bold border border-gray-600  bg-white hover:text-pink-600 hover:border-pink-600"
                     >
                         {isGeneratingSubCharacter ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
                                                   : (<p>{phrase(dictionary, "createSubCharacter", language)}</p>)}
@@ -423,7 +426,7 @@ export default function NovelStudioPage() {
             </div>
 
 
-            <div className="w-[450px] sm:w-[720px] text-left pt-6">
+            <div className="max-[300px]:w-[350px] sm:w-[720px] text-left pt-6">
                 <h1 className="font-bold">
                     {/* 줄거리 synopsis */}
                     <p>{phrase(dictionary, "synopsis", language)}</p>
@@ -431,7 +434,7 @@ export default function NovelStudioPage() {
             </div>
 
 
-            <div className="flex flex-col justify-center bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
+            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col justify-center bg-white rounded-xl border py-6 px-6  mt-10 space-y-4">
                 
                {/* <div className="bg-gray-100 p-4 leading-loose">
                     {streamedMainCharacterSentence}

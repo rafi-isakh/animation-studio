@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
+import GeneratedPicture from "@/components/GeneratedPicture";
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -43,24 +44,16 @@ export default function PicturesStudioPage() {
         <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto">
          
          <div className="flex justify-center w-full">
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-auto">
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-auto mb-16">
              {pictures.length > 0 ? (
                     pictures.map((image, index) => (
-                        <div key={index} className="w-80 h-80">
-                            <Image
-                                src={`data:image/png;base64,${image}`}
-                                alt={`Generated image ${index + 1}`}
-                                width={320}
-                                height={320}
-                                className="object-cover w-full h-full rounded-xl border-none hover:opacity-[0.9]"
-                            />
-                        </div>
+                        <GeneratedPicture key={index} index={index} image={image} />
                     ))
                 ) : (
-                    <div className="col-span-full flex justify-center items-center h-full">
+                    <div className="col-span-full flex justify-center items-center h-full p-2">
                         <div className="text-center max-w-md">
                             <p className="font-bold mb-2">여러분의 Feed를 생성해 보세요.</p>
-                            <p className="text-sm">
+                            <p className="text-sm break-keep">
                                 구체적인 프롬프트와 키워드로 인물의 행동과 외모, 배경 및 분위기를 묘사해주세요. 
                                 예시) 한 소녀, 금발의 공주, 화이트 드레스, 목걸이, 진주 귀걸이
                             </p>
@@ -86,10 +79,10 @@ export default function PicturesStudioPage() {
             >
                 {isGeneratingPictures ? (
                     // Generating..
-                    <p className="text-[10px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
+                    <p className="text-[16px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
                     ) : (
                     // Generate
-                    <p className="text-[10px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
+                    <p className="text-[16px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
                     }
                   {/* Palette icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 

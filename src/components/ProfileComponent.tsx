@@ -279,6 +279,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
                 <Box sx={style}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>
+                        {/* Delete */}
                         <p className='text-lg font-bold'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "yes", language)}</Button>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(false)}>{phrase(dictionary, "no", language)}</Button>

@@ -24,6 +24,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
     const [key5, setKey5] = useState(4000);
     const [key6, setKey6] = useState(5000);
     const [itemIndex, setItemIndex] = useState(0);
+    const [nextItemIndex, setNextItemIndex] = useState(0);
     const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     const { language, dictionary } = useLanguage();
@@ -99,14 +100,21 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         slidesToShow: 1,
         swipeToSlide: true,
         infinite: true,
-        speed: 1000,
+        speed: 300,
         autoplaySpeed: 6000,
         autoplay: true,
         className: "center",
         centerMode: true,
         centerPadding: '32px',
         nextArrow: <SampleNextArrow />,
-        prevArrow: <SamplePrevArrow />
+        prevArrow: <SamplePrevArrow />,
+        beforeChange: (current: number, next: number) => {
+            setNextItemIndex(next);
+        },
+        afterChange: (current: number) => {
+            setItemIndex(current);
+            setNextItemIndex(current);
+        },
     };
 
     return (
@@ -116,26 +124,32 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                     {items.map((item, index) => {
                         return (
                             <div key={index} className="px-2 md:px-4">
-                                <div className="relative aspect-[10/5] md:aspect-[1280/500] mx-auto"  >
+                                <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto"  >
                                     <Link href={getHref(index)}>
                                         <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
                                             placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                         />
                                     </Link>
+                                    <div className='absolute rounded-xl top-4 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
+                                        <div className='flex flex-col justify-around h-full'>
+                                            <OtherTranslateComponent key={`title-${nextItemIndex}-${language}`} content={items[nextItemIndex].title} elementId={items[nextItemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-4xl text-2xl font-extrabold px-2 p-4 outlined-text`}
+                                                elementType={'carouselItem'} elementSubtype='title' showLoading={false} />
+                                            <OtherTranslateComponent key={`hook-${nextItemIndex}-${language}`} content={items[nextItemIndex].hook} elementId={items[nextItemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4 outlined-text`}
+                                                elementType={'carouselItem'} elementSubtype='hook' showLoading={false} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )
                     })}
                 </Slider>
-                {/* <div className='absolute rounded-xl bottom-10 right-20 w-96 border-2 border-black bg-white'>
-                    <div className='flex flex-col justify-around h-full'>
-                        <OtherTranslateComponent key={`title-${itemIndex}-${language}`} content={items[itemIndex].title} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4`}
-                            elementType={'carouselItem'} elementSubtype='title' showLoading={false} />
-                        <OtherTranslateComponent key={`hook-${itemIndex}-${language}`} content={items[itemIndex].hook} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-xl text-sm px-2 p-4`}
-                            elementType={'carouselItem'} elementSubtype='hook' showLoading={false} />
-                    </div>
-                </div> */}
             </div>
+            <style jsx>{`
+                .outlined-text {
+                    text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
+                }`
+            }
+            </style>
         </div>
     );
 }

@@ -25,7 +25,7 @@ export default function Studio() {
         />
         <span className='ml-4 font-bold text-pink-600'>Studio</span>
       </p>
-      <p >Your Favorite Story Universe, Betwen us, Toonyz</p>
+      <p >Your Favorite Story Universe, Between us, Toonyz</p>
       <p className="mb-10">Toonyz의 스마트한 AI로 여러분의 스토리텔링이 현실이 되는 즐거움을 경험 해 보세요. </p>
 
 

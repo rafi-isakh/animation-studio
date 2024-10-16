@@ -1,3 +1,5 @@
+export const maxDuration = 100; // This function can run for a maximum of 100 seconds5
+
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

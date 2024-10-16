@@ -1,3 +1,7 @@
-.slick-list {
-  overflow: visible !important;
-}
+    .slick-list {
+        overflow: visible !important;
+    }
+    
+    .outlined-text {
+        text-shadow: 2px 0 black, -2px 0 black, 0 2px black, 0 -2px black;
+    }

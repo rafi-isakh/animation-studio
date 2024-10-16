@@ -13,8 +13,12 @@ export default function Footer() {
             <div>
                 {language == 'ko'? <Link href="/terms">이용약관</Link>:<></>}
             </div>
-            <div>
-                Copyright © {language == 'ko'? <>주식회사 스텔라앤 (Stella& Inc.)</>:<>Stelland International, Inc.</>} 2024 All rights reserved.<br/>
+            <div className="flex flex-col justify-center items-center">
+                Copyright © 
+                {language == 'ko' ? (<p className="text-center">주식회사 스텔라앤 (Stella& Inc.)<br/></p>)
+                                  : (<p className="text-center">Stelland International, Inc.</p>)
+                } 
+                2024 All rights reserved.<br/>
             </div>
             <button
                 onClick={() => setIsExpanded(!isExpanded)}

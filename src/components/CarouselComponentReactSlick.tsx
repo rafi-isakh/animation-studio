@@ -127,14 +127,14 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                         )
                     })}
                 </Slider>
-                <div className='absolute rounded-xl bottom-10 right-20 w-96 border-2 border-black bg-white'>
+                {/* <div className='absolute rounded-xl bottom-10 right-20 w-96 border-2 border-black bg-white'>
                     <div className='flex flex-col justify-around h-full'>
                         <OtherTranslateComponent key={`title-${itemIndex}-${language}`} content={items[itemIndex].title} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4`}
                             elementType={'carouselItem'} elementSubtype='title' showLoading={false} />
                         <OtherTranslateComponent key={`hook-${itemIndex}-${language}`} content={items[itemIndex].hook} elementId={items[itemIndex].id.toString()} classParams={`${breakKeepOrNot()} md:text-xl text-sm px-2 p-4`}
                             elementType={'carouselItem'} elementSubtype='hook' showLoading={false} />
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     );

@@ -244,10 +244,10 @@ export default function NovelStudioPage() {
     }
     const generateAll = async () => {
         const generatedLogline = await generateLogline();
-        const generatedMainCharacter = await generateMainCharacter(generatedLogline);
-        const generatedSubCharacter = await generateSubCharacter(generatedMainCharacter, generatedLogline);
-        const generatedEpisodeConfig = await generateEpisodeConfig(generatedMainCharacter, generatedSubCharacter, generatedLogline!);
-        const generatedSynopsis = await generateSynopsis(generatedMainCharacter, generatedSubCharacter, generatedLogline!, generatedEpisodeConfig!);
+        const generatedMainCharacter = await generateMainCharacter(generatedLogline!);
+        const generatedSubCharacter = await generateSubCharacter(generatedMainCharacter!, generatedLogline!);
+        const generatedEpisodeConfig = await generateEpisodeConfig(generatedMainCharacter!, generatedSubCharacter!, generatedLogline!);
+        const generatedSynopsis = await generateSynopsis(generatedMainCharacter!, generatedSubCharacter!, generatedLogline!, generatedEpisodeConfig!);
     }
     return (
         <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto mb-24">

@@ -222,10 +222,11 @@ const Header = () => {
                         {/*Search icon in mobile screen (md:hidden)*/}
                         <div ref={searchRef}>
                             <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-black hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700  text-sm p-2.5 me-1">
-                                <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                {/* <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
-                                <span className="sr-only">Search</span>
+                                <span className="sr-only">Search</span> */}
+                                <i className="fa-solid fa-globe text-black text-xl"></i>
                             </button>
                         </div>
                         {/*Main menu in mobile screen (md:hidden)*/}

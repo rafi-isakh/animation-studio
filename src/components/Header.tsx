@@ -118,8 +118,21 @@ const Header = () => {
                 setIsUserDropdownOpen(false);
             }
         }
-        if (isLanguageDropdownOpen && languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
-            if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        if (device == 'mobile') { 
+            if (isLanguageDropdownOpen 
+                && languageDropdownRef.current 
+                && !languageDropdownRef.current.contains(event.target as Node)
+                && languageMenuRef.current
+                && !languageMenuRef.current.contains(event.target as Node)
+            ) {
+                setIsLanguageDropdownOpen(false);
+            }
+        } else if (device == 'desktop') {
+            if (languageDropdownRef.current 
+                && !languageDropdownRef.current.contains(event.target as Node)
+                && languageMenuRef.current
+                && !languageMenuRef.current.contains(event.target as Node)
+            ) {
                 setIsLanguageDropdownOpen(false);
             }
         }

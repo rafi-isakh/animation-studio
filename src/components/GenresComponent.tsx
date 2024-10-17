@@ -39,7 +39,7 @@ const GenresComponent = () => {
 
     return (
         <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto'>
-        <h1 className='font-extrabold text-left justify-start self-start mt-10 '> 장르별로 보기 </h1>
+        {/* <h1 className='font-extrabold text-left justify-start self-start mt-10 '> 장르별로 보기 </h1> */}
         <div className="scrollbar-hide w-full h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex flex-col">
            
             <div className="flex w-full md:w-[1280px] px-4 justify-between items-center mx-auto">

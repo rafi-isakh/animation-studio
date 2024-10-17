@@ -24,14 +24,18 @@ export function GoogleSignIn() {
     const { login } = useAuth();
     return (
         <div className="flex flex-row items-center justify-center">
-            <NoCapsButton color='gray' variant='outlined' onClick={() => login('google', true, `/new_user`)} className='rounded-full border-2 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
-                <Image src="/google_logo.svg" alt="Google Sign In" width={50} height={50}
+            <NoCapsButton color='gray' variant='outlined' onClick={() => login('google', true, `/new_user`)} className='rounded-lg border-1 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
+                <Image 
+                    src="/google_logo.svg" 
+                    alt="Google Sign In" 
+                    width={25} 
+                    height={25}
+                    className="border-none"
                     placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 >
                 </Image>
-                <div className="flex flex-row items-center justify-center mx-auto">
-                    <p className="text-lg">{phrase(dictionary, "google_signin", language)}</p>
-                </div>
+                    <p className="text-lg ml-4">{phrase(dictionary, "google_signin", language)}</p>
+                
             </NoCapsButton>
         </div>
     )
@@ -42,14 +46,17 @@ export function KakaoSignIn() {
     const { login } = useAuth();
     return (
         <div className="flex flex-row items-center justify-center">
-            <NoCapsButton color='gray' variant='outlined' onClick={() => login('kakao', true, `/new_user`)} className='rounded-full border-2 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
-                <Image src="/kakao_logo.svg" alt="Kakao Sign In" width={50} height={50}
-                    placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+            <NoCapsButton color='gray' variant='outlined' onClick={() => login('kakao', true, `/new_user`)} className='rounded-lg border-1 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
+                <Image 
+                src="/kakao_logo.svg" 
+                alt="Kakao Sign In" 
+                width={20} 
+                height={20}
+                placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                 >
                 </Image>
-                <div className="flex flex-row items-center justify-center mx-auto">
-                    <p className="text-lg">{phrase(dictionary, "kakao_signin", language)}</p>
-                </div>
+                    <p className="text-lg ml-4"> {phrase(dictionary, "kakao_signin", language)} </p>
+               
             </NoCapsButton>
         </div>
     )

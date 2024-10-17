@@ -170,7 +170,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                             showLoading={false} 
                                         />
 
-                                        <div className='category hidden md:block lg:block'>
+                                        <div className='category'>
                                           <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>{getGenre(index)}</span>
                                         </div>
                                     </div>

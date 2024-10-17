@@ -41,32 +41,6 @@ export default function PicturesStudioPage() {
         }
     };
 
-
-    useEffect(() => {
-        const adjustFontSize = () => {
-            refs.current.forEach((ref, index) => {
-                if (ref) {
-                    const text = ref;
-                    if (text) {
-                        let fontSize = 16; // Starting font size
-                        text.style.fontSize = `${fontSize -2}px`;
-
-                        while (text.scrollWidth > ref.offsetWidth || text.scrollHeight > ref.offsetHeight) {
-                            fontSize--;
-                            text.style.fontSize = `${fontSize}px`;
-                            if (fontSize <= 8) break; // Minimum font size
-                        }
-                    }
-                }
-            });
-        };
-
-        adjustFontSize();
-        window.addEventListener('resize', adjustFontSize);
-
-        return () => window.removeEventListener('resize', adjustFontSize);
-    }, [language]); // Re-run when language changes
-
     return (
         <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto">
          
@@ -106,10 +80,10 @@ export default function PicturesStudioPage() {
             >
                 {isGeneratingPictures ? (
                     // Generating..
-                    <p ref={(el) => { if (el) refs.current[0] = el; }} className="text-[10px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
+                    <p className="text-[12px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
                     ) : (
                     // Generate
-                    <p ref={(el) => { if (el) refs.current[1] = el; }} className="text-[10px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
+                    <p className="text-[16px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
                     }
                   {/* Palette icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 

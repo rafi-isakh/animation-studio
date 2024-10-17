@@ -38,26 +38,30 @@ const GenresComponent = () => {
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
     return (
-        <div className="scrollbar-hide w-full bg-[#d9a8ff] h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex">
+        <div className='flex flex-col w-[720px] md:w-[1280px] px-4 justify-center items-center mx-auto'>
+        <h1 className='font-extrabold text-left justify-start self-start mt-10 '> 장르별로 보기 </h1>
+        <div className="scrollbar-hide w-full h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex flex-col">
+           
             <div className="flex w-[720px] md:w-[1280px] px-4 justify-between items-center mx-auto">
                 {genres.map((genre, index) => (
-                    <Link
+                         <Link
                         key={genre}
                         href={`?genre=${genre}`}
-                        className="flex-grow min-w-[90px] min-h-[45px] h-8 md:h-16 mr-4 text-center block p-4 flex flex-col justify-center items-center hover:text-pink-600 bg-white rounded-full"
+                        className="flex-grow mr-4 text-center flex flex-col justify-center items-center hover:text-pink-600 bg-gray-400 rounded-full"
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;
                             }
                         }}
                     >
-                        <h6 className="font-bold tracking-tight hover:text-pink-600 text-[#d9a8ff] whitespace-nowrap">
-                            {phrase(dictionary, genre, language)}
+                        <h6 className="!text-[16px] font-bold tracking-tight hover:text-pink-600 text-black whitespace-nowrap">
+                          # {phrase(dictionary, genre, language)}
                         </h6>
                     </Link>
                 ))}
             </div>
         </div>
+      </div>
     );
 };
 

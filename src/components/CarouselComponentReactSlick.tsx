@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick-theme.css";
 import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
+import { Webnovel } from '@/components/Types'
 import { getImageURL } from '@/utils/cloudfront';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,8 +15,8 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
 
-
-const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) => {
+// ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] })
+const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: SlickCarouselItem[], webnovels: Webnovel[] },) => {
 
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(1000);
@@ -93,7 +94,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         return '';
     }
 
-
+    
 
 
     const settings = {

@@ -17,7 +17,6 @@ import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 import ViewVideos from './ViewVideos';
-import { flushSync } from 'react-dom';
 
 const Header = () => {
 
@@ -118,21 +117,8 @@ const Header = () => {
                 setIsUserDropdownOpen(false);
             }
         }
-        if (device == 'mobile') { 
-            if (isLanguageDropdownOpen 
-                && languageDropdownRef.current 
-                && !languageDropdownRef.current.contains(event.target as Node)
-                && languageMenuRef.current
-                && !languageMenuRef.current.contains(event.target as Node)
-            ) {
-                setIsLanguageDropdownOpen(false);
-            }
-        } else if (device == 'desktop') {
-            if (languageDropdownRef.current 
-                && !languageDropdownRef.current.contains(event.target as Node)
-                && languageMenuRef.current
-                && !languageMenuRef.current.contains(event.target as Node)
-            ) {
+        if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
+            if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
                 setIsLanguageDropdownOpen(false);
             }
         }
@@ -150,10 +136,11 @@ const Header = () => {
 
     const handleLanguageChange = (language: Language) => {
         setLanguage(language);
-        setTimeout(() => {
-            setIsLanguageDropdownOpen(false);
-        }, 0);
-    };
+        setIsLanguageDropdownOpen(false);
+        if (device === 'mobile') {
+            handleMobileMenuClick();
+        }
+    }
 
     const handleUserItemClick = () => {
         setIsUserDropdownOpen(false);
@@ -213,38 +200,6 @@ const Header = () => {
         return pathname.startsWith(path);
     };
 
-    const LanguageMenuTop = ({ mobile }: { mobile: boolean }) => {
-        return (
-            <div ref={languageMenuRef}>
-                <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-2 py-3 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-                    <i className="fa-solid fa-globe text-black"></i>
-                    {!mobile && <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p>}
-                    {!mobile && <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                    </svg>}
-                </button>
-            </div>
-        )
-    }
-
-    const LanguageMenuDropdown = ({ mobile }: { mobile: boolean }) => {
-        return (
-            isLanguageDropdownOpen && (
-                <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
-                    <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                        {langPairList.map((langPair, index) => (
-                            <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
-                                <button onClick={() => handleLanguageChange(langPair.code as Language)} className="w-full text-start block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                    {langPair.name}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )
-        )
-    }
-
     return (
         <div className='fixed p-2 left-0 top-0 right-0 z-50 mx-auto'>
             <nav className="border border-black border-2 rounded-xl max-w-screen-xl mx-auto bg-white">
@@ -264,22 +219,18 @@ const Header = () => {
                         </div>
                     </div>
                     <div className="flex md:order-1">
-                        <div className="md:hidden">
-                            <LanguageMenuTop mobile={true} />
-                            <LanguageMenuDropdown mobile={true} />
-                        </div>
                         {/*Search icon in mobile screen (md:hidden)*/}
-                        {/* <div ref={searchRef}>
+                        <div ref={searchRef}>
                             <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-black hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700  text-sm p-2.5 me-1">
                                 <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
                                 </svg>
                                 <span className="sr-only">Search</span>
                             </button>
-                        </div> */}
+                        </div>
                         {/*Main menu in mobile screen (md:hidden)*/}
                         <div ref={hamburgerRef}>
-                            <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => router.push('/signin')} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-black md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-black dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                            <button id="mobile-hamburger" onClick={isLoggedIn? () => handleMobileMenuClick(): () => router.push('/signin')} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-black md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-black dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                 <span className="sr-only">Open main menu</span>
                                 <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
@@ -313,20 +264,34 @@ const Header = () => {
                                 <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                                     <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "news", language)}</p></Link>
                             </li> */}
-                            <li className="mt-1 relative px-4 py-5 md:p-0">
-                                <ChargePointsTemporary />
-                            </li>
-                            <li className="mt-1 relative px-4 py-5 md:p-0">
-                                <ViewVideos />
-                            </li>
-                            <li className="py-2 relative hidden md:block">
-                                <LanguageMenuTop mobile={false} />
-                                <LanguageMenuDropdown mobile={false} />
+                            {/*Language menu*/}
+                            <li className="py-2 relative">
+                                <div ref={languageMenuRef}>
+                                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                        <i className="fa-solid fa-globe text-black"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p>
+                                        <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                {isLanguageDropdownOpen && (
+                                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
+                                        <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                            {langPairList.map((langPair, index) => (
+                                                <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
+                                                    <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        {langPair.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </li>
                             {/*User menu*/}
                             <li className="py-2 relative">
                                 <div ref={userMenuRef}>
-                                    <button id="dropdownNavbarUserLink" onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                    <button id="dropdownNavbarUserLink" onClick={isLoggedIn? () => toggleUserDropdown(): () => router.push('/signin')} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                                         <i className="fa-solid fa-user text-black"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "profile", language)}</p>
                                         <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                             <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
@@ -375,6 +340,13 @@ const Header = () => {
                                     </div>
                                 )}
                             </li>
+                            {/* <li className="mt-1 relative px-4 py-5 md:p-0">
+                                <ChargePointsTemporary/>
+                            </li> */}
+                            <li className="mt-1 relative px-4 py-5 md:p-0">
+                                <ViewVideos/>
+                            </li>
+
                         </ul>
                     </div>
                 </div>

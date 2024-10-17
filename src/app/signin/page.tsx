@@ -2,8 +2,6 @@ import SignInComponent from '@/components/SignInComponent';
 import { GoogleSignIn, KakaoSignIn } from '@/utils/SignIn';
 import Link from "next/link";
 
-
-
 export default function SignIn() {
  
   return (
@@ -16,12 +14,6 @@ export default function SignIn() {
           <GoogleSignIn></GoogleSignIn>
           <KakaoSignIn></KakaoSignIn>
         </div>
-
-          {/* <p className="text-center text-[10px] py-6"> Not a member? 
-            <span className='font-extrabold text-pink-600 hover:text-purple-700'> Sign up to join Toonyz Today </span>
-          </p> */}
-     
-     
       </div>
  
       <div className="flex flex-row gap-4 mt-10">
@@ -32,11 +24,19 @@ export default function SignIn() {
         
           </p>
             
-          <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-pink-600"> 
+          <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600"> 
             
                 <Link href="/terms/privacy">개인정보 처리방침</Link> 
         
           </p>
+
+          <p className="text-center text-[10px] font-extrabold text-gray-400"> 
+            
+          © Stella& Inc.
+    
+          </p>
+
+     
             
       </div>
          

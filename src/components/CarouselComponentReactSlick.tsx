@@ -150,8 +150,8 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                                             showLoading={false} 
                                         />
 
-                                        <div className='category'>
-                                          <span className='text-[10px] w-20 rounded-xl text-white bg-purple-500 px-2 py-1 mr-1 no-outlined-text'>Romance</span>
+                                        <div className='category hidden md:block lg:block'>
+                                          <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>Romance</span>
                                         </div>
                                     </div>
                                 </div>

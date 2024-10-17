@@ -5,7 +5,6 @@ import { getCloudfrontImageURL, getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
 import { use, useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
 import { phrase, code_to_lang } from "@/utils/phrases"
 import Comments from "@/app/comments/page"
 import CommentsComponent from "./CommentsComponent"
@@ -18,13 +17,12 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
     const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0) ? webnovel.chapters[0].id : -1
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(10);
-    const params = useSearchParams();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setKey1(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
-    }, [language, params])
+    }, [language])
 
     return webnovel && (
 

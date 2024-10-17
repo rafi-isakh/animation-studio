@@ -1,7 +1,7 @@
 "use client"
 import { Webnovel } from '@/components/Types'
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
 import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
@@ -30,6 +30,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    const pathname = usePathname();
+
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, [pathname]);
 
     if (typeof id === 'string') {
     } else if (Array.isArray(id)) {
@@ -97,9 +103,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
 
                     <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
-                        <Suspense>
-                            <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                        </Suspense>
+                        <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
                         <div className="mt-4">
                             {
                                 <div className='flex flex-row'>

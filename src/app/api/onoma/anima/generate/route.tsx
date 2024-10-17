@@ -1,4 +1,4 @@
-export const maxDuration = 100; // This function can run for a maximum of 100 seconds5
+export const maxDuration = 300; // This function can run for a maximum of 300 seconds
 
 import { NextRequest, NextResponse } from "next/server";
 

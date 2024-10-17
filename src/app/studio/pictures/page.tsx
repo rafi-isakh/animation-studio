@@ -46,9 +46,9 @@ export default function PicturesStudioPage() {
         const adjustFontSize = () => {
             refs.current.forEach((ref, index) => {
                 if (ref) {
-                    const text = ref.querySelector('h6');
+                    const text = ref;
                     if (text) {
-                        let fontSize = 24; // Starting font size
+                        let fontSize = 16; // Starting font size
                         text.style.fontSize = `${fontSize -2}px`;
 
                         while (text.scrollWidth > ref.offsetWidth || text.scrollHeight > ref.offsetHeight) {
@@ -106,17 +106,10 @@ export default function PicturesStudioPage() {
             >
                 {isGeneratingPictures ? (
                     // Generating..
-<<<<<<< Updated upstream
-                    <p className="text-[16px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
+                    <p ref={(el) => { if (el) refs.current[0] = el; }} className="text-[10px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
                     ) : (
                     // Generate
-                    <p className="text-[16px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
-=======
-                    <p ref={(el) => (refs.current[0] = el)} className="text-[10px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
-                    ) : (
-                    // Generate
-                    <p ref={(el) => (refs.current[1] = el)} className="text-[10px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
->>>>>>> Stashed changes
+                    <p ref={(el) => { if (el) refs.current[1] = el; }} className="text-[10px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
                     }
                   {/* Palette icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 

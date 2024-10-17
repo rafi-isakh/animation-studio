@@ -203,7 +203,10 @@ const Header = () => {
     // Add this function to determine the active category
     const isActive = (path: string) => {
         if (path === '/') {
-            return pathname === '/' || pathname.startsWith('/webnovel');
+            return pathname === '/' || pathname.startsWith('/webnovel') || pathname.startsWith('/view_webnovels')
+            || pathname.startsWith('/view_profile') || pathname.startsWith('/new_webnovel') || pathname.startsWith('/new_chapter')
+            || pathname.startsWith('/my_profile') || pathname.startsWith('/my_webnovels') || pathname.startsWith("/library")
+            || pathname.startsWith("/chapter_view")
         }
         return pathname.startsWith(path);
     };

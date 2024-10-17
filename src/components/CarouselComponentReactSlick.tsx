@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick-theme.css";
 import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
+import { Webnovel } from '@/components/Types'
 import { getImageURL } from '@/utils/cloudfront';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,8 +15,8 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
 
-
-const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) => {
+// ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] })
+const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: SlickCarouselItem[], webnovels: Webnovel[] },) => {
 
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(1000);
@@ -93,7 +94,7 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
         return '';
     }
 
-
+    
 
 
     const settings = {
@@ -130,12 +131,12 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                                     />
                                 </Link>
                                 <div className='absolute rounded-xl top-4 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
-                                    <div className='flex flex-col justify-around h-full'>
+                                    <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
                                         <OtherTranslateComponent 
                                             key={`title-${index}-${language}`} 
                                             content={item.title} 
                                             elementId={item.id.toString()} 
-                                            classParams={`${breakKeepOrNot()} md:text-4xl text-2xl font-extrabold px-2 p-4 outlined-text`}
+                                            classParams={`${breakKeepOrNot()} md:text-4xl lg:text-4xl text-md !min-[400px]:text-[12px] font-extrabold px-2 outlined-text`}
                                             elementType={'carouselItem'} 
                                             elementSubtype='title' 
                                             showLoading={false} 
@@ -144,11 +145,15 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                                             key={`hook-${index}-${language}`} 
                                             content={item.hook} 
                                             elementId={item.id.toString()} 
-                                            classParams={`${breakKeepOrNot()} md:text-2xl text-lg font-bold px-2 p-4 outlined-text`}
+                                            classParams={`${breakKeepOrNot()} md:text-xl lg:text-xl !min-[400px]:text-[12px] font-bold px-2 p-4 outlined-text`}
                                             elementType={'carouselItem'} 
                                             elementSubtype='hook' 
                                             showLoading={false} 
                                         />
+
+                                        <div className='category hidden md:block lg:block'>
+                                          <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>Romance</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -156,11 +161,16 @@ const CarouselComponentReactSlick = ({ items }: { items: SlickCarouselItem[] }) 
                     ))}
                 </Slider>
             </div>
-            <style jsx>{`
+            <style jsx>
+                {`
                 .outlined-text {
                     text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
-                }`
-            }
+                }
+
+                .no-outlined-text {
+                    text-shadow: none;
+                }
+                `}
             </style>
         </div>
     );

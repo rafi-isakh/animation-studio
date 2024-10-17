@@ -59,6 +59,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         }
     }, [email])
 
+    useEffect(() => {
+        fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
+    }, [])
+
     const handleLikeClick = async () => {
         if (likeToggle) {
             const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)

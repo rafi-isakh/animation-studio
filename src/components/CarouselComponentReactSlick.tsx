@@ -78,11 +78,26 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         if (index == 0) {
             return '/view_webnovels?id=2';
         } else if (index == 1) {
-            return '/view_webnovels?id=12';
+            return '/view_webnovels?id=19';
         } else if (index == 2) {
-            return '/view_webnovels?id=6';
+            return '/view_webnovels?id=22';
         }
         return '#';
+    }
+
+    function getGenre(index: number) {
+        if (index == 0) {
+            return 'Romance';
+        } else if (index == 1) {
+            return 'Fantasy';
+        } else if (index == 2) {
+            return 'Fantasy';
+        } else if (index == 3) {
+            return 'Sci-Fi';
+        } else if (index == 4) {
+            return 'Fantasy'
+        }
+        return '';
     }
 
     function breakKeepOrNot() {
@@ -152,7 +167,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                         />
 
                                         <div className='category hidden md:block lg:block'>
-                                          <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>Romance</span>
+                                          <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>{getGenre(index)}</span>
                                         </div>
                                     </div>
                                 </div>

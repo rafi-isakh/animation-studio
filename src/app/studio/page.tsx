@@ -10,9 +10,9 @@ export default function Studio() {
   // const [logoHeight, setLogoHeight] = useState(32);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen mt-[90%] sm:mt-[95%] px-4 md:mt-96 lg:mt-96 ">
+    <div className="flex flex-col items-center justify-center h-screen px-4 mt-96 sm:mt-96 md:mt-96 lg:mt-96">
 
-      <div className='sm:block md:hidden lg:hidden py-36 md:py-8 lg:py-8'></div>
+      <div className='sm:block md:hidden lg:hidden py-80 md:py-8 lg:py-8 '></div>
       {/* Top Part */}
       <p className="text-[2rem] flex flex-row ">
         <Image

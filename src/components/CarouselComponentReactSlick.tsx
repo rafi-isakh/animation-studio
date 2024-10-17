@@ -145,7 +145,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                         placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
                                 </Link>
-                                <div className='absolute rounded-xl top-4 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
+                                <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
                                     <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
                                         <OtherTranslateComponent 
                                             key={`title-${index}-${language}`} 

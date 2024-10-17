@@ -4,11 +4,12 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { getCloudfrontImageURL, getImageURL } from "@/utils/cloudfront"
 import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { phrase, code_to_lang } from "@/utils/phrases"
 import Comments from "@/app/comments/page"
 import CommentsComponent from "./CommentsComponent"
+import { replaceSmartQuotes } from "@/utils/font"
 
 const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
 
@@ -86,7 +87,7 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
                 </div>
                 <OtherTranslateComponent
                     key={key2}
-                    content={webnovel.description}
+                    content={replaceSmartQuotes(webnovel.description)}
                     elementId={webnovel.id.toString()}
                     elementType='webnovel'
                     elementSubtype="description"

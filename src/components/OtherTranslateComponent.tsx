@@ -114,11 +114,8 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                 body: JSON.stringify(data)
             })
 
-        console.log(translation)
-        console.log(content)
         if (response.ok) {
             const data = await response.json();
-            console.log(data)
             startEventSource(data.text_id);
         } else {
             console.error('Failed to submit words');
@@ -159,7 +156,8 @@ return (
                 <div role="status" className='w-4'>
                     <CircularProgress size="0.8rem" color='secondary' />
                 </div> :
-                text
+                <div dangerouslySetInnerHTML={{ __html: text.replaceAll("\n", "<br/>") }} />
+
         }
     </div>
 );

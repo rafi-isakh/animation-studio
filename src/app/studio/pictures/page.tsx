@@ -83,7 +83,7 @@ export default function PicturesStudioPage() {
                     <p className="text-[12px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
                     ) : (
                     // Generate
-                    <p className="text-[16px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
+                    <p className="text-[16px]">{phrase(dictionary, "generatePrompt", language)}</p>) 
                     }
                   {/* Palette icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 

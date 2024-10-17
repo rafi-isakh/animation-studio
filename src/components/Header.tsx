@@ -17,6 +17,7 @@ import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 import ViewVideos from './ViewVideos';
+import { flushSync } from 'react-dom';
 
 const Header = () => {
 
@@ -76,11 +77,11 @@ const Header = () => {
 
     useEffect(() => {
         // Add event listener to detect clicks outside the menu
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('click', handleClickOutside);
 
         // Clean up the event listener when the component unmounts
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('click', handleClickOutside);
         };
     }, []);
 
@@ -136,12 +137,10 @@ const Header = () => {
 
     const handleLanguageChange = (language: Language) => {
         setLanguage(language);
-        setIsLanguageDropdownOpen(false);
-        // if (device === 'mobile') {
-        //     handleMobileMenuClick();
-        // }
-    }
-
+        setTimeout(() => {
+            setIsLanguageDropdownOpen(false);
+        }, 0);
+    };
     const handleUserItemClick = () => {
         setIsUserDropdownOpen(false);
         if (device === 'mobile') {
@@ -221,7 +220,7 @@ const Header = () => {
                     <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                         {langPairList.map((langPair, index) => (
                             <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
-                                <button onClick={() => handleLanguageChange(langPair.code as Language)} className="text-start w-full block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                <button onClick={() => handleLanguageChange(langPair.code as Language)} className="w-full text-start block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
                                     {langPair.name}
                                 </button>
                             </li>

@@ -1,12 +1,12 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
-import { ElementType, ElementSubtype } from '@/components/Types';
+import { ElementType, ElementSubtype, Language } from '@/components/Types';
 import { CircularProgress } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 
-const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, classParams = "", showLoading = true, incomingText = '' }:
-    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
+const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '' }:
+    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
     const [text, setText] = useState(incomingText);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
@@ -14,13 +14,6 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        if (finished) {
-            const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
-            localStorage.setItem(sessionKey, text);
-        }
-    }, [finished]);
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -53,10 +46,15 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                 }
             }
         }
-        if (content) {
-            handleTranslate();
+        if (defaultLanguage != language) {
+            if (content) {
+                handleTranslate();
+            } else {
+                setText("");
+                setLoading(false);
+            }
         } else {
-            setText("");
+            setText(content);
             setLoading(false);
         }
     }, []);
@@ -122,53 +120,53 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                 body: JSON.stringify(data)
             })
 
-        if (response.ok) {
-            const data = await response.json();
-            startEventSource(data.text_id);
-        } else {
-            console.error('Failed to submit words');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-};
-
-const startEventSource = (textId: string) => {
-    setLoading(false);
-    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
-
-    eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.ended == 0) {
-            setText(text => text + data.token);
-        } else if (data.ended == 1) {
-            setFinished(true);
+            if (response.ok) {
+                const data = await response.json();
+                startEventSource(data.text_id);
+            } else {
+                console.error('Failed to submit words');
+            }
+        } catch (error) {
+            console.error('Error:', error);
         }
     };
 
-    eventSource.onerror = (error) => {
-        console.error('EventSource failed:', error);
-        eventSource.close();
+    const startEventSource = (textId: string) => {
+        setLoading(false);
+        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
+
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.ended == 0) {
+                setText(text => text + data.token);
+            } else if (data.ended == 1) {
+                setFinished(true);
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            console.error('EventSource failed:', error);
+            eventSource.close();
+        };
+        return () => {
+            eventSource.close();
+        };
     };
-    return () => {
-        eventSource.close();
-    };
-};
 
-type Direction = 'ltr' | 'rtl';
+    type Direction = 'ltr' | 'rtl';
 
-return (
-    <div className={`${classParams}`} style={{ direction: `${isRtl}` as Direction }}>
-        {
-            loading && showLoading ?
-                <div role="status" className='w-4'>
-                    <CircularProgress size="0.8rem" color='secondary' />
-                </div> :
-                <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
+    return (
+        <div className={`${classParams}`} style={{ direction: `${isRtl}` as Direction }}>
+            {
+                loading && showLoading ?
+                    <div role="status" className='w-4'>
+                        <CircularProgress size="0.8rem" color='secondary' />
+                    </div> :
+                    <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
-        }
-    </div>
-);
+            }
+        </div>
+    );
 };
 
 export default OtherTranslateComponent;

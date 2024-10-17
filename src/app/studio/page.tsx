@@ -85,6 +85,7 @@ export default function Studio() {
                                             elementSubtype="other"
                                             showLoading={false}
                                             classParams="text-2xl"
+                                            defaultLanguage='ko'
                                         />
                                     </div>
                                 </Link>
@@ -99,6 +100,7 @@ export default function Studio() {
                                     elementSubtype="other"
                                     showLoading={false}
                                     classParams="my-10"
+                                    defaultLanguage='ko'
                                 />
                             </div>
 
@@ -115,6 +117,7 @@ export default function Studio() {
                                     elementSubtype="other"
                                     showLoading={false}
                                     classParams="text-lg"
+                                    defaultLanguage='ko'
                                 />
                             </Button>
 
@@ -165,6 +168,7 @@ export default function Studio() {
                                             elementSubtype="other"
                                             showLoading={false}
                                             classParams="text-2xl"
+                                            defaultLanguage='ko'
                                         />
                                         {/* <small className='text-[10px] self-end'>BETA</small> */}
 
@@ -185,6 +189,7 @@ export default function Studio() {
                                         elementSubtype="other"
                                         showLoading={false}
                                         classParams="my-10"
+                                        defaultLanguage='ko'
                                     />
                                 </div>
 
@@ -202,6 +207,7 @@ export default function Studio() {
                                         elementSubtype="other"
                                         showLoading={false}
                                         classParams="text-lg"
+                                        defaultLanguage='ko'
                                     />
                                 </Button>
 
@@ -229,6 +235,7 @@ export default function Studio() {
                             elementSubtype="other"
                             showLoading={false}
                             classParams="text-lg"
+                            defaultLanguage='ko'
                         />
                     </Button>
 

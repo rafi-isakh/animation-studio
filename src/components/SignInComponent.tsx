@@ -27,7 +27,7 @@ const SignInComponent = () => {
           />
             <p className="text-center"> {phrase(dictionary, 'login', language)} </p>  <br/>
             {/* <h1> Login in to Toonyz</h1> */}
-            <p className="text-center text-[10px]"> Your Favorite Story Universe, Between us, Toonyz </p>
+            <p className="text-center text-[10px]"> Your Favorite Story Universe, Between Us, Toonyz </p>
         </div>
     )
 }

@@ -38,16 +38,16 @@ const GenresComponent = () => {
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
     return (
-        <div className='flex flex-col w-[720px] md:w-[1280px] px-4 justify-center items-center mx-auto'>
+        <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto'>
         <h1 className='font-extrabold text-left justify-start self-start mt-10 '> 장르별로 보기 </h1>
         <div className="scrollbar-hide w-full h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex flex-col">
            
-            <div className="flex w-[720px] md:w-[1280px] px-4 justify-between items-center mx-auto">
+            <div className="flex w-full md:w-[1280px] px-4 justify-between items-center mx-auto">
                 {genres.map((genre, index) => (
                          <Link
                         key={genre}
                         href={`?genre=${genre}`}
-                        className="flex-grow mr-4 text-center flex flex-col justify-center items-center hover:text-pink-600 bg-gray-400 rounded-full"
+                        className="flex-grow mr-4 p-1 text-center flex flex-col justify-center items-center hover:text-pink-600 bg-gray-400 rounded-full"
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;

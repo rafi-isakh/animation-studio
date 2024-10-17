@@ -63,12 +63,13 @@ export default function PicturesStudioPage() {
                             <div className="text-center max-w-md">
                                 <OtherTranslateComponent
                                     key={key1}
-                                    content="여러분의 Feed를 생성해 보세요."
+                                    content="여러분의 그림을 생성해 보세요."
                                     elementId={"1"}
                                     elementType='other'
                                     elementSubtype="other"
                                     showLoading={false}
                                     classParams="mb-2 font-bold"
+                                    defaultLanguage="ko"
                                 />
                                 <OtherTranslateComponent
                                     key={key2}
@@ -78,6 +79,7 @@ export default function PicturesStudioPage() {
                                     elementSubtype="other"
                                     showLoading={false}
                                     classParams="text-sm break-keep"
+                                    defaultLanguage="ko"
                                 />
                             </div>
                         </div>

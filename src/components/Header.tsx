@@ -77,11 +77,11 @@ const Header = () => {
 
     useEffect(() => {
         // Add event listener to detect clicks outside the menu
-        document.addEventListener('click', handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
 
         // Clean up the event listener when the component unmounts
         return () => {
-            document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
@@ -118,7 +118,7 @@ const Header = () => {
                 setIsUserDropdownOpen(false);
             }
         }
-        if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
+        if (isLanguageDropdownOpen && languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
             if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
                 setIsLanguageDropdownOpen(false);
             }
@@ -141,6 +141,7 @@ const Header = () => {
             setIsLanguageDropdownOpen(false);
         }, 0);
     };
+
     const handleUserItemClick = () => {
         setIsUserDropdownOpen(false);
         if (device === 'mobile') {

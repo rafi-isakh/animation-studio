@@ -12,7 +12,6 @@ export default function PicturesStudioPage() {
     const [pictures, setPictures] = useState<string[]>([]);
     const [prompt, setPrompt] = useState("");
     const { language, dictionary } = useLanguage();
-    const refs = useRef<(HTMLParagraphElement)[]>([]);
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(1000);
 
@@ -101,7 +100,7 @@ export default function PicturesStudioPage() {
                     color="gray"
                     onClick={generatePictures}
                     disabled={isGeneratingPictures}
-                    className='px-4 py-2 font-bold ml-4'
+                    className='px-4 py-2 font-bold ml-4 bg-white'
                 >
                     {isGeneratingPictures ? (
                         // Generating..

@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
@@ -11,6 +11,7 @@ export default function PicturesStudioPage() {
     const [pictures, setPictures] = useState<string[]>([]);
     const [prompt, setPrompt] = useState("");
     const {language, dictionary} = useLanguage();
+    const refs = useRef<(HTMLParagraphElement)[]>([]);
 
     const generatePictures = async () => {
         setIsGeneratingPictures(true);
@@ -39,6 +40,32 @@ export default function PicturesStudioPage() {
             setIsGeneratingPictures(false);
         }
     };
+
+
+    useEffect(() => {
+        const adjustFontSize = () => {
+            refs.current.forEach((ref, index) => {
+                if (ref) {
+                    const text = ref.querySelector('h6');
+                    if (text) {
+                        let fontSize = 24; // Starting font size
+                        text.style.fontSize = `${fontSize -2}px`;
+
+                        while (text.scrollWidth > ref.offsetWidth || text.scrollHeight > ref.offsetHeight) {
+                            fontSize--;
+                            text.style.fontSize = `${fontSize}px`;
+                            if (fontSize <= 8) break; // Minimum font size
+                        }
+                    }
+                }
+            });
+        };
+
+        adjustFontSize();
+        window.addEventListener('resize', adjustFontSize);
+
+        return () => window.removeEventListener('resize', adjustFontSize);
+    }, [language]); // Re-run when language changes
 
     return (
         <div className="md:w-[1280px] flex flex-col space-y-4 items-center justify-center mx-auto">
@@ -79,10 +106,17 @@ export default function PicturesStudioPage() {
             >
                 {isGeneratingPictures ? (
                     // Generating..
+<<<<<<< Updated upstream
                     <p className="text-[16px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
                     ) : (
                     // Generate
                     <p className="text-[16px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
+=======
+                    <p ref={(el) => (refs.current[0] = el)} className="text-[10px]">{phrase(dictionary, "generatingPrompt", language)}</p> 
+                    ) : (
+                    // Generate
+                    <p ref={(el) => (refs.current[1] = el)} className="text-[10px]">{phrase(dictionary, "generaedPrompt", language)}</p>) 
+>>>>>>> Stashed changes
                     }
                   {/* Palette icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 

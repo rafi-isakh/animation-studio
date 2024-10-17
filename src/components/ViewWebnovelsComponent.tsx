@@ -39,15 +39,14 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const router = useRouter();
 
     useEffect(() => {
+        let hasWebnovels = false;
         if (webnovel) {
-            setAtLeastOneWebnovel(true);
-        } else {
-            setAtLeastOneWebnovel(false);
-        }
-        if (userWebnovels) {
-            setAtLeastOneWebnovel(true);
+            hasWebnovels = true;
+        } if (userWebnovels && userWebnovels.length > 0) {
+            hasWebnovels = true;
             setWebnovels(userWebnovels);
         }
+        setAtLeastOneWebnovel(hasWebnovels);
         setLoading(false);
     }, [webnovel, userWebnovels, deletedWebnovelId]);
 
@@ -86,56 +85,61 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const getWebnovel = () => {
         return webnovels.find(w => w.id.toString() == id)
     }
-    if (!loading) {
-        if (atLeastOneWebnovel) {
-            return (
-                <ThemeProvider theme={grayTheme}>
-                    <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
-                       
-                        <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
-                            <Suspense>
-                                <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                            </Suspense>
-                            <div className="mt-4">
-                                {
-                                    <div className='flex flex-row'>
-                                        {(author_email == email) &&
-                                            <div className='flex flex-row gap-4 w-full justify-end py-6'>
-                                                {/* 
+    if (loading) {
+        return (
+            <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
+                <CircularProgress color='secondary' />
+            </div>
+        )
+    } else if (atLeastOneWebnovel) {
+        return (
+            <ThemeProvider theme={grayTheme}>
+                <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
+
+                    <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
+                        <Suspense>
+                            <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
+                        </Suspense>
+                        <div className="mt-4">
+                            {
+                                <div className='flex flex-row'>
+                                    {(author_email == email) &&
+                                        <div className='flex flex-row gap-4 w-full justify-end py-6'>
+                                            {/* 
                                                     <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
                                                         {phrase(dictionary, "aieditor", language)}
                                                     </NoCapsButton> 
                                                 */}
-                                                <NoCapsButton 
-                                                    color='gray' 
-                                                    variant='outlined' 
-                                                    onClick={handleNewChapter}
-                                                    className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
-                                                >
-                                                    {phrase(dictionary, "uploadNewChapter", language)}
-                                                </NoCapsButton>
-                                                <NoCapsButton 
-                                                    color='gray' 
-                                                    variant='outlined' 
-                                                    onClick={() => setShowDeleteModal(true)}
-                                                    className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
-                                                >
-                                                    {phrase(dictionary, "deleteWebnovel", language)}
-                                                </NoCapsButton>
-                                            </div>
-                                        }
-                                        {/*
+                                            <NoCapsButton
+                                                color='gray'
+                                                variant='outlined'
+                                                onClick={handleNewChapter}
+                                                className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                            >
+                                                {phrase(dictionary, "uploadNewChapter", language)}
+                                            </NoCapsButton>
+                                            <NoCapsButton
+                                                color='gray'
+                                                variant='outlined'
+                                                onClick={() => setShowDeleteModal(true)}
+                                                className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                            >
+                                                {phrase(dictionary, "deleteWebnovel", language)}
+                                            </NoCapsButton>
+                                        </div>
+                                    }
+                                    {/*
                                          <div className='w-32 h-32'>
                                         </div> 
                                         */}
-                                    </div>
-                                }
-                            </div>
-                            
-                            <ListOfChaptersComponent webnovel={getWebnovel()} />
-                          
-                           {/* writer's other works */}
-                           {/*
+                                </div>
+                            }
+                        </div>
+
+                        <ListOfChaptersComponent webnovel={getWebnovel()} />
+
+                        {/* writer's other works */}
+                        {/*
                              <div className='w-full md:w-1/4 p-4'>
                                 <Suspense>
                                     <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
@@ -144,34 +148,26 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                              </div> 
                            */}
 
+                    </div>
+                </div >
+                <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                    <Box sx={style}>
+                        <div className='flex flex-col space-y-4 items-center justify-center'>
+                            <p className='text-lg font-bold'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                            <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
+                            <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                         </div>
-                    </div >
-                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={style}>
-                            <div className='flex flex-col space-y-4 items-center justify-center'>
-                                <p className='text-lg font-bold'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                            </div>
-                        </Box>
-                    </Modal>
-                </ThemeProvider>
-            )
-        }
-        else {
-            return (
-                <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto'>
-                    {phrase(dictionary, "noWebnovelsFound", language)}
-                </div>
-            )
-        }
-    }
-    else {
-        return (
-            <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
-                <CircularProgress color='secondary' />
-            </div>
+                    </Box>
+                </Modal>
+            </ThemeProvider>
         )
+    } else {
+        return null;
+        // return (
+        //     <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+        //         {phrase(dictionary, "noWebnovelsFound", language)}
+        //     </div>
+        // )
     }
 };
 

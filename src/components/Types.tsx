@@ -4,9 +4,9 @@ export interface WebnovelIdProps {
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' 
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other'
 
-export type ElementSubtype = 'title' | 'description' | 'hook'
+export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
 
 export type SortBy = 'views' | 'likes' | 'date'
 

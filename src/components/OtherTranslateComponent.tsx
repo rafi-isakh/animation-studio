@@ -16,6 +16,13 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        if (finished) {
+            const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
+            localStorage.setItem(sessionKey, text);
+        }
+    }, [finished]);
+
+    useEffect(() => {
         if (fetchRef.current) return;
         fetchRef.current = true;
 

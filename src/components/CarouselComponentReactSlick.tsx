@@ -14,6 +14,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 // ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] })
 const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: SlickCarouselItem[], webnovels: Webnovel[] },) => {
@@ -26,6 +27,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
     const [key6, setKey6] = useState(5000);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [nextIndex, setNextIndex] = useState(1);
+    const router = useRouter();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     const { language, dictionary } = useLanguage();
@@ -76,11 +78,15 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
 
     function getHref(index: number) {
         if (index == 0) {
-            return '/view_webnovels?id=2';
+            return '/view_webnovels?id=25';
         } else if (index == 1) {
             return '/view_webnovels?id=19';
         } else if (index == 2) {
             return '/view_webnovels?id=22';
+        } else if (index == 3) {
+            return '/view_webnovels?id=28';
+        } else if (index == 4) {
+            return '/view_webnovels?id=29';
         }
         return '#';
     }
@@ -140,11 +146,9 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                     {items.map((item, index) => (
                         <div key={index} className="px-2 md:px-4">
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
-                                <Link href={getHref(index)}>
-                                    <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
-                                        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                    />
-                                </Link>
+                                <Image onClick={() => router.push(getHref(index))} className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
+                                    placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                />
                                 <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
                                     <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
                                         <OtherTranslateComponent 

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import GeneratedPicture from "@/components/GeneratedPicture";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -12,6 +13,13 @@ export default function PicturesStudioPage() {
     const [prompt, setPrompt] = useState("");
     const { language, dictionary } = useLanguage();
     const refs = useRef<(HTMLParagraphElement)[]>([]);
+    const [key1, setKey1] = useState(0);
+    const [key2, setKey2] = useState(1000);
+
+    useEffect(() => {
+        setKey1(prevKey => prevKey + 1);
+        setKey2(prevKey => prevKey + 1);
+    }, [language])
 
     const generatePictures = async () => {
         setIsGeneratingPictures(true);
@@ -53,18 +61,31 @@ export default function PicturesStudioPage() {
                     ) : (
                         <div className="col-span-full flex justify-center items-center h-full p-2">
                             <div className="text-center max-w-md">
-                                <p className="font-bold mb-2">여러분의 Feed를 생성해 보세요.</p>
-                                <p className="text-sm break-keep">
-                                    구체적인 프롬프트와 키워드로 인물의 행동과 외모, 배경 및 분위기를 묘사해주세요.
-                                    예시) 한 소녀, 금발의 공주, 화이트 드레스, 목걸이, 진주 귀걸이
-                                </p>
+                                <OtherTranslateComponent
+                                    key={key1}
+                                    content="여러분의 Feed를 생성해 보세요."
+                                    elementId={"1"}
+                                    elementType='other'
+                                    elementSubtype="other"
+                                    showLoading={false}
+                                    classParams="mb-2 font-bold"
+                                />
+                                <OtherTranslateComponent
+                                    key={key2}
+                                    content="구체적인 프롬프트와 키워드로 인물의 행동과 외모, 배경 및 분위기를 묘사해주세요. 예시) 한 소녀, 금발의 공주, 화이트 드레스, 목걸이, 진주 귀걸이"
+                                    elementId={"2"}
+                                    elementType='other'
+                                    elementSubtype="other"
+                                    showLoading={false}
+                                    classParams="text-sm break-keep"
+                                />
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            {isGeneratingPictures && <CircularProgress color="secondary" /> }
+            {isGeneratingPictures && <CircularProgress color="secondary" />}
 
             <div className="flex flex-row fixed bottom-5">
                 <textarea

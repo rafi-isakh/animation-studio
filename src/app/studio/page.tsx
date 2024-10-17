@@ -1,13 +1,33 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from "next/link"
 import Image from 'next/image'
 import { Button } from "@mui/material"
+import OtherTranslateComponent from '@/components/OtherTranslateComponent'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 
 export default function Studio() {
     // const [logoWidth, setLogoWidth] = useState(141);
     // const [logoHeight, setLogoHeight] = useState(32);
+    const [key1, setKey1] = useState(0);
+    const [key2, setKey2] = useState(1000);
+    const [key3, setKey3] = useState(2000);
+    const [key4, setKey4] = useState(3000);
+    const [key5, setKey5] = useState(4000);
+    const [key6, setKey6] = useState(5000);
+    const [key7, setKey7] = useState(6000);
+    const { language } = useLanguage();
+
+    useEffect(() => {
+        setKey1(prevKey => prevKey + 1);
+        setKey2(prevKey => prevKey + 1);
+        setKey3(prevKey => prevKey + 1);
+        setKey4(prevKey => prevKey + 1);
+        setKey5(prevKey => prevKey + 1);
+        setKey6(prevKey => prevKey + 1);
+        setKey7(prevKey => prevKey + 1);
+    }, [language]);
 
     return (
         <div className="flex flex-col items-center justify-center h-screen px-4 mt-96 sm:mt-96 md:mt-96 lg:mt-96">
@@ -56,25 +76,46 @@ export default function Studio() {
                                     href="/studio/pictures"
                                     className='text-[2rem]'
                                 >
-                                    이미지 스튜디오
-                                    {/* <small className='text-[10px] self-end'>BETA</small> */}
+                                    <div className="w-[200px]">
+                                        <OtherTranslateComponent
+                                            key={key1}
+                                            content="이미지 스튜디오"
+                                            elementId={"1"}
+                                            elementType='other'
+                                            elementSubtype="other"
+                                            showLoading={false}
+                                            classParams="text-2xl"
+                                        />
+                                    </div>
                                 </Link>
                             </div>
 
-                            <p className="mt-10 mb-10">
-                                여러분의 아이디어가 실현이 되는 웹툰 이미지를 만들어 보세요. <br />
-
-                                이미지 스튜디오 AI는 여러분의 이야기를 그림으로 표현할 수 있도록 도와줍니다. <br />
-                                아이디어만 있으면 키워드로 이미지를 만들 수 있고, <br />
-                                언제 어디서나 이미지를 다운로드 받을 수 있습니다.
-                            </p>
+                            <div className="w-[330px]">
+                                <OtherTranslateComponent
+                                    key={key2}
+                                    content={`여러분의 아이디어가 실현이 되는 웹툰 이미지를 만들어 보세요. 이미지 스튜디오 AI는 여러분의 이야기를 그림으로 표현할 수 있도록 도와줍니다. 아이디어만 있으면 키워드로 이미지를 만들 수 있고, 언제 어디서나 이미지를 다운로드 받을 수 있습니다.`}
+                                    elementId={"1"}
+                                    elementType='other'
+                                    elementSubtype="other"
+                                    showLoading={false}
+                                    classParams="my-10"
+                                />
+                            </div>
 
                             <Button
                                 href="/studio/pictures"
                                 variant="contained"
                                 color="gray"
                                 className='w-full border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
-                                이미지 만들기
+                                <OtherTranslateComponent
+                                    key={key3}
+                                    content="이미지 생성"
+                                    elementId={"2"}
+                                    elementType='other'
+                                    elementSubtype="other"
+                                    showLoading={false}
+                                    classParams="text-lg"
+                                />
                             </Button>
 
                         </div>
@@ -116,7 +157,15 @@ export default function Studio() {
                                         href="/studio/novel"
                                         className='text-[2rem]'
                                     >
-                                        웹소설 스튜디오
+                                        <OtherTranslateComponent
+                                            key={key4}
+                                            content="웹소설 스튜디오"
+                                            elementId={"4"}
+                                            elementType='other'
+                                            elementSubtype="other"
+                                            showLoading={false}
+                                            classParams="text-2xl"
+                                        />
                                         {/* <small className='text-[10px] self-end'>BETA</small> */}
 
                                         {/* <svg className="cs4ft cjvbc cb0iz c3cwy cqn82 cmzpz" width="220" height="24" viewBox="0 0 220 24" xmlns="http://www.w3.org/2000/svg">
@@ -127,21 +176,33 @@ export default function Studio() {
                                 </div>
 
 
-                                <p className="mt-10 mb-10">
-                                    스토리를 중심으로 원스톱 스토리보드 생성을 지원합니다. <br />
+                                <div className="w-[330px]">
+                                    <OtherTranslateComponent
+                                        key={key5}
+                                        content={`스토리를 중심으로 원스톱 스토리보드 생성을 지원합니다. 스토리텔링 AI 기술을 활용한 스마트 툴로 누구나 쉽게 이야기를 만들 수 있는 웹소설 스튜디오입니다. 새로운 이야기를 발굴하고 여러분의 아이디어를 완성해보세요!`}
+                                        elementId={"5"}
+                                        elementType='other'
+                                        elementSubtype="other"
+                                        showLoading={false}
+                                        classParams="my-10"
+                                    />
+                                </div>
 
-                                    스토리텔링 AI 기술을 활용한 스마트 툴로 <br />
-                                    누구나 쉽게 이야기를 만들 수 있는 웹소설 스튜디오입니다. <br />
-                                    새로운 이야기를 발굴하고 여러분의 아이디어를 완성해보세요! <br />
-
-                                </p>
 
                                 <Button
                                     href="/studio/novel"
                                     variant="contained"
                                     color="gray"
                                     className='w-full border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
-                                    시작하기
+                                    <OtherTranslateComponent
+                                        key={key6}
+                                        content="시작하기"
+                                        elementId={"6"}
+                                        elementType='other'
+                                        elementSubtype="other"
+                                        showLoading={false}
+                                        classParams="text-lg"
+                                    />
                                 </Button>
 
                             </div>
@@ -157,10 +218,18 @@ export default function Studio() {
 
                     <Button
                         href="/studio/pictures"
-                        variant="outlined"
+                        variant="contained"
                         color="gray"
                         className="w-64  border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600">
-                        기능 더 알아보기
+                        <OtherTranslateComponent
+                            key={key7}
+                            content="기능 더 알아보기"
+                            elementId={"7"}
+                            elementType='other'
+                            elementSubtype="other"
+                            showLoading={false}
+                            classParams="text-lg"
+                        />
                     </Button>
 
                 </div>

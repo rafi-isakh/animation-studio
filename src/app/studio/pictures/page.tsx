@@ -97,11 +97,11 @@ export default function PicturesStudioPage() {
                     placeholder={phrase(dictionary, "typeYourPrompt", language)}
                 />
                 <Button
-                    variant="outlined"
+                    variant="contained"
                     color="gray"
                     onClick={generatePictures}
                     disabled={isGeneratingPictures}
-                    className='px-4 py-2 font-bold border border-gray-600 ml-4 bg-white shadow-none'
+                    className='px-4 py-2 font-bold ml-4'
                 >
                     {isGeneratingPictures ? (
                         // Generating..

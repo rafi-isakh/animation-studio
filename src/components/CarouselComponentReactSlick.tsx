@@ -115,7 +115,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         return '';
     }
 
-    
+
 
 
     const settings = {
@@ -146,35 +146,37 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                     {items.map((item, index) => (
                         <div key={index} className="px-2 md:px-4">
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
-                                <Image onClick={() => router.push(getHref(index))} className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
-                                    placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                />
-                                <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
-                                    <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
-                                        <OtherTranslateComponent 
-                                            key={`title-${index}-${language}`} 
-                                            content={item.title} 
-                                            elementId={item.id.toString()} 
-                                            classParams={`${breakKeepOrNot()} md:text-4xl lg:text-4xl text-md !min-[400px]:text-[12px] font-extrabold px-2 outlined-text`}
-                                            elementType={'carouselItem'} 
-                                            elementSubtype='title' 
-                                            showLoading={false} 
-                                        />
-                                        <OtherTranslateComponent 
-                                            key={`hook-${index}-${language}`} 
-                                            content={item.hook} 
-                                            elementId={item.id.toString()} 
-                                            classParams={`${breakKeepOrNot()} md:text-xl lg:text-xl !min-[400px]:text-[12px] font-bold px-2 p-4 outlined-text`}
-                                            elementType={'carouselItem'} 
-                                            elementSubtype='hook' 
-                                            showLoading={false} 
-                                        />
+                                <Link href={getHref(index)}>
+                                    <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
+                                        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    />
+                                    <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
+                                        <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
+                                            <OtherTranslateComponent
+                                                key={`title-${index}-${language}`}
+                                                content={item.title}
+                                                elementId={item.id.toString()}
+                                                classParams={`${breakKeepOrNot()} md:text-4xl lg:text-4xl text-md !min-[400px]:text-[12px] font-extrabold px-2 outlined-text`}
+                                                elementType={'carouselItem'}
+                                                elementSubtype='title'
+                                                showLoading={false}
+                                            />
+                                            <OtherTranslateComponent
+                                                key={`hook-${index}-${language}`}
+                                                content={item.hook}
+                                                elementId={item.id.toString()}
+                                                classParams={`${breakKeepOrNot()} md:text-xl lg:text-xl !min-[400px]:text-[12px] font-bold px-2 p-4 outlined-text`}
+                                                elementType={'carouselItem'}
+                                                elementSubtype='hook'
+                                                showLoading={false}
+                                            />
 
-                                        <div className='category'>
-                                          <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>{getGenre(index)}</span>
+                                            <div className='category'>
+                                                <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>{getGenre(index)}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             </div>
                         </div>
                     ))}

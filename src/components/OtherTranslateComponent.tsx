@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype } from '@/components/Types';
 import { CircularProgress } from '@mui/material';
+import { replaceSmartQuotes } from '@/utils/font';
 
 const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, classParams = "", showLoading = true, incomingText = '' }:
     { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
@@ -156,7 +157,7 @@ return (
                 <div role="status" className='w-4'>
                     <CircularProgress size="0.8rem" color='secondary' />
                 </div> :
-                <div dangerouslySetInnerHTML={{ __html: text.replaceAll("\n", "<br/>") }} />
+                <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
         }
     </div>

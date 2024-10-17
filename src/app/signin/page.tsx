@@ -5,8 +5,8 @@ import Link from "next/link";
 export default function SignIn() {
  
   return (
-    <div className='flex flex-col items-center justify-center min-h-full mt-10 !p-10'>
-      <div className="flex flex-col items-center justify-center lg:px-10 md:px-10 px-[22px] py-20 rounded-xl border border-gray-300">
+    <div className='flex flex-col items-center justify-center h-[70vh] mt-10 !p-10'>
+      <div className="flex flex-col items-center justify-center lg:px-10 md:px-10 py-20 rounded-xl border border-gray-300">
       
       <SignInComponent/>
      

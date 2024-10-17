@@ -93,6 +93,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <OtherTranslateComponent key={key2} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
                             </div>
                         </Button>
+                        
                         <div className="flex flex-row items-center">
                             <Link href="#">
                                 <div className="text-center">

@@ -18,6 +18,45 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [nextChapterLink, setNextChapterLink] = useState('');
     const [prevChapterLink, setPrevChapterLink] = useState('');
     const chapters = webnovel.chapters.sort((a, b) => a.id - b.id);
+    const [isVisible, setIsVisible] = useState(true); // State to track visibility
+    const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      // Get the current scroll position
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY) {
+        // Scrolling down - show the footer
+        setIsVisible(true);
+      } else {
+        // Scrolling up - hide the footer
+        setIsVisible(false);
+      }
+
+      // Set the new scroll position
+      setLastScrollY(currentScrollY);
+
+      // Set a timeout to hide the footer if scrolling stops
+      clearTimeout(timeoutId); // Clear previous timeout
+      timeoutId = setTimeout(() => {
+        setIsVisible(false); // Hide after a delay when scrolling stops
+      }, 2000); // Adjust delay as needed (2000 ms = 2 seconds)
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+
+    // Cleanup function to remove the event listener
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeoutId); // Clear timeout when component unmounts
+    };
+  }, [lastScrollY]); // Dependency array to trigger when lastScrollY changes
+
+
 
     useEffect(() => {
         setWebnovelId(webnovel.id);
@@ -64,7 +103,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <ThemeProvider theme={grayTheme}>
-            <div className="z-50 fixed max-w-screen-sm mx-auto mb-2 bg-white border-black border-2 bottom-0 left-2 right-2 rounded-lg">
+            <div className={`z-50 fixed max-w-screen-sm mx-auto mb-2 bg-white border-black border-2 bottom-0 left-2 right-2 rounded-lg transition-transform duration-300 
+            ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-2">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "prevChapter", language)}</p>

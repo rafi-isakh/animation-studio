@@ -137,9 +137,9 @@ const Header = () => {
     const handleLanguageChange = (language: Language) => {
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
-        if (device === 'mobile') {
-            handleMobileMenuClick();
-        }
+        // if (device === 'mobile') {
+        //     handleMobileMenuClick();
+        // }
     }
 
     const handleUserItemClick = () => {
@@ -221,9 +221,9 @@ const Header = () => {
                     <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                         {langPairList.map((langPair, index) => (
                             <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
-                                <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                <button onClick={() => handleLanguageChange(langPair.code as Language)} className="text-start w-full block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
                                     {langPair.name}
-                                </Link>
+                                </button>
                             </li>
                         ))}
                     </ul>

@@ -206,9 +206,9 @@ const Header = () => {
                 <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 px-4">
                     {/**/}
                     <div className='flex flex-row items-center justify-center space-x-4'>
-                        <button onClick={handleIconClick} className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
                             <Image src="/toonyzLogo.png" alt="Toonyz Logo" width={logoWidth} height={logoHeight} />
-                        </button>
+                        </Link>
                         <div className="flex flex-row space-x-4 items-center justify-center">
                             <Link href="/">
                                 <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>

@@ -30,9 +30,9 @@ export default function Studio() {
     }, [language]);
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen px-4 mt-96 sm:mt-96 md:mt-96 lg:mt-96">
+        <div className="flex flex-col items-center justify-center h-full px-4">
 
-            <div className='sm:block md:hidden lg:hidden py-32 md:py-8 lg:py-8 '></div>
+            <div className='sm:block md:hidden lg:hidden md:py-8 lg:py-8 '></div>
             {/* Top Part */}
             {/* <p className="text-[2rem] flex flex-row ">
                 <Image
@@ -49,15 +49,9 @@ export default function Studio() {
             <p className="mb-10">Toonyz의 스마트한 AI로 여러분의 스토리텔링이 현실이 되는 즐거움을 경험 해 보세요. </p>
  */}
 
-            <div className="flex flex-col gap-20">
-
-
-
-
                 {/* Image Studio part  */}
 
 
-                <div className="flex flex-col">
 
                     <div className='flex flex-col md:flex-row lg:flex-row gap-10'>
 
@@ -162,7 +156,7 @@ export default function Studio() {
                                     >
                                         <OtherTranslateComponent
                                             key={key4}
-                                            content="웹소설 스튜디오"
+                                            content="웹툰 스튜디오"
                                             elementId={"4"}
                                             elementType='other'
                                             elementSubtype="other"
@@ -183,7 +177,7 @@ export default function Studio() {
                                 <div className="w-[330px]">
                                     <OtherTranslateComponent
                                         key={key5}
-                                        content={`스토리를 중심으로 원스톱 스토리보드 생성을 지원합니다. 스토리텔링 AI 기술을 활용한 스마트 툴로 누구나 쉽게 이야기를 만들 수 있는 웹소설 스튜디오입니다. 새로운 이야기를 발굴하고 여러분의 아이디어를 완성해보세요!`}
+                                        content={`스토리를 중심으로 원스톱 스토리보드 생성을 지원합니다. 스토리텔링 AI 기술을 활용한 스마트 툴로 누구나 쉽게 이야기를 만들 수 있는 웹툰 기획 스튜디오입니다. 새로운 이야기를 발굴하고 여러분의 아이디어를 완성해보세요!`}
                                         elementId={"5"}
                                         elementType='other'
                                         elementSubtype="other"
@@ -217,30 +211,7 @@ export default function Studio() {
                         </div>
 
                     </div>
-                </div>
 
-                {/* footer */}
-                <div className='mb-20 self-center'>
-
-                    <Button
-                        href="/studio/pictures"
-                        variant="contained"
-                        color="gray"
-                        className="w-64  border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600">
-                        <OtherTranslateComponent
-                            key={key7}
-                            content="기능 더 알아보기"
-                            elementId={"7"}
-                            elementType='other'
-                            elementSubtype="other"
-                            showLoading={false}
-                            classParams="text-lg"
-                            defaultLanguage='ko'
-                        />
-                    </Button>
-
-                </div>
             </div>
-        </div>
     );
 }

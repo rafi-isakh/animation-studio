@@ -10,7 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@mui/material";
 import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -24,11 +24,17 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [isAuthor, setIsAuthor] = useState(false);
     const { language } = useLanguage();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
     }, [language])
+
+
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, [pathname]);
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${id}`)

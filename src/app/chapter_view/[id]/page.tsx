@@ -25,6 +25,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { language } = useLanguage();
     const router = useRouter();
     const pathname = usePathname();
+    const viewed = useRef(false);
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -33,7 +34,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
 
     useEffect(() => {
-      window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
     }, [pathname]);
 
     useEffect(() => {
@@ -60,14 +61,16 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [email, webnovel])
 
     useEffect(() => {
-        if (email) {
-            fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
+        if (!viewed.current) {
+            if (email) {
+                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
+                viewed.current = true;
+            } else {
+                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
+                viewed.current = true;
+            }
         }
     }, [email])
-
-    useEffect(() => {
-        fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
-    }, [])
 
     const handleLikeClick = async () => {
         if (likeToggle) {
@@ -103,7 +106,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <OtherTranslateComponent key={key2} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
                             </div>
                         </Button>
-                        
+
                         <div className="flex flex-row items-center">
                             <Link href="#">
                                 <div className="text-center">

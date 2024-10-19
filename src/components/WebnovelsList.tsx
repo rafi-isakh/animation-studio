@@ -6,23 +6,32 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import moment from 'moment';
 
+export const premium = [23, 19, 21, 22, 20, 24]
+
+export const free = [29, 28, 25]
+
 const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
-    const genre = searchParams.genre;
-    const version = searchParams.version;
+    let genre = searchParams.genre;
+    let version = searchParams.version;
     const { dictionary, language } = useLanguage();
+    const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
 
     useEffect(() => {
-        const premium = [23, 19, 21, 22, 20, 24]
-        const free = [29, 28, 25]
         for (const novel of webnovels) {
-            console.log(novel.id)
             if (premium.includes(novel.id)) {
                 novel.version = "premium"
+                console.log('premium', novel.id)
             }
             else if (free.includes(novel.id)) {
                 novel.version = "free"
+                console.log('free', novel.id)
             }
         }
+        const _webnovelsToShow = webnovels
+            .filter(item => filter_by_genre(item))
+            .filter(item => filter_by_version(item))
+
+        setWebnovelsToShow(_webnovelsToShow)
     }, [])
 
     let text = '';
@@ -98,9 +107,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 }
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {webnovels
-                    .filter(item => filter_by_genre(item))
-                    .filter(item => filter_by_version(item))
+                {webnovelsToShow
                     .sort(sortByFn)
                     .map((item, index) => (
                         <div className="px-2 md:px-4" key={index}>

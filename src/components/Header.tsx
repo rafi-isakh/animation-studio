@@ -18,6 +18,7 @@ import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 import ViewVideos from './ViewVideos';
+import {free, premium} from "@/components/WebnovelsList"
 
 const Header = () => {
 
@@ -52,7 +53,7 @@ const Header = () => {
 
     useEffect(() => {
         router.push(pathname + "?version=free")
-    }, [pathname])
+    }, [])
 
     useEffect(() => {
         for (const lang of langPairList) {
@@ -222,6 +223,16 @@ const Header = () => {
         return pathname + "?version=premium"
     }
 
+    const highlightFree = () => {
+        const id = parseInt(searchParams.get("id") ?? "-1")
+        return searchParams.get("version") == "free" || free.includes(id)
+    }
+
+    const highlightPremium = () => {
+        const id = parseInt(searchParams.get("id") ?? "-1")
+        return searchParams.get("version") == "premium" || premium.includes(id)
+    }
+
     return (
         <div className='fixed left-0 top-0 right-0 z-50 mx-auto'>
             <nav className="max-w-screen bg-white">
@@ -389,8 +400,8 @@ const Header = () => {
                 <hr />
                 <div className="max-w-screen-xl mx-auto">
                     <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
-                        <p className={`text-gray-500 text-lg font-bold ${searchParams.get("version") == "free" ? "text-pink-600" : ""}`}><Link href={freePath()}>자유연재</Link></p>
-                        <p className={`text-gray-500 text-lg font-bold ${searchParams.get("version") == "premium" ? "text-pink-600" : ""}`}><Link href={premiumPath()}>프리미엄</Link></p>
+                        <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>자유연재</Link></p>
+                        <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>프리미엄</Link></p>
                     </div>
                 </div>
                 <hr/>

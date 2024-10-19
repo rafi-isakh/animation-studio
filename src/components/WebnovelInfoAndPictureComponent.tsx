@@ -26,8 +26,8 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
 
     return webnovel && (
 
-        <div className='flex flex-col min-[500px]:flex-row space-x-4 justify-between'>
-            <div className={`ml-4 ${isLoading ? 'animate-pulse' : ''}`}>
+        <div className='flex flex-col min-[500px]:flex-row min-[500px]:space-x-4 justify-between px-2'>
+            <div className={`${isLoading ? 'animate-pulse' : ''}`}>
                 <Link href={firstChapter != -1 ? `/chapter_view/${firstChapter}` : "#"} className="text-md font-bold">
                     <Image
                         src={imageSrc}

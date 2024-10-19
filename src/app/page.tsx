@@ -4,9 +4,7 @@ import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlic
 import Footer from '@/components/Footer';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`, {
-        cache: 'no-store'
-    })
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
     const data = await response.json()
     return data;
 }

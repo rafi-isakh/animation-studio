@@ -22,7 +22,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 novel.version = "premium"
                 console.log('premium', novel.id)
             }
-            else if (free.includes(novel.id)) {
+            else {
                 novel.version = "free"
                 console.log('free', novel.id)
             }

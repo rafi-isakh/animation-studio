@@ -10,7 +10,7 @@ async function getWebnovel(id: string | string[] | undefined) {
         return null;
     }
     try {
-        const webnovelResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${id}`, { cache: 'no-store' });
+        const webnovelResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${id}`);
         if (!webnovelResponse.ok) {
             console.error("Failed to fetch webnovel")
             return null;
@@ -23,7 +23,7 @@ async function getWebnovel(id: string | string[] | undefined) {
 }
 
 async function getUserWebnovels(email: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`, { cache: 'no-store' });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;

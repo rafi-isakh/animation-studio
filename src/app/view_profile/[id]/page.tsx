@@ -7,7 +7,7 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
   // must do this because profile can be any user's
 
   async function getUser() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byid?id=${id}`, { cache: 'no-store' });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byid?id=${id}`);
     if (!response.ok) {
       const errorData = await response.json();
       console.error(errorData);
@@ -18,7 +18,7 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
   }
 
   async function fetchNovels(user: User) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${user.email}`, { cache: 'no-store' });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${user.email}`);
     if (!response.ok) {
       const errorData = await response.json();
       console.error(errorData);

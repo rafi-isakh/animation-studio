@@ -28,8 +28,7 @@ async function createUser() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
-        cache: 'no-store',
+        body: JSON.stringify(data)
     });
     console.log("res:", await res.json())
 }

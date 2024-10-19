@@ -168,12 +168,8 @@ const Header = () => {
         const aboveHeader = document.getElementById('above-header');
         if (belowHeaderToggle) {
             belowHeader?.classList.add('hidden')
-            aboveHeader?.classList.remove('pb-2')
-            aboveHeader?.classList.add('pb-4')
         } else {
             belowHeader?.classList.remove('hidden')
-            aboveHeader?.classList.add('pb-2')
-            aboveHeader?.classList.remove('pb-4')
         }
         setBelowHeaderToggle(!belowHeaderToggle);
     }
@@ -182,14 +178,20 @@ const Header = () => {
         const belowHeader = document.getElementById('below-header');
         const aboveHeader = document.getElementById('above-header');
         belowHeader?.classList.remove('hidden')
-        aboveHeader?.classList.add('pb-2')
-        aboveHeader?.classList.remove('pb-4')
         setBelowHeaderToggle(true);
     }
 
     const handleMobileMenuClick = () => {
+        const freePremium = document.getElementById("free-premium")
+        let openOrClosed = isMobileMenuOpen
+        openOrClosed = !openOrClosed
+        if (openOrClosed) {
+            freePremium?.classList.add("hidden")
+        } else {
+            freePremium?.classList.remove("hidden")
+        }
         toggleBelowHeader();
-        setIsMobileMenuOpen(!isMobileMenuOpen);
+        setIsMobileMenuOpen(openOrClosed);
     }
 
     const toggleUserDropdown = () => {
@@ -398,9 +400,9 @@ const Header = () => {
                     </div>
                 </div>
                 <hr />
-                {!isActive('/studio') && (
+                {isActive('/') && (
                     <>
-                        <div className="max-w-screen-xl mx-auto">
+                        <div id="free-premium" className="max-w-screen-xl mx-auto">
                             <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
                                 <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>{phrase(dictionary, "free", language)}</Link></p>
                                 <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>{phrase(dictionary, "premium", language)}</Link></p>

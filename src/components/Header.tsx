@@ -231,13 +231,11 @@ const Header = () => {
     }
 
     const highlightFree = () => {
-        const id = parseInt(searchParams.get("id") ?? "-1")
-        return searchParams.get("version") == "free" || free.includes(id)
+        return searchParams.get("version") == "free"
     }
 
     const highlightPremium = () => {
-        const id = parseInt(searchParams.get("id") ?? "-1")
-        return searchParams.get("version") == "premium" || premium.includes(id)
+        return searchParams.get("version") == "premium"
     }
 
     const getFreePremiumUrl = (version: string) => {

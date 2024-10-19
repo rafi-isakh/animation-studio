@@ -19,7 +19,7 @@ const UserWithSameEmailExistsModalComponent = () => {
 
     const confirm = () => {
         setOpenModal(false);
-        router.push('/')
+        router.push('/?version=free')
     }
 
     return (

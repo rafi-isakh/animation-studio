@@ -51,6 +51,10 @@ const Header = () => {
     let keyPressed = false
 
     useEffect(() => {
+        router.push(pathname + "?version=free")
+    }, [pathname])
+
+    useEffect(() => {
         for (const lang of langPairList) {
             setHighlightLanguage(prev => ({ ...prev, [lang.code as Language]: false }));
         }
@@ -225,11 +229,11 @@ const Header = () => {
                     <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 px-4">
                         {/**/}
                         <div className='flex flex-row items-center justify-center space-x-4'>
-                            <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+                            <Link href="/?version=free" className="flex items-center space-x-3 rtl:space-x-reverse">
                                 <Image src="/toonyzLogo.png" alt="Toonyz Logo" width={logoWidth} height={logoHeight} />
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
-                                <Link href="/">
+                                <Link href="/?version=free">
                                     <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
                                 <Link href="/studio">
@@ -385,8 +389,8 @@ const Header = () => {
                 <hr />
                 <div className="max-w-screen-xl mx-auto">
                     <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
-                        <p className="text-gray-500 text-lg font-bold"><Link href={freePath()}>자유연재</Link></p>
-                        <p className="text-gray-500 text-lg font-bold"><Link href={premiumPath()}>프리미엄</Link></p>
+                        <p className={`text-gray-500 text-lg font-bold ${searchParams.get("version") == "free" ? "text-pink-600" : ""}`}><Link href={freePath()}>자유연재</Link></p>
+                        <p className={`text-gray-500 text-lg font-bold ${searchParams.get("version") == "premium" ? "text-pink-600" : ""}`}><Link href={premiumPath()}>프리미엄</Link></p>
                     </div>
                 </div>
                 <hr/>

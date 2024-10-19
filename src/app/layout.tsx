@@ -1,6 +1,6 @@
 // app/layout.tsx
 import '@/styles/globals.css';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import React from 'react';
 import Header from '@/components/Header';
 import { UserProvider } from '@/contexts/UserContext';
@@ -63,7 +63,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <DeviceProvider>
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                  <Header />
+                  <Suspense>
+                    <Header />
+                  </Suspense>
                   <div className={`children min-h-screen pt-40 md:pt-32 mb-4`}>
                     {children}
                   </div>

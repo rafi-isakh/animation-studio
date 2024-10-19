@@ -76,7 +76,7 @@ export default function NewUser() {
             const { user_exists, user_with_same_email_exists } = data;
             if (user_exists) {
                 setUserExists(true);
-                router.push('/');
+                router.push('/?version=free');
             } else if (user_with_same_email_exists) {
                 signOut();
                 return (

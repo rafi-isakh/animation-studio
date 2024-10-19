@@ -28,11 +28,11 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
       // Get the current scroll position
       const currentScrollY = window.scrollY;
 
-      if (currentScrollY > lastScrollY) {
-        // Scrolling down - show the footer
+      if (currentScrollY < lastScrollY) {
+        // Scrolling up - show the footer
         setIsVisible(true);
       } else {
-        // Scrolling up - hide the footer
+        // Scrolling down - hide the footer
         setIsVisible(false);
       }
 

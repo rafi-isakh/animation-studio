@@ -18,7 +18,7 @@ import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 import ViewVideos from './ViewVideos';
-import {free, premium} from "@/components/WebnovelsList"
+import { free, premium } from "@/components/WebnovelsList"
 
 const Header = () => {
 
@@ -206,7 +206,7 @@ const Header = () => {
             || pathname.startsWith('/view_profile') || pathname.startsWith('/new_webnovel') || pathname.startsWith('/new_chapter')
             || pathname.startsWith('/my_profile') || pathname.startsWith('/my_webnovels') || pathname.startsWith("/library")
             || pathname.startsWith("/chapter_view") || pathname.startsWith("/view_webnovels")
-}
+    }
     // Add this function to determine the active category
     const isActive = (path: string) => {
         if (path === '/') {
@@ -398,13 +398,18 @@ const Header = () => {
                     </div>
                 </div>
                 <hr />
-                <div className="max-w-screen-xl mx-auto">
-                    <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
-                        <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>자유연재</Link></p>
-                        <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>프리미엄</Link></p>
-                    </div>
-                </div>
-                <hr/>
+                {!isActive('/studio') && (
+                    <>
+                        <div className="max-w-screen-xl mx-auto">
+                            <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
+                                <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>자유연재</Link></p>
+                                <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>프리미엄</Link></p>
+                            </div>
+                        </div>
+                        <hr />
+                    </>
+                )
+                }
             </nav>
         </div>
     )

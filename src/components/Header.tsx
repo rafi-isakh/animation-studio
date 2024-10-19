@@ -402,8 +402,8 @@ const Header = () => {
                     <>
                         <div className="max-w-screen-xl mx-auto">
                             <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
-                                <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>자유연재</Link></p>
-                                <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>프리미엄</Link></p>
+                                <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>{phrase(dictionary, "free", language)}</Link></p>
+                                <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>{phrase(dictionary, "premium", language)}</Link></p>
                             </div>
                         </div>
                         <hr />

@@ -68,7 +68,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     <Header />
                   </Suspense>
                   <Margin/>
-                  <div className={`children min-h-screen pt-32 md:pt-24 mb-4`}>
+                  <div className={`children min-h-screen pt-28 md:pt-24 mb-4`}>
                     {children}
                   </div>
                 </div>

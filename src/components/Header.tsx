@@ -19,6 +19,7 @@ import { langPairList } from '@/utils/phrases';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
+import { getUrlWithParams } from '@/utils/stringUtils';
 
 const Header = () => {
 
@@ -240,9 +241,7 @@ const Header = () => {
     }
 
     const getFreePremiumUrl = (version: string) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('version', version);
-        return `${pathname}?${params.toString()}`;
+        return getUrlWithParams('version', version, pathname, searchParams);
     };
 
     return (

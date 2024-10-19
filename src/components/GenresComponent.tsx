@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { getUrlWithParams } from '@/utils/stringUtils';
 
 const GenresComponent = () => {
     const { dictionary, language } = useLanguage();
@@ -41,9 +42,7 @@ const GenresComponent = () => {
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
     const getGenreUrl = (genre: string) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('genre', genre);
-        return `${pathname}?${params.toString()}`;
+        return getUrlWithParams('genre', genre, pathname, searchParams);
     };
 
     return (

@@ -12,6 +12,7 @@ import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP, Noto_Sans_TC, Noto_Sans_SC } from 'next/font/google'
 import Footer from '@/components/Footer';
 import ChargePointsTemporary from '@/components/ChargePointsTemporary';
+import Margin from '@/components/Margin';
 
 
 const notoSans = Noto_Sans({
@@ -66,7 +67,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   <Suspense>
                     <Header />
                   </Suspense>
-                  <div className={`children min-h-screen pt-40 md:pt-32 mb-4`}>
+                  <Margin/>
+                  <div className={`children min-h-screen pt-32 md:pt-24 mb-4`}>
                     {children}
                   </div>
                 </div>

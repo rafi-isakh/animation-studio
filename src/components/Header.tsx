@@ -404,7 +404,7 @@ const Header = () => {
                     </div>
                 </div>
                 <hr />
-                {isActive('/') && (
+                {pathname == '/' && (
                     <>
                         <div id="free-premium" className="max-w-screen-xl mx-auto">
                             <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">

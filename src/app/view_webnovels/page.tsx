@@ -1,5 +1,4 @@
 "use client"
-import { auth } from "@/auth";
 import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";

@@ -389,7 +389,7 @@ const Header = () => {
                         </div>
                     </div>
                     <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 pb-2 px-4">
-                        <Link href="/">
+                        <Link href="/?version=free">
                             <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
                         </Link>
                         <Link href="/studio">

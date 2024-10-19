@@ -32,7 +32,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             .filter(item => filter_by_version(item))
 
         setWebnovelsToShow(_webnovelsToShow)
-    }, [])
+    }, [version])
 
     let text = '';
     if (sortBy == 'views') {

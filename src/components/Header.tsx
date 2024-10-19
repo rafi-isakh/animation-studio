@@ -52,7 +52,9 @@ const Header = () => {
     let keyPressed = false
 
     useEffect(() => {
-        router.push(pathname + "?version=free")
+        if (pathname == "/") {
+            router.push(pathname + "?version=free")
+        }
     }, [])
 
     useEffect(() => {
@@ -171,7 +173,7 @@ const Header = () => {
             aboveHeader?.classList.add('pb-4')
         } else {
             belowHeader?.classList.remove('hidden')
-            aboveHeader?.classList.remove('pb-4')
+            aboveHeader?.classList.add('pb-4')
         }
         setBelowHeaderToggle(!belowHeaderToggle);
     }

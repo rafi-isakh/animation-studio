@@ -4,9 +4,12 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 const GenresComponent = () => {
     const { dictionary, language } = useLanguage();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
@@ -37,6 +40,12 @@ const GenresComponent = () => {
 
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
 
+    const getGenreUrl = (genre: string) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('genre', genre);
+        return `${pathname}?${params.toString()}`;
+    };
+
     return (
         <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto'>
         <h1 className='font-extrabold text-left justify-start self-start mt-10 '>{phrase(dictionary, "viewByGenre", language)}</h1>
@@ -46,7 +55,7 @@ const GenresComponent = () => {
                 {genres.map((genre, index) => (
                          <Link
                         key={genre}
-                        href={`?genre=${genre}`}
+                        href={getGenreUrl(genre)}
                         className="flex-grow mr-4 p-1 text-center flex flex-col justify-center items-center hover:text-pink-600 bg-gray-400 rounded-full"
                         ref={el => {
                             if (el) {

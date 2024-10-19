@@ -239,6 +239,12 @@ const Header = () => {
         return searchParams.get("version") == "premium" || premium.includes(id)
     }
 
+    const getFreePremiumUrl = (version: string) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('version', version);
+        return `${pathname}?${params.toString()}`;
+    };
+
     return (
         <div className='fixed left-0 top-0 right-0 z-50 mx-auto'>
             <nav className="max-w-screen bg-white">
@@ -408,8 +414,8 @@ const Header = () => {
                     <>
                         <div id="free-premium" className="max-w-screen-xl mx-auto">
                             <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
-                                <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={freePath()}>{phrase(dictionary, "free", language)}</Link></p>
-                                <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={premiumPath()}>{phrase(dictionary, "premium", language)}</Link></p>
+                                <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
+                                <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
                             </div>
                         </div>
                         <hr />

@@ -8,7 +8,21 @@ import moment from 'moment';
 
 const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
     const genre = searchParams.genre;
+    const version = searchParams.version;
     const { dictionary, language } = useLanguage();
+
+    useEffect(() => {
+        const premium = [23, 19, 21, 22, 20, 24]
+        const free = [29, 28, 25]
+        for (const novel of webnovels) {
+            if (premium.includes(novel.id)) {
+                novel.version = "premium"
+            }
+            else if (free.includes(novel.id)) {
+                novel.version = "free"
+            }
+        }
+    }, [])
 
     let text = '';
     if (sortBy == 'views') {
@@ -33,6 +47,12 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             if (genre == item.genre) {
                 return item;
             }
+        }
+    }
+
+    const filter_by_version = (item: Webnovel) => {
+        if (version == item.version) {
+            return item;
         }
     }
 
@@ -79,6 +99,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {webnovels
                     .filter(item => filter_by_genre(item))
+                    .filter(item => filter_by_version(item))
                     .sort(sortByFn)
                     .map((item, index) => (
                         <div className="px-2 md:px-4" key={index}>

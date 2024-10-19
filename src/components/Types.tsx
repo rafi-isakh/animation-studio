@@ -68,6 +68,7 @@ export interface Webnovel {
   upvotes: number;
   language: string;
   views: number;
+  version?: string;
 }
 
 export interface Dictionary {

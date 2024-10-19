@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
 
     const sendData = {
         apiKey: process.env.ONOMA_API_KEY,
-        qty: 4,
+        qty: 2,
         prompt: prompt,
         aspectRatio: '1:1',
         addedStyle: 'default'

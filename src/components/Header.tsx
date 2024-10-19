@@ -168,8 +168,10 @@ const Header = () => {
         const aboveHeader = document.getElementById('above-header');
         if (belowHeaderToggle) {
             belowHeader?.classList.add('hidden')
+            aboveHeader?.classList.add('pb-4')
         } else {
             belowHeader?.classList.remove('hidden')
+            aboveHeader?.classList.remove('pb-4')
         }
         setBelowHeaderToggle(!belowHeaderToggle);
     }

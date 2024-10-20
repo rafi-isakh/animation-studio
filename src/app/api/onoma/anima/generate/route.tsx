@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         addedStyle: 'default'
     }
 
-    console.log(sendData);
+    console.log(session.user.email);
 
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/anima/generate`, {

@@ -17,6 +17,7 @@ export default function PicturesStudioPage() {
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(1000);
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
+    const [showError, setShowError] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -51,6 +52,9 @@ export default function PicturesStudioPage() {
             });
             if (response.status == 401) {
                 setShowPleaseLogin(true);
+            }
+            if (response.status == 504 || response.status == 500) {
+                setShowError(true);
             }
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -152,6 +156,16 @@ export default function PicturesStudioPage() {
                         {phrase(dictionary, "pleaseLoginToGeneratePictures", language)}
                     </Typography>
                     <Button variant="outlined" color="gray" onClick={() => router.push('/signin')}>
+                        {phrase(dictionary, "ok", language)}
+                    </Button>
+                </Box>
+            </Modal>
+            <Modal open={showError} onClose={() => setShowError(false)}>
+                <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        {phrase(dictionary, "error", language)}
+                    </Typography>
+                    <Button variant="outlined" color="gray" onClick={() => setShowError(false)}>
                         {phrase(dictionary, "ok", language)}
                     </Button>
                 </Box>

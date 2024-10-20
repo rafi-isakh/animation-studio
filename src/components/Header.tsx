@@ -199,6 +199,13 @@ const Header = () => {
         setIsMobileMenuOpen(openOrClosed);
     }
 
+    const handleMobileMenuSigninClick = () => {
+        if (isMobileMenuOpen) {
+            handleMobileMenuClick();
+        }
+        router.push('/signin');
+    }
+
     const toggleUserDropdown = () => {
         setIsUserDropdownOpen(!isUserDropdownOpen);
         setIsLanguageDropdownOpen(false);
@@ -274,7 +281,7 @@ const Header = () => {
                             </div>
                             {/*Main menu in mobile screen (md:hidden)*/}
                             <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => router.push('/signin')} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-black md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-black dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-black md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-black dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                     <span className="sr-only">Open main menu</span>
                                     <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />

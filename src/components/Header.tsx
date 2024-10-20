@@ -174,7 +174,7 @@ const Header = () => {
             aboveHeader?.classList.add('pb-4')
         } else {
             belowHeader?.classList.remove('hidden')
-            aboveHeader?.classList.add('pb-4')
+            aboveHeader?.classList.remove('pb-4')
         }
         setBelowHeaderToggle(!belowHeaderToggle);
     }
@@ -228,14 +228,6 @@ const Header = () => {
         }
         return pathname.startsWith(path);
     };
-
-    const freePath = () => {
-        return pathname + "?version=free"
-    }
-
-    const premiumPath = () => {
-        return pathname + "?version=premium"
-    }
 
     const highlightFree = () => {
         return searchParams.get("version") == "free"

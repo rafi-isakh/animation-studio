@@ -1,8 +1,14 @@
 export const maxDuration = 300; // This function can run for a maximum of 300 seconds
 
+import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+    const session = await auth();
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await req.json();
     const { prompt } = data;
 
@@ -14,7 +20,8 @@ export async function POST(req: NextRequest) {
         addedStyle: 'default'
     }
 
-    console.log(sendData);
+    console.log(session.user.email, sendData);
+
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/anima/generate`, {
             method: 'POST',

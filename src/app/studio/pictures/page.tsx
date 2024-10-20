@@ -1,11 +1,13 @@
 "use client"
-import { Button, CircularProgress } from "@mui/material";
+import { Box, Button, CircularProgress, Modal, Typography } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import GeneratedPicture from "@/components/GeneratedPicture";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import { style } from "@/styles/ModalStyles";
+import { useRouter } from "next/navigation";
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -14,11 +16,25 @@ export default function PicturesStudioPage() {
     const { language, dictionary } = useLanguage();
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(1000);
+    const [showPleaseLogin, setShowPleaseLogin] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        const prompt = sessionStorage.getItem('prompt');
+        if (prompt) {
+            setPrompt(prompt);
+        }
+    }, [])
 
     useEffect(() => {
         setKey1(prevKey => prevKey + 1);
         setKey2(prevKey => prevKey + 1);
     }, [language])
+
+    const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setPrompt(e.target.value);
+        sessionStorage.setItem('prompt', e.target.value);
+    }
 
     const generatePictures = async () => {
         setIsGeneratingPictures(true);
@@ -33,14 +49,16 @@ export default function PicturesStudioPage() {
                     prompt: prompt,
                 }),
             });
-
+            if (response.status == 401) {
+                setShowPleaseLogin(true);
+            }
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log(data);
             setPictures(data.images);
+            sessionStorage.removeItem('prompt');
         } catch (error) {
             console.error('Error generating pictures:', error);
         } finally {
@@ -92,7 +110,7 @@ export default function PicturesStudioPage() {
                 <textarea
                     className="w-[250px] lg:w-[650px] md:w-[650px] h-12 p-2 border border-gray-300 rounded focus:ring-pink-600 focus:border-pink-600"
                     value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
+                    onChange={handlePromptChange}
                     placeholder={phrase(dictionary, "typeYourPrompt", language)}
                 />
                 <Button
@@ -128,6 +146,16 @@ export default function PicturesStudioPage() {
                     </svg>
                 </Button>
             </div>
+            <Modal open={showPleaseLogin} onClose={() => setShowPleaseLogin(false)}>
+                <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        {phrase(dictionary, "pleaseLoginToGeneratePictures", language)}
+                    </Typography>
+                    <Button variant="outlined" color="gray" onClick={() => router.push('/signin')}>
+                        {phrase(dictionary, "ok", language)}
+                    </Button>
+                </Box>
+            </Modal>
         </div>
     )
 

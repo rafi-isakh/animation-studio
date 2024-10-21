@@ -54,12 +54,12 @@ const GenresComponent = () => {
     return (
         <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto'>
         <h1 className='font-extrabold text-xxl text-left justify-start self-start mt-10 '>{phrase(dictionary, "viewByGenre", language)}</h1>
-        <div className="scrollbar-hide w-full h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex flex-col">
+        <div className="w-full h-16 md:h-32 mt-2 md:mt-4 justify-between flex flex-col">
            
             <div className="flex w-full md:w-[1280px] px-4 justify-center items-center mx-auto gap-9">  
                 {genres.map((genre, index) =>  (
                   <div key={index} className="flex flex-col justify-center items-center">
-                     <div className='flex justify-center items-center w-[70px] h-[70px] bg-gray-400 rounded-full hover:bg-pink-600 hover:text-white'>
+                     <div className='flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-400 rounded-full hover:bg-pink-600 hover:text-white'>
                       {/* Full rounded div */}
                       {genresIcon[index]}
                       </div>

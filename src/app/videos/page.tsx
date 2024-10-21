@@ -218,7 +218,7 @@ export default function Videos() {
       
                     
                 <h1 className="text-2xl font-bold xl:ml-8 mt-10 md:text-left lg:text-left text-center">웹툰 커리큘럼</h1>
-                <div className="grid grid-flow-col auto-cols-max overflow-x-auto mx-auto gap-4 xl:w-[1280px] w-[430px]">
+                <div className="scrollbar-hide grid grid-flow-col auto-cols-max overflow-x-auto mx-auto gap-4 xl:w-[1280px] w-[430px]">
                     {webtoonContents.map((item, index) => (
                          <div key={index} className="relative group/item">
                            {/* Wrapping Image with relative container */}
@@ -273,7 +273,7 @@ export default function Videos() {
 
             <div className="flex flex-col space-y-4">
                 <h1 className="text-2xl font-bold xl:ml-8 text-center lg:text-left md:text-left">웹소설 커리큘럼</h1>
-                <div className="grid grid-flow-col auto-cols-max overflow-x-auto mx-auto gap-4 xl:w-[1280px] w-[430px]">
+                <div className="scrollbar-hide grid grid-flow-col auto-cols-max overflow-x-auto mx-auto gap-4 xl:w-[1280px] w-[430px]">
                 {webnovelContents.map((item, index) => (
                          <div key={index} className="relative group/item ">
                            {/* Wrapping Image with relative container */}

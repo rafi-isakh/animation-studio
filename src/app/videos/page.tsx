@@ -1,6 +1,9 @@
 'use client'
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HoverVideoPlayer from "react-hover-video-player";
+import { css, keyframes } from "@emotion/css";
+
 import { Modal, Box, Button } from "@mui/material";
 import { videoStyle } from "@/styles/ModalStyles";
 import Image from "next/image";
@@ -14,6 +17,44 @@ interface WebtoonContent {
     link: string;
     video: JSX.Element;
 }
+
+
+const loadingOverlaySpinnerAnimation = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+export const LoadingOverlay = () => (
+  <div
+    className={css`
+      /* Loading overlay covers the player */
+      width: 100%;
+      height: 100%;
+      /* Loading overlay has semi-transparent background so the player
+          will be darkened while it's visible */
+      background-color: rgba(0, 0, 0, 0.7);
+      /* Center the spinner inside of the overlay */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    `}
+  >
+    <div
+      className={css`
+        width: 4em;
+        height: 4em;
+        border: 6px solid white;
+        border-radius: 50%;
+        border-color: white white transparent transparent;
+        animation: ${loadingOverlaySpinnerAnimation} 1s linear infinite;
+      `}
+    />
+  </div>
+);
 
 export default function Videos() {
     const [showVideoModal, setShowVideoModal] = useState(false);
@@ -114,6 +155,8 @@ export default function Videos() {
         setCurrentVideo(video);
         setShowVideoModal(true);
     };
+
+
 
 
     return (
@@ -222,7 +265,17 @@ export default function Videos() {
                     {webtoonContents.map((item, index) => (
                          <div key={index} className="relative group/item">
                            {/* Wrapping Image with relative container */}
-                           {language == 'ko' ? <Image
+                           {language == 'ko' ? (
+                                            <HoverVideoPlayer
+                                            videoSrc={item.link}
+                                            style={{
+                                                height: '400px',
+                                                width: 'auto',
+                                            }}
+                                            
+                                            // sizingMode="container"
+                                            pausedOverlay={
+                                                <Image
                                                 src={item.image}
                                                 alt="Toonyz curriculum banner"
                                                 width={0}
@@ -232,15 +285,18 @@ export default function Videos() {
                                                 onClick={() => handleVideoClick(item.video)}
                                                 sizes="100vw"
                                                 style={{ 
-                                                    height: '', 
+                                                    height: 'auto', 
                                                     width: '350px', 
+                                                    objectFit: 'cover',
                                                     }}
                                                     onError={(e) => {
                                                         console.error(`Failed to load image: ${item.image}`);
-                                                        // Optionally set a fallback image
                                                         e.currentTarget.src = '/curriculum/placeholder.png';
                                                     }}
-                                                    />
+                                                    />}
+                                                 loadingOverlay={<LoadingOverlay />}
+                                                 />
+                                                )
                                               : <Image 
                                                 src={item.en!}
                                                 alt='Toonyz curriculum banner Eng image'

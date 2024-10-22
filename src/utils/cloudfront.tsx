@@ -5,7 +5,9 @@ export const getImageURL = (fileName: string | undefined) => {
     return image_src;
 }
 
-export const getCloudfrontImageURL = (fileName: string | undefined) => {
+export const getCloudfrontImageURL = (fileName: string | undefined) => { // getCloudfrontURL 
     const image_src = `https://${CLOUDFRONT}/${fileName}`;
     return image_src;
 }
+
+

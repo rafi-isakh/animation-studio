@@ -117,35 +117,35 @@ export default function Videos() {
         {
             title: '웹소설 커리큘럼 2',
             image: '/curriculum/Thumbnail_FICTION_2.png',
-            en: '/curriculum/Thumbnail_FICTION_1_EN.png',
+            en: '/curriculum/Thumbnail_FICTION_2_EN.png',
             link: 'https://www.youtube.com/embed/uzQ7ebnUVns?si=2dosrLLuNjkpQaL5',
             video: <iframe key={2} className="w-[320px] md:w-[560px] h-[180px] md:h-[315px]" src="https://www.youtube.com/embed/uzQ7ebnUVns?si=2dosrLLuNjkpQaL5" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         },
         {
             title: '웹소설 커리큘럼 3',
             image: '/curriculum/Thumbnail_FICTION_3.png',
-            en: '/curriculum/Thumbnail_FICTION_1_EN.png',
+            en: '/curriculum/Thumbnail_FICTION_3_EN.png',
             link: 'https://www.youtube.com/embed/C0IjxeDn01A?si=3magNphFLhyG1QsG',
             video: <iframe key={3} className="w-[320px] md:w-[560px] h-[180px] md:h-[315px]" src="https://www.youtube.com/embed/C0IjxeDn01A?si=3magNphFLhyG1QsG" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         },
         {
             title: '웹소설 커리큘럼 4',
             image: '/curriculum/Thumbnail_FICTION_4.png',
-            en: '/curriculum/Thumbnail_FICTION_1_EN.png',
+            en: '/curriculum/Thumbnail_FICTION_4_EN.png',
             link: 'https://www.youtube.com/embed/yMtN4sNHe9E?si=6T4Sjbuf_wIYjr2Z',
             video: <iframe key={4} className="w-[320px] md:w-[560px] h-[180px] md:h-[315px]" src="https://www.youtube.com/embed/yMtN4sNHe9E?si=6T4Sjbuf_wIYjr2Z" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         },
         {
             title: '웹소설 커리큘럼 5',
             image: '/curriculum/Thumbnail_FICTION_5.png',
-            en: '/curriculum/Thumbnail_FICTION_1_EN.png',
+            en: '/curriculum/Thumbnail_FICTION_5_EN.png',
             link: 'https://www.youtube.com/embed/VO5eKFQ50vs?si=YZ0UTqMNW3uNwVHp',
             video: <iframe key={5} className="w-[320px] md:w-[560px] h-[180px] md:h-[315px]" src="https://www.youtube.com/embed/VO5eKFQ50vs?si=YZ0UTqMNW3uNwVHp" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         },
         {
             title: '웹소설 커리큘럼 6',
             image: '/curriculum/Thumbnail_FICTION_6.png',
-            en: '/curriculum/Thumbnail_FICTION_1_EN.png',
+            en: '/curriculum/Thumbnail_FICTION_6_EN.png',
             link: 'https://www.youtube.com/embed/rFygTsA83s0?si=WX0uV6KOeLvwEjRJ',
             video: <iframe key={6} className="w-[320px] md:w-[560px] h-[180px] md:h-[315px]" src="https://www.youtube.com/embed/rFygTsA83s0?si=WX0uV6KOeLvwEjRJ" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         },
@@ -156,14 +156,12 @@ export default function Videos() {
         setShowVideoModal(true);
     };
 
-
-
-
     return (
         <div className="flex flex-col space-y-16 items-center justify-center">
             <div className="flex flex-col space-y-4">
             <div className='flex flex-col md:flex-row lg:flex-row justify-around '>
-            <div className='flex flex-col items-center mb-10 '> 
+            <div className='flex flex-col items-center mb-10 justify-center'> 
+         
             <Image
                 src="/N_Logo.png"
                 alt="Toonyz Logo"
@@ -171,21 +169,39 @@ export default function Videos() {
                 height={0}
                 sizes="100vh"
                 style={{ 
-                    // marginTop: '15px',
                     height: '35px', 
                     width: '35px', 
                     justifyContent: 'center', 
                     alignSelf: 'center', 
                     borderRadius: '25%', 
-                    // border: '1px solid #eee'  
                     }}
                 />
 
             <h1 className="text-left text-[2rem]"> 여러분의 꿈을 Toonyz와 함께 하세요!</h1>
-            <h1 className="text-left text-[2rem]"> Your favorite universe, Toonyz</h1>
+            <h1 className="text-left text-[2rem] mb-10"> Your favorite universe, Toonyz</h1>
+                <ul className="flex flex-row gap-10 ">
+               
+                <Button 
+                href=""
+                variant="outlined"
+                color="gray"
+                className='border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
+                
+                Webtoon curriculum
+                </Button>
+                <Button 
+                href=""
+                variant="outlined"
+                color="secondary"
+                className='border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
+                
+                Webnovel curriculum
+
+                </Button>
+                </ul>
             </div>
             
-             {/* <div className='hero'>
+             <div className='hero'>
               <Image
                 src="/curriculum/curri_hero.png"
                 alt="Toonyz curriculum banner"
@@ -193,16 +209,16 @@ export default function Videos() {
                 height={0}
                 sizes="100vh"
                 style={{ 
-                    // marginTop: '15px',
                     height: '500px', 
                     width: '500px', 
+                    // marginTop: '15px',
                     // justifyContent: 'center', 
                     // alignSelf: 'center', 
                     // borderRadius: '25%', 
                     // border: '1px solid #eee'  
                     }}
                 />
-            </div> */}
+              </div>
             </div>
                 <h1 className="text-2xl font-bold xl:ml-8 mt-10 md:text-left lg:text-left text-center">전체보기</h1>
                         <div className="flex flex-col md:flex-row lg:flex-row mx-auto gap-4 xl:w-[1280px]">
@@ -272,8 +288,6 @@ export default function Videos() {
                                                 height: '400px',
                                                 width: 'auto',
                                             }}
-                                            
-                                            // sizingMode="container"
                                             pausedOverlay={
                                                 <Image
                                                 src={item.image}
@@ -311,7 +325,7 @@ export default function Videos() {
                                                     }}
                                                 />
                                 }
-                            {/* Play Icon */}
+                               {/* Play Icon */}
                             <div className="absolute bottom-5 right-5 md:bottom-1 md:right-1 lg:bottom-1 lg:right-1 transform -translate-x-1/2 -translate-y-1/2 invisible group-hover/item:visible">
                                 <MoveRight size={20} className="text-gray-400 text-6xl " />
                             </div>
@@ -353,7 +367,7 @@ export default function Videos() {
                                                     }}
                                                     />
                                               : <Image 
-                                                src='/curriculum/placeholder.png'
+                                                src={item.en!}
                                                 alt='Toonyz curriculum banner Eng image'
                                                 width={0}
                                                 height={0}

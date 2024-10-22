@@ -29,7 +29,7 @@ export default function Videos() {
                     ))}
                 </div>
             </div>
-            <div className="flex flex-col space-y-4">
+            {/* <div className="flex flex-col space-y-4">
                 <h1 className="text-2xl font-bold xl:ml-8">웹소설 커리큘럼</h1>
                 <div className="grid grid-cols-1 xl:grid-cols-2 mx-auto gap-4 xl:w-[1280px]">
                     {webnovelVideos.map((video, index) => (
@@ -38,7 +38,7 @@ export default function Videos() {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div> */}
         </div>
     )
 }

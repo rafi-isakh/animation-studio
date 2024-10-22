@@ -334,6 +334,7 @@ export default function Videos() {
                                                         width={0}
                                                         height={0}
                                                         sizes="100vh"
+                                                        className='object-none object-right-bottom rounded-tl-lg'
                                                         style={{ 
                                                             height: '280px', 
                                                             width: '250px', 
@@ -376,6 +377,7 @@ export default function Videos() {
                                                         width={0}
                                                         height={0}
                                                         sizes="100vh"
+                                                        className='object-none object-right-bottom rounded-tl-lg'
                                                         style={{ 
                                                             height: '280px', 
                                                             width: '250px',  
@@ -423,12 +425,13 @@ export default function Videos() {
                                              videoStyle={{
                                                  padding: 10,
                                                  borderRadius: '30px',
+                                                 objectFit: 'cover',
                                                }}
                                              sizingMode="overlay"
                                              loadingOverlay={<VideoLoadingOverlay />}
                                              loadingOverlayWrapperStyle={{
                                                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                                                 height: '360px',
+                                                 height: '330px',
                                                  width: '280px',
                                                }}
                                              onClick={() => handleVideoClick(item.video)}
@@ -441,6 +444,7 @@ export default function Videos() {
                                                          width={0}
                                                          height={0}
                                                          sizes="100vh"
+                                                         className='object-none object-right-bottom rounded-tl-lg'
                                                          style={{ 
                                                              height: '280px', 
                                                              width: '250px', 
@@ -465,12 +469,13 @@ export default function Videos() {
                                                  videoStyle={{
                                                      padding: 10,
                                                      borderRadius: '30px',
+                                                     objectFit: 'cover',
                                                    }}
                                                  sizingMode="overlay"
                                                  loadingOverlay={<VideoLoadingOverlay />}
                                                  loadingOverlayWrapperStyle={{
                                                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                                                     height: '360px',
+                                                     height: '330px',
                                                      width: '280px',
                                                    }}
                                                  onClick={() => handleVideoClick(item.video)}
@@ -483,6 +488,7 @@ export default function Videos() {
                                                          width={0}
                                                          height={0}
                                                          sizes="100vh"
+                                                         className='object-none object-right-bottom rounded-tl-lg'
                                                          style={{ 
                                                              height: '280px', 
                                                              width: '250px',  

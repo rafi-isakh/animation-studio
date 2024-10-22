@@ -15,43 +15,46 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const getInitialLanguage = () => {
+    if (window !== undefined) {
     return localStorage.getItem('language') as Language || 'en'; // Default language
-  };
+  }
+  return 'en' as Language;
+};
 
-  const [language, setLanguage] = useState(getInitialLanguage);
-  const [dictionary, setDictionary] = useState<Dictionary>({});
-  const [isRtl, setIsRtl] = useState("ltr");
+const [language, setLanguage] = useState(getInitialLanguage);
+const [dictionary, setDictionary] = useState<Dictionary>({});
+const [isRtl, setIsRtl] = useState("ltr");
 
-  useEffect(() => {
+useEffect(() => {
 
-    const fetchPhrases = async () => {
-      const dictionary = await phrases();
-      setDictionary(dictionary);
-      // localStorage.setItem("dictionary", JSON.stringify(dictionary));
-    }
-    // const localDictionary = localStorage.getItem("dictionary")
-    // if (localDictionary) {
-    //   setDictionary(JSON.parse(localDictionary));
-    // } 
-    fetchPhrases();
-  }, [])
+  const fetchPhrases = async () => {
+    const dictionary = await phrases();
+    setDictionary(dictionary);
+    // localStorage.setItem("dictionary", JSON.stringify(dictionary));
+  }
+  // const localDictionary = localStorage.getItem("dictionary")
+  // if (localDictionary) {
+  //   setDictionary(JSON.parse(localDictionary));
+  // } 
+  fetchPhrases();
+}, [])
 
 
-  useEffect(() => {
-    localStorage.setItem('language', language);
-    if (language == 'ar') {
-      setIsRtl("rtl");
-    }
-    else {
-      setIsRtl("ltr")
-    }
-  }, [language]);
+useEffect(() => {
+  localStorage.setItem('language', language);
+  if (language == 'ar') {
+    setIsRtl("rtl");
+  }
+  else {
+    setIsRtl("ltr")
+  }
+}, [language]);
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+return (
+  <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>
+    {children}
+  </LanguageContext.Provider>
+);
 };
 
 export const useLanguage = () => {

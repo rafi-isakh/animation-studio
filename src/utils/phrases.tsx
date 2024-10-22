@@ -39,15 +39,34 @@ export const langPairList = [
     }
 ]
 
-const phrases = async () => {
+const phrases = async (): Promise<Dictionary> => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_phrases`);
-        const dictionary = await response.json();
+        const response = await fetch(`/translations.csv`);
+        const csvText = await response.text();
+        const dictionary: Dictionary = {};
+        
+        const rows = csvText.split('\n');
+        const languageCodes = rows[0].split(',');
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i].split(',');
+            if (row.length === 0) continue;
+            
+            const tsx = row[0];
+            const entry: { [key: string]: string } = {};
+            
+            for (let j = 1; j < row.length; j++) {
+                const languageCode = languageCodes[j];
+                entry[languageCode] = row[j];
+            }
+            
+            dictionary[tsx] = entry;
+        }
+        
         return dictionary;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error retrieving dictionary", error);
-        throw new Error("Error retrieving dictionary",);
+        throw new Error("Error retrieving dictionary");
     }
 }
 

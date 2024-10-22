@@ -1,0 +1,110 @@
+tsx,ko,ja,en,zh-TW,zh-CN,th,id,vi,ar
+nickname,닉네임,ニックネーム,Nickname,暱稱,昵称,ชื่อเล่น,Nama panggilan,Tên người dùng,الاسم المستعار
+intro,소개,紹介,Bio,介紹,介绍,แนะนำ,Perkenalan,Giới thiệu,مقدمة
+register,등록,登録,Register,註冊,注册,สมัครสมาชิก,Daftar,Đăng ký,تسجيل
+noSearchResults,검색결과가 없습니다,検索結果がありません,No search results,搜尋結果為空,搜索结果为空,ไม่พบผลลัพธ์การค้นหา,Tidak ada hasil pencarian,Không có kết quả tìm kiếm,لا توجد نتائج بحث
+login,로그인,ログイン,Login,登入,登录,เข้าสู่ระบบ,Masuk,Đăng nhập,تسجيل الدخول
+newChapter,새 글 쓰기,新しい章を書く,Write New Chapter,寫新章節,写新章节,เขียนตอนใหม่,Tulis Bab Baru,Viết Chương Mới,كتابة فصل جديد
+chapterTitle,글 제목,題名,Chapter Title,章節標題,章节标题,ชื่อบท,Judul Bab,Tiêu đề Chương,عنوان الفصل
+content,내용,内容,Content,內容,内容,เนื้อหา,Konten,Nội dung,المحتوى
+uploadNewWebnovel,새 작품 쓰기,新しい作品を書く,Upload New Webnovel,寫新作品,写新作品,อัพโหลดนิยายใหม่,Unggah Novel Baru,Tải Lên Tiểu Thuyết Mới,رفع رواية جديدة
+webnovelTitle,작품 제목,作品タイトル,Webnovel Title,作品標題,作品标题,ชื่อเรื่อง,Judul Novel,Tiêu đề Tiểu Thuyết,عنوان الرواية
+genre,장르,ジャンル,Genre,類型,类型,แนว,Genre,Thể loại,النوع
+all,전체,全体,All,全部,全部,ทั้งหมด,Semua,Tất cả,الكل
+romanceFantasy,로판,ロマンスファンタジー,Romance Fantasy,浪漫奇幻,浪漫奇幻,แฟนตาซีโรแมนซ์,Fantasi Romantis,Lãng Mạn Huyền Bí,رومانسية فانتازيا
+romance,로맨스,ロマンス,Romance,浪漫,浪漫,โรแมนซ์,Romansa,Lãng Mạn,رومانسية
+bl,BL,BL,BL,BL,BL,BL,BL,BL,BL
+fantasy,판타지,ファンタジー,Fantasy,奇幻,奇幻,แฟนตาซี,Fantasi,Huyền Bí,فانتازيا
+sf,SF,SF,Sci-Fi,科幻,科幻,ไซไฟ,Sci-Fi,Khoa Học Viễn Tưởng,خيال علمي
+korean,한국어,韓国語,Korean,韓語,韩语,ภาษาเกาหลี,Bahasa Korea,Tiếng Hàn,الكورية
+english,영어,英語,English,英語,英语,ภาษาอังกฤษ,Bahasa Inggris,Tiếng Anh,الإنجليزية
+japanese,일본어,日本語,Japanese,日語,日语,ภาษาญี่ปุ่น,Bahasa Jepang,Tiếng Nhật,اليابانية
+chineseSimplified,중국어 (간체),中国語(簡体),Simplified Chinese,中國語（簡體）,中国语（简体）,ภาษาจีนตัวย่อ,Bahasa Tionghoa Sederhana,Tiếng Trung Giản Thể,الصينية المبسطة
+chineseTraditional,중국어 (번체),中国語(繁体),Traditional Chinese,中國語（繁體）,中国语（繁体）,ภาษาจีนตัวเต็ม,Bahasa Tionghoa Tradisional,Tiếng Trung Phồn Thể,الصينية التقليدية
+thai,태국어,タイ語,Thai,泰語,泰语,ภาษาไทย,Bahasa Thailand,Tiếng Thái,التايلاندية
+indonesian,인도네시아어,インドネシア語,Indonesian,印尼語,印尼语,ภาษาอินโดนีเซีย,Bahasa Indonesia,Tiếng Indonesia,الإندونيسية
+vietnamese,베트남어,ベトナム語,Vietnamese,越南語,越南语,ภาษาเวียดนาม,Bahasa Vietnam,Tiếng Việt,الفيتنامية
+arabic,아랍어,アラビア語,Arabic,阿拉伯語,阿拉伯语,ภาษาอารบิก,Bahasa Arab,Tiếng Ả Rập,العربية
+save,저장,保存,Save,儲存,保存,บันทึก,Simpan,Lưu,حفظ
+description,작품 소개,作品紹介,Description,作品介紹,作品介绍,คำบรรยาย,Deskripsi,Mô Tả,وصف
+number,회차,話,Number,話,回合,หมายเลขตอน,Nomor,Số,الرقم
+webnovelTitle,작품명,作品名,Webnovel Title,作品名稱,作品名称,ชื่อเรื่อง,Judul Novel,Tiêu đề Tiểu Thuyết,عنوان الرواية
+uploadDate,날짜,日付,Date,日期,日期,วันที่,Tanggal,Ngày,تاريخ
+views,조회,閲覧,Views,瀏覽量,浏览量,การดู,Tampilan,Lượt Xem,المشاهدات
+likes,좋아요,いいね,Likes,喜歡,喜欢,ถูกใจ,Suka,Thích,إعجاب
+numberOfWebnovels,작품수,作品数,Number of Webnovels,作品數,作品数,จำนวนนิยาย,Jumlah Novel,Số Lượng Tiểu Thuyết,عدد الروايات
+numTotalChapters,총 연재 글수,総連載文字数,Total Number of Chapters,總連載章節數,总连载章节数,จำนวนตอนรวม,Total Jumlah Bab,Tổng Số Chương,إجمالي عدد الفصول
+authorBio,작가 소개,作家紹介,Author Bio,作者介紹,作者介绍,ประวัติผู้แต่ง,Biografi Penulis,Giới Thiệu Tác Giả,نبذة عن المؤلف
+viewWebnovels,작품 보기,作品を見る,View Webnovels,查看作品,查看作品,ดูนิยาย,Lihat Novel,Xem Tiểu Thuyết,عرض الروايات
+list,목록,目次,List,列表,列表,รายการ,Daftar,Danh Sách,قائمة
+myLibrary,내 서재,私の書斎,My Library,我的書房,我的书架,ห้องสมุดของฉัน,Perpustakaan Saya,Thư Viện Của Tôi,مكتبتي
+comments,댓글,コメント,Comments,評論,评论,ความคิดเห็น,Komentar,Nhận Xét,تعليقات
+viewSettings,보기 설정,表示設定,View Settings,顯示設定,查看设置,การตั้งค่าการแสดงผล,Pengaturan Tampilan,Cài Đặt Hiển Thị,إعدادات العرض
+uploadNewChapter,새 글 업로드,新しい章を投稿,Upload New Chapter,上傳新章節,上传新章节,อัพโหลดตอนใหม่,Unggah Bab Baru,Tải Chương Mới,رفع فصل جديد
+deleteWebnovel,작품 삭제,作品削除,Delete Webnovel,刪除作品,删除作品,ลบนิยาย,Hapus Novel,Xóa,حذف الرواية
+language,언어,言語,Language,語言,语言,ภาษา,bahasa,ngôn ngữ,لغة
+noWebnovelsFound,웹소설이 없습니다,ウェブ小説が見つかりません,No webnovels found,找不到網絡小說,找不到网络小说,ไม่พบนิยายเว็บ,Tidak ditemukan novel web,Không tìm thấy tiểu thuyết web,لم يتم العثور على روايات الويب
+newWebnovel,새 작품,新しい作品,New Webnovel,新作品,新作品,ผลงานใหม่,Karya Baru,Tác phẩm mới,عمل جديد
+myWebnovels,내 작품,作品一覧,My Webnovels,我的作品,我的作品,ผลงานของฉัน,Karya Saya,Tác phẩm của tôi,رواياتي
+myLibrary,내 서재,書斎,My Library,我的書房,我的书房,ห้องสมุดของฉัน,Perpustakaan Saya,Thư viện của tôi,مكتبتي
+profile,프로필,プロフィール,Profile,個人資料,个人资料,โปรไฟล์,Profile,Hồ sơ,الملف الشخص
+logout,로그아웃,ログアウト,Log out,登出,登出,ออกจากระบบ,Keluar,Đăng xuất,تسجيل الخروج
+whoseWebnovels,님의 작품,さんの作品,'s Webnovels,的作品,的作品,ผลงานของ,Karya,Tác phẩm của,روايات الويب الخاصة بـ
+selectFile,파일 선택,ファイル選択,Select File,選擇文件,选择文件,เลือกไฟล์,Pilih File,Chọn tệp,اختيار ملف
+noSelectedFiles,선택된 파일 없음,選択されたファイルがありません,No Selected Files,沒有選擇的文件,没有选择的文件,ไม่มีไฟล์ที่เลือก,Tidak ada file yang dipilih,Không có tệp nào được chọn,لا توجد ملفات محددة
+webnovels,웹소설,ウェブ小説,Webnovels,網絡小說,网络小说,นิยายเว็บ,Novel Web,Tiểu thuyết web,روايات الويب
+webtoons,웹툰,ウェブトゥーン,Webtoons,網絡漫畫,网络漫画,เว็บตูน,Webtoon,Truyện tranh mạng,ويب تون
+manhwa,만화,マンガ,Manhwa,漫畫,漫画,มังงะ,Manga,Truyện tranh,مانغا
+chars,글자수,文字数,Characters,字數,字数,จำนวนตัวอักษร,Jumlah Karakter,Số ký tự,عدد الأحرف
+popularWebnovels,실시간 인기작,人気小説,Popular Webnovels,受歡迎的網絡小說,受欢迎的网络小说,นิยายเว็บยอดนิยม,Novel Web Populer,Tiểu thuyết mạng phổ biến,الروايات الشبكية الشعبية
+likedWebnovels,많이 좋아한 웹소설,いいねが多い小説,Most Liked Webnovels,最受歡迎的網絡小說,最受欢迎的网络小说,นิยายเว็บที่ชื่นชอบมากที่สุด,Novel web yang paling disukai,Những tiểu thuyết trên web được yêu thích nhất,أكثر الروايات على الإنترنت إعجابًا
+latestWebnovels,최신 웹소설,最新の小説,Latest Webnovels,最新的網絡小說,最新的网络小说,นิยายเว็บล่าสุด,Novel web terbaru,Những tiểu thuyết trên web mới nhất,أحدث الروايات على الإنترنت
+news,뉴스,ニュース,News,新聞,新闻,ข่าว,berita,tin tức,أخبار
+preparing,이 기능은 아직 사용할 수 없습니다.,この機能はまだ利用できません。,This feature is not available yet., 此功能尚不可用。,此功能尚不可用。,ฟีเจอร์นี้ยังไม่พร้อมใช้งาน,Fitur ini belum tersedia.,Tính năng này chưa khả dụng.,هذه الميزة غير متوفرة بعد.
+deleteAccount,계정 삭제,アカウント削除,Delete Account,刪除帳號,删除账号,ลบบัญชี,Hapus Akun,Xóa tài khoản,حذف الحساب
+original,원문,原文,Original,原文,原文,ต้นฉบับ,Asli,Nguyên văn,النص الأصلي
+inputAllInfo,항목을 모두 입력해 주세요,,Please enter all fields,
+ok,확인,,OK,
+properNouns,고유명사,,Proper Nouns,
+properNounsDescription,"소설의 캐릭터, 지명 등 고유명사를 입력해 주세요. 입력하지 않으시면 AI가 고유명사를 추출하나, 직접 입력해주시면 더 정확할 수 있습니다.",,"Please enter proper nouns in your novel such as character names and location names. If you do not enter them, our AI will automatically detect them, but it can be more accurate if you enter them."
+aieditor,AI 에디터,,AI Editor
+noProfileFound,프로필이 없습니다,,Profile not found,
+promotion,프로모션 코드,,Promotion Code,
+emailExists,같은 이메일로 등록된 계정이 이미 존재합니다,,An account registered with this email already exists,
+characters,캐릭터,,Characters
+analyze,분석,,Analyze
+nextChapter,다음,,Next
+prevChapter,이전,,Previous
+isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
+isLastChapter,마지막 화입니다.,,You are at the last chapter.
+studio,스튜디오,,Studio
+publish,발행,,Publish
+google_signin,구글로 로그인,,Sign in with Google
+kakao_signin,카카오로 로그인,,Sign in with Kakao
+yes,예,,Yes
+no,아니오,,No
+deleteAccountConfirm,정말로 계정을 삭제하시겠습니까?,,Are you sure you want to delete your account?
+deleteWebnovelConfirm,정말로 소설을 삭제하시겠습니까?,,Are you sure you want to delete the novel?
+points,포인트,,Points
+curriculum,커리큘럼,,Curriculum
+typeYourComment,댓글을 입력해주세요.,,Type your comment here..
+typeYourPrompt,프롬프트를 입력해주세요.,,Type your prompt here..
+generatingPrompt,생성중..,,Making..
+generatePrompt,생성,,Make
+worldviewSetting,세계관 설정,,Worldview Setting
+genresAndKeyword,장르 및 키워드,,Genres and Keywords
+genrePlaceholder,작품의 장르를 입력해주세요,,Please type genres here..
+keyword,키워드,,Keyword
+keywordPlaceholder,키워드를 입력해주세요,,Please type keyword here
+generatingLogline,로그라인 생성,,Generating Logline
+generateAll,전체 생성,,Generating All
+logline,로그 라인,,Logline
+createMainCharacter,주인공 만들기,,Create Main Character
+characterSetting,캐릭터 설정,,Character Setting
+createSubCharacter,조연 만들기,,Create Sub Character
+synopsis,줄거리,,Synopsis
+createMainCharacterSentence,주연 줄거리 만들기,,Generate Main character sentence
+createSubCharacterSentence,조연 줄거리 만들기,,Generate Sub character sentence
+createEpisode,에피소드 만들기,,Generate Episode
+createSynopsis,시놉시스 만들기,,Generate Synopsis
+author,작가,作者,Author,作者,作者,

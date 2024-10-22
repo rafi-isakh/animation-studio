@@ -73,8 +73,8 @@ export default function Privacy() {
             <td >회원, 결제 정보 등 보관</td>
         </tr>
         <tr>
-            <td >(주)다날</td>
-            <td >서비스 이용을 위한 본인 인증</td>
+            <td >(주)오노마 AI</td>
+            <td >AI 모델 서비스 제공</td>
         </tr>
         <tr>
             <td >(주)토스페이먼츠</td>

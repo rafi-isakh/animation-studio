@@ -41,7 +41,7 @@ const GenresComponent = () => {
     }, [language]); // Re-run when language changes
 
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
-    const genresIcon = [<Gem />, <Heart />, <Laugh />, <Wine />, <Star />, <Rocket />]
+    const genresIcon = [<Gem key="gem" />, <Heart key="heart" />, <Laugh key="laugh" />, <Wine key="wine" />, <Star key="star" />, <Rocket key="rocket" />];
 
     const getGenreUrl = (genre: string) => {
         return getUrlWithParams('genre', genre, pathname, searchParams);

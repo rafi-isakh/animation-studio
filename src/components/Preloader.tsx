@@ -11,7 +11,7 @@ import styles from '@/styles/Header.module.css';
 import Link from 'next/link';
 
 
-const words = ["Hello", "Bonjour", "Ciao", "Olà", "やあ", "Hallå", "Guten tag", "Hallo", "안녕하세요."]
+const words = ["Hello", "Bonjour", "Ciao", "Olà", "やあ", "Hallå", "Guten tag", "你好", "Hallo", "สวัสดี", "مرحبًا", "Xin chào", "안녕하세요."]
 
 const style = {
     position: 'fixed' as 'fixed', // Use fixed positioning to cover the entire screen
@@ -99,7 +99,7 @@ export default function Preloader() {
        
         <Box sx={style}>
         
-        <div className='rounded-xl border border-gray-400 w-[500px] h-[600px] bg-white flex flex-col justify-center items-center'>
+        <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col justify-center items-center'>
            
             <Image
             src="/N_Logo.png"
@@ -118,20 +118,20 @@ export default function Preloader() {
                 }}
             />
            
-            <motion.p variants={opacity} initial="initial" animate="enter" className='mb-10'>
+            <motion.p variants={opacity} initial="initial" animate="enter" className='mb-10 text-white dark:text-white text-[2rem]'>
                 {words[index]}
             </motion.p> 
 
 
-            <p>
+            <p className='text-white dark:text-white'>
             언어를 선택해 주세요.
             </p>
 
             {/*Language menu*/}
             <li className="py-2 relative list-none">
                 <div ref={languageMenuRef}>
-                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-                        <i className="fa-solid fa-globe text-black"></i>
+                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-white dark:text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                        <i className="fa-solid fa-globe text-white dark:text-white"></i>
                         <p className='ml-2'>{currentLanguage && currentLanguage}</p>
                         {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
                         <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
@@ -156,7 +156,7 @@ export default function Preloader() {
 
 
 
-            <p className="text-center text-[10px] "> Your Favorite Story Universe, Between Us, Toonyz </p>
+            <p className="text-center text-[10px] text-white dark:text-white "> Your Favorite Story Universe, Between Us, Toonyz </p>
         </div>
 
         </Box>

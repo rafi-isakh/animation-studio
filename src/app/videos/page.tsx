@@ -31,7 +31,7 @@ export default function Videos() {
     // https://d5lcofnk46q9e.cloudfront.net/webtoon_00[1-6].mp4
 
 
-    const initialWebtoonContents: Omit<WebtoonContent, 'file_src'> & { file_src: string }[] = [
+    const initialWebtoonContents: WebtoonContent[] = [
         {
             title: '웹툰 커리큘럼 1',
             subtitle: '개연성',
@@ -101,7 +101,7 @@ export default function Videos() {
     ]
 
     // const initialWebnovelContents: Omit<WebtoonContent, 'file_src'> & { file_src: string }[] = [
-    const initialWebnovelContents: Omit<WebtoonContent, 'file_src'> & { file_src: string }[] = [
+    const initialWebnovelContents: WebtoonContent[] = [
         {
             title: '웹소설 커리큘럼 1',
             subtitle: '웹소설 소개',

@@ -20,11 +20,9 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         for (const novel of webnovels) {
             if (premium.includes(novel.id)) {
                 novel.version = "premium"
-                console.log('premium', novel.id)
             }
             else {
                 novel.version = "free"
-                console.log('free', novel.id)
             }
         }
         const _webnovelsToShow = webnovels

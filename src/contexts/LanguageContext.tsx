@@ -15,10 +15,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const getInitialLanguage = () => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('language') as Language || 'ko'; // Default language
-    }
-    return 'en';
+    return localStorage.getItem('language') as Language || 'en'; // Default language
   };
 
   const [language, setLanguage] = useState(getInitialLanguage);
@@ -41,9 +38,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('language', language);
-    }
+    localStorage.setItem('language', language);
     if (language == 'ar') {
       setIsRtl("rtl");
     }

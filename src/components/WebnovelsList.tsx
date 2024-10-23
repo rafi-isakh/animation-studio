@@ -104,11 +104,11 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     phrase(dictionary, text, language) : <></>
                 }
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-rows-3 md:grid-flow-col gap-2">
                 {webnovelsToShow
                     .sort(sortByFn)
                     .map((item, index) => (
-                        <div className="px-2 md:px-4" key={index}>
+                        <div className="" key={index}>
                             <WebnovelComponent webnovel={item} index={index} ranking={true} />
                         </div>
                     ))}

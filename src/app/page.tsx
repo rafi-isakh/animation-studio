@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import WebnovelsListByEditor from '@/components/WebnovelsListByEditor'
-import WebnovelsListByRecommendation from '@/components/WebnovelsListByrecommendation';
+import WebnovelsListByRecommendation from '@/components/WebnovelsListByRecommendation';
 import WebnovelsListByCover from '@/components/WebnovelsListByCover';
 
 
@@ -33,16 +33,14 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         <div>
             {/* applying a creator banner */}
            <ApplyCreatorBanner />
-        
            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             <div className='mt-4'>
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
             </div>
             <GenresComponent />
-
+            {/*  */}
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
 
             {/* Editor picks part */}
@@ -77,7 +75,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     />
                 </Link>
                 </div>
-
             {/* Footer */}
             <Footer />
             {/* Bookmark button : it only displys mobile screen */}

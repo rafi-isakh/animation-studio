@@ -125,11 +125,11 @@ const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchPara
                             borderRadius: '25%', 
                             border: '1px solid #eee'  
                             }}
-                        />    튜니즈 에디터가 핸드 픽업한 작품!
+                        />    투니즈 에디터가 핸드 픽업한 작품!
                         
                     </h1>
 
-                    <p className='text-sm'> 튜니즈 에디터가 한땀 한땀 핸드 픽업한 작품들을 만나보세요. </p>
+                    <p className='text-sm'> 투니즈 에디터가 한땀 한땀 핸드 픽업한 작품들을 만나보세요. </p>
                     <button className='bg-pink-600 text-white font-extrabold px-6 py-3 rounded-xl text-md mt-5'>Explore more</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3">

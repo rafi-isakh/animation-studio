@@ -14,11 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const getInitialLanguage = () => {
-    return localStorage.getItem('language') as Language || 'en'; // Default language
-  };
-
-  const [language, setLanguage] = useState(getInitialLanguage);
+  const [language, setLanguage] = useState<Language>('ko');
   const [dictionary, setDictionary] = useState<Dictionary>({});
   const [isRtl, setIsRtl] = useState("ltr");
 
@@ -27,17 +23,14 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     const fetchPhrases = async () => {
       const dictionary = await phrases();
       setDictionary(dictionary);
-      // localStorage.setItem("dictionary", JSON.stringify(dictionary));
+      console.log(dictionary)
     }
-    // const localDictionary = localStorage.getItem("dictionary")
-    // if (localDictionary) {
-    //   setDictionary(JSON.parse(localDictionary));
-    // } 
     fetchPhrases();
   }, [])
 
 
   useEffect(() => {
+    setLanguage(localStorage.getItem('language') as Language || 'ko');
     localStorage.setItem('language', language);
     if (language == 'ar') {
       setIsRtl("rtl");
@@ -45,6 +38,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     else {
       setIsRtl("ltr")
     }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('language', language);
   }, [language]);
 
   return (

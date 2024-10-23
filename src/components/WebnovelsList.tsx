@@ -1,10 +1,11 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import WebnovelComponent from "@/components/WebnovelComponent"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import moment from 'moment';
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -15,6 +16,17 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     let version = searchParams.version;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
+    const scrollRef = useRef<HTMLDivElement>(null);
+    
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const scrollAmount = 200 * (direction === 'left' ? -1 : 1);
+            scrollRef.current.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -98,22 +110,42 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
 
     return (
-        <div className='w-full max-w-screen-xl mx-auto flex flex-col'>
+        <div className='relative max-w-screen-xl mx-auto px-4 group'>
             <div className='text-2xl md:text-4xl p-2 font-bold'>
                 {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
                 }
             </div>
-            <div className="grid grid-rows-3 md:grid-flow-col gap-2">
-                {webnovelsToShow
-                    .sort(sortByFn)
-                    .map((item, index) => (
-                        <div className="" key={index}>
-                            <WebnovelComponent webnovel={item} index={index} ranking={true} />
+            
+            
+               {/* Left Arrow */}
+               <button 
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2"
+            >
+                <ChevronLeft className="w-6 h-6 text-gray-700" />
+               </button>
+
+                <div className="overflow-x-auto" ref={scrollRef}>
+                        <div className="grid grid-cols-3 grid-rows-1 gap-2 min-w-max">
+                            {webnovelsToShow
+                                .sort(sortByFn)
+                                .map((item, index) => (
+                                    <div className="" key={index}>
+                                        <WebnovelComponent webnovel={item} index={index} ranking={true} />
+                                    </div>
+                                ))}
                         </div>
-                    ))}
-            </div>
-        </div>
+                    </div>
+
+            {/* Right Arrow */}
+            <button 
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
+            >
+                <ChevronRight className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
     )
 };
 

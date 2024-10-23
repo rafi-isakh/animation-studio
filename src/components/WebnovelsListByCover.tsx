@@ -118,7 +118,6 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
-            
             <div className='text-2xl md:text-xl p-2 font-bold'>
                 {/* {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
@@ -126,7 +125,6 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                   <h1 className='text-left font-extrabold'>오직 투니즈에서만!</h1>
 
             </div>
-
             <div 
                 ref={scrollRef}
                 className="flex overflow-x-auto scrollbar-hide scroll-smooth gap-4 py-4"
@@ -140,9 +138,6 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                         </div>
                     ))}
             </div>
-
-
-
             {/* Right Arrow */}
             <button 
                 onClick={() => scroll('right')}

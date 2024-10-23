@@ -11,7 +11,7 @@ export default function Footer() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2'>
+        <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
             <div>
                 {language == 'ko' ? (<Link href="/terms">이용약관</Link>) 
                                   : <></>

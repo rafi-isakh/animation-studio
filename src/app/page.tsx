@@ -2,12 +2,13 @@ import WebnovelsList from '@/components/WebnovelsList'
 import GenresComponent from '@/components/GenresComponent';
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
+import BookmarkButton from '@/components/BookmarkButton';
 import Link from 'next/link';
 import Image from 'next/image';
-import WebnovelsListByEditor from '@/components/WebnovelsListByEditor'
-import BookmarkButton from '@/components/BookmarkButton';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
-
+import WebnovelsListByEditor from '@/components/WebnovelsListByEditor'
+import WebnovelsListByRecommendation from '@/components/WebnovelsListByrecommendation';
+import WebnovelsListByCover from '@/components/WebnovelsListByCover';
 
 
 async function getCarouselItems() {
@@ -36,32 +37,20 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             <div className='mt-4'>
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-
-            
-
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
             </div>
-
-        
-
-            
             <GenresComponent />
 
-       
-
+            <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             
-            <div className='w-full max-w-screen-xl mx-auto flex flex-col'>
-            <h1 className='text-left font-extrabold'>오직 튜니즈에서만!</h1>
+            <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
 
-
-            </div>
-            
             {/* Editor picks part */}
             <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />
     
             {/* Footer Banner : instagram promotion image */}
             <div className='flex justify-center self-center'>
-                <Link href='' >
+                <Link href=''>
                 <Image 
                     src='/footer_banner.svg' 
                     alt='Toonyz event banner'

@@ -1,21 +1,32 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
-import { useEffect, useState } from 'react';
-import WebnovelComponentSquare from "@/components/WebnovelComponentSquare"
+import { useEffect, useState, useRef } from 'react';
+import WebnovelComponentPicture from "@/components/WebnovelComponentPicture"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import moment from 'moment';
-import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
 export const free = [29, 28, 25]
 
-const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
+const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
     let genre = searchParams.genre;
     let version = searchParams.version;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
+    const scrollRef = useRef<HTMLDivElement>(null);
+    
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const scrollAmount = 200 * (direction === 'left' ? -1 : 1);
+            scrollRef.current.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -99,42 +110,49 @@ const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchPara
 
 
     return (
-        <div className='w-full max-w-screen-xl mx-auto flex flex-col mb-10'>
-            <div className='flex flex-col md:flex-row'>
-                <div className='md:w-[1/2] py-6 px-3 flex flex-col items-center justify-center '>
-                    {/* {(webnovels.length > 0) ?
-                        phrase(dictionary, text, language) : <></>
-                    } */}
+        <div className='relative max-w-screen-xl mx-auto px-4 group'>
+            {/* Left Arrow */}
+            <button 
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2"
+            >
+                <ChevronLeft className="w-6 h-6 text-gray-700" />
+            </button>
+            
+            <div className='text-2xl md:text-xl p-2 font-bold'>
+                {/* {(webnovels.length > 0) ?
+                    phrase(dictionary, text, language) : <></>
+                } */}
+                  <h1 className='text-left font-extrabold'>오직 투니즈에서만!</h1>
 
-                    <h1 className='text-xl md:text-xl p-2 font-bold flex items-center gap-3'>
-                      <div className="flex justify-center items-center">   
-                        <Image
-                            src="/N_Logo.png"
-                            alt="Toonyz Logo"
-                            width={35}
-                            height={35}
-                            sizes="100vh"
-                            className='rounded-[25%] border border-gray-200'
-                            /> 
-                        </div>
-                        <p>투니즈 에디터가 핸드 픽업한 작품!</p>
-                    </h1>
-
-                    <p className='text-sm'> 투니즈 에디터가 한땀 한땀 핸드 픽업한 작품들을 만나보세요. </p>
-                    <button className='bg-pink-600 text-white font-extrabold px-6 py-3 rounded-xl text-md mt-5'>Explore more</button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3">
-                    {webnovelsToShow
-                        .sort(sortByFn)
-                        .map((item, index) => (
-                            <div className=" " key={index}>
-                                <WebnovelComponentSquare webnovel={item} index={index} ranking={true} />
-                            </div>
-                        ))}
-                </div>
             </div>
+
+            <div 
+                ref={scrollRef}
+                className="flex overflow-x-auto scrollbar-hide scroll-smooth gap-4 py-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                {webnovelsToShow
+                    .sort(sortByFn)
+                    .map((item, index) => (
+                        <div className="px-2 md:px-4" key={index}>
+                            <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
+                        </div>
+                    ))}
+            </div>
+
+
+
+            {/* Right Arrow */}
+            <button 
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
+            >
+                <ChevronRight className="w-6 h-6 text-gray-700" />
+            </button>
+
         </div>
     )
 };
 
-export default WebnovelsListByEditor;
+export default WebnovelsListByCover;

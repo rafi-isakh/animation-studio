@@ -509,7 +509,7 @@ export default function Videos() {
                         </div> 
                     ))} 
                 </div>
-            </div>
+            </div> 
         </div>
     )
 }

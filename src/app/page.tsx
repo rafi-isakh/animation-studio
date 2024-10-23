@@ -5,6 +5,8 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import WebnovelsListByEditor from '@/components/WebnovelsListByEditor'
+import BookmarkButton from '@/components/BookmarkButton';
+
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
@@ -37,15 +39,12 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             
             <div className='w-full max-w-screen-xl mx-auto flex flex-col'>
             <h1 className='text-left font-extrabold'>오직 튜니즈에서만!</h1>
+
             </div>
             
-
+            {/* Editor picks part */}
             <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            {/* 
-                <div className='w-full max-w-screen-xl mx-auto flex flex-col'>
-                </div> 
-            */}
-
+    
             {/* Footer Banner : instagram promotion image */}
             <div className='flex justify-center self-center'>
                 <Link href='' >
@@ -76,7 +75,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 </Link>
                 </div>
 
+            {/* Footer */}
             <Footer />
+            {/* Bookmark button : it only displys mobile screen */}
+            <BookmarkButton />
         </div>
     );
 }

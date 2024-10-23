@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npx patch-package"
+    "postinstall": "npx patch-package",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.36",
@@ -50,6 +52,15 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^1.9.0",
+    "@storybook/addon-essentials": "^8.3.6",
+    "@storybook/addon-interactions": "^8.3.6",
+    "@storybook/addon-links": "^8.3.6",
+    "@storybook/addon-onboarding": "^8.3.6",
+    "@storybook/blocks": "^8.3.6",
+    "@storybook/nextjs": "^8.3.6",
+    "@storybook/react": "^8.3.6",
+    "@storybook/test": "^8.3.6",
     "@types/formidable": "^3.4.5",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -59,7 +70,9 @@
     "daisyui": "^4.12.10",
     "eslint": "^8",
     "eslint-config-next": "14.2.4",
+    "eslint-plugin-storybook": "^0.10.1",
     "postcss": "^8.4.40",
+    "storybook": "^8.3.6",
     "tailwindcss": "^3.4.7",
     "typescript": "^5"
   }

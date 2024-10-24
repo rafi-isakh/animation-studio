@@ -1,5 +1,6 @@
 "use client"
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@mui/material"
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
@@ -10,10 +11,35 @@ export default function Footer() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-           <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
-             
-           <div className="flex flex-col md:flex-row  w-full md:w-[1280px] px-4 justify-between items-center mx-auto mt-6">
-                    
+        <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
+            <div>
+                {language == 'ko' ? (<Link href="/terms">이용약관</Link>) 
+                                  : <></>
+                }
+            </div>
+            <div className="flex flex-col justify-center items-center">
+                Copyright © 
+                {language == 'ko' ? (<p className="text-center">주식회사 스텔라앤 (Stella& Inc.) <br/></p>)
+                                  : (<p className="text-center">Stelland International, Inc.</p> )
+                } 
+                2024 All rights reserved.<br/>
+            </div>
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center mt-2 text-gray-500 hover:text-gray-700"
+            >
+                {isExpanded ? (
+                    <ChevronUpIcon className="w-4 h-4 mr-1" />
+                ) : (
+                    <ChevronDownIcon className="w-4 h-4 mr-1" />
+                )}
+                {isExpanded ? "Hide Details" : "Show Details"}
+            </button>
+            {isExpanded && (
+                <>
+                    <div>
+                        {language == 'ko'? <>사업자등록번호 221-88-02281</>:<></>}
+                    </div>
                     <div>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}

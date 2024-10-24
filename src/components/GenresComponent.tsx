@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getUrlWithParams } from '@/utils/stringUtils';
+import { Gem, Heart, Laugh, Wine, Star, Rocket } from 'lucide-react';
 
 const GenresComponent = () => {
     const { dictionary, language } = useLanguage();
@@ -40,6 +41,7 @@ const GenresComponent = () => {
     }, [language]); // Re-run when language changes
 
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
+    const genresIcon = [<Gem key="gem" />, <Heart key="heart" />, <Laugh key="laugh" />, <Wine key="wine" />, <Star key="star" />, <Rocket key="rocket" />];
 
     const getGenreUrl = (genre: string) => {
         return getUrlWithParams('genre', genre, pathname, searchParams);
@@ -50,28 +52,37 @@ const GenresComponent = () => {
     }
 
     return (
-        <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto'>
-        <h1 className='font-extrabold text-left justify-start self-start mt-10 '>{phrase(dictionary, "viewByGenre", language)}</h1>
-        <div className="scrollbar-hide w-full h-16 md:h-32 mt-2 md:mt-4 justify-between overflow-x-scroll flex flex-col">
+        <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto md:mb-6 mb-6'>
+        <h1 className='font-extrabold text-xl md:text-xl text-left justify-start self-start mt-10 '>
+            {phrase(dictionary, "viewByGenre", language)}
+        </h1>
+        
+        <div className="w-full h-32 md:h-32 mt-4 md:mt-4 overflow-y-auto">
            
-            <div className="flex w-full md:w-[1280px] px-4 justify-between items-center mx-auto">
-                {genres.map((genre, index) => (
-                         <Link
-                        key={genre}
+            <div className="flex flex-row w-full md:w-[1280px] px-4 justify-center items-center mx-auto gap-9">  
+                {genres.map((genre, index) =>  (
+                  <div key={index} className="flex flex-col justify-end items-center">
+                     <div className='flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-400 rounded-full hover:bg-pink-600 hover:text-white'>
+                      {/* Full rounded div */}
+                      {genresIcon[index]}
+                      </div>
+                      <Link
                         href={getGenreUrl(genre)}
-                        className={`${highlightGenre(genre) ? "text-pink-600" : ""} flex-grow mr-4 p-1 text-center flex flex-col justify-center items-center hover:text-pink-600 bg-gray-400 rounded-full`}
+                        className={`${highlightGenre(genre) ? "text-pink-600" : ""} flex flex-col items-center justify-center mt-4`}
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;
                             }
                         }}
-                    >
-                        <h6 className="!text-[16px] font-bold tracking-tight hover:text-pink-600 whitespace-nowrap">
-                          # {phrase(dictionary, genre, language).replaceAll(" ", "-")}
+                         >
+                        <h6 className="flex justify-center w-16 !text-[16px] font-bold tracking-tight hover:text-pink-600 keep-all">
+                          {phrase(dictionary, genre, language)}
                         </h6>
                     </Link>
+                 </div>
                 ))}
             </div>
+
         </div>
       </div>
     );

@@ -9,7 +9,9 @@ import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import WebnovelsListByEditor from '@/components/WebnovelsListByEditor'
 import WebnovelsListByRecommendation from '@/components/WebnovelsListByRecommendation';
 import WebnovelsListByCover from '@/components/WebnovelsListByCover';
-import Promotion from '@/components/Promotion'
+import Promotion from '@/components/Promotion';
+import KeywordsComponent from '@/components/KeywordsComponent';
+import WebnovelsByDates from '@/components/WebnovelsByDates';
 
 import { AnimatePresence } from 'framer-motion' // Framer Motion for animations
 import Preloader from '@/components/Preloader';
@@ -42,16 +44,18 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {/* Top banner : applying a creator */}
            <ApplyCreatorBanner />
            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-           <GenresComponent />
+            {/* keywords list */}
+            <KeywordsComponent />
         
             {/* webnovels list by ranking */}
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+            <WebnovelsByDates searchParams={searchParams} webnovels={webnovels} sortBy='date' />
    
             <div className='mt-10'>
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             </div>
 
+           <GenresComponent />
             {/* promotion part */}
             <Promotion />
 

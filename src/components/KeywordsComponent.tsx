@@ -8,7 +8,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { getUrlWithParams } from '@/utils/stringUtils';
 import { Gem, Heart, Laugh, Wine, Star, Rocket } from 'lucide-react';
 
-const GenresComponent = () => {
+const KeywordsComponent = () => {
     const { dictionary, language } = useLanguage();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -52,34 +52,29 @@ const GenresComponent = () => {
     }
 
     return (
-        <div className='flex flex-col w-full md:w-[1280px] px-4 justify-center items-center mx-auto md:mb-6 mb-6'>
-        <h1 className='font-extrabold text-xl md:text-xl text-left justify-start self-start mt-10 '>
-            {phrase(dictionary, "viewByGenre", language)}
-        </h1>
+        <div className='relative max-w-screen-xl mx-auto px-4 group mt-6'>
+            <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+                    <h1> 키워드 별로 보기 </h1>
+                    <span className='text-gray-400 text-[14px]'>더 보기</span>
+            </div>
         
-        <div className="w-full h-32 md:h-32 mt-4 md:mt-4 overflow-y-auto">
-           
-            <div className="flex flex-row w-full md:w-[1280px] px-4 justify-center items-center mx-auto gap-9">  
+        <div className="w-full h-20 md:h-20 mt-4 md:mt-4 overflow-y-auto">  
+            <div className="flex flex-row w-full md:w-[1280px] ml-2 mx-auto gap-2 !cursor-pointer">  
                 {genres.map((genre, index) =>  (
-                  <div key={index} className="flex flex-col justify-end items-center">
-                     <div className='flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-400 rounded-full hover:bg-pink-600 hover:text-white'>
-                      {/* Full rounded div */}
-                      {genresIcon[index]}
-                      </div>
                       <Link
+                        key={index}
                         href={getGenreUrl(genre)}
-                        className={`${highlightGenre(genre) ? "text-pink-600" : ""} flex flex-col items-center justify-center mt-4`}
+                        className={`border border-gray-400 rounded-sm px-4 !cursor-pointer ${highlightGenre(genre) ? "text-pink-600" : ""}`}
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;
                             }
                         }}
                          >
-                        <h6 className="flex justify-center w-16 !text-[16px] font-bold tracking-tight hover:text-pink-600 keep-all">
-                          {phrase(dictionary, genre, language)}
+                        <h6 className="!text-[16px] font-bold tracking-tight hover:text-pink-600 whitespace-nowrap !cursor-pointer">
+                          # {phrase(dictionary, genre, language).replaceAll(" ", "-")}
                         </h6>
                     </Link>
-                 </div>
                 ))}
             </div>
 
@@ -88,4 +83,4 @@ const GenresComponent = () => {
     );
 };
 
-export default GenresComponent;
+export default KeywordsComponent;

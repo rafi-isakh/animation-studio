@@ -18,12 +18,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [dictionary, setDictionary] = useState<Dictionary>({});
   const [isRtl, setIsRtl] = useState("ltr");
 
-  useEffect(() => {
+useEffect(() => {
 
     const fetchPhrases = async () => {
       const dictionary = await phrases();
       setDictionary(dictionary);
-      console.log(dictionary)
     }
     fetchPhrases();
   }, [])
@@ -44,11 +43,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem('language', language);
   }, [language]);
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+return (
+  <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>
+    {children}
+  </LanguageContext.Provider>
+);
 };
 
 export const useLanguage = () => {

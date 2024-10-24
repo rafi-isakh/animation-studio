@@ -14,6 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+<<<<<<< HEAD
   const getInitialLanguage = () => {
     if (window !== undefined) {
     return localStorage.getItem('language') as Language || 'en'; // Default language
@@ -24,31 +25,36 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 const [language, setLanguage] = useState(getInitialLanguage);
 const [dictionary, setDictionary] = useState<Dictionary>({});
 const [isRtl, setIsRtl] = useState("ltr");
+=======
+  const [language, setLanguage] = useState<Language>('ko');
+  const [dictionary, setDictionary] = useState<Dictionary>({});
+  const [isRtl, setIsRtl] = useState("ltr");
+>>>>>>> main
 
 useEffect(() => {
 
-  const fetchPhrases = async () => {
-    const dictionary = await phrases();
-    setDictionary(dictionary);
-    // localStorage.setItem("dictionary", JSON.stringify(dictionary));
-  }
-  // const localDictionary = localStorage.getItem("dictionary")
-  // if (localDictionary) {
-  //   setDictionary(JSON.parse(localDictionary));
-  // } 
-  fetchPhrases();
-}, [])
+    const fetchPhrases = async () => {
+      const dictionary = await phrases();
+      setDictionary(dictionary);
+    }
+    fetchPhrases();
+  }, [])
 
 
-useEffect(() => {
-  localStorage.setItem('language', language);
-  if (language == 'ar') {
-    setIsRtl("rtl");
-  }
-  else {
-    setIsRtl("ltr")
-  }
-}, [language]);
+  useEffect(() => {
+    setLanguage(localStorage.getItem('language') as Language || 'ko');
+    localStorage.setItem('language', language);
+    if (language == 'ar') {
+      setIsRtl("rtl");
+    }
+    else {
+      setIsRtl("ltr")
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
 
 return (
   <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>

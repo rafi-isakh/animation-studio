@@ -78,3 +78,15 @@ export interface Dictionary {
 interface Entry {
   [key: string]: string
 }
+
+export interface WebtoonContent {
+  title: string;
+  subtitle: string;
+  title_en: string;
+  subtitle_en: string;
+  image: string;
+  en?: string;
+  link: string;
+  file_src: string;
+  video: JSX.Element;
+}

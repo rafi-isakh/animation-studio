@@ -14,22 +14,9 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-<<<<<<< HEAD
-  const getInitialLanguage = () => {
-    if (window !== undefined) {
-    return localStorage.getItem('language') as Language || 'en'; // Default language
-  }
-  return 'en' as Language;
-};
-
-const [language, setLanguage] = useState(getInitialLanguage);
-const [dictionary, setDictionary] = useState<Dictionary>({});
-const [isRtl, setIsRtl] = useState("ltr");
-=======
   const [language, setLanguage] = useState<Language>('ko');
   const [dictionary, setDictionary] = useState<Dictionary>({});
   const [isRtl, setIsRtl] = useState("ltr");
->>>>>>> main
 
 useEffect(() => {
 

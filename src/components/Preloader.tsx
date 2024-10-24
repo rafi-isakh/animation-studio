@@ -127,7 +127,7 @@ export default function Preloader() {
             {/*Language menu*/}
             <li className="py-2 relative list-none">
                 <div ref={languageMenuRef}>
-                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 rounded-md border border-gray-400 flex items-center justify-start md:justify-between w-full text-white focus:border-pink-600 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 rounded-md border border-gray-400 flex items-center justify-start md:justify-between w-full text-white focus:border-pink-600 md:px-4 md:py-3 md:border md:hover:border-pink-600 md:hover:bg-transparent md:p-0 md:w-auto dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
                         <i className="fa-solid fa-globe text-white dark:text-white"></i>
                         <p className='ml-2'>{currentLanguage && currentLanguage}</p>
                         {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}

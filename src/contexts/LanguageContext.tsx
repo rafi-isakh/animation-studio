@@ -23,7 +23,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     const fetchPhrases = async () => {
       const dictionary = await phrases();
       setDictionary(dictionary);
-      console.log(dictionary)
     }
     fetchPhrases();
   }, [])

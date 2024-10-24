@@ -111,13 +111,12 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
     return (
         <div className='relative max-w-screen-xl mx-auto px-4 group'>
-            <div className='text-2xl md:text-4xl p-2 font-bold'>
+            <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
                 {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
                 }
+                <span className='text-gray-400 text-[14px]'>더 보기</span>
             </div>
-            
-            
                {/* Left Arrow */}
                <button 
                 onClick={() => scroll('left')}
@@ -138,13 +137,13 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                         </div>
                     </div>
 
-            {/* Right Arrow */}
-            <button 
-                onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
-            >
-                <ChevronRight className="w-6 h-6 text-gray-700" />
-            </button>
+                {/* Right Arrow */}
+                <button 
+                    onClick={() => scroll('right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
+                >
+                    <ChevronRight className="w-6 h-6 text-gray-700" />
+                </button>
           </div>
     )
 };

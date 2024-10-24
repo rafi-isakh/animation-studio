@@ -9,6 +9,7 @@ import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import WebnovelsListByEditor from '@/components/WebnovelsListByEditor'
 import WebnovelsListByRecommendation from '@/components/WebnovelsListByRecommendation';
 import WebnovelsListByCover from '@/components/WebnovelsListByCover';
+import Promotion from '@/components/Promotion'
 
 import { AnimatePresence } from 'framer-motion' // Framer Motion for animations
 import Preloader from '@/components/Preloader';
@@ -32,24 +33,28 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const webnovels = await getWebnovels();
     return (
         <div>
-            {/* applying a creator banner */}
+
+            <AnimatePresence mode='wait'>
+                <Preloader />
+                {/* {isLoading && <Preloader />} */}
+            </AnimatePresence>
+            
+            {/* Top banner : applying a creator */}
            <ApplyCreatorBanner />
            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-         
-
-         <AnimatePresence mode='wait'>
-            <Preloader />
-            {/* {isLoading && <Preloader />} */}
-        </AnimatePresence>
-
-            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-            <div className='mt-4'>
-                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
-            </div>
-            <GenresComponent />
-            {/*  */}
+           <GenresComponent />
+        
+            {/* webnovels list by ranking */}
+            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+   
+            <div className='mt-10'>
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+            </div>
+
+            {/* promotion part */}
+            <Promotion />
+
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
 
             {/* Editor picks part */}

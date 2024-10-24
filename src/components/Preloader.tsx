@@ -10,12 +10,10 @@ import { langPairList } from '@/utils/phrases';
 import styles from '@/styles/Header.module.css';
 import Link from 'next/link';
 
-
 const words = ["Hello", "Bonjour", "Ciao", "Olà", "やあ", "Hallå", "Guten tag", "你好", "Hallo", "สวัสดี", "مرحبًا", "Xin chào", "안녕하세요."]
 
 const style = {
     position: 'fixed' as 'fixed', // Use fixed positioning to cover the entire screen
-    border: '1px solid gray',
     top: 0,
     left: 0,
     width: '100vw', 
@@ -23,7 +21,6 @@ const style = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-
     // bgcolor: 'rgba(255, 255, 255, 0.9)', // White background color
     bgcolor: 'rgba(0, 0, 0, 0.9)', // Black
     zIndex: 1000,
@@ -42,7 +39,7 @@ export const opacity = {
 
 export default function Preloader() {
     const [index, setIndex] = useState(0);
-    const [showVideoModal, setShowVideoModal] = useState(true);
+    const [showModal, setShowModal] = useState(true);
     const languageMenuRef = useRef<HTMLDivElement>(null);
     const { dictionary, language, setLanguage } = useLanguage();
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -83,7 +80,7 @@ export default function Preloader() {
         // if (device === 'mobile') {
         //     handleMobileMenuClick();
         // }
-        setShowVideoModal(false)
+        setShowModal(false)
     }
 
     const toggleLanguageDropdown = () => {
@@ -93,12 +90,12 @@ export default function Preloader() {
 
     return (
         <Modal 
-        open={showVideoModal} 
+        open={showModal} 
         // onClick={() => setShowVideoModal(false)}
         >
        
+        {/* <div style={{ ...style }}> */}
         <Box sx={style}>
-        
         <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col justify-center items-center'>
            
             <Image
@@ -130,7 +127,7 @@ export default function Preloader() {
             {/*Language menu*/}
             <li className="py-2 relative list-none">
                 <div ref={languageMenuRef}>
-                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-white dark:text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 rounded-md border border-gray-400 flex items-center justify-start md:justify-between w-full text-white focus:border-pink-600 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                         <i className="fa-solid fa-globe text-white dark:text-white"></i>
                         <p className='ml-2'>{currentLanguage && currentLanguage}</p>
                         {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
@@ -140,10 +137,10 @@ export default function Preloader() {
                     </button>
                 </div>
                 {isLanguageDropdownOpen && (
-                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
-                        <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-black divide-y divide-gray-100 border-gray-400 w-full md:w-44 dark:divide-gray-600`}>
+                        <ul className="py-2 text-sm border rounded-md border-gray-400 text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                             {langPairList.map((langPair, index) => (
-                                <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
+                                <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : '' }` }>
                                     <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
                                         {langPair.name}
                                     </Link>
@@ -153,12 +150,10 @@ export default function Preloader() {
                     </div>
                 )}
             </li>
-
-
-
             <p className="text-center text-[10px] text-white dark:text-white "> Your Favorite Story Universe, Between Us, Toonyz </p>
         </div>
 
+        {/* </div> */}
         </Box>
 
         </Modal>

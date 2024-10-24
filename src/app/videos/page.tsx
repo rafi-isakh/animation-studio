@@ -208,7 +208,7 @@ export default function Videos() {
                 />
 
             <h1 className="text-left md:text-[2rem] text-lg mb-1"> 여러분의 꿈을 Toonyz와 함께 하세요!</h1>
-            <h1 className="text-left md:text-[2rem] text-lg mb-10"> Your favorite universe, Toonyz</h1>
+            <h1 className="text-left md:text-[2rem] text-lg mb-10"> Your Favorite Story Universe, Toonyz</h1>
                 <ul className="flex flex-row gap-10 ">
                
                 <Button 

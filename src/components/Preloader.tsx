@@ -16,7 +16,7 @@ const style = {
     position: 'fixed' as 'fixed', // Use fixed positioning to cover the entire screen
     top: 0,
     left: 0,
-    width: '100vw', 
+    width: '100vw',
     height: '100vh',
     display: 'flex',
     justifyContent: 'center',
@@ -25,7 +25,7 @@ const style = {
     bgcolor: 'rgba(0, 0, 0, 0.9)', // Black
     zIndex: 1000,
 };
-  
+
 export const opacity = {
     initial: {
         opacity: 0
@@ -49,7 +49,8 @@ export default function Preloader() {
         Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
     );
     const [currentLanguage, setCurrentLanguage] = useState(langPairList.find(lang => lang.code === language)?.name || 'Select Language');
-
+    const firstLoad = useRef(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let timeout: NodeJS.Timeout;
@@ -60,8 +61,8 @@ export default function Preloader() {
             }, index === 0 ? 1000 : 150);
         } else {
             timeout = setTimeout(() => {
-                setIndex(0); 
-            }, 3000); 
+                setIndex(0);
+            }, 3000);
         }
 
         return () => clearTimeout(timeout);
@@ -77,10 +78,8 @@ export default function Preloader() {
     const handleLanguageChange = (language: Language) => {
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
-        // if (device === 'mobile') {
-        //     handleMobileMenuClick();
-        // }
         setShowModal(false)
+        document.cookie = "didSelectLanguage=true; path=/; max-age=31536000" // Set cookie for 1 year
     }
 
     const toggleLanguageDropdown = () => {
@@ -89,72 +88,70 @@ export default function Preloader() {
     }
 
     return (
-        <Modal 
-        open={showModal} 
-        // onClick={() => setShowVideoModal(false)}
+        <Modal
+            open={showModal}
         >
-       
-        {/* <div style={{ ...style }}> */}
-        <Box sx={style}>
-        <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col justify-center items-center'>
-           
-            <Image
-            src="/N_Logo.png"
-            alt="Toonyz Logo"
-            width={0}
-            height={0}
-            sizes="100vh"
-            style={{ 
-                marginTop: '15px',
-                height: '35px', 
-                width: '35px', 
-                justifyContent: 'center', 
-                alignSelf: 'center', 
-                borderRadius: '25%', 
-                // border: '1px solid #eee'  
-                }}
-            />
-           
-            <motion.p variants={opacity} initial="initial" animate="enter" className='mb-10 text-white dark:text-white text-[2rem]'>
-                {words[index]}
-            </motion.p> 
+
+            <Box sx={style}>
+                <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col justify-center items-center'>
+
+                    <Image
+                        src="/N_Logo.png"
+                        alt="Toonyz Logo"
+                        width={0}
+                        height={0}
+                        sizes="100vh"
+                        style={{
+                            marginTop: '15px',
+                            height: '35px',
+                            width: '35px',
+                            justifyContent: 'center',
+                            alignSelf: 'center',
+                            borderRadius: '25%',
+                            // border: '1px solid #eee'  
+                        }}
+                    />
+
+                    <motion.p variants={opacity} initial="initial" animate="enter" className='mb-10 text-white dark:text-white text-[2rem]'>
+                        {words[index]}
+                    </motion.p>
 
 
-            <p className='text-white dark:text-white'>
-            언어를 선택해 주세요.
-            </p>
+                    <p className='text-white dark:text-white'>
+                        언어를 선택해 주세요.
+                    </p>
 
-            {/*Language menu*/}
-            <li className="py-2 relative list-none">
-                <div ref={languageMenuRef}>
-                    <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 rounded-md border border-gray-400 flex items-center justify-start md:justify-between w-full text-white focus:border-pink-600 md:px-4 md:py-3 md:border md:hover:border-pink-600 md:hover:bg-transparent md:p-0 md:w-auto dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
-                        <i className="fa-solid fa-globe text-white dark:text-white"></i>
-                        <p className='ml-2'>{currentLanguage && currentLanguage}</p>
-                        {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
-                        <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                        </svg>
-                    </button>
+                    {/*Language menu*/}
+                    <li className="py-2 relative list-none">
+                        <div ref={languageMenuRef}>
+                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 rounded-md border border-gray-400 flex items-center justify-start md:justify-between w-full text-white focus:border-pink-600 md:px-4 md:py-3 md:border md:hover:border-pink-600 md:hover:bg-transparent md:p-0 md:w-auto dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
+                                <i className="fa-solid fa-globe text-white dark:text-white"></i>
+                                <p className='ml-2'>{currentLanguage && currentLanguage}</p>
+                                {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
+                                <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                                </svg>
+                            </button>
+                        </div>
+                        {isLanguageDropdownOpen && (
+                            <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-black divide-y divide-gray-100 border-gray-400 w-full md:w-44 dark:divide-gray-600`}>
+                                <ul className="py-2 text-sm border rounded-md border-gray-400 text-gray-100" aria-labelledby="dropdownLargeButton">
+                                    {langPairList.map((langPair, index) => (
+                                        <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
+                                            <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                {langPair.name}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </li>
+                    <p className="text-center text-[10px] text-white dark:text-white "> Your Favorite Story Universe, Between Us, Toonyz </p>
                 </div>
-                {isLanguageDropdownOpen && (
-                    <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-black divide-y divide-gray-100 border-gray-400 w-full md:w-44 dark:divide-gray-600`}>
-                        <ul className="py-2 text-sm border rounded-md border-gray-400 text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                            {langPairList.map((langPair, index) => (
-                                <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : '' }` }>
-                                    <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                        {langPair.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </li>
-            <p className="text-center text-[10px] text-white dark:text-white "> Your Favorite Story Universe, Between Us, Toonyz </p>
-        </div>
 
-        {/* </div> */}
-        </Box>
+                {/* </div> */}
+            </Box>
 
         </Modal>
     )

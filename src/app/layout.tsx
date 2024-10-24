@@ -50,7 +50,34 @@ interface RootLayoutProps {
 }
 
 export const metadata: Metadata = {
-  title: 'Toonyz',
+  title: '투니즈 Toonyz',
+  description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
+  openGraph: {
+    type: 'website',
+    url: 'https://toonyz.com',
+    title: '투니즈 Toonyz',
+    description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
+    images: [
+      {
+        url: 'https://toonyz.com/_next/image?url=%2FtoonyzLogo.png',
+        width: 250,
+        alt: '투니즈 Toonyz Logo'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '투니즈 toonyz',
+    description: '웹소설, 웹툰 글로벌 스토리 플랫폼',
+    images: ['https://toonyz.com/_next/image?url=%2FtoonyzLogo.png&w=256&q=75'],
+  },
+  alternates: {
+    canonical: 'https://toonyz.com/',
+  },
+  verification: {
+    google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
+    naver: 'ab9c8fe45b7e410447296fcf47bbc16bec7d8edf',
+  } as { google?: string; naver?: string }
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {

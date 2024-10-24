@@ -15,6 +15,7 @@ import WebnovelsByDates from '@/components/WebnovelsByDates';
 
 import { AnimatePresence } from 'framer-motion' // Framer Motion for animations
 import Preloader from '@/components/Preloader';
+import { cookies } from 'next/headers'
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
@@ -30,16 +31,15 @@ async function getWebnovels() {
 }
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    
+    const cookieStore = cookies()
+    const didSelectLanguage = cookieStore.get('didSelectLanguage')
+    const showPreloader = !didSelectLanguage
+
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
     return (
         <div>
-
-            <AnimatePresence mode='wait'>
-                <Preloader />
-                {/* {isLoading && <Preloader />} */}
-            </AnimatePresence>
+            {showPreloader && <Preloader />}
             
             {/* Top banner : applying a creator */}
            <ApplyCreatorBanner />
@@ -54,8 +54,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <div className='mt-10'>
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             </div>
-
-           <GenresComponent />
             {/* promotion part */}
             <Promotion />
 

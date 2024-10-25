@@ -117,10 +117,10 @@ const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchPara
                             className='rounded-[25%] border border-gray-200'
                             /> 
                         </div>
-                        <p>투니즈 에디터가 핸드픽한 작품!</p>
+                        <p>투니즈 에디터가 핸드 픽한 작품!</p>
                     </h1>
 
-                    <p className='text-sm'> 투니즈 에디터가 한땀 한땀 핸드픽한 작품들을 만나보세요. </p>
+                    <p className='text-sm'> 투니즈 에디터가 한땀 한땀 핸드 픽한 작품들을 만나보세요. </p>
                     <button className='bg-pink-600 text-white font-extrabold px-6 py-3 rounded-xl text-md mt-5'>Explore more</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3">

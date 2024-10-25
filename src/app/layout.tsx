@@ -59,7 +59,8 @@ export const metadata: Metadata = {
     description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
     images: [
       {
-        url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
+        url: 'https://toonyz.com/_next/image?url=%2FtoonyzLogo.png',
+        width: 250,
         alt: '투니즈 Toonyz Logo'
       }
     ]
@@ -68,17 +69,15 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '투니즈 toonyz',
     description: '웹소설, 웹툰 글로벌 스토리 플랫폼',
-    images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
+    images: ['https://toonyz.com/_next/image?url=%2FtoonyzLogo.png&w=256&q=75'],
   },
   alternates: {
     canonical: 'https://toonyz.com/',
   },
   verification: {
     google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
-    other: {
-      "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
-    }
-  } 
+    naver: 'ab9c8fe45b7e410447296fcf47bbc16bec7d8edf',
+  } as { google?: string; naver?: string }
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {

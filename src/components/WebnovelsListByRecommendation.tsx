@@ -91,20 +91,20 @@ const WebnovelsListByRecommendation = ({
             <div className='flex flex-col'>
                 {/* Tab Navigation */}
                 <div className='flex flex-row justify-center items-center mb-6'>
-                    <button onClick={handleIntroClick}>
+                    <Link href="#" onClick={handleIntroClick}>
                         <p className={`text-xl w-fit px-4 cursor-pointer ${
                             activeTab === 'free' ? 'font-bold text-[#142448] border-b-2 border-[#142448]' : 'text-gray-500'
                         }`}>
                             오늘10시무료!
                         </p>
-                    </button>
-                    <button onClick={handleViewClick}>
+                    </Link>
+                    <Link href="#" onClick={handleViewClick}>
                         <p className={`text-xl w-fit px-4 cursor-pointer ${
                             activeTab === 'premium' ? 'font-bold text-[#142448] border-b-2 border-[#142448]' : 'text-gray-500'
                         }`}>
                             새로나왔어요
                         </p>
-                    </button>
+                    </Link>
                 </div>
 
                 {/* Sort Options */}

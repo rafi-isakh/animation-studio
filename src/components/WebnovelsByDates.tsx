@@ -29,10 +29,6 @@ const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: {
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const [genreWebnovels, setGenreWebnovels] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
-    const dateMenuRef = useRef<HTMLDivElement>(null);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
-    const dateDropdownRef = useRef<HTMLDivElement>(null);
 
 
     useEffect(() => {
@@ -95,28 +91,6 @@ const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: {
             return 0;
         }
     }
-
-
-    const toggleBelowHeader = () => {
-        const belowHeader = document.getElementById('below-header');
-        const aboveHeader = document.getElementById('above-header');
-        if (belowHeaderToggle) {
-            belowHeader?.classList.add('hidden')
-            aboveHeader?.classList.add('pb-4')
-        } else {
-            belowHeader?.classList.remove('hidden')
-            aboveHeader?.classList.remove('pb-4')
-        }
-        setBelowHeaderToggle(!belowHeaderToggle);
-    }
-
-    const openBelowHeader = () => {
-        const belowHeader = document.getElementById('below-header');
-        const aboveHeader = document.getElementById('above-header');
-        belowHeader?.classList.remove('hidden')
-        setBelowHeaderToggle(true);
-    }
-
 
     return (
         <div className='relative max-w-screen-xl mx-auto px-4 group'>

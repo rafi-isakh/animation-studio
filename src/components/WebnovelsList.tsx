@@ -125,7 +125,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
                </button>
 
-                <div className="overflow-x-auto" ref={scrollRef}>
+                <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
                         <div className="grid grid-cols-3 grid-rows-1 gap-2 min-w-max">
                             {webnovelsToShow
                                 .sort(sortByFn)

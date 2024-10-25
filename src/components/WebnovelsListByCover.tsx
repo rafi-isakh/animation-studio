@@ -127,7 +127,7 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
             </div>
             <div 
                 ref={scrollRef}
-                className="flex overflow-x-auto scrollbar-hide scroll-smooth gap-4 py-4"
+                className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4 py-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {webnovelsToShow

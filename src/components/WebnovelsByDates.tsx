@@ -125,7 +125,7 @@ const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: {
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
                </button>
 
-                <div className="overflow-x-auto" ref={scrollRef}>
+                <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
                         <div className="">
                             {webnovelsToShow
                                 .sort(sortByFn)

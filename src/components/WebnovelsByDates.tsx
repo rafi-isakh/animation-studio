@@ -120,12 +120,12 @@ const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: {
                {/* Left Arrow */}
                <button 
                 onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2"
+                className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
                </button>
 
-                <div className="overflow-x-auto" ref={scrollRef}>
+                <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
                         <div className="">
                             {webnovelsToShow
                                 .sort(sortByFn)
@@ -140,7 +140,7 @@ const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: {
                 {/* Right Arrow */}
                 <button 
                     onClick={() => scroll('right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
+                    className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
                 >
                     <ChevronRight className="w-6 h-6 text-gray-700" />
                 </button>

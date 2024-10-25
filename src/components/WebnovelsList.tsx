@@ -109,6 +109,19 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
 
+       // Function to split webnovels into columns
+       const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
+        const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
+        webnovels.forEach((webnovel, index) => {
+            columns[index % numColumns].push(webnovel);
+        });
+        return columns;
+       }
+
+        const columns = getColumnLayout(webnovelsToShow.sort(sortByFn), 3); // Split into 3 columns
+ 
+
+
     return (
         <div className='relative max-w-screen-xl mx-auto px-4 group'>
             <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
@@ -126,14 +139,16 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                </button>
 
                 <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                        <div className="grid grid-cols-3 grid-rows-1 gap-2 min-w-max">
-                            {webnovelsToShow
-                                .sort(sortByFn)
-                                .map((item, index) => (
-                                    <div className="" key={index}>
-                                        <WebnovelComponent webnovel={item} index={index} ranking={true} />
-                                    </div>
-                                ))}
+                        <div className="grid grid-cols-3 gap-2 min-w-max">
+                            {columns.map((column, colIndex) => (
+                                 <div key={colIndex} className="space-y-4">
+                                       {column.map((item, rowIndex) => (
+                                        <div key={rowIndex}>
+                                           <WebnovelComponent webnovel={item} index={rowIndex + colIndex * 3} ranking={true} />
+                                       </div>
+                                    ))}
+                                 </div>
+                            ))}
                         </div>
                     </div>
 

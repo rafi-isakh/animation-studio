@@ -44,7 +44,7 @@ const Promotion: React.FC = () => {
                         height={142} 
                         sizes='100vw'
                         />
-                        <p className='text-md text-center'> 댓글 이벤트 - 왕중의 왕</p>
+                        <p className='text-md text-center font-bold'> 댓글 이벤트 - 왕 중의 왕</p>
                         <p className='text-md text-center'> 이벤트 참여하기</p>
                       </div>
 
@@ -56,7 +56,7 @@ const Promotion: React.FC = () => {
                         height={186} 
                         sizes='100vw'
                         />
-                         <p className='text-md text-center'> 선착순 포인트 100% 증정!</p>
+                         <p className='text-md text-center font-bold'> 선착순 포인트 100% 증정!</p>
                          <p className='text-md text-center'> 이벤트 참여하기</p>
                        </div>  
 
@@ -68,7 +68,7 @@ const Promotion: React.FC = () => {
                         height={186} 
                         sizes='100vw'
                         />
-                         <p className='text-md text-center'> 작가님 응원하고 선물 받기!</p>
+                         <p className='text-md text-center font-bold'> 작가님 응원하고 선물 받기!</p>
                          <p className='text-md text-center'> 이벤트 참여하기</p>
                         </div>
                    </div>

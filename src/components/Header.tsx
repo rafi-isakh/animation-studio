@@ -383,9 +383,9 @@ const Header = () => {
                                         </div>
                                     )}
                                 </li>
-                                {/* <li className="mt-1 relative px-4 py-5 md:p-0">
-                                <ChargePointsTemporary/>
-                            </li> */}
+                                <li className="mt-1 relative px-4 py-5 md:p-0">
+                                    <ChargePointsTemporary />
+                                </li>
                                 <li className="mt-1 relative px-4 py-5 md:p-0">
                                     <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2">
                                         <MdVideoLibrary />

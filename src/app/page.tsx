@@ -42,7 +42,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {showPreloader && <Preloader />}
             
             {/* Top banner : applying a creator */}
-           <ApplyCreatorBanner />
            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             {/* keywords list */}
             <KeywordsComponent />
@@ -51,13 +50,13 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             <WebnovelsByDates searchParams={searchParams} webnovels={webnovels} sortBy='date' />
    
-            <div className='mt-10'>
+            {/* <div className='mt-10'>
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            </div>
+            </div> */}
             {/* promotion part */}
             <Promotion />
 
-            <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+            {/* <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' /> */}
 
             {/* Editor picks part */}
             <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />

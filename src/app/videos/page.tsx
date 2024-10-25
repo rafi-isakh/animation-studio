@@ -70,13 +70,13 @@ export default function Videos() {
                 className='border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
                 Webtoon curriculum
                 </Button>
-                <Button 
+                {/* <Button 
                 href="#webnovel"
                 variant="outlined"
                 color="secondary"
                 className='border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
                 Webnovel curriculum
-                </Button>
+                </Button> */}
                 </ul>
             </div>
             
@@ -104,12 +104,12 @@ export default function Videos() {
                                 imageType="webtoon"
                             />
                             
-                            <ContentGrid 
+                            {/* <ContentGrid 
                                 contents={webnovelContents} 
                                 language={language} 
                                 onVideoClick={handleVideoClick}
                                 imageType="webnovel"
-                            />
+                            /> */}
 
                             <VideoModal 
                                 isOpen={showVideoModal} 

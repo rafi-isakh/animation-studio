@@ -1,80 +1,68 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
 import { useEffect, useState, useRef } from 'react';
-import WebnovelComponent from "@/components/WebnovelComponent"
+import WebnovelComponentListForm from "@/components/WebnovelComponentListForm"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import moment from 'moment';
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import Link from 'next/link';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
 export const free = [29, 28, 25]
+
+const dateList = [
+    {id: 1, name: "월요일"},
+    {id: 2, name: "화요일"},
+    {id: 3, name: "수요일"},
+    {id: 4, name: "목요일"},
+    {id: 5, name: "금요일"},
+    {id: 6, name: "토요일"},
+    {id: 7, name: "일요일"},
+]
 
 const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
     let genre = searchParams.genre;
     let version = searchParams.version;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
+    const [genreWebnovels, setGenreWebnovels] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
-    
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const scrollAmount = 200 * (direction === 'left' ? -1 : 1);
-            scrollRef.current.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
+    const dateMenuRef = useRef<HTMLDivElement>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
+    const dateDropdownRef = useRef<HTMLDivElement>(null);
+
 
     useEffect(() => {
+        // Set version for each webnovel
         for (const novel of webnovels) {
-            if (premium.includes(novel.id)) {
-                novel.version = "premium"
-            }
-            else {
-                novel.version = "free"
-            }
+            novel.version = premium.includes(novel.id) ? "premium" : "free";
         }
+
+        // Filter and sort webnovels
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item))
             .filter(item => filter_by_version(item))
+            .sort(sortByFn);
 
-        setWebnovelsToShow(_webnovelsToShow)
-    }, [version, genre])
+        setWebnovelsToShow(_webnovelsToShow);
 
-    let text = '';
-    if (sortBy == 'views') {
-        text = 'popularWebnovels'
-    } else if (sortBy == 'likes') {
-        text = 'likedWebnovels'
-    } else if (sortBy == 'date') {
-        text = 'latestWebnovels'
-    }
+        // Organize "Read by Genre" list in groups of 3 per row
+        const genreRows = [];
+        for (let i = 0; i < _webnovelsToShow.length; i += 3) {
+            genreRows.push(_webnovelsToShow.slice(i, i + 3));
+        }
+        setGenreWebnovels(genreRows.flat());
 
-    if (typeof genre === 'string') {
-    } else if (Array.isArray(genre)) {
-        throw new Error("there should be only one genre param")
-    } else {
-    }
+    }, [version, genre, webnovels, sortBy]);
 
     const filter_by_genre = (item: Webnovel) => {
-        if (genre == "all" || genre == null) {
-            return item;
-        }
-        else {
-            if (genre == item.genre) {
-                return item;
-            }
-        }
-    }
-
-    const filter_by_version = (item: Webnovel) => {
-        if (version == item.version) {
-            return item;
-        }
-    }
+        if (genre === "all" || !genre) return true;
+        return genre === item.genre;
+    };
+    const filter_by_version = (item: Webnovel) => version === item.version ? item : null;
 
     const sortByFn = (a: Webnovel, b: Webnovel): number => {
         if (sortBy == 'views') {
@@ -109,41 +97,70 @@ const WebnovelsByDates = ({ searchParams, sortBy, webnovels }: { searchParams: {
     }
 
 
+    const toggleBelowHeader = () => {
+        const belowHeader = document.getElementById('below-header');
+        const aboveHeader = document.getElementById('above-header');
+        if (belowHeaderToggle) {
+            belowHeader?.classList.add('hidden')
+            aboveHeader?.classList.add('pb-4')
+        } else {
+            belowHeader?.classList.remove('hidden')
+            aboveHeader?.classList.remove('pb-4')
+        }
+        setBelowHeaderToggle(!belowHeaderToggle);
+    }
+
+    const openBelowHeader = () => {
+        const belowHeader = document.getElementById('below-header');
+        const aboveHeader = document.getElementById('above-header');
+        belowHeader?.classList.remove('hidden')
+        setBelowHeaderToggle(true);
+    }
+
+
     return (
         <div className='relative max-w-screen-xl mx-auto px-4 group'>
-            <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
-                {(webnovels.length > 0) ?
-                    phrase(dictionary, text, language) : <></>
-                }
-                <span className='text-gray-400 text-[14px]'>더 보기</span>
-            </div>
-               {/* Left Arrow */}
-               <button 
-                onClick={() => scroll('left')}
-                className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
-            >
-                <ChevronLeft className="w-6 h-6 text-gray-700" />
-               </button>
 
-                <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                        <div className="">
-                            {webnovelsToShow
-                                .sort(sortByFn)
-                                .map((item, index) => (
-                                    <div className="" key={index}>
-                                        <WebnovelComponent webnovel={item} index={index} ranking={true} />
-                                    </div>
-                                ))}
-                        </div>
+            <div className="overflow-x-auto no-scrollbar flex flex-row justify-between gap-5 mt-10" ref={scrollRef}>
+                {/* Primary Webnovels List */}
+
+                <div className='w-full'>
+                    <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+                    장르별 인기작<span className='text-gray-400 text-[14px]'>더 보기</span>
+                    {/* {(webnovels.length > 0) ?
+                        phrase(dictionary, text, language) : <></>
+                    } */}
+                    
+                   </h1>
+                    <div className="">
+                    {webnovelsToShow.map((item, index) => (
+                        <WebnovelComponentListForm key={index} webnovel={item} index={index} ranking={true} />
+                    ))}
                     </div>
+                </div>
 
-                {/* Right Arrow */}
-                <button 
-                    onClick={() => scroll('right')}
-                    className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
-                >
-                    <ChevronRight className="w-6 h-6 text-gray-700" />
-                </button>
+                   {/* "Read by Genre" Section */}
+                   <div className='w-full'>
+                   <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+                    요일별 인기작 <span className='text-gray-400 text-[14px]'>
+                       
+                
+                    더보기
+                     </span>
+                    {/* {(webnovels.length > 0) ?
+                        phrase(dictionary, text, language) : <></>
+                    } */}
+                    
+                   </h1>
+                    <div className="">
+                        {genreWebnovels.map((item: Webnovel, index: number) => (
+                            <WebnovelComponentListForm key={index} webnovel={item} index={index} ranking={true} />
+                        ))}
+                    </div>
+                </div>
+
+             
+            </div>
           </div>
     )
 };

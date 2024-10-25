@@ -59,8 +59,7 @@ export const metadata: Metadata = {
     description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
     images: [
       {
-        url: 'https://toonyz.com/_next/image?url=%2FtoonyzLogo.png',
-        width: 250,
+        url: 'https://toonyz.com/_next/image?url=%2FtoonyzLogo.png&w=256&q=75',
         alt: '투니즈 Toonyz Logo'
       }
     ]

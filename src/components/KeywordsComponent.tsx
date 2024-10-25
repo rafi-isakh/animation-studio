@@ -52,13 +52,13 @@ const KeywordsComponent = () => {
     }
 
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4 group mt-6'>
+        <div className='relative max-w-screen-xl mx-auto px-4 group mt-6 '>
             <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
                     <h1> 키워드 별로 보기 </h1>
                     <span className='text-gray-400 text-[14px]'>더 보기</span>
             </div>
         
-        <div className="w-full h-20 md:h-20 mt-4 md:mt-4 overflow-y-auto">  
+        <div className="w-full h-20 md:h-20 mt-4 md:mt-4 overflow-y-auto no-scrollbar">  
             <div className="flex flex-row w-full md:w-[1280px] ml-2 mx-auto gap-2 !cursor-pointer">  
                 {genres.map((genre, index) =>  (
                       <Link

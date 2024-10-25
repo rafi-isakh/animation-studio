@@ -16,7 +16,6 @@ const Promotion: React.FC = () => {
             });
         }
     };
-
   
    return (
     <>
@@ -27,7 +26,7 @@ const Promotion: React.FC = () => {
                   {/* Left Arrow */}
                <button 
                 onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2"
+                className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
                  >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
                </button>
@@ -62,7 +61,7 @@ const Promotion: React.FC = () => {
 
                        <div className='flex flex-col gap-2'>
                         <Image 
-                        src='/promotion/event_banner_1_KR.svg' 
+                        src='/promotion/event_banner_3_KR.svg' 
                         alt='Toonyz promotion banner' 
                         width={450} 
                         height={186} 
@@ -76,7 +75,7 @@ const Promotion: React.FC = () => {
               {/* Right Arrow */}
               <button 
                 onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
+                className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
                >
                 <ChevronRight className="w-6 h-6 text-gray-700" />
               </button>

@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     other: {
       "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
     }
-  } as { google?: string; naver?: string }
+  } 
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {

@@ -1,15 +1,17 @@
 "use client"
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@mui/material"
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/solid";
+import Image from "next/image";
 
 export default function Footer() {
     const { dictionary, language } = useLanguage();
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2'>
+        <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
             <div>
                 {language == 'ko' ? (<Link href="/terms">이용약관</Link>) 
                                   : <></>

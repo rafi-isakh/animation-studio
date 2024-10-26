@@ -17,8 +17,6 @@ const VideoLoadingOverlay: React.FC = () => (
       border-radius: 30px;
       width: 300px;
       height: 400px;
-      /* Loading overlay has semi-transparent background so the player
-          will be darkened while it's visible */
       background-color: rgba(0, 0, 0, 0.7);
       /* Center the spinner inside of the overlay */
       display: flex;

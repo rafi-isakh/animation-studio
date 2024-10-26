@@ -5,15 +5,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { initialWebtoonContents, initialWebnovelContents } from '@/utils/curriculum';
 import { VideoModal } from '@/components/VideoModal';
 import { ContentGrid } from '@/components/VideoContentGrid';
-
-
-import HoverVideoPlayer from "react-hover-video-player";
-import { Modal, Box, Button } from "@mui/material";
-import { videoStyle } from "@/styles/ModalStyles";
+import { Button } from '@/components/Button';
 import Image from "next/image";
-import { MoveRight } from 'lucide-react';
-import VideoLoadingOverlay from "@/components/VideoLoadingOverlay";
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import Billboard from '@/components/Billboard';
 
 export default function Videos() {
     const file_src = getCloudfrontURL('');
@@ -37,65 +31,16 @@ export default function Videos() {
     }));
 
     return (
-        <div className="flex flex-col space-y-16 items-center justify-center">
-            {/* Curriculum Sections hero */}
-            <div className="flex flex-col space-y-4">
-            <div className='flex flex-col md:flex-row lg:flex-row justify-around '>
-            <div className='flex flex-col mb-10 items-center justify-center md:px-3 lg:py-3 py-10 px-10'> 
-         
-            <Image
-                src="/N_Logo.png"
-                alt="Toonyz Logo"
-                width={0}
-                height={0}
-                sizes="100vh"
-                className='mt-2 lg:mt-0 md:mt-0'
-                style={{ 
-                    height: '35px', 
-                    width: '35px', 
-                    justifyContent: 'center', 
-                    alignSelf: 'center', 
-                    borderRadius: '25%', 
-                    }}
-                />
+        <div className="flex flex-col items-center justify-center">
+            {/* <div className="flex flex-col space-y-4"> */}
+                <Billboard  />
 
-            <h1 className="text-left md:text-[2rem] text-lg mb-1"> 여러분의 꿈을 Toonyz와 함께 하세요!</h1>
-            <h1 className="text-left md:text-[2rem] text-lg mb-10"> Your Favorite Story Universe, Toonyz</h1>
-                <ul className="flex flex-row gap-10 ">
-               
-                <Button 
-                href="#webtoon"
-                variant="outlined"
-                color="gray"
-                className='border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
-                Webtoon curriculum
-                </Button>
-                {/* <Button 
-                href="#webnovel"
-                variant="outlined"
-                color="secondary"
-                className='border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
-                Webnovel curriculum
-                </Button> */}
-                </ul>
-            </div>
-            
-             <div className='hero order-first md:order-last lg:order-last md:h-full w-[200px] md:w-[500px] self-center'>
-              <Image
-                src="/curriculum/curri_webtoon_book.png"
-                alt="Toonyz curriculum banner"
-                width={0}
-                height={0}
-                sizes="(max-width: 768px) 200px" 
-                className='w-[250px] md:w-[500px] lg:w-[500px] h-auto'
-                style={{ 
-                    height: 'auto', 
-                    width: '500px', 
-                    }}
-                />
-              </div>
-              {/* Curriculum Sections hero end */}
-                </div>
+                    <VideoModal 
+                        isOpen={showVideoModal} 
+                        onClose={() => setShowVideoModal(false)} 
+                        video={currentVideo}
+                    />
+
                       {/* Video Sections */}
                             <ContentGrid 
                                 contents={webtoonContents} 
@@ -116,7 +61,7 @@ export default function Videos() {
                                 onClose={() => setShowVideoModal(false)} 
                                 video={currentVideo}
                             />
-                  </div>
+            
             </div>
     )
 }

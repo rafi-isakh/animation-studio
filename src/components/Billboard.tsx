@@ -2,17 +2,12 @@ import React, { useCallback } from 'react';
 import { Info } from 'lucide-react';
 import { initialWebtoonContents } from '@/utils/curriculum';
 import { getCloudfrontURL } from '@/utils/cloudfront';
-// import PlayButton from '@/components/PlayButton';
 
 const Billboard = () => {
-//   const { openModal } = useInfoModalStore();
-//   const { data } = useBillboard();
-
     const webtoonContents = initialWebtoonContents.map(content => ({
         ...content,
         file_src: getCloudfrontURL(content.file_src)
     }));
-
 
   return (
     <div className="relative h-[56.25vw] -top-10">
@@ -29,11 +24,7 @@ const Billboard = () => {
             Your Favorite Story Universe, Toonyz
         </p>
         <div className="flex flex-row items-center mt-3 md:mt-4 gap-3">
-          {/* <PlayButton movieId={data?.id} /> */}
           <button
-            // open={isOpen} 
-            // onClose={onClose}
-            // onClick={handleOpenModal}
             className="
             bg-white
             text-white

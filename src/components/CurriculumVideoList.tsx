@@ -29,7 +29,13 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
         </p>
         <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
           {contents.map((item, index) => (
-            <CurriculumCard key={index} data={item} onVideoClick={handleVideoClick} />
+            <CurriculumCard 
+              key={index} 
+              data={{ ...item, onVideoClick: handleVideoClick }} 
+              isOpen={showVideoModal} 
+              onClose={() => setShowVideoModal(false)} 
+              video={currentVideo} 
+            />
           ))}
         </div>
           <VideoModal 

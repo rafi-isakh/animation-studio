@@ -80,7 +80,7 @@ interface Entry {
 }
 
 export interface WebtoonContent {
-  id: number;
+  id: string;
   title: string;
   subtitle: string;
   title_en: string;

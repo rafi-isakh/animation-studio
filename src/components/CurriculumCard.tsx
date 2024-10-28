@@ -12,13 +12,14 @@ interface CurriculumCardProps {
         title: string;
         subtitle: string;
         onVideoClick: (video: JSX.Element) => void;
+        file_src: string;
     };
 }
 
-const CurriculumCard: React.FC<CurriculumCardProps> = ({ data, onVideoClick }) => {
+const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
     const handleVideoClick = () => {
       const videoElement = <video src={data.file_src} controls autoPlay loop />;
-      onVideoClick(videoElement);
+      data.onVideoClick(videoElement);
     };
 
   return (

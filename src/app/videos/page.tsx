@@ -14,7 +14,7 @@ export default function Videos() {
 
     const webtoonContents = initialWebtoonContents.map((content, index) => ({
         ...content,
-        id: index, // Ensure each content has a unique id
+        id: index.toString(), // Ensure each content has a unique id as a string
         file_src: getCloudfrontURL(content.file_src),
     }));
 

@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react"
 const clientKey = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm"
 const customerKey = "YbX2HuSlsC9uVJW6NMRMj"
 
-export default function TossPaymentComponent({ points }: { points: number }) {
+export default function TossPaymentComponent({ stars }: { stars: number }) {
     const paymentWidgetRef = useRef<PaymentWidgetInstance | null>(null)
     const price = 50_000
 
@@ -25,7 +25,7 @@ export default function TossPaymentComponent({ points }: { points: number }) {
     return (
         <div className="mx-auto max-w-screen-md flex flex-col space-y-4 items-center justify-center">
             <h1 className="text-2xl font-extrabold">주문서</h1>
-            <h2 className="text-xl font-bold">{points}포인트 결제: {(points * 100).toLocaleString()}원</h2>
+            <h2 className="text-xl font-bold">별 {stars}개 결제: {(stars * 100).toLocaleString()}원</h2>
             <div id="payment-widget" className="w-full" />
             <Button
                 variant="outlined"
@@ -37,7 +37,7 @@ export default function TossPaymentComponent({ points }: { points: number }) {
                     try {
                         await paymentWidget?.requestPayment({
                             orderId: nanoid(),
-                            orderName: `${points} 포인트`,
+                            orderName: `별 ${stars}개`,
                             customerName: "김독자",
                             customerEmail: "customer123@gmail.com",
                             successUrl: `${process.env.NEXT_PUBLIC_HOST}/success`,

@@ -16,7 +16,7 @@ import { signOut } from "next-auth/react"
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
-import ChargePointsTemporary from '@/components/ChargePointsTemporary';
+import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
 import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
@@ -384,7 +384,7 @@ const Header = () => {
                                     )}
                                 </li>
                                 <li className="mt-1 relative px-4 py-5 md:p-0">
-                                    <ChargePointsTemporary />
+                                    <ChargeStarsTemporary />
                                 </li>
                                 <li className="mt-1 relative px-4 py-5 md:p-0">
                                     <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2">

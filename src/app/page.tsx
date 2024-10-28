@@ -11,9 +11,9 @@ import WebnovelsListByRecommendation from '@/components/WebnovelsListByRecommend
 import WebnovelsListByCover from '@/components/WebnovelsListByCover';
 import Promotion from '@/components/Promotion';
 import KeywordsComponent from '@/components/KeywordsComponent';
-import WebnovelsByDates from '@/components/WebnovelsByDates';
+import WebnovelsByTrends from '@/components/WebnovelsByTrends';
+import GenresList from '@/components/GenresList';
 
-import { AnimatePresence } from 'framer-motion' // Framer Motion for animations
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
 
@@ -49,8 +49,11 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         
             {/* webnovels list by ranking */}
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            <WebnovelsByDates searchParams={searchParams} webnovels={webnovels} sortBy='date' />
-   
+            {/* genres list */}
+            <GenresList />
+       
+            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+
             <div className='mt-10'>
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             </div>

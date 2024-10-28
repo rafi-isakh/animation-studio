@@ -20,10 +20,10 @@ const WebnovelComponentListForm = ({ webnovel, index, ranking }: { webnovel: Web
     const [imageHeight, setImageHeight] = useState(135)
     const isMediumScreen = useMediaQuery('(min-width:768px)')
 
-    useEffect(() => {
-        setImageWidth(isMediumScreen ? 50 : 50) // Adjust these values as needed
-        setImageHeight(isMediumScreen ? 50  : 50) // Adjust these values as needed
-    }, [isMediumScreen])
+    // useEffect(() => {
+    //     setImageWidth(isMediumScreen ? 50 : 50) // Adjust these values as needed
+    //     setImageHeight(isMediumScreen ? 50  : 50) // Adjust these values as needed
+    // }, [isMediumScreen])
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -37,10 +37,10 @@ const WebnovelComponentListForm = ({ webnovel, index, ranking }: { webnovel: Web
                 <div className="relative"> {/* Add this wrapper div */}
                     <Image 
                         src={imageSrc} 
-                        width={imageWidth} 
-                        height={imageHeight} 
+                        width={50} 
+                        height={50} 
                         alt={webnovel.cover_art} 
-                        className="object-fit"
+                        className=""
                         placeholder="blur" 
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />

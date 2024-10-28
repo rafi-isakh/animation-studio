@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import WebnovelComponent from "@/components/WebnovelComponent"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import moment from 'moment';
+import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export const premium = [23, 19, 21, 22, 20, 24]
@@ -12,8 +12,8 @@ export const premium = [23, 19, 21, 22, 20, 24]
 export const free = [29, 28, 25]
 
 const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
-    let genre = searchParams.genre;
-    let version = searchParams.version;
+    const genre = searchParams.genre as string | undefined;
+    const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -30,28 +30,19 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
     useEffect(() => {
         for (const novel of webnovels) {
-            if (premium.includes(novel.id)) {
-                novel.version = "premium"
-            }
-            else {
-                novel.version = "free"
-            }
+            novel.version = premium.includes(novel.id) ? "premium" : "free";
         }
         const _webnovelsToShow = webnovels
-            .filter(item => filter_by_genre(item))
-            .filter(item => filter_by_version(item))
+            .filter(item => filter_by_genre(item, genre))
+            .filter(item => filter_by_version(item, version));
 
-        setWebnovelsToShow(_webnovelsToShow)
-    }, [version, genre])
+        setWebnovelsToShow(_webnovelsToShow);
+    }, [version, genre]);
 
-    let text = '';
-    if (sortBy == 'views') {
-        text = 'popularWebnovels'
-    } else if (sortBy == 'likes') {
-        text = 'likedWebnovels'
-    } else if (sortBy == 'date') {
-        text = 'latestWebnovels'
-    }
+
+    const text = sortBy === 'views' ? 'popularWebnovels' :
+                 sortBy === 'likes' ? 'likedWebnovels' :
+                 sortBy === 'date' ? 'latestWebnovels' : '';
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
@@ -59,57 +50,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     } else {
     }
 
-    const filter_by_genre = (item: Webnovel) => {
-        if (genre == "all" || genre == null) {
-            return item;
-        }
-        else {
-            if (genre == item.genre) {
-                return item;
-            }
-        }
-    }
 
-    const filter_by_version = (item: Webnovel) => {
-        if (version == item.version) {
-            return item;
-        }
-    }
-
-    const sortByFn = (a: Webnovel, b: Webnovel): number => {
-        if (sortBy == 'views') {
-            return b.views - a.views
-        } else if (sortBy == 'likes') {
-            return b.upvotes - a.upvotes
-        } else if (sortBy == 'date') {
-            let latestDateA = new Date(0);
-            let latestDateB = new Date(0);
-            for (let i = 0; i < a.chapters.length; i++) {
-                let dateA = moment(a.chapters[i].created_at).toDate();
-                if (dateA > latestDateA) {
-                    latestDateA = dateA;
-                }
-            }
-            for (let i = 0; i < b.chapters.length; i++) {
-                let dateB = moment(b.chapters[i].created_at).toDate();
-                if (dateB > latestDateB) {
-                    latestDateB = dateB;
-                }
-            }
-            if (latestDateA > latestDateB) {
-                return -1;
-            } else if (latestDateA == latestDateB) {
-                return 0;
-            } else {
-                return 1;
-            }
-        } else {
-            return 0;
-        }
-    }
-
-
-       // Function to split webnovels into columns
        const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
         const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
         webnovels.forEach((webnovel, index) => {
@@ -118,12 +59,10 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return columns;
        }
 
-        const columns = getColumnLayout(webnovelsToShow.sort(sortByFn), 3); // Split into 3 columns
- 
-
+       const columns = getColumnLayout(webnovelsToShow.sort((a, b) => sortByFn(a, b, sortBy)), 3);
 
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4 group'>
+        <div className='relative max-w-screen-xl mx-auto px-4 group mt-10'>
             <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
                 {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>

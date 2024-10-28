@@ -11,6 +11,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@mui/material";
 import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { usePathname, useRouter } from "next/navigation";
+import PleaseLoginModal from "@/components/PleaseLoginModal";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -26,7 +27,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const router = useRouter();
     const pathname = usePathname();
     const viewed = useRef(false);
-
+    const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
@@ -74,16 +75,32 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     const handleLikeClick = async () => {
         if (likeToggle) {
+            setUpvotes(prev => prev - 1); // optimistic update
+            setLikeToggle(false);
             const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
             const data = await res.json();
-            setUpvotes(data);
-            setLikeToggle(false);
+            if (data.status === 200) {
+                setUpvotes(data.upvotes);
+                setLikeToggle(false);
+            } 
+            if (data.status === 401) {
+                setShowPleaseLogin(true);
+                setLikeToggle(true);
+            }
         }
         else {
+            setUpvotes(prev => prev + 1);
+            setLikeToggle(true);
             const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
             const data = await res.json();
-            setUpvotes(data);
-            setLikeToggle(true);
+            if (data.status === 200) {
+                setUpvotes(data.upvotes);
+                setLikeToggle(true);
+            } 
+            if (data.status === 401) {
+                setShowPleaseLogin(true);
+                setLikeToggle(false);
+            }
         }
     }
 
@@ -136,6 +153,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </div>
                     <ViewerFooter webnovel={webnovel} chapter={chapter} />
                 </div>
+                <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
             </div>
         )
     }

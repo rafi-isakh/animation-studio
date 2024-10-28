@@ -85,7 +85,7 @@ yes,예,,Yes
 no,아니오,,No
 deleteAccountConfirm,정말로 계정을 삭제하시겠습니까?,,Are you sure you want to delete your account?
 deleteWebnovelConfirm,정말로 소설을 삭제하시겠습니까?,,Are you sure you want to delete the novel?
-points,포인트,,Points
+stars,별 충전,スター充電,Charge Stars
 curriculum,커리큘럼,,Curriculum
 typeYourComment,댓글을 입력해주세요.,,Type your comment here..
 typeYourPrompt,프롬프트를 입력해주세요.,ここにプロンプトを入力してください,Type your prompt here..
@@ -112,5 +112,6 @@ viewByGenre,장르별로 보기,ジャンル別に見る,View by Genre
 downloadImage,이미지를 다운로드 하시겠습니까?,画像をダウンロードしますか?,Download the image?
 free,자유연재,自由連載,Free
 premium,프리미엄,プレミアム,Premium
-pleaseLoginToGeneratePictures,로그인해 주세요.,ログインしてください。,Please login to generate pictures.
+pleaseLogin,로그인해 주세요.,ログインしてください。,Please login.
 error,일시적인 오류입니다. 잠시 후에 다시 시도해주세요.,一時的なエラーです。しばらくしてから再度お試しください。,Temporary error. Please try again in a short while.
+cancel,취소,キャンセル,Cancel

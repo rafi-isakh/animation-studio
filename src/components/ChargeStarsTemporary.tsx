@@ -4,12 +4,12 @@ import Link from "next/link";
 import { MdStars } from "react-icons/md";
 
 
-export default function ChargePointsTemporary() {
+export default function ChargeStarsTemporary() {
     const { dictionary, language } = useLanguage();
     return (
-        <Link href="/points" className="flex items-center space-x-2 justify-start">
+        <Link href="/stars" className="flex items-center space-x-2 justify-start">
             <MdStars />
-            <span>{phrase(dictionary, "points", language)}</span>
+            <span>{phrase(dictionary, "stars", language)}</span>
         </Link>
     );
 }

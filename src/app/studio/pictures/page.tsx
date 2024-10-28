@@ -8,6 +8,7 @@ import GeneratedPicture from "@/components/GeneratedPicture";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { style } from "@/styles/ModalStyles";
 import { useRouter } from "next/navigation";
+import PleaseLoginModal from "@/components/PleaseLoginModal";
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -150,16 +151,7 @@ export default function PicturesStudioPage() {
                     </svg>
                 </Button>
             </div>
-            <Modal open={showPleaseLogin} onClose={() => setShowPleaseLogin(false)}>
-                <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
-                    <Typography id="modal-modal-title" variant="h6" component="h2">
-                        {phrase(dictionary, "pleaseLoginToGeneratePictures", language)}
-                    </Typography>
-                    <Button variant="outlined" color="gray" onClick={() => router.push('/signin')}>
-                        {phrase(dictionary, "ok", language)}
-                    </Button>
-                </Box>
-            </Modal>
+            <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
             <Modal open={showError} onClose={() => setShowError(false)}>
                 <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
                     <Typography id="modal-modal-title" variant="h6" component="h2">

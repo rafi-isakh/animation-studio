@@ -5,7 +5,7 @@ import { uploadFile } from '@/utils/s3'
 export async function GET(req: NextRequest, res: NextResponse) {
     const session = await auth();
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id")
+    const id = searchParams.get("chapter_id")
     const email = searchParams.get("user_email")
     const undo = searchParams.get("undo")
 
@@ -23,7 +23,13 @@ export async function GET(req: NextRequest, res: NextResponse) {
         });
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=${undo}`, {
+    let url;
+    if (undo) {
+        url = `${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=${undo}`
+    } else {
+        url = `${process.env.NEXT_PUBLIC_BACKEND}/api/upvote_chapter?chapter_id=${id}&user_email=${email}`
+    }
+    const response = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${session.accessToken}`,
             'Provider': session.provider
@@ -38,9 +44,11 @@ export async function GET(req: NextRequest, res: NextResponse) {
         });
     }
 
+    const data = await response.json();
     return NextResponse.json({
         "message": "Upvote chapter success",
         "status": 200,
+        "upvotes": data
     });
 }
 

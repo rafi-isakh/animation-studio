@@ -42,7 +42,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {showPreloader && <Preloader />}
             
             {/* Top banner : applying a creator */}
-           <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
+            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             {/* keywords list */}
             <KeywordsComponent />
         

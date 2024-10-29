@@ -1,5 +1,6 @@
 "use client"
 import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 import { Button } from "@mui/material"
 import Link from "next/link";
 import { useState } from "react";
@@ -48,20 +49,36 @@ export default function Footer() {
                                 {language == 'ko' ? <>서울특별시 강남구 테헤란로 79길 6</> : <>1111B S Governors Ave #23452 Dover, DE 19904, USA</>}
                             </p>
                             <p>
-                                {language == 'ko' ? <>hello@stelland.com 010-7323-5431</> : <></>}
+                                {language == 'ko' ? <>hello@stelland.com</> : <></>}
                             </p>
+                                {language == 'ko' ? <>1111B S Governors Ave #23452 Dover, DE 19904, USA</> : <></>}
                         </div>
                     )}
 
                     <div className="flex flex-row gap-4 mb-10 mt-2">
                         <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-pink-600">
-                            <Link href="/terms">이용약관</Link>
+                            <Link href="/terms">
+                            {/* 이용약관 : Terms of use */}
+                            {phrase(dictionary, "terms", language)}
+                            </Link>
                         </p>
                         <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
-                            <Link href="/terms/privacy">개인정보 처리방침</Link>
+                            <Link href="/terms/privacy">
+                            {/* 개인정보 처리방침 : Privacy policy */}
+                            {phrase(dictionary, "privacy", language)}
+                            </Link>
                         </p>
                         <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
-                            <Link href="/terms/youth">청소년 보호 정책</Link>
+                            <Link href="/terms/youth">
+                            {/* 청소년 보호 정책 : Youth protection policy */}
+                            {phrase(dictionary, "youth_terms", language)}
+                            </Link>
+                        </p>
+                        <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+                            <Link href="/contact">
+                            {/* 고객지원 */}
+                            {phrase(dictionary, "contact", language)}
+                            </Link>
                         </p>
                         <p className="text-center text-[10px] text-gray-400">
                             © Stella& Inc.

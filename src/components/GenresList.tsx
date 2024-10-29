@@ -1,5 +1,5 @@
 "use client"
-import styles from '../styles/GenresList.module.css'
+import styles from '@/styles/GenresList.module.css'
 import gsap from 'gsap';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -89,13 +89,13 @@ export default function GenresList() {
                          key={index}>
                         <p>{phrase(dictionary, project.genre, language)}
                             {project.new && (
-                                <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-500 px-1 py-1">
+                                <span className="absolute md:bottom-5 bottom-2 left-0 text-[10px] text-white bg-pink-500 px-1 py-1">
                                     NEW
                                 </span>
                             )}
 
                             {project.up && (
-                                <span className="absolute bottom-0 left-0 text-[10px] text-white bg-purple-500 px-1 py-1">
+                                <span className="absolute md:bottom-5 bottom-2 left-0 text-[10px] text-white bg-purple-500 px-1 py-1">
                                     UP
                                 </span>
                             )}

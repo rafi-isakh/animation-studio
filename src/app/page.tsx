@@ -49,24 +49,23 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         
             {/* webnovels list by ranking */}
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            
+         
        
             <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='date' />
 
             <div className='mt-10'>
             <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             </div>
-            {/* promotion part */}
-            <Promotion />
+            
+           
 
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
 
             {/* Editor picks part */}
             <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-    
-            {/* genres list */}
-            <GenresList />
-
+           
+            {/* Event promotion part */}
+            <Promotion />
 
             {/* Footer Banner : instagram promotion image */}
             <div className='flex justify-center self-center'>
@@ -97,10 +96,12 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     />
                 </Link>
                 </div>
-
-
+           
+             {/* genres list */}
+             {/* <GenresList />            */}
            
             {/* Footer */}
+            
             <Footer />
             {/* Bookmark button : it only displys mobile screen */}
             <BookmarkButton />

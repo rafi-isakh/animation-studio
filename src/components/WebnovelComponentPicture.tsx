@@ -28,30 +28,40 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
         setKey(prevKey => prevKey + 1)
     }, [language, webnovel])
 
+      // Fixed dimensions for the container
+      const containerClasses = "group relative overflow-hidden flex items-center";
+      const containerSizes = "w-[100px] h-[150px] md:w-[240px] md:h-[380px]";
+  
     return (
         <div className="min-w-[200px] px-2 mb-10">
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
-                    <div className="flex flex-col items-center">
+               <div className={`${containerClasses} ${containerSizes}`}>
+                    <div className="flex flex-col items-center w-full">
                         <div className="flex flex-col mt-2 items-center">
+                          <div className={`w-[${imageWidth}px] h-[${imageHeight}px]`}>
                             <Image 
                                 src={imageSrc} 
-                                width={imageWidth} 
-                                height={imageHeight}
+                                // width={imageWidth} 
+                                // height={imageHeight}
                                 alt={webnovel.cover_art}
-                                // sizes="100vw"
-                                // fill 
+                                sizes="(max-width: 768px) 100px, 140px"
+                                fill 
                                 quality={85}
                                 className="w-full h-full rounded-xl"
-                                placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+                                placeholder="blur" 
+                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                             />
-                            {/* {ranking && <p className={`text-3xl md:text-2xl`}>{index + 1}</p>} */}
+                            </div>
+                         
                             <div className="mt-1">
                                 <OtherTranslateComponent key={key} content={webnovel.title}
-                                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" classParams="text-md md:text-lg w-64 md:max-w-32 lg:max-w-48 break-words" />
+                                    elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" 
+                                    classParams="text-md md:text-md w-64 md:max-w-32 lg:max-w-48 break-words" />
                                 <p className="text-xs md:text-sm font-bold">{webnovel.user.nickname}</p>
                             </div>
                         </div>
                     </div>
+                </div>
             </Link>
         </div>
     )

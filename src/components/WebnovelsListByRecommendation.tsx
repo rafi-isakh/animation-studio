@@ -48,7 +48,7 @@ const WebnovelsListByRecommendation = ({ searchParams, sortBy, webnovels }: { se
 
     const filteredAndSortedNovels = webnovelsToShow
         .filter(novel => novel.version === activeTab)
-        .sort(sortByFn);
+        .sort((a, b) => sortByFn(a, b, activeSortBy));
 
     return (
         <div className='w-full max-w-screen-xl mx-auto flex flex-col mb-10'>

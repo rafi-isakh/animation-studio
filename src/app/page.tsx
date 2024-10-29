@@ -64,7 +64,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {/* Editor picks part */}
             <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />
     
-
             {/* genres list */}
             <GenresList />
 

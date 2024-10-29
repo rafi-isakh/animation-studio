@@ -33,7 +33,14 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
                     <div className="flex flex-col items-center">
                         <div className="flex flex-col mt-2 items-center">
-                            <Image src={imageSrc} width={imageWidth} height={imageHeight} alt={webnovel.cover_art} 
+                            <Image 
+                                src={imageSrc} 
+                                width={imageWidth} 
+                                height={imageHeight}
+                                alt={webnovel.cover_art}
+                                sizes="100vw"
+                                // fill 
+                                quality={85}
                                 className="w-full h-full rounded-xl"
                                 placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                             />

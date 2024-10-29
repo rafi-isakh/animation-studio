@@ -75,7 +75,7 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {webnovelsToShow
-                    .sort(sortByFn)
+                    .sort((a, b) => sortByFn(a, b, sortBy))
                     .map((item, index) => (
                         <div className="px-2 md:px-4" key={index}>
                             <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />

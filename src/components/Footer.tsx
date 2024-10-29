@@ -13,7 +13,6 @@ export default function Footer() {
 
     return (
         <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
-
             <div className="flex flex-col md:flex-row  w-full md:w-[1280px] px-4 justify-between items-center mx-auto mt-6">
 
                 <div>

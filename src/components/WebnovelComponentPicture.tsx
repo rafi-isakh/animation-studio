@@ -38,7 +38,7 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                                 width={imageWidth} 
                                 height={imageHeight}
                                 alt={webnovel.cover_art}
-                                sizes="100vw"
+                                // sizes="100vw"
                                 // fill 
                                 quality={85}
                                 className="w-full h-full rounded-xl"

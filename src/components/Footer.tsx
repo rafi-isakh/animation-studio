@@ -60,6 +60,9 @@ export default function Footer() {
                         <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
                             <Link href="/terms/privacy">개인정보 처리방침</Link>
                         </p>
+                        <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+                            <Link href="/terms/youth">청소년 보호 정책</Link>
+                        </p>
                         <p className="text-center text-[10px] text-gray-400">
                             © Stella& Inc.
                         </p>

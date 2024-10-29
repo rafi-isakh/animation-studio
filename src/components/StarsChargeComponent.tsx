@@ -4,7 +4,7 @@ import { phrase } from "@/utils/phrases"
 import { IoStar } from "react-icons/io5";
 
 
-export default function PointsChargeComponent() {
+export default function StarsChargeComponent() {
     const {dictionary, language} = useLanguage();
 
     return (

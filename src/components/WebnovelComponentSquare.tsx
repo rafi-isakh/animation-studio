@@ -37,7 +37,7 @@ const WebnovelComponentSquare = ({ webnovel, index, ranking }: { webnovel: Webno
                             alt={webnovel.cover_art} 
                             sizes="100vw"
                             fill
-                            className="w-full h-full object-cover object-center "
+                            className="w-full h-full object-cover object-left"
                             placeholder="blur"
                             quality={85}
                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가

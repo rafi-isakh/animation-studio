@@ -69,7 +69,7 @@ const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchPara
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3">
                     {webnovelsToShow
-                        .sort(sortByFn)
+                        .sort((a, b) => sortByFn(a, b, sortBy))
                         .map((item, index) => (
                             <div className=" " key={index}>
                                 <WebnovelComponentSquare webnovel={item} index={index} ranking={true} />

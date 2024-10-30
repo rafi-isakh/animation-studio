@@ -13,15 +13,14 @@ export default function Footer() {
 
     return (
         <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
-            <div className="flex flex-col md:flex-row  w-full md:w-[1280px] px-4 justify-between items-center mx-auto mt-6">
-
+            <div className="flex flex-col md:flex-row w-full md:w-[1280px] md:px-4 justify-between items-center mx-auto mt-6">
                 <div>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="flex items-center mt-5 text-gray-500 hover:text-gray-700"
+                        className={`flex ${language === 'ko' ? '' : 'ml-9'} flex items-center mt-5 text-gray-500 hover:text-gray-700`}
                     >
                         {isExpanded ? (
-                            <ChevronUpIcon className="w-3 h-3 mr-1" />
+                            <ChevronUpIcon className={`flex ${language === 'ko' ? '' : 'ml-10'} w-3 h-3 mr-1`} />
                         ) : (
                             <ChevronDownIcon className="w-3 h-3 mr-1" />
                         )}
@@ -34,7 +33,6 @@ export default function Footer() {
                                 {language == 'ko' ? '사업자 정보' : 'Business Info'}
                             </p>
                         )}
-
                     </button>
                     {isExpanded && (
                         <div className="mb-2 text-[10px]">
@@ -54,7 +52,7 @@ export default function Footer() {
                         </div>
                     )}
 
-                    <div className="flex flex-row gap-4 mb-10 mt-2">
+                    <div className={`flex ${language === 'ko' ? 'flex-row' : 'md:flex-row flex-col'} md:gap-4 gap-[10px] mb-10 mt-2`}>
                         <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-pink-600">
                             <Link href="/terms">
                             {/* 이용약관 : Terms of use */}

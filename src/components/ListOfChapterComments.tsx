@@ -47,8 +47,8 @@ export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ webnovel
 
                 {/* Render replies recursively */}
                 {comment.replies?.map((reply) => (
-                    <div className="pl-4 ml-4">
-                    <CommentThread key={reply.id} comment={reply} />
+                    <div key={reply.id} className="pl-4 ml-4">
+                       <CommentThread comment={reply} />
                     </div>
                 ))}
             </div>

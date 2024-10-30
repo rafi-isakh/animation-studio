@@ -1,4 +1,3 @@
-
 'use client';
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -21,7 +20,6 @@ const images = [
   "Contact_11.png",
   "Contact_12.png",
 ]
-
 
 const Column = ({images, y}: {images: string[], y: MotionValue<number> }) => {
     return (
@@ -47,49 +45,97 @@ const Column = ({images, y}: {images: string[], y: MotionValue<number> }) => {
 export default function Contact() {
     const gallery = useRef(null);
     const [dimension, setDimension] = useState({width:0, height:0});
-  
+    const lenisRef = useRef<Lenis | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
+    const rafRef = useRef<number>();
+
     const { scrollYProgress } = useScroll({
-      target: gallery,
-      offset: ['start end', 'end start']
+        target: gallery,
+        offset: ['start end', 'end start']
     })
+    
     const { height } = dimension;
     const y = useTransform(scrollYProgress, [0, 1], [0, height * 2])
     const y2 = useTransform(scrollYProgress, [0, 1], [0, height * 3.3])
     const y3 = useTransform(scrollYProgress, [0, 1], [0, height * 1.25])
     const y4 = useTransform(scrollYProgress, [0, 1], [0, height * 3])
-  
+    
+    // Handle window resize and mobile detection
     useEffect(() => {
-      const lenis = new Lenis()
-  
-      const raf = (time: number) => {
-        lenis.raf(time)
-        requestAnimationFrame(raf)
-      }
-      const resize = () => {
-        setDimension({width: window.innerWidth, height: window.innerHeight})
-      }
-  
-      window.addEventListener("resize", resize)
-      requestAnimationFrame(raf);
-      resize();
-  
-      return () => {
-        window.removeEventListener("resize", resize);
-      }
-    }, [])
-  
+        const checkMobile = () => {
+            const isMobileView = window.innerWidth <= 430;
+            setIsMobile(isMobileView);
+            
+            // Cleanup existing Lenis instance if switching to mobile
+            if (isMobileView && lenisRef.current) {
+                lenisRef.current.destroy();
+                lenisRef.current = null;
+                if (rafRef.current) {
+                    cancelAnimationFrame(rafRef.current);
+                }
+            }
+        };
+        
+        const handleResize = () => {
+            setDimension({width: window.innerWidth, height: window.innerHeight});
+            checkMobile();
+        };
 
+        handleResize();
+        
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
 
+    // Handle Lenis initialization and cleanup
+    useEffect(() => {
+        // Only initialize Lenis if not mobile
+        if (!isMobile) {
+            lenisRef.current = new Lenis({
+                duration: 3,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                orientation: "vertical",
+                gestureOrientation: "vertical",
+                smoothWheel: true,
+                wheelMultiplier: 1,
+                touchMultiplier: 0,
+                infinite: false,
+            });
+
+            const raf = (time: number) => {
+                lenisRef.current?.raf(time);
+                rafRef.current = requestAnimationFrame(raf);
+            };
+
+            rafRef.current = requestAnimationFrame(raf);
+        }　else {
+            lenisRef.current = null;
+        }
+
+        // Cleanup function
+        return () => {
+            if (lenisRef.current) {
+                lenisRef.current.destroy();
+                lenisRef.current = null;
+            }
+            if (rafRef.current) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
+    }, [isMobile]);
+
+      
     return (
         <>
-        <main className={styles.main}>
-            <div ref={gallery} className={styles.gallery}>
+        <main className={`${styles.main} ${isMobile ? styles.mobileMain : ''}`}>
+            <div ref={gallery} className={`${styles.gallery} ${isMobile ? styles.mobileGallery : ''}`}>
                 <Column images={[images[0], images[1], images[2]]} y={y}/>
                 <Column images={[images[3], images[4], images[5]]} y={y2}/>
                 <Column images={[images[6], images[7], images[8]]} y={y3}/>
                 <Column images={[images[9], images[10], images[11]]} y={y4}/>
             </div>
-            {/* <div className={styles.spacer}></div> */}
         </main>
 
         <div className="flex flex-col relative max-w-screen-xl group px-4 justify-center items-center mx-auto md:mb-6 mb-6">
@@ -145,10 +191,8 @@ export default function Contact() {
                 </div>
            
            </div>
-           
         </div>
         <Footer />
-
         </>
     )
 }   

@@ -83,10 +83,7 @@ export default function Footer() {
                             © Stella& Inc.
                         </p>
                     </div>
-
-
                     <div className="flex flex-row items-center justify-center md:justify-start md:mb-3 mb-10 mt-5">
-
                         <Image
                             src="/N_Logo.png"
                             alt="Toonyz Logo"
@@ -102,17 +99,15 @@ export default function Footer() {
                                 border: '1px solid #eee'
                             }}
                         />
-
                         {/* <span className="text-[10px] font-extrabold text-gray-400 self-center justify-center ml-2"> Toonyz.com </span> */}
                         <span className="text-[10px] font-extrabold text-gray-400 self-center justify-center ml-2 mr-2"> made with love by Toonyz </span>
                     </div>
-
                 </div>
 
-
+                {/* Toonyz social media channel */}
                 <div className="sns order-first md:order-last">
                     <ul className="flex flex-row gap-3">
-                        <Link href="https://www.instagram.com/stelland.official/">
+                        <Link href="https://www.instagram.com/toonyz_global/">
                             <i className="fab fa-instagram cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150"></i>
                         </Link>
                         <Link href="#">
@@ -129,9 +124,6 @@ export default function Footer() {
                         </Link>
                     </ul>
                 </div>
-
-
-
             </div>
         </div>
     )

@@ -17,7 +17,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { style } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-
+import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -36,6 +36,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [tabValue, setTabValue] = useState('1');
+    // const [chapterId, setChapterId] = useState(0);
 
     const pathname = usePathname();
 
@@ -127,7 +128,10 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         <div className='flex flex-row justify-between'>
                             <div className='flex flex-row justify-center self-center'>
                                 <ChevronLeft className='self-center' />
-                                <h1>목록보기</h1> 
+                                <h1>
+                                    {/* 목록보기 */}
+                                    {phrase(dictionary, "list", language)}
+                                </h1> 
                             </div>
                             
                             <div>
@@ -179,7 +183,10 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 {/* Chapters list */}
                                 <ListOfChaptersComponent webnovel={getWebnovel()} />
                             </TabPanel>
-                            <TabPanel value="2">comments</TabPanel>
+                            <TabPanel value="2">
+                                {/* Comments list */}
+                                {getWebnovel() && <ListOfChapterComments webnovel={getWebnovel()!} />}
+                            </TabPanel>
                         </TabContext>
                            
                     </div>

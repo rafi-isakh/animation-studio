@@ -45,6 +45,7 @@ export interface Comment {
   upvotes: number;
   chapter_id: string;
   replies: Comment[];
+  created_at: Date;
 }
 
 export interface SlickCarouselItem {

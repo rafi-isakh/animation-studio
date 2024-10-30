@@ -118,3 +118,7 @@ cancel,취소,キャンセル,Cancel
 signup,회원가입,,Welcome to Toonyz
 agree_terms,투니즈의 가입약관에 동의합니다,,I agree to the terms & privacy policy
 agree_submit,등록하시면 이메일 정보가 수집됩니다.,,Your email will be collected at signup.
+addChapter,새 글 쓰기,新しい章を書く,Add Chapter
+contentDescription,소설 내용을 입력해주세요.,小説の内容を入力してください。,Please enter the content of the novel.
+draft,임시 저장글,ドラフト,Draft
+total,총,合計,Total

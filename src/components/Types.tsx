@@ -69,6 +69,7 @@ export interface Webnovel {
   language: string;
   views: number;
   version?: string;
+  created_at: Date;
 }
 
 export interface Dictionary {

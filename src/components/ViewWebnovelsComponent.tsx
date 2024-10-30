@@ -9,11 +9,15 @@ import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, ThemeProvider } from '@mui/material';
+import { Box, Button, CircularProgress, Modal, ThemeProvider, useMediaQuery } from '@mui/material';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { style } from '@/styles/ModalStyles';
-
-
+import { ChevronLeft, PenLine, Trash } from 'lucide-react';
+import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -30,6 +34,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const isMediumScreen = useMediaQuery('(min-width:768px)');
+    const [tabValue, setTabValue] = useState('1');
+    // const [chapterId, setChapterId] = useState(0);
 
     const pathname = usePathname();
 
@@ -88,6 +95,10 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         router.push(`/ai_editor?id=${id}`)
     }
 
+    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+        setTabValue(newValue);
+    };
+
     const getWebnovel = () => {
         return webnovels.find(w => w.id.toString() == id)
     }
@@ -102,56 +113,82 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             <ThemeProvider theme={grayTheme}>
                 <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
 
+                    {/*--  left-hand side:  Author's other works link */}
+                   <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
+                    <Suspense>
+                        <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
+                    </Suspense>
+                    <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-[1px]' />
+                    </div> 
+                    {/*-- left-hand side:  Author's other works link end */}
+                    
                     <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
-                        <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                        <div className="mt-4">
-                            {
-                                <div className='flex flex-row'>
-                                    {(author_email == email) &&
-                                        <div className='flex flex-row gap-4 w-full justify-end py-6'>
-                                            {/* 
-                                                    <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
-                                                        {phrase(dictionary, "aieditor", language)}
-                                                    </NoCapsButton> 
-                                                */}
-                                            <NoCapsButton
-                                                color='gray'
-                                                variant='outlined'
-                                                onClick={handleNewChapter}
-                                                className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
-                                            >
-                                                {phrase(dictionary, "uploadNewChapter", language)}
-                                            </NoCapsButton>
-                                            <NoCapsButton
-                                                color='gray'
-                                                variant='outlined'
-                                                onClick={() => setShowDeleteModal(true)}
-                                                className='w-64 h-12 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
-                                            >
-                                                {phrase(dictionary, "deleteWebnovel", language)}
-                                            </NoCapsButton>
-                                        </div>
-                                    }
-                                    {/*
-                                         <div className='w-32 h-32'>
-                                        </div> 
+                        <div className="">
+                        {
+                        <div className='flex flex-row justify-between'>
+                            <div className='flex flex-row justify-center self-center'>
+                                <ChevronLeft className='self-center' />
+                                <h1>
+                                    {/* 목록보기 */}
+                                    {phrase(dictionary, "list", language)}
+                                </h1> 
+                            </div>
+                            
+                            <div>
+                            {(author_email == email) &&
+                                <div className='flex flex-row gap-4 w-full justify-start'>
+                                       {/* 
+                                        <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
+                                            {phrase(dictionary, "aieditor", language)}
+                                        </NoCapsButton> 
                                         */}
+                                    <NoCapsButton
+                                        color='gray'
+                                        variant='outlined'
+                                        onClick={handleNewChapter}
+                                        className='px-4 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                    >
+                                       { isMediumScreen? <>{phrase(dictionary, "uploadNewChapter", language)}</> : (<> <PenLine className='hover:text-pink-600' size={18} /> </>)}
+                                    </NoCapsButton>
+                                    <NoCapsButton
+                                        color='gray'
+                                        variant='outlined'
+                                        onClick={() => setShowDeleteModal(true)}
+                                        className='px-6 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                    >
+                                       { isMediumScreen? <>{phrase(dictionary, "deleteWebnovel", language)}</> : (<> <Trash className='hover:text-pink-600' size={18} /> </>) }
+                                    </NoCapsButton>
                                 </div>
                             }
+                            </div>
                         </div>
+                        }
+                     </div>
 
-                        <ListOfChaptersComponent webnovel={getWebnovel()} />
+                       <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
 
-                        {/* writer's other works */}
-                        {/*
-                             <div className='w-full md:w-1/4 p-4'>
-                                <Suspense>
-                                    <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                                </Suspense>
-                                <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-1' />
-                             </div> 
-                           */}
+                        {/* Webnovel info and details */}   
+                        <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
 
+                        <TabContext value={tabValue} >
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary">
+                                {/* Chapters : 연재글 */}
+                                <Tab label={phrase(dictionary, "chapters", language)} value="1" /> 
+                                {/* Comments : 댓글 */}
+                                <Tab label={phrase(dictionary, "comments", language)} value="2" />
+                            </TabList>
+                            </Box>
+                            <TabPanel value="1">
+                                {/* Chapters list */}
+                                <ListOfChaptersComponent webnovel={getWebnovel()} />
+                            </TabPanel>
+                            <TabPanel value="2">
+                                {/* Comments list */}
+                                {getWebnovel() && <ListOfChapterComments webnovel={getWebnovel()!} />}
+                            </TabPanel>
+                        </TabContext>
+                           
                     </div>
                 </div >
                 <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>

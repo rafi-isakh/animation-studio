@@ -117,3 +117,4 @@ error,일시적인 오류입니다. 잠시 후에 다시 시도해주세요.,一
 cancel,취소,キャンセル,Cancel
 created_at,연재 시작일,,Created At
 noChaptersAvailable,연재 중인 챕터가 없습니다.,連載中の章がありません。,No chapters available.
+chapters,연재글,連載中の章,Chapters

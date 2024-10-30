@@ -10,6 +10,10 @@ import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Box, Button, CircularProgress, Modal, ThemeProvider, useMediaQuery } from '@mui/material';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { style } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
@@ -31,7 +35,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isMediumScreen = useMediaQuery('(min-width:768px)');
- 
+    const [tabValue, setTabValue] = useState('1');
 
     const pathname = usePathname();
 
@@ -89,6 +93,10 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const handleAIEditor = () => {
         router.push(`/ai_editor?id=${id}`)
     }
+
+    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+        setTabValue(newValue);
+    };
 
     const getWebnovel = () => {
         return webnovels.find(w => w.id.toString() == id)
@@ -155,10 +163,25 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
 
                        <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
 
+                        {/* Webnovel info and details */}   
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
-                    
-                        <ListOfChaptersComponent webnovel={getWebnovel()} />
 
+                        <TabContext value={tabValue} >
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary">
+                                {/* Chapters : 연재글 */}
+                                <Tab label={phrase(dictionary, "chapters", language)} value="1" /> 
+                                {/* Comments : 댓글 */}
+                                <Tab label={phrase(dictionary, "comments", language)} value="2" />
+                            </TabList>
+                            </Box>
+                            <TabPanel value="1">
+                                {/* Chapters list */}
+                                <ListOfChaptersComponent webnovel={getWebnovel()} />
+                            </TabPanel>
+                            <TabPanel value="2">comments</TabPanel>
+                        </TabContext>
+                           
                     </div>
                 </div >
                 <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>

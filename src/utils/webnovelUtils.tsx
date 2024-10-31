@@ -32,3 +32,48 @@ export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
         return 0;
     }
 };
+
+
+export const calculateIndex = (rowIndex: number, colIndex: number, columns: Webnovel[][]) => {
+    if (colIndex === 0) {
+        return rowIndex + 1;
+        } else {
+            return rowIndex + colIndex * columns[colIndex - 1]?.length + 1;
+        }
+    }
+
+
+export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMobile: boolean) => {
+    const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
+
+    // For desktop, keep original column-wise distribution
+        const divider = Math.ceil(webnovels.length / numColumns)
+        console.log(divider)
+        webnovels.forEach((webnovel, index) => {
+            columns[Math.floor(index / divider)].push(webnovel);
+        });
+        // 0 -> 0, 1-> 0, 2-> 0, 3-> 1, 4-> 1, 5-> 1, 6-> 2, 7-> 2, 8-> 2
+
+        if (isMobile) {
+            // For mobile, transpose columns to rows
+            const transposedColumns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
+            columns.forEach((column, colIndex) => {
+                column.forEach((webnovel, rowIndex) => {
+                    if (!transposedColumns[rowIndex]) {
+                        transposedColumns[rowIndex] = [];
+                    }
+                    transposedColumns[rowIndex][colIndex] = webnovel;
+                });
+            });
+
+            // Filter out any undefined values and empty arrays
+            const cleanTransposedColumns = transposedColumns
+                .filter(column => column.length > 0)
+                .map(column => column.filter(Boolean));
+
+            return cleanTransposedColumns;
+        } else {
+
+            return columns;
+        }
+    }

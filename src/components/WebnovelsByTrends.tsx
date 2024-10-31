@@ -7,6 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { ChevronRight } from "lucide-react"
 import Link from 'next/link';
+import { getColumnLayout, calculateIndex } from '@/utils/webnovelUtils';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -18,6 +20,8 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const [genreWebnovels, setGenreWebnovels] = useState<Webnovel[]>([])
+    const [columns, setColumns] = useState<Webnovel[][]>([])
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     const newAndTrendingRef = useRef<HTMLDivElement>(null);
     const readByGenreRef = useRef<HTMLDivElement>(null);
@@ -41,8 +45,11 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
+            .reverse()
 
         setWebnovelsToShow(_webnovelsToShow);
+
+        setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
 
         const genreRows = [];
         for (let i = 0; i < _webnovelsToShow.length; i += 3) {
@@ -51,27 +58,6 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
         setGenreWebnovels(genreRows.flat());
 
     }, [version, genre, webnovels, sortBy]);
-
-
-    const calculateIndex = (rowIndex: number, colIndex: number) => {
-        if (colIndex === 0) {
-            return rowIndex + 1;
-        } else {
-            return rowIndex + colIndex * columns[colIndex - 1]?.length + 1;
-        }
-    }
-
-    const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
-        const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
-        webnovels.forEach((webnovel, index) => {
-            columns[index % numColumns].push(webnovel);
-        });
-        return columns;
-    }
-
-
-    const columns = getColumnLayout(webnovelsToShow, 3);
-
 
     return (
         <div className='relative max-w-screen-xl mx-auto px-4'>
@@ -88,7 +74,7 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
                                 <div key={colIndex} className="space-y-4">
                                     {column.map((item, rowIndex) => (
                                         <div key={rowIndex}>
-                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
+                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
                                         </div>
                                     ))}
                                 </div>
@@ -114,7 +100,7 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
                                 <div key={colIndex} className="space-y-4">
                                     {column.map((item, rowIndex) => (
                                         <div key={rowIndex}>
-                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
+                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
                                         </div>
                                     ))}
                                 </div>

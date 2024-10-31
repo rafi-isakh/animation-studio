@@ -23,6 +23,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@heroicons/react": "^2.1.5",
+    "@mui/lab": "^6.0.0-beta.13",
     "@mui/material": "^6.1.2",
     "@tosspayments/payment-widget-sdk": "^0.12.0",
     "@tosspayments/tosspayments-sdk": "^2.3.2",

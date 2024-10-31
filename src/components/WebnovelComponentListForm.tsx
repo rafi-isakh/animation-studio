@@ -49,7 +49,7 @@ const WebnovelComponentListForm = ({ webnovel, index, ranking }: { webnovel: Web
                     </span>
                 </div>
 
-                {ranking && <p className={`text-3xl md:text-2xl`}>{index + 1}</p>}
+                {ranking && <p className={`text-3xl md:text-2xl`}>{index}</p>}
                 <div className="mt-1 mb-5">
                   {/* Genre */}
                     <span className="text-[9px] self-center rounded text-gray-400">

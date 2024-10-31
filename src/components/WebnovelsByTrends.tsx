@@ -18,7 +18,7 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const [genreWebnovels, setGenreWebnovels] = useState<Webnovel[]>([])
-    
+
     const newAndTrendingRef = useRef<HTMLDivElement>(null);
     const readByGenreRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +53,13 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
     }, [version, genre, webnovels, sortBy]);
 
 
+    const calculateIndex = (rowIndex: number, colIndex: number) => {
+        if (colIndex === 0) {
+            return rowIndex + 1;
+        } else {
+            return rowIndex + colIndex * columns[colIndex - 1]?.length + 1;
+        }
+    }
 
     const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
         const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
@@ -60,20 +67,20 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
             columns[index % numColumns].push(webnovel);
         });
         return columns;
-       }
-
-    
-      const columns = getColumnLayout(webnovelsToShow, 3);
+    }
 
 
-      return (
+    const columns = getColumnLayout(webnovelsToShow, 3);
+
+
+    return (
         <div className='relative max-w-screen-xl mx-auto px-4'>
             <div className="overflow-x-auto no-scrollbar flex md:flex-row flex-col justify-between gap-5 mt-10">
                 {/* New and Trending List */}
                 <div className='w-full'>
                     <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
                         {(webnovels.length > 0) ? phrase(dictionary, "newAndTrending", language) : <></>}
-                        <span className='text-gray-400 text-[14px]'>더 보기</span>       
+                        <span className='text-gray-400 text-[14px]'>더 보기</span>
                     </h1>
                     <div className="relative group">
                         <div className="grid grid-cols-3 md:grid-cols-1 gap-2 min-w-max overflow-x-auto" ref={newAndTrendingRef}>
@@ -81,13 +88,13 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
                                 <div key={colIndex} className="space-y-4">
                                     {column.map((item, rowIndex) => (
                                         <div key={rowIndex}>
-                                            <WebnovelComponentListForm webnovel={item} index={rowIndex + colIndex * 3} ranking={true} />
+                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
                                         </div>
                                     ))}
                                 </div>
                             ))}
                         </div>
-                        <button 
+                        <button
                             onClick={() => scroll('right', newAndTrendingRef)}
                             className="absolute right-5 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 md:hidden"
                         >
@@ -95,7 +102,7 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
                         </button>
                     </div>
                 </div>
-                
+
                 {/* "Read by Genre" Section */}
                 <div className='w-full'>
                     <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
@@ -107,13 +114,13 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
                                 <div key={colIndex} className="space-y-4">
                                     {column.map((item, rowIndex) => (
                                         <div key={rowIndex}>
-                                            <WebnovelComponentListForm webnovel={item} index={rowIndex + colIndex * 3} ranking={true} />
+                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
                                         </div>
                                     ))}
                                 </div>
                             ))}
                         </div>
-                        <button 
+                        <button
                             onClick={() => scroll('right', readByGenreRef)}
                             className="absolute right-5 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 md:hidden"
                         >

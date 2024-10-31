@@ -17,7 +17,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
-    
+
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
             const scrollAmount = 200 * (direction === 'left' ? -1 : 1);
@@ -41,8 +41,8 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
 
     const text = sortBy === 'views' ? 'popularWebnovels' :
-                 sortBy === 'likes' ? 'likedWebnovels' :
-                 sortBy === 'date' ? 'latestWebnovels' : '';
+        sortBy === 'likes' ? 'likedWebnovels' :
+            sortBy === 'date' ? 'latestWebnovels' : '';
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
@@ -59,15 +59,15 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
 
-       const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
+    const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
         const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
         webnovels.forEach((webnovel, index) => {
             columns[index % numColumns].push(webnovel);
         });
         return columns;
-       }
+    }
 
-       const columns = getColumnLayout(webnovelsToShow.sort((a, b) => sortByFn(a, b, sortBy)), 3);
+    const columns = getColumnLayout(webnovelsToShow.sort((a, b) => sortByFn(a, b, sortBy)), 3);
 
     return (
         <div className='relative max-w-screen-xl mx-auto px-4 group mt-10'>
@@ -77,36 +77,36 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 }
                 <span className='text-gray-400 text-[14px]'>더 보기</span>
             </div>
-               {/* Left Arrow */}
-               <button 
+            {/* Left Arrow */}
+            <button
                 onClick={() => scroll('left')}
                 className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
-               </button>
+            </button>
 
-                <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                        <div className="grid grid-cols-3 gap-2 min-w-max">
-                            {columns.map((column, colIndex) => (
-                                 <div key={colIndex} className="space-y-4">
-                                       {column.map((item, rowIndex) => (
-                                        <div key={rowIndex}>
-                                           <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
-                                       </div>
-                                    ))}
-                                 </div>
+            <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
+                <div className="grid grid-cols-3 gap-2 min-w-max">
+                    {columns.map((column, colIndex) => (
+                        <div key={colIndex} className="space-y-4">
+                            {column.map((item, rowIndex) => (
+                                <div key={rowIndex}>
+                                    <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
+                                </div>
                             ))}
                         </div>
-                    </div>
+                    ))}
+                </div>
+            </div>
 
-                {/* Right Arrow */}
-                <button 
-                    onClick={() => scroll('right')}
-                    className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
-                >
-                    <ChevronRight className="w-6 h-6 text-gray-700" />
-                </button>
-          </div>
+            {/* Right Arrow */}
+            <button
+                onClick={() => scroll('right')}
+                className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
+            >
+                <ChevronRight className="w-6 h-6 text-gray-700" />
+            </button>
+        </div>
     )
 };
 

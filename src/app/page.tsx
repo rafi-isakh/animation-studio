@@ -69,7 +69,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
             {/* Footer Banner : instagram promotion image */}
             <div className='flex justify-center self-center'>
-                <Link href=''>
+                <Link href='https://www.instagram.com/stelland_official/'>
                 <Image 
                     src='/footer_banner.svg' 
                     alt='Toonyz event banner'

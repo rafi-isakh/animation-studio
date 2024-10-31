@@ -22,6 +22,7 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
     const [genreWebnovels, setGenreWebnovels] = useState<Webnovel[]>([])
     const [columns, setColumns] = useState<Webnovel[][]>([])
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const [mobileGrid, setMobileGrid] = useState('');
 
     const newAndTrendingRef = useRef<HTMLDivElement>(null);
     const readByGenreRef = useRef<HTMLDivElement>(null);
@@ -50,6 +51,9 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
         setWebnovelsToShow(_webnovelsToShow);
 
         setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
+        const divider = Math.ceil(_webnovelsToShow.length / 3)
+        const _mobileGrid = `grid-cols-${divider.toString()}`
+        setMobileGrid(_mobileGrid)
 
         const genreRows = [];
         for (let i = 0; i < _webnovelsToShow.length; i += 3) {
@@ -60,62 +64,65 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
     }, [version, genre, webnovels, sortBy]);
 
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4'>
-            <div className="overflow-x-auto no-scrollbar flex md:flex-row flex-col justify-between gap-5 mt-10">
-                {/* New and Trending List */}
-                <div className='w-full'>
-                    <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
-                        {(webnovels.length > 0) ? phrase(dictionary, "newAndTrending", language) : <></>}
-                        <span className='text-gray-400 text-[14px]'>더 보기</span>
-                    </h1>
-                    <div className="relative group">
-                        <div className="grid grid-cols-3 md:grid-cols-1 gap-2 min-w-max overflow-x-auto" ref={newAndTrendingRef}>
-                            {columns.map((column, colIndex) => (
-                                <div key={colIndex} className="space-y-4">
-                                    {column.map((item, rowIndex) => (
-                                        <div key={rowIndex}>
-                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
+        <>
+            <div className='relative max-w-screen-xl mx-auto px-4'>
+                <div className="overflow-x-auto no-scrollbar flex md:flex-row flex-col justify-between gap-5 mt-10">
+                    {/* New and Trending List */}
+                    <div className='w-full'>
+                        <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+                            {(webnovels.length > 0) ? phrase(dictionary, "newAndTrending", language) : <></>}
+                            <span className='text-gray-400 text-[14px]'>더 보기</span>
+                        </h1>
+                        <div className="relative group">
+                            <div className={`grid ${mobileGrid} md:grid-cols-1 gap-2 min-w-max overflow-x-auto`} ref={newAndTrendingRef}>
+                                {columns.map((column, colIndex) => (
+                                    <div key={colIndex} className="space-y-4">
+                                        {column.map((item, rowIndex) => (
+                                            <div key={rowIndex}>
+                                                <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => scroll('right', newAndTrendingRef)}
+                                className="absolute right-5 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 md:hidden"
+                            >
+                                <ChevronRight className="w-6 h-6 text-gray-700" />
+                            </button>
                         </div>
-                        <button
-                            onClick={() => scroll('right', newAndTrendingRef)}
-                            className="absolute right-5 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 md:hidden"
-                        >
-                            <ChevronRight className="w-6 h-6 text-gray-700" />
-                        </button>
                     </div>
                 </div>
-
-                {/* "Read by Genre" Section */}
-                <div className='w-full'>
-                    <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
-                        요일별 인기작 <span className='text-gray-400 text-[14px]'>더보기</span>
-                    </h1>
-                    <div className="relative group">
-                        <div className="grid grid-cols-3 md:grid-cols-1 gap-2 min-w-max overflow-x-auto" ref={readByGenreRef}>
-                            {columns.map((column, colIndex) => (
-                                <div key={colIndex} className="space-y-4">
-                                    {column.map((item, rowIndex) => (
-                                        <div key={rowIndex}>
-                                            <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
+                <div className="overflow-x-auto no-scrollbar flex md:flex-row flex-col justify-between gap-5 mt-10">
+                    {/* "Read by Genre" Section */}
+                    <div className='w-full'>
+                        <h1 className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+                            요일별 인기작 <span className='text-gray-400 text-[14px]'>더보기</span>
+                        </h1>
+                        <div className="relative group">
+                            <div className={`grid ${mobileGrid} md:grid-cols-1 gap-2 min-w-max overflow-x-auto`} ref={readByGenreRef}>
+                                {columns.map((column, colIndex) => (
+                                    <div key={colIndex} className="space-y-4">
+                                        {column.map((item, rowIndex) => (
+                                            <div key={rowIndex}>
+                                                <WebnovelComponentListForm webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => scroll('right', readByGenreRef)}
+                                className="absolute right-5 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 md:hidden"
+                            >
+                                <ChevronRight className="w-6 h-6 text-gray-700" />
+                            </button>
                         </div>
-                        <button
-                            onClick={() => scroll('right', readByGenreRef)}
-                            className="absolute right-5 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 md:hidden"
-                        >
-                            <ChevronRight className="w-6 h-6 text-gray-700" />
-                        </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 };
 

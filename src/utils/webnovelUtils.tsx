@@ -48,7 +48,6 @@ export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMob
 
     // For desktop, keep original column-wise distribution
         const divider = Math.ceil(webnovels.length / numColumns)
-        console.log(divider)
         webnovels.forEach((webnovel, index) => {
             columns[Math.floor(index / divider)].push(webnovel);
         });

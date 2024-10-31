@@ -21,6 +21,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const [columns, setColumns] = useState<Webnovel[][]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const [mobileGrid, setMobileGrid] = useState('');
 
 
     const scroll = (direction: 'left' | 'right') => {
@@ -44,6 +45,9 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
         setWebnovelsToShow(_webnovelsToShow);
         setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
+        const divider = Math.ceil(_webnovelsToShow.length / 3)
+        const _mobileGrid = `grid-cols-${divider.toString()}`
+        setMobileGrid(_mobileGrid)
     }, [version, genre, sortBy, webnovels]);
 
 
@@ -74,7 +78,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             </button>
 
             <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                <div className="grid grid-cols-3 gap-2 min-w-max">
+                <div className={`grid ${mobileGrid} md:grid-cols-3 gap-2 min-w-max`}>
                     {columns.map((column, colIndex) => (
                         <div key={colIndex} className="space-y-4">
                             {column.map((item, rowIndex) => (

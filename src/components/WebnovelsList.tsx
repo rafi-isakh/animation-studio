@@ -50,6 +50,14 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     } else {
     }
 
+    const calculateIndex = (rowIndex: number, colIndex: number) => {
+        if (colIndex === 0) {
+            return rowIndex + 1;
+        } else {
+            return rowIndex + colIndex * columns[colIndex - 1]?.length + 1;
+        }
+    }
+
 
        const getColumnLayout = (webnovels: Webnovel[], numColumns: number) => {
         const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);
@@ -83,7 +91,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                                  <div key={colIndex} className="space-y-4">
                                        {column.map((item, rowIndex) => (
                                         <div key={rowIndex}>
-                                           <WebnovelComponent webnovel={item} index={rowIndex + colIndex * 3} ranking={true} />
+                                           <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex)} ranking={true} />
                                        </div>
                                     ))}
                                  </div>

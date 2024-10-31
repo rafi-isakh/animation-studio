@@ -96,7 +96,7 @@ export default function Footer() {
 
                 <div className="sns order-first md:order-last">
                     <ul className="flex flex-row gap-3">
-                        <Link href="https://www.instagram.com/stelland.official/">
+                        <Link href="https://www.instagram.com/stelland_official/">
                             <i className="fab fa-instagram cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150"></i>
                         </Link>
                         <Link href="#">

@@ -135,7 +135,7 @@ export default function NewUser() {
                             // color: '#ec4899', // font color
                         }}
                          control={
-                         <Checkbox defaultChecked required 
+                         <Checkbox required 
                           sx={{
                             color: '#db2777',
                             '&.Mui-checked': {

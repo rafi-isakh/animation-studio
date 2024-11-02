@@ -57,7 +57,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] -top-[18px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative md:-top-[19px] -top-[10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '450px',
                                     height: 'auto'

@@ -140,4 +140,8 @@ agree_submit,등록하시면 이메일 정보가 수집됩니다.,,Your email wi
 addChapter,새 글 쓰기,新しい章を書く,Add Chapter
 contentDescription,소설 내용을 입력해주세요.,小説の内容を入力してください。,Please enter the content of the novel.
 draft,임시 저장글,ドラフト,Draft
-total,총,合計,Total
+total,총,合計,Total,
+terms,이용약관,,Terms of use,
+privacy,개인정보 처리방침,,Privacy policy,
+youth_terms,청소년 보호 정책,,Youth protection policy,
+contact,고객지원,,Contact

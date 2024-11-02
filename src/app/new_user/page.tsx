@@ -12,9 +12,13 @@ import UserWithSameEmailExistsModalComponent from '@/components/UserWithSameEmai
 import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
+import { useLanguage } from '@/contexts/LanguageContext';
+import {phrase} from '@/utils/phrases'
+import Image from 'next/image';
 
 async function createUser() {
+ 
     let nickname = "Anonymous";
     let bio = "";
 
@@ -64,8 +68,9 @@ async function isUserInDB() {
 
 export default function NewUser() {
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
-    const [userExists, setUserExists] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [userExists, setUserExists] = useState(false);   
+    const {language, dictionary} = useLanguage()
 
     useEffect(() => {
         const fetchData = async () => {
@@ -96,18 +101,58 @@ export default function NewUser() {
         <div role="status" className='w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8'>
             <CircularProgress color='secondary'/>
             </div> :
-        <div className='max-w-screen-md p-6 w-full flex flex-col mx-auto'>
+         <div className='flex flex-col items-center justify-center h-[70vh] mt-10 !p-10'>
+           <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
+      
+            <Image
+            src="/N_Logo.png"
+            alt="Toonyz Logo"
+            width={0}
+            height={0}
+            sizes="100vh"
+            style={{ 
+                marginTop: '15px',
+                height: '35px', 
+                width: '35px', 
+                justifyContent: 'center', 
+                alignSelf: 'center', 
+                borderRadius: '25%', 
+                }}
+            />
+            <h1 className='text-center text-2xl font-bold mb-10'>{phrase(dictionary, 'signup', language)}</h1>
+            <p className="text-center text-[10px] mb-10"> Your Favorite Story Universe, Between Us, Toonyz </p>
+
             <form action={updateUser}>
-                <div className="flex flex-col">
-                    <div className="flex flex-col md:w-3/4 w-full space-y-4 items-center justify-center mx-auto">
+                <div className="flex flex-col w-72">
+                    <div className="flex flex-col space-y-4 items-center justify-center ">
                         <NewUserNicknameComponent />
                         <NewUserBioComponent />
                         <NewUserCodeComponent />
+                     <p className="">
+                       <FormControlLabel
+                         required
+                         sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
+                            // color: '#ec4899', // font color
+                        }}
+                         control={
+                         <Checkbox required 
+                          sx={{
+                            color: '#db2777',
+                            '&.Mui-checked': {
+                              color: '#db2777',
+                            }
+                          }} 
+                         />}
+                        //  label="I agree to the terms & privacy policy"
+                         label={phrase(dictionary, 'agree_terms', language)}
+                       />
+                     </p>   
                         <NewUserSubmitComponent />
-                        <p>등록하시면 이메일 정보가 수집됩니다.</p>
+                        <p className="text-center text-[12px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
                     </div>
                 </div>
-            </form>
+              </form>
+            </div>
         </div>
     )
 }

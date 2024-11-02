@@ -17,12 +17,12 @@ export default function Footer() {
                 <div>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className={`flex ${language === 'ko' ? '' : 'ml-9'} flex items-center mt-5 text-gray-500 hover:text-gray-700`}
+                        className={`flex ${language === 'ko' ? '' : 'ml-9 md:ml-0'} flex items-center mt-5 text-gray-500 hover:text-gray-700`}
                     >
                         {isExpanded ? (
-                            <ChevronUpIcon className={`flex ${language === 'ko' ? '' : 'ml-10'} w-3 h-3 mr-1`} />
+                            <ChevronUpIcon className={`flex ${language === 'ko' ? '' : 'ml-[47px] md:ml-1'} w-3 h-3 mr-1`} />
                         ) : (
-                            <ChevronDownIcon className="w-3 h-3 mr-1" />
+                            <ChevronDownIcon className={`flex ${language === 'ko' ? '' : 'ml-1 md:ml-1'} w-3 h-3 mr-1`}  />
                         )}
                         {isExpanded ? (
                             <p className="text-gray-500 hover:text-gray-700 text-[10px] font-extrabold">

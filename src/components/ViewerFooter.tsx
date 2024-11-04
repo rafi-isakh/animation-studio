@@ -8,7 +8,7 @@ import phrases, { phrase } from '@/utils/phrases'
 import { Box, Button, Modal, ThemeProvider } from '@mui/material';
 import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { style, useViewSettingsStyle } from '@/styles/ModalStyles';
-
+import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -26,7 +26,23 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const viewSettingsStyle = useViewSettingsStyle();
-    const { fontSize, setFontSize, fontFamily = 'default', setFontFamily, textColor, setTextColor, lineHeight, setLineHeight, backgroundColor, setBackgroundColor } = useReader();
+    const { fontSize, 
+            setFontSize, 
+            fontFamily = 'default', 
+            setFontFamily, 
+            textColor, 
+            setTextColor, 
+            lineHeight, 
+            setLineHeight, 
+            backgroundColor, 
+            setBackgroundColor, 
+            setBackgroundWithTextColor,
+            margin, 
+            setMargin,
+            padding,
+            setPadding,
+            scrollType,
+            setScrollType } = useReader();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     
@@ -108,9 +124,13 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     return (
-        <ThemeProvider theme={grayTheme}>
+        <>
+            {/*  theme={grayTheme} */}
             <div className={`z-50 fixed w-full justify-center bg-white border-t bottom-0 left-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
             ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+                {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
+                    <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 
+                </div> */}
                 <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-2">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='group hover:text-pink-600'>
@@ -182,22 +202,54 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </p>
                         <hr className='my-2 border-gray-200'/>
 
-                        <p className='text-sm flex justify-between'> 넘김 방식
+                        <p className='text-sm justify-between md:flex hidden'> 
+                            {/* 넘김 방식 */}
+                            {phrase(dictionary, "scrollType", language)}
                            <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-gray-300'>스크롤</Link>
-                             <Link href='' className='text-gray-500'>페이지</Link>
+                             <Link href='' className='text-gray-300' onClick={() => setScrollType('vertical')}>스크롤</Link>
+                             <Link href='' className='text-gray-500' onClick={() => setScrollType('horizontal')}>페이지</Link>
                            </div>
                         </p>
-                        <p className='text-sm flex justify-between'> 테마 
+                        <p className='text-sm flex justify-between'> 
+                            {/* 테마  */}
+                            {phrase(dictionary, "theme", language)}
                            <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>Aa</Link>
-                             <Link href='' className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>Aa</Link>
-                             <Link href='' className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>Aa</Link>
-                             <Link href='' className='text-[10px] bg-gray-500 text-gray-400 rounded-full border px-2 py-1 self-center text-center'>Aa</Link>
+                             <Link 
+                             href='' 
+                             onClick={() => {
+                                setBackgroundWithTextColor('#ffffff');
+                            }}
+                             className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>Aa</Link>
+                             <Link 
+                                href='' 
+                                onClick={() => {
+                                    setBackgroundWithTextColor('#000000');
+                                }}
+                                className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
+                                    Aa
+                                </Link>
+                             <Link 
+                                href='' 
+                                onClick={() => {
+                                    setBackgroundWithTextColor('#F5E2CB');
+                                }}
+                                className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
+                                    Aa
+                                </Link>
+                             <Link 
+                                href='' 
+                                onClick={() => {
+                                    setBackgroundWithTextColor('#E5E5E5');
+                                }}
+                                className='text-[10px] bg-gray-500 text-gray-400 rounded-full border px-2 py-1 self-center text-center'>
+                                    Aa
+                                </Link>
                            </div>
                         </p>
 
-                        <p className='text-sm flex justify-between'> 글꼴 
+                        <p className='text-sm flex justify-between'> 
+                            {/* 글꼴  */}
+                            {phrase(dictionary, "font", language)}
                            <div className='flex flex-row gap-2'>  
                              <Link 
                                href='' 
@@ -230,7 +282,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 </Link>
                            </div>
                         </p>
-                        <p className='text-sm flex justify-between'> 글자 크기
+                        <p className='text-sm flex justify-between'> 
+                            {/* 글자 크기 */}
+                            {phrase(dictionary, "fontSize", language)}
                         <div className='flex flex-row gap-2'>  
                              <Link 
                                 href=''
@@ -247,7 +301,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              </Link>
                            </div>
                         </p>
-                        <p className='text-sm flex justify-between'> 줄 간격
+                        <p className='text-sm flex justify-between'> 
+                            {/* 줄 간격 */}
+                            {phrase(dictionary, "lineHeight", language)}
                            <div className='flex flex-row gap-2'>  
                              <Link 
                              href='' 
@@ -264,13 +320,27 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              </Link>
                            </div>
                         </p>
-                        <p className='text-sm flex justify-between'> 문단 여백
+                        <p className='text-sm flex justify-between'> 
+                            {/* 문단 여백 */}
+                            {phrase(dictionary, "paragraphSpacing", language)}
                            <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
+                             <Link 
+                                href='' 
+                                onClick={() => {
+                                    setMargin(margin + 1)
+                                    setPadding(padding + 1)
+                                }} 
+                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-plus"></i>
                              </Link>
                              10
-                             <Link href='' className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
+                             <Link 
+                                href='' 
+                                onClick={() => {
+                                    setMargin(margin - 1)
+                                    setPadding(padding - 1)
+                                }} 
+                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
@@ -279,7 +349,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     </div>
                 </Box>
             </Modal>
-        </ThemeProvider>
+        </>
     );
 };
 

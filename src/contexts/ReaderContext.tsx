@@ -2,17 +2,26 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const ReaderContext = createContext<{
-  fontSize: number;
-  setFontSize: (size: number) => void;
-  fontFamily: string;
-  setFontFamily: (family: string) => void;
-  textColor: string;
-  setTextColor: (color: string) => void;
-  lineHeight: number;
-  setLineHeight: (height: number) => void;
-  backgroundColor: string;
-  setBackgroundColor: (color: string) => void;
-} | undefined>(undefined);
+    fontSize: number;
+    setFontSize: (size: number) => void;
+    fontFamily: string;
+    setFontFamily: (family: string) => void;
+    textColor: string;
+    setTextColor: (color: string) => void;
+    lineHeight: number;
+    setLineHeight: (height: number) => void;
+    backgroundColor: string;
+    setBackgroundColor: (color: string) => void;
+    setBackgroundWithTextColor: (bgColor: string) => void;
+    margin: number;
+    setMargin: (margin: number) => void;
+    padding: number;
+    setPadding: (padding: number) => void;
+    scrollType: string;
+    setScrollType: (scrollType: string) => void;
+    page: number;
+    setPage: (page: number) => void;
+  } | undefined>(undefined);
 
 export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [fontSize, setFontSize] = useState(16);
@@ -20,41 +29,75 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [textColor, setTextColor] = useState('#000000');
   const [lineHeight, setLineHeight] = useState(1.5);
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [margin, setMargin] = useState(10);
+ const [padding, setPadding] = useState(10);
+ const [scrollType, setScrollType] = useState('vertical');
+ const [page, setPage] = useState(1);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('readerSettings');
     if (savedSettings) {
-      const { fontSize, fontFamily, textColor, lineHeight, backgroundColor } = JSON.parse(savedSettings);
-      setFontSize(fontSize);
-      setFontFamily(fontFamily);
-      setTextColor(textColor);
-      setLineHeight(lineHeight);
-      setBackgroundColor(backgroundColor);
+        const { fontSize, fontFamily, textColor, lineHeight, backgroundColor, margin, padding } = JSON.parse(savedSettings);
+        setFontSize(fontSize);
+        setFontFamily(fontFamily);
+        setTextColor(textColor);
+        setLineHeight(lineHeight);
+        setBackgroundColor(backgroundColor);
+        setMargin(margin);
+        setPadding(padding);
+      }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('readerSettings', JSON.stringify({
+          fontSize,
+          fontFamily,
+          textColor,
+          lineHeight,
+          backgroundColor,
+          margin,
+          padding
+        }));
+      }, [fontSize, fontFamily, textColor, lineHeight, backgroundColor, margin, padding]);
+
+
+  const setBackgroundWithTextColor = (bgColor: string) => {
+    setBackgroundColor(bgColor);
+    if (bgColor === '#000000') { // Black
+      setTextColor('#ffffff');
+    } 
+    if (bgColor === '#ffffff') { // White
+      setTextColor('#000000');
+    } 
+    if (bgColor === '#F5E2CB') { // Sepia
+      setTextColor('#995C44');
+    } 
+    if (bgColor === '#E5E5E5') { // Gray
+      setTextColor('#737373');
+      }
     }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('readerSettings', JSON.stringify({
-      fontSize,
-      fontFamily,
-      textColor,
-      lineHeight,
-      backgroundColor
-    }));
-  }, [fontSize, fontFamily, textColor, lineHeight, backgroundColor]);
-
-  const value = {
-    fontSize,
-    setFontSize,
-    fontFamily,
-    setFontFamily,
-    textColor,
-    setTextColor,
-    lineHeight,
-    setLineHeight,
-    backgroundColor,
-    setBackgroundColor
-  };
+    const value = {
+        fontSize,
+        setFontSize,
+        fontFamily,
+        setFontFamily,
+        textColor,
+        setTextColor,
+        lineHeight,
+        setLineHeight,
+        backgroundColor,
+        setBackgroundColor,
+        setBackgroundWithTextColor,
+        margin,
+        setMargin,
+        padding,
+        setPadding,
+        scrollType,
+        setScrollType,
+        page,
+        setPage
+      };
 
   return <ReaderContext.Provider value={value}>{children}</ReaderContext.Provider>;
 }

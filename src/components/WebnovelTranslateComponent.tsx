@@ -1,5 +1,6 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -10,6 +11,7 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     const fetchRef = useRef(false);
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
+    const { scrollType, page } = useReader();
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -126,10 +128,71 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
 
     type Direction = 'ltr' | 'rtl';
 
+    const getFirstHalf = (text: string) => {
+        const words = text.split(/(\s+)/);  // Split by whitespace but keep the separators
+        const totalLength = text.length;
+        let currentLength = 0;
+        let splitIndex = 0;
+    
+        // Find the word boundary closest to the middle
+        for (let i = 0; i < words.length; i++) {
+            currentLength += words[i].length;
+            if (currentLength >= totalLength / 2) {
+                splitIndex = i;
+                break;
+            }
+        }
+    
+        return words.slice(0, splitIndex).join('');
+    }
+    
+    const getSecondHalf = (text: string) => {
+        const words = text.split(/(\s+)/);  // Split by whitespace but keep the separators
+        const totalLength = text.length;
+        let currentLength = 0;
+        let splitIndex = 0;
+    
+        // Find the word boundary closest to the middle
+        for (let i = 0; i < words.length; i++) {
+            currentLength += words[i].length;
+            if (currentLength >= totalLength / 2) {
+                splitIndex = i;
+                break;
+            }
+        }
+    
+        return words.slice(splitIndex).join('');
+    }
+    
+    const getPage = (text: string, page: number) => {
+        const wordsPerPage = 200; // Adjust this number based on your needs
+        const words = text.split(/(\s+)/);  // Split by whitespace but keep the separators
+        const startIndex = (page - 1) * wordsPerPage;
+        const endIndex = page * wordsPerPage;
+        
+        return words.slice(startIndex, endIndex).join('');
+    }
+    
     return (
         <div className="mb-16">
-            <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
-            </div>
+            {scrollType === 'vertical' &&
+                <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                </div>
+            }
+            {scrollType === 'horizontal' &&
+                <div className='flex flex-row space-x-16'>
+                    <div
+                        id='first-half'
+                        dangerouslySetInnerHTML={{ __html: getFirstHalf(getPage(replaceSmartQuotes(text), page)) }} 
+                        style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                    </div>
+                    <div 
+                        id='second-half'
+                        dangerouslySetInnerHTML={{ __html: getSecondHalf(getPage(replaceSmartQuotes(text), page)) }} 
+                        style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                    </div>
+                </div>
+            }
         </div>
     );
 };

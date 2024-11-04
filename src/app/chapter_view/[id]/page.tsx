@@ -36,10 +36,23 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
-    const { fontSize, setFontSize, fontFamily = 'default', setFontFamily, textColor, setTextColor, lineHeight, setLineHeight, backgroundColor, setBackgroundColor } = useReader();
+    const { fontSize, 
+            setFontSize, 
+            fontFamily = 'default', 
+            setFontFamily, 
+            textColor, 
+            setTextColor, 
+            lineHeight, 
+            setLineHeight, 
+            backgroundColor, 
+            setBackgroundColor, 
+            margin, 
+            padding,
+            scrollType } = useReader();
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
   
     const readerStyle = {
       fontSize: `${fontSize}px`,
@@ -47,9 +60,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
       color: textColor,
       lineHeight: lineHeight,
       backgroundColor: backgroundColor,
-      padding: isMobile ? '10px' : '20px',
+      padding:  `${isMobile ? '10px' : `${margin}px`}`,
       maxWidth: isMobile ? '100%' : '800px',
-      margin: '0 auto',
+      margin: isMobile ? `${margin}px` : `${margin}px auto`,
+      width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto'
     };
  
     useEffect(() => {
@@ -140,10 +154,21 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         handleDelete(chapterId);
     }
 
+    useEffect(() => {
+        const _screenWidth = scrollType === 'horizontal' ? 'max-w-screen-xl' : 'max-w-screen-sm';
+        setScreenWidth(_screenWidth);
+    }, [scrollType])
+
     if (webnovel && chapter) {
         return (
-            <div>
-                <div className='max-w-screen-sm px-4 max-h-dvh flex flex-col items-left mx-auto'>
+            <div style={{
+                ...readerStyle,
+                color: textColor,
+                fontFamily: fontFamily === 'default' ? 'sans-serif' : 
+                            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' : 
+                            fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',      
+              }}>
+                <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto`}>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>
@@ -184,15 +209,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </div>
                     </div>
                     {/* Title and content */}
-                        <div 
-                        className='flex flex-col space-y-4'
-                        style={{
-                            ...readerStyle,
-                            fontFamily: fontFamily === 'default' ? 'sans-serif' : 
-                                        fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' : 
-                                        fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif'
-                          }}
-                        >
+                        <div className='flex flex-col space-y-4' >
                             <div key={key}>
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" /> 

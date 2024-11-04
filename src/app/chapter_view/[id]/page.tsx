@@ -179,17 +179,18 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </Button>
 
                         <div className="flex flex-row items-center">
-                            <Link href="#">
-                                <div className="text-center pb-1">
+                            <Link 
+                                href=''
+                                className="text-center flex flex-row items-center " 
+                                >
                                     {
                                         likeToggle ?
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center" style={{ fontSize: '16px' }}></i>
                                             :
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center" style={{ fontSize: '16px' }}></i>
                                     }
-                                </div>
+                            <p className='ml-2 w-6 self-center' style={{ fontSize: '16px' }}>{upvotes}</p>
                             </Link>
-                            <p className='ml-2 w-6 self-center pb-1'>{upvotes}</p>
                             {isAuthor && <Button 
                             color='gray' 
                             variant='text' 

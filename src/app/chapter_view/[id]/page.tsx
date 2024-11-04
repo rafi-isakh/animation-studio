@@ -15,6 +15,9 @@ import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
 
+import { useReader } from '@/contexts/ReaderContext';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -33,8 +36,22 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
+    const { fontSize, setFontSize, fontFamily = 'default', setFontFamily, textColor, setTextColor, lineHeight, setLineHeight, backgroundColor, setBackgroundColor } = useReader();
 
-
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+    const readerStyle = {
+      fontSize: `${fontSize}px`,
+      fontFamily: `${fontFamily}`,
+      color: textColor,
+      lineHeight: lineHeight,
+      backgroundColor: backgroundColor,
+      padding: isMobile ? '10px' : '20px',
+      maxWidth: isMobile ? '100%' : '800px',
+      margin: '0 auto',
+    };
+ 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
@@ -167,16 +184,24 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </div>
                     </div>
                     {/* Title and content */}
-                    <div className="flex flex-col space-y-4">
-                        <div key={key}>
-                            <div className='flex justify-between'>
-                                <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
-                                
+                        <div 
+                        className='flex flex-col space-y-4'
+                        style={{
+                            ...readerStyle,
+                            fontFamily: fontFamily === 'default' ? 'sans-serif' : 
+                                        fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' : 
+                                        fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif'
+                          }}
+                        >
+                            <div key={key}>
+                                <div className='flex justify-between'>
+                                    <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" /> 
+                                </div>
+                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
                             </div>
-                            <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
                         </div>
-                    </div>
-                    <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                     {/* Title and content : end */}
+                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
                 </div>
                 <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                 {/* delete confirmation modal */}

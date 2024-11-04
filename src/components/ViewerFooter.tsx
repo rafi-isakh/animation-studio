@@ -4,10 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { phrase } from '@/utils/phrases'
+import phrases, { phrase } from '@/utils/phrases'
 import { Box, Button, Modal, ThemeProvider } from '@mui/material';
 import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { style, useViewSettingsStyle } from '@/styles/ModalStyles';
+
+import { useReader } from '@/contexts/ReaderContext';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -22,31 +26,29 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const viewSettingsStyle = useViewSettingsStyle();
-
+    const { fontSize, setFontSize, fontFamily = 'default', setFontFamily, textColor, setTextColor, lineHeight, setLineHeight, backgroundColor, setBackgroundColor } = useReader();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
     const handleScroll = () => {
-      // Get the current scroll position
       const currentScrollY = window.scrollY;
 
       if (currentScrollY < lastScrollY) {
-        // Scrolling up - show the footer
         setIsVisible(true);
       } else {
-        // Scrolling down - hide the footer
         setIsVisible(false);
       }
 
-      // Set the new scroll position
       setLastScrollY(currentScrollY);
 
-      // Set a timeout to hide the footer if scrolling stops
-      clearTimeout(timeoutId); // Clear previous timeout
+      clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         setIsVisible(false); // Hide after a delay when scrolling stops
-      }, 2000); // Adjust delay as needed (2000 ms = 2 seconds)
+      }, 2000);
     };
 
     // Add scroll event listener
@@ -72,9 +74,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         setPrevChapterLink(`/chapter_view/${prevId.toString()}`);
     }, [webnovel, chapter])
 
-    // const adjustViewSettings = () => {
-
-    // }
 
     const getNextChapterId = (currentChapterId: number) => {
         const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
@@ -140,7 +139,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     </p>
                     </Link>
                     {/* view settings : viewer toggle btn */}
-
                     <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px]'>
                         <p className='group hover:text-pink-600'>
                             {phrase(dictionary, "nextChapter", language)}
@@ -176,7 +174,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 <Box sx={viewSettingsStyle}>
                     <div className='flex flex-col space-y-4'>
                         <p className='flex justify-between'>
-                            View Settings 
+                            {/* View Settings  */}
+                            {phrase(dictionary, "viewSettings", language)}
                         <button onClick={() => setShowIsViewerModal(false)}>
                          <i className="fas fa-times"></i>
                         </button>
@@ -198,32 +197,69 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                            </div>
                         </p>
 
-
                         <p className='text-sm flex justify-between'> 글꼴 
                            <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-gray-300'>기본</Link>
-                             <Link href='' className='text-gray-500'>바탕체</Link>
-                             <Link href='' className='text-gray-500'>고딕체</Link>
+                             <Link 
+                               href='' 
+                               onClick={() => {
+                                    setFontFamily('default');
+                                    console.log('Font family set to:', 'default');
+                                    }} 
+                               className={`${fontFamily === 'default' ? 'text-gray-300' : 'text-gray-500'}`}
+                                >
+                                    {/* 기본 */}
+                                    {phrase(dictionary, "defaultFont", language)}
+                                </Link>
+                             <Link 
+                                href='' 
+                                onClick={() => setFontFamily('gowun-batang')}
+                                className={`${fontFamily === 'gowun-batang' ? 'text-gray-300 gowun-batang' : 'text-gray-500'}`}
+                                >
+                                    {/* 바탕체 */}
+                                    <span className='gowun-batang text-[12px]'> {phrase(dictionary, "batangFont", language)} </span>
+                                </Link>
+                             <Link 
+                                href=''
+                                onClick={() => {
+                                    setFontFamily('nanum-gothic');
+                                    console.log('Font family set to:', 'nanum-gothic');
+                                  }} className={`${fontFamily === 'nanum-gothic' ? 'text-gray-300 nanum-gothic' : 'text-gray-500'}`}
+                                >
+                                    {/* 고딕체 */}
+                                    <span className='nanum-gothic text-[12px]'> {phrase(dictionary, "gothicFont", language)} </span>
+                                </Link>
                            </div>
                         </p>
                         <p className='text-sm flex justify-between'> 글자 크기
                         <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
+                             <Link 
+                                href=''
+                                onClick={() => setFontSize(fontSize + 2)}
+                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-plus"></i>
                              </Link>
-                             10
-                             <Link href='' className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
+                             {fontSize}
+                             <Link 
+                                href='' 
+                                onClick={() => setFontSize(fontSize - 2)}
+                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
                         </p>
                         <p className='text-sm flex justify-between'> 줄 간격
                            <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
+                             <Link 
+                             href='' 
+                             onClick={(e) => setLineHeight(lineHeight + 0.1)}
+                             className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-plus"></i>
                              </Link>
-                             10
-                             <Link href='' className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
+                             {Math.round(lineHeight * 10)}%
+                             <Link 
+                             href='' 
+                             onClick={(e) => setLineHeight(lineHeight - 0.1)}
+                             className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>

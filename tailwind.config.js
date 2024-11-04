@@ -14,7 +14,13 @@ module.exports = {
     flowbite.content(),
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'sans': ['Arial', 'sans-serif'],
+        'gowun-batang': ['Gowun Batang', 'serif'],
+        'nanum-gothic': ['Nanum Gothic', 'sans-serif'],
+      }
+    },
     container: {
       center: true,
     },
@@ -23,5 +29,25 @@ module.exports = {
     require('flowbite/plugin'),
     require('tailwind-scrollbar-hide'),
     flowbite.plugin(),
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.nanum-gothic': {
+          fontFamily: '"Nanum Gothic", sans-serif',
+          fontWeight: '400',
+          fontStyle: 'normal',
+        },
+        '.nanum-gothic-bold': {
+          fontFamily: '"Nanum Gothic", sans-serif',
+          fontWeight: '700',
+          fontStyle: 'normal',
+        },
+        '.nanum-gothic-extrabold': {
+          fontFamily: '"Nanum Gothic", sans-serif',
+          fontWeight: '800',
+          fontStyle: 'normal',
+        },
+      }
+      addUtilities(newUtilities)
+    }
   ],
 }

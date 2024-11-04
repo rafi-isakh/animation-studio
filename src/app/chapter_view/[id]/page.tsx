@@ -8,10 +8,13 @@ import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { Button } from "@mui/material";
+import { Button, Modal, Box } from "@mui/material";
+import { style } from '@/styles/ModalStyles';
 import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
+import { phrase } from '@/utils/phrases';
+
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -23,11 +26,15 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [key2, setKey2] = useState(0); // for remounting OtherTranslation for webnovel title
     const [deleteModal, setDeleteModal] = useState(false);
     const [isAuthor, setIsAuthor] = useState(false);
-    const { language } = useLanguage();
+    const { dictionary, language } = useLanguage();
     const router = useRouter();
     const pathname = usePathname();
     const viewed = useRef(false);
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
+
+
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
@@ -104,11 +111,16 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         }
     }
 
-    const handleDelete = async () => {
+    const handleDelete = async (chapterId: number) => {
         const res = await fetch(`/api/delete_chapter?id=${id}`);
         if (res.ok) {
             router.push(`/view_webnovels?id=${webnovel?.id}`);
         }
+    }
+
+    const handleChapterDelete = async (chapterId: number) => {
+        setShowDeleteModal(false);
+        handleDelete(chapterId);
     }
 
     if (webnovel && chapter) {
@@ -126,16 +138,32 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
                         <div className="flex flex-row items-center">
                             <Link href="#">
-                                <div className="text-center">
+                                <div className="text-center pb-1">
                                     {
                                         likeToggle ?
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center"></i>
                                             :
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart"></i>
+                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center"></i>
                                     }
                                 </div>
                             </Link>
-                            <p className='ml-2 w-6'>{upvotes}</p>
+                            <p className='ml-2 w-6 self-center pb-1'>{upvotes}</p>
+                            {isAuthor && <Button 
+                            color='gray' 
+                            variant='text' 
+                            onClick={(e) => { 
+                                   e.stopPropagation();
+                                   setShowDeleteModal(true);
+                                   setDeleteChapterId(chapter.id);
+                                //    handleChapterDelete(Number(id))
+                                }}>
+                               <i className="fas fa-ellipsis-v self-center mr-3 text-gray-400"></i> <span className="text-sm self-center">
+                                {/* Delete */}
+                                {phrase(dictionary, "delete", language)}
+                               </span>
+                                </Button>
+                            }
+
                         </div>
                     </div>
                     {/* Title and content */}
@@ -143,10 +171,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         <div key={key}>
                             <div className='flex justify-between'>
                                 <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
-                                {isAuthor && <Button color='gray' variant='text' onClick={handleDelete}>
-                                    <TrashIcon className="w-6 h-6" />
-                                </Button>
-                                }
+                                
                             </div>
                             <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
                         </div>
@@ -154,6 +179,17 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <ViewerFooter webnovel={webnovel} chapter={chapter} />
                 </div>
                 <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
+                {/* delete confirmation modal */}
+                <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                    <Box sx={style}>
+                        <div className='flex flex-col space-y-4 items-center justify-center'>
+                            <p className='text-lg font-bold'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
+                            <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
+                            <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                        </div>
+                    </Box>
+                </Modal>
+              {/* delete confirmation modal */}
             </div>
         )
     }

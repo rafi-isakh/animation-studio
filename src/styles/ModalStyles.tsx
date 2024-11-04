@@ -1,3 +1,6 @@
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+
 
 export const style = {
     position: 'absolute',
@@ -23,3 +26,18 @@ export const videoStyle = {
     p: 4,
 }
 
+export const useViewSettingsStyle = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+    return {
+      position: 'absolute',
+      bottom: '-15%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: isMobile ? '100%' : 400,
+      bgcolor: '#ffffff',
+      borderRadius: '25px 25px 0px 0px',
+      p: 5,
+    };
+  };

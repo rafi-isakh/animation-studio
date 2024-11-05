@@ -20,7 +20,7 @@ import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
 import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
-import { SquarePen, Video, Sparkles, Book, SquareLibrary } from 'lucide-react';
+import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft } from 'lucide-react';
 
 
 const Header = () => {
@@ -51,6 +51,8 @@ const Header = () => {
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
         Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
     );
+    const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+    const searchDropdownRef = useRef<HTMLDivElement>(null);
 
     let keyPressed = false
 
@@ -211,10 +213,15 @@ const Header = () => {
     const toggleUserDropdown = () => {
         setIsUserDropdownOpen(!isUserDropdownOpen);
         setIsLanguageDropdownOpen(false);
+        setIsSearchDropdownOpen(false);
     }
     const toggleLanguageDropdown = () => {
         setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
         setIsUserDropdownOpen(false);
+        setIsSearchDropdownOpen(false);
+    }
+    const toggleSearchDropdown = () => {
+        setIsSearchDropdownOpen(!isSearchDropdownOpen);
     }
 
     const isNovelPath = (pathname: string) => {
@@ -294,16 +301,108 @@ const Header = () => {
                                 <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black border rounded-md border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
                             </div>
                             {/*Search bar visible in screens larger than md (md:block)*/}
-                            <div className="relative hidden md:block mr-6">
-                                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                    <svg className="w-4 h-4 text-black dark:text-black rounded" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                                    </svg>
-                                    <span className="sr-only">Search icon</span>
+                            <div className="relative hidden md:block mr-8">
+                                    <button 
+                                        onClick={toggleSearchDropdown} 
+                                        className="flex items-center ps-3 cursor-pointer hover:text-pink-600" 
+                                    >
+                                        <svg 
+                                            className="w-4 h-4 text-black dark:text-black rounded" 
+                                            aria-hidden="true" 
+                                            xmlns="http://www.w3.org/2000/svg" 
+                                            fill="none" 
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path 
+                                                stroke="currentColor" 
+                                                strokeLinecap="round" 
+                                                strokeLinejoin="round" 
+                                                strokeWidth="2" 
+                                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" 
+                                            />
+                                        </svg>
+                                        <span className="sr-only">Search icon</span>
+                                    </button>
+                                    {isSearchDropdownOpen && ( 
+                                        <div 
+                                            id="search-dropdown" 
+                                            ref={searchDropdownRef} 
+                                            className="z-50 rounded-md absolute mt-2 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-96 dark:divide-gray-600"
+                                        >
+                                            <div className="flex justify-between px-3 py-3">
+                                                <button className='text-black hover:text-pink-600 justify-start mr-4' onClick={() => setIsSearchDropdownOpen(false)}> 
+                                                   < ChevronLeft />
+                                                </button>
+
+                                                 {/* Wrap input and icon in a relative container */}
+                                                    <div className="relative flex-1">
+                                                        {/* Search Icon */}
+                                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                            <svg 
+                                                                className="w-4 h-4 text-black dark:text-black" 
+                                                                aria-hidden="true" 
+                                                                xmlns="http://www.w3.org/2000/svg" 
+                                                                fill="none" 
+                                                                viewBox="0 0 20 20"
+                                                            >
+                                                                <path 
+                                                                    stroke="currentColor" 
+                                                                    strokeLinecap="round" 
+                                                                    strokeLinejoin="round" 
+                                                                    strokeWidth="2" 
+                                                                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" 
+                                                                />
+                                                            </svg>
+                                                        </div>
+
+                                                        {/* Input Field */}
+                                                        <input 
+                                                            type="text" 
+                                                            id="search-navbar" 
+                                                            value={query} 
+                                                            onChange={handleChange} 
+                                                            onKeyDown={handleKeyDown} 
+                                                            onKeyUp={handleKeyUp} 
+                                                            placeholder={phrase(dictionary, "searchPlaceholder", language)}
+                                                            className="block w-full p-2 pl-10 text-sm text-black border border-black rounded-md focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" 
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                            <div className="flex flex-col px-3 py-3">
+                                                <div>
+                                                  <p className='text-gray-500 text-md flex justify-between'>
+                                                     {/* 최근 검색어   */}
+                                                     {phrase(dictionary, "recentSearch", language)}
+                                                    <span className='text-gray-300 text-[10px] text-right'>
+                                                         {/* search turn off  */}
+                                                         {phrase(dictionary, "searchTurnOff", language)}
+                                                    </span>
+                                                   </p>
+                                                    {/* recent search list */}
+                                                    <p className='text-gray-500 text-sm mt-10 mb-10 text-center'> 
+                                                        {/* 최근 검색어가 없습니다. */}
+                                                        {phrase(dictionary, "noRecentSearch", language)}
+                                                    </p>
+
+                                                </div> 
+                                                <div>
+                                                  <p className='text-gray-500 text-md'>
+                                                      {/* 인기 검색어 */}
+                                                      {phrase(dictionary, "popularSearch", language)}
+                                                </p>
+                                                    {/* popular search list */}
+                                                    <p className='text-gray-500 text-sm mt-10 mb-10 text-center'> 
+                                                        {/* 인기 검색어가 없습니다. */}
+                                                        {phrase(dictionary, "noPopularSearch", language)}
+                                                    </p>
+                                              
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md border border-black focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" />
-                            </div>
-                            <ul className="border border-black flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 border border-black">
+                            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 ">
                                 {/* News menu
                             <li>
                                 <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
@@ -320,8 +419,8 @@ const Header = () => {
                                         </button>
                                     </div>
                                     {isLanguageDropdownOpen && (
-                                        <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-[white] dark:divide-gray-600`}>
-                                            <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                        <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44  dark:divide-gray-600`}>
+                                            <ul className="py-2 text-sm border rounded-md text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                                 {langPairList.map((langPair, index) => (
                                                     <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
                                                         <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
@@ -343,8 +442,8 @@ const Header = () => {
                                             </svg></button>
                                     </div>
                                     {isUserDropdownOpen && (
-                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-52 bg-white dark:divide-gray-600`}>
-                                            <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-52 dark:divide-gray-600`}>
+                                            <ul className="py-2 text-sm border rounded-md text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                                 {loading ? (
                                                     <li>
                                                         <div role="status">

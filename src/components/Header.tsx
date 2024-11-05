@@ -411,7 +411,7 @@ const Header = () => {
                                 {/*Language menu*/}
                                 <li className="py-2 relative">
                                     <div ref={languageMenuRef}>
-                                        <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                        <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black  dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                                             <i className="fa-solid fa-globe text-black"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p>
                                             <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
@@ -419,8 +419,8 @@ const Header = () => {
                                         </button>
                                     </div>
                                     {isLanguageDropdownOpen && (
-                                        <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44  dark:divide-gray-600`}>
-                                            <ul className="py-2 text-sm border rounded-md text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                        <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded-md md:border-0 border border-gray-400 mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44  dark:divide-gray-600`}>
+                                            <ul className="py-2 text-sm  text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                                 {langPairList.map((langPair, index) => (
                                                     <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
                                                         <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
@@ -442,8 +442,8 @@ const Header = () => {
                                             </svg></button>
                                     </div>
                                     {isUserDropdownOpen && (
-                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-52 dark:divide-gray-600`}>
-                                            <ul className="py-2 text-sm border rounded-md text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded-md md:border-0 border border-gray-400 mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-52 dark:divide-gray-600`}>
+                                            <ul className="py-2 text-sm   text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                                 {loading ? (
                                                     <li>
                                                         <div role="status">

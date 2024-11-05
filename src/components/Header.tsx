@@ -1,7 +1,7 @@
 "use client"
 
 import React, { MouseEventHandler, useEffect, useRef, useState } from 'react';
-import { MdVideoLibrary } from "react-icons/md";
+// import { MdVideoLibrary } from "react-icons/md";
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
@@ -11,7 +11,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useDevice } from '@/contexts/DeviceContext';
 import Link from 'next/link';
 import styles from '@/styles/Header.module.css';
-import { phrase } from '@/utils/phrases';
+import phrases, { phrase } from '@/utils/phrases';
 import { signOut } from "next-auth/react"
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
@@ -20,6 +20,8 @@ import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
 import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
+import { SquarePen, Video, Sparkles, Book, SquareLibrary } from 'lucide-react';
+
 
 const Header = () => {
 
@@ -341,7 +343,7 @@ const Header = () => {
                                             </svg></button>
                                     </div>
                                     {isUserDropdownOpen && (
-                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-44 bg-white dark:divide-gray-600`}>
+                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} mt-2 z-10 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-52 bg-white dark:divide-gray-600`}>
                                             <ul className="py-2 text-sm border rounded-md border-black text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
                                                 {loading ? (
                                                     <li>
@@ -358,19 +360,56 @@ const Header = () => {
                                                     isLoggedIn ? (
                                                         <>
                                                             <li>
-                                                                <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "newWebnovel", language)}</Link>
+                                                                <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                               {/* Welcome greeting */}
+                                                               {/* <span> {phrase(dictionary, "welcome", language)} </span>  */}
+                                                                    <span className='font-extrabold'>{nickname}</span> 
+                                                                    <span className='text-gray-500'>{' '}
+                                                                    { language == 'ko' ? '의' : '\'s' }{' '}
+                                                                    {phrase(dictionary, "profile", language)} 
+                                                                    </span>
+                                                               
+                                                                </Link>
+                                                            </li>
+                                                            <hr/>
+                                                           
+                                                            <li className="px-3 py-2">
+                                                                <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                                  <Book size={18} />
+                                                                  {phrase(dictionary, "myWebnovels", language)}
+                                                                 </Link>
+                                                            </li>
+                                                            <li className="px-3 py-2">
+                                                                <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                                  <SquareLibrary size={18} />
+                                                                  {phrase(dictionary, "myLibrary", language)}
+                                                                </Link>
+                                                            </li>
+                                                            <li className="px-3 py-2 flex items-center space-x-2">
+                                                                <Sparkles size={18} />
+                                                                <ChargeStarsTemporary />
+                                                            </li>
+                                                            <li className="px-3 py-2">
+                                                                <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2">
+                                                                    <Video size={20} />
+                                                                    <span>{phrase(dictionary, "curriculum", language)}</span>
+                                                                </Link>
+                                                            </li>
+
+                                                            <li className="">
+                                                                <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:hover:text-black">
+                                                                    <span className="w-full flex items-center gap-2 justify-center text-center border border-pink-600 hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-pink-600 hover:text-gray-400"> 
+                                                                        <SquarePen size={18}/>
+                                                                        {phrase(dictionary, "newWebnovel", language)}
+                                                                     </span>
+                                                                </Link>
                                                             </li>
                                                             <li>
-                                                                <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "myWebnovels", language)}</Link>
-                                                            </li>
-                                                            <li>
-                                                                <Link href="/my_library" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "myLibrary", language)}</Link>
-                                                            </li>
-                                                            <li>
-                                                                <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "profile", language)}</Link>
-                                                            </li>
-                                                            <li>
-                                                                <Link href="#" onClick={handleSignOut} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "logout", language)}</Link>
+                                                                <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2  dark:hover:text-black ">
+                                                                   <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-pink-600"> 
+                                                                        {phrase(dictionary, "logout", language)}
+                                                                   </span>
+                                                                </Link>
                                                             </li>
                                                         </>
                                                     )
@@ -383,16 +422,7 @@ const Header = () => {
                                         </div>
                                     )}
                                 </li>
-                                <li className="mt-1 relative px-4 py-5 md:p-0">
-                                    <ChargeStarsTemporary />
-                                </li>
-                                <li className="mt-1 relative px-4 py-5 md:p-0">
-                                    <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2">
-                                        <MdVideoLibrary />
-                                        <span>{phrase(dictionary, "curriculum", language)}</span>
-                                    </Link>
-                                </li>
-
+                        
                             </ul>
                         </div>
                     </div>

@@ -78,7 +78,6 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-
   return (
     <html>
       <body>
@@ -88,7 +87,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <DeviceProvider>
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                  <Suspense>
+                  <Suspense >
                     <Header />
                   </Suspense>
                   <Margin/>

@@ -19,6 +19,7 @@ import { style } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 
+
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
     webnovel: Webnovel | null, userWebnovels: Webnovel[] | null

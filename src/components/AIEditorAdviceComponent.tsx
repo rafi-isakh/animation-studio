@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype } from '@/components/Types';
 import markdownToHtml from '@/utils/markdown';
 import { CircularProgress } from '@mui/material';
+import Loading from '@/app/loading';
 
 const AIEditorAdviceComponent = ({ content, novelLanguage }: { content: string, novelLanguage: string }) => {
   const [text, setText] = useState("");
@@ -82,7 +83,8 @@ const AIEditorAdviceComponent = ({ content, novelLanguage }: { content: string, 
         loading ?
           <div role="status" className='w-4'>
             {/*Spinny*/}
-            <CircularProgress color='secondary' />
+            {/* <CircularProgress color='secondary' /> */}
+            <Loading useLottie={true} />
           </div> :
           <div dangerouslySetInnerHTML={{ __html: markdownToHtml(text) }}>
           </div>

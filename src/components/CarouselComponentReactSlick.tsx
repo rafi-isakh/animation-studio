@@ -117,9 +117,6 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         return '';
     }
 
-
-
-
     const settings = {
         slidesToShow: 1,
         swipeToSlide: true,
@@ -139,6 +136,15 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             setCurrentIndex(current);
             setNextIndex((current + 1) % items.length);
         },
+        responsive: [
+            {
+                breakpoint: 768,
+                settings: {
+                    slidesToShow: 1,
+                    centerPadding: '32px',
+                }
+            }
+        ]
     };
 
     return (
@@ -146,11 +152,16 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             <div className='flex flex-col relative'>
                 <Slider {...settings}>
                     {items.map((item, index) => (
-                        <div key={index} className="px-2 md:px-4">
+                        <div key={index} className="px-2 md:px-4 slide-item">
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
                                 <Link href={getHref(index)}>
-                                    <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
-                                        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    <Image 
+                                        className="object-cover object-center rounded-xl" 
+                                        src={getImageURL(item.image)} 
+                                        fill
+                                        alt={item.image}
+                                        placeholder="blur" 
+                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
                                     <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
                                         <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
@@ -184,8 +195,13 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                     ))}
                 </Slider>
             </div>
-            <style jsx>
+            <style jsx global>
                 {`
+
+                .slider-container .slick-slide:hover {
+                    cursor: pointer;
+                }
+
                 .outlined-text {
                     text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
                 }

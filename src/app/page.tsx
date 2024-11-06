@@ -48,8 +48,16 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
             {/* Popular Webnovels */}
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+            {/* Webnovels by trends */}
+            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+
+             {/* webnovels list by ranking */}
+            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
            
-            <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+            {/* only Toonyz */}
+            <div className='bg-black w-full mx-auto'>
+                <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+            </div>
 
             {/* Event promotion part */}
             <Promotion />

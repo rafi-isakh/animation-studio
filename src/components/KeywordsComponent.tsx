@@ -50,14 +50,14 @@ const KeywordsComponent = () => {
     }
 
     return (
-        <div className='relative mx-auto px-4 group mt-6 '>
+        <div className='relative mx-auto px-1 group mt-6 '>
         <div className="w-full h-20 md:h-20 mt-4 md:mt-4 no-scrollbar">    {/* overflow-y-auto */}
-            <div className="flex flex-row w-full  ml-2 mx-auto gap-2 !cursor-pointer flex-wrap">   {/* md:w-[1280px] */}
+            <div className="flex flex-row w-full ml-2 mx-auto gap-2 !cursor-pointer flex-wrap">   {/* md:w-[1280px] */}
                 {genres.map((genre, index) =>  (
                       <Link
                         key={index}
                         href={getGenreUrl(genre)}
-                        className={`border border-gray-400 rounded-sm px-4 !cursor-pointer ${highlightGenre(genre) ? "text-pink-600" : ""}`}
+                        className={`border border-gray-400 rounded-md px-4 !cursor-pointer ${highlightGenre(genre) ? "text-pink-600" : ""}`}
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;

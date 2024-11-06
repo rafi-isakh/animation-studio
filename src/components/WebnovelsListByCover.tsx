@@ -51,10 +51,8 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
     } else {
     }
 
-   
-
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4 group'>
+        <div className='relative max-w-screen-xl mx-auto group m-10'>
             {/* Left Arrow */}
             <button 
                 onClick={() => scroll('left')}
@@ -62,25 +60,27 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
-            <div className='text-2xl md:text-xl p-2 font-bold'>
-                {/* {(webnovels.length > 0) ?
+           
+             <div className='md:px-1 px-2'>
+                  {/* {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
-                } */}
-                  <h1 className='text-left font-extrabold'>
+                 } */}
+                  <h1 className='text-left text-xl md:text-xl font-extrabold'>
                    {/* 실시간 인기작 추천 */}
                    {phrase(dictionary, "popularWebnovels", language)}
                  </h1>
 
             </div>
+           
             <div 
                 ref={scrollRef}
-                className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4 py-4"
+                className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {webnovelsToShow
                     .sort((a, b) => sortByFn(a, b, sortBy))
                     .map((item, index) => (
-                        <div className="px-2 md:px-4" key={index}>
+                        <div className="" key={index}>
                             <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
                         </div>
                     ))}

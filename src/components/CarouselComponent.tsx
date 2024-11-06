@@ -5,6 +5,9 @@ import { getImageURL } from '@/utils/cloudfront';
 import { SlickCarouselItem } from '@/components/Types'
 import { Webnovel } from '@/components/Types'
 import Image from 'next/image';
+import { phrase } from '@/utils/phrases';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 
 const CarouselComponent = ({ searchParams, webnovels, items }: { 
   searchParams: { [key: string]: string | string[] | undefined }, 
@@ -13,7 +16,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-
+  const { dictionary, language } = useLanguage();
   // Calculate the number of slides needed
   const totalSlides = Math.ceil(items.length / 3);
 
@@ -50,9 +53,14 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
   return (
     <div 
       className="relative max-w-screen-xl mx-auto h-[350px] overflow-hidden"
+      // max-w-screen-xl
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      <h1 className='text-white text-xl font-bold max-w-screen-xl mx-auto mt-[10px] md:px-1 px-2'>
+           {/* 오직 투니즈에서만! */}
+           {phrase(dictionary, "onlyToonyz", language)}
+      </h1>
       {/* Main carousel */}
       <div 
         className="flex transition-transform duration-500 ease-in-out h-full"
@@ -62,9 +70,9 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
         {Array.from({ length: totalSlides }).map((_, slideIndex) => (
           <div 
             key={slideIndex}
-            className="min-w-full h-full flex gap-4 px-4"
+            className="min-w-full h-2/3 flex gap-4 px-4 mt-[20px]"
           >
-            {items.slice(slideIndex * 3, (slideIndex * 3) + 3).map((item, itemIndex) => (
+            {items.slice(slideIndex * 2, (slideIndex * 2) + 2).map((item, itemIndex) => (
               <div 
                 key={item.id}
                 className="flex-1 relative rounded-xl overflow-hidden"

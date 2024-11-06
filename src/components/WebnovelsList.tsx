@@ -52,8 +52,8 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
 
     const text = sortBy === 'views' ? 'popularWebnovels' :
-        sortBy === 'likes' ? 'likedWebnovels' :
-            sortBy === 'date' ? 'latestWebnovels' : '';
+                 sortBy === 'likes' ? 'likedWebnovels' :
+                 sortBy === 'date' ? 'latestWebnovels' : '';
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
@@ -62,12 +62,16 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4 group mt-10'>
-            <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+        <div className='relative max-w-screen-xl mx-auto group mt-10'>
+            <div className='flex flex-row justify-between text-xl md:text-xl font-extrabold'>
+                <h1 className="flex flex-row justify-between text-xl md:text-xl font-extrabold md:px-1 px-2">
                 {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
                 }
-                <span className='text-gray-400 text-[14px]'>더 보기</span>
+                   <span className="text-gray-400 text-[14px] md:block hidden">
+                            {phrase(dictionary, "more", language)}
+                   </span>
+                </h1>
             </div>
             {/* Left Arrow */}
             <button

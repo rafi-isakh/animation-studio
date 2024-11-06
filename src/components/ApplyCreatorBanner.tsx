@@ -7,7 +7,7 @@ const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
 
     return (
-        <div className='bg-black w-full h-[3rem] mb-4 mt-0 max-[520px]:mt-[10px]'> 
+        <div className='bg-black w-full h-[3rem] mb-4 mt-0 max-[520px]:mt-[0px]'> 
         {/*  <div className='flex justify-center self-center'>  */}
         <Link href='/signin'>
         {language == 'ko' ? (

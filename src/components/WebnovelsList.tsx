@@ -78,8 +78,9 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     } */}
 
                     <span className='bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text'>
-                    {phrase(dictionary, "ranking", language)}
+                    { language === 'ko' ? <>{phrase(dictionary, "ranking", language)} 🚀</> : "Toonyz's Top Series 🚀" }
                     </span>
+                  
                    <span className="text-gray-400 text-[14px] md:block hidden">
                             {phrase(dictionary, "more", language)}
                    </span>

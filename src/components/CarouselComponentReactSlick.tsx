@@ -118,7 +118,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
     }
 
     const settings = {
-        slidesToShow: 1,
+        slidesToShow: 3,
         swipeToSlide: true,
         infinite: true,
         speed: 300,
@@ -126,7 +126,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: '62px',
+        centerPadding: '12px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -155,7 +155,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                           <div key={index} className={`carousel-slide px-2 md:px-4 ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
                                 <Link href={getHref(index)}>
-                                   <div className="slide-content">
+                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[400px]">
                                     <Image 
                                         className="object-cover object-center rounded-xl transition-all duration-300" 
                                         src={getImageURL(item.image)} 
@@ -164,7 +164,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                         placeholder="blur" 
                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
-                                    <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
+                                    <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-4 text-white outlined-text'>
                                         <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
                                             <OtherTranslateComponent
                                                 key={`title-${index}-${language}`}
@@ -201,48 +201,49 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             </div>
             <style jsx global>
             {`
-                  
-                    .carousel-slide {
-                        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-                        
-                    }
-
-                    .slide-content img {
-                         border-radius: 0.75rem;
-                    }
-                     .active-slide img {
-                         border-radius: 0.75rem !important;
-                     }
-
-                    .active-slide {
+    
+                  .carousel-slide {
+                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
                       
-                        opacity: 1;
-                        z-index: 2;
-                        border-radius: 0.75rem;
-                    }
- 
-                    .inactive-slide {
-                        transform: scale(0.95);
-                        opacity: 0.5;
-                    } 
+                  }
 
-                    .slide-content {
-                        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+                  .slide-content img {
+                     
+                       border-radius: 0.75rem;
+                  }
+                   .active-slide img {
+                       border-radius: 0.75rem !important;
+                   }
 
-                    }
-                    .carousel-slide:hover .slide-content {
-                        opacity: 0.8;
-                    }
-                    .active-slide:hover .slide-content {
-                        opacity: 1;
-                    }
-                    .outlined-text {
-                        text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
-                    }
-                    .no-outlined-text {
-                        text-shadow: none;
-                    }
-                `}
+                  .active-slide {
+                    
+                      opacity: 1;
+                      z-index: 2;
+                      border-radius: 0.75rem;
+                  }
+
+                  .inactive-slide {
+                      transform: scale(0.85);
+                      opacity: 0.5;
+                  } 
+
+                  .slide-content {
+                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+                  }
+                  .carousel-slide:hover .slide-content {
+                      opacity: 0.8;
+                  }
+                  .active-slide:hover .slide-content {
+                      opacity: 1;
+                  }
+                  .outlined-text {
+                      text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
+                  }
+                  .no-outlined-text {
+                      text-shadow: none;
+                  }
+              `}
             </style>
         </div>
     );

@@ -254,8 +254,8 @@ const Header = () => {
 
 
     return (
-        <div className='fixed left-0 top-0 right-0 z-50 mx-auto'>
-            <nav className="max-w-screen bg-white">
+        <div className=''>
+            <nav className="fixed left-0 top-0 right-0 z-50 mx-auto max-w-screen bg-white">
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 px-4">
                         {/* logo, webnovels, studio */}
@@ -567,9 +567,10 @@ const Header = () => {
                    {/* mobile webnovels, webtoons, studio bottom menu */}
                 </div>
                 <hr />
+                </nav>
                 {pathname == '/' && (
                     <>
-                        <div id="free-premium" className="max-w-screen-xl mx-auto">
+                        <div id="free-premium" className="max-w-screen-xl mx-auto mt-[4rem]">
                             <div className="flex flex-row space-x-4 items-center justify-start ml-4 md:p-0 p-1">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
                                 <p className={`text-gray-500 text-md font-bold  ${highlightFree() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
                                     <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
@@ -581,7 +582,6 @@ const Header = () => {
                     </>
                 )
                 }
-            </nav>
         </div>
     )
 };

@@ -66,7 +66,10 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                 {/* {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
                 } */}
-                  <h1 className='text-left font-extrabold'>오직 투니즈에서만!</h1>
+                  <h1 className='text-left font-extrabold'>
+                   {/* 실시간 인기작 추천 */}
+                   {phrase(dictionary, "popularWebnovels", language)}
+                 </h1>
 
             </div>
             <div 

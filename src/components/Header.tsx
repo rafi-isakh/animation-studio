@@ -21,6 +21,7 @@ import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
 import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft } from 'lucide-react';
+import KeywordsComponent from '@/components/KeywordsComponent';
 
 
 const Header = () => {
@@ -53,6 +54,7 @@ const Header = () => {
     );
     const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
     const searchDropdownRef = useRef<HTMLDivElement>(null);
+
 
     let keyPressed = false
 
@@ -250,22 +252,32 @@ const Header = () => {
         return getUrlWithParams('version', version, pathname, searchParams);
     };
 
+
     return (
         <div className='fixed left-0 top-0 right-0 z-50 mx-auto'>
             <nav className="max-w-screen bg-white">
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 px-4">
-                        {/**/}
+                        {/* logo, webnovels, studio */}
                         <div className='flex flex-row items-center justify-center space-x-4'>
                             <Link href="/?version=free" className="flex items-center space-x-3 rtl:space-x-reverse">
                                 <Image src="/toonyzLogo.png" alt="Toonyz Logo" width={logoWidth} height={logoHeight} />
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
                                 <Link href="/?version=free">
-                                    <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                                    <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
+                                    {phrase(dictionary, "webnovels", language)}</p>
+                                </Link>
+                                <Link href="/">
+                            
+                                    <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
+                                        {phrase(dictionary, "webtoons", language)}
+                                    </p>
+                            
                                 </Link>
                                 <Link href="/studio">
-                                    <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
+                                    <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
+                                    {phrase(dictionary, "studio", language)}</p>
                                 </Link>
                             </div>
                         </div>
@@ -400,13 +412,12 @@ const Header = () => {
                                                 </div>
                                                 <div>
                                                   <p className='text-gray-500 text-md'>
-                                                      {/* keywords, genre */}
-                                                      {phrase(dictionary, "popularSearch", language)}
-                                                </p>
+                                                      {/* keywords, genre : 키워드 별로 보기  */}
+                                                      {phrase(dictionary, "genresAndKeyword", language)}
+                                                  </p>
                                                     {/* popular search list */}
-                                                    <p className='text-gray-500 text-sm mt-10 mb-10 text-center'> 
-                                                        {/* 인기 검색어가 없습니다. */}
-                                                        {phrase(dictionary, "noPopularSearch", language)}
+                                                    <p className='text-gray-500 text-sm mt-5 mb-3 text-center'> 
+                                                      <KeywordsComponent />
                                                     </p>
                                               
                                                 </div>
@@ -538,22 +549,32 @@ const Header = () => {
                             </ul>
                         </div>
                     </div>
-                    <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 pb-2 px-4">
+                    {/* mobile webnovels, webtoons, studio mobile bottom menu */}
+                    <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
                         <Link href="/?version=free">
-                            <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                            <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600 has-[:clicked]:bg-indigo-50`}>
+                            {phrase(dictionary, "webnovels", language)}</p>
+                        </Link>
+                        <Link href="/">
+                            <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>
+                            {phrase(dictionary, "webtoons", language)}</p>
                         </Link>
                         <Link href="/studio">
-                            <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
+                            <p className={`${isActive('/studio') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>
+                            {phrase(dictionary, "studio", language)}</p>
                         </Link>
                     </div>
+                   {/* mobile webnovels, webtoons, studio bottom menu */}
                 </div>
                 <hr />
                 {pathname == '/' && (
                     <>
                         <div id="free-premium" className="max-w-screen-xl mx-auto">
-                            <div className="flex flex-row space-x-4 md:ml-[158px] items-center justify-start md:pb-2 md:pt-2 p-1 px-4">
-                                <p className={`text-gray-500 text-lg font-bold  ${highlightFree() ? "text-pink-600" : ""}`}><Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
-                                <p className={`text-gray-500 text-lg font-bold ${highlightPremium() ? "text-pink-600" : ""}`}><Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
+                            <div className="flex flex-row space-x-4 items-center justify-start ml-4 md:p-0 p-1">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
+                                <p className={`text-gray-500 text-md font-bold  ${highlightFree() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
+                                    <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
+                                <p className={`text-gray-500 text-md font-bold ${highlightPremium() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
+                                    <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
                             </div>
                         </div>
                         <hr />

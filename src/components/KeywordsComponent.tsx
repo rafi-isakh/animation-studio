@@ -6,7 +6,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getUrlWithParams } from '@/utils/stringUtils';
-import { Gem, Heart, Laugh, Wine, Star, Rocket } from 'lucide-react';
 
 const KeywordsComponent = () => {
     const { dictionary, language } = useLanguage();
@@ -41,8 +40,7 @@ const KeywordsComponent = () => {
     }, [language]); // Re-run when language changes
 
     const genres = ['all', 'romanceFantasy', 'romance', 'bl', 'fantasy', 'sf'];
-    const genresIcon = [<Gem key="gem" />, <Heart key="heart" />, <Laugh key="laugh" />, <Wine key="wine" />, <Star key="star" />, <Rocket key="rocket" />];
-
+   
     const getGenreUrl = (genre: string) => {
         return getUrlWithParams('genre', genre, pathname, searchParams);
     };
@@ -52,9 +50,9 @@ const KeywordsComponent = () => {
     }
 
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4 group mt-6 '>
-        <div className="w-full h-20 md:h-20 mt-4 md:mt-4 overflow-y-auto no-scrollbar">  
-            <div className="flex flex-row w-full md:w-[1280px] ml-2 mx-auto gap-2 !cursor-pointer">  
+        <div className='relative mx-auto px-4 group mt-6 '>
+        <div className="w-full h-20 md:h-20 mt-4 md:mt-4 no-scrollbar">    {/* overflow-y-auto */}
+            <div className="flex flex-row w-full  ml-2 mx-auto gap-2 !cursor-pointer flex-wrap">   {/* md:w-[1280px] */}
                 {genres.map((genre, index) =>  (
                       <Link
                         key={index}

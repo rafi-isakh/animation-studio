@@ -13,6 +13,7 @@ import Promotion from '@/components/Promotion';
 import KeywordsComponent from '@/components/KeywordsComponent';
 import WebnovelsByTrends from '@/components/WebnovelsByTrends';
 import GenresList from '@/components/GenresList';
+import CarouselComponent from '@/components/CarouselComponent';
 
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
@@ -44,35 +45,14 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {/* Top banner : applying a creator */}
             <ApplyCreatorBanner />
             <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-            {/* keywords list */}
-            <div className='relative max-w-screen-xl mx-auto px-4 mt-6 mb-20'>
-                <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
-                        <h1> 키워드 별로 보기 </h1>
-                        <span className='text-gray-400 text-[14px]'>더 보기</span>
-                </div>
-                <KeywordsComponent />
-            </div>
-        
-            {/* webnovels list by ranking */}
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-         
-       
-            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='date' />
 
-            <div className='mt-10'>
-            <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            </div>
-            
-           
-
+            {/* Popular Webnovels */}
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-
-            {/* Editor picks part */}
-            <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />
            
+            <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+
             {/* Event promotion part */}
             <Promotion />
-
             {/* Footer Banner : instagram promotion image */}
             <div className='flex justify-center self-center'>
                 <Link href='https://www.instagram.com/stelland_official/'>
@@ -103,11 +83,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 </Link>
                 </div>
            
-             {/* genres list */}
-             {/* <GenresList />            */}
-           
-            {/* Footer */}
-            
+            {/* Footer */}            
             <Footer />
             {/* Bookmark button : it only displys mobile screen */}
             <BookmarkButton />

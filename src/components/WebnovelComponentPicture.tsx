@@ -27,7 +27,7 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
             <Link href={`/view_webnovels?id=${webnovel.id}`}>
                 <div className="group relative flex flex-col items-center w-[100px] md:w-[240px]">
                 {/* Image Container */}
-                <div className="relative w-[83px] h-[135px] md:w-[240px] md:h-[380px] md:aspect-[3/4] overflow-hidden rounded-xl ">
+                <div className="relative shrink-0 w-[83px] h-[135px] md:w-[240px] md:h-[380px] md:aspect-[3/4] overflow-hidden rounded-xl">
                     <Image
                     src={imageSrc}
                     alt={webnovel.cover_art}
@@ -53,7 +53,7 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                         elementId={webnovel.id.toString()}
                         elementType="webnovel"
                         elementSubtype="title"
-                        classParams="text-sm md:text-base font-medium line-clamp-2 w-full"
+                        classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
                     />
                     <p className="text-xs md:text-sm font-bold mt-1 w-full truncate">
                         {webnovel.user.nickname}

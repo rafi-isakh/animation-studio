@@ -64,7 +64,9 @@ const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: We
                             elementId={webnovel.id.toString()} 
                             elementType='webnovel' 
                             elementSubtype="title" 
-                            classParams="text-md md:text-lg w-64 md:max-w-32 lg:max-w-48 break-words" 
+                            classParams="text-[12px] md:text-base w-64 md:max-w-32 lg:max-w-48 break-words" 
+
+                            // text-[12px] md:text-base font-medium line-clamp-2 w-full"
                         />
                         <p className="text-xs md:text-sm font-bold flex md:flex-row flex-col items-center">
                             {webnovel.user.nickname}

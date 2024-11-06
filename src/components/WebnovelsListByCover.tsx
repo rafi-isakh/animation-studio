@@ -61,30 +61,33 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
            
-             <div className='md:px-1 px-2'>
+             <div className='md:px-5 px-2 m-5'>
                   {/* {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
                  } */}
-                  <h1 className='text-left text-xl md:text-xl font-extrabold'>
+                  <h1 className='flex flex-row justify-between text-left text-xl font-extrabold mb-7'>
                    {/* 실시간 인기작 추천 */}
                    {phrase(dictionary, "popularWebnovels", language)}
-                 </h1>
+                    <span className="text-gray-400 text-[14px] md:block hidden">
+                        {phrase(dictionary, "more", language)}
+                    </span>
 
-            </div>
-           
-            <div 
-                ref={scrollRef}
-                className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-                {webnovelsToShow
-                    .sort((a, b) => sortByFn(a, b, sortBy))
-                    .map((item, index) => (
-                        <div className="" key={index}>
-                            <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
-                        </div>
-                    ))}
-            </div>
+                  </h1>
+
+                  <div 
+                    ref={scrollRef}
+                    className="flex overflow-x-auto no-scrollbar scroll-smooth md:gap-4 gap-0 "
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                     >
+                    {webnovelsToShow
+                        .sort((a, b) => sortByFn(a, b, sortBy))
+                        .map((item, index) => (
+                            <div key={index}>
+                                <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
+                            </div>
+                        ))}
+                   </div>
+              </div>
             {/* Right Arrow */}
             <button 
                 onClick={() => scroll('right')}

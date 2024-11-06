@@ -122,11 +122,11 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         swipeToSlide: true,
         infinite: true,
         speed: 300,
-        autoplaySpeed: 6000,
+        autoplaySpeed: 3000,
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: '32px',
+        centerPadding: '62px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -152,11 +152,12 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             <div className='flex flex-col relative'>
                 <Slider {...settings}>
                     {items.map((item, index) => (
-                        <div key={index} className="px-2 md:px-4 slide-item">
+                          <div key={index} className={`carousel-slide px-2 md:px-4 ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
                                 <Link href={getHref(index)}>
+                                   <div className="slide-content">
                                     <Image 
-                                        className="object-cover object-center rounded-xl" 
+                                        className="object-cover object-center rounded-xl transition-all duration-300" 
                                         src={getImageURL(item.image)} 
                                         fill
                                         alt={item.image}
@@ -185,10 +186,13 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                             />
 
                                             <div className='category'>
-                                                <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>{getGenre(index)}</span>
+                                                <span className='text-[10px] w-20 rounded-xl text-white bg-purple-500 px-2 py-1 mr-1 no-outlined-text'>
+                                                    {getGenre(index)}
+                                                </span>
                                             </div>
                                         </div>
-                                    </div>
+                                     </div>
+                                  </div>
                                 </Link>
                             </div>
                         </div>
@@ -196,19 +200,48 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                 </Slider>
             </div>
             <style jsx global>
-                {`
+            {`
+                  
+                    .carousel-slide {
+                        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+                        
+                    }
 
-                .slider-container .slick-slide:hover {
-                    cursor: pointer;
-                }
+                    .slide-content img {
+                         border-radius: 0.75rem;
+                    }
+                     .active-slide img {
+                         border-radius: 0.75rem !important;
+                     }
 
-                .outlined-text {
-                    text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
-                }
+                    .active-slide {
+                      
+                        opacity: 1;
+                        z-index: 2;
+                        border-radius: 0.75rem;
+                    }
+ 
+                    .inactive-slide {
+                        transform: scale(0.95);
+                        opacity: 0.5;
+                    } 
 
-                .no-outlined-text {
-                    text-shadow: none;
-                }
+                    .slide-content {
+                        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+                    }
+                    .carousel-slide:hover .slide-content {
+                        opacity: 0.8;
+                    }
+                    .active-slide:hover .slide-content {
+                        opacity: 1;
+                    }
+                    .outlined-text {
+                        text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
+                    }
+                    .no-outlined-text {
+                        text-shadow: none;
+                    }
                 `}
             </style>
         </div>

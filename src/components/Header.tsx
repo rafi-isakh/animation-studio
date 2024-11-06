@@ -398,6 +398,19 @@ const Header = () => {
                                                     </p>
                                               
                                                 </div>
+                                                <div>
+                                                  <p className='text-gray-500 text-md'>
+                                                      {/* keywords, genre */}
+                                                      {phrase(dictionary, "popularSearch", language)}
+                                                </p>
+                                                    {/* popular search list */}
+                                                    <p className='text-gray-500 text-sm mt-10 mb-10 text-center'> 
+                                                        {/* 인기 검색어가 없습니다. */}
+                                                        {phrase(dictionary, "noPopularSearch", language)}
+                                                    </p>
+                                              
+                                                </div>
+
                                             </div>
                                         </div>
                                     )}

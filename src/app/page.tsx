@@ -45,7 +45,13 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <ApplyCreatorBanner />
             <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             {/* keywords list */}
-            <KeywordsComponent />
+            <div className='relative max-w-screen-xl mx-auto px-4 mt-6 mb-20'>
+                <div className='flex flex-row justify-between text-xl md:text-xl p-2 font-extrabold'>
+                        <h1> 키워드 별로 보기 </h1>
+                        <span className='text-gray-400 text-[14px]'>더 보기</span>
+                </div>
+                <KeywordsComponent />
+            </div>
         
             {/* webnovels list by ranking */}
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />

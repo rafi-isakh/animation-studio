@@ -18,7 +18,8 @@ import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { style } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
-
+import LottieLoader from '@/components/LottieLoader';
+import animationData from '@/assets/N_logo_loader.json'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -105,8 +106,14 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     }
     if (loading) {
         return (
-            <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
-                <CircularProgress color='secondary' />
+            <div role="status" className={`flex items-center justify-center min-h-screen`}> 
+            {/* w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8  */}
+                <LottieLoader 
+                    animationData={animationData}
+                    width="w-32"
+                    centered={true}
+                    pulseEffect={true}
+                />
             </div>
         )
     } else if (atLeastOneWebnovel) {

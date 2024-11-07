@@ -19,6 +19,8 @@ import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 
 
 
+
+
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');

@@ -8,7 +8,7 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
   // must do this because profile can be any user's
 
   async function getUser() {
-    const response = await fetch(`/api/get_user_by_id?id=${id}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_by_id?id=${id}`);
     if (!response.ok) {
       const errorData = await response.json();
       console.error(errorData);
@@ -20,7 +20,7 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
 
   async function fetchNovels(user: User) {
     const decryptedEmail = await decrypt(user.email); // necessary because email comes from user.email, which is retrieved from db (encrypted)
-    const response = await fetch(`/api/get_webnovels_by_email?email=${decryptedEmail}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email?email=${decryptedEmail}`);
     if (!response.ok) {
       const errorData = await response.json();
       console.error(errorData);

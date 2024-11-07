@@ -1,5 +1,5 @@
 export async function decrypt(str: string) {
-    const decryptedStr = await fetch(`/api/decrypt`, {
+    const decryptedStr = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/decrypt`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -80,6 +80,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
 
+
   return (
     <html>
       <body>
@@ -92,10 +93,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   <Suspense>
                     <Header />
                   </Suspense>
-                  <Margin/>
-                  <div className={`children min-h-screen pt-28 md:pt-24 mb-4`}>
+                  <Margin>
                     {children}
-                  </div>
+                  </Margin>
+                  {/* 
+                  <div className={`children min-h-screen`}>  
+                   // Header bottom margin :: pt-28 md:pt-24 mb-4
+                    {children}
+                  </div> 
+                 */}
                 </div>
               </DeviceProvider>
             </UserProvider>

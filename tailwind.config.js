@@ -14,7 +14,8 @@ module.exports = {
     flowbite.content(),
   ],
   theme: {
-    extend: {},
+    extend: {
+             },
     container: {
       center: true,
     },

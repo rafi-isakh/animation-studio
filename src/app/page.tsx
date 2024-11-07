@@ -13,6 +13,7 @@ import Promotion from '@/components/Promotion';
 import KeywordsComponent from '@/components/KeywordsComponent';
 import WebnovelsByTrends from '@/components/WebnovelsByTrends';
 import GenresList from '@/components/GenresList';
+import CarouselComponent from '@/components/CarouselComponent';
 
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
@@ -37,71 +38,40 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
+
     return (
         <div>
             {showPreloader && <Preloader />}
             
             {/* Top banner : applying a creator */}
-            <ApplyCreatorBanner />
-            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-            {/* keywords list */}
-            <KeywordsComponent />
-        
-            {/* webnovels list by ranking */}
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-         
-       
-            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+            {/* <ApplyCreatorBanner /> */}
+            {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
+              <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
+            {/* </div> */}
+            {/* Popular Webnovels */}
+            <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+            {/* Webnovels by trends */}
+            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
 
-            <div className='mt-10'>
-            <WebnovelsListByRecommendation searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+
+           
+             {/* webnovels list by ranking */}
+            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
+           
+           
+              {/* only Toonyz */}
+            <div className='bg-black w-full mx-auto'>  {/* bg-black */}
+                <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+               
             </div>
             
-           
-
-            <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-
-            {/* Editor picks part */}
-            <WebnovelsListByEditor searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-           
+          
+         
             {/* Event promotion part */}
             <Promotion />
-
             {/* Footer Banner : instagram promotion image */}
-            <div className='flex justify-center self-center'>
-                <Link href='https://www.instagram.com/stelland_official/'>
-                <Image 
-                    src='/footer_banner.svg' 
-                    alt='Toonyz event banner'
-                    sizes="cover"
-                    width={0}
-                    height={0}
-                    className='md:block lg:block hidden hover:opacity-[0.8]'
-                    style={{
-                        width: '1280px',
-                        height: 'auto'
-                    }}
-                    />
-                <Image 
-                    src='/footer_banner_mobile.svg' 
-                    alt='Toonyz event banner'
-                    sizes="cover"
-                    width={0}
-                    height={0}
-                    className='md:hidden lg:hidden hover:opacity-[0.8]'
-                    style={{
-                        width: '1280px',
-                        height: 'auto'
-                    }}
-                    />
-                </Link>
-                </div>
            
-             {/* genres list */}
-             {/* <GenresList />            */}
-           
-            {/* Footer */}
-            
+            {/* Footer */}            
             <Footer />
             {/* Bookmark button : it only displys mobile screen */}
             <BookmarkButton />

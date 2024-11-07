@@ -51,10 +51,8 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
     } else {
     }
 
-   
-
     return (
-        <div className='relative max-w-screen-xl mx-auto px-4 group'>
+        <div className='relative max-w-screen-xl mx-auto group m-10'>
             {/* Left Arrow */}
             <button 
                 onClick={() => scroll('left')}
@@ -62,26 +60,34 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
-            <div className='text-2xl md:text-xl p-2 font-bold'>
-                {/* {(webnovels.length > 0) ?
+           
+             <div className='md:px-5 px-2 m-5'>
+                  {/* {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
-                } */}
-                  <h1 className='text-left font-extrabold'>오직 투니즈에서만!</h1>
+                 } */}
+                  <h1 className='flex flex-row justify-between text-left text-xl font-extrabold mb-7'>
+                   {/* 실시간 인기작 추천 */}
+                   {phrase(dictionary, "popularWebnovels", language)}
+                    <span className="text-gray-400 text-[14px] md:block hidden">
+                        {phrase(dictionary, "more", language)}
+                    </span>
 
-            </div>
-            <div 
-                ref={scrollRef}
-                className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4 py-4"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-                {webnovelsToShow
-                    .sort((a, b) => sortByFn(a, b, sortBy))
-                    .map((item, index) => (
-                        <div className="px-2 md:px-4" key={index}>
-                            <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
-                        </div>
-                    ))}
-            </div>
+                  </h1>
+
+                  <div 
+                    ref={scrollRef}
+                    className="flex overflow-x-auto no-scrollbar scroll-smooth md:gap-4 gap-0 "
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                     >
+                    {webnovelsToShow
+                        .sort((a, b) => sortByFn(a, b, sortBy))
+                        .map((item, index) => (
+                            <div key={index}>
+                                <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
+                            </div>
+                        ))}
+                   </div>
+              </div>
             {/* Right Arrow */}
             <button 
                 onClick={() => scroll('right')}

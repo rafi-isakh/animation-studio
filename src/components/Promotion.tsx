@@ -1,11 +1,17 @@
 "use client"
-import React, {useRef} from 'react';
+import React, { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { phrase } from '@/utils/phrases';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import PromotionBannerComponent from '@/components/PromotionBannerComponent'
 
 const Promotion: React.FC = () => {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { dictionary, language } = useLanguage();
+
+
     
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
@@ -19,10 +25,8 @@ const Promotion: React.FC = () => {
   
    return (
     <>
-     
-     <div className='flex flex-col relative max-w-screen-xl group px-4 justify-center items-center mx-auto md:mb-6 mb-6'>
+     <div className='flex flex-col relative max-w-screen-xl group px-4 justify-center items-center mx-auto md:mb-6'>
                 {/* relative max-w-screen-xl mx-auto px-4 group  */}
-
                   {/* Left Arrow */}
                <button 
                 onClick={() => scroll('left')}
@@ -32,7 +36,9 @@ const Promotion: React.FC = () => {
                </button>
 
               <h1 className='font-extrabold text-xl text-left justify-start self-start mt-10 mb-5'>
-                 진행중인 이벤트
+                 {/* 진행중인 이벤트 */}
+                 {phrase(dictionary, "currentPromotion", language)}
+
                 </h1>
                 <div className="flex flex-row gap-5">
                       <div className='flex flex-col gap-2'>
@@ -81,6 +87,10 @@ const Promotion: React.FC = () => {
               </button>
 
             </div>
+
+            <div className='flex flex-col justify-center items-center content-center'>
+              <PromotionBannerComponent />
+           </div>
     </>
   );
 };

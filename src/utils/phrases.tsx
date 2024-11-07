@@ -22,20 +22,12 @@ export const langPairList = [
         name: '中國語（簡體）'
     },
     {
-        code: 'th',
-        name: 'ภาษาไทย'
+        code: 'fr',
+        name: 'Français'
     },
     {
-        code: 'id',
-        name: 'Bahasa Indonesia'
-    },
-    {
-        code: 'vi',
-        name: 'Tiếng Việt'
-    },
-    {
-        code: 'ar',
-        name: 'العربية'
+        code: 'es',
+        name: 'Español'
     }
 ]
 

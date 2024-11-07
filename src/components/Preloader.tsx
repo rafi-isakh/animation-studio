@@ -23,7 +23,6 @@ const style = {
     alignItems: 'center',
     // bgcolor: 'rgba(255, 255, 255, 0.9)', // White background color
     bgcolor: 'rgba(0, 0, 0, 0.9)', // Black
-    zIndex: 1000,
 };
 
 export const opacity = {
@@ -93,7 +92,7 @@ export default function Preloader() {
         >
 
             <Box sx={style}>
-                <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col justify-center items-center'>
+                <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col md:justify-center space-y-0 md:space-y-8 items-center'>
 
                     <Image
                         src="/N_Logo.png"
@@ -102,6 +101,7 @@ export default function Preloader() {
                         height={0}
                         sizes="100vh"
                         style={{
+                            zIndex: 50,
                             marginTop: '15px',
                             height: '35px',
                             width: '35px',
@@ -116,7 +116,6 @@ export default function Preloader() {
                         {words[index]}
                     </motion.p>
 
-
                     <p className='text-white dark:text-white'>
                         언어를 선택해 주세요.
                     </p>
@@ -124,18 +123,24 @@ export default function Preloader() {
                     {/*Language menu*/}
                     <li className="py-2 relative list-none">
                         <div ref={languageMenuRef}>
-                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 rounded-md border border-gray-400 flex items-center justify-start md:justify-between w-full text-white focus:border-pink-600 md:px-4 md:py-3 md:border md:hover:border-pink-600 md:hover:bg-transparent md:p-0 md:w-auto dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
-                                <i className="fa-solid fa-globe text-white dark:text-white"></i>
-                                <p className='ml-2'>{currentLanguage && currentLanguage}</p>
-                                {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
-                                <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                                </svg>
+                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 w-36 rounded-md border border-gray-400 flex items-center justify-start md:justify-between text-white focus:border-pink-600 md:px-4 md:py-3 md:border md:hover:border-pink-600 md:hover:bg-transparent dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
+                                <div className='flex justify-between w-full'>
+                                    <div className='flex'>
+                                        <i className="fa-solid fa-globe self-center text-white dark:text-white"></i>
+                                        <p className='ml-2'>{currentLanguage && currentLanguage}</p>
+                                    </div>
+                                    {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
+                                    <div className='self-center'>
+                                        <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </button>
                         </div>
                         {isLanguageDropdownOpen && (
-                            <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 z-10 font-normal bg-black divide-y divide-gray-100 border-gray-400 w-full md:w-44 dark:divide-gray-600`}>
-                                <ul className="py-2 text-sm border rounded-md border-gray-400 text-gray-100" aria-labelledby="dropdownLargeButton">
+                            <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 font-normal bg-black divide-y divide-gray-100 border-gray-400 dark:divide-gray-600`}>
+                                <ul className="py-2 text-sm border rounded-md border-gray-400 w-36 text-gray-100" aria-labelledby="dropdownLargeButton">
                                     {langPairList.map((langPair, index) => (
                                         <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
                                             <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">

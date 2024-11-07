@@ -1,9 +1,13 @@
-'use client'
-import LottieLoader from '@/components/LottieLoader';
+'use client';
 import dynamic from 'next/dynamic';
 
-// Import the animation dynamically
-const animationData = require('@/assets/N_logo_loader.json');
+// Import the LottieLoader dynamically
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+  ssr: false,
+});
+
+// Import the animation data
+import animationData from '@/assets/N_logo_loader.json';
 
 export default function Loading() {
   return (

@@ -107,7 +107,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     if (loading) {
         return (
             <div role="status" className={`flex items-center justify-center min-h-screen`}> 
-            {/* w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8  */}
                 <LottieLoader 
                     animationData={animationData}
                     width="w-32"
@@ -174,7 +173,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                      </div>
 
                        <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
-
                         {/* Webnovel info and details */}   
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
 
@@ -211,12 +209,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             </ThemeProvider>
         )
     } else {
-        return null;
-        // return (
-        //     <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
-        //         {phrase(dictionary, "noWebnovelsFound", language)}
-        //     </div>
-        // )
+        // return null;
+        return (
+            <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                {phrase(dictionary, "noWebnovelsFound", language)}
+            </div>
+        )
     }
 };
 

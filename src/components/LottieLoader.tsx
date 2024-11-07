@@ -1,4 +1,5 @@
 'use client'
+import React from 'react';
 import Lottie, { LottieComponentProps } from "lottie-react";
 import { twMerge } from "tailwind-merge";
 
@@ -13,7 +14,7 @@ interface LottieLoaderProps {
   lottieProps?: Partial<LottieComponentProps>;
 }
 
-export default function LottieLoader({
+const LottieLoader: React.FC<LottieLoaderProps> = ({ 
   animationData,
   width = "w-24",
   pulseEffect = true,
@@ -22,7 +23,7 @@ export default function LottieLoader({
   centered = true,
   className = "",
   lottieProps = {}
-}: LottieLoaderProps) {
+}: LottieLoaderProps) => {
   const containerClasses = twMerge(
     centered && "absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2",
     className
@@ -62,3 +63,6 @@ export default function LottieLoader({
     </div>
   );
 }
+
+
+export default LottieLoader;

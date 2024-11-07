@@ -38,58 +38,38 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
+
     return (
         <div>
             {showPreloader && <Preloader />}
             
             {/* Top banner : applying a creator */}
-            <ApplyCreatorBanner />
-            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-
+            {/* <ApplyCreatorBanner /> */}
+            {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
+              <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
+            {/* </div> */}
             {/* Popular Webnovels */}
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             {/* Webnovels by trends */}
             <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
 
+
+           
              {/* webnovels list by ranking */}
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
            
-            {/* only Toonyz */}
-            <div className='bg-black w-full mx-auto'>
+           
+              {/* only Toonyz */}
+            <div className='bg-black w-full mx-auto'>  {/* bg-black */}
                 <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+               
             </div>
-
+            
+          
+         
             {/* Event promotion part */}
             <Promotion />
             {/* Footer Banner : instagram promotion image */}
-            <div className='flex justify-center self-center'>
-                <Link href='https://www.instagram.com/stelland_official/'>
-                <Image 
-                    src='/footer_banner.svg' 
-                    alt='Toonyz event banner'
-                    sizes="cover"
-                    width={0}
-                    height={0}
-                    className='md:block lg:block hidden hover:opacity-[0.8]'
-                    style={{
-                        width: '1280px',
-                        height: 'auto'
-                    }}
-                    />
-                <Image 
-                    src='/footer_banner_mobile.svg' 
-                    alt='Toonyz event banner'
-                    sizes="cover"
-                    width={0}
-                    height={0}
-                    className='md:hidden lg:hidden hover:opacity-[0.8]'
-                    style={{
-                        width: '1280px',
-                        height: 'auto'
-                    }}
-                    />
-                </Link>
-                </div>
            
             {/* Footer */}            
             <Footer />

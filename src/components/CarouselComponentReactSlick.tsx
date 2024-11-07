@@ -95,22 +95,22 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
 
     function getGenre(index: number) {
         if (index == 0) {
-            return 'Romance';
+            return ['Romance', 'ongoing', 'up'];
         } else if (index == 1) {
-            return 'Fantasy';
+            return ['Fantasy', 'ongoing', 'up'];
         } else if (index == 2) {
-            return 'Fantasy';
+            return ['Fantasy', 'new', 'free'];
         } else if (index == 3) {
-            return 'Sci-Fi';
+            return ['Sci-Fi', 'new', 'free'];
         } else if (index == 4) {
-            return 'Fantasy'
+            return ['Fantasy', 'new', 'up']
         }
-        return '';
+        return [];
     }
 
     function breakKeepOrNot() {
         if (language == 'ko' || language == "ar" || language == "th" || language == "vi" || language == 'en' || language == 'id') {
-            return 'break-keep';
+            return 'break-keep ';
         } else if (language == 'ja' || language == 'zh-CN' || language == 'zh-TW') {
             return '';
         }
@@ -155,7 +155,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                           <div key={index} className={`carousel-slide px-2 md:px-4 ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
                                 <Link href={getHref(index)}>
-                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[400px]">
+                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px]">
                                     <Image 
                                         className="object-cover object-center rounded-xl transition-all duration-300" 
                                         src={getImageURL(item.image)} 
@@ -164,35 +164,40 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                         placeholder="blur" 
                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
-                                    <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-4 text-white outlined-text'>
-                                        <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
+                                     {/* Overlay */}
+                                    <div className="absolute rounded-xl bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent text-white">
+                                        <div className="flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32">
                                             <OtherTranslateComponent
                                                 key={`title-${index}-${language}`}
                                                 content={item.title}
                                                 elementId={item.id.toString()}
-                                                classParams={`${breakKeepOrNot()} md:text-4xl lg:text-4xl text-md !min-[400px]:text-[12px] font-extrabold px-2 outlined-text`}
+                                                classParams={`${breakKeepOrNot()} md:text-2xl lg:text-2xl text-xl !min-[400px]:text-[12px] font-extrabold px-2`}
                                                 elementType={'carouselItem'}
-                                                elementSubtype='title'
+                                                elementSubtype="title"
                                                 showLoading={false}
                                             />
-                                            <OtherTranslateComponent
-                                                key={`hook-${index}-${language}`}
-                                                content={item.hook}
-                                                elementId={item.id.toString()}
-                                                classParams={`${breakKeepOrNot()} md:text-xl lg:text-xl !min-[400px]:text-[12px] font-bold px-2 p-4 outlined-text`}
-                                                elementType={'carouselItem'}
-                                                elementSubtype='hook'
-                                                showLoading={false}
-                                            />
-
-                                            <div className='category'>
-                                                <span className='text-[10px] w-20 rounded-xl text-white bg-purple-500 px-2 py-1 mr-1 no-outlined-text'>
-                                                    {getGenre(index)}
+                                    
+                                          <div className="ml-2 md:mt-3 mt-2">
+                                               
+                                                <OtherTranslateComponent
+                                                    key={`hook-${index}-${language}`}
+                                                    content={item.hook}
+                                                    elementId={item.id.toString()}
+                                                    classParams={`${breakKeepOrNot()} md:text-sm lg:text-xl !min-[400px]:text-[12px]`}
+                                                    elementType={'carouselItem'}
+                                                    elementSubtype="hook"
+                                                    showLoading={false}
+                                                />
+                                            
+                                            {getGenre(index).map((el: string, idx: number) => (
+                                                <span key={idx} className="text-[8px] w-20 rounded-md border border-purple-500 text-purple-500 bg-transparents px-1 py-[1px] mr-1 no-outlined-text">
+                                                    {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
                                                 </span>
-                                            </div>
-                                        </div>
+                                            ))}
+                                         </div>
+                                       </div>
                                      </div>
-                                  </div>
+                                   </div>
                                 </Link>
                             </div>
                         </div>

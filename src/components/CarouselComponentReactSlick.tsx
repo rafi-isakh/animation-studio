@@ -15,8 +15,8 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
-// ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] })
 const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: SlickCarouselItem[], webnovels: Webnovel[] },) => {
 
     const [key1, setKey1] = useState(0);
@@ -42,16 +42,17 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
     }, [language])
 
     function SampleNextArrow(props: any) {
-        const { className, style, onClick } = props;
+        const { onClick } = props;
         return (
             <>
                 {
                     isMediumScreen ?
-                        <div
-                            className={className}
-                            style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.2rem black)' }}
+                        <button
+                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
                             onClick={onClick}
-                        />
+                        >
+                             <ChevronRight className="w-6 h-6 text-gray-700" />
+                        </button>
                         :
                         <></>
                 }
@@ -59,16 +60,17 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         );
     }
     function SamplePrevArrow(props: any) {
-        const { className, style, onClick } = props;
+        const { onClick } = props;
         return (
             <>
                 {
                     isMediumScreen ?
-                        <div
-                            className={className}
-                            style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.2rem black)' }}
-                            onClick={onClick}
-                        />
+                    <button 
+                        onClick={onClick}
+                        className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-gray-700" />
+                   </button>
                         :
                         <></>
                 }
@@ -140,7 +142,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
     };
 
     return (
-        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full`}>
+        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
             <div className='flex flex-col relative'>
                 <Slider {...settings}>
                     {items.map((item, index) => (

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import WebnovelComponentSquare from "@/components/WebnovelComponentSquare"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import moment from 'moment';
 import Image from 'next/image';
 
@@ -12,89 +13,32 @@ export const premium = [23, 19, 21, 22, 20, 24]
 export const free = [29, 28, 25]
 
 const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
-    let genre = searchParams.genre;
-    let version = searchParams.version;
+    const genre = searchParams.genre as string | undefined;
+    const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
 
     useEffect(() => {
         for (const novel of webnovels) {
-            if (premium.includes(novel.id)) {
-                novel.version = "premium"
-            }
-            else {
-                novel.version = "free"
-            }
+            novel.version = premium.includes(novel.id) ? "premium" : "free";
         }
         const _webnovelsToShow = webnovels
-            .filter(item => filter_by_genre(item))
-            .filter(item => filter_by_version(item))
+            .filter(item => filter_by_genre(item, genre))
+            .filter(item => filter_by_version(item, version))
+            .sort((a, b) => sortByFn(a, b, sortBy))
 
-        setWebnovelsToShow(_webnovelsToShow)
-    }, [version, genre])
+        setWebnovelsToShow(_webnovelsToShow);
+    }, [version, genre]);
 
-    let text = '';
-    if (sortBy == 'views') {
-        text = 'popularWebnovels'
-    } else if (sortBy == 'likes') {
-        text = 'likedWebnovels'
-    } else if (sortBy == 'date') {
-        text = 'latestWebnovels'
-    }
+
+    const text = sortBy === 'views' ? 'popularWebnovels' :
+                 sortBy === 'likes' ? 'likedWebnovels' :
+                 sortBy === 'date' ? 'latestWebnovels' : '';
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
         throw new Error("there should be only one genre param")
     } else {
-    }
-
-    const filter_by_genre = (item: Webnovel) => {
-        if (genre == "all" || genre == null) {
-            return item;
-        }
-        else {
-            if (genre == item.genre) {
-                return item;
-            }
-        }
-    }
-
-    const filter_by_version = (item: Webnovel) => {
-        if (version == item.version) {
-            return item;
-        }
-    }
-
-    const sortByFn = (a: Webnovel, b: Webnovel): number => {
-        if (sortBy == 'views') {
-            return b.views - a.views
-        } else if (sortBy == 'likes') {
-            return b.upvotes - a.upvotes
-        } else if (sortBy == 'date') {
-            let latestDateA = new Date(0);
-            let latestDateB = new Date(0);
-            for (let i = 0; i < a.chapters.length; i++) {
-                let dateA = moment(a.chapters[i].created_at).toDate();
-                if (dateA > latestDateA) {
-                    latestDateA = dateA;
-                }
-            }
-            for (let i = 0; i < b.chapters.length; i++) {
-                let dateB = moment(b.chapters[i].created_at).toDate();
-                if (dateB > latestDateB) {
-                    latestDateB = dateB;
-                }
-            }
-            if (latestDateA > latestDateB) {
-                return -1;
-            } else if (latestDateA == latestDateB) {
-                return 0;
-            } else {
-                return 1;
-            }
-        } else {
-            return 0;
-        }
     }
 
 
@@ -117,15 +61,15 @@ const WebnovelsListByEditor = ({ searchParams, sortBy, webnovels }: { searchPara
                             className='rounded-[25%] border border-gray-200'
                             /> 
                         </div>
-                        <p>투니즈 에디터가 핸드픽한 작품!</p>
+                        <p>투니즈 에디터가 핸드 픽한 작품!</p>
                     </h1>
 
-                    <p className='text-sm'> 투니즈 에디터가 한땀 한땀 핸드픽한 작품들을 만나보세요. </p>
+                    <p className='text-sm'> 투니즈 에디터가 한땀 한땀 핸드 픽한 작품들을 만나보세요. </p>
                     <button className='bg-pink-600 text-white font-extrabold px-6 py-3 rounded-xl text-md mt-5'>Explore more</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3">
                     {webnovelsToShow
-                        .sort(sortByFn)
+                        .sort((a, b) => sortByFn(a, b, sortBy))
                         .map((item, index) => (
                             <div className=" " key={index}>
                                 <WebnovelComponentSquare webnovel={item} index={index} ranking={true} />

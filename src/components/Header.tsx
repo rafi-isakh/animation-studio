@@ -253,10 +253,10 @@ const Header = () => {
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
                                 <Link href="/?version=free">
-                                    <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "webnovels", language)}</p>
+                                    <p className={`${isActive('/') ? 'text-white bg-pink-600 p-2 rounded-xl font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl p-2 text-black hover:font-bold`}>{phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
                                 <Link href="/studio">
-                                    <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>{phrase(dictionary, "studio", language)}</p>
+                                    <p className={`${isActive('/studio') ? 'text-white bg-pink-600 p-2 rounded-xl font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl p-2 text-black hover:font-bold`}>{phrase(dictionary, "studio", language)}</p>
                                 </Link>
                             </div>
                         </div>

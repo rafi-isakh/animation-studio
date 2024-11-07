@@ -1,13 +1,14 @@
 import EmptyProfileComponent from '@/components/EmptyProfileComponent';
 import ProfileComponent from '@/components/ProfileComponent';
 import { User, Webnovel } from '@/components/Types';
+import { decrypt } from '@/utils/cryptography';
 import { useEffect, useState } from 'react';
 
 export default async function ViewProfile({ params: { id }, }: { params: { id: string } }) {
   // must do this because profile can be any user's
 
   async function getUser() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byid?id=${id}`);
+    const response = await fetch(`/api/get_user_by_id?id=${id}`);
     if (!response.ok) {
       const errorData = await response.json();
       console.error(errorData);
@@ -18,7 +19,8 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
   }
 
   async function fetchNovels(user: User) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${user.email}`);
+    const decryptedEmail = await decrypt(user.email); // necessary because email comes from user.email, which is retrieved from db (encrypted)
+    const response = await fetch(`/api/get_webnovels_by_email?email=${decryptedEmail}`);
     if (!response.ok) {
       const errorData = await response.json();
       console.error(errorData);

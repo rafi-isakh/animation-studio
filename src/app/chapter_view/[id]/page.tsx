@@ -55,12 +55,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [email])
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${id}`)
+        fetch(`/api/get_chapter_by_id?id=${id}`)
             .then(response => response.json())
             .then(data => {
                 setChapter(data);
                 setUpvotes(data.upvotes)
-                fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${data.webnovel_id}`)
+                fetch(`/api/get_webnovel_by_id?id=${data.webnovel_id}`)
                     .then(response2 => response2.json())
                     .then(data2 => {
                         setWebnovel(data2)

@@ -52,7 +52,7 @@ export default function Footer() {
                                 {language == 'ko' ? <>1111B S Governors Ave #23452 Dover, DE 19904, USA</> : <></>}
                             </p>
                             <p>
-                                hello@stelland.com
+                                hello@stelland.io
                             </p>
                         </div>
                     )}

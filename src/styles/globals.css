@@ -36,20 +36,18 @@
 }
 
 
-/* korean fonts */
-@import url('https://fonts.googleapis.com/css2?family=Moirai+One&display=swap');
+/* Define your dark mode styles */
+:root {
+  --foreground: #000;
+  --background: #fff;
+}
 
-@font-face {
-    font-family: "Moirai One";
-    src: url('https://fonts.googleapis.com/css2?family=Moirai+One&display=swap') format('woff2'),
-         url('https://fonts.googleapis.com/css2?family=Moirai+One&display=swap') format('woff');
-    font-weight: 400;
-    font-style: normal;
-  }
+.dark {
+  --foreground: #fff;
+  --background: #000;
+}
 
-.moirai-one-regular {
-    font-family: "Moirai One", system-ui;
-    font-weight: 400;
-    font-style: normal;
-  }
-  
+body {
+  color: var(--foreground);
+  background: var(--background);
+}

@@ -154,7 +154,7 @@ const PromotionBannerComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className='mt-10'>
+    <div className='mt-10 dark:text-black'>
       <SelectedComponent isHovered={isHovered} setIsHovered={setIsHovered} />
     </div>
   );

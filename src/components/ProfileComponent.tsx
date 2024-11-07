@@ -18,8 +18,6 @@ import { Box, Button, Modal } from '@mui/material';
 import { style } from '@/styles/ModalStyles';
 import { Book, Pencil, Heart } from 'lucide-react';
 
-
-
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
     const [introActive, setIntroActive] = useState<boolean>(true);
@@ -273,9 +271,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </div>
                 </div>
             </div>
-
-            
-
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
                 <Box sx={style}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>

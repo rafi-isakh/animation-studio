@@ -10,6 +10,8 @@ import { style } from '@/styles/ModalStyles';
 import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
 import { styled } from '@mui/system';
 import { usePathname, useRouter } from 'next/navigation';
+import { createEmailHash } from "@/utils/cryptography";
+import { useUser } from "@/contexts/UserContext";
 
 const StyledTableCell = styled(TableCell)({
     padding: '16px',
@@ -33,6 +35,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const date = new Date();
     const router = useRouter();
+    const { email } = useUser();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -65,73 +68,74 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
     }
 
     return (
-        <StyledTableContainer>
-            <Table aria-label="simple table">
-                <TableBody>
-                    {webnovel?.chapters && webnovel.chapters.length > 0 ? (
-                        webnovel.chapters
-                            .sort(sortFn)
-                            .map((chapter, index) => (
-                                <TableRow key={index}
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <StyledTableCell scope="row"
-                                        onClick={(e) => {
-                                            // Only navigate if the click didn't originate from the delete button
-                                            if (!(e.target as HTMLElement).closest('.delete-button')) {
-                                                router.push(`/chapter_view/${chapter.id}`);
-                                            }
-                                        }}>
-                                        <div className="flex flex-col space-y-4">
-                                            <div className="group/edit flex flex-row space-x-4 items-center transition ease-in-out duration-300 delay-150">
-                                                <h2 className="text-xl font-bold mx-2">{index + 1}</h2>
-                                                <div className="flex-1">
-                                                    <div className="flex flex-row space-x-4 mb-2">
-                                                        <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-64 md:max-w-128 truncate whitespace-nowrap" />
+        <>
+            <StyledTableContainer>
+                <Table aria-label="simple table">
+                    <TableBody>
+                        {webnovel?.chapters && webnovel.chapters.length > 0 ? (
+                            webnovel.chapters
+                                .sort(sortFn)
+                                .map((chapter, index) => (
+                                    <TableRow key={index}
+                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        <StyledTableCell scope="row"
+                                            onClick={(e) => {
+                                                // Only navigate if the click didn't originate from the delete button
+                                                if (!(e.target as HTMLElement).closest('.delete-button')) {
+                                                    router.push(`/chapter_view/${chapter.id}`);
+                                                }
+                                            }}>
+                                            <div className="flex flex-col space-y-4">
+                                                <div className="group/edit flex flex-row space-x-4 items-center transition ease-in-out duration-300 delay-150">
+                                                    <h2 className="text-xl font-bold mx-2">{index + 1}</h2>
+                                                    <div className="flex-1">
+                                                        <div className="flex flex-row space-x-4 mb-2">
+                                                            <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-64 md:max-w-128 truncate whitespace-nowrap" />
+                                                        </div>
+                                                        <div className="flex flex-row space-x-4 text-[10px]">
+                                                            <p>{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
+                                                            <p className='text-[10px]'><i className="fa-solid fa-eye"></i> {chapter.views}</p>
+                                                            <p className='text-[10px]'><i className="fa-regular fa-heart"></i> {chapter.upvotes}</p>
+                                                            <p className='text-[10px]'><i className="fas fa-comment-dots"></i> {chapter.comments.length}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-row space-x-4 text-[10px]">
-                                                        <p>{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
-                                                        <p className='text-[10px]'><i className="fa-solid fa-eye"></i> {chapter.views}</p>
-                                                        <p className='text-[10px]'><i className="fa-regular fa-heart"></i> {chapter.upvotes}</p>
-                                                        <p className='text-[10px]'><i className="fas fa-comment-dots"></i> {chapter.comments.length}</p>
-
-                                                    </div>
+                                                    {/* delete button */}
+                                                    <button className="transition ease-in-out duration-300 delay-150 hover:bg-gray-200 p-2 rounded-md group-hover/edit:block hidden"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setShowDeleteModal(true);
+                                                            setDeleteChapterId(chapter.id);
+                                                        }}>
+                                                        {webnovel?.user.email_hash === createEmailHash(email) && <i className="fa-solid fa-trash"></i>}
+                                                    </button>
+                                                    {/* delete button */}
                                                 </div>
-                                                {/* delete button */}
-                                                <button className="transition ease-in-out duration-300 delay-150 hover:bg-gray-200 p-2 rounded-md group-hover/edit:block hidden"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setShowDeleteModal(true);
-                                                        setDeleteChapterId(chapter.id);
-                                                    }}>
-                                                    <i className="fa-solid fa-trash"></i>
-                                                </button>
-                                                {/* delete button */}
                                             </div>
-                                        </div>
-                                    </StyledTableCell>
-                                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                                        <Box sx={style}>
-                                            <div className='flex flex-col space-y-4 items-center justify-center'>
-                                                <p className='text-lg font-bold'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
-                                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                                            </div>
-                                        </Box>
-                                    </Modal>
-                                </TableRow>
-                            ))
-                    ) : (
-                        <TableRow>
-                            <div className="w-full flex justify-center">
-                                <div className="py-8 text-gray-500 text-sm">
-                                    {phrase(dictionary, "noChaptersAvailable", language)}
+                                        </StyledTableCell>
+                                    </TableRow>
+                                ))
+                        ) : (
+                            <TableRow>
+                                <div className="w-full flex justify-center">
+                                    <div className="py-8 text-gray-500 text-sm">
+                                        {phrase(dictionary, "noChaptersAvailable", language)}
+                                    </div>
                                 </div>
-                            </div>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </StyledTableContainer>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </StyledTableContainer>
+            <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                <Box sx={style}>
+                    <div className='flex flex-col space-y-4 items-center justify-center'>
+                        <p className='text-lg font-bold'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
+                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
+                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                    </div>
+                </Box>
+            </Modal>
+        </>
     )
 }
 export default ListOfChaptersComponent;

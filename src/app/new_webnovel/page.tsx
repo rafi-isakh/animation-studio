@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 async function getWebnovels() {
     const session = await auth();
     const email = session?.user.email;
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`);
+    const response = await fetch(`/api/get_webnovels_by_email?email=${email}`);
     if (!response.ok) {
         throw new Error(`User ${email} not found`);
     }

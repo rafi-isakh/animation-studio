@@ -1,7 +1,7 @@
 "use client"
 
 import { style } from "@/styles/ModalStyles";
-import { Button } from "@mui/material";
+import { Button, DialogProps } from "@mui/material";
 import { phrase } from "@/utils/phrases";
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
@@ -13,8 +13,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function PleaseLoginModal({ open, setOpen }: { open: boolean, setOpen: (open: boolean) => void }) {
     const { dictionary, language } = useLanguage();
     const router = useRouter();
+    const handleClose: DialogProps["onClose"] = (event, reason) => {
+        if (reason !== "backdropClick") {
+            setOpen(false);
+            router.push('/signin');
+        }
+    }
     return (
-        <Modal open={open} onClose={() => setOpen(false)}>
+        <Modal open={open} onClose={handleClose}>
             <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                     {phrase(dictionary, "pleaseLogin", language)}

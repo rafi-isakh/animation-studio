@@ -25,7 +25,7 @@ async function getWebnovel(id: string | string[] | undefined) {
 
 async function getUserWebnovels(email: string) {
     const decryptedEmail = await decrypt(email); // necessary because email comes from webnovel.user.email, which is retrieved from db (encrypted)
-    const response = await fetch(`/api/get_webnovels_by_email?email=${decryptedEmail}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email?email=${decryptedEmail}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;

@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { getCloudfrontURL } from '@/utils/cloudfront';
 import { Play } from 'lucide-react';
 
 interface CurriculumCardProps {
@@ -18,86 +17,111 @@ interface CurriculumCardProps {
 
 const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
     const handleVideoClick = () => {
-      const videoElement = <video src={data.file_src} controls autoPlay loop />;
-      data.onVideoClick(videoElement);
+        const videoElement = <video src={data.file_src} controls autoPlay loop />;
+        data.onVideoClick(videoElement);
     };
 
-  return (
-    <div className="group bg-transparent col-span relative h-[12vw]">
-      <img 
-      src={data.image} alt="Movie" draggable={false} className="
-        cursor-pointer
-        object-cover
-        transition
-        duration
-        shadow-xl
-        rounded-md
-        group-hover:opacity-90
-        sm:group-hover:opacity-0
-        delay-300
-        w-full
-        h-[12vw]
-      " />
-      <div className="
-        opacity-0
-        absolute
-        top-0
-        transition
-        duration-200
-        z-10
-        invisible
-        sm:visible
-        delay-300
-        w-full
-        scale-0
-        group-hover:scale-110
-        group-hover:-translate-y-[6vw]
-        group-hover:translate-x-[2vw]
-        group-hover:opacity-100
-      ">
-        <img 
-        src={data.image} alt="Movie" draggable={false} className="
-          cursor-pointer
-          object-cover
-          transition
-          duration
-          shadow-xl
-          rounded-t-md
-          w-full
-          h-[12vw]
-        " />
-        <div className="
-          z-10
-          bg-zinc-800
-          p-2
-          lg:p-4
-          absolute
-          w-full
-          transition
-          shadow-md
-          rounded-b-md
-          ">
-          <div className="flex flex-row items-center gap-3">
-            <div 
-              className="cursor-pointer w-6 h-6 lg:w-10 lg:h-10 bg-white rounded-full flex justify-center items-center transition hover:bg-neutral-300"
-              onClick={handleVideoClick} 
-            >
-              <Play className="text-black w-4 lg:w-6" />
+    return (
+        <div className="relative group w-64 md:w-72">
+            {/* Base Card */}
+            <div className="relative w-full h-[400px] ">
+                <img 
+                    src={data.image} 
+                    alt={data.title} 
+                    draggable={false} 
+                    className="
+                        w-full
+                       
+                        rounded-md
+                        object-cover
+                        transition
+                        duration-300
+                        cursor-pointer
+                        group-hover:opacity-0
+                        shadow-lg
+                    "
+                />
             </div>
-          </div>
-          <p className="text-green-400 font-semibold mt-4">
-            <span className="text-white">{data.title}</span>
-          </p>
-          <div className="flex flex-row mt-4 gap-2 items-center"> 
-            <p className="text-white text-[10px] lg:text-sm">{data.subtitle}</p>
-          </div>
-          <div className="flex flex-row items-center gap-2 mt-4 text-[8px] text-white lg:text-sm">
-            {/* <p>{data.}</p> */}
-          </div>
+
+            {/* Hover Overlay */}
+            <div className="
+                absolute
+                top-0
+                left-0
+                opacity-0
+                transition-all
+                duration-200
+                scale-95
+                transform
+                group-hover:scale-100
+                group-hover:opacity-100
+                group-hover:-translate-y-4
+                w-full
+                h-full
+                z-10
+            ">
+                {/* Overlay Image */}
+                <div className="relative w-full h-[200px] md:h-[200px]">
+                    <img 
+                        src={data.image} 
+                        alt={data.title} 
+                        draggable={false} 
+                        className="
+                            w-full
+                            h-full
+                            rounded-t-md
+                            object-cover
+                            shadow-xl
+                        "
+                    />
+                </div>
+
+                {/* Content Section */}
+                <div className="
+                    bg-zinc-800
+                    rounded-b-md
+                    p-3
+                    shadow-xl
+                ">
+                    {/* Play Button */}
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={handleVideoClick}
+                            className="
+                                w-8 
+                                h-8 
+                                md:w-10 
+                                md:h-10 
+                                bg-white 
+                                rounded-full 
+                                flex 
+                                items-center 
+                                justify-center 
+                                hover:bg-neutral-300 
+                                transition
+                            "
+                        >
+                            <Play className="w-4 md:w-5 text-black" />
+                        </button>
+                    </div>
+
+                    {/* Title */}
+                    <div className="mt-3">
+                        <h3 className="text-white text-sm md:text-base font-medium">
+                            {data.title}
+                        </h3>
+                    </div>
+
+                    {/* Subtitle */}
+                    <div className="mt-2 pb-2">
+                        <p className="text-neutral-400 text-xs md:text-sm">
+                            {data.subtitle}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    );
 }
 
 export default CurriculumCard;

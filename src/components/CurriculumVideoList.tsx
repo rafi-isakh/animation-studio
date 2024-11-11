@@ -22,30 +22,36 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
     };
   
     return (
-    <div className="mt-4">
       <>
-        <p className="text-black text-md md:text-xl lg:text-2xl font-semibold mb-4">
+        <p className="text-black dark:text-white text-md md:text-xl lg:text-2xl font-semibold mb-4 ml-5">
             {title}
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-          {contents.map((item, index) => (
-            <CurriculumCard 
-              key={index} 
-              data={{ ...item, onVideoClick: handleVideoClick }} 
-              isOpen={showVideoModal} 
-              onClose={() => setShowVideoModal(false)} 
-              video={currentVideo} 
+        <div className="w-full px-4 mx-auto mt-4 md:mb-6">
+            {/* Scroll container with overflow handling */}
+            <div className="relative w-full">
+                <div className="overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="flex flex-nowrap gap-2 min-w-full">
+                        {contents.map((item, index) => (
+                            <div className="flex-none w-64 md:w-72" key={index}>
+                                <CurriculumCard 
+                                    data={{ ...item, onVideoClick: handleVideoClick }} 
+                                    isOpen={showVideoModal} 
+                                    onClose={() => setShowVideoModal(false)} 
+                                    video={currentVideo} 
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <VideoModal 
+                isOpen={showVideoModal} 
+                onClose={() => setShowVideoModal(false)} 
+                video={currentVideo}
             />
-          ))}
         </div>
-          <VideoModal 
-            isOpen={showVideoModal} 
-            onClose={() => setShowVideoModal(false)} 
-            video={currentVideo}
-         />
-      </>
-    </div>
-  );
+        </>
+    );
 }
 
 export default CurriculumVideoList;

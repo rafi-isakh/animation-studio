@@ -17,10 +17,10 @@ const Billboard = () => {
       autoPlay muted loop src={webtoonContents[0]?.file_src}>
       </video>
       <div className="absolute top-[30%] md:top-[40%] ml-4 md:ml-16">
-        <p className="text-white text-1xl md:text-5xl h-full w-full lg:text-2xl font-bold drop-shadow-xl">
+        <p className="text-white dark:text-white text-1xl md:text-5xl h-full w-full lg:text-2xl font-bold drop-shadow-xl">
             여러분의 꿈을 Toonyz와 함께 하세요!
         </p>
-        <p className="text-white text-[8px] md:text-lg mt-3 md:mt-8 w-[90%] md:w-full lg:w-full drop-shadow-xl">
+        <p className="text-white dark:text-white text-[8px] md:text-lg mt-3 md:mt-8 w-[90%] md:w-full lg:w-full drop-shadow-xl">
             Your Favorite Story Universe, Toonyz
         </p>
         <div className="flex flex-row items-center mt-3 md:mt-4 gap-3">
@@ -28,6 +28,7 @@ const Billboard = () => {
             className="
             bg-white
             text-white
+            dark:text-white
               bg-opacity-30 
               rounded-md 
               py-1 md:py-2 

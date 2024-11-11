@@ -28,16 +28,15 @@ export default function Videos() {
         <div className="flex flex-col items-center justify-center">
             {/* <div className="flex flex-col space-y-4"> */}
                 <Billboard />
-                <div className="pb-40">
+                <div className="max-w-screen-xl mx-auto overflow-x-auto pb-40">
                 <CurriculumVideoList 
-                    title={phrase(dictionary, "웹소설 커리큘럼", language)} 
+                    title={phrase(dictionary, "webtoonCurriculum", language)} 
                     contents={webtoonContents}
                     language={language}
                     imageType={'webtoon'}
                     onVideoClick={(video) => {
                         console.log('Video clicked:', video);
-                    }} 
-                   
+                    }}  
                 />
                 </div>
                     {/* <VideoModal 
@@ -45,16 +44,13 @@ export default function Videos() {
                     onClose={() => setShowVideoModal(false)} 
                     video={currentVideo}
                     /> */}
-
-
                     {/* <ContentGrid 
                         contents={webtoonContents} 
                         language={language} 
                         onVideoClick={handleVideoClick}
                         imageType="webtoon"
                     />   
-                   */}
-                    
+                   */} 
             </div>
     )
 }

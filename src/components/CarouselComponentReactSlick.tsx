@@ -15,8 +15,8 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
-// ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] })
 const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: SlickCarouselItem[], webnovels: Webnovel[] },) => {
 
     const [key1, setKey1] = useState(0);
@@ -42,16 +42,17 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
     }, [language])
 
     function SampleNextArrow(props: any) {
-        const { className, style, onClick } = props;
+        const { onClick } = props;
         return (
             <>
                 {
                     isMediumScreen ?
-                        <div
-                            className={className}
-                            style={{ ...style, zIndex: "10", transform: 'translateX(-48px) scale(2)', filter: 'drop-shadow(0 0 0.2rem black)' }}
+                        <button
+                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
                             onClick={onClick}
-                        />
+                        >
+                             <ChevronRight className="w-6 h-6 text-gray-700" />
+                        </button>
                         :
                         <></>
                 }
@@ -59,16 +60,17 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         );
     }
     function SamplePrevArrow(props: any) {
-        const { className, style, onClick } = props;
+        const { onClick } = props;
         return (
             <>
                 {
                     isMediumScreen ?
-                        <div
-                            className={className}
-                            style={{ ...style, zIndex: "10", transform: 'translateX(48px) scale(2)', filter: 'drop-shadow(0 0 0.2rem black)' }}
-                            onClick={onClick}
-                        />
+                    <button 
+                        onClick={onClick}
+                        className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-gray-700" />
+                   </button>
                         :
                         <></>
                 }
@@ -93,41 +95,38 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
 
     function getGenre(index: number) {
         if (index == 0) {
-            return 'Romance';
+            return ['Romance', 'ongoing', 'up'];
         } else if (index == 1) {
-            return 'Fantasy';
+            return ['Fantasy', 'ongoing', 'up'];
         } else if (index == 2) {
-            return 'Fantasy';
+            return ['Fantasy', 'new', 'free'];
         } else if (index == 3) {
-            return 'Sci-Fi';
+            return ['Sci-Fi', 'new', 'free'];
         } else if (index == 4) {
-            return 'Fantasy'
+            return ['Fantasy', 'new', 'up']
         }
-        return '';
+        return [];
     }
 
     function breakKeepOrNot() {
         if (language == 'ko' || language == "ar" || language == "th" || language == "vi" || language == 'en' || language == 'id') {
-            return 'break-keep';
+            return 'break-keep ';
         } else if (language == 'ja' || language == 'zh-CN' || language == 'zh-TW') {
             return '';
         }
         return '';
     }
 
-
-
-
     const settings = {
-        slidesToShow: 1,
+        slidesToShow: 3,
         swipeToSlide: true,
         infinite: true,
         speed: 300,
-        autoplaySpeed: 6000,
+        autoplaySpeed: 3000,
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: '32px',
+        centerPadding: '12px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -137,61 +136,119 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             setCurrentIndex(current);
             setNextIndex((current + 1) % items.length);
         },
+        responsive: [
+            {
+                breakpoint: 768,
+                settings: {
+                    slidesToShow: 1,
+                    centerPadding: '32px',
+                }
+            }
+        ]
     };
 
     return (
-        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full`}>
+        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
             <div className='flex flex-col relative'>
                 <Slider {...settings}>
                     {items.map((item, index) => (
-                        <div key={index} className="px-2 md:px-4">
+                          <div key={index} className={`carousel-slide px-2 md:px-4 ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
                             <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
                                 <Link href={getHref(index)}>
-                                    <Image className="object-cover object-center rounded-xl" src={getImageURL(item.image)} fill alt={item.image}
-                                        placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px]">
+                                    <Image 
+                                        className="object-cover object-center rounded-xl transition-all duration-300" 
+                                        src={getImageURL(item.image)} 
+                                        fill
+                                        alt={item.image}
+                                        placeholder="blur" 
+                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
-                                    <div className='absolute rounded-xl bottom-8 md:top-8 md:w-96 w-64 left-4 md:left-8 text-white outlined-text'>
-                                        <div className='flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32'>
+                                     {/* Overlay */}
+                                    <div className="absolute rounded-xl bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent text-white">
+                                        <div className="flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32">
                                             <OtherTranslateComponent
                                                 key={`title-${index}-${language}`}
                                                 content={item.title}
                                                 elementId={item.id.toString()}
-                                                classParams={`${breakKeepOrNot()} md:text-4xl lg:text-4xl text-md !min-[400px]:text-[12px] font-extrabold px-2 outlined-text`}
+                                                classParams={`${breakKeepOrNot()} md:text-2xl lg:text-2xl text-xl !min-[400px]:text-[12px] font-extrabold px-2`}
                                                 elementType={'carouselItem'}
-                                                elementSubtype='title'
+                                                elementSubtype="title"
                                                 showLoading={false}
                                             />
-                                            <OtherTranslateComponent
-                                                key={`hook-${index}-${language}`}
-                                                content={item.hook}
-                                                elementId={item.id.toString()}
-                                                classParams={`${breakKeepOrNot()} md:text-xl lg:text-xl !min-[400px]:text-[12px] font-bold px-2 p-4 outlined-text`}
-                                                elementType={'carouselItem'}
-                                                elementSubtype='hook'
-                                                showLoading={false}
-                                            />
-
-                                            <div className='category'>
-                                                <span className='text-[10px] w-20 rounded-xl text-white bg-gray-500 px-2 py-1 mr-1 no-outlined-text'>{getGenre(index)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    
+                                          <div className="ml-2 md:mt-3 mt-2">
+                                               
+                                                <OtherTranslateComponent
+                                                    key={`hook-${index}-${language}`}
+                                                    content={item.hook}
+                                                    elementId={item.id.toString()}
+                                                    classParams={`${breakKeepOrNot()} md:text-sm lg:text-xl !min-[400px]:text-[12px]`}
+                                                    elementType={'carouselItem'}
+                                                    elementSubtype="hook"
+                                                    showLoading={false}
+                                                />
+                                            
+                                            {getGenre(index).map((el: string, idx: number) => (
+                                                <span key={idx} className="text-[8px] w-20 rounded-md border border-purple-500 text-purple-500 bg-transparents px-1 py-[1px] mr-1 no-outlined-text">
+                                                    {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
+                                                </span>
+                                            ))}
+                                         </div>
+                                       </div>
+                                     </div>
+                                   </div>
                                 </Link>
                             </div>
                         </div>
                     ))}
                 </Slider>
             </div>
-            <style jsx>
-                {`
-                .outlined-text {
-                    text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
-                }
+            <style jsx global>
+            {`
+    
+                  .carousel-slide {
+                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+                      
+                  }
 
-                .no-outlined-text {
-                    text-shadow: none;
-                }
-                `}
+                  .slide-content img {
+                     
+                       border-radius: 0.75rem;
+                  }
+                   .active-slide img {
+                       border-radius: 0.75rem !important;
+                   }
+
+                  .active-slide {
+                    
+                      opacity: 1;
+                      z-index: 2;
+                      border-radius: 0.75rem;
+                  }
+
+                  .inactive-slide {
+                      transform: scale(0.85);
+                      opacity: 0.5;
+                  } 
+
+                  .slide-content {
+                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+                  }
+                  .carousel-slide:hover .slide-content {
+                      opacity: 0.8;
+                  }
+                  .active-slide:hover .slide-content {
+                      opacity: 1;
+                  }
+                  .outlined-text {
+                      text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
+                  }
+                  .no-outlined-text {
+                      text-shadow: none;
+                  }
+              `}
             </style>
         </div>
     );

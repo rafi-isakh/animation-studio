@@ -18,6 +18,7 @@ import AIEditorCharactersComponent from './AIEditorCharactersComponent';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 
 
+
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -103,26 +104,110 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
 
 
     return (
-        <div className='md:w-[720px] p-6 w-full flex md:flex-row flex-col justify-center mx-auto'>
-            <div>
+        <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
+            <div className='flex flex-col border border-gray-300 rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
                 <form onSubmit={handleAddWebnovel}>
+                <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
+
+                      <div className="mt-10 md:w-[500px] w-full">
+                         <>
+                            <label htmlFor="author" className='text-sm ml-2'>
+                            {/* 커버등록 */}
+                            {phrase(dictionary, "uploadCoverArt", language)}
+                            <span className='text-red-500'>* </span>
+                            <span className='text-gray-500 text-[12px]'>
+                                {/* 작품의 표지를 등록해 주세요. */}
+                                {language == 'ko' ? <> {phrase(dictionary, "uploadCoverArtDescription", language)}</> : <></>}
+                                </span>
+                            </label>
+                                <Link href="#" className=''>
+                                {coverArtPreview ?
+                                    <div className="">
+                                        <a onClick={handleCoverArtUpload} >
+                                            <Image 
+                                                src={coverArtPreview} 
+                                                alt="Cover Art Preview" 
+                                                className="max-w-xs rounded" 
+                                                width={200} height={120} 
+                                                />
+                                        </a>
+                                    </div> :
+                                    <div className=''>
+                                        <Image
+                                            src='/coverArt_thumbnail.png'
+                                            alt='Cover Art Thubmnail'
+                                            onClick={handleCoverArtUpload}
+                                            className="max-w-xs rounded"
+                                            width={198} height={322}
+                                           />
+                                    </div>
+                                }
+                                </Link>
+                            </>
+                            <input
+                                type="file"
+                                className="hidden"
+                                id='coverArtFile'
+                                onChange={handleFileChange}
+                            />
+                        </div>
+
                     <div className="flex flex-col md:flex-row md:space-x-4 items-center md:items-start">
-                        <div className="mr-4 w-full md:w-2/3">
-                            <p className={`text-4xl font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
-                            <div className="flex flex-row space-x-4 mt-16">
+                        <div className="md:mr-4 md:mt-4 w-full">
+                            
+                            <div className="flex flex-col mt-4">
+                            <label htmlFor="title" className='text-sm ml-2'>
+                                {/* 작품명 */}
+                                {phrase(dictionary, "webnovelTitle", language)}
+                                <span className='text-red-500'>* </span>
+                                <span className='text-gray-500 text-[12px]'>
+                                    {/* 작품명은 30자 이상 입력하실 수 없습니다. */}
+                                    {language == 'ko' ? <> {phrase(dictionary, "webnovelTitleDescription", language)}</> : <></>}
+                                    </span>
+                                </label>
                                 <input
                                     type="text"
                                     value={title}
-                                    className='input rounded-xl focus:ring-pink-600 w-full border border-gray-300'
+                                    id="title"
+                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300'
                                     placeholder={phrase(dictionary, "webnovelTitle", language)}
                                     onChange={(e) => setTitle(trim(e.target.value, 50))}
                                 />
+                             
                             </div>
-                            <br />
-                            <div className="flex flex-row space-x-4">
+                             <div className='mt-4'>
+                              <label htmlFor="author" className='text-sm ml-2'>
+                                {/* 작가명 */}
+                                {phrase(dictionary, "webnovelAuthor", language)}
+                                <span className='text-red-500'>* </span>
+                                <span className='text-gray-500 text-[12px]'>
+                                    {/* 작가명은 가입하셨을 때 닉네임과 동일합니다. */}
+                                    {language == 'ko' ? <> {phrase(dictionary, "webnovelAuthorDescription", language)}</> : <></>}
+                                    </span>
+                             </label>
+                              <input
+                                    type="text"
+                                    value={title}
+                                    disabled
+                                    id="author"
+                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-gray-300'
+                                    placeholder={useUser().nickname}
+                                    onChange={(e) => setTitle(trim(e.target.value, 50))}
+                                />
+                             </div>
+                            <div className="mt-4">
+                                 <label htmlFor="genre" className='text-sm ml-2'>
+                                        {/* 장르 */}
+                                        {phrase(dictionary, "genre", language)}
+                                        <span className='text-red-500'>* </span>
+                                        <span className='text-gray-500 text-[12px]'>
+                                        {/* 장르를 선택해 주세요. */}
+                                        {language == 'ko' ? <> {phrase(dictionary, "genreDescription", language)}</> : <></>}
+                                         </span>
+                                    </label>
                                 <select
                                     id="genre"
-                                    className='rounded-xl focus:ring-pink-600 bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500'
+                                    className='rounded-md focus:ring-pink-600 bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500'
                                     onChange={handleChangeGenre}
                                 >
                                     <option disabled selected value="">{phrase(dictionary, "genre", language)}</option>
@@ -133,11 +218,20 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     <option value="sf">{phrase(dictionary, "sf", language)}</option>
                                 </select>
                             </div>
-                            <br />
-                            <div className="flex flex-row space-x-4">
+                            
+                               <div className="mt-4">
+                                  <label htmlFor="language" className='text-sm ml-2'>
+                                        {/* 언어선택 */}
+                                        {phrase(dictionary, "language", language)}
+                                        <span className='text-red-500'>* </span>
+                                        <span className='text-gray-500 text-[12px]'>
+                                        {/* 집필 언어를 선택해 주세요. */}
+                                        {language == 'ko' ? <> {phrase(dictionary, "languageDescription", language)}</> : <></>}
+                                        </span>
+                                    </label>
                                 <select
                                     id="language"
-                                    className="rounded-xl focus:ring-pink-600 bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500"
+                                    className="rounded-md focus:ring-pink-600 bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500"
                                     onChange={handleChangeLanguage}>
                                     <option disabled selected value="">{phrase(dictionary, "language", language)}</option>
                                     <option value="ko">{phrase(dictionary, "korean", language)}</option>
@@ -154,19 +248,30 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             <br />
                             <div className="flex flex-row space-x-4">
                                 <div className='flex flex-col w-full'>
+                                    <label htmlFor="description" className='text-sm ml-2'>
+                                        {/* 작품소개 */}
+                                        {phrase(dictionary, "description", language)}
+                                        <span className='text-red-500'>* </span>
+                                        <span className='text-gray-500 text-[12px]'>
+                                            {/* 작품소개는 500자 이상 입력하실 수 없습니다. */}
+                                            {language == 'ko' ? <> {phrase(dictionary, "descriptionDescription", language)}</> : <></>}
+                                            </span>
+                                    </label>
                                     <textarea
                                         value={description}
-                                        rows={4}
-                                        className='textarea rounded-xl focus:ring-pink-600 w-full border border-gray-300 bg-transparent'
+                                        rows={5}
+                                        id="description"
+                                        className='textarea rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-transparent'
                                         placeholder={phrase(dictionary, "description", language)}
                                         onChange={(e) => setDescription(trim(e.target.value, 500))}
                                     />
                                 </div>
                             </div>
                             <br />
-                            <div className='flex flex-col space-y-4 items-end'>
+                            {/* submit button */}
+                            <div className='flex flex-col space-y-4 items-center mb-8'>
                                 <NoCapsButton color='gray' variant='outlined' ref={buttonRef} type="submit" disabled={isSubmitting}
-                                    className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                                    className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-pink-600 dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
                                     {isSubmitting ?
                                         <CircularProgress size="1rem" color='secondary' />
@@ -175,29 +280,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                 </NoCapsButton>
                             </div>
                         </div>
-                        <div className="md:w-1/4 md:mt-16">
-                            <Link href="#">
-                                {coverArtPreview ?
-                                    <div className="mt-4">
-                                        <a onClick={handleCoverArtUpload} >
-                                            <Image src={coverArtPreview} alt="Cover Art Preview" className="max-w-xs rounded" width={200} height={120} />
-                                        </a>
-                                    </div> :
-                                    <div className='mt-4 md:mt-14'>
-                                        <svg onClick={handleCoverArtUpload} className="w-64 text-gray-200 dark:text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-                                            <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
-                                        </svg>
-                                    </div>
-                                }
-                            </Link>
-                            <input
-                                type="file"
-                                className="hidden"
-                                id='coverArtFile'
-                                onChange={handleFileChange}
-                            />
-                        </div>
-
+                        
                         <Modal open={openModal} onClose={() => setOpenModal(false)}>
                             <Box sx={style}>
                                 <Typography className="text-center">

@@ -48,7 +48,7 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
                     </span>
                 </div>
 
-                {ranking && <p className={`text-3xl md:text-2xl`}>{index + 1}</p>}
+                {ranking && <p className={`text-3xl md:text-2xl`}>{index}</p>}
                 <div className="mt-1">
                   {/* Genre */}
                     <span className="text-[9px] self-center rounded text-gray-400">

@@ -8,10 +8,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DeviceProvider } from '@/contexts/DeviceContext';
 import { Metadata } from 'next'
-import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP, Noto_Sans_TC, Noto_Sans_SC } from 'next/font/google'
-import Footer from '@/components/Footer';
-import ChargePointsTemporary from '@/components/ChargePointsTemporary';
 import Margin from '@/components/Margin';
 
 
@@ -60,7 +57,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
-        alt: '투니즈 Toonyz Logo'
+        alt: '스텔리 Stelli'
       }
     ]
   },
@@ -83,6 +80,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
 
+
   return (
     <html>
       <body>
@@ -95,10 +93,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   <Suspense>
                     <Header />
                   </Suspense>
-                  <Margin/>
-                  <div className={`children min-h-screen pt-28 md:pt-24 mb-4`}>
+                  <Margin>
                     {children}
-                  </div>
+                  </Margin>
+                  {/* 
+                  <div className={`children min-h-screen`}>  
+                   // Header bottom margin :: pt-28 md:pt-24 mb-4
+                    {children}
+                  </div> 
+                 */}
                 </div>
               </DeviceProvider>
             </UserProvider>

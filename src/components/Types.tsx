@@ -24,6 +24,7 @@ export interface Chapter {
 export interface User {
   id: number;
   email: string;
+  email_hash: string;
   nickname: string;
   bio: string;
   picture: string;
@@ -45,6 +46,7 @@ export interface Comment {
   upvotes: number;
   chapter_id: string;
   replies: Comment[];
+  created_at: Date;
 }
 
 export interface SlickCarouselItem {
@@ -69,6 +71,7 @@ export interface Webnovel {
   language: string;
   views: number;
   version?: string;
+  created_at: Date;
 }
 
 export interface Dictionary {

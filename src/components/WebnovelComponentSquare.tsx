@@ -32,11 +32,14 @@ const WebnovelComponentSquare = ({ webnovel, index, ranking }: { webnovel: Webno
                     <div className="absolute inset-0 transition-transform duration-300 ease-in-out group-hover:scale-110">
                         <Image 
                             src={imageSrc} 
-                            width={imageWidth} 
-                            height={imageHeight} 
+                            // width={imageWidth} 
+                            // height={imageHeight} 
                             alt={webnovel.cover_art} 
-                            className="w-full h-full object-cover "
+                            sizes="100vw"
+                            fill
+                            className="w-full h-full object-cover object-left"
                             placeholder="blur"
+                            quality={85}
                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
                         />
                       </div>

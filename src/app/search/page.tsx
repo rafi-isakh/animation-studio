@@ -17,7 +17,7 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
   }
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/search?query=${query}`)
+    fetch(`/api/search?query=${query}`) // searches and saves query if user is logged in
       .then(r => r.json())
       .then(r => setWebnovels(r));
   }, [query]);

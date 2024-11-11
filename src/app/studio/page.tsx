@@ -5,9 +5,15 @@ import Image from 'next/image'
 import { Button } from "@mui/material"
 import OtherTranslateComponent from '@/components/OtherTranslateComponent'
 import { useLanguage } from '@/contexts/LanguageContext'
+// import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@/app/providers'
 
 
 export default function Studio() {
+
+    const { theme } = useTheme()
+    // const theme = useTheme()
+
     // const [logoWidth, setLogoWidth] = useState(141);
     // const [logoHeight, setLogoHeight] = useState(32);
     const [key1, setKey1] = useState(0);
@@ -59,7 +65,8 @@ export default function Studio() {
 
                             <div className="logo flex flex-row gap-4 mt-10">
                                 <Image
-                                    src="/toonyzLogo.png"
+                                    src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyzLogo.png'} 
+                                    // src="/toonyzLogo.png"
                                     alt="Toonyz Logo"
                                     width={0}
                                     height={0}
@@ -99,10 +106,20 @@ export default function Studio() {
                             </div>
 
                             <Button
+                                 sx={{
+                                    borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#374151',
+                                    '&:hover': {
+                                        borderColor: '#db2777' // pink-600 equivalent
+                                    },
+                                    border: '1px solid'
+                                }}
                                 href="/studio/pictures"
                                 variant="contained"
                                 color="gray"
-                                className='w-full border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
+                                className='w-full border border-gray-700 dark:border-white rounded-md px-10 py-3 
+                                        hover:border-pink-600 hover:text-pink-600 
+                                        dark:hover:border-pink-600 dark:hover:text-pink-600
+                                        dark:text-white'>
                                 <OtherTranslateComponent
                                     key={key3}
                                     content="이미지 생성"
@@ -141,7 +158,8 @@ export default function Studio() {
                             <div className='description mt-10'>
                                 <div className="logo flex flex-row gap-4">
                                     <Image
-                                        src="/toonyzLogo.png"
+                                        src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyzLogo.png'} 
+                                        // src="/toonyzLogo.png"
                                         alt="Toonyz Logo"
                                         width={0}
                                         height={0}
@@ -189,10 +207,20 @@ export default function Studio() {
 
 
                                 <Button
+                                     sx={{
+                                        borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#374151',
+                                        '&:hover': {
+                                            borderColor: '#db2777' // pink-600 equivalent
+                                        },
+                                        border: '1px solid'
+                                    }}
                                     href="/studio/novel"
                                     variant="contained"
                                     color="gray"
-                                    className='w-full border-2 border-gay rounded-md px-10 py-3 hover:border-pink-600 hover:text-pink-600'>
+                                    className='w-full border border-gray-700 dark:border-white rounded-md px-10 py-3 
+                                        hover:border-pink-600 hover:text-pink-600 
+                                        dark:hover:border-pink-600 dark:hover:text-pink-600
+                                        dark:text-white'>
                                     <OtherTranslateComponent
                                         key={key6}
                                         content="시작하기"

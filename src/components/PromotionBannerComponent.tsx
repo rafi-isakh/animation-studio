@@ -46,8 +46,9 @@ const PromotionBannerComponent = () => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className='flex flex-col justify-center md:p-0 pl-5'>
-          <Image 
-            src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
+          <Image
+            src='/toonyzLogo.png' 
+            // src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
             alt='Toonyz logo'
             sizes="cover"
             width={logoWidth}
@@ -90,7 +91,8 @@ const PromotionBannerComponent = () => {
       </div>
       <div className='flex flex-col justify-center md:p-0'>
         <Image 
-          src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
+          // src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
+          src='/toonyzLogo.png'
           alt='Toonyz logo'
           sizes="cover"
           width={logoWidth}
@@ -112,8 +114,9 @@ const PromotionBannerComponent = () => {
     >
 
       <div className='flex md:flex-row flex-col gap-4 justify-center items-center md:p-5 p-4 px-10'>
-             <Image 
-                src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
+             <Image
+                src='/toonyzLogo.png' 
+                // src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
                 alt='Toonyz logo'
                 sizes="cover"
                 width={logoWidth}

@@ -276,7 +276,7 @@ const Header = () => {
                                     {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
                                 <Link href="#">
-                                    <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
+                                    <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600 hover:text-pink-600`}>
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
                                 </Link>

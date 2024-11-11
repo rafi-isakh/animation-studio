@@ -126,7 +126,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <div>
-                <div className='max-w-screen-sm px-4 max-h-dvh flex flex-col items-left mx-auto'>
+                <div className='max-w-screen-sm px-4 max-h-dvh flex flex-col items-left mx-auto text-black dark:text-white'>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>

@@ -13,7 +13,7 @@ const CharacterInfo: React.FC<{ data: string; title?: string }> = ({ data, title
     );
   
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 ">
         <h1 className="font-bold mb-10">{title}</h1>
         {Object.entries(filteredData).map(([sectionKey, sectionData]) => (
           <CharacterSection

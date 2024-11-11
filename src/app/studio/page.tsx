@@ -6,7 +6,7 @@ import { Button } from "@mui/material"
 import OtherTranslateComponent from '@/components/OtherTranslateComponent'
 import { useLanguage } from '@/contexts/LanguageContext'
 // import { useTheme } from '@mui/material/styles';
-import { useTheme } from '@/app/providers'
+import { useTheme } from '@/contexts/providers'
 
 
 export default function Studio() {
@@ -105,6 +105,7 @@ export default function Studio() {
                                 />
                             </div>
 
+                            <Link href='/studio/pictures'>
                             <Button
                                  sx={{
                                     borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#374151',
@@ -113,7 +114,6 @@ export default function Studio() {
                                     },
                                     border: '1px solid'
                                 }}
-                                href="/studio/pictures"
                                 variant="contained"
                                 color="gray"
                                 className='w-full border border-gray-700 dark:border-white rounded-md px-10 py-3 
@@ -131,6 +131,7 @@ export default function Studio() {
                                     defaultLanguage='ko'
                                 />
                             </Button>
+                            </Link>
 
                         </div>
 
@@ -205,7 +206,7 @@ export default function Studio() {
                                     />
                                 </div>
 
-
+                                <Link href="/studio/novel">
                                 <Button
                                      sx={{
                                         borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#374151',
@@ -214,7 +215,6 @@ export default function Studio() {
                                         },
                                         border: '1px solid'
                                     }}
-                                    href="/studio/novel"
                                     variant="contained"
                                     color="gray"
                                     className='w-full border border-gray-700 dark:border-white rounded-md px-10 py-3 
@@ -232,6 +232,7 @@ export default function Studio() {
                                         defaultLanguage='ko'
                                     />
                                 </Button>
+                                </Link>
 
                             </div>
 

@@ -23,7 +23,7 @@ import { getUrlWithParams } from '@/utils/stringUtils';
 import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft } from 'lucide-react';
 import KeywordsComponent from '@/components/KeywordsComponent';
 import ThemeToggle from './ThemeToggle';
-import { useTheme } from '@/app/providers'
+import { useTheme } from '@/contexts/providers'
 
 
 const Header = () => {

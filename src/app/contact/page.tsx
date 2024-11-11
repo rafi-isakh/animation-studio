@@ -144,12 +144,12 @@ export default function Contact() {
              <h1 className="text-5xl font-semibold items-start text-left py-10">Contact Us</h1>
 
                 <p className="text-sm text-gray-600">Contact e-mail {' '}
-                <span className="text-black font-semibold">hello@stella.com</span> 
+                <span className="text-black font-semibold">hello@stelland.io</span> 
                  {' '}for general help, questions, or feedback. we are always here to help you.
                 </p>
              
                 <p className="text-sm text-gray-600">If you have a question about Toonyz, please contact our customer support team at 
-                <span className="text-black font-semibold">{' '}dami@stella.com</span> 
+                <span className="text-black font-semibold">{' '}dami@stelland.io</span> 
                 </p>
                
                 <p className="text-sm text-gray-600">We are always welcome to hear from you. </p>

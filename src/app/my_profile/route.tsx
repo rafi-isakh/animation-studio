@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const baseUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
     let url = new URL(`${baseUrl}/view_profile`);
     if (session && session.user) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_byemail?email=${session.user.email}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_by_email?email=${session.user.email}`)
 
         if (!response.ok) {
             return NextResponse.json({ error: `Failed to fetch user by email ${session.user.email}` }, { status: response.status });

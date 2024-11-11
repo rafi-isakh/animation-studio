@@ -1,6 +1,7 @@
 "use client"
 import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
+import { decrypt } from "@/utils/cryptography";
 import { useEffect, useState } from "react";
 
 async function getWebnovel(id: string | string[] | undefined) {
@@ -10,7 +11,7 @@ async function getWebnovel(id: string | string[] | undefined) {
         return null;
     }
     try {
-        const webnovelResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${id}`);
+        const webnovelResponse = await fetch(`/api/get_webnovel_by_id?id=${id}`);
         if (!webnovelResponse.ok) {
             console.error("Failed to fetch webnovel")
             return null;
@@ -23,7 +24,8 @@ async function getWebnovel(id: string | string[] | undefined) {
 }
 
 async function getUserWebnovels(email: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_byemail?email=${email}`);
+    const decryptedEmail = await decrypt(email); // necessary because email comes from webnovel.user.email, which is retrieved from db (encrypted)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email?email=${decryptedEmail}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;
@@ -41,6 +43,7 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
             if (webnovel) {
                 setWebnovel(webnovel);
                 const { email: author_email, nickname: user_nickname } = webnovel.user;
+                
                 const userWebnovels = await getUserWebnovels(author_email);
                 setUserWebnovels(userWebnovels);
 

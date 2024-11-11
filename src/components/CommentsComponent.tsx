@@ -86,7 +86,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             }
         }
         const fetchChapter = async () => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${chapterId}`)
+            const response = await fetch(`/api/get_chapter_by_id?id=${chapterId}`)
             const data = await response.json();
             setChapter(data);
             setChapterTitle(data.title);

@@ -194,7 +194,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
                     <Box sx={style}>
                         <div className='flex flex-col space-y-4 items-center justify-center'>
-                            <p className='text-lg font-bold'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                            <p className='text-lg font-bold text-black dark:text-white'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
                             <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
                             <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                         </div>

@@ -17,6 +17,7 @@ import CarouselComponent from '@/components/CarouselComponent';
 
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
+// import ThemeToggle from '@/components/ThemeToggle'
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
@@ -41,10 +42,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     return (
         <div>
-            {showPreloader && <Preloader />}
-            
+            {showPreloader && <Preloader />}    
             {/* Top banner : applying a creator */}
-            {/* <ApplyCreatorBanner /> */}
+            <ApplyCreatorBanner />
+          
             {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
               <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             {/* </div> */}
@@ -52,21 +53,14 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             {/* Webnovels by trends */}
             <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-
-
-           
              {/* webnovels list by ranking */}
             <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
-           
-           
-              {/* only Toonyz */}
-            <div className='bg-black w-full mx-auto'>  {/* bg-black */}
+        
+            {/* only Toonyz */}
+            <div className='bg-black w-full mx-auto '>  {/* bg-black */}
                 <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
-               
             </div>
-            
-          
-         
+
             {/* Event promotion part */}
             <Promotion />
             {/* Footer Banner : instagram promotion image */}

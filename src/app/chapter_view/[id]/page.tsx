@@ -180,7 +180,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' : 
                             fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',      
               }}>
-                <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto`}>
+                <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto text-black dark:text-white`}>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">
                         <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>

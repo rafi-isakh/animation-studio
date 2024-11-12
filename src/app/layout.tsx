@@ -12,6 +12,7 @@ import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP
 import Margin from '@/components/Margin';
 import { ReaderProvider } from '@/contexts/ReaderContext';
 import ThemeWrapper from '@/components/ThemeWrapper';
+import { ThemeProvider } from '@/contexts/providers'
 
 
 const notoSans = Noto_Sans({
@@ -87,7 +88,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html>
       <body>
         <LanguageProvider>
-          <AuthProvider>
+          <ThemeProvider>
+           <AuthProvider>
             <UserProvider>
               <DeviceProvider>
                 <ReaderProvider>
@@ -111,7 +113,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 </ReaderProvider>
               </DeviceProvider>
             </UserProvider>
-          </AuthProvider>
+           </AuthProvider>
+          </ThemeProvider>
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>

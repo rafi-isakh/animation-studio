@@ -288,9 +288,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </div>
                 </div>
             </div>
-
-            
-
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
                 <Box sx={style}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>

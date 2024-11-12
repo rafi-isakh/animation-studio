@@ -2,7 +2,7 @@ import React from 'react'
 import { formatTitle } from '../utils/stringUtils'
 
 const CharacterSection: React.FC<{ title: string; data: Record<string, string> }> = ({ title, data }) => (
-    <section className="bg-gray-100 border rounded border-gray-200 px-3">
+    <section className="bg-gray-100 border rounded border-gray-200 px-3 text-black dark:text-black">
       <h2 className="font-bold text-lg py-2 border-gray border-b-2">{title}</h2>
       <div className="py-6 space-y-4">
         {Object.entries(data).map(([key, value]) => (

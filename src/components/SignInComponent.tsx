@@ -57,14 +57,6 @@ const SignInComponent = () => {
               {phrase(dictionary, "youth_terms", language)}
               </Link>
              </p>
-             {language == 'ko' ?
-                <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
-                  <Link href="/contact">
-                  {/* 고객지원 */}
-                  {phrase(dictionary, "contact", language)}
-                  </Link>
-                </p>
-             : <></> }
              <p className="text-center text-[10px] text-gray-400">
               © Stella& Inc.
             </p>

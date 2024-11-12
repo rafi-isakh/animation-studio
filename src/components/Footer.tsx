@@ -111,19 +111,19 @@ export default function Footer() {
                 <div className="sns order-first md:order-last">
                     <ul className="flex flex-row gap-3">
                         <Link href="https://www.instagram.com/stelland_official/">
-                            <i className="fab fa-instagram cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150"></i>
+                            <i className="fab fa-instagram cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
                         </Link>
                         <Link href="#">
-                            <i className="fab fa-youtube cursor-pointer text-white rounded-full px-2 py-2 hover:bg-pink-600 bg-gray-300 text-[15px] transition ease-in-out delay-150"></i>
+                            <i className="fab fa-youtube cursor-pointer text-white rounded-full px-2 py-2 hover:bg-pink-600 bg-gray-300 text-[15px] transition ease-in-out delay-150 dark:text-gray-700"></i>
                         </Link>
                         <Link href="https://x.com/stelland_hello">
-                            <i className="fab fa-x cursor-pointer text-white rounded-full px-[0.7rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150"></i>
+                            <i className="fab fa-x cursor-pointer text-white rounded-full px-[0.7rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
                         </Link>
                         <Link href="https://stelland.medium.com">
-                            <i className="fa-brands fa-medium cursor-pointer text-white rounded-full px-[0.44rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150"></i>
+                            <i className="fa-brands fa-medium cursor-pointer text-white rounded-full px-[0.44rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
                         </Link>
                         <Link href="https://www.linkedin.com/company/stellandio/">
-                            <i className="fa-brands fa-linkedin-in cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150"></i>
+                            <i className="fa-brands fa-linkedin-in cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
                         </Link>
                     </ul>
                 </div>

@@ -100,14 +100,14 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                                                         </div>
                                                     </div>
                                                     {/* delete button */}
-                                                    <button className="transition ease-in-out duration-300 delay-150 hover:bg-gray-200 p-2 rounded-md group-hover/edit:block hidden"
+                                                    {/* <button className="transition ease-in-out duration-300 delay-150 hover:bg-gray-200 p-2 rounded-md group-hover/edit:block hidden"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setShowDeleteModal(true);
                                                             setDeleteChapterId(chapter.id);
                                                         }}>
                                                         {webnovel?.user.email_hash === createEmailHash(email) && <i className="fa-solid fa-trash"></i>}
-                                                    </button>
+                                                    </button> */}
                                                     {/* delete button */}
                                                 </div>
                                             </div>

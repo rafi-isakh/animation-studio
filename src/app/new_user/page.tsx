@@ -34,7 +34,6 @@ async function createUser() {
         },
         body: JSON.stringify(data)
     });
-    console.log("res:", await res.json())
 }
 
 async function updateUser(formData: FormData) {

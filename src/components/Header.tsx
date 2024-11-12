@@ -20,7 +20,7 @@ import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
 import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
-import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft } from 'lucide-react';
+import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft, X } from 'lucide-react';
 import KeywordsComponent from '@/components/KeywordsComponent';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/contexts/providers'
@@ -29,7 +29,6 @@ import { useTheme } from '@/contexts/providers'
 const Header = () => {
 
     const router = useRouter();
-    const { setIsLoggedIn } = useAuth();
     const { isLoggedIn, loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
@@ -58,7 +57,13 @@ const Header = () => {
     const searchDropdownRef = useRef<HTMLDivElement>(null);
     const { theme } = useTheme()
 
-    let keyPressed = false
+    // let keyPressed = false
+    const [recentQueries, setRecentQueries] = useState<string[]>([]);
+    const [lastIndex, setLastIndex] = useState(0);
+    const [keyPressed, setKeyPressed] = useState(false);
+    const queriesToShow = 4;
+    const [searchRemember, setSearchRemember] = useState(false);
+    const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
 
     useEffect(() => {
         if (pathname == "/") {
@@ -82,6 +87,18 @@ const Header = () => {
             setLogoHeight(24);
         }
     }, [isDesktop]);
+
+    useEffect(() => {
+        const fetchRecentQueries = async () => {
+            const response = await fetch(`/api/get_recent_queries?email=${email}`)
+            const data = await response.json()
+            setRecentQueries(data.queries)
+            setLastIndex(data.last_index)
+        }
+        if (isSearchDropdownOpen && email) {
+            fetchRecentQueries()
+        }
+    }, [isSearchDropdownOpen, email])
 
     useEffect(() => {
         // if mobile menu is open, or on desktop, display menu
@@ -108,18 +125,26 @@ const Header = () => {
 
     const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key == 'Enter') {
-            keyPressed = false;
+            setKeyPressed(false)
         }
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            if (!keyPressed) {
-                keyPressed = true;
-                setIsMobileMenuOpen(false);
-                router.push(`/search?query=${query}`);
+            if (!keyPressed && query !== recentQueries[0]) {
+                setKeyPressed(true)
+                handleSearch(query)
             }
         }
+    }
+
+    const handleSearch = (query: string) => {
+        setIsMobileMenuOpen(false);
+        if (searchRemember) {
+            setRecentQueries(prev => [query, ...prev])
+            setLastIndex(prev => prev + 1)
+        }
+        router.push(`/search?query=${query}&remember=${searchRemember}`);
     }
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -254,6 +279,38 @@ const Header = () => {
         return getUrlWithParams('version', version, pathname, searchParams);
     };
 
+    const handleDeleteRecentQuery = async (event: React.MouseEvent<SVGSVGElement>, index: number) => {
+        event.stopPropagation()
+        const queryToDelete = recentQueries[index]
+        setLastIndex(prev => prev - 1)
+        setRecentQueries(prev => prev.filter((_, i) => i !== index))
+        if (isLoggedIn) {
+            const response = await fetch(`/api/delete_recent_query?email=${email}&query_index=${lastIndex - (index)}`,
+                {
+                    method: "DELETE",
+                }
+            )
+            if (!response.ok) {
+                setLastIndex(prev => prev + 1)
+                setRecentQueries(prev => [...prev, queryToDelete])
+                console.error("Error deleting recent query", response)
+            }
+        }
+    }
+
+    const toggleSearchRemember = () => {
+        setSearchRemember(prev => !prev)
+    }
+
+    useEffect(() => {
+        if (!searchRemember) {
+            setRecentQueriesBackup(recentQueries)
+            setRecentQueries([])
+        } else {
+            setRecentQueries(recentQueriesBackup)
+        }
+    }, [searchRemember])
+
 
     return (
         <div className=''>
@@ -272,8 +329,13 @@ const Header = () => {
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
                                 <Link href="/?version=free">
+<<<<<<< HEAD
                                     <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "webnovels", language)}</p>
+=======
+                                    <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
+                                        {phrase(dictionary, "webnovels", language)}</p>
+>>>>>>> origin
                                 </Link>
                                 <Link href="#">
                                     <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600 hover:text-pink-600`}>
@@ -281,8 +343,13 @@ const Header = () => {
                                     </p>
                                 </Link>
                                 <Link href="/studio">
+<<<<<<< HEAD
                                     <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "studio", language)}</p>
+=======
+                                    <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
+                                        {phrase(dictionary, "studio", language)}</p>
+>>>>>>> origin
                                 </Link>
                             </div>
                         </div>
@@ -319,10 +386,18 @@ const Header = () => {
                             </div>
                             {/*Search bar visible in screens larger than md (md:block)*/}
                             <div className="relative hidden md:block mr-8">
-                                    <button 
-                                        onClick={toggleSearchDropdown} 
-                                        className="flex items-center ps-3 cursor-pointer hover:text-pink-600" 
+                                <button
+                                    onClick={toggleSearchDropdown}
+                                    className="flex items-center ps-3 cursor-pointer hover:text-pink-600"
+                                >
+                                    <svg
+                                        className="w-4 h-4 text-black dark:text-black rounded"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 20 20"
                                     >
+<<<<<<< HEAD
                                         <svg 
                                             className="w-4 h-4 text-black dark:text-white rounded" 
                                             aria-hidden="true" 
@@ -383,10 +458,51 @@ const Header = () => {
                                                             onKeyUp={handleKeyUp} 
                                                             placeholder={phrase(dictionary, "searchPlaceholder", language)}
                                                             className="block w-full p-2 pl-10 text-sm  dark:bg-black text-black border border-black rounded-md focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" 
+=======
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                                        />
+                                    </svg>
+                                    <span className="sr-only">Search icon</span>
+                                </button>
+                                {isSearchDropdownOpen && (
+                                    <div
+                                        id="search-dropdown"
+                                        ref={searchDropdownRef}
+                                        className="z-50 rounded-md absolute right-0 top-full mt-2 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-96 dark:divide-gray-600"
+                                    >
+                                        <div className="flex justify-between px-3 py-3">
+                                            <button className='text-black hover:text-pink-600 justify-start mr-4' onClick={() => setIsSearchDropdownOpen(false)}>
+                                                < ChevronLeft />
+                                            </button>
+
+                                            {/* Wrap input and icon in a relative container */}
+                                            <div className="relative flex-1">
+                                                {/* Search Icon */}
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <svg
+                                                        className="w-4 h-4 text-black dark:text-black"
+                                                        aria-hidden="true"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 20 20"
+                                                    >
+                                                        <path
+                                                            stroke="currentColor"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth="2"
+                                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+>>>>>>> origin
                                                         />
-                                                    </div>
+                                                    </svg>
                                                 </div>
 
+<<<<<<< HEAD
                                             <div className="flex flex-col px-3 py-3">
                                                 <div>
                                                   <p className='text-gray-500 dark:text-white text-md flex justify-between'>
@@ -426,12 +542,83 @@ const Header = () => {
                                                       <KeywordsComponent />
                                                     </p>
                                               
+=======
+                                                {/* Input Field */}
+                                                <input
+                                                    type="text"
+                                                    id="search-navbar"
+                                                    value={query}
+                                                    onChange={handleChange}
+                                                    onKeyDown={handleKeyDown}
+                                                    onKeyUp={handleKeyUp}
+                                                    placeholder={phrase(dictionary, "searchPlaceholder", language)}
+                                                    className="block w-full p-2 pl-10 text-sm text-black border border-black rounded-md focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col px-3 py-3">
+                                            <div>
+                                                <p className='text-gray-500 text-md flex justify-between'>
+                                                    {/* 최근 검색어   */}
+                                                    {phrase(dictionary, "recentSearch", language)}
+                                                    <a href="#"><span className='text-gray-300 text-[10px] text-right' onClick={() => toggleSearchRemember()}>
+                                                        {/* search history off  */}
+                                                        {searchRemember ? phrase(dictionary, "searchTurnOff", language) : phrase(dictionary, "searchTurnOn", language)}
+                                                    </span></a>
+                                                </p>
+                                                {/* recent search list */}
+                                                <div className='h-[100px]'>
+                                                    {recentQueries.length > 0 ?
+                                                        recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
+                                                            <div key={index} onClick={() => handleSearch(query)} className='flex flex-row items-center justify-between hover:bg-gray-100'>
+                                                                <p className='text-gray-400 text-[15px] text-left'>
+                                                                    {query}
+                                                                </p>
+                                                                <p className='text-gray-400 hover:bg-gray-200 text-[15px] text-right'>
+                                                                    <X onClick={(event) => handleDeleteRecentQuery(event, index)} />
+                                                                </p>
+                                                            </div>
+                                                        )) :
+                                                        <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
+                                                            {/* 최근 검색어가 없습니다. */}
+                                                            {phrase(dictionary, "noRecentSearch", language)}
+                                                        </p>
+                                                    }
+>>>>>>> origin
                                                 </div>
 
                                             </div>
+                                            <div>
+                                                <p className='text-gray-500 text-md'>
+                                                    {/* 인기 검색어 */}
+                                                    {phrase(dictionary, "popularSearch", language)}
+                                                </p>
+                                                {/* popular search list */}
+                                            </div>
+                                            <div className='h-[100px]'>
+                                                <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
+                                                    {/* 인기 검색어가 없습니다. */}
+                                                    {phrase(dictionary, "noPopularSearch", language)}
+                                                </p>
+
+                                            </div>
+                                            <div>
+                                                <p className='text-gray-500 text-md'>
+                                                    {/* keywords, genre : 키워드 별로 보기  */}
+                                                    {phrase(dictionary, "genresAndKeyword", language)}
+                                                </p>
+                                                {/* popular search list */}
+                                                <p className='text-gray-500 text-sm mt-5 mb-3 text-center'>
+                                                    <KeywordsComponent />
+                                                </p>
+
+                                            </div>
+
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                            </div>
                             <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 ">
                                 {/* News menu
                             <li>
@@ -489,6 +676,7 @@ const Header = () => {
                                                     isLoggedIn ? (
                                                         <>
                                                             <li>
+<<<<<<< HEAD
                                                                 <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white text-black dark:hover:text-black">
                                                                {/* Welcome greeting */}
                                                                {/* <span> {phrase(dictionary, "welcome", language)} </span>  */}
@@ -496,10 +684,20 @@ const Header = () => {
                                                                     <span className='text-gray-500 '>{' '}
                                                                     { language == 'ko' ? '의' : '\'s' }{' '}
                                                                     {phrase(dictionary, "profile", language)} 
+=======
+                                                                <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                                    {/* Welcome greeting */}
+                                                                    {/* <span> {phrase(dictionary, "welcome", language)} </span>  */}
+                                                                    <span className='font-extrabold'>{nickname}</span>
+                                                                    <span className='text-gray-500'>{' '}
+                                                                        {language == 'ko' ? '의' : '\'s'}{' '}
+                                                                        {phrase(dictionary, "profile", language)}
+>>>>>>> origin
                                                                     </span>
-                                                               
+
                                                                 </Link>
                                                             </li>
+<<<<<<< HEAD
                                                             <hr/>
                                                            
                                                             <li className="px-3 py-2 dark:hover:bg-gray-600">
@@ -512,6 +710,20 @@ const Header = () => {
                                                                 <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 dark:text-white text-black dark:hover:text-black">
                                                                   <SquareLibrary size={18} className='dark:text-white text-black' />
                                                                   {phrase(dictionary, "myLibrary", language)}
+=======
+                                                            <hr />
+
+                                                            <li className="px-3 py-2">
+                                                                <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                                    <Book size={18} />
+                                                                    {phrase(dictionary, "myWebnovels", language)}
+                                                                </Link>
+                                                            </li>
+                                                            <li className="px-3 py-2">
+                                                                <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                                    <SquareLibrary size={18} />
+                                                                    {phrase(dictionary, "myLibrary", language)}
+>>>>>>> origin
                                                                 </Link>
                                                             </li>
                                                             <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
@@ -526,11 +738,17 @@ const Header = () => {
                                                             </li>
 
                                                             <li className="">
+<<<<<<< HEAD
                                                                 <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-black">
                                                                     <span className="w-full flex items-center gap-2 justify-center text-center border border-pink-600 hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-pink-600 hover:text-gray-400"> 
                                                                         <SquarePen size={18} className=''/>
+=======
+                                                                <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:hover:text-black">
+                                                                    <span className="w-full flex items-center gap-2 justify-center text-center border border-pink-600 hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-pink-600 hover:text-gray-400">
+                                                                        <SquarePen size={18} />
+>>>>>>> origin
                                                                         {phrase(dictionary, "newWebnovel", language)}
-                                                                     </span>
+                                                                    </span>
                                                                 </Link>
                                                             </li>
                                                             <li className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-white w-full">
@@ -539,10 +757,15 @@ const Header = () => {
                                                              
                                                             </li>
                                                             <li>
+<<<<<<< HEAD
                                                                 <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2 dark:text-white dark:hover:text-black ">
                                                                    <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-pink-600"> 
+=======
+                                                                <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2  dark:hover:text-black ">
+                                                                    <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-pink-600">
+>>>>>>> origin
                                                                         {phrase(dictionary, "logout", language)}
-                                                                   </span>
+                                                                    </span>
                                                                 </Link>
                                                             </li>
                                                         </>
@@ -556,13 +779,14 @@ const Header = () => {
                                         </div>
                                     )}
                                 </li>
-                        
+
                             </ul>
                         </div>
                     </div>
                     {/* mobile webnovels, webtoons, studio mobile bottom menu */}
                     <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
                         <Link href="/?version=free">
+<<<<<<< HEAD
                             <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600   hover:text-pink-600 `}>   {/* has-[:clicked]:bg-indigo-50  */}
                           
                             {phrase(dictionary, "webnovels", language)}</p>
@@ -574,26 +798,38 @@ const Header = () => {
                         <Link href="/studio">
                             <p className={`${isActive('/studio') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} studio mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                             {phrase(dictionary, "studio", language)}</p>
+=======
+                            <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600 has-[:clicked]:bg-indigo-50`}>
+                                {phrase(dictionary, "webnovels", language)}</p>
+                        </Link>
+                        <Link href="/">
+                            <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>
+                                {phrase(dictionary, "webtoons", language)}</p>
+                        </Link>
+                        <Link href="/studio">
+                            <p className={`${isActive('/studio') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>
+                                {phrase(dictionary, "studio", language)}</p>
+>>>>>>> origin
                         </Link>
                     </div>
-                   {/* mobile webnovels, webtoons, studio bottom menu */}
+                    {/* mobile webnovels, webtoons, studio bottom menu */}
                 </div>
                 <hr />
-                </nav>
-                {pathname == '/' && (
-                    <>
-                        <div id="free-premium" className="max-w-screen-xl mx-auto md:mt-[4rem] mt-[5.6rem]">
-                            <div className="flex flex-row space-x-4 items-center justify-start ml-4 md:p-0 p-1">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
-                                <p className={`text-gray-500 text-md font-bold  ${highlightFree() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
-                                    <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
-                                <p className={`text-gray-500 text-md font-bold ${highlightPremium() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
-                                    <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
-                            </div>
+            </nav>
+            {pathname == '/' && (
+                <>
+                    <div id="free-premium" className="max-w-screen-xl mx-auto md:mt-[4rem] mt-[5.6rem]">
+                        <div className="flex flex-row space-x-4 items-center justify-start ml-4 md:p-0 p-1">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
+                            <p className={`text-gray-500 text-md font-bold  ${highlightFree() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
+                                <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
+                            <p className={`text-gray-500 text-md font-bold ${highlightPremium() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
+                                <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
                         </div>
-                        <hr />
-                    </>
-                )
-                }
+                    </div>
+                    <hr />
+                </>
+            )
+            }
         </div>
     )
 };

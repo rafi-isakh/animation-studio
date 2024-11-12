@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
 import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
+import { createEmailHash } from '@/utils/cryptography';
 
 // user could be undefined if not logged in
 const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
@@ -26,7 +27,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     const [key1, setKey1] = useState(1000);
     const [key2, setKey2] = useState(2000);
     const [key3, setKey3] = useState(3000);
-    const {language, dictionary} = useLanguage();
+    const { language, dictionary } = useLanguage();
     const [repliesKey, setRepliesKey] = useState(4000);
     const [chapterTitle, setChapterTitle] = useState("");
 
@@ -75,6 +76,24 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             }
         }
     };
+
+    const handleDeleteComment = async (commentId: string) => {
+        const commentsBackup = JSON.parse(JSON.stringify(allComments));
+        const updatedComments = allComments.filter(comment => comment.id.toString() !== commentId);
+        for (const comment of updatedComments) {
+            const updatedReplies = comment.replies?.filter(reply => reply.id.toString() !== commentId);
+            comment.replies = updatedReplies;
+        }
+        console.log(updatedComments)
+        setAllComments(updatedComments);
+        const response = await fetch(`/api/delete_comment?id=${commentId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            setAllComments(commentsBackup);
+            console.error("Error deleting comment");
+        }
+    }
 
     useEffect(() => {
         const fetchComments = async () => {
@@ -167,7 +186,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
             const parent_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/${parent_comment_id}/replies`)
                 .then(data => data.json());
             if (parent_replies.length > 0) {
-                    setAllComments(prevComments => {
+                setAllComments(prevComments => {
                     // Create a new array of comments with updated replies
                     const updatedComments = prevComments.map(comment => ({
                         ...comment,
@@ -192,23 +211,23 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 {/* comments  */}
                 <form onSubmit={handleAddComment}>
                     <div className='flex flex-col'>
-                     
+
                         <textarea
                             value={commentContent}
                             rows={6}
                             className='textarea rounded-t-xl focus:ring-pink-600 w-full resize-none border border-gray-300 text-black dark:text-black'
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder={phrase(dictionary, "typeYourComment", language)}
-                            
+
                         />
                         <div className='border-gray-400 border border-t-0 flex justify-end rounded-b-xl'>
-                           <span className='justify-start self-start text-gray-300 mr-4 mt-[9px]'> character {commentContent.length}/500 </span>
-                          <button type="submit" className='group/item rounded-br-xl bg-pink-600 px-4 py-3 group-hover/item:bg-pink-200'>
-                         
-                          <i className="fa-solid fa-paper-plane group-hover/item:text-white" aria-hidden="true"></i>
-                          </button>
+                            <span className='justify-start self-start text-gray-300 mr-4 mt-[9px]'> character 0/500 </span>
+                            <button type="submit" className='group/item rounded-br-xl bg-pink-600 px-4 py-3 group-hover/item:bg-pink-200'>
+
+                                <i className="fa-solid fa-paper-plane group-hover/item:text-white" aria-hidden="true"></i>
+                            </button>
                         </div>
-                     
+
                     </div>
                 </form>
 
@@ -216,45 +235,68 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     <ul>
                         {allComments.map((comment, index) => (
                             (!comment.parent_id) ? (
-                                <div key={index} className='flex flex-col py-3'>
+                                <div key={`comment-${comment.id}`} className='flex flex-col py-3'>
                                     <Link href={`/view_profile/${comment.user.id}`}>
-                                    <li className='font-extrabold mb-2 text-slate-600'>{comment.user.nickname}</li>
-                                   
+                                        <li className='font-extrabold mb-2 text-slate-600'>{comment.user.nickname}</li>
+
                                     </Link>
-                                    <li className='flex flex-row justify-between w-full'>
-                                        {<OtherTranslateComponent key={key1} content={comment.content} elementId={comment.id.toString()} elementType='comment'/>}
-                                        <a href="#">
-                                            <i onClick={() => updateShowForm(index, !showForm[index])} className='fa-solid fa-reply mb-3'></i>
-                                        </a>
+                                    <li className='flex justify-between w-full'>
+                                        <OtherTranslateComponent
+                                            key={`translate-comment-${comment.id}`}
+                                            content={comment.content}
+                                            elementId={comment.id.toString()}
+                                            elementType='comment'
+                                        />
+                                        <div className='flex justify-end space-x-4'>
+                                            {comment.user.email_hash === createEmailHash(email) &&
+                                                <a href="#">
+                                                    <i onClick={() => handleDeleteComment(comment.id.toString())} className='fa-solid fa-trash mb-3'></i>
+                                                </a>
+                                            }
+                                            <a href="#">
+                                                <i onClick={() => updateShowForm(index, !showForm[index])} className='fa-solid fa-reply mb-3'></i>
+                                            </a>
+                                        </div>
                                     </li>
                                     <hr />
                                     <li className='ml-4 py-3'>
-                                        {comment.replies ? comment.replies.map((reply, j) => (
-                                            <div key={j}>
+                                        {comment.replies ? comment.replies.map((reply) => (
+                                            <div key={`reply-${reply.id}`}>
                                                 <li className='font-extrabold mb-2 text-slate-600'>{reply.user.nickname}</li>
-                                                <li className='mb-2'>
-                                                {<OtherTranslateComponent key={key2} content={reply.content} elementId={reply.id.toString()} elementType='comment'/>}
-                                                </li>
+                                                <div className='flex justify-between'>
+                                                    <li className='mb-2'>
+                                                        <OtherTranslateComponent
+                                                            key={`translate-reply-${reply.id}`}
+                                                            content={reply.content}
+                                                            elementId={reply.id.toString()}
+                                                            elementType='comment'
+                                                        />
+                                                    </li>
+                                                    {reply.user.email_hash === createEmailHash(email) &&
+                                                        <a href="#">
+                                                            <i onClick={() => handleDeleteComment(reply.id.toString())} className='fa-solid fa-trash mb-3'></i>
+                                                        </a>
+                                                    }
+                                                </div>
                                                 <hr />
                                             </div>
-                                        )) : <></>
-                                        }
+                                        )) : <></>}
                                     </li>
                                     <li>
                                         {showForm[index] ? (
                                             <form id={`replyForm.${index}`} onSubmit={handleReply}>
                                                 <div className='flex flex-row space-x-4 ml-4 '>
 
-                                                <svg xmlns="http://www.w3.org/2000/svg" 
-                                                width="24" height="24" 
-                                                viewBox="0 0 24 24" fill="none" 
-                                                stroke="currentColor" stroke-width="2" 
-                                                stroke-linecap="round" 
-                                                stroke-linejoin="round" 
-                                                className="lucide lucide-corner-down-right"
-                                                >
-                                                <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
-                                                </svg>
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        className="lucide lucide-corner-down-right"
+                                                    >
+                                                        <polyline points="15 10 20 15 15 20" /><path d="M4 4v7a4 4 0 0 0 4 4h12" />
+                                                    </svg>
 
                                                     <textarea
                                                         value={replyContent[index]}

@@ -36,7 +36,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             setMargin,
             padding,
             setPadding,
-            setScrollType } = useReader();
+            setScrollType,
+            containerWidth = 600,
+            setContainerWidth } = useReader();
     const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
@@ -117,7 +119,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <>
-            {/*  theme={grayTheme} */}
             <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
@@ -193,8 +194,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                             {/* 넘김 방식 */}
                             {phrase(dictionary, "scrollType", language)}
                            <div className='flex flex-row gap-2'>  
-                             <Link href='' className='text-gray-300' onClick={() => setScrollType('vertical')}>스크롤</Link>
-                             <Link href='' className='text-gray-500' onClick={() => setScrollType('horizontal')}>페이지</Link>
+                             <Link href='' className='text-gray-300' onClick={() => setScrollType('vertical')}>
+                             {/* 스크롤 */}
+                             {phrase(dictionary, "viewSettings_scroll", language)}
+                             </Link>
+                             <Link href='' className='text-gray-500' onClick={() => setScrollType('horizontal')}>
+                             {/* 페이지 */}
+                             {phrase(dictionary, "viewSettings_page", language)}
+                             </Link>
                            </div>
                         </p>
                         <p className='text-sm flex justify-between'> 
@@ -219,12 +226,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
-                             <Link 
+                             {/* <Link 
                                 href='' 
                                 onClick={() => toggleTheme('gray')}
                                 className='text-[10px] bg-gray-500 text-gray-400 rounded-full border px-2 py-1 self-center text-center'>
                                     Aa
-                                </Link>
+                                </Link> */}
                            </div>
                         </p>
 
@@ -310,16 +317,18 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 onClick={() => {
                                     setMargin(margin + 1)
                                     setPadding(padding + 1)
+                                    setContainerWidth(containerWidth * 1.1); 
                                 }} 
                                 className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-plus"></i>
                              </Link>
-                             10
+                             {Math.round(margin)}
                              <Link 
                                 href='' 
                                 onClick={() => {
                                     setMargin(margin - 1)
                                     setPadding(padding - 1)
+                                    setContainerWidth(containerWidth * 0.9); 
                                 }} 
                                 className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-minus"></i>

@@ -4,7 +4,8 @@ import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 
-const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
+const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, containerWidth }: { content: string, chapterId: string, margin: number,  padding: number, containerWidth: number  }) => {
+  
     const [text, setText] = useState('');
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
@@ -12,6 +13,7 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const { scrollType, page } = useReader();
+
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -172,9 +174,15 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
         
         return words.slice(startIndex, endIndex).join('');
     }
+
+    const paragraphStyle = {
+        margin: `${margin}px`,
+        padding: `${padding}px`,
+        width: `${containerWidth}px`,
+    };
     
     return (
-        <div className="mb-16">
+        <div className="mb-16" style={paragraphStyle}>
             {scrollType === 'vertical' &&
                 <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
                 </div>

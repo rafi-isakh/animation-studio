@@ -17,6 +17,8 @@ const ReaderContext = createContext<{
     setMargin: (margin: number) => void;
     padding: number;
     setPadding: (padding: number) => void;
+    containerWidth?: number;
+    setContainerWidth: (width: number) => void;
     scrollType: string;
     setScrollType: (scrollType: string) => void;
     page: number;
@@ -34,6 +36,7 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [padding, setPadding] = useState(10);
   const [scrollType, setScrollType] = useState('vertical');
   const [page, setPage] = useState(1);
+  const [containerWidth, setContainerWidth] = useState<number | undefined>(); 
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('readerSettings');
@@ -80,6 +83,8 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     setScrollType,
     page,
     setPage,
+    containerWidth,
+    setContainerWidth,
   };
 
   return <ReaderContext.Provider value={value}>{children}</ReaderContext.Provider>;

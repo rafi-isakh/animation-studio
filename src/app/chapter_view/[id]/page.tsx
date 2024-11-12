@@ -39,22 +39,19 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { fontSize,
-        setFontSize,
-        fontFamily = 'default',
-        setFontFamily,
-        textColor,
-        setTextColor,
-        lineHeight,
-        setLineHeight,
-        backgroundColor,
-        setBackgroundColor,
-        margin,
-        padding,
-        scrollType } = useReader();
+            fontFamily = 'default',
+            lineHeight,
+            margin,
+            setMargin,
+            padding,
+            setPadding,
+            scrollType,
+            containerWidth } = useReader();
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
+
 
     useEffect(() => {
         if (chapter?.content) {
@@ -67,30 +64,19 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                    fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
-        // backgroundColor: `${backgroundColor}`
     };
-
-    // Define theme colors mapping
-    const themeColors = {
-        white: 'bg-white text-black',
-        black: 'bg-black text-white',
-        '#F5E6D3': 'bg-[#F5E6D3] text-[#5B4636]', // sepia
-        'gray-200': 'bg-gray-200 text-gray-800'    // gray
-    };
-
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
     }, [language])
-
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -197,7 +183,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     style={{
                         ...readerStyle,
                     }}
-                >
+                    >
                     <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto `}>
                         {/* Back to novel and like button */}
                         <div className="flex flex-row max-w-full w-full justify-between">
@@ -245,7 +231,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
+                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} containerWidth={containerWidth}  />
                             </div>
                         </div>
                         {/* Title and content : end */}

@@ -187,12 +187,11 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                              </label>
                               <input
                                     type="text"
-                                    value={title}
+                                    value={nickname}
                                     disabled
                                     id="author"
                                     className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-gray-300'
-                                    placeholder={useUser().nickname}
-                                    onChange={(e) => setTitle(trim(e.target.value, 50))}
+                                    placeholder={nickname}
                                 />
                              </div>
                             <div className="mt-4">

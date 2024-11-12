@@ -8,6 +8,7 @@ import {phrase} from '@/utils/phrases';
 const Search = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
   const query = searchParams.query;
+  const remember = searchParams.remember;
   const { dictionary, language } = useLanguage();
 
   if (typeof query === 'string') {
@@ -17,7 +18,7 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
   }
 
   useEffect(() => {
-    fetch(`/api/search?query=${query}`) // searches and saves query if user is logged in
+    fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
       .then(r => r.json())
       .then(r => setWebnovels(r));
   }, [query]);

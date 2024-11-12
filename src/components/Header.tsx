@@ -57,6 +57,8 @@ const Header = () => {
     const [lastIndex, setLastIndex] = useState(0);
     const [keyPressed, setKeyPressed] = useState(false);
     const queriesToShow = 4;
+    const [searchRemember, setSearchRemember] = useState(false);
+    const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
 
     useEffect(() => {
         if (pathname == "/") {
@@ -133,9 +135,11 @@ const Header = () => {
 
     const handleSearch = (query: string) => {
         setIsMobileMenuOpen(false);
-        setRecentQueries(prev => [query, ...prev])
-        setLastIndex(prev => prev + 1)
-        router.push(`/search?query=${query}`);
+        if (searchRemember) {
+            setRecentQueries(prev => [query, ...prev])
+            setLastIndex(prev => prev + 1)
+        }
+        router.push(`/search?query=${query}&remember=${searchRemember}`);
     }
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -289,6 +293,19 @@ const Header = () => {
         }
     }
 
+    const toggleSearchRemember = () => {
+        setSearchRemember(prev => !prev)
+    }
+
+    useEffect(() => {
+        if (!searchRemember) {
+            setRecentQueriesBackup(recentQueries)
+            setRecentQueries([])
+        } else {
+            setRecentQueries(recentQueriesBackup)
+        }
+    }, [searchRemember])
+
 
     return (
         <div className=''>
@@ -421,10 +438,10 @@ const Header = () => {
                                                 <p className='text-gray-500 text-md flex justify-between'>
                                                     {/* 최근 검색어   */}
                                                     {phrase(dictionary, "recentSearch", language)}
-                                                    <span className='text-gray-300 text-[10px] text-right'>
-                                                        {/* search turn off  */}
-                                                        {phrase(dictionary, "searchTurnOff", language)}
-                                                    </span>
+                                                    <a href="#"><span className='text-gray-300 text-[10px] text-right' onClick={() => toggleSearchRemember()}>
+                                                        {/* search history off  */}
+                                                        {searchRemember ? phrase(dictionary, "searchTurnOff", language) : phrase(dictionary, "searchTurnOn", language)}
+                                                    </span></a>
                                                 </p>
                                                 {/* recent search list */}
                                                 <div className='h-[100px]'>

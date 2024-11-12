@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
     const query = request.nextUrl.searchParams.get('query');
+    const remember = request.nextUrl.searchParams.get('remember');
     if (!query) {
         return NextResponse.json({ error: "query is required" }, { status: 400 })
     }
     try {
         const session = await auth()
-        if (session) {
+        if (session && remember === 'true') {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_search_query?query=${query}`, {
                 headers: {
                     "Authorization": `Bearer ${session.accessToken}`,

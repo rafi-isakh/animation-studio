@@ -11,8 +11,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!session) {
     return NextResponse.json({
-        "message": "Unauthorized",
-        "status": 401
+        message: "Unauthorized",
+    }, {
+        status: 401
     });
   }
 
@@ -28,13 +29,15 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!response.ok) {
     return NextResponse.json({
-        "message": "Add comment failed",
-        "status": response.status
+        message: "Add comment failed",
+    }, {
+        status: response.status
     });
   }
 
   return NextResponse.json({
-        "message": "Success",
-        "status": 200
+        message: "Success",
+    }, {
+        status: 200
     });
 }

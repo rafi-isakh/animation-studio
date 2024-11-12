@@ -9,8 +9,9 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   if (!session || !session.user) {
     return NextResponse.json({
-      "message": "Unauthorized",
-      "status": 401
+      message: "Unauthorized",
+    }, {
+      status: 401
     });
   }
 
@@ -24,14 +25,16 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
   if (!response.ok) {
     return NextResponse.json({
-      "message": "Delete webnovel failed",
-      "status": response.status
+      message: "Delete webnovel failed",
+    }, {
+      status: response.status
     });
   }
 
   return NextResponse.json({
-    "message": "Delete webnovel success",
-    "status": 200,
+    message: "Delete webnovel success",
+  }, {
+    status: 200
   });
 }
 

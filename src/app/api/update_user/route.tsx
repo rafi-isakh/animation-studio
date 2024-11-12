@@ -29,8 +29,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
         } catch (error) {
             console.error('Error uploading file to s3:', error);
             return NextResponse.json({
-                "message": "Failed to upload to s3",
-                "status": 500
+                message: "Failed to upload to s3",
+                status: 500
             });
         }
     }
@@ -56,14 +56,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
     if (!response.ok) {
         console.error("Error updating user", response.status)
         return NextResponse.json({
-            "message": "Failed to update user",
-            "status": 500
+            message: "Failed to update user",
+            status: 500
         });
     }
 
     return NextResponse.json({
-        "message": "Success!!",
-        "status": 200,
+        message: "Success!!",
+        status: 200,
     });
 }
 

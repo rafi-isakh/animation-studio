@@ -18,6 +18,7 @@ import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { style } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
+import { createEmailHash } from '@/utils/cryptography'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -30,7 +31,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const nickname = webnovel?.user.nickname;
-    const author_email = webnovel?.user.email;
+    const author_email = webnovel?.user.email_hash;
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -62,6 +63,13 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         setAtLeastOneWebnovel(hasWebnovels);
         setLoading(false);
     }, [webnovel, userWebnovels, deletedWebnovelId]);
+
+    const isAuthor = (): boolean => {
+        // if (!email || !author_email) return false;
+        const userEmailHash = createEmailHash(email);
+        const authorEmailHash = author_email
+        return userEmailHash === authorEmailHash;
+    };
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
@@ -135,7 +143,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                             </div>
                             
                             <div>
-                            {(author_email == email) &&
+                            {isAuthor() &&
                                 <div className='flex flex-row gap-4 w-full justify-start'>
                                        {/* 
                                         <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>

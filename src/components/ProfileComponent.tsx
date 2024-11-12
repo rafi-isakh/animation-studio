@@ -17,7 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Box, Button, Modal } from '@mui/material';
 import { style } from '@/styles/ModalStyles';
 import { Book, Pencil, Heart } from 'lucide-react';
-
+import { createEmailHash } from '@/utils/cryptography';
 
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
@@ -37,6 +37,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
 
+    
     useEffect(() => {
         console.log(user);
     }, [user])
@@ -59,6 +60,13 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
         }
     }, [introWidth])
 
+    // implementing utils function
+    const isProfileOwner = (): boolean => {
+        // if (!email || !user.email) return false;
+        const userEmailHash = createEmailHash(email);
+        const profileEmailHash = user.email_hash
+        return userEmailHash === profileEmailHash;
+    };
 
     const handleIntroClick = () => {
         setIntroActive(true);
@@ -128,18 +136,25 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     };
 
     const handleDeleteAccount = async () => {
-        const response = await fetch(`/api/delete_account?email=${email}`);
-        if (!response.ok) {
+        if (!isProfileOwner()) {
             console.error("Deleting account failed");
-        } else {
-            try {
-                logout(true, `/`);
+            return 
+        }
+
+        try {
+            const response = await fetch(`/api/delete_account?email=${email}`);
+                if (!response.ok) {
+                    console.error("Deleting account failed");
+                    return;
+                }
+
+                await logout(true, `/`);
             } catch (error) {
                 console.error('Error signing out:', error);
             }
             finally {
+                setShowDeleteAccountModal(false);
             }
-        }
     }
 
     const getNumberOfChapters = () => {
@@ -234,7 +249,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 </div>
 
 
-                {email == user.email && <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>}
+                {isProfileOwner() && <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>}
             </div>
 
 

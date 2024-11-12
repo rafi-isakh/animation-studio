@@ -11,8 +11,8 @@ import { Metadata } from 'next'
 import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP, Noto_Sans_TC, Noto_Sans_SC } from 'next/font/google'
 import Margin from '@/components/Margin';
 import { ReaderProvider } from '@/contexts/ReaderContext';
-import ThemeWrapper from '@/components/ThemeWrapper';
 import { ThemeProvider } from '@/contexts/providers'
+
 
 
 const notoSans = Noto_Sans({
@@ -92,8 +92,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
            <AuthProvider>
             <UserProvider>
               <DeviceProvider>
-                <ReaderProvider>
-                  <ThemeWrapper>
+                <ReaderProvider>   
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
                   <Suspense>
@@ -109,7 +108,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   </div> 
                  */}
                 </div>
-                 </ThemeWrapper>
                 </ReaderProvider>
               </DeviceProvider>
             </UserProvider>

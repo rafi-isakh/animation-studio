@@ -10,7 +10,7 @@ import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { style, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
@@ -30,22 +30,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             setFontSize, 
             fontFamily = 'default', 
             setFontFamily, 
-            textColor, 
-            setTextColor, 
             lineHeight, 
             setLineHeight, 
-            backgroundColor, 
-            setBackgroundColor, 
-            setBackgroundWithTextColor,
             margin, 
             setMargin,
             padding,
             setPadding,
-            scrollType,
             setScrollType } = useReader();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    
+    const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -126,12 +118,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     return (
         <>
             {/*  theme={grayTheme} */}
-            <div className={`z-50 fixed w-full justify-center bg-white border-t bottom-0 left-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
-            ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
+               ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 
                 </div> */}
-                <div className="max-w-lg text-black flex flex-wrap items-center justify-between mx-auto p-2">
+                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-between mx-auto p-2">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='group hover:text-pink-600'>
                         <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600"></i>
@@ -185,14 +177,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             </Modal>
             {/* view settings modal */}
             <Modal open={showIsViewerModal} onClose={() => setShowIsViewerModal(false)}
-                 BackdropProps={{
-                    style: {
-                      backgroundColor: 'transparent', // Custom backdrop opacity
-                    },
-                  }}
                 >
                 <Box sx={viewSettingsStyle}>
-                    <div className='flex flex-col space-y-4'>
+                    <div className='flex flex-col space-y-4 text-black dark:text-black'>
                         <p className='flex justify-between'>
                             {/* View Settings  */}
                             {phrase(dictionary, "viewSettings", language)}
@@ -216,31 +203,25 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                            <div className='flex flex-row gap-2'>  
                              <Link 
                              href='' 
-                             onClick={() => {
-                                setBackgroundWithTextColor('#ffffff');
-                            }}
-                             className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>Aa</Link>
+                             onClick={() => toggleTheme('light')}
+                             className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
+                                Aa
+                             </Link>
                              <Link 
                                 href='' 
-                                onClick={() => {
-                                    setBackgroundWithTextColor('#000000');
-                                }}
+                                onClick={() => toggleTheme('dark')}
                                 className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
                              <Link 
                                 href='' 
-                                onClick={() => {
-                                    setBackgroundWithTextColor('#F5E2CB');
-                                }}
+                                onClick={() => toggleTheme('sepia')}
                                 className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
                              <Link 
                                 href='' 
-                                onClick={() => {
-                                    setBackgroundWithTextColor('#E5E5E5');
-                                }}
+                                onClick={() => toggleTheme('gray')}
                                 className='text-[10px] bg-gray-500 text-gray-400 rounded-full border px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>

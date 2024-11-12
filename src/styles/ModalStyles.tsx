@@ -2,16 +2,21 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 
-export const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '1px solid #e5e5e5',
-    borderRadius: '12px',
-    p: 4,
+export const style = () => {
+    const theme = useTheme();
+   
+    return {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 400,
+        bgcolor: 'background.paper',
+        border: '1px solid #e5e5e5',
+        borderRadius: '12px',
+        p: 4,
+        color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.secondary, // {{ edit_1 }}
+    }
 };
 
 export const videoStyle = {

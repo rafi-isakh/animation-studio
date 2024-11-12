@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
 
-type Theme = 'dark' | 'light'
+type Theme = 'dark' | 'light' | 'sepia' | 'gray'
 
 type ThemeContextType = {
   theme: Theme
@@ -17,7 +17,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Check local storage or system preference on mount
     const savedTheme = localStorage.getItem('theme') as Theme
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    console.log('mounting')
     if (savedTheme) {
       toggleTheme(savedTheme)
     } else if (systemPrefersDark) {
@@ -27,18 +26,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Update document class when theme changes
-
-    console.log('toggling theme', theme)
+    document.documentElement.className = theme
+    localStorage.setItem('theme', theme)
   }, [theme])
 
-  const toggleTheme = (theme: Theme) => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    localStorage.setItem('theme', theme)
-    setTheme(theme)
+  const toggleTheme = (newTheme: Theme) => {
+    setTheme(newTheme)
   }
 
   return (

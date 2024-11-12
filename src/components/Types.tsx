@@ -24,6 +24,7 @@ export interface Chapter {
 export interface User {
   id: number;
   email: string;
+  email_hash: string;
   nickname: string;
   bio: string;
   picture: string;

@@ -36,19 +36,24 @@ export default function Footer() {
                     </button>
                     {isExpanded && (
                         <div className="mb-2 text-[10px]">
+                            <p>
+                                {language == 'ko' ? <>주식회사 스텔라인</> : <>Stelland International Inc.</>}
+                            </p>
                             <p className="">
                                 {language == 'ko' ? <>사업자등록번호 221-88-02281</> : <></>}
                             </p>
                             <p>
-                                {language == 'ko' ? <>대표자 강서연</> : <></>}
+                                {language == 'ko' ? <>대표자 강서연</> : <>CEO Seoyeon Kang</>}
                             </p>
                             <p>
                                 {language == 'ko' ? <>서울특별시 강남구 테헤란로 79길 6</> : <>1111B S Governors Ave #23452 Dover, DE 19904, USA</>}
                             </p>
                             <p>
-                                {language == 'ko' ? <>hello@stelland.com</> : <></>}
-                            </p>
                                 {language == 'ko' ? <>1111B S Governors Ave #23452 Dover, DE 19904, USA</> : <></>}
+                            </p>
+                            <p>
+                                hello@stelland.io
+                            </p>
                         </div>
                     )}
 

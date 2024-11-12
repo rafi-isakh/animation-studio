@@ -58,9 +58,8 @@ export const metadata: Metadata = {
     description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
     images: [
       {
-        url: 'https://toonyz.com/_next/image?url=%2FtoonyzLogo.png',
-        width: 250,
-        alt: '투니즈 Toonyz Logo'
+        url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
+        alt: '스텔리 Stelli'
       }
     ]
   },
@@ -68,18 +67,21 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '투니즈 toonyz',
     description: '웹소설, 웹툰 글로벌 스토리 플랫폼',
-    images: ['https://toonyz.com/_next/image?url=%2FtoonyzLogo.png&w=256&q=75'],
+    images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
   },
   alternates: {
     canonical: 'https://toonyz.com/',
   },
   verification: {
     google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
-    naver: 'ab9c8fe45b7e410447296fcf47bbc16bec7d8edf',
-  } as { google?: string; naver?: string }
+    other: {
+      "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
+    }
+  } 
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+
 
   return (
     <html>
@@ -95,10 +97,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   <Suspense>
                     <Header />
                   </Suspense>
-                  <Margin/>
-                  <div className={`children min-h-screen pt-28 md:pt-24 mb-4`}>
+                  <Margin>
                     {children}
-                  </div>
+                  </Margin>
+                  {/* 
+                  <div className={`children min-h-screen`}>  
+                   // Header bottom margin :: pt-28 md:pt-24 mb-4
+                    {children}
+                  </div> 
+                 */}
                 </div>
                  </ThemeWrapper>
                 </ReaderProvider>

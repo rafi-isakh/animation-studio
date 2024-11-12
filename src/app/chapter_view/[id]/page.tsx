@@ -18,6 +18,7 @@ import { phrase } from '@/utils/phrases';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useAuth } from "@/contexts/AuthContext";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -25,6 +26,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
+    const { isLoggedIn } = useAuth();
     const [key, setKey] = useState(0); // for remounting WebnovelTranslateComponent
     const [key2, setKey2] = useState(0); // for remounting OtherTranslation for webnovel title
     const [deleteModal, setDeleteModal] = useState(false);
@@ -77,12 +79,26 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [pathname]);
 
     useEffect(() => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_byid?id=${id}`)
+        const fetchData = async () => {
+            const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
+            const data = await response.json();
+            console.log(data);
+            if (data.includes(id)) {
+                setLikeToggle(true);
+            }
+        }
+        if (email) {
+            fetchData();
+        }
+    }, [email])
+
+    useEffect(() => {
+        fetch(`/api/get_chapter_by_id?id=${id}`)
             .then(response => response.json())
             .then(data => {
                 setChapter(data);
                 setUpvotes(data.upvotes)
-                fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_byid?id=${data.webnovel_id}`)
+                fetch(`/api/get_webnovel_by_id?id=${data.webnovel_id}`)
                     .then(response2 => response2.json())
                     .then(data2 => {
                         setWebnovel(data2)
@@ -112,33 +128,29 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [email])
 
     const handleLikeClick = async () => {
-        if (likeToggle) {
-            setUpvotes(prev => prev - 1); // optimistic update
-            setLikeToggle(false);
-            const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
-            const data = await res.json();
-            if (data.status === 200) {
-                setUpvotes(data.upvotes);
+        if (isLoggedIn) {
+            if (likeToggle) {
+                setUpvotes(prev => prev - 1); // optimistic update
                 setLikeToggle(false);
-            } 
-            if (data.status === 401) {
-                setShowPleaseLogin(true);
-                setLikeToggle(true);
+                const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
+                const data = await res.json();
+                if (data.status === 200) {
+                    setUpvotes(data.upvotes);
+                    setLikeToggle(false);
+                }
             }
-        }
-        else {
-            setUpvotes(prev => prev + 1);
-            setLikeToggle(true);
-            const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
-            const data = await res.json();
-            if (data.status === 200) {
-                setUpvotes(data.upvotes);
+            else {
+                setUpvotes(prev => prev + 1);
                 setLikeToggle(true);
-            } 
-            if (data.status === 401) {
-                setShowPleaseLogin(true);
-                setLikeToggle(false);
+                const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
+                const data = await res.json();
+                if (data.status === 200) {
+                    setUpvotes(data.upvotes);
+                    setLikeToggle(true);
+                }
             }
+        } else {
+            setShowPleaseLogin(true);
         }
     }
 

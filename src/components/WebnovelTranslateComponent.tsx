@@ -4,7 +4,7 @@ import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 
-const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, containerWidth }: { content: string, chapterId: string, margin: number,  padding: number, containerWidth: number  }) => {
+const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, charsPerPage }: { content: string, chapterId: string, margin: number,  padding: number, charsPerPage: number  }) => {
   
     const [text, setText] = useState('');
     const { language, isRtl } = useLanguage();
@@ -167,7 +167,7 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, conta
     }
     
     const getPage = (text: string, page: number) => {
-        const wordsPerPage = 200; // Adjust this number based on your needs
+        const wordsPerPage = charsPerPage; // Adjust this number based on your needs
         const words = text.split(/(\s+)/);  // Split by whitespace but keep the separators
         const startIndex = (page - 1) * wordsPerPage;
         const endIndex = page * wordsPerPage;
@@ -178,7 +178,6 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, conta
     const paragraphStyle = {
         margin: `${margin}px`,
         padding: `${padding}px`,
-        width: `${containerWidth}px`,
     };
     
     return (

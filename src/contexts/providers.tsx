@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
 
-type Theme = 'dark' | 'light' | 'sepia' | 'gray'
+export type Theme = 'dark' | 'light' | 'sepia'
 
 type ThemeContextType = {
   theme: Theme

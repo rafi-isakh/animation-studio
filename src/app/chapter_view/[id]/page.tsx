@@ -15,10 +15,11 @@ import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
 import { useReader } from '@/contexts/ReaderContext';
-import { useTheme } from '@mui/material/styles';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeWrapper from '@/components/ThemeWrapper';
+import {useTheme, Theme} from '@/contexts/providers'
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -46,20 +47,46 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             padding,
             setPadding,
             scrollType,
-            containerWidth } = useReader();
+            containerWidth,
+        } = useReader();
 
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const muiTheme = useMuiTheme();
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
-
+    const { theme, toggleTheme } = useTheme()
+    const [initialTheme, setInitialTheme] = useState<Theme>(theme)
+    const webnovelViewRef = useRef<HTMLDivElement>(null);
+    const hiddenDivRef = useRef<HTMLCanvasElement>(null);
+    const [charsCount, setCharsCount] = useState(0);
 
     useEffect(() => {
-        if (chapter?.content) {
+        return () => toggleTheme(initialTheme)
+    }, [])
+
+    useEffect(() => {
+        if (chapter?.content && webnovelViewRef.current && hiddenDivRef.current) {
+            const hiddenDiv = hiddenDivRef.current
+            hiddenDiv.style.fontSize = `${fontSize}px`;
+            hiddenDiv.style.fontFamily = fontFamily;
+            hiddenDiv.style.lineHeight = lineHeight.toString();
+            hiddenDiv.style.margin = `${margin}px`;
+            const viewHeight = webnovelViewRef.current.scrollHeight;
+            let charsCount = 0;
             for (let i = 0; i < chapter?.content?.length; i++) {
                 // make hidden div and put character in hidden div one by one until it exceeds
+                const chars = chapter.content.slice(0, i + 1)
+                hiddenDiv.textContent = chars;
+                if (hiddenDiv.scrollHeight > viewHeight) {
+                    break;
+                }
+                charsCount += 1;
             }
+            setCharsCount(charsCount);
+            console.log('hiddenDiv.scrollHeight', hiddenDiv.scrollHeight)
+            console.log('viewHeight', viewHeight)
+            console.log(charsCount);
         }
-    }, [fontSize, fontFamily, lineHeight, margin, chapter])
+    }, [fontSize, fontFamily, lineHeight, margin, chapter, scrollType, webnovelViewRef.current])
 
     const readerStyle = {
         fontSize: `${fontSize}px`,
@@ -231,7 +258,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} containerWidth={containerWidth}  />
+                                <canvas ref={hiddenDivRef} style={{visibility: 'hidden', position: 'absolute'}}>
+                                </canvas>
+                                <div ref={webnovelViewRef} className={`${scrollType == 'horizontal'? 'h-[80vh]': ""}`}>
+                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} charsPerPage={charsCount}  />
+                                </div>
                             </div>
                         </div>
                         {/* Title and content : end */}

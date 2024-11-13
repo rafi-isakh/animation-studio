@@ -10,7 +10,6 @@ interface ThemeWrapperProps {
 
 export default function ThemeWrapper({ children }: ThemeWrapperProps) {
   const { backgroundColor } = useReader();
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className={`

@@ -23,10 +23,10 @@ const ReaderContext = createContext<{
     setScrollType: (scrollType: string) => void;
     page: number;
     setPage: (page: number) => void;
+    setBgColor: (color: string) => void;
 } | undefined>(undefined);
 
 export function ReaderProvider({ children }: { children: React.ReactNode }) {
-  const { theme, toggleTheme } = useTheme();
   const [fontSize, setFontSize] = useState(16);
   const [fontFamily, setFontFamily] = useState('default');
   const [textColor, setTextColor] = useState('#000000');
@@ -64,6 +64,13 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [fontSize, fontFamily, textColor, lineHeight, backgroundColor, margin, padding]);
 
+
+   function setBgColor(color: string) {
+  
+      setBackgroundColor(color)
+ 
+  } 
+
   const value = {
     fontSize,
     setFontSize,
@@ -85,6 +92,7 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     setPage,
     containerWidth,
     setContainerWidth,
+    setBgColor,
   };
 
   return <ReaderContext.Provider value={value}>{children}</ReaderContext.Provider>;

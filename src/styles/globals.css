@@ -43,15 +43,7 @@
   --background: #000;
 }
 
-.sepia {
-  --background-color: #f4ecd8;
-  --text-color: #5b4636;
-}
 
-.gray {
-  --background-color: #d3d3d3;
-  --text-color: #333333;
-}
 
 body {
   color: var(--foreground);

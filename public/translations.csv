@@ -150,7 +150,8 @@ recentSearch,최근 검색어,,Recent Search
 popularSearch,인기 검색어,,Popular Search
 noRecentSearch,최근 검색어가 없습니다.,,No recent search
 noPopularSearch,인기 검색어가 없습니다.,,No popular search
-searchTurnOff,검색 기능 끄기,,Search turn off
+searchTurnOff,최근 검색어 끄기,,Turn off search history
+searchTurnOn,최근 검색어 켜기,,Turn on search history
 searchPlaceholder,검색어를 입력해주세요.,,Search title, author, or keyword
 popularWebnovels,실시간 인기작 추천,,Popular Webnovels
 more,더 보기,,More

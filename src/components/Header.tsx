@@ -329,13 +329,8 @@ const Header = () => {
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
                                 <Link href="/?version=free">
-<<<<<<< HEAD
                                     <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "webnovels", language)}</p>
-=======
-                                    <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
-                                        {phrase(dictionary, "webnovels", language)}</p>
->>>>>>> origin
                                 </Link>
                                 <Link href="#">
                                     <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600 hover:text-pink-600`}>
@@ -343,13 +338,8 @@ const Header = () => {
                                     </p>
                                 </Link>
                                 <Link href="/studio">
-<<<<<<< HEAD
                                     <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "studio", language)}</p>
-=======
-                                    <p className={`${isActive('/studio') ? 'text-pink-600 font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl text-black hover:text-pink-600`}>
-                                        {phrase(dictionary, "studio", language)}</p>
->>>>>>> origin
                                 </Link>
                             </div>
                         </div>
@@ -397,68 +387,6 @@ const Header = () => {
                                         fill="none"
                                         viewBox="0 0 20 20"
                                     >
-<<<<<<< HEAD
-                                        <svg 
-                                            className="w-4 h-4 text-black dark:text-white rounded" 
-                                            aria-hidden="true" 
-                                            xmlns="http://www.w3.org/2000/svg" 
-                                            fill="none" 
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path 
-                                                stroke="currentColor" 
-                                                strokeLinecap="round" 
-                                                strokeLinejoin="round" 
-                                                strokeWidth="2" 
-                                                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" 
-                                            />
-                                        </svg>
-                                        <span className="sr-only text-black dark:text-white">Search icon</span>
-                                    </button>
-                                    {isSearchDropdownOpen && ( 
-                                        <div 
-                                            id="search-dropdown" 
-                                            ref={searchDropdownRef} 
-                                            className="z-50 rounded-md absolute right-0 top-full mt-2 font-normal bg-white dark:bg-black divide-y divide-gray-100 shadow w-full md:w-96 dark:divide-gray-600"
-                                        >
-                                            <div className="flex justify-between px-3 py-3">
-                                                <button className='text-black dark:text-white hover:text-pink-600 justify-start mr-4' onClick={() => setIsSearchDropdownOpen(false)}> 
-                                                   < ChevronLeft />
-                                                </button>
-
-                                                 {/* Wrap input and icon in a relative container */}
-                                                    <div className="relative flex-1">
-                                                        {/* Search Icon */}
-                                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-black dark:text-white">
-                                                            <svg 
-                                                                className="w-4 h-4 text-black dark:text-white" 
-                                                                aria-hidden="true" 
-                                                                xmlns="http://www.w3.org/2000/svg" 
-                                                                fill="none" 
-                                                                viewBox="0 0 20 20"
-                                                            >
-                                                                <path 
-                                                                    className='text-black dark:text-white'
-                                                                    stroke="currentColor" 
-                                                                    strokeLinecap="round" 
-                                                                    strokeLinejoin="round" 
-                                                                    strokeWidth="2" 
-                                                                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" 
-                                                                />
-                                                            </svg>
-                                                        </div>
-
-                                                        {/* Input Field */}
-                                                        <input 
-                                                            type="text" 
-                                                            id="search-navbar" 
-                                                            value={query} 
-                                                            onChange={handleChange} 
-                                                            onKeyDown={handleKeyDown} 
-                                                            onKeyUp={handleKeyUp} 
-                                                            placeholder={phrase(dictionary, "searchPlaceholder", language)}
-                                                            className="block w-full p-2 pl-10 text-sm  dark:bg-black text-black border border-black rounded-md focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-pink-500 dark:focus:border-pink-500" 
-=======
                                         <path
                                             stroke="currentColor"
                                             strokeLinecap="round"
@@ -497,52 +425,10 @@ const Header = () => {
                                                             strokeLinejoin="round"
                                                             strokeWidth="2"
                                                             d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
->>>>>>> origin
                                                         />
                                                     </svg>
                                                 </div>
 
-<<<<<<< HEAD
-                                            <div className="flex flex-col px-3 py-3">
-                                                <div>
-                                                  <p className='text-gray-500 dark:text-white text-md flex justify-between'>
-                                                     {/* 최근 검색어   */}
-                                                     {phrase(dictionary, "recentSearch", language)}
-                                                    <span className='text-gray-300 dark:text-white text-[10px] text-right'>
-                                                         {/* search turn off  */}
-                                                         {phrase(dictionary, "searchTurnOff", language)}
-                                                    </span>
-                                                   </p>
-                                                    {/* recent search list */}
-                                                    <p className='text-gray-500 dark:text-white text-sm mt-10 mb-10 text-center'> 
-                                                        {/* 최근 검색어가 없습니다. */}
-                                                        {phrase(dictionary, "noRecentSearch", language)}
-                                                    </p>
-
-                                                </div> 
-                                                <div>
-                                                  <p className='text-gray-500 dark:text-white text-md'>
-                                                      {/* 인기 검색어 */}
-                                                      {phrase(dictionary, "popularSearch", language)}
-                                                </p>
-                                                    {/* popular search list */}
-                                                    <p className='text-gray-500 dark:text-white text-sm mt-10 mb-10 text-center'> 
-                                                        {/* 인기 검색어가 없습니다. */}
-                                                        {phrase(dictionary, "noPopularSearch", language)}
-                                                    </p>
-                                              
-                                                </div>
-                                                <div>
-                                                  <p className='text-gray-500 dark:text-white text-md'>
-                                                      {/* keywords, genre : 키워드 별로 보기  */}
-                                                      {phrase(dictionary, "genresAndKeyword", language)}
-                                                  </p>
-                                                    {/* popular search list */}
-                                                    <p className='text-gray-500 text-sm mt-5 mb-3 text-center'> 
-                                                      <KeywordsComponent />
-                                                    </p>
-                                              
-=======
                                                 {/* Input Field */}
                                                 <input
                                                     type="text"
@@ -585,7 +471,6 @@ const Header = () => {
                                                             {phrase(dictionary, "noRecentSearch", language)}
                                                         </p>
                                                     }
->>>>>>> origin
                                                 </div>
 
                                             </div>
@@ -676,7 +561,6 @@ const Header = () => {
                                                     isLoggedIn ? (
                                                         <>
                                                             <li>
-<<<<<<< HEAD
                                                                 <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white text-black dark:hover:text-black">
                                                                {/* Welcome greeting */}
                                                                {/* <span> {phrase(dictionary, "welcome", language)} </span>  */}
@@ -684,20 +568,10 @@ const Header = () => {
                                                                     <span className='text-gray-500 '>{' '}
                                                                     { language == 'ko' ? '의' : '\'s' }{' '}
                                                                     {phrase(dictionary, "profile", language)} 
-=======
-                                                                <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                                    {/* Welcome greeting */}
-                                                                    {/* <span> {phrase(dictionary, "welcome", language)} </span>  */}
-                                                                    <span className='font-extrabold'>{nickname}</span>
-                                                                    <span className='text-gray-500'>{' '}
-                                                                        {language == 'ko' ? '의' : '\'s'}{' '}
-                                                                        {phrase(dictionary, "profile", language)}
->>>>>>> origin
                                                                     </span>
 
                                                                 </Link>
                                                             </li>
-<<<<<<< HEAD
                                                             <hr/>
                                                            
                                                             <li className="px-3 py-2 dark:hover:bg-gray-600">
@@ -710,20 +584,6 @@ const Header = () => {
                                                                 <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 dark:text-white text-black dark:hover:text-black">
                                                                   <SquareLibrary size={18} className='dark:text-white text-black' />
                                                                   {phrase(dictionary, "myLibrary", language)}
-=======
-                                                            <hr />
-
-                                                            <li className="px-3 py-2">
-                                                                <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                                    <Book size={18} />
-                                                                    {phrase(dictionary, "myWebnovels", language)}
-                                                                </Link>
-                                                            </li>
-                                                            <li className="px-3 py-2">
-                                                                <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                                    <SquareLibrary size={18} />
-                                                                    {phrase(dictionary, "myLibrary", language)}
->>>>>>> origin
                                                                 </Link>
                                                             </li>
                                                             <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
@@ -738,15 +598,9 @@ const Header = () => {
                                                             </li>
 
                                                             <li className="">
-<<<<<<< HEAD
                                                                 <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-black">
                                                                     <span className="w-full flex items-center gap-2 justify-center text-center border border-pink-600 hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-pink-600 hover:text-gray-400"> 
                                                                         <SquarePen size={18} className=''/>
-=======
-                                                                <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:hover:text-black">
-                                                                    <span className="w-full flex items-center gap-2 justify-center text-center border border-pink-600 hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-pink-600 hover:text-gray-400">
-                                                                        <SquarePen size={18} />
->>>>>>> origin
                                                                         {phrase(dictionary, "newWebnovel", language)}
                                                                     </span>
                                                                 </Link>
@@ -757,13 +611,8 @@ const Header = () => {
                                                              
                                                             </li>
                                                             <li>
-<<<<<<< HEAD
                                                                 <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2 dark:text-white dark:hover:text-black ">
                                                                    <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-pink-600"> 
-=======
-                                                                <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2  dark:hover:text-black ">
-                                                                    <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-pink-600">
->>>>>>> origin
                                                                         {phrase(dictionary, "logout", language)}
                                                                     </span>
                                                                 </Link>
@@ -786,7 +635,6 @@ const Header = () => {
                     {/* mobile webnovels, webtoons, studio mobile bottom menu */}
                     <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
                         <Link href="/?version=free">
-<<<<<<< HEAD
                             <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600   hover:text-pink-600 `}>   {/* has-[:clicked]:bg-indigo-50  */}
                           
                             {phrase(dictionary, "webnovels", language)}</p>
@@ -798,18 +646,6 @@ const Header = () => {
                         <Link href="/studio">
                             <p className={`${isActive('/studio') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} studio mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                             {phrase(dictionary, "studio", language)}</p>
-=======
-                            <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600 has-[:clicked]:bg-indigo-50`}>
-                                {phrase(dictionary, "webnovels", language)}</p>
-                        </Link>
-                        <Link href="/">
-                            <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black hover:text-pink-600`}>
-                                {phrase(dictionary, "webtoons", language)}</p>
-                        </Link>
-                        <Link href="/studio">
-                            <p className={`${isActive('/studio') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} studio mt-1 text-xl text-black hover:text-pink-600`}>
-                                {phrase(dictionary, "studio", language)}</p>
->>>>>>> origin
                         </Link>
                     </div>
                     {/* mobile webnovels, webtoons, studio bottom menu */}

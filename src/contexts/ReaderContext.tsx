@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, Dispatch, SetStateAction, useState, useContext, useEffect } from 'react';
 import { useTheme } from '@/contexts/providers';
 
 const ReaderContext = createContext<{
@@ -19,10 +19,10 @@ const ReaderContext = createContext<{
     setPadding: (padding: number) => void;
     containerWidth?: number;
     setContainerWidth: (width: number) => void;
-    scrollType: string;
-    setScrollType: (scrollType: string) => void;
+    scrollType: "horizontal" | "vertical";
+    setScrollType: (scrollType: "horizontal" | "vertical") => void;
     page: number;
-    setPage: (page: number) => void;
+    setPage: Dispatch<SetStateAction<number>>
     setBgColor: (color: string) => void;
 } | undefined>(undefined);
 
@@ -34,7 +34,7 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [margin, setMargin] = useState(10);
   const [padding, setPadding] = useState(10);
-  const [scrollType, setScrollType] = useState('vertical');
+  const [scrollType, setScrollType] = useState<"vertical" | "horizontal">('vertical');
   const [page, setPage] = useState(1);
   const [containerWidth, setContainerWidth] = useState<number | undefined>(); 
 

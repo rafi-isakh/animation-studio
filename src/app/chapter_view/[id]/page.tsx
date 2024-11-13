@@ -56,7 +56,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { theme, toggleTheme } = useTheme()
     const [initialTheme, setInitialTheme] = useState<Theme>(theme)
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const hiddenDivRef = useRef<HTMLCanvasElement>(null);
+    const hiddenDivRef = useRef<HTMLDivElement>(null);
     const [charsCount, setCharsCount] = useState(0);
 
     useEffect(() => {
@@ -64,14 +64,14 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [])
 
     useEffect(() => {
-        if (chapter?.content && webnovelViewRef.current && hiddenDivRef.current) {
+        if (chapter?.content && webnovelViewRef.current && hiddenDivRef.current && scrollType == 'horizontal') {
             const hiddenDiv = hiddenDivRef.current
             hiddenDiv.style.fontSize = `${fontSize}px`;
             hiddenDiv.style.fontFamily = fontFamily;
             hiddenDiv.style.lineHeight = lineHeight.toString();
             hiddenDiv.style.margin = `${margin}px`;
             const viewHeight = webnovelViewRef.current.scrollHeight;
-            let charsCount = 0;
+            let _charsCount = 0;
             for (let i = 0; i < chapter?.content?.length; i++) {
                 // make hidden div and put character in hidden div one by one until it exceeds
                 const chars = chapter.content.slice(0, i + 1)
@@ -79,12 +79,13 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 if (hiddenDiv.scrollHeight > viewHeight) {
                     break;
                 }
-                charsCount += 1;
+                _charsCount += 1;
             }
-            setCharsCount(charsCount);
+            setCharsCount(_charsCount);
             console.log('hiddenDiv.scrollHeight', hiddenDiv.scrollHeight)
             console.log('viewHeight', viewHeight)
-            console.log(charsCount);
+            console.log(_charsCount);
+            console.log(chapter?.content?.length)
         }
     }, [fontSize, fontFamily, lineHeight, margin, chapter, scrollType, webnovelViewRef.current])
 
@@ -258,9 +259,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <canvas ref={hiddenDivRef} style={{visibility: 'hidden', position: 'absolute'}}>
-                                </canvas>
-                                <div ref={webnovelViewRef} className={`${scrollType == 'horizontal'? 'h-[80vh]': ""}`}>
+                                <div ref={hiddenDivRef} style={{visibility: 'hidden', position: 'absolute'}}>
+                                </div>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[80vh]': ""}`}>
                                     <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} charsPerPage={charsCount}  />
                                 </div>
                             </div>
@@ -281,6 +282,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </Modal>
                     {/* delete confirmation modal */}
                 </div>
+                <button onClick={() => console.log(webnovelViewRef?.current?.scrollHeight)}> Get Scroll Height</button>
             </ThemeWrapper>
         )
     }

@@ -4,16 +4,19 @@ import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 
-const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, charsPerPage }: { content: string, chapterId: string, margin: number,  padding: number, charsPerPage: number  }) => {
-  
+const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, charsPerPage }: { content: string, chapterId: string, margin: number, padding: number, charsPerPage: number }) => {
+
     const [text, setText] = useState('');
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
     const fetchRef = useRef(false);
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
-    const { scrollType, page } = useReader();
+    const { scrollType, page, setPage } = useReader();
 
+    useEffect(() => {
+        console.log('charsPerPage', charsPerPage)
+    }, [charsPerPage])
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -135,7 +138,7 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, chars
         const totalLength = text.length;
         let currentLength = 0;
         let splitIndex = 0;
-    
+
         // Find the word boundary closest to the middle
         for (let i = 0; i < words.length; i++) {
             currentLength += words[i].length;
@@ -144,16 +147,16 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, chars
                 break;
             }
         }
-    
+
         return words.slice(0, splitIndex).join('');
     }
-    
+
     const getSecondHalf = (text: string) => {
         const words = text.split(/(\s+)/);  // Split by whitespace but keep the separators
         const totalLength = text.length;
         let currentLength = 0;
         let splitIndex = 0;
-    
+
         // Find the word boundary closest to the middle
         for (let i = 0; i < words.length; i++) {
             currentLength += words[i].length;
@@ -162,24 +165,24 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, chars
                 break;
             }
         }
-    
+
         return words.slice(splitIndex).join('');
     }
-    
+
     const getPage = (text: string, page: number) => {
         const wordsPerPage = charsPerPage; // Adjust this number based on your needs
-        const words = text.split(/(\s+)/);  // Split by whitespace but keep the separators
+        const words = text;  // Split by whitespace but keep the separators
         const startIndex = (page - 1) * wordsPerPage;
         const endIndex = page * wordsPerPage;
-        
-        return words.slice(startIndex, endIndex).join('');
+        const wordsInPage = words.slice(startIndex, endIndex);
+        return wordsInPage;
     }
 
     const paragraphStyle = {
         margin: `${margin}px`,
         padding: `${padding}px`,
     };
-    
+
     return (
         <div className="mb-16" style={paragraphStyle}>
             {scrollType === 'vertical' &&
@@ -187,17 +190,22 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, chars
                 </div>
             }
             {scrollType === 'horizontal' &&
-                <div className='flex flex-row space-x-16'>
-                    <div
-                        id='first-half'
-                        dangerouslySetInnerHTML={{ __html: getFirstHalf(getPage(replaceSmartQuotes(text), page)) }} 
-                        style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                <div className='flex flex-col space-y-4'>
+                    <div className='flex flex-row space-x-16'>
+                        <div
+                            id='first-half'
+                            dangerouslySetInnerHTML={{ __html: getFirstHalf(getPage(replaceSmartQuotes(text), page)) }}
+                            style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                        </div>
+                        <div
+                            id='second-half'
+                            dangerouslySetInnerHTML={{ __html: getSecondHalf(getPage(replaceSmartQuotes(text), page)) }}
+                            style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                        </div>
+
                     </div>
-                    <div 
-                        id='second-half'
-                        dangerouslySetInnerHTML={{ __html: getSecondHalf(getPage(replaceSmartQuotes(text), page)) }} 
-                        style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
-                    </div>
+                    <button onClick={() => { setPage(prev => prev - 1) }}> Prev </button>
+                    <button onClick={() => { setPage(prev => prev + 1) }}> Next </button>
                 </div>
             }
         </div>

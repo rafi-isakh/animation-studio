@@ -18,6 +18,7 @@ interface CurriculumCardProps {
         subtitle_jp: string;
         onVideoClick: (video: JSX.Element) => void;
         file_src: string;
+        file_src_jp: string
     };
 }
 
@@ -26,22 +27,25 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
 
 
     const handleVideoClick = () => {
-        const videoElement = <video src={data.file_src} controls autoPlay loop />;
+        const videoElement = <video src={ language === 'ko' ? data.file_src : language === 'ja' ? data.file_src_jp : data.file_src } controls autoPlay loop />;
         data.onVideoClick(videoElement);
     };
 
     return (
-        <div className="relative group w-64 md:w-72">
+        <div className="relative group w-64 md:w-72 aspect-[5/5] transition-all duration-300 hover:z-50">
             {/* Base Card */}
-            <div className="relative w-full">
+            <div className="relative w-full h-full transition-all duration-300 group-hover:scale-110 "> 
+            {/*  */}
                 <img 
                     src={data.image} 
                     alt={data.title} 
                     draggable={false} 
                     className="
                         w-full
+                        h-full
                         rounded-md
-                        object-cover
+                        object-fit
+                        object-top
                         transition
                         duration-300
                         cursor-pointer
@@ -58,17 +62,16 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                 opacity-0
                 transition-all
                 duration-200
-                scale-95
-                transform
-                group-hover:scale-100
+                transform 
                 group-hover:opacity-100
-                group-hover:-translate-y-4
+                group-hover:-translate-y-1
                 w-full
-                h-full
+                min-h-full
                 z-10
-            ">
+            "> 
+               {/*   */}
                 {/* Overlay Image */}
-                <div className="relative w-full md:h-[100px]">
+                <div className="relative w-full">
                     <img 
                         src={data.image} 
                         alt={data.title} 
@@ -77,6 +80,7 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                             w-full
                             h-full
                             rounded-t-md
+                            object-top
                             object-cover
                             shadow-xl
                         "
@@ -111,8 +115,8 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                         </button>
                     </div>
                     {/* Title */}
-                    <div className="mt-3">
-                        <h3 className="text-white text-sm md:text-base font-medium">
+                    <div className="mt-2">
+                        <h3 className="text-white text-sm md:text-base font-medium line-clamp-1">
                             { 
                               language === 'ko' ? data.title 
                               : language === 'en' ? data.title_en 
@@ -124,7 +128,7 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
 
                     {/* Subtitle */}
                     <div className="mt-2 pb-2">
-                        <p className="text-neutral-400 text-xs md:text-sm">
+                        <p className="text-neutral-400 text-xs md:text-sm line-clamp-2">
                             {/* {data.subtitle} */}
                             { 
                               language === 'ko' ? data.subtitle 

@@ -39,12 +39,18 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
           <div className="w-full px-4 mx-auto mt-4 md:mb-6">
             <div className="relative w-full">
             {/* Scroll container with overflow handling */}
-                <div ref={scrollRef} className="overflow-x-auto pb-4 scrollbar-hide">
-                    <div className="flex flex-nowrap gap-2 ">
+                <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden pb-32 scrollbar-hide">
+                    <div className="flex flex-nowrap gap-2 md:gap-4">
                         {contents.map((item, index) => (
-                            <div className="flex-none w-64 md:w-72 " key={index}>
+                            <div className="flex-none w-64 md:w-72 transition-all duration-300" key={index}>
                                 <CurriculumCard 
-                                    data={{ ...item, onVideoClick: handleVideoClick }} 
+                                    data={{ 
+                                      ...item,  
+                                      onVideoClick: handleVideoClick,
+                                      title_jp: item.title_jp || '', 
+                                      subtitle_jp: item.subtitle_jp || '', 
+                                      file_src_jp: item.file_src_jp || '' 
+                                    }} 
                                     isOpen={showVideoModal} 
                                     onClose={() => setShowVideoModal(false)} 
                                     video={currentVideo} 

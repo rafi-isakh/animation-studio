@@ -1,10 +1,22 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 import { initialWebtoonContents } from '@/utils/curriculum';
 import { getCloudfrontURL } from '@/utils/cloudfront';
 
 const Billboard = () => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    const handleResize = () => {
+        setIsMobile(window.innerWidth < 768); // Adjust the width as needed
+    };
+
+    useEffect(() => {
+        handleResize(); // Check on mount
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const webtoonContents = initialWebtoonContents.map(content => ({
         ...content,
         file_src: getCloudfrontURL(content.file_src)
@@ -15,7 +27,8 @@ const Billboard = () => {
       <video 
       poster='/curriculum/video_heroImage.png' 
       className="w-full h-[56.25vw] object-cover brightness-[60%] transition duration-500" 
-      autoPlay muted loop src={webtoonContents[0]?.file_src}>
+      autoPlay={!isMobile} muted loop src={webtoonContents[0]?.file_src}
+      >
       </video>
       <div className="absolute top-[30%] md:top-[40%] ml-4 md:ml-16">
         <p className="text-white dark:text-white text-1xl md:text-5xl h-full w-full lg:text-2xl font-bold drop-shadow-xl">

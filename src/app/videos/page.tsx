@@ -16,19 +16,21 @@ export default function Videos() {
         ...content,
         id: index.toString(), // Ensure each content has a unique id as a string
         file_src: getCloudfrontURL(content.file_src),
+        file_src_jp: getCloudfrontURL(content.file_src_jp),
     }));
 
     const webnovelContents = initialWebnovelContents.map((content, index) => ({
         ...content,
-        id: index, // Ensure each content has a unique id
+        id: index.toString(), // Ensure each content has a unique id
         file_src: getCloudfrontURL(content.file_src),
+        file_src_jp: getCloudfrontURL(content.file_src_jp),
     }));
 
     return (
         <div className="flex flex-col items-center justify-center">
             {/* <div className="flex flex-col space-y-4"> */}
                 <Billboard />
-                <div className="max-w-screen-xl mx-auto overflow-x-auto pb-40">
+                <div className="max-w-screen-xl mx-auto overflow-x-auto">
                     <CurriculumVideoList 
                         title={phrase(dictionary, "webtoonCurriculum", language)} 
                         contents={webtoonContents}
@@ -39,18 +41,18 @@ export default function Videos() {
                         }}  
                     />
                  </div>
-                    {/* <VideoModal 
-                    isOpen={showVideoModal} 
-                    onClose={() => setShowVideoModal(false)} 
-                    video={currentVideo}
-                    /> */}
-                    {/* <ContentGrid 
-                        contents={webtoonContents} 
-                        language={language} 
-                        onVideoClick={handleVideoClick}
-                        imageType="webtoon"
-                    />   
-                   */} 
+                <div className="max-w-screen-xl mx-auto overflow-x-auto pb-40">
+                    <CurriculumVideoList 
+                        title={phrase(dictionary, "webnovelCurriculum", language)} 
+                        contents={webnovelContents}
+                        language={language}
+                        imageType={'webnovel'}
+                        onVideoClick={(video) => {
+                            console.log('Video clicked:', video);
+                        }}  
+                    />
+                 </div>
+                 
             </div>
     )
 }

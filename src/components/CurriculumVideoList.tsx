@@ -18,7 +18,7 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [currentVideo, setCurrentVideo] = useState<JSX.Element | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-    
+  
     const handleVideoClick = (video: JSX.Element) => {
         setCurrentVideo(video);
         setShowVideoModal(true);
@@ -29,7 +29,6 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
         <p className="text-black dark:text-white text-md md:text-xl lg:text-2xl font-semibold mb-4 ml-5">
             {title}
         </p>
-
          {/* Left Arrow */}
             <button 
                 onClick={() => scroll('left', scrollRef)}
@@ -37,14 +36,13 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
-
-        <div className="w-full px-4 mx-auto mt-4 md:mb-6">
+          <div className="w-full px-4 mx-auto mt-4 md:mb-6">
+            <div className="relative w-full">
             {/* Scroll container with overflow handling */}
-            <div  className="relative w-full">
                 <div ref={scrollRef} className="overflow-x-auto pb-4 scrollbar-hide">
-                    <div className="flex flex-nowrap gap-2 min-w-full">
+                    <div className="flex flex-nowrap gap-2 ">
                         {contents.map((item, index) => (
-                            <div  className="flex-none w-64 md:w-72" key={index}>
+                            <div className="flex-none w-64 md:w-72 " key={index}>
                                 <CurriculumCard 
                                     data={{ ...item, onVideoClick: handleVideoClick }} 
                                     isOpen={showVideoModal} 

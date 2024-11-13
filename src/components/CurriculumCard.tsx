@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Play } from 'lucide-react';
-import phrases from '@/utils/phrases';
+import phrase from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CurriculumCardProps {
@@ -11,13 +11,20 @@ interface CurriculumCardProps {
         id: string;
         image: string;
         title: string;
+        title_en: string;
         subtitle: string;
+        subtitle_en: string;
+        title_jp: string;
+        subtitle_jp: string;
         onVideoClick: (video: JSX.Element) => void;
         file_src: string;
     };
 }
 
 const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
+    const { dictionary, language, setLanguage } = useLanguage();
+
+
     const handleVideoClick = () => {
         const videoElement = <video src={data.file_src} controls autoPlay loop />;
         data.onVideoClick(videoElement);
@@ -26,7 +33,7 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
     return (
         <div className="relative group w-64 md:w-72">
             {/* Base Card */}
-            <div className="relative w-full h-[400px]">
+            <div className="relative w-full">
                 <img 
                     src={data.image} 
                     alt={data.title} 
@@ -61,7 +68,7 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                 z-10
             ">
                 {/* Overlay Image */}
-                <div className="relative w-full h-[200px] md:h-[200px]">
+                <div className="relative w-full md:h-[100px]">
                     <img 
                         src={data.image} 
                         alt={data.title} 
@@ -75,7 +82,6 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                         "
                     />
                 </div>
-
                 {/* Content Section */}
                 <div className="
                     bg-zinc-800
@@ -104,18 +110,28 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                             <Play className="w-4 md:w-5 text-black" />
                         </button>
                     </div>
-
                     {/* Title */}
                     <div className="mt-3">
                         <h3 className="text-white text-sm md:text-base font-medium">
-                            {data.title}
+                            { 
+                              language === 'ko' ? data.title 
+                              : language === 'en' ? data.title_en 
+                              : language === 'ja' ? data.title_jp
+                              : data.title_en 
+                            }
                         </h3>
                     </div>
 
                     {/* Subtitle */}
                     <div className="mt-2 pb-2">
                         <p className="text-neutral-400 text-xs md:text-sm">
-                            {data.subtitle}
+                            {/* {data.subtitle} */}
+                            { 
+                              language === 'ko' ? data.subtitle 
+                              : language === 'en' ? data.subtitle_en 
+                              : language === 'ja' ? data.subtitle_jp
+                              : data.subtitle_en 
+                            }
                         </p>
                     </div>
                 </div>

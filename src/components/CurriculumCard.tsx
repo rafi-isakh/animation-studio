@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { Play } from 'lucide-react';
+import phrases from '@/utils/phrases';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CurriculumCardProps {
     isOpen: boolean;
@@ -24,14 +26,13 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
     return (
         <div className="relative group w-64 md:w-72">
             {/* Base Card */}
-            <div className="relative w-full h-[400px] ">
+            <div className="relative w-full h-[400px]">
                 <img 
                     src={data.image} 
                     alt={data.title} 
                     draggable={false} 
                     className="
                         w-full
-                       
                         rounded-md
                         object-cover
                         transition
@@ -42,7 +43,6 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                     "
                 />
             </div>
-
             {/* Hover Overlay */}
             <div className="
                 absolute

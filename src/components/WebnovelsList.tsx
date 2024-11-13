@@ -8,6 +8,7 @@ import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUt
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useMediaQuery } from '@mui/material';
 import { getColumnLayout, calculateIndex } from '@/utils/webnovelUtils';
+import { scroll } from '@/utils/scroll'
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -22,17 +23,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
-
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const scrollAmount = 200 * (direction === 'left' ? -1 : 1);
-            scrollRef.current.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -65,7 +55,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         <div className='relative max-w-screen-xl mx-auto group mt-10'>
             {/* Left Arrow */}
             <button
-                onClick={() => scroll('left')}
+                onClick={() => scroll('left', scrollRef)}
                 className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
                 >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
@@ -102,7 +92,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
             {/* Right Arrow */}
             <button
-                onClick={() => scroll('right')}
+                onClick={() => scroll('right', scrollRef)}
                 className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
             >
                 <ChevronRight className="w-6 h-6 text-gray-700" />

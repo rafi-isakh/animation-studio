@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import Link from 'next/link';
 import { Info } from 'lucide-react';
 import { initialWebtoonContents } from '@/utils/curriculum';
 import { getCloudfrontURL } from '@/utils/cloudfront';
@@ -24,28 +25,29 @@ const Billboard = () => {
             Your Favorite Story Universe, Toonyz
         </p>
         <div className="flex flex-row items-center mt-3 md:mt-4 gap-3">
-          <button
-            className="
-            bg-white
-            text-white
-            dark:text-white
-              bg-opacity-30 
-              rounded-md 
-              py-1 md:py-2 
-              px-2 md:px-4
-              w-auto 
-              text-xs lg:text-lg 
-              font-semibold
-              flex
-              flex-row
-              items-center
-              hover:bg-opacity-20
-              transition
-            "
-            >
-              <Info className="w-4 md:w-7 mr-1" />
-              More Info
-          </button>
+         
+              <Link 
+               className="
+                bg-white
+                text-white
+                dark:text-white
+                  bg-opacity-30 
+                  rounded-md 
+                  py-1 md:py-2 
+                  px-2 md:px-4
+                  w-auto 
+                  text-xs lg:text-lg 
+                  font-semibold
+                  flex
+                  flex-row
+                  items-center
+                  hover:bg-opacity-20
+                  transition" 
+                href='https://www.youtube.com/watch?v=f4iW6Rd5raM'>
+                <Info className="w-4 md:w-7 mr-1" />
+                More Info
+              </Link>
+       
         </div>
       </div>
     </div>

@@ -29,16 +29,16 @@ export default function Videos() {
             {/* <div className="flex flex-col space-y-4"> */}
                 <Billboard />
                 <div className="max-w-screen-xl mx-auto overflow-x-auto pb-40">
-                <CurriculumVideoList 
-                    title={phrase(dictionary, "webtoonCurriculum", language)} 
-                    contents={webtoonContents}
-                    language={language}
-                    imageType={'webtoon'}
-                    onVideoClick={(video) => {
-                        console.log('Video clicked:', video);
-                    }}  
-                />
-                </div>
+                    <CurriculumVideoList 
+                        title={phrase(dictionary, "webtoonCurriculum", language)} 
+                        contents={webtoonContents}
+                        language={language}
+                        imageType={'webtoon'}
+                        onVideoClick={(video) => {
+                            console.log('Video clicked:', video);
+                        }}  
+                    />
+                 </div>
                     {/* <VideoModal 
                     isOpen={showVideoModal} 
                     onClose={() => setShowVideoModal(false)} 

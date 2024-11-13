@@ -57,7 +57,7 @@ const Header = () => {
     const [lastIndex, setLastIndex] = useState(0);
     const [keyPressed, setKeyPressed] = useState(false);
     const queriesToShow = 4;
-    const [searchRemember, setSearchRemember] = useState(false);
+    const [searchRemember, setSearchRemember] = useState(true);
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
 
     useEffect(() => {

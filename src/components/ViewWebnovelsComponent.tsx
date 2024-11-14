@@ -15,7 +15,7 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-import { style } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 import { createEmailHash } from '@/utils/cryptography'
@@ -200,7 +200,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                     </div>
                 </div >
                 <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                    <Box sx={style}>
+                    <Box sx={useModalStyle}>
                         <div className='flex flex-col space-y-4 items-center justify-center'>
                             <p className='text-lg font-bold text-black dark:text-white'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
                             <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>

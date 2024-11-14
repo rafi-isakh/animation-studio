@@ -15,7 +15,7 @@ import '@/styles/globals.css'
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Box, Button, Modal } from '@mui/material';
-import { style } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import { Book, Pencil, Heart } from 'lucide-react';
 import { createEmailHash } from '@/utils/cryptography';
 
@@ -289,7 +289,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 </div>
             </div>
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
-                <Box sx={style}>
+                <Box sx={useModalStyle}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>
                         {/* Delete */}
                         <p className='text-lg font-bold'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>

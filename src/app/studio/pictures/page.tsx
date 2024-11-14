@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import GeneratedPicture from "@/components/GeneratedPicture";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { style } from "@/styles/ModalStyles";
+import { useModalStyle } from "@/styles/ModalStyles";
 import { useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 
@@ -153,7 +153,7 @@ export default function PicturesStudioPage() {
             </div>
             <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
             <Modal open={showError} onClose={() => setShowError(false)}>
-                <Box sx={style} className="flex flex-col items-center justify-center space-y-4 dark:text-black">
+                <Box sx={useModalStyle} className="flex flex-col items-center justify-center space-y-4 dark:text-black">
                     <Typography id="modal-modal-title" variant="h6" component="h2">
                         {phrase(dictionary, "error", language)}
                     </Typography>

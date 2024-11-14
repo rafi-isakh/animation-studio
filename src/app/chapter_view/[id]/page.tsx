@@ -9,7 +9,7 @@ import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button, Modal, Box, dividerClasses } from "@mui/material";
-import { style } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
@@ -275,7 +275,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={style}>
+                        <Box sx={useModalStyle}>
                             <div className='flex flex-col space-y-4 items-center justify-cente'>
                                 <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
                                 <Button color='gray' variant='outlined' className='mt-10 w-32 text-black dark:text-black' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>

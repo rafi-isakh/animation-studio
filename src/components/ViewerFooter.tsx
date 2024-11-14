@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import phrases, { phrase } from '@/utils/phrases'
 import { Box, Button, Modal, ThemeProvider } from '@mui/material';
 import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
-import { style, useViewSettingsStyle } from '@/styles/ModalStyles';
+import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
@@ -162,7 +162,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 </div>
             </div>
             <Modal open={showIsLastChapterModal} onClose={() => setShowIsLastChapterModal(false)}>
-                <Box sx={style}>
+                <Box sx={useModalStyle}>
                     <div className='flex flex-col space-y-4'>
                         <p>{phrase(dictionary, "isLastChapter", language)}</p>
                         <Button color="gray" variant="outlined" onClick={() => setShowIsLastChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
@@ -170,7 +170,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 </Box>
             </Modal>
             <Modal open={showIsFirstChapterModal} onClose={() => setShowIsFirstChapterModal(false)}>
-                <Box sx={style}>
+                <Box sx={useModalStyle}>
                     <div className='flex flex-col space-y-4'>
                         <p>{phrase(dictionary, "isFirstChapter", language)}</p>
                         <Button color="gray" variant="outlined" onClick={() => setShowIsFirstChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>

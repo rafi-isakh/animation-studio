@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image'
 import Link from 'next/link';
-import { style } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import { Button, Modal, Box, Typography, ThemeProvider, CircularProgress } from '@mui/material';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import AIEditorCharactersComponent from './AIEditorCharactersComponent';
@@ -281,7 +281,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                         </div>
                         
                         <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                            <Box sx={style}>
+                            <Box sx={useModalStyle}>
                                 <Typography className="text-center">
                                     <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
                                     <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">

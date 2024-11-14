@@ -6,7 +6,7 @@ import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
 import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
-import { style } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
 import { styled } from '@mui/system';
 import { usePathname, useRouter } from 'next/navigation';
@@ -127,7 +127,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                 </Table>
             </StyledTableContainer>
             <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                <Box sx={style}>
+                <Box sx={useModalStyle}>
                     <div className='flex flex-col space-y-4 items-center justify-center'>
                         <p className='text-lg font-bold'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>

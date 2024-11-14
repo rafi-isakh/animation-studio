@@ -13,6 +13,7 @@ import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { TextWithFloatingMenu } from '@/components/FloatingMenuComponent';
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -126,6 +127,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <div>
+                <TextWithFloatingMenu />
                 <div className='max-w-screen-sm px-4 max-h-dvh flex flex-col items-left mx-auto'>
                     {/* Back to novel and like button */}
                     <div className="flex flex-row max-w-full w-full justify-between">

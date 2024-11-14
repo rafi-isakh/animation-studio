@@ -212,7 +212,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <ThemeWrapper>
-                <TextWithFloatingMenu />
+                
                 <div
                     className={` text-gray-900 dark:text-white`}
                     style={{
@@ -261,16 +261,20 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </div>
                         {/* Title and content */}
+                      
                         <div className='flex flex-col space-y-4' >
                             <div key={key} id='translate-div'>
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
-                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} wordsPerPage={wordsCount}  />
+                                    <TextWithFloatingMenu >
+                                       <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} wordsPerPage={wordsCount}  />
+                                    </TextWithFloatingMenu>
                                 </div>
                             </div>
                         </div>
+                      
                         {/* Title and content : end */}
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>

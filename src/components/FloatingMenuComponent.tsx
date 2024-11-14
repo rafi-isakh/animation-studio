@@ -2,38 +2,37 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Brush } from 'lucide-react';
 
-interface FloatingMenuProps {
-  children: React.ReactNode;
-}
-
-interface Position {
-  top: number;
-  left: number;
-}
-
-export const FloatingMenu: React.FC<FloatingMenuProps> = ({ children }) => {
+const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection();
-      
+
       if (!selection || selection.isCollapsed) {
+        setIsVisible(false);
+        return;
+      }
+
+      const selectedText = selection.toString().trim();
+      
+      // Only show the menu if there's actual text selected (not just whitespace)
+      if (!selectedText) {
         setIsVisible(false);
         return;
       }
 
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      const menuWidth = menuRef.current?.offsetWidth || 0;
-
-      // Calculate position at the bottom-right corner of selection
-      const top = rect.bottom + window.scrollY; // 5px spacing from bottom
-      const left = rect.right + window.scrollX - (menuWidth / 2); 
-
-      setPosition({ top, left });
+      
+      // Position the menu slightly above and to the right of the selection
+      setPosition({
+        x: rect.left + (rect.width / 2) - 20,  // Center horizontally
+        y: rect.top - 40  // Position above the selection
+      });
+      
       setIsVisible(true);
     };
 
@@ -55,12 +54,13 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({ children }) => {
   if (!isVisible) return null;
 
   return createPortal(
-    <div 
+    <div
       ref={menuRef}
-      className="fixed "
+      className="fixed z-50"
       style={{
-        top: `${position.top}px`,
-        left: `${position.left}px`,
+        top: `${position.y}px`,
+        left: `${position.x}px`,
+        transform: 'translate(-50%, -50%)',
       }}
     >
       {children}
@@ -69,39 +69,76 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({ children }) => {
   );
 };
 
-const TextWithFloatingMenu = () => {
-  const handleBold = () => {
-    document.execCommand('bold', false);
-  };
-
-  const handleItalic = () => {
-    document.execCommand('italic', false);
-  };
-
-  const handleCopy = () => {
-    const selection = window.getSelection();
-    if (selection) {
-      navigator.clipboard.writeText(selection.toString());
-    }
-  };
+const TextWithFloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [selectedText, setSelectedText] = useState<string>('');
+    const [showMessage, setShowMessage] = useState(false);
+  
+    const handleSelection = () => {
+      const selection = window.getSelection();
+      if (selection) {
+        const text = selection.toString().trim();
+         // Only update selectedText if there's actual text (not just whitespace)
+        if (text) {
+            setSelectedText(text);
+        } else {
+            setSelectedText('');
+        }
+      }
+    };
+  
+    useEffect(() => {
+      document.addEventListener('mouseup', handleSelection);
+      return () => {
+        document.removeEventListener('mouseup', handleSelection);
+      };
+    }, []);
+  
+    const handleCopy = () => {
+      if (selectedText) {
+        navigator.clipboard.writeText(selectedText);
+      }
+    };
+  
 
   return (
-    
+    <div className="relative">
+      {children}
       <FloatingMenu>
-        <>
-        <div className="flex gap-2">
-          <button className="rounded-full px-1 py-1 fixed z-50 bg-white shadow-lg p-2 border-2">
-              <Brush size={18} className="text-pink-600" />
+        <div className='flex flex-row transition-all'>
+          <button 
+            className="rounded-full h-8 p-3.5 border-2 border-black hover:bg-gray-100 transition-colors shadow-lg duration-300 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent "
+            // bg-clip-text
+            onClick={() => setShowMessage(!showMessage)}
+                 >
+            {/* <Brush size={16} className="text-pink-600" /> */}
           </button>
-        </div>
+      
 
-        <div className='mt-10 bg-black text-white rounded-xl px-20 py-20'>
-            
-            text 
+
+          {showMessage && selectedText && (
+            <div className="flex flex-row gap-2 mt-3 rounded-md px-4 py-3 bg-black text-white shadow-lg max-w-xs duration-300 animate-fade-in"> 
+              <div className="flex flex-col">
+                <p className="text-sm truncate">
+                  {selectedText}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Would you like to make it with Toonyz studio ?
+                </p>
+              </div>
+              <button 
+                className="transition-colors shadow-lg self-center"
+                onClick={handleCopy}
+              >
+                <Brush size={16} className="text-pink-600 hover:text-gray-300 duration-300" />
+              </button>
+            </div>
+          )}
+
         </div>
-        </>
       </FloatingMenu>
+    </div>
   );
 };
 
-export { TextWithFloatingMenu };
+
+export { FloatingMenu, TextWithFloatingMenu }

@@ -62,8 +62,9 @@ const Header = () => {
     const [lastIndex, setLastIndex] = useState(0);
     const [keyPressed, setKeyPressed] = useState(false);
     const queriesToShow = 4;
-    const [searchRemember, setSearchRemember] = useState(false);
+    const [searchRemember, setSearchRemember] = useState(true);
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
+    const [deletingQuery, setDeletingQuery] = useState(false);
 
     useEffect(() => {
         if (pathname == "/") {
@@ -281,9 +282,12 @@ const Header = () => {
 
     const handleDeleteRecentQuery = async (event: React.MouseEvent<SVGSVGElement>, index: number) => {
         event.stopPropagation()
+        if (deletingQuery) {
+            return
+        }
         const queryToDelete = recentQueries[index]
-        setLastIndex(prev => prev - 1)
-        setRecentQueries(prev => prev.filter((_, i) => i !== index))
+        setDeletingQuery(true)
+
         if (isLoggedIn) {
             const response = await fetch(`/api/delete_recent_query?email=${email}&query_index=${lastIndex - (index)}`,
                 {
@@ -296,6 +300,9 @@ const Header = () => {
                 console.error("Error deleting recent query", response)
             }
         }
+        setRecentQueries(prev => prev.filter((_, i) => i !== index))
+        setLastIndex(prev => prev - 1)
+        setDeletingQuery(false)
     }
 
     const toggleSearchRemember = () => {

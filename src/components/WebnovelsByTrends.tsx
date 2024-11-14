@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { ChevronRight } from "lucide-react";
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { scroll } from '@/utils/scroll'
 
 export const premium = [23, 19, 21, 22, 20, 24];
 export const free = [29, 28, 25];
@@ -18,17 +19,6 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const newAndTrendingRef = useRef<HTMLDivElement>(null);
-
-    const scroll = (direction: 'right', containerRef: React.RefObject<HTMLDivElement>) => {
-        const container = containerRef.current;
-        if (container) {
-            const scrollAmount = 200 * (direction === 'right' ? 1 : -1);
-            container.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
 
     useEffect(() => {
         for (const novel of webnovels) {

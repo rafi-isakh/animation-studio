@@ -37,7 +37,7 @@ export default function Footer() {
                     {isExpanded && (
                         <div className="mb-2 text-[10px]">
                             <p>
-                                {language == 'ko' ? <>주식회사 스텔라인</> : <>Stelland International Inc.</>}
+                                {language == 'ko' ? <>주식회사 스텔라앤</> : <>Stelland International Inc.</>}
                             </p>
                             <p className="">
                                 {language == 'ko' ? <>사업자등록번호 221-88-02281</> : <></>}

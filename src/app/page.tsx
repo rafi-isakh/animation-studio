@@ -47,7 +47,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <ApplyCreatorBanner />
           
             {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
-              <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
+            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             {/* </div> */}
             {/* Popular Webnovels */}
             <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
@@ -64,7 +64,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {/* Event promotion part */}
             <Promotion />
             {/* Footer Banner : instagram promotion image */}
-           
             {/* Footer */}            
             <Footer />
             {/* Bookmark button : it only displys mobile screen */}

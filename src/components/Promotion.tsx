@@ -5,31 +5,20 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { scroll } from '@/utils/scroll'
 import PromotionBannerComponent from '@/components/PromotionBannerComponent'
 
 const Promotion: React.FC = () => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const { dictionary, language } = useLanguage();
-
-
-    
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const scrollAmount = 200 * (direction === 'left' ? -1 : 1);
-            scrollRef.current.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
   
-   return (
+    return (
     <>
      <div className='flex flex-col relative max-w-screen-xl group px-4 justify-center items-center mx-auto md:mb-6'>
                 {/* relative max-w-screen-xl mx-auto px-4 group  */}
                   {/* Left Arrow */}
                <button 
-                onClick={() => scroll('left')}
+                onClick={() => scroll('left', scrollRef)}
                 className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
                  >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
@@ -80,7 +69,7 @@ const Promotion: React.FC = () => {
 
               {/* Right Arrow */}
               <button 
-                onClick={() => scroll('right')}
+                onClick={() => scroll('right', scrollRef)}
                 className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
                >
                 <ChevronRight className="w-6 h-6 text-gray-700" />

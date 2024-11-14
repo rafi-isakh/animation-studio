@@ -13,7 +13,7 @@ const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight:
 
 const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
    
-    const imageSrc = getImageUrl(webnovel.cover_art);
+    const imageSrc = getImageUrl(webnovel.cover_art)
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')

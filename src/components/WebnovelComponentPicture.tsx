@@ -14,14 +14,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
 const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
-    const imageSrc = getImageUrl(webnovel.cover_art);
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
+    const imageSrc = getImageUrl(webnovel.cover_art)
     
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language, webnovel])
+
 
     return (
             <Link href={`/view_webnovels?id=${webnovel.id}`}>

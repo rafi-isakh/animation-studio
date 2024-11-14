@@ -10,6 +10,9 @@ import { DeviceProvider } from '@/contexts/DeviceContext';
 import { Metadata } from 'next'
 import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP, Noto_Sans_TC, Noto_Sans_SC } from 'next/font/google'
 import Margin from '@/components/Margin';
+import { ReaderProvider } from '@/contexts/ReaderContext';
+import { ThemeProvider } from '@/contexts/providers'
+
 
 
 const notoSans = Noto_Sans({
@@ -85,9 +88,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html>
       <body>
         <LanguageProvider>
-          <AuthProvider>
+          <ThemeProvider>
+           <AuthProvider>
             <UserProvider>
               <DeviceProvider>
+                <ReaderProvider>   
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
                   <Suspense>
@@ -103,9 +108,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   </div> 
                  */}
                 </div>
+                </ReaderProvider>
               </DeviceProvider>
             </UserProvider>
-          </AuthProvider>
+           </AuthProvider>
+          </ThemeProvider>
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>

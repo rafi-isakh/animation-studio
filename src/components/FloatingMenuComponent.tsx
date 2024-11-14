@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Brush } from 'lucide-react';
 
 interface FloatingMenuProps {
   children: React.ReactNode;
@@ -26,11 +27,11 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({ children }) => {
 
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
+      const menuWidth = menuRef.current?.offsetWidth || 0;
 
-      // Calculate position above the selection
-      const menuHeight = menuRef.current?.offsetHeight || 0;
-      const top = rect.top + window.scrollY - menuHeight - 10; // 10px spacing
-      const left = rect.left + window.scrollX + (rect.width / 2);
+      // Calculate position at the bottom-right corner of selection
+      const top = rect.bottom + window.scrollY; // 5px spacing from bottom
+      const left = rect.right + window.scrollX - (menuWidth / 2); 
 
       setPosition({ top, left });
       setIsVisible(true);
@@ -56,7 +57,7 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({ children }) => {
   return createPortal(
     <div 
       ref={menuRef}
-      className="fixed z-50 bg-white shadow-lg rounded-lg p-2 transform -translate-x-1/2"
+      className="fixed "
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -68,39 +69,39 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({ children }) => {
   );
 };
 
-
 const TextWithFloatingMenu = () => {
-    const handleBold = () => {
-      document.execCommand('bold', false);
-    };
-  
-    const handleItalic = () => {
-      document.execCommand('italic', false);
-    };
-  
-    const handleCopy = () => {
-      const selection = window.getSelection();
-      if (selection) {
-        navigator.clipboard.writeText(selection.toString());
-      }
-    };
-  
-    return (
-      <div>
-        <div className="max-w-2xl mx-auto p-4">
-          <FloatingMenu>
-            <div className="flex gap-2">
-              <button 
-                onClick={handleCopy}
-                className="p-2 hover:bg-gray-100 rounded"
-              >
-                Copy
-              </button>
-            </div>
-          </FloatingMenu>
-        </div>
-      </div>
-    );
+  const handleBold = () => {
+    document.execCommand('bold', false);
   };
-  
-  export { TextWithFloatingMenu };
+
+  const handleItalic = () => {
+    document.execCommand('italic', false);
+  };
+
+  const handleCopy = () => {
+    const selection = window.getSelection();
+    if (selection) {
+      navigator.clipboard.writeText(selection.toString());
+    }
+  };
+
+  return (
+    
+      <FloatingMenu>
+        <>
+        <div className="flex gap-2">
+          <button className="rounded-full px-1 py-1 fixed z-50 bg-white shadow-lg p-2 border-2">
+              <Brush size={18} className="text-pink-600" />
+          </button>
+        </div>
+
+        <div className='mt-10 bg-black text-white rounded-xl px-20 py-20'>
+            
+            text 
+        </div>
+        </>
+      </FloatingMenu>
+  );
+};
+
+export { TextWithFloatingMenu };

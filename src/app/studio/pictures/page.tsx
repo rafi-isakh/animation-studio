@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import GeneratedPicture from "@/components/GeneratedPicture";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { style } from "@/styles/ModalStyles";
+import { useModalStyle } from "@/styles/ModalStyles";
 import { useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 
@@ -113,7 +113,7 @@ export default function PicturesStudioPage() {
 
             <div className="flex flex-row fixed bottom-5">
                 <textarea
-                    className="w-[250px] lg:w-[650px] md:w-[650px] h-12 p-2 border border-gray-300 rounded focus:ring-pink-600 focus:border-pink-600"
+                    className="w-[250px] text-black dark:text-black lg:w-[650px] md:w-[650px] h-12 p-2 border border-gray-300 rounded focus:ring-pink-600 focus:border-pink-600"
                     value={prompt}
                     onChange={handlePromptChange}
                     placeholder={phrase(dictionary, "typeYourPrompt", language)}
@@ -123,7 +123,7 @@ export default function PicturesStudioPage() {
                     color="gray"
                     onClick={generatePictures}
                     disabled={isGeneratingPictures}
-                    className='px-4 py-2 font-bold ml-4 bg-white'
+                    className='px-4 py-2 font-bold ml-4 bg-white dark:text-pink-600 dark:bg-white'
                 >
                     {isGeneratingPictures ? (
                         // Generating..
@@ -153,11 +153,11 @@ export default function PicturesStudioPage() {
             </div>
             <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
             <Modal open={showError} onClose={() => setShowError(false)}>
-                <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
+                <Box sx={useModalStyle} className="flex flex-col items-center justify-center space-y-4 dark:text-black">
                     <Typography id="modal-modal-title" variant="h6" component="h2">
                         {phrase(dictionary, "error", language)}
                     </Typography>
-                    <Button variant="outlined" color="gray" onClick={() => setShowError(false)}>
+                    <Button variant="outlined" color="gray" onClick={() => setShowError(false)} className="dark:text-black">
                         {phrase(dictionary, "ok", language)}
                     </Button>
                 </Box>

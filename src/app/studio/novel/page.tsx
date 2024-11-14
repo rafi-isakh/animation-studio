@@ -269,7 +269,7 @@ export default function NovelStudioPage() {
                     {phrase(dictionary, "genre", language)}
                 </label>
                 <input 
-                className="rounded-md focus:ring-pink-600 focus:border-pink-600" 
+                className="rounded-md focus:ring-pink-600 focus:border-pink-600 text-black" 
                 type="text" 
                 value={genres} 
                 onChange={(e) => setGenres(e.target.value)} 
@@ -280,7 +280,7 @@ export default function NovelStudioPage() {
                     {phrase(dictionary, "keyword", language)}
                 </label>
                 <input 
-                className="rounded-md focus:ring-pink-600 focus:border-pink-600 " 
+                className="rounded-md focus:ring-pink-600 focus:border-pink-600 text-black" 
                 type="text" 
                 value={keywords} 
                 onChange={(e) => setKeywords(e.target.value)} 
@@ -292,10 +292,10 @@ export default function NovelStudioPage() {
                     color="gray"
                     onClick={generateLogline}
                     disabled={isGeneratingLogline}
-                    className="w-64 self-end font-bold border border-gray-600 ml-4 bg-white hover:text-pink-600 hover:border-pink-600"
+                    className="w-64 self-end font-bold border border-gray-600 ml-4 bg-transparent hover:text-pink-600 hover:border-pink-600"
                 >
-                    {isGeneratingLogline ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p> ) 
-                                         : (<p>{phrase(dictionary, "generatingLogline", language)}</p> )
+                    {isGeneratingLogline ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p> ) 
+                                         : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "generatingLogline", language)}</p> )
                     }
                     {/* writing icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" 
@@ -320,7 +320,7 @@ export default function NovelStudioPage() {
                     variant="outlined"
                     color="gray"
                     onClick={generateAll}
-                    className="w-64 self-end font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                    className="w-64 self-end font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
                      >　
                      {phrase(dictionary, "generateAll", language)}
                 　</Button>
@@ -339,10 +339,10 @@ export default function NovelStudioPage() {
             </div>
 
              {/* Logline part */}
-            <div className="min-[300px]:w-[350px] w-[350px] sm:w-[720px] bg-white rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
+            <div className="min-[300px]:w-[350px] w-[350px] sm:w-[720px] bg-transparent rounded-xl border py-6 px-6 w-[450px] sm:w-[720px] mt-10 space-y-4">
 
             <div className="flex flex-col gap-4 ">                
-                <div className="bg-gray-100 p-4 leading-loose">
+                <div className="bg-gray-100 text-black dark:text-black rounded-md p-4 leading-loose">
                     {streamedLogline}
                 </div>
 
@@ -351,10 +351,10 @@ export default function NovelStudioPage() {
                 color="gray" 
                 onClick={() => generateMainCharacter(streamedLogline)} 
                 disabled={isGeneratingMainCharacter}
-                className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                className="self-center font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
                 >
-                    {isGeneratingMainCharacter ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
-                                               : (<p>{phrase(dictionary, "createMainCharacter", language)}</p>)}
+                    {isGeneratingMainCharacter ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                               : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "createMainCharacter", language)}</p>)}
 
                     <svg 
                             xmlns="http://www.w3.org/2000/svg" 
@@ -390,16 +390,16 @@ export default function NovelStudioPage() {
                 </h1>
             </div>
         
-            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col bg-white rounded-xl border py-6 px-6  mt-10 space-y-4">
+            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col bg-transparent rounded-xl border py-6 px-6  mt-10 space-y-4">
                 <Button 
                     variant="outlined" 
                     color="gray" 
                     onClick={() => generateSubCharacter(mainCharacter, streamedLogline)} 
                     disabled={isGeneratingSubCharacter}
-                    className="self-center font-bold border border-gray-600  bg-white hover:text-pink-600 hover:border-pink-600"
+                    className="self-center font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
                     >
-                        {isGeneratingSubCharacter ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
-                                                  : (<p>{phrase(dictionary, "createSubCharacter", language)}</p>)}
+                        {isGeneratingSubCharacter ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                                  : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "createSubCharacter", language)}</p>)}
 
                         <svg 
                             xmlns="http://www.w3.org/2000/svg" 
@@ -419,9 +419,8 @@ export default function NovelStudioPage() {
 
                     </Button>
 
-                    <div className="">
+                    <div className="text-black dark:text-black">
                         {subCharacter && <CharacterInfo data={subCharacter} title="조연 캐릭터" />}
-                    
                      </div>
             </div>
 
@@ -434,7 +433,7 @@ export default function NovelStudioPage() {
             </div>
 
 
-            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col justify-center bg-white rounded-xl border py-6 px-6  mt-10 space-y-4">
+            <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col justify-center bg-transparent rounded-xl border py-6 px-6  mt-10 space-y-4">
                 
                {/* <div className="bg-gray-100 p-4 leading-loose">
                     {streamedMainCharacterSentence}
@@ -468,7 +467,7 @@ export default function NovelStudioPage() {
                                                       : (<p>{phrase(dictionary, "createSubCharacterSentence", language)}</p>)}
                 </Button> */}
 
-                <div className="bg-gray-100 p-4 leading-loose">
+                <div className="bg-gray-100  text-black dark:text-black rounded-md  p-4 leading-loose">
                     {streamedEpisodeConfig}
                 </div>
 
@@ -478,14 +477,14 @@ export default function NovelStudioPage() {
                     color="gray" 
                     onClick={() => generateEpisodeConfig(mainCharacter, subCharacter, streamedLogline)} 
                     disabled={isGeneratingEpisodeConfig}
-                    className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                    className="self-center font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
                 >
-                    {isGeneratingEpisodeConfig ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p>) 
-                                               : (<p>{phrase(dictionary, "createEpisode", language)}</p>)}
+                    {isGeneratingEpisodeConfig ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p>) 
+                                               : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "createEpisode", language)}</p>)}
                 </Button>
 
 
-                <div className="bg-gray-100 p-4 leading-loose">
+                <div className="bg-gray-100  text-black dark:text-black rounded-md  p-4 leading-loose">
                     {streamedSynopsis}
                 </div>
 
@@ -494,10 +493,10 @@ export default function NovelStudioPage() {
                 color="gray" 
                 onClick={() => generateSynopsis(mainCharacter, subCharacter, streamedLogline, streamedEpisodeConfig)} 
                 disabled={isGeneratingSynopsis}
-                className="self-center font-bold border border-gray-600 bg-white hover:text-pink-600 hover:border-pink-600"
+                className="self-center font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
                 >
-                    {isGeneratingSynopsis ? (<p>{phrase(dictionary, "generatingPrompt", language)}</p> ) 
-                                          : (<p>{phrase(dictionary, "createSynopsis", language)}</p>)}
+                    {isGeneratingSynopsis ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p> ) 
+                                          : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "createSynopsis", language)}</p>)}
                 </Button>
 
              

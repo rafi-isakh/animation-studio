@@ -1,11 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        remotePatterns: [{
-            protocol: 'https',
-            hostname: process.env.NEXT_PUBLIC_CLOUDFRONT,
-            pathname: '/**',
-        }, ],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: process.env.NEXT_PUBLIC_PICTURES_S3,
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: process.env.NEXT_PUBLIC_VIDEOS_S3,
+                pathname: '/**',
+            },
+        ],
     },
     async headers() {
         return [{
@@ -13,8 +20,8 @@ const nextConfig = {
             headers: [{
                 key: 'Cache-Control',
                 value: 'public, max-age=31536000, immutable',
-            }, ],
-        }, ];
+            },],
+        },];
     },
 };
 

@@ -9,7 +9,7 @@ import { phrase } from '@/utils/phrases'
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { uploadFile } from '@/utils/s3';
 import { useUser } from '@/contexts/UserContext';
-import { getCloudfrontImageURL, getImageURL } from '@/utils/cloudfront';
+import { getImageUrl } from '@/utils/urls';
 import Image from 'next/image'
 import '@/styles/globals.css'
 import { useRouter } from 'next/navigation';
@@ -180,7 +180,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     user.picture ?
                                         <a onClick={handleProfilePictureUpload}>
                                             <Image 
-                                            src={getCloudfrontImageURL(user.picture)} 
+                                            src={getImageUrl(user.picture)} 
                                             className="max-w-xs m-auto -translate-y-10" 
                                             alt="Profile Picture Preview" 
                                             width={80} 

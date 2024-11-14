@@ -1,7 +1,7 @@
 import { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
-import { getCloudfrontImageURL } from "@/utils/cloudfront"
+import { getImageUrl } from "@/utils/urls"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { Oleo_Script_Swash_Caps } from 'next/font/google'
@@ -14,7 +14,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
 const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
-    const imageSrc = getCloudfrontImageURL(webnovel.cover_art);
+    const imageSrc = getImageUrl(webnovel.cover_art);
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')

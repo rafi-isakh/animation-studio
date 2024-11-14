@@ -1,7 +1,7 @@
 import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { getCloudfrontImageURL, getImageURL } from "@/utils/cloudfront"
+import { getImageUrl } from "@/utils/urls"
 import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
 import { use, useEffect, useState } from "react"
@@ -15,7 +15,7 @@ import moment from "moment"
 const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
 
     const { language, dictionary } = useLanguage();
-    const imageSrc = getCloudfrontImageURL(webnovel?.cover_art)
+    const imageSrc = getImageUrl(webnovel?.cover_art)
     const firstChapter = (webnovel?.chapters && webnovel.chapters.length > 0) ? webnovel.chapters[0].id : -1
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(10);

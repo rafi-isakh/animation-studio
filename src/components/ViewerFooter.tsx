@@ -119,15 +119,16 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <>
-            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
+            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pt-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 
                 </div> */}
-                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-between mx-auto p-2">
-                    <Link href={prevChapterLink} onClick={handlePrevChapter}>
+                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-evenly mx-auto p-2">
+                   
+                   <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='group hover:text-pink-600'>
-                        <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600"></i>
+                        <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600 mr-4"></i>
                             {phrase(dictionary, "prevChapter", language)}
                         </p>
                     </Link>
@@ -141,21 +142,21 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </p>
                     </Link>
                     {/* <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p> */}
-                   
-                    {/* view settings : viewer toggle btn */}
                     <Link href={``} onClick={handleViewSettings}>
                     <p className='hover:text-pink-600 relative'>
-                        <i className="fas fa-cog "></i>
+                        <i className="fas fa-cog"></i>
                         <span className='self-center group-hover:text-pink-600 absolute -top-[5px] -right-2 text-[12px] text-pink-600 rounded-full'>
                           <i className="fas fa-language "></i>
                         </span>
                     </p>
                     </Link>
-                    {/* view settings : viewer toggle btn */}
+                    {/* view next and prev btn */}
+                   
+                    {/* <div className='border border-r-gray-300 py-2' /> */}
                     <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px]'>
-                        <p className='group hover:text-pink-600'>
+                        <p className='group hover:text-pink-600 '>
                             {phrase(dictionary, "nextChapter", language)}
-                            <i className="fas fa-angle-right text-gray-500 self-center group-hover:text-pink-600"></i>
+                            <i className="fas fa-angle-right text-gray-500 self-center group-hover:text-pink-600 ml-4"></i>
                         </p>
                     </Link>
                 </div>
@@ -182,7 +183,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 <Box sx={viewSettingsStyle}>
                     <div className='flex flex-col space-y-4 text-black dark:text-black'>
                         <p className='flex justify-between'>
-                            {/* View Settings  */}
+                            {/* View Settings */}
                             {phrase(dictionary, "viewSettings", language)}
                         <button onClick={() => setShowIsViewerModal(false)}>
                          <i className="fas fa-times"></i>
@@ -273,14 +274,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         <p className='text-sm flex justify-between'> 
                             {/* 글자 크기 */}
                             {phrase(dictionary, "fontSize", language)}
-                        <div className='flex flex-row gap-2'>  
+                          <div className='flex flex-row gap-2 justify-evenly'>  
                              <Link 
                                 href=''
                                 onClick={() => setFontSize(fontSize + 2)}
                                 className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-plus"></i>
                              </Link>
-                             {fontSize}
+                             <p className='w-7 self-center text-center'>{fontSize} </p>
                              <Link 
                                 href='' 
                                 onClick={() => setFontSize(fontSize - 2)}
@@ -292,14 +293,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         <p className='text-sm flex justify-between'> 
                             {/* 줄 간격 */}
                             {phrase(dictionary, "lineHeight", language)}
-                           <div className='flex flex-row gap-2'>  
+                           <div className='flex flex-row gap-2 justify-evenly'>  
                              <Link 
                              href='' 
                              onClick={(e) => setLineHeight(lineHeight + 0.1)}
                              className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
                              <i className="fas fa-plus"></i>
                              </Link>
-                             {Math.round(lineHeight * 10)}%
+                             <p> {Math.round(lineHeight * 10)}% </p>        
                              <Link 
                              href='' 
                              onClick={(e) => setLineHeight(lineHeight - 0.1)}
@@ -308,9 +309,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              </Link>
                            </div>
                         </p>
-                        <p className='text-sm flex justify-between'> 
-                            {/* 문단 여백 */}
-                            {phrase(dictionary, "paragraphSpacing", language)}
+                        {/*   <p className='text-sm flex justify-between'> 
+                       
+                            {phrase(dictionary, "paragraphSpacing", language)}     {/* 문단 여백 
                            <div className='flex flex-row gap-2'>  
                              <Link 
                                 href='' 
@@ -334,7 +335,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
-                        </p>
+                        </p> */}
 
                     </div>
                 </Box>

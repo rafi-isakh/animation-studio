@@ -45,11 +45,11 @@ export const useViewSettingsStyle = () => {
   
     return {
         position: 'absolute',
-        bottom: is360 ? '-25%' : 
+        bottom: is360 ? '-15%' : 
                 is370 ? '-15%' : 
                 is380 ? '-20%' : 
                 is400 ? '-20%' : 
-                '-15%',
+                '-10%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: isAbove400 ? 400 : '100%',

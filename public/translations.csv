@@ -73,8 +73,8 @@ promotion,프로모션 코드,,Promotion Code,
 emailExists,같은 이메일로 등록된 계정이 이미 존재합니다,,An account registered with this email already exists,
 characters,캐릭터,,Characters
 analyze,분석,,Analyze
-nextChapter,다음,,Next
-prevChapter,이전,,Previous
+nextChapter,다음화,,Next
+prevChapter,이전화,,Prev
 isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
 isLastChapter,마지막 화입니다.,,You are at the last chapter.
 studio,스튜디오,スタジオ,Studio

@@ -144,17 +144,17 @@ export default function Contact() {
              <h1 className="text-5xl font-semibold items-start text-left py-10">Contact Us</h1>
 
                 <p className="text-sm text-gray-600">Contact e-mail {' '}
-                <span className="text-black font-semibold">hello@stelland.io</span> 
+                <span className="text-black dark:text-white font-semibold">hello@stelland.io</span> 
                  {' '}for general help, questions, or feedback. we are always here to help you.
                 </p>
              
                 <p className="text-sm text-gray-600">If you have a question about Toonyz, please contact our customer support team at 
-                <span className="text-black font-semibold">{' '}dami@stelland.io</span> 
+                <span className="text-black dark:text-white font-semibold">{' '}dami@stelland.io</span> 
                 </p>
                
                 <p className="text-sm text-gray-600">We are always welcome to hear from you. </p>
                 <p className="text-sm text-gray-600">Please contact us at
-                <span className="text-black font-semibold">{' '}jongminbaek@stelland.io</span> 
+                <span className="text-black dark:text-white font-semibold">{' '}jongminbaek@stelland.io</span> 
                 {' '}for IP, copyright, or other issues.
                 </p> 
               
@@ -163,7 +163,7 @@ export default function Contact() {
 
                 <p className="text-sm text-gray-600 leading-8">
 
-                Toonyz is the #globalstoryplatform. <br/>
+                Toonyz is the  <span className="text-black dark:text-white font-semibold">{' '}#globalstoryplatform.</span> <br/>
                 Thanks to our translation solution powered by a state-of-the-art LLM engine, <br/>
                 we are free from language barriers and ready to embark on a global journey. <br/>
                 Join us and start your adventure today!

@@ -30,7 +30,7 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
 
     return (
      <Link href={`/view_webnovels?id=${webnovel.id}`}>
-       <div className='border border-gray-100 rounded'>
+       <div className='border border-gray-100 dark:border-gray-700 rounded'>
          <div className="flex items-center w-full h-[116px] md:w-[325px] md:h-[155px]">
             <div className="flex flex-row mt-2 space-x-4 items-center">
                 <div className="relative"> {/* Add this wrapper div */}

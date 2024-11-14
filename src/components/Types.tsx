@@ -83,13 +83,17 @@ interface Entry {
 }
 
 export interface WebtoonContent {
+  id: string;
   title: string;
   subtitle: string;
   title_en: string;
   subtitle_en: string;
+  title_jp?: string; 
+  subtitle_jp?: string; 
   image: string;
   en?: string;
-  link: string;
+  videoUrl: string;
   file_src: string;
+  file_src_jp?: string; 
   video: JSX.Element;
 }

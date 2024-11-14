@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import '@/styles/globals.css'
-import { style } from '@/styles/ModalStyles'
+import { useModalStyle } from '@/styles/ModalStyles'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { Button, ThemeProvider, Modal, Typography, Box } from '@mui/material';
@@ -159,7 +159,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
             </form>
             {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
             <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                <Box sx={style}>
+                <Box sx={useModalStyle}>
                     <Typography className="text-center">
                         <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
                            임시 저장글

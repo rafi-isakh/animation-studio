@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
 import { phrase } from '@/utils/phrases';
 import { langPairList } from '@/utils/phrases';
+
 import styles from '@/styles/Header.module.css';
 import Link from 'next/link';
 
@@ -21,7 +22,6 @@ const style = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    // bgcolor: 'rgba(255, 255, 255, 0.9)', // White background color
     bgcolor: 'rgba(0, 0, 0, 0.9)', // Black
 };
 
@@ -34,7 +34,6 @@ export const opacity = {
         transition: { duration: 1, delay: 0.2 }
     },
 }
-
 
 export default function Preloader() {
     const [index, setIndex] = useState(0);
@@ -90,7 +89,6 @@ export default function Preloader() {
         <Modal
             open={showModal}
         >
-
             <Box sx={style}>
                 <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col md:justify-center space-y-0 md:space-y-8 items-center'>
 

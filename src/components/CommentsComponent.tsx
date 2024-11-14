@@ -215,7 +215,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                         <textarea
                             value={commentContent}
                             rows={6}
-                            className='textarea rounded-t-xl focus:ring-pink-600 w-full resize-none border border-gray-300'
+                            className='textarea rounded-t-xl focus:ring-pink-600 w-full resize-none border border-gray-300 text-black dark:text-black'
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder={phrase(dictionary, "typeYourComment", language)}
 
@@ -301,7 +301,7 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                                                     <textarea
                                                         value={replyContent[index]}
                                                         rows={1}
-                                                        className='textarea rounded focus:ring-pink-600 w-full resize-none border border-gray-300'
+                                                        className='textarea rounded focus:ring-pink-600 w-full resize-none border border-gray-300 text-black dark:text-black'
                                                         onChange={(e) => updateReplyContent(index, e.target.value)}
                                                     />
                                                     <button type="submit" className=''>

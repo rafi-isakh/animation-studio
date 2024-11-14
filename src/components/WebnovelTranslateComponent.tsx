@@ -1,15 +1,20 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, chapterId: string }) => {
+const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, wordsPerPage }: { content: string, chapterId: string, margin: number, padding: number, wordsPerPage: number }) => {
+
     const [text, setText] = useState('');
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
     const fetchRef = useRef(false);
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
+    const { scrollType, page = 1, setPage } = useReader();
+    
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -126,10 +131,103 @@ const WebnovelTranslateComponent = ({ content, chapterId }: { content: string, c
 
     type Direction = 'ltr' | 'rtl';
 
+    const getFirstHalf = (text: string) => {
+        const words = text.split(' ');  // Split by whitespace but keep the separators
+        const totalLength = text.length;
+        let currentLength = 0;
+        let splitIndex = 0;
+
+        // Find the word boundary closest to the middle
+        for (let i = 0; i < words.length; i++) {
+            currentLength += words[i].length + 1;
+            if (currentLength >= totalLength / 2) {
+                splitIndex = i;
+                break;
+            }
+        }
+        console.log('firstHalf', splitIndex, words.slice(0, splitIndex).length)
+        return words.slice(0, splitIndex).join(' ');
+    }
+
+    const getSecondHalf = (text: string) => {
+        const words = text.split(' ');  // Split by whitespace but keep the separators
+        const totalLength = text.length;
+        let currentLength = 0;
+        let splitIndex = 0;
+
+        // Find the word boundary closest to the middle
+        for (let i = 0; i < words.length; i++) {
+            currentLength += words[i].length + 1;
+            if (currentLength >= totalLength / 2) {
+                splitIndex = i;
+                break;
+            }
+        }
+        console.log('secondHalf', splitIndex, words.slice(splitIndex).length)
+        return words.slice(splitIndex).join(' ');
+    }
+
+    const getPage = (text: string, page: number) => {
+        const words = text.split(' ');  // Split on whitespace
+        const startIndex = (page - 1) * wordsPerPage;
+        const endIndex = page * wordsPerPage;
+        const wordsInPage = words.slice(startIndex, endIndex);
+        return wordsInPage.join(' ');
+    }
+
+    const paragraphStyle = {
+        margin: `${margin}px`,
+        padding: `${padding}px`,
+    };
+
     return (
-        <div className="mb-16">
-            <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
-            </div>
+        <div className="relative min-h-screen mb-16" style={paragraphStyle}>
+            {scrollType === 'vertical' &&
+                <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                </div>
+            }
+            {scrollType === 'horizontal' &&
+                <div className='relative flex flex-col'>
+                     {/* Navigation buttons - positioned absolutely on the sides */}
+                        <div className="fixed top-1/2 left-5 min-[768px]:left-[40rem] max-[500px]:left-[5rem] transform -translate-y-1/2 ">
+                            <button 
+                            onClick={() => setPage(prev => prev - 1)}
+                            className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
+                            aria-label="Previous page"
+                            >
+                            <ChevronLeft size={68} />
+                            {/* Left */}
+                            </button>
+                        </div>
+
+                        <div className="fixed top-1/2 right-5 min-[768px]:right-[40rem] max-[500px]:right-[5rem] transform -translate-y-1/2 ">
+                            <button 
+                            onClick={() => setPage(prev => prev + 1)}
+                            className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
+                            aria-label="Next page"
+                            >
+                            <ChevronRight size={68} />
+                            {/* Right */}
+                            </button>
+                        </div>
+
+                    {/* Content */}
+                    <div className='flex flex-row space-x-16 flex-nowrap'>
+                        <div
+                            id='first-half'
+                            className='w-96'
+                            style={{ direction: `${isRtl}` as Direction }}>
+                                {getFirstHalf(getPage(replaceSmartQuotes(text), page))}
+                        </div>
+                        <div
+                            id='second-half'
+                            className='w-96'
+                            style={{ direction: `${isRtl}` as Direction }}>
+                                {getSecondHalf(getPage(replaceSmartQuotes(text), page))}
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     );
 };

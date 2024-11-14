@@ -1,7 +1,7 @@
 import { Box, Button, Modal } from "@mui/material";
 import Image from "next/image";
 import { useState } from "react";
-import { style } from "@/styles/ModalStyles"
+import { useModalStyle } from "@/styles/ModalStyles"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase} from "@/utils/phrases"
 
@@ -32,7 +32,7 @@ export default function GeneratedPicture({ index, image }: { index: number, imag
                 />
             </div>
             <Modal open={showDownloadModal} onClose={() => setShowDownloadModal(false)}>
-                <Box sx={style}>
+                <Box sx={useModalStyle}>
                     <div className="flex flex-col space-y-4 items-center justify-center">
                         <h2>{phrase(dictionary, "downloadImage", language)}</h2>
                         <Button variant="outlined" color="gray" onClick={() => handleDownload()}>{phrase(dictionary, "yes", language)}</Button>

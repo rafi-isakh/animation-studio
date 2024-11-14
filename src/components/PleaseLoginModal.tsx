@@ -1,6 +1,6 @@
 "use client"
 
-import { style } from "@/styles/ModalStyles";
+import { useModalStyle } from "@/styles/ModalStyles";
 import { Button, DialogProps } from "@mui/material";
 import { phrase } from "@/utils/phrases";
 import { Typography } from "@mui/material";
@@ -21,7 +21,7 @@ export default function PleaseLoginModal({ open, setOpen }: { open: boolean, set
     }
     return (
         <Modal open={open} onClose={handleClose}>
-            <Box sx={style} className="flex flex-col items-center justify-center space-y-4">
+            <Box sx={useModalStyle} className="flex flex-col items-center justify-center space-y-4">
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                     {phrase(dictionary, "pleaseLogin", language)}
                 </Typography>

@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         if (!data.id) {
             return NextResponse.json({  error: 'No id returned' }, { status: response.status });
         }
-        
+            
         const id = data.id;
         url.pathname += `/${id}`;
     }

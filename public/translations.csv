@@ -73,8 +73,8 @@ promotion,프로모션 코드,,Promotion Code,
 emailExists,같은 이메일로 등록된 계정이 이미 존재합니다,,An account registered with this email already exists,
 characters,캐릭터,,Characters
 analyze,분석,,Analyze
-nextChapter,다음,,Next
-prevChapter,이전,,Previous
+nextChapter,다음화,,Next
+prevChapter,이전화,,Prev
 isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
 isLastChapter,마지막 화입니다.,,You are at the last chapter.
 studio,스튜디오,スタジオ,Studio
@@ -145,6 +145,17 @@ terms,이용약관,,Terms of use,
 privacy,개인정보 처리방침,,Privacy policy,
 youth_terms,청소년 보호 정책,,Youth protection policy,
 contact,고객지원,,Contact
+delete,삭제,,Delete
+viewSettings,뷰어 설정,,View Settings
+defaultFont,기본,,Default
+batangFont,바탕체,,Batang
+gothicFont,고딕체,,Gothic
+theme,테마,,Theme,
+font,글꼴,,Font,
+fontSize,글자 크기,,Font Size,
+lineHeight,줄 간격,,Line Height,
+paragraphSpacing,문단 여백,,Paragraph Spacing,
+scrollType,넘김 방식,,Scroll Type,
 welcome,환영합니다,,Welcome
 recentSearch,최근 검색어,,Recent Search
 popularSearch,인기 검색어,,Popular Search
@@ -164,5 +175,9 @@ up,UP,,UP
 new,NEW,,NEW
 ongoing,연재중,,ONGOING
 promotionApp,앱으로도 투니즈를 즐겨보세요!,,Begin exploring with the app today!
+LightMode,🌞 라이트모드,,🌞 Light Mode
+DarkMode,🌙 다크모드,,🌙 Dark Mode
+viewSettings_scroll,스크롤,,Scroll
+viewSettings_page,페이지,,Page
 webtoonCurriculum,웹툰 커리큘럼,Webtoon カリキュラム,Webtoon Curriculum
 webnovelCurriculum,웹소설 커리큘럼,Webnovel カリキュラム,Webnovel Curriculum

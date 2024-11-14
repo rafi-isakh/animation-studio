@@ -15,9 +15,10 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-import { style } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
+import { createEmailHash } from '@/utils/cryptography'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -30,7 +31,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const nickname = webnovel?.user.nickname;
-    const author_email = webnovel?.user.email;
+    const author_email = webnovel?.user.email_hash;
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -62,6 +63,13 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         setAtLeastOneWebnovel(hasWebnovels);
         setLoading(false);
     }, [webnovel, userWebnovels, deletedWebnovelId]);
+
+    const isAuthor = (): boolean => {
+        // if (!email || !author_email) return false;
+        const userEmailHash = createEmailHash(email);
+        const authorEmailHash = author_email
+        return userEmailHash === authorEmailHash;
+    };
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
@@ -135,7 +143,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                             </div>
                             
                             <div>
-                            {(author_email == email) &&
+                            {isAuthor() &&
                                 <div className='flex flex-row gap-4 w-full justify-start'>
                                        {/* 
                                         <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
@@ -171,12 +179,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
 
                         <TabContext value={tabValue} >
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary">
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
+                            <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500">
                                 {/* Chapters : 연재글 */}
-                                <Tab label={phrase(dictionary, "chapters", language)} value="1" /> 
+                                <Tab label={phrase(dictionary, "chapters", language)} value="1" className="dark:text-white dark:focus:text-purple-500 dark:active:text-purple-500" /> 
                                 {/* Comments : 댓글 */}
-                                <Tab label={phrase(dictionary, "comments", language)} value="2" />
+                                <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
                             </TabList>
                             </Box>
                             <TabPanel value="1">
@@ -192,9 +200,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                     </div>
                 </div >
                 <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                    <Box sx={style}>
+                    <Box sx={useModalStyle}>
                         <div className='flex flex-col space-y-4 items-center justify-center'>
-                            <p className='text-lg font-bold'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                            <p className='text-lg font-bold text-black dark:text-white'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
                             <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
                             <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                         </div>

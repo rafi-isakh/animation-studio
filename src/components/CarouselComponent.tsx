@@ -89,12 +89,12 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                     priority={slideIndex === 0}
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                    <h2 className="text-white text-lg font-bold">{item.title}</h2>
+                    <h2 className="text-white dark:text-white text-lg font-bold">{item.title}</h2>
                     <OtherTranslateComponent 
                       key={`hook-${item.id}-${language}`}
                       content={item.hook}
                       elementId={item.id.toString()}
-                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-black`}
+                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-white`}
                       elementType={'carouselItem'}
                       elementSubtype="hook"
                       showLoading={false}
@@ -127,12 +127,12 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                     priority={slideIndex === 0}
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                    <h2 className="text-white text-lg font-bold">{item.title}</h2>
+                    <h2 className="text-white dark:text-white text-lg font-bold">{item.title}</h2>
                     <OtherTranslateComponent 
                       key={`hook-${item.id}-${language}`}
                       content={item.hook}
                       elementId={item.id.toString()}
-                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-black`}
+                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-white`}
                       elementType={'carouselItem'}
                       elementSubtype="hook"
                       showLoading={false}

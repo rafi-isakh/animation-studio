@@ -20,7 +20,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeWrapper from '@/components/ThemeWrapper';
 import {useTheme, Theme} from '@/contexts/providers'
-import { TextWithFloatingMenu } from '@/components/FloatingMenuComponent';
+import { FloatingMenu } from '@/components/FloatingMenuComponent';
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -268,9 +268,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
-                                    <TextWithFloatingMenu >
+                                    <FloatingMenu >
                                        <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} wordsPerPage={wordsCount}  />
-                                    </TextWithFloatingMenu>
+                                    </FloatingMenu>
                                 </div>
                             </div>
                         </div>

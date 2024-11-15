@@ -1,18 +1,42 @@
 'use Client'
 import React, { useEffect, useState, useRef } from 'react';
+import { Global } from '@emotion/react';
+import { styled } from '@mui/material/styles';
 import { Brush, WandSparkles } from 'lucide-react';
-import { Box, Button, Modal } from '@mui/material';
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ModalBody } from 'flowbite-react';
+import { Box, Button, Modal, Skeleton, Typography, Drawer } from '@mui/material';
+import { grey } from '@mui/material/colors';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { phrase } from '@/utils/phrases'
 
 type Position = {
     x: number;
     y: number;
     width: number;
     height: number; 
+    window?: () => Window;
 };
 
-const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+ const StyledBox = styled('div')(({ theme }) => ({
+    backgroundColor: '#fff',
+    ...theme.applyStyles('dark', {
+      backgroundColor: grey[800],
+    }),
+  }));
+  
+  const Puller = styled('div')(({ theme }) => ({
+    width: 30,
+    height: 6,
+    backgroundColor: grey[300],
+    borderRadius: 3,
+    position: 'absolute',
+    top: 8,
+    left: 'calc(50% - 15px)',
+    ...theme.applyStyles('dark', {
+      backgroundColor: grey[900],
+    }),
+  }));
+
+const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window }> = ({ children, window }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
@@ -20,6 +44,9 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [showIsModal, setShowIsModal] = useState(false);
+    const { language, dictionary } = useLanguage();
+    const [open, setOpen] = useState(false);
+    const drawerBleeding = 56
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -75,6 +102,15 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setShowIsModal(true);
   }
 
+
+    const toggleDrawer = (newOpen: boolean) => () => {
+      setOpen(newOpen);
+    };
+
+    // This is used only for the example
+    const container = window !== undefined ? () => window().document.body : undefined;
+
+
     return (
         <div className='relative' ref={containerRef}>
             {selection && position && (
@@ -98,35 +134,77 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
                   </button>
                     {showMessage && selectedText && (
-                        <div className="flex flex-row gap-2 mt-3 rounded-md px-4 py-3 bg-black text-white shadow-lg max-w-xs duration-300 animate-fade-in"> 
+                        <div className="flex flex-row gap-2 mt-3 rounded-md pl-4 py-3 bg-black text-white shadow-lg max-w-xs duration-300 animate-fade-in"> 
                             <div className="flex flex-col">
                                 <p className="text-sm">
                                     {truncateText(selectedText, 100)}
                                 </p>
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Ceate magic with Toonyz Studio Play?
+                                    {/* Ceate magic with Toonyz Studio Play? */}
+                                    {phrase(dictionary, "toonyzStudioPlay", language)}
                                 </p>
                             </div>
                             <button 
                                 className="transition-colors shadow-lg self-center"
                             >
-                                <WandSparkles size={16} className="text-white-600 hover:text-pink-300 duration-300"
+                                <Button onClick={toggleDrawer(true)}>
+                                    {/* Open */}
+                                  <WandSparkles size={16} className="text-white-600 hover:text-pink-300 duration-300"
                                 onClick={handleOpenModal}
                                 />
+                                
+                                </Button>
                             </button>
                         </div>
                     )}
                 </div>
             )}
             {children}
+       
+                 <>
+                    <Global
+                        styles={{
+                        '.MuiDrawer-root > .MuiPaper-root': {
+                            zIndex: 30,
+                            height: `calc(50% - ${drawerBleeding}px)`,
+                            // overflow: 'visible',
+                        },
+                        }}
+                    />
+                      <Drawer
+                        container={container}
+                        anchor="bottom"
+                        open={open}
+                        onClose={toggleDrawer(false)}
+                        // swipeAreaWidth={drawerBleeding}
+                        // disableSwipeToOpen={false}
+                        ModalProps={{
+                        keepMounted: true,
+                        }}
+                        // sx={{ zIndex: 20 }} 
+                        >
+                        <StyledBox
+                            sx={{
+                                position: 'absolute',
+                                top: -drawerBleeding,
+                                borderTopLeftRadius: 20,
+                                borderTopRightRadius: 20,
+                                visibility: 'visible',
+                                right: 0,
+                                left: 0,
+                                height: '400px',
+                            }}
+                            >
+                        </StyledBox>
 
-                {/* <Box sx={useModalStyle}  open={showIsModal} onClose={() => setShowIsModal(false)}>
-                    <div className='flex flex-col space-y-4 text-black dark:text-black'>
+                        <Puller />
+                        <StyledBox sx={{ px: 2, pb: 2, height: '2%', }} />
 
-                      Hi 
-
-                    </div>
-                </Box> */}
+                        <p className='text-center z-50 mt-10'>
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim, vel? Non doloremque eveniet molestias nostrum quos dolor voluptatem perspiciatis quia, ut voluptas similique officia, explicabo molestiae cumque accusantium sunt itaque.
+                        </p>
+                    </Drawer>
+                    </>
         </div>
     );
 };

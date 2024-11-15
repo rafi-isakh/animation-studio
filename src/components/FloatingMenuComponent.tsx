@@ -1,5 +1,9 @@
+'use Client'
 import React, { useEffect, useState, useRef } from 'react';
-import { Brush } from 'lucide-react';
+import { Brush, WandSparkles } from 'lucide-react';
+import { Box, Button, Modal } from '@mui/material';
+import { useModalStyle } from '@/styles/ModalStyles';
+import { ModalBody } from 'flowbite-react';
 
 type Position = {
     x: number;
@@ -15,6 +19,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [showIsModal, setShowIsModal] = useState(false);
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -47,7 +52,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                     setPosition(undefined);
                     setSelectedText('');
                     setShowMessage(false);
-                }, 2000);
+                }, 8000);
             }
         }
 
@@ -60,6 +65,16 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         }
     }, []);
 
+    const truncateText = (text: string, maxLength: number): string => {
+      if (text.length <= maxLength) return text;
+      return text.slice(0, maxLength) + '...';
+    };
+
+
+    const handleOpenModal = () => {
+      setShowIsModal(true);
+  }
+
     return (
         <div className='relative' ref={containerRef}>
             {selection && position && (
@@ -70,32 +85,48 @@ const FloatingMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                         left: `${position.x}px`,
                     }}
                 >
-                    <button 
-                        className="rounded-full h-8 p-3.5 border-2 border-black hover:bg-gray-100 transition-colors shadow-lg duration-300 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text"
-                        onClick={() => setShowMessage(!showMessage)}
-                    >
-                        <Brush size={16} className="text-pink-600" />
-                    </button>
+                <button 
+                    className="rounded-full px-1 py-1 border-2 border-black bg-black"
+                    onClick={() => setShowMessage(!showMessage)}
+                  >
+                    {/* <Brush 
+                      size={16} 
+                      className="transition-colors duration-300 " // Changed this line
+                    /> */}
+                   <WandSparkles className='text-pink-300' />
+                   {/* <i className="fas fa-magic text-[1.2rem]" ></i> */}
+
+                  </button>
                     {showMessage && selectedText && (
                         <div className="flex flex-row gap-2 mt-3 rounded-md px-4 py-3 bg-black text-white shadow-lg max-w-xs duration-300 animate-fade-in"> 
                             <div className="flex flex-col">
-                                <p className="text-sm !truncate">
-                                    {selectedText}
+                                <p className="text-sm">
+                                    {truncateText(selectedText, 100)}
                                 </p>
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Would you like to make it with Toonyz studio ?
+                                    Ceate magic with Toonyz Studio Play?
                                 </p>
                             </div>
                             <button 
                                 className="transition-colors shadow-lg self-center"
                             >
-                                <Brush size={16} className="text-pink-600 hover:text-gray-300 duration-300" />
+                                <WandSparkles size={16} className="text-white-600 hover:text-pink-300 duration-300"
+                                onClick={handleOpenModal}
+                                />
                             </button>
                         </div>
                     )}
                 </div>
             )}
             {children}
+
+                {/* <Box sx={useModalStyle}  open={showIsModal} onClose={() => setShowIsModal(false)}>
+                    <div className='flex flex-col space-y-4 text-black dark:text-black'>
+
+                      Hi 
+
+                    </div>
+                </Box> */}
         </div>
     );
 };

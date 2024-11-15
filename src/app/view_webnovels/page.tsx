@@ -23,9 +23,8 @@ async function getWebnovel(id: string | string[] | undefined) {
     }
 }
 
-async function getUserWebnovels(email: string) {
-    const decryptedEmail = await decrypt(email); // necessary because email comes from webnovel.user.email, which is retrieved from db (encrypted)
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email?email=${decryptedEmail}`);
+async function getUserWebnovels(email_hash: string) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;
@@ -42,9 +41,9 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
             const webnovel = await getWebnovel(searchParams.id);
             if (webnovel) {
                 setWebnovel(webnovel);
-                const { email: author_email, nickname: user_nickname } = webnovel.user;
+                const { email_hash: author_email_hash } = webnovel.user;
                 
-                const userWebnovels = await getUserWebnovels(author_email);
+                const userWebnovels = await getUserWebnovels(author_email_hash);
                 setUserWebnovels(userWebnovels);
 
                 await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)

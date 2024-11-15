@@ -9,6 +9,7 @@ import CarouselComponent from '@/components/CarouselComponent';
 
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
+import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 // import ThemeToggle from '@/components/ThemeToggle'
 
 async function getCarouselItems() {

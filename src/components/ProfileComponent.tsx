@@ -103,13 +103,13 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
 
     const handleProfilePictureUpload = () => {
-        if (user.email == email) {
+        if (user.email_hash == createEmailHash(email)) {
             document.getElementById('profilePicture')?.click();
         }
     }
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (user.email != email) {
+        if (user.email_hash != createEmailHash(email)) {
             return;
         }
         if (e.target.files && e.target.files[0]) {
@@ -117,16 +117,17 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             setProfilePicture(file);
             setProfilePicturePreview(URL.createObjectURL(file));
 
-            const data = {
-                file: file,
-                email: user.email,
-                bio: user.bio,
-                nickname: user.nickname
-            }
+            // Create FormData object
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('email', user.email);
+            formData.append('bio', user.bio);
+            formData.append('nickname', user.nickname);
 
             const response = await fetch('/api/update_user', {
                 method: 'POST',
-                body: JSON.stringify(data),
+                body: formData, // Send FormData instead of JSON
+                // Don't set Content-Type header - browser will set it automatically with boundary
             });
 
             if (!response.ok) {
@@ -179,29 +180,29 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
             <div className='w-full md:w-1/4 flex flex-col space-y-4 justify-center items-center order-1  mb-10 md:mb-0'>
                 <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                    <Link href={email == user.email ? "#" : ""}>
+                    <Link href={createEmailHash(email) == user.email_hash ? "#" : ""}>
                         {profilePicturePreview || user.picture ?
                             <div className="mt-4">
                                 {profilePicturePreview ?
-                                    <a onClick={handleProfilePictureUpload}> 
+                                    <p onClick={handleProfilePictureUpload}> 
                                     <Image 
                                     src={profilePicturePreview} 
                                     alt="Profile Picture Preview" 
-                                    className="max-w-xs m-auto" 
+                                    className="max-w-xs m-auto object-cover object-center" 
                                     width={80} 
                                     height={80} />
-                                    </a>
+                                    </p>
                                     :
                                     user.picture ?
-                                        <a onClick={handleProfilePictureUpload}>
+                                        <p onClick={handleProfilePictureUpload}>
                                             <Image 
                                             src={getImageUrl(user.picture)} 
-                                            className="max-w-xs m-auto -translate-y-10" 
+                                            className="max-w-xs m-auto object-cover object-center" 
                                             alt="Profile Picture Preview" 
                                             width={80} 
                                             height={80}
                                              />
-                                        </a>
+                                        </p>
                                         : <></>
                                 }
                             </div>

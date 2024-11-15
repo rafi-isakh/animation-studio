@@ -179,16 +179,16 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             {/*Left component :: Profile picture */}
 
             <div className='w-full md:w-1/4 flex flex-col space-y-4 justify-center items-center order-1  mb-10 md:mb-0'>
-                <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex items-center justify-center">
                     <Link href={createEmailHash(email) == user.email_hash ? "#" : ""}>
                         {profilePicturePreview || user.picture ?
-                            <div className="mt-4">
+                            <div>
                                 {profilePicturePreview ?
                                     <p onClick={handleProfilePictureUpload}> 
                                     <Image 
                                     src={profilePicturePreview} 
                                     alt="Profile Picture Preview" 
-                                    className="max-w-xs m-auto object-cover object-center" 
+                                    className="object-cover object-center" 
                                     width={80} 
                                     height={80} />
                                     </p>
@@ -197,7 +197,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                         <p onClick={handleProfilePictureUpload}>
                                             <Image 
                                             src={getImageUrl(user.picture)} 
-                                            className="max-w-xs m-auto object-cover object-center" 
+                                            className="object-cover object-center" 
                                             alt="Profile Picture Preview" 
                                             width={80} 
                                             height={80}
@@ -207,10 +207,10 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 }
                             </div>
                             :
-                            <div className='mt-4'>
+                            <div>
                                 <svg 
                                 onClick={handleProfilePictureUpload} 
-                                className="w-[240px] h-[240px] text-gray-400 -translate-x-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                className="w-[80px] h-[80px] text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
@@ -218,7 +218,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </Link>
 
                     <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
-
                 </div>
 
                 <div>

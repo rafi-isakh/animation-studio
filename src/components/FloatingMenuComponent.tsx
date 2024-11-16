@@ -7,6 +7,9 @@ import { Box, Button, Modal, Skeleton, Typography, Drawer } from '@mui/material'
 import { grey } from '@mui/material/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
+import { generatePicturesHandler } from '@/utils/generatePictures'
+import { PictureGenerator } from '@/components/PictureGeneratorComponent';
+import PleaseLoginModal from "@/components/PleaseLoginModal";
 
 type Position = {
     x: number;
@@ -47,6 +50,10 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
     const { language, dictionary } = useLanguage();
     const [open, setOpen] = useState(false);
     const drawerBleeding = 56
+    const [showPleaseLogin, setShowPleaseLogin] = useState(false);
+    const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
+    const [showError, setShowError] = useState(false);
+    const [pictures, setPictures] = useState([]);
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -107,6 +114,12 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
       setOpen(newOpen);
     };
 
+
+    const handlePicturesGenerated = (newPictures: string[]) => {
+        generatePicturesHandler(newPictures, setPictures)
+        setOpen(true); 
+    };
+        
     // This is used only for the example
     const container = window !== undefined ? () => window().document.body : undefined;
 
@@ -149,8 +162,10 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                             >
                                 <Button onClick={toggleDrawer(true)}>
                                     {/* Open */}
-                                  <WandSparkles size={16} className="text-white-600 hover:text-pink-300 duration-300"
-                                onClick={handleOpenModal}
+                                  <WandSparkles 
+                                   size={16} 
+                                   className="text-white-600 hover:text-pink-300 duration-300"
+                                   onClick={handleOpenModal}
                                 />
                                 
                                 </Button>
@@ -201,8 +216,15 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                         <StyledBox sx={{ px: 2, pb: 2, height: '2%', }} />
 
                         <p className='text-center z-50 mt-10'>
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim, vel? Non doloremque eveniet molestias nostrum quos dolor voluptatem perspiciatis quia, ut voluptas similique officia, explicabo molestiae cumque accusantium sunt itaque.
                         </p>
+                        <PictureGenerator
+                            selectedText={selectedText}
+                            onComplete={handlePicturesGenerated}
+                        />
+                        <PleaseLoginModal
+                            open={showPleaseLogin}
+                            setOpen={setShowPleaseLogin}
+                        />
                     </Drawer>
                     </>
         </div>

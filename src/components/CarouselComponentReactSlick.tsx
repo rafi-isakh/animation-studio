@@ -8,7 +8,7 @@ import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 import { Webnovel } from '@/components/Types'
-import { getImageURL } from '@/utils/cloudfront';
+import { getLocalImageUrl } from '@/utils/urls';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
@@ -158,7 +158,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                   <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px]">
                                     <Image 
                                         className="object-cover object-center rounded-xl transition-all duration-300" 
-                                        src={getImageURL(item.image)} 
+                                        src={getLocalImageUrl(item.image)} 
                                         fill
                                         alt={item.image}
                                         placeholder="blur" 

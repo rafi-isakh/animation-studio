@@ -12,7 +12,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
             "status": 401
         });
     }
-    const { file, bio, nickname } = await req.json();
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+    const bio = formData.get('bio') as string;
+    const nickname = formData.get('nickname') as string;
 
     const email = session.user?.email;
 
@@ -43,7 +46,11 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "provider": session.provider
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/update_user?promo_code=${promoCode}`, {
+    let fetchstr = `${process.env.NEXT_PUBLIC_BACKEND}/api/update_user`
+    if (promoCode) {
+        fetchstr = `${fetchstr}?promo_code=${promoCode}`
+    }
+    const response = await fetch(fetchstr, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

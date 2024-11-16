@@ -3,6 +3,8 @@ import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { decrypt } from "@/utils/cryptography";
 import { useEffect, useState } from "react";
+import LottieLoader from '@/components/LottieLoader';
+import animationData from '@/assets/N_logo_loader.json'
 
 async function getWebnovel(id: string | string[] | undefined) {
     if (Array.isArray(id)) {
@@ -23,9 +25,8 @@ async function getWebnovel(id: string | string[] | undefined) {
     }
 }
 
-async function getUserWebnovels(email: string) {
-    const decryptedEmail = await decrypt(email); // necessary because email comes from webnovel.user.email, which is retrieved from db (encrypted)
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email?email=${decryptedEmail}`);
+async function getUserWebnovels(email_hash: string) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;
@@ -37,23 +38,41 @@ async function getUserWebnovels(email: string) {
 const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         const fetchData = async () => {
             const webnovel = await getWebnovel(searchParams.id);
             if (webnovel) {
                 setWebnovel(webnovel);
-                const { email: author_email, nickname: user_nickname } = webnovel.user;
+                const { email_hash: author_email_hash } = webnovel.user;
                 
-                const userWebnovels = await getUserWebnovels(author_email);
+                const userWebnovels = await getUserWebnovels(author_email_hash);
                 setUserWebnovels(userWebnovels);
 
                 await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
             }
+            setLoading(false);
         }
         fetchData();
-    }, [])
+    }, [searchParams.id])
+
     return (
-        <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+        <>
+        {loading? (
+               <div role="status" className={`flex items-center justify-center min-h-screen`}>    
+                   <LottieLoader 
+                       animationData={animationData}
+                       width="w-32"
+                       centered={true}
+                       pulseEffect={true}
+                   />
+               </div>
+           ) : (
+               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+           )
+        }
+        </>
     )
 }
 

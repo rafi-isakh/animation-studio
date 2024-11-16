@@ -1,5 +1,5 @@
 'use client'
-import { getCloudfrontURL } from '@/utils/cloudfront';
+import { getVideoUrl } from '@/utils/urls';
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
@@ -8,22 +8,22 @@ import Billboard from '@/components/Billboard';
 import CurriculumVideoList from '@/components/CurriculumVideoList';
 
 export default function Videos() {
-    const file_src = getCloudfrontURL('');
+    const file_src = getVideoUrl('');
     const { dictionary, language } = useLanguage();
 
 
     const webtoonContents = initialWebtoonContents.map((content, index) => ({
         ...content,
         id: index.toString(), // Ensure each content has a unique id as a string
-        file_src: getCloudfrontURL(content.file_src),
-        file_src_jp: getCloudfrontURL(content.file_src_jp),
+        file_src: getVideoUrl(content.file_src),
+        file_src_jp: getVideoUrl(content.file_src_jp),
     }));
 
     const webnovelContents = initialWebnovelContents.map((content, index) => ({
         ...content,
         id: index.toString(), // Ensure each content has a unique id
-        file_src: getCloudfrontURL(content.file_src),
-        file_src_jp: getCloudfrontURL(content.file_src_jp),
+        file_src: getVideoUrl(content.file_src),
+        file_src_jp: getVideoUrl(content.file_src_jp),
     }));
 
     return (

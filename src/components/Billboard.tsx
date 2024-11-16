@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 import { initialWebtoonContents } from '@/utils/curriculum';
-import { getCloudfrontURL } from '@/utils/cloudfront';
+import { getImageUrl, getVideoUrl } from '@/utils/urls';
 
 const Billboard = () => {
     const [isMobile, setIsMobile] = useState(false);
@@ -19,7 +19,7 @@ const Billboard = () => {
 
     const webtoonContents = initialWebtoonContents.map(content => ({
         ...content,
-        file_src: getCloudfrontURL(content.file_src)
+        file_src: getVideoUrl(content.file_src)
     }));
 
   return (

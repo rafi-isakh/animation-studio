@@ -1,7 +1,7 @@
 import { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
-import { getCloudfrontImageURL } from "@/utils/cloudfront"
+import { getImageUrl } from "@/utils/urls"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { Oleo_Script_Swash_Caps } from 'next/font/google'
@@ -12,12 +12,12 @@ const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight:
 
 const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
    
-    const imageSrc = getCloudfrontImageURL(webnovel.cover_art);
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const [imageWidth, setImageWidth] = useState(83)
     const [imageHeight, setImageHeight] = useState(135)
     const isMediumScreen = useMediaQuery('(min-width:768px)')
+    const imageSrc = getImageUrl(webnovel.cover_art)
 
     useEffect(() => {
         setImageWidth(isMediumScreen ? 83 : 60) // Adjust these values as needed

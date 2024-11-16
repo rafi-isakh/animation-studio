@@ -95,7 +95,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <ReaderProvider>   
                 <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                  <Suspense>
+                  <Suspense >
                     <Header />
                   </Suspense>
                   <Margin>

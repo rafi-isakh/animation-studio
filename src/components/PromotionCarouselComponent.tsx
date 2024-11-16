@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getImageURL } from '@/utils/cloudfront';
+import { getLocalImageUrl } from '@/utils/urls';
 import { SlickCarouselItem } from '@/components/Types'
 import { Webnovel } from '@/components/Types'
 import Image from 'next/image';
@@ -78,7 +78,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 className="flex-1 relative rounded-xl overflow-hidden"
               >
                 <Image
-                  src={getImageURL(item.image)}
+                  src={getLocalImageUrl(item.image)}
                   fill
                   sizes="(max-width: 768px) 33vw, 25vw"
                   alt={item.image}

@@ -18,6 +18,7 @@ module.exports = {
         'sans': ['Arial', 'sans-serif'],
         'gowun-batang': ['Gowun Batang', 'serif'],
         'nanum-gothic': ['Nanum Gothic', 'sans-serif'],
+      },
       animation: {
         wiggle: 'wiggle 1s ease-in-out infinite',
       }

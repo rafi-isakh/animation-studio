@@ -5,7 +5,7 @@ import { twMerge } from "tailwind-merge";
 
 interface LottieLoaderProps {
   animationData: any;
-  width?: string;
+  width?: number | string; 
   pulseEffect?: boolean;
   scaleOnHover?: boolean;
   fadeOnHover?: boolean;
@@ -29,8 +29,12 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({
     className
   );
 
+  const widthStyle = typeof width === 'number' ? `${width}px` : undefined;
+  // Handle Tailwind classes for width
+  const widthClass = typeof width === 'string' ? width : '';
+
   const wrapperClasses = twMerge(
-    width,
+    widthClass,
     pulseEffect && "animate-pulse"
   );
 
@@ -46,7 +50,7 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({
 
   return (
     <div className={containerClasses}>
-      <div className={wrapperClasses}> 
+      <div className={wrapperClasses} style={{ width: widthStyle }}> 
         <div className="transition-all duration-1000 ease-in-out">
           <Lottie
             animationData={parsedAnimation}

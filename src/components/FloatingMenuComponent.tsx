@@ -8,8 +8,13 @@ import { grey } from '@mui/material/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { generatePicturesHandler } from '@/utils/generatePictures'
-import { PictureGenerator } from '@/components/PictureGeneratorComponent';
-import PleaseLoginModal from "@/components/PleaseLoginModal";
+import PictureGenerator from '@/components/PictureGeneratorComponent';
+import dynamic from 'next/dynamic';
+import animationData from '@/assets/MagicStick.json';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
 
 type Position = {
     x: number;
@@ -53,6 +58,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
     const [showError, setShowError] = useState(false);
+    const [prompt, setPrompt] = useState("");
     const [pictures, setPictures] = useState([]);
 
     useEffect(() => {
@@ -112,6 +118,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
 
     const toggleDrawer = (newOpen: boolean) => () => {
       setOpen(newOpen);
+      setShowIsModal(true);
     };
 
 
@@ -135,14 +142,20 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                     }}
                 >
                 <button 
-                    className="rounded-full px-1 py-1 border-2 border-black bg-black"
+                    className="rounded-full border-1  border-purple-300 bg-purple-300"
                     onClick={() => setShowMessage(!showMessage)}
                   >
                     {/* <Brush 
                       size={16} 
                       className="transition-colors duration-300 " // Changed this line
                     /> */}
-                   <WandSparkles className='text-pink-300' />
+                   {/* <WandSparkles className='text-pink-300' /> */}
+                   <LottieLoader 
+                        animationData={animationData} 
+                        centered={false} 
+                        width="w-[40px]" 
+                        className="text-pink-300"
+                        />
                    {/* <i className="fas fa-magic text-[1.2rem]" ></i> */}
 
                   </button>
@@ -162,12 +175,16 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                             >
                                 <Button onClick={toggleDrawer(true)}>
                                     {/* Open */}
-                                  <WandSparkles 
+                                  {/* <WandSparkles 
                                    size={16} 
                                    className="text-white-600 hover:text-pink-300 duration-300"
                                    onClick={handleOpenModal}
-                                />
-                                
+                                /> */} <LottieLoader 
+                                            animationData={animationData} 
+                                            centered={false} 
+                                            width="w-[40px]" 
+                                            className="text-pink-300"
+                                            />
                                 </Button>
                             </button>
                         </div>
@@ -218,12 +235,9 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                         <p className='text-center z-50 mt-10'>
                         </p>
                         <PictureGenerator
-                            selectedText={selectedText}
+                            // selectedText={selectedText}
+                            prompt={selectedText}
                             onComplete={handlePicturesGenerated}
-                        />
-                        <PleaseLoginModal
-                            open={showPleaseLogin}
-                            setOpen={setShowPleaseLogin}
                         />
                     </Drawer>
                     </>

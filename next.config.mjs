@@ -15,12 +15,12 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_PICTURES_S3,
+                hostname: process.env.NEXT_PUBLIC_PICTURES_S3  || 'localhost',
                 pathname: '/**',
             },
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_VIDEOS_S3,
+                hostname: process.env.NEXT_PUBLIC_VIDEOS_S3 || 'localhost',
                 pathname: '/**',
             },
         ],

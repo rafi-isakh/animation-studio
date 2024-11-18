@@ -56,10 +56,7 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                         <p className="text-xs md:text-sm font-bold mt-1 w-full truncate text-gray-500 flex flex-row justify-center">
                             {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
                         </p>
-                        <span className="text-xs md:text-sm self-center rounded text-gray-500">
-                        </span>
                     </div>
-
                 </div>
             </div>
         </Link>

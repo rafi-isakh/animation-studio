@@ -73,12 +73,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             hiddenDiv.style.fontFamily = fontFamily;
             hiddenDiv.style.lineHeight = lineHeight.toString();
             hiddenDiv.style.margin = `${margin}px`;
-            const viewHeight = window.innerHeight * 0.7;
-            console.log('viewHeight', viewHeight)
+            const viewHeight = window.innerHeight * 0.6;
             let _wordsCount = 0;
             let start = 0;
             const words = chapter.content.split(' '); 
             let end = chapter?.content?.length;
+            // binary search to find the number of words that fit in the view height
             while (start <= end) {
                 const mid = Math.floor((start + end) / 2)
                 hiddenDiv.textContent = words.slice(0, mid).join(' ');

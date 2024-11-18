@@ -14,7 +14,7 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, words
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const { scrollType, page = 1, setPage } = useReader();
-    
+    const [wordsCount, setWordsCount] = useState(text.split(' ').length);
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -140,6 +140,7 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, words
         // Find the word boundary closest to the middle
         for (let i = 0; i < words.length; i++) {
             currentLength += words[i].length + 1;
+            console.log(currentLength)
             if (currentLength >= totalLength / 2) {
                 splitIndex = i;
                 break;
@@ -191,7 +192,9 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, words
                      {/* Navigation buttons - positioned absolutely on the sides */}
                         <div className="fixed top-1/2 left-5 min-[768px]:left-[40rem] max-[500px]:left-[5rem] transform -translate-y-1/2 ">
                             <button 
-                            onClick={() => setPage(prev => prev - 1)}
+                            onClick={() => {
+                                if (page > 1) setPage(prev => prev - 1)
+                            }}
                             className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
                             aria-label="Previous page"
                             >
@@ -202,7 +205,10 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, words
 
                         <div className="fixed top-1/2 right-5 min-[768px]:right-[40rem] max-[500px]:right-[5rem] transform -translate-y-1/2 ">
                             <button 
-                            onClick={() => setPage(prev => prev + 1)}
+                            onClick={() => {
+                                //if (page < Math.ceil(wordsCount / wordsPerPage)) setPage(prev => prev + 1)
+                                setPage(prev => prev + 1)
+                            }}
                             className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
                             aria-label="Next page"
                             >
@@ -215,15 +221,15 @@ const WebnovelTranslateComponent = ({ content, chapterId, margin, padding, words
                     <div className='flex flex-row space-x-16 flex-nowrap'>
                         <div
                             id='first-half'
-                            className='w-96'
-                            style={{ direction: `${isRtl}` as Direction }}>
-                                {getFirstHalf(getPage(replaceSmartQuotes(text), page))}
+                            className='w-[calc(50%-1rem)]'
+                            style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                            dangerouslySetInnerHTML={{ __html: getFirstHalf(getPage(replaceSmartQuotes(text), page)) }}>
                         </div>
                         <div
                             id='second-half'
-                            className='w-96'
-                            style={{ direction: `${isRtl}` as Direction }}>
-                                {getSecondHalf(getPage(replaceSmartQuotes(text), page))}
+                            className='w-[calc(50%-1rem)]'
+                            style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                            dangerouslySetInnerHTML={{ __html: getSecondHalf(getPage(replaceSmartQuotes(text), page)) }}>
                         </div>
                     </div>
                 </div>

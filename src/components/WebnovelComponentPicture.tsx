@@ -18,52 +18,51 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
     const imageSrc = getImageUrl(webnovel.cover_art)
-    
+
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language, webnovel])
 
 
     return (
-            <Link href={`/view_webnovels?id=${webnovel.id}`}>
-                <div className="group relative flex flex-col items-center w-[100px] md:w-[240px]">
+        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+            <div className="group relative flex flex-col items-center w-[100px] md:w-[240px]">
                 {/* Image Container */}
                 <div className="relative shrink-0 w-[83px] h-[135px] md:w-[240px] md:h-[380px] md:aspect-[3/4] overflow-hidden rounded-xl">
                     <Image
-                    src={imageSrc}
-                    alt={webnovel.cover_art}
-                    fill
-                    quality={85}
-                    className="object-cover"
-                    sizes="(max-width: 768px) 83px, 240px"
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                        src={imageSrc}
+                        alt={webnovel.cover_art}
+                        fill
+                        quality={85}
+                        className="object-cover"
+                        sizes="(max-width: 768px) 83px, 240px"
+                        placeholder="blur"
+                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
                 </div>
 
                 {/* Text Content Container */}
                 <div className="mt-2 w-full">
                     <div className="flex flex-col items-center text-center">
-                         {/* Genre */}
-                    <span className="text-[9px] self-center rounded text-gray-400">
-                        {phrase(dictionary, webnovel.genre, language)}
+                        {/* Genre */}
+                        <OtherTranslateComponent
+                            key={key}
+                            content={webnovel.title}
+                            elementId={webnovel.id.toString()}
+                            elementType="webnovel"
+                            elementSubtype="title"
+                            classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
+                        />
+                        <p className="text-xs md:text-sm font-bold mt-1 w-full truncate text-gray-500 flex flex-row justify-center">
+                            {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
+                        </p>
+                        <span className="text-xs md:text-sm self-center rounded text-gray-500">
                         </span>
-                    <OtherTranslateComponent
-                        key={key}
-                        content={webnovel.title}
-                        elementId={webnovel.id.toString()}
-                        elementType="webnovel"
-                        elementSubtype="title"
-                        classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
-                    />
-                    <p className="text-xs md:text-sm font-bold mt-1 w-full truncate">
-                        {webnovel.user.nickname}
-                    </p>
                     </div>
 
                 </div>
-                </div>
-            </Link>
+            </div>
+        </Link>
     )
 }
 

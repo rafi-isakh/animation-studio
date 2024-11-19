@@ -60,14 +60,14 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
                                 classParams="text-md md:text-lg w-64 md:max-w-32 lg:max-w-48 break-words"
                             />
                             <div className="flex flex-col">
-                                <p className="text-xs md:text-sm font-bold w-full truncate text-gray-500">
+                                <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500">
                                     {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
                                 </p>
                                 <p className="flex flex-row justify-start font-bold">
-                                    <span className="text-[10px] text-black">
+                                    <span className="text-[10px] md:text-[12px] text-black">
                                         {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
                                     </span>
-                                    <span className="text-[10px] text-black ml-2">
+                                    <span className="text-[10px]  md:text-[12px]  text-black ml-2">
                                         <i className="fa-regular fa-heart mr-1"></i> {webnovel.upvotes}
                                     </span>
                                 </p>

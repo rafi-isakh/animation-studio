@@ -66,16 +66,16 @@ const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: We
                             
                         // text-[12px] md:text-base font-medium line-clamp-2 w-full"
                         />
-                        <p className="text-xs md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
+                        <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                             {webnovel.user.nickname}             
                             <span className="hidden md:block"> • </span>
                             <span className="hidden md:block">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>
                         <p className="flex flex-row justify-center font-bold">
-                            <span className="text-[10px] text-black dark:text-white ml-2">
+                            <span className="text-[10px] md:text-[12px]  text-black dark:text-white ml-2">
                                 {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
                             </span>
-                            <span className="text-[10px] text-black dark:text-white flex flex-row items-center ml-2">
+                            <span className="text-[10px] md:text-[12px] text-black dark:text-white flex flex-row items-center ml-2">
                                 {/* <i className="fa-solid fa-eye mr-1"></i>  */}
                                 <TrendingUp size={10} className="mr-1" />
                                 {webnovel.views}

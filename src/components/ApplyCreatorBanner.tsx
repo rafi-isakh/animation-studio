@@ -1,13 +1,15 @@
 "use client"
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
 
 const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
+    const { isLoggedIn } = useAuth();
 
     return (
-        <Link href='/signin' className="">
+        <Link href={isLoggedIn ? '/' : '/signin'} className="">
         <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
         {language == 'ko' ? (
                             <>

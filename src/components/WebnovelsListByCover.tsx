@@ -8,6 +8,7 @@ import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUt
 import moment from 'moment';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { scroll } from '@/utils/scroll'
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -19,7 +20,7 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
-
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -46,14 +47,14 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
     return (
         <div className='relative max-w-screen-xl mx-auto group m-10'>
             {/* Left Arrow */}
-            <button 
+            {/* <button 
                 onClick={() => scroll('left', scrollRef)}
                 className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
             >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
-           
-             <div className='md:px-5 px-2 m-5'>
+            */}
+             <div className='md:px-5 px-2'>
                   {/* {(webnovels.length > 0) ?
                     phrase(dictionary, text, language) : <></>
                  } */}
@@ -81,13 +82,14 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                    </div>
               </div>
             {/* Right Arrow */}
-            <button 
-                onClick={() => scroll('right', scrollRef)}
-                className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
-            >
-                <ChevronRight className="w-6 h-6 text-gray-700" />
-            </button>
-
+            {!isMobile && (
+                <button
+                    onClick={() => scroll('right', scrollRef)}
+                    className="group-hover:opacity-100 transition-opacity duration-300 absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0"
+                >
+                    <ChevronRight className="w-6 h-6 text-gray-700" />
+                </button>
+            )}
         </div>
     )
 };

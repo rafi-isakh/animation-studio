@@ -52,7 +52,7 @@ const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: We
                     )}
                 </div>
 
-                <div className="mt-1 mb-5">
+                <div className="mt-2">
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent

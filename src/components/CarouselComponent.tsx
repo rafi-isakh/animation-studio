@@ -74,6 +74,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             <div 
               key={slideIndex}
               className="min-w-full h-[350px] flex gap-4 px-4 mt-[20px]"
+              // image top margin
             >
               {items.slice(slideIndex * 3, (slideIndex * 3) + 3).map((item, itemIndex) => (
                 <div 

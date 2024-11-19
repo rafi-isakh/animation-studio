@@ -35,9 +35,12 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
 
     return (
         <div className="group relative max-w-screen-xl mx-auto">
-            <div className="no-scrollbar flex flex-col mt-10">
-                <div className="md:px-5 px-2 m-5">
-                    <h1 className="flex flex-row justify-between text-xl md:text-xl font-extrabold mb-7">
+            <div className="no-scrollbar flex flex-col">
+            
+
+
+                <div className="md:px-5 px-2">
+                    <h1 className="flex flex-row justify-between text-xl md:text-xl font-extrabold mb-7"> 
                         
                         {webnovels.length > 0 ? phrase(dictionary, "newAndTrending", language) : <></>}
                        

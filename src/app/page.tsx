@@ -10,8 +10,8 @@ import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
-// import ThemeToggle from '@/components/ThemeToggle'
-
+// import ThemeToggle from '@/components/ThemeToggle'   
+import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
     const data = await response.json()
@@ -36,29 +36,29 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     return (
         <div>
             {showPreloader && <Preloader />}    
-            {/* Top banner : applying a creator */}
+            {/* 0. Top banner : applying a creator */}
             <ApplyCreatorBanner />
-            {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
-            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-            {/* </div> */}
-            {/* Popular Webnovels */}
-            <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            {/* Webnovels by trends */}
-            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-             {/* webnovels list by ranking */}
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
-        
-            {/* only Toonyz */}
-            <div className='bg-black w-full mx-auto '>  {/* bg-black */}
-                <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
-            </div>
-
-            {/* Event promotion part */}
-            <Promotion />
-            {/* Footer Banner : instagram promotion image */}
-            {/* Footer */}            
+            <div className='flex flex-col gap-[5rem]'>
+                {/* 1. Carousel */}
+                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
+                {/* 2. Real Time Popular Webnovels */}
+                <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {/* 3. Webnovels by new trends */}
+                <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {/* 4. webnovels list by ranking */}
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
+                {/* 5. only Toonyz : Carousel */}
+                <div className='bg-black w-full mx-auto '>
+                    <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+                </div>
+                {/* 6. Event promotion part */}
+                {/* <Promotion /> */}
+                {/* 7. Footer Banner : instagram promotion image */}
+                <PromotionBannerComponent />
+                </div>
+            {/* 8. Footer */}
             <Footer />
-            {/* Bookmark button : it only displys mobile screen */}
+            {/* Bookmark button : Only displys mobile screen */}
             <BookmarkButton />
         </div>
     );

@@ -38,7 +38,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {showPreloader && <Preloader />}    
             {/* Top banner : applying a creator */}
             <ApplyCreatorBanner />
-          
             {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
             <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
             {/* </div> */}

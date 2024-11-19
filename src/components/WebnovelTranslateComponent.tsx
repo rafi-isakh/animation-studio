@@ -30,6 +30,8 @@ const WebnovelTranslateComponent = (
     const [lastPage, setLastPage] = useState(1)
     const [prevFirstWordIndex, setPrevFirstWordIndex] = useState(0)
     const [pageToFirstWordIndex, setPageToFirstWordIndex] = useState<{ [key: number]: number }>({ 1: 0 })
+    const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
+    const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const { fontSize,
         fontFamily = 'default',
         lineHeight,
@@ -166,13 +168,41 @@ const WebnovelTranslateComponent = (
     useEffect(() => {
         if (text && scrollType == 'horizontal') {
             setTimeout(() => {
-                const _firstPageWords = pageWords(text.slice(firstWordIndex), 'pageview-hidden-parent-1');
-                setFirstPageWords(_firstPageWords);
-                const _secondPageWords = pageWords(text.slice(firstWordIndex + _firstPageWords.length), 'pageview-hidden-parent-2');
-                setSecondPageWords(_secondPageWords);
+                // const _firstPageWords = pageWords(text.slice(firstWordIndex), 'pageview-hidden-parent-1');
+                // setFirstPageWords(_firstPageWords);
+                // const _secondPageWords = pageWords(text.slice(firstWordIndex + _firstPageWords.length), 'pageview-hidden-parent-2');
+                // setSecondPageWords(_secondPageWords);
+                const [pageToFirstPageWords, pageToSecondPageWords] = calculateAllPages(text);
+                setFirstPageWords(pageToFirstPageWords[page])
+                setSecondPageWords(pageToSecondPageWords[page])
             }, 100);
         }
-    }, [fontSize, fontFamily, lineHeight, margin, padding, text, scrollType, firstWordIndex])
+    }, [fontSize, fontFamily, lineHeight, margin, padding, text, scrollType])
+
+    useEffect(() => {
+        setFirstPageWords(pageToFirstPageWords[page])
+        setSecondPageWords(pageToSecondPageWords[page])
+    }, [page])
+
+    const calculateAllPages = (text: string) => {
+        let textLeft = text;
+        let page = 1;
+        let index = 0;
+        const _pageToFirstPageWords: { [key: number]: string } = {};
+        const _pageToSecondPageWords: { [key: number]: string } = {};
+        while (textLeft.length > 0) {
+            const _firstPageWords = pageWords(textLeft, `pageview-hidden-parent-1`);
+            const _secondPageWords = pageWords(textLeft.slice(_firstPageWords.length), `pageview-hidden-parent-2`);
+            index = _firstPageWords.length + _secondPageWords.length;
+            textLeft = textLeft.slice(index);
+            _pageToFirstPageWords[page] = _firstPageWords;
+            _pageToSecondPageWords[page] = _secondPageWords;
+            page++;
+        }
+        setPageToFirstPageWords(_pageToFirstPageWords);
+        setPageToSecondPageWords(_pageToSecondPageWords);
+        return [_pageToFirstPageWords, _pageToSecondPageWords];
+    }
 
     const pageWords = (text: string, parentId: string) => {
         if (!text) return "";
@@ -220,27 +250,14 @@ const WebnovelTranslateComponent = (
     }
 
     const nextPage = () => { // each page has two half-pages
-        const pageLength = firstPageWords.length + secondPageWords.length
-        let _lastPage = lastPage;
-        if (firstWordIndex + pageLength < text.length) {
-            if (page == _lastPage) {
-                _lastPage += 1;
-                setLastPage(_lastPage)
-            }
-        }
-        console.log('page', page, '_lastPage', _lastPage);
-        if (page < _lastPage) {
-            pageToFirstWordIndex[page] = firstWordIndex
-            setPageToFirstWordIndex(pageToFirstWordIndex)
-            const _firstWordIndex = firstWordIndex + pageLength
-            setFirstWordIndex(_firstWordIndex)
+        if (page < Object.keys(pageToFirstPageWords).length) {
             setPage(prev => prev + 1)
         }
     }
 
     const prevPage = () => {
         if (page > 1) {
-            setFirstWordIndex(pageToFirstWordIndex[page - 1])
+            // setFirstWordIndex(pageToFirstWordIndex[page - 1])
             setPage(prev => prev - 1)
         }
     }

@@ -19,6 +19,7 @@ interface CurriculumCardProps {
         onVideoClick: (video: JSX.Element) => void;
         file_src: string;
         file_src_jp: string
+        file_src_en: string; // {{ edit_1 }} Added this line
     };
 }
 
@@ -27,7 +28,7 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
 
 
     const handleVideoClick = () => {
-        const videoElement = <video src={ language === 'ko' ? data.file_src : language === 'ja' ? data.file_src_jp : data.file_src } controls autoPlay loop />;
+        const videoElement = <video src={ language === 'ko' ? data.file_src : language === 'ja' ? data.file_src_jp : language === 'en' ? data.file_src_en : data.file_src } controls autoPlay loop />;
         data.onVideoClick(videoElement);
     };
 

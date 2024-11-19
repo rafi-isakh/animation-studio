@@ -16,13 +16,15 @@ export default function Videos() {
         ...content,
         id: index.toString(), // Ensure each content has a unique id as a string
         file_src: getVideoUrl(content.file_src),
+        file_src_en: getVideoUrl(content.file_src_en),
         file_src_jp: getVideoUrl(content.file_src_jp),
     }));
 
     const webnovelContents = initialWebnovelContents.map((content, index) => ({
         ...content,
         id: index.toString(), // Ensure each content has a unique id
-        file_src: getVideoUrl(content.file_src),
+        file_src: getVideoUrl(content.file_src),    
+        file_src_en: getVideoUrl(content.file_src_en),
         file_src_jp: getVideoUrl(content.file_src_jp),
     }));
 

@@ -8,8 +8,14 @@ const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
     const { isLoggedIn } = useAuth();
 
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault(); // Prevent the default browser navigation
+        console.log("Link clicked, but it does nothing.");
+      };
+
+
     return (
-        <Link href={isLoggedIn ? '/?version=free' : '/signin'} className="">
+        <Link onClick={handleClick} href='' className="">
         <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
         {language == 'ko' ? (
                             <>

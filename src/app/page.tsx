@@ -36,29 +36,27 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     return (
         <div>
             {showPreloader && <Preloader />}    
-            {/* 0. Top banner : applying a creator */}
+          
             <ApplyCreatorBanner />
             <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem]'>
-                {/* 1. Carousel */}
+          
                 <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-                {/* 2. Real Time Popular Webnovels */}
+             
                 <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                {/* 3. Webnovels by new trends */}
+                
                 <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                {/* 4. webnovels list by ranking */}
+         
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
-                {/* 5. only Toonyz : Carousel */}
+              
                 <div className='bg-black w-full mx-auto '>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
-                {/* 6. Event promotion part */}
-                {/* <Promotion /> */}
-                {/* 7. Footer Banner : instagram promotion image */}
+              
                 <PromotionBannerComponent />
                 </div>
-            {/* 8. Footer */}
+        
             <Footer />
-            {/* Bookmark button : Only displys mobile screen */}
+        
             <BookmarkButton />
         </div>
     );

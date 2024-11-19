@@ -53,12 +53,12 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                             </p>
                         </div>
                     )}
-                    
+
                 </div>
 
                 {/* Text Content Container */}
                 <div className="mt-2 w-full">
-                    <div className="flex flex-col items-center text-center gap-1">
+                    <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
                             key={key}

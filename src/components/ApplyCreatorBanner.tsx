@@ -19,7 +19,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='relative top-[-2px] mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'
@@ -31,7 +31,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative top-[-10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[-12px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'
@@ -47,7 +47,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='relative top-[-2px] mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'
@@ -59,7 +59,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative top-[-10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[-12px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'

@@ -33,13 +33,13 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
             <div className='border border-gray-100 dark:border-gray-700 rounded'>
                 <div className="flex items-center w-full h-[116px] md:w-[325px] md:h-[155px]">
                     <div className="flex flex-row gap-4 items-center">
-                        <div className="relative"> {/* Add this wrapper div */}
+                        <div className="relative w-20 h-28 flex-shrink-0"> {/* Add this wrapper div */}
                             <Image
                                 src={imageSrc}
                                 width={imageWidth}
                                 height={imageHeight}
                                 alt={webnovel.cover_art}
-                                className="rounded"
+                                className="w-full h-full object-cover rounded-lg"
                                 placeholder="blur"
                                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                             />

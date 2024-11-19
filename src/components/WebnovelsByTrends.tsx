@@ -37,8 +37,6 @@ const WebnovelsByTrends = ({ searchParams, sortBy, webnovels }: { searchParams: 
         <div className="group relative max-w-screen-xl mx-auto">
             <div className="no-scrollbar flex flex-col">
             
-
-
                 <div className="md:px-5 px-2">
                     <h1 className="flex flex-row justify-between text-xl md:text-xl font-extrabold mb-7"> 
                         

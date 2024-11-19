@@ -45,7 +45,7 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
     }
 
     return (
-        <div className='relative max-w-screen-xl mx-auto group m-10'>
+        <div className='relative md:max-w-screen-xl max-w-screen-80 mx-auto group'>
             {/* Left Arrow */}
             {/* <button 
                 onClick={() => scroll('left', scrollRef)}
@@ -69,7 +69,7 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
 
                   <div 
                     ref={scrollRef}
-                    className="flex overflow-x-auto no-scrollbar scroll-smooth md:gap-4 gap-0 "
+                    className="flex overflow-x-auto no-scrollbar scroll-smooth md:gap-4 gap-0"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                      >
                     {webnovelsToShow

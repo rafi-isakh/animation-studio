@@ -4,9 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
 import { CircularProgress } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
+import { useMediaQuery } from '@mui/material';
 
-const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '' }:
-    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
+const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
+    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string}) => {
     const [text, setText] = useState(incomingText);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
@@ -14,6 +15,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
+    const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     useEffect(() => {
         if (fetchRef.current) return;
@@ -152,6 +154,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
             eventSource.close();
         };
     };
+
 
     type Direction = 'ltr' | 'rtl';
 

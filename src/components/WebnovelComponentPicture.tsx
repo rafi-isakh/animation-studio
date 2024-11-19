@@ -43,7 +43,7 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
 
                 {/* Text Content Container */}
                 <div className="mt-2 w-full">
-                    <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-col items-center text-center gap-1">
                         {/* Genre */}
                         <OtherTranslateComponent
                             key={key}
@@ -53,8 +53,10 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                             elementSubtype="title"
                             classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
                         />
-                        <p className="text-xs md:text-sm font-bold mt-1 w-full truncate text-gray-500 flex flex-row justify-center">
-                            {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
+                        <p className="text-xs md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
+                            {webnovel.user.nickname} 
+                            <span className="hidden md:block"> • </span>
+                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>                   
                         </p>
                     </div>
                 </div>

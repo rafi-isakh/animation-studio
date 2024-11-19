@@ -23,7 +23,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
-    const [filteredWebnovels, setFilteredWebnovels] = useState<Webnovel[]>([]);
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -34,34 +33,12 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy));
 
-        // setWebnovelsToShow(_webnovelsToShow);
-        // setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
-        // const divider = Math.ceil(_webnovelsToShow.length / 3)
-        // const _mobileGrid = `grid-cols-${divider.toString()}`
-        // setMobileGrid(_mobileGrid)
-
-        if (isMobile) {
-            // Mobile: Show items in horizontal scrolling columns, 3 items per column
-            const numColumns = Math.ceil(webnovels.length / 3);
-            const mobileColumns = Array.from({ length: numColumns }, (_, colIndex) => {
-                return webnovels.filter((_, index) => {
-                    const position = index % numColumns;
-                    const row = Math.floor(index / numColumns);
-                    return position === colIndex && row < 3;
-                });
-            });
-            setColumns(mobileColumns);
-        } else {
-            // Desktop: 3 vertical columns
-            const desktopColumns = [
-                webnovels.slice(0, 3),
-                webnovels.slice(3, 6),
-                webnovels.slice(6, 9)
-            ];
-            setColumns(desktopColumns);
-        }
-
-    }, [version, genre, sortBy, webnovels, isMobile]);
+        setWebnovelsToShow(_webnovelsToShow);
+        setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
+        const divider = Math.ceil(_webnovelsToShow.length / 3)
+        const _mobileGrid = `grid-cols-${divider.toString()}`
+        setMobileGrid(_mobileGrid)
+    }, [version, genre, sortBy, webnovels]);
 
 
     const text = sortBy === 'views' ? 'popularWebnovels' :
@@ -75,7 +52,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative max-w-screen-xl w-full mx-auto group'>
+        <div className='relative md:w-full max-w-screen-xl mx-auto group'>
             {/* Left Arrow */}
             <button
                 onClick={() => scroll('left', scrollRef)}
@@ -84,7 +61,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
 
-            <div className='md:px-5 px-2'>
+            <div className='md:px-5 px-2 m-5 mb-10'>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-7">
                     {/* {(webnovels.length > 0) ?
                         phrase(dictionary, text, language) : <></>
@@ -98,28 +75,13 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                             {phrase(dictionary, "more", language)}
                    </span>
                 </h1>
-                
                 <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                    <div className={`
-                        grid 
-                        ${isMobile ? 'grid-flow-col auto-cols-max gap-4' : 'grid-cols-3 gap-2'}
-                        min-w-full
-                    `}>
+                    <div className={`grid ${mobileGrid} md:grid-cols-3 gap-2 min-w-max`}>
                         {columns.map((column, colIndex) => (
                             <div key={colIndex} className="space-y-4">
                                 {column.map((item, rowIndex) => (
-                                    <div key={rowIndex} className="flex gap-4 items-start">
-                                        <WebnovelComponent 
-                                        webnovel={item}
-                                        index={isMobile 
-                                            ? rowIndex * columns.length + colIndex + 1
-                                            : colIndex * 3 + rowIndex + 1} 
-                                        // index={isMobile 
-                                        //     ? rowIndex * columns.length + colIndex + 1
-                                        //     : calculateIndex(rowIndex, colIndex, columns)}
-                                        // index={isMobile ? colIndex * 3 + rowIndex + 1 : calculateIndex(rowIndex, colIndex, columns)} 
-                                        // index={calculateIndex(rowIndex, colIndex, columns)} 
-                                        ranking={true} />
+                                    <div key={rowIndex}>
+                                        <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
                                     </div>
                                 ))}
                             </div>

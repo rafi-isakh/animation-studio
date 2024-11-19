@@ -9,6 +9,7 @@ import moment from 'moment';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { scroll } from '@/utils/scroll'
 import useMediaQuery from '@mui/material/useMediaQuery';
+import WebnovelComponentByRanking from './WebnovelComponentByRanking';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -76,7 +77,12 @@ const WebnovelsListByCover = ({ searchParams, sortBy, webnovels }: { searchParam
                         .sort((a, b) => sortByFn(a, b, sortBy))
                         .map((item, index) => (
                             <div key={index}>
-                                <WebnovelComponentPicture webnovel={item} index={index} ranking={true} />
+                                  {/* <WebnovelComponentByRanking 
+                                        webnovel={item} 
+                                        index={index + 1} 
+                                        ranking={true}
+                                    /> */}
+                                <WebnovelComponentPicture webnovel={item}  index={index + 1}  ranking={true} />
                             </div>
                         ))}
                    </div>

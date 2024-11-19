@@ -39,6 +39,21 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
+
+                      {/* UP Badge */}
+                      <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+                        UP
+                    </span>
+                    {/* Ranking Number Overlay */}
+                    {ranking && (
+                        <div className="absolute top-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-800 opacity-90"></div>
+                            <p className="relative text-xl md:text-3xl font-bold text-white">
+                                {index}
+                            </p>
+                        </div>
+                    )}
+                    
                 </div>
 
                 {/* Text Content Container */}

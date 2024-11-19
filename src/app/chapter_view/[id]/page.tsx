@@ -19,7 +19,7 @@ import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeWrapper from '@/components/ThemeWrapper';
-import {useTheme, Theme} from '@/contexts/providers'
+import { useTheme, Theme } from '@/contexts/providers'
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -40,15 +40,15 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { fontSize,
-            fontFamily = 'default',
-            lineHeight,
-            margin,
-            setMargin,
-            padding,
-            setPadding,
-            scrollType,
-            containerWidth,
-        } = useReader();
+        fontFamily = 'default',
+        lineHeight,
+        margin,
+        setMargin,
+        padding,
+        setPadding,
+        scrollType,
+        containerWidth,
+    } = useReader();
 
     const muiTheme = useMuiTheme();
     const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
@@ -57,48 +57,16 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [initialTheme, setInitialTheme] = useState<Theme>(theme)
     const webnovelViewRef = useRef<HTMLDivElement>(null);
     const hiddenDivRef = useRef<HTMLDivElement>(null);
-    const [wordsCount, setWordsCount] = useState(0);
 
     useEffect(() => {
         return () => toggleTheme(initialTheme)
     }, [])
 
-    useEffect(() => {
-        if (chapter?.content && webnovelViewRef.current && scrollType == 'horizontal') {
-            const hiddenDiv = document.createElement('div');
-            const parent = document.getElementById('translate-div')
-            parent?.appendChild(hiddenDiv)
-            console.log(hiddenDiv)
-            hiddenDiv.style.fontSize = `${fontSize}px`;
-            hiddenDiv.style.fontFamily = fontFamily;
-            hiddenDiv.style.lineHeight = lineHeight.toString();
-            hiddenDiv.style.margin = `${margin}px`;
-            const viewHeight = window.innerHeight * 0.6;
-            let _wordsCount = 0;
-            let start = 0;
-            const words = chapter.content.split(' '); 
-            let end = chapter?.content?.length;
-            // binary search to find the number of words that fit in the view height
-            while (start <= end) {
-                const mid = Math.floor((start + end) / 2)
-                hiddenDiv.textContent = words.slice(0, mid).join(' ');
-                if (hiddenDiv.scrollHeight <= viewHeight) {
-                    _wordsCount = mid;
-                    start = mid + 1;
-                } else {
-                    end = mid - 1;
-                }
-            }
-            setWordsCount(_wordsCount);
-            hiddenDiv.remove();
-        }
-    }, [fontSize, fontFamily, lineHeight, margin, chapter, scrollType, webnovelViewRef.current])
-
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                    fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
@@ -216,7 +184,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     style={{
                         ...readerStyle,
                     }}
-                    >
+                >
                     <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto `}>
                         {/* Back to novel and like button */}
                         <div className="flex flex-row max-w-full w-full justify-between">
@@ -264,8 +232,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
-                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} wordsPerPage={wordsCount}  />
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-[60vh]' : ""}`}>
+                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} />
                                 </div>
                             </div>
                         </div>

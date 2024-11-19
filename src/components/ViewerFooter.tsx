@@ -191,7 +191,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </p>
                         <hr className='my-2 border-gray-200'/>
 
-                        <p className='text-sm justify-between md:flex hidden'> 
+                        <div className='text-sm justify-between md:flex hidden'> 
                             {/* 넘김 방식 */}
                             {phrase(dictionary, "scrollType", language)}
                            <div className='flex flex-row gap-2'>  
@@ -204,8 +204,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              {phrase(dictionary, "viewSettings_page", language)}
                              </Link>
                            </div>
-                        </p>
-                        <p className='text-sm flex justify-between'> 
+                        </div>
+                        <div className='text-sm flex justify-between'> 
                             {/* 테마  */}
                             {phrase(dictionary, "theme", language)}
                            <div className='flex flex-row gap-2'>  
@@ -234,9 +234,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     Aa
                                 </Link> */}
                            </div>
-                        </p>
+                        </div>
 
-                        <p className='text-sm flex justify-between'> 
+                        <div className='text-sm flex justify-between'> 
                             {/* 글꼴  */}
                             {phrase(dictionary, "font", language)}
                            <div className='flex flex-row gap-2'>  
@@ -270,8 +270,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     <span className='nanum-gothic text-[12px]'> {phrase(dictionary, "gothicFont", language)} </span>
                                 </Link>
                            </div>
-                        </p>
-                        <p className='text-sm flex justify-between'> 
+                        </div>
+                        <div className='text-sm flex justify-between'> 
                             {/* 글자 크기 */}
                             {phrase(dictionary, "fontSize", language)}
                           <div className='flex flex-row gap-2 justify-evenly'>  
@@ -289,8 +289,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
-                        </p>
-                        <p className='text-sm flex justify-between'> 
+                        </div>
+                        <div className='text-sm flex justify-between'> 
                             {/* 줄 간격 */}
                             {phrase(dictionary, "lineHeight", language)}
                            <div className='flex flex-row gap-2 justify-evenly'>  
@@ -308,7 +308,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
-                        </p>
+                        </div>
                         {/*   <p className='text-sm flex justify-between'> 
                        
                             {phrase(dictionary, "paragraphSpacing", language)}     {/* 문단 여백 

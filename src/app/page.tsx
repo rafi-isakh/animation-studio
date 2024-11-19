@@ -38,7 +38,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {showPreloader && <Preloader />}    
             {/* 0. Top banner : applying a creator */}
             <ApplyCreatorBanner />
-            <div className='flex flex-col  md:gap-[5rem] gap-[3rem]'>
+            <div className='flex flex-col justify-start  md:gap-[5rem] gap-[3rem]'>
                 {/* 1. Carousel */}
                 <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
                 {/* 2. Real Time Popular Webnovels */}

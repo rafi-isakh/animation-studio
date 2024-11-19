@@ -661,7 +661,7 @@ const Header = () => {
             </nav>
             {pathname == '/' && (
                 <>
-                    <div id="free-premium" className="max-w-screen-xl mx-auto md:mt-[4rem] mt-[5.6rem]">
+                    <div id="free-premium" className="max-w-screen-xl mx-auto md:mt-[4rem] mt-[5.6rem] z-[99]">
                         <div className="flex flex-row space-x-4 items-center justify-start ml-4 md:p-0 p-1">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
                             <p className={`text-gray-500 text-md font-bold  ${highlightFree() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
                                 <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>

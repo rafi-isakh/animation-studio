@@ -7,9 +7,8 @@ const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
 
     return (
-        <div className='bg-black w-full h-[3rem] mb-4 mt-0 max-[520px]:mt-[0px]'> 
-        {/*  <div className='flex justify-center self-center'>  */}
-        <Link href='/signin'>
+        <Link href='/signin' className="">
+        <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
         {language == 'ko' ? (
                             <>
                             <Image
@@ -18,9 +17,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] top-1 mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
-                                    width: '1280px',
+                                    width: '400px',
                                     height: 'auto'
                                 }}
                                 />
@@ -30,8 +29,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative w-full md:-top-[19px] -top-[17px] max-[430px]:-top-[15px] max-[400px]:-top-[10px] max-[520px]:-top-[22px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[-10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
+                                    width: '400px',
                                     height: 'auto'
                                 }}
                                 />
@@ -45,9 +45,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] top-1 mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
-                                    width: '1280px',
+                                    width: '400px',
                                     height: 'auto'
                                 }}
                             />
@@ -57,17 +57,17 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] -top-[10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[-10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
-                                    width: '450px',
+                                    width: '400px',
                                     height: 'auto'
                                 }}
                                 />
                             </>
                      )
                  }
-            </Link>
         </div>
+     </Link>
     )
 }
 

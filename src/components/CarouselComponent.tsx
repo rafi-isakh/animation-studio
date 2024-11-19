@@ -89,7 +89,19 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                     priority={slideIndex === 0}
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                    <h2 className="text-white dark:text-white text-lg font-bold">{item.title}</h2>
+                    <h2 className="text-white dark:text-white text-lg font-bold">
+                      
+                      {/* {item.title} */}
+                     <OtherTranslateComponent
+                        key={`title-${item.id}-${language}`}
+                        content={item.title}
+                        elementId={item.id.toString()}
+                        classParams={`md:text-xl lg:text-xl text-sm !min-[400px]:text-[12px] font-extrabold text-white dark:text-white`}
+                        elementType={'carouselItem'}
+                        elementSubtype="title"
+                        showLoading={false}
+                    />
+                      </h2>
                     <OtherTranslateComponent 
                       key={`hook-${item.id}-${language}`}
                       content={item.hook}

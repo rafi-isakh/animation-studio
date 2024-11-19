@@ -52,7 +52,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative md:w-full max-w-screen-xl mx-auto group'>
+        <div className='relative md:w-full w-full max-w-screen-xl mx-auto group'>
             {/* Left Arrow */}
             <button
                 onClick={() => scroll('left', scrollRef)}

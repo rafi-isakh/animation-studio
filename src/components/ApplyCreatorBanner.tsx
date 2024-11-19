@@ -9,7 +9,7 @@ const ApplyCreatorBanner = () => {
     const { isLoggedIn } = useAuth();
 
     return (
-        <Link href={isLoggedIn ? '/' : '/signin'} className="">
+        <Link href={isLoggedIn ? '/?version=free' : '/signin'} className="">
         <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
         {language == 'ko' ? (
                             <>

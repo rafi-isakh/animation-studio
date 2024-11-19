@@ -408,10 +408,10 @@ const Header = () => {
                                     <div
                                         id="search-dropdown"
                                         ref={searchDropdownRef}
-                                        className="z-50 rounded-md absolute right-0 top-full mt-2 font-normal bg-white divide-y divide-gray-100 shadow w-full md:w-96 dark:divide-gray-600"
+                                        className="z-50 rounded-md absolute right-0 top-full mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-96 dark:divide-gray-600"
                                     >
                                         <div className="flex justify-between px-3 py-3">
-                                            <button className='text-black hover:text-pink-600 justify-start mr-4' onClick={() => setIsSearchDropdownOpen(false)}>
+                                            <button className='text-black dark:text-white hover:text-pink-600  dark:hover:text-pink-600 justify-start mr-4' onClick={() => setIsSearchDropdownOpen(false)}>
                                                 < ChevronLeft />
                                             </button>
 

@@ -12,6 +12,7 @@ interface CurriculumVideoListProps {
     language: string;
     onVideoClick: (video: JSX.Element) => void;
     imageType: 'webtoon' | 'webnovel';
+    
 }
 
 const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, contents, language, onVideoClick, imageType }) => {
@@ -41,9 +42,8 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
                                     data={{ 
                                       ...item,  
                                       onVideoClick: handleVideoClick,
-                                      title_jp: item.title_jp || '', 
-                                      subtitle_jp: item.subtitle_jp || '', 
-                                      file_src_jp: item.file_src_jp || '' 
+                                      title_jp: item.title_jp || '',
+                                      subtitle_jp: item.subtitle_jp || '',
                                     }} 
                                     isOpen={showVideoModal} 
                                     onClose={() => setShowVideoModal(false)} 

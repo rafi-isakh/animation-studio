@@ -18,8 +18,8 @@ interface CurriculumCardProps {
         subtitle_jp: string;
         onVideoClick: (video: JSX.Element) => void;
         file_src: string;
-        file_src_jp: string
-        file_src_en: string; // {{ edit_1 }} Added this line
+        file_src_jp?: string
+        file_src_en?: string;
     };
 }
 
@@ -70,7 +70,6 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                 min-h-full
                 z-10
             "> 
-               {/*   */}
                 {/* Overlay Image */}
                 <div className="relative w-full">
                     <img 

@@ -228,7 +228,6 @@ const WebnovelTranslateComponent = (
                 setLastPage(_lastPage)
             }
         }
-        console.log('page', page, '_lastPage', _lastPage);
         if (page < _lastPage) {
             pageToFirstWordIndex[page] = firstWordIndex
             setPageToFirstWordIndex(pageToFirstWordIndex)

@@ -76,16 +76,20 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webno
 
                         { details && (
                              // Total Chapters and Views
-                             <p className="flex flex-row justify-center font-bold">
-                             <span className="text-[10px] md:text-[12px]  text-black dark:text-white ml-2">
-                                 {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
-                             </span>
-                             <span className="text-[10px] md:text-[12px] text-black dark:text-white flex flex-row items-center ml-2">
-                                 {/* <i className="fa-solid fa-eye mr-1"></i>  */}
-                                 <TrendingUp size={10} className="mr-1" />
-                                 {webnovel.views}
-                             </span>
-                             </p>
+                             <div className="flex flex-row justify-center font-bold">
+                                <p className="text-[10px] md:text-[12px]  text-black dark:text-white">
+                                   
+                                    <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
+                                    
+                                    <span>{phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}</span>
+                                </p>
+                                <p className="text-[10px] md:text-[12px] text-black dark:text-white md:flex flex-row items-center ml-2 hidden gap-1 ">
+                                    {/* icon and text between gap-1 */}
+                                    {/* <i className="fa-solid fa-eye mr-1"></i>  */}
+                                    <TrendingUp size={10} />
+                                    <span> {webnovel.views} </span>
+                                </p>
+                             </div>
                           )}
 
 

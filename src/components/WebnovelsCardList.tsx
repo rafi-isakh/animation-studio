@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { scroll } from '@/utils/scroll'
+import { useMediaQuery } from 'react-responsive';
 
 interface WebnovelsCardListProps {
     title: string;
@@ -22,9 +23,10 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     className = '',
 }) => {
 
+    const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
     return (
-        <div className={`relative max-w-screen-xl mx-auto group ${className}`}>
+        <div className={`relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full`}>
             <div className="md:px-5 px-2">
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-7">
                     {title}

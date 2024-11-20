@@ -178,11 +178,13 @@ const Header = () => {
         logout(true, '/');
     };
 
-    const handleLanguageChange = (language: Language) => {
+
+    const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
+        event.preventDefault(); 
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
         if (device === 'mobile') {
-            handleMobileMenuClick();
+          handleMobileMenuClick();
         }
     }
 
@@ -532,9 +534,10 @@ const Header = () => {
                                             <ul className="py-2 text-sm  text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
                                                 {langPairList.map((langPair, index) => (
                                                     <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
-                                                        <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        <Link href="#" onClick={(event) => handleLanguageChange(event, langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black">
                                                             {langPair.name}
                                                         </Link>
+                                                    {/*  href={isLoggedIn? '#': '/signin'}  */}
                                                     </li>
                                                 ))}
                                             </ul>

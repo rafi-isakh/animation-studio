@@ -39,7 +39,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
           
             <ApplyCreatorBanner />
             <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem]'>
-          
+
                 <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
              
                 <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
@@ -53,10 +53,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 </div>
               
                 <PromotionBannerComponent />
-                </div>
+            </div>
         
             <Footer />
-        
+            {/* Bookmark button : Only displys in mobile screen */}
             <BookmarkButton />
         </div>
     );

@@ -69,7 +69,7 @@ const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: We
                         <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                             {webnovel.user.nickname}             
                             <span className="hidden md:block"> • </span>
-                            <span className="hidden md:block">{phrase(dictionary, webnovel.genre, language)}</span>
+                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>
                         <p className="flex flex-row justify-center font-bold">
                             <span className="text-[10px] md:text-[12px]  text-black dark:text-white ml-2">

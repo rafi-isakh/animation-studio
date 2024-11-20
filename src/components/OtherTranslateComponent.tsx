@@ -15,7 +15,6 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
-    const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     useEffect(() => {
         if (fetchRef.current) return;

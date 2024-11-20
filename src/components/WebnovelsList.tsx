@@ -52,7 +52,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative md:w-full w-full max-w-screen-xl mx-auto group'>
+        <div className='relative w-full max-w-screen-xl mx-auto group'>
             {/* Left Arrow */}
             <button
                 onClick={() => scroll('left', scrollRef)}
@@ -76,7 +76,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                    </span>
                 </h1>
                 <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                    <div className={`grid ${mobileGrid} md:grid-cols-3 gap-2 min-w-max`}>
+                    <div className={`grid md:grid-cols-3 grid-cols-3 gap-2 min-w-max`}>
                         {columns.map((column, colIndex) => (
                             <div key={colIndex} className="space-y-4">
                                 {column.map((item, rowIndex) => (

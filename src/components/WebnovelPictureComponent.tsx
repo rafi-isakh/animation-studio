@@ -8,37 +8,40 @@ import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
-import { TrendingUp } from 'lucide-react'
+import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
+
+
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
-const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
-
-    const imageSrc = getImageUrl(webnovel.cover_art)
+const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean }) => {
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
+    const imageSrc = getImageUrl(webnovel.cover_art)
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language, webnovel])
 
+
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
             <div className="group relative flex flex-col items-center w-[100px] md:w-[240px]">
-                {/* Image Container with Ranking Overlay */}
+                {/* Image Container */}
                 <div className="relative shrink-0 w-[83px] h-[135px] md:w-[240px] md:h-[380px] md:aspect-[3/4] overflow-hidden rounded-xl">
                     <Image
                         src={imageSrc}
                         alt={webnovel.cover_art}
                         fill
                         quality={85}
-                        sizes="(max-width: 768px) 83px, 240px"
                         className="object-cover"
+                        sizes="(max-width: 768px) 83px, 240px"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
-                    {/* UP Badge */}
-                    <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+
+                      {/* UP Badge */}
+                      <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
                         UP
                     </span>
                     {/* Ranking Number Overlay */}
@@ -50,38 +53,41 @@ const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: We
                             </p>
                         </div>
                     )}
+
                 </div>
 
+                {/* Text Content Container */}
                 <div className="mt-2">
-                    {/* Title Container margin-top */}
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
                             key={key}
                             content={webnovel.title}
                             elementId={webnovel.id.toString()}
-                            elementType='webnovel'
+                            elementType="webnovel"
                             elementSubtype="title"
-                            // classParams="text-[12px] md:text-base w-64 md:max-w-32 lg:max-w-48 line-clamp-2 truncate"
                             classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
-                            
-                        // text-[12px] md:text-base font-medium line-clamp-2 w-full"
                         />
                         <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                            {webnovel.user.nickname}             
+                            {webnovel.user.nickname} 
                             <span className="hidden md:block"> • </span>
-                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
+                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>                   
                         </p>
-                        <p className="flex flex-row justify-center font-bold">
-                            <span className="text-[10px] md:text-[12px]  text-black dark:text-white ml-2">
-                                {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
-                            </span>
-                            <span className="text-[10px] md:text-[12px] text-black dark:text-white flex flex-row items-center ml-2">
-                                {/* <i className="fa-solid fa-eye mr-1"></i>  */}
-                                <TrendingUp size={10} className="mr-1" />
-                                {webnovel.views}
-                            </span>
-                        </p>
+
+                        { details && (
+                             // Total Chapters and Views
+                             <p className="flex flex-row justify-center font-bold">
+                             <span className="text-[10px] md:text-[12px]  text-black dark:text-white ml-2">
+                                 {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
+                             </span>
+                             <span className="text-[10px] md:text-[12px] text-black dark:text-white flex flex-row items-center ml-2">
+                                 {/* <i className="fa-solid fa-eye mr-1"></i>  */}
+                                 <TrendingUp size={10} className="mr-1" />
+                                 {webnovel.views}
+                             </span>
+                             </p>
+                          )}
+
 
                     </div>
                 </div>
@@ -90,4 +96,4 @@ const WebnovelComponentByRanking = ({ webnovel, index, ranking }: { webnovel: We
     )
 }
 
-export default WebnovelComponentByRanking
+export default WebnovelPictureComponent

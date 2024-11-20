@@ -2,9 +2,9 @@ import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
 import BookmarkButton from '@/components/BookmarkButton';
-import WebnovelsListByCover from '@/components/WebnovelsListByCover';
+import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
 import Promotion from '@/components/Promotion';
-import WebnovelsByTrends from '@/components/WebnovelsByTrends';
+import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
 import CarouselComponent from '@/components/CarouselComponent';
 
 import Preloader from '@/components/Preloader';
@@ -42,9 +42,9 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
                 <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
              
-                <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 
-                <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
          
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
               

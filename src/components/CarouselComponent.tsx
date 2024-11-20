@@ -73,7 +73,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
           {Array.from({ length: totalSlides }).map((_, slideIndex) => (
             <div 
               key={slideIndex}
-              className="min-w-full h-[350px] flex gap-4 px-4 mt-[20px]"
+              className="min-w-full h-[350px] flex gap-4 mt-[20px]" // image top margin px-4
             >
               {items.slice(slideIndex * 3, (slideIndex * 3) + 3).map((item, itemIndex) => (
                 <div 
@@ -90,7 +90,6 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
                     <h2 className="text-white dark:text-white text-lg font-bold">
-                      
                       {/* {item.title} */}
                      <OtherTranslateComponent
                         key={`title-${item.id}-${language}`}

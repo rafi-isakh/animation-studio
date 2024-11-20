@@ -8,12 +8,12 @@ import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
 
 
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
-const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
+const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean }) => {
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
@@ -39,10 +39,25 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
+
+                      {/* UP Badge */}
+                      <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+                        UP
+                    </span>
+                    {/* Ranking Number Overlay */}
+                    {ranking && (
+                        <div className="absolute top-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-800 opacity-90"></div>
+                            <p className="relative text-xl md:text-3xl font-bold text-white">
+                                {index}
+                            </p>
+                        </div>
+                    )}
+
                 </div>
 
                 {/* Text Content Container */}
-                <div className="mt-2 w-full">
+                <div className="mt-2">
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
@@ -53,9 +68,27 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
                             elementSubtype="title"
                             classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
                         />
-                        <p className="text-xs md:text-sm font-bold mt-1 w-full truncate text-gray-500 flex flex-row justify-center">
-                            {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
+                        <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
+                            {webnovel.user.nickname} 
+                            <span className="hidden md:block"> • </span>
+                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>                   
                         </p>
+
+                        { details && (
+                             // Total Chapters and Views
+                             <p className="flex flex-row justify-center font-bold">
+                             <span className="text-[10px] md:text-[12px]  text-black dark:text-white ml-2">
+                                 {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
+                             </span>
+                             <span className="text-[10px] md:text-[12px] text-black dark:text-white flex flex-row items-center ml-2">
+                                 {/* <i className="fa-solid fa-eye mr-1"></i>  */}
+                                 <TrendingUp size={10} className="mr-1" />
+                                 {webnovel.views}
+                             </span>
+                             </p>
+                          )}
+
+
                     </div>
                 </div>
             </div>
@@ -63,4 +96,4 @@ const WebnovelComponentPicture = ({ webnovel, index, ranking }: { webnovel: Webn
     )
 }
 
-export default WebnovelComponentPicture
+export default WebnovelPictureComponent

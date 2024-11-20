@@ -1,13 +1,21 @@
 "use client"
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
 
 const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
+    const { isLoggedIn } = useAuth();
+
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault(); // Prevent the default browser navigation
+        console.log("Link clicked, but it does nothing.");
+      };
+
 
     return (
-        <Link href='/signin' className="">
+        <Link onClick={handleClick} href={isLoggedIn? '#': '/signin'} className="">
         <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
         {language == 'ko' ? (
                             <>
@@ -17,7 +25,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='relative top-[-2px] mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'
@@ -29,7 +37,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative top-[-10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[-12px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'
@@ -45,7 +53,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='relative top-[-2px] mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'
@@ -57,7 +65,7 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative top-[-10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[-12px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
                                     width: '400px',
                                     height: 'auto'

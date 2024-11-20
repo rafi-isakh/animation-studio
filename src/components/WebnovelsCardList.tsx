@@ -1,0 +1,66 @@
+import React from 'react';
+import { ChevronRight } from 'lucide-react';
+import { scroll } from '@/utils/scroll'
+
+interface WebnovelsCardListProps {
+    title: string;
+    subtitle?: string;
+    webnovels?: any[];
+    renderItem: (item: any, index: number) => JSX.Element;
+    scrollRef: React.RefObject<HTMLDivElement>;
+    isMobile?: boolean;
+    className?: string;
+}
+
+const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
+    title,
+    subtitle,
+    webnovels = [],
+    renderItem,
+    scrollRef,
+    isMobile = false,
+    className = '',
+}) => {
+
+
+    return (
+        <div className={`relative max-w-screen-xl mx-auto group ${className}`}>
+            <div className="md:px-5 px-2">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-7">
+                    {title}
+                    {subtitle && (
+                        <span className="text-gray-400 text-[14px] md:block hidden">
+                            {subtitle}
+                        </span>
+                    )}
+                </h1>
+                
+                <div className="relative">
+                    <div 
+                        ref={scrollRef}
+                        className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4"     
+                        // card list gap-4
+                    > 
+             
+                        {webnovels.map((item, index) => (
+                            <div key={item.id || index} className="flex-none ">
+                                {renderItem(item, index)}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {!isMobile && (
+                        <button
+                            onClick={() => scroll('right', scrollRef)}
+                            className="group-hover:opacity-100 transition-opacity duration-300 absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0"
+                        >
+                            <ChevronRight className="w-6 h-6 text-gray-700" />
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default WebnovelsCardList;

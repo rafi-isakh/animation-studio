@@ -88,12 +88,14 @@ export interface WebtoonContent {
   subtitle: string;
   title_en: string;
   subtitle_en: string;
-  title_jp?: string; 
-  subtitle_jp?: string; 
+  title_jp: string; 
+  subtitle_jp: string; 
   image: string;
-  en?: string;
+  image_en: string;
+  image_jp: string; 
   videoUrl: string;
   file_src: string;
-  file_src_jp?: string; 
+  file_src_en: string;
+  file_src_jp: string; 
   video: JSX.Element;
 }

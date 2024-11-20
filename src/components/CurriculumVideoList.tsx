@@ -29,7 +29,6 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
         <p className="text-black dark:text-white text-md md:text-xl lg:text-2xl font-semibold mb-4 ml-5">
             {title}
         </p>
-         
           <div className="w-full px-4 mx-auto mt-4 md:mb-6">
             <div className="relative w-full">
             {/* Scroll container with overflow handling */}
@@ -41,9 +40,6 @@ const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, conten
                                     data={{ 
                                       ...item,  
                                       onVideoClick: handleVideoClick,
-                                      title_jp: item.title_jp || '', 
-                                      subtitle_jp: item.subtitle_jp || '', 
-                                      file_src_jp: item.file_src_jp || '' 
                                     }} 
                                     isOpen={showVideoModal} 
                                     onClose={() => setShowVideoModal(false)} 

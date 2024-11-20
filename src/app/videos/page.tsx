@@ -11,24 +11,24 @@ export default function Videos() {
     const file_src = getVideoUrl('');
     const { dictionary, language } = useLanguage();
 
-
     const webtoonContents = initialWebtoonContents.map((content, index) => ({
         ...content,
         id: index.toString(), // Ensure each content has a unique id as a string
         file_src: getVideoUrl(content.file_src),
+        file_src_en: getVideoUrl(content.file_src_en),
         file_src_jp: getVideoUrl(content.file_src_jp),
     }));
 
     const webnovelContents = initialWebnovelContents.map((content, index) => ({
         ...content,
         id: index.toString(), // Ensure each content has a unique id
-        file_src: getVideoUrl(content.file_src),
+        file_src: getVideoUrl(content.file_src),    
+        file_src_en: getVideoUrl(content.file_src_en),
         file_src_jp: getVideoUrl(content.file_src_jp),
     }));
 
     return (
         <div className="flex flex-col items-center justify-center">
-            {/* <div className="flex flex-col space-y-4"> */}
                 <Billboard />
                 <div className="md:max-w-screen-xl max-w-[360px] mx-auto overflow-x-auto">
                     <CurriculumVideoList 
@@ -52,7 +52,6 @@ export default function Videos() {
                         }}  
                     />
                  </div>
-                 
             </div>
     )
 }

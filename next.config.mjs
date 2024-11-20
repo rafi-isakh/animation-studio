@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import withPWA from 'next-pwa';
+
 const nextConfig = {
     images: {
         remotePatterns: [
@@ -25,4 +27,15 @@ const nextConfig = {
     },
 };
 
-export default nextConfig;
+const pwaConfig = withPWA({
+  dest: 'public',
+  disable: false,
+  experimental: {
+    appDir: true, // Ensures the App Router is enabled
+  },
+});
+
+export default {
+  ...pwaConfig,
+  ...nextConfig,
+};

@@ -52,6 +52,12 @@ interface RootLayoutProps {
 export const metadata: Metadata = {
   title: '투니즈 Toonyz',
   description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
+  themeColor: '#000000',
+  icons: {
+    icon: '/icons/toonyz_icon.png',
+    apple: '/icons/toonyz_icon_large.png',
+  },
+  manifest: '/manifest.json',
   openGraph: {
     type: 'website',
     url: 'https://toonyz.com',
@@ -78,7 +84,7 @@ export const metadata: Metadata = {
     other: {
       "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
     }
-  } 
+  }
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -89,29 +95,29 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <LanguageProvider>
           <ThemeProvider>
-           <AuthProvider>
-            <UserProvider>
-              <DeviceProvider>
-                <ReaderProvider>   
-                <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
+            <AuthProvider>
+              <UserProvider>
+                <DeviceProvider>
+                  <ReaderProvider>
+                    <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                  <Suspense>
-                    <Header />
-                  </Suspense>
-                  <Margin>
-                    {children}
-                  </Margin>
-                  {/* 
+                      <Suspense>
+                        <Header />
+                      </Suspense>
+                      <Margin>
+                        {children}
+                      </Margin>
+                      {/* 
                   <div className={`children min-h-screen`}>  
                    // Header bottom margin :: pt-28 md:pt-24 mb-4
                     {children}
                   </div> 
                  */}
-                </div>
-                </ReaderProvider>
-              </DeviceProvider>
-            </UserProvider>
-           </AuthProvider>
+                    </div>
+                  </ReaderProvider>
+                </DeviceProvider>
+              </UserProvider>
+            </AuthProvider>
           </ThemeProvider>
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />

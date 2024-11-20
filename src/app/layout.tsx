@@ -53,10 +53,6 @@ export const metadata: Metadata = {
   title: '투니즈 Toonyz',
   description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
   themeColor: '#000000',
-  icons: {
-    icon: '/icons/toonyz_icon.png',
-    apple: '/icons/toonyz_icon_large.png',
-  },
   manifest: '/manifest.json',
   openGraph: {
     type: 'website',

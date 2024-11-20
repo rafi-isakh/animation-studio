@@ -15,7 +15,7 @@ const ApplyCreatorBanner = () => {
 
 
     return (
-        <Link onClick={handleClick} href='' className="">
+        <Link onClick={handleClick} href={isLoggedIn? '#': '/signin'} className="">
         <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
         {language == 'ko' ? (
                             <>

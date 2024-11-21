@@ -28,7 +28,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     return (
         <div className={`relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full`}>
             <div className="md:px-5 px-2">
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-7">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {title}
                     {subtitle && (
                         <span className="text-gray-400 text-[14px] md:block hidden">

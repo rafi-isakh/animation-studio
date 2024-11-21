@@ -62,7 +62,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             </button>
 
             <div className='md:px-5 px-2 m-5 mb-10'>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-7">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {/* {(webnovels.length > 0) ?
                         phrase(dictionary, text, language) : <></>
                     } */}

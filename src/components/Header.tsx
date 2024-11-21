@@ -326,7 +326,7 @@ const Header = () => {
                     <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 px-4">
                         {/* logo, webnovels, studio */}
                         <div className='flex flex-row items-center justify-center space-x-4'>
-                            <Link href="/?version=free" className="flex items-center space-x-3 rtl:space-x-reverse">
+                            <Link href="/?version=premium" className="flex items-center space-x-3 rtl:space-x-reverse">
                                 <Image 
                                 // src="/toonyzLogo.png" 
                                 src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyzLogo.png'}
@@ -335,7 +335,7 @@ const Header = () => {
                                 height={logoHeight} />
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
-                                <Link href="/?version=free">
+                                <Link href="/?version=premium">
                                     <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
@@ -641,7 +641,7 @@ const Header = () => {
                     </div>
                     {/* mobile webnovels, webtoons, studio mobile bottom menu */}
                     <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
-                        <Link href="/?version=free">
+                        <Link href="/?version=premium">
                             <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600   hover:text-pink-600 `}>   {/* has-[:clicked]:bg-indigo-50  */}
                           
                             {phrase(dictionary, "webnovels", language)}</p>

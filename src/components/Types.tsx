@@ -74,6 +74,29 @@ export interface Webnovel {
   created_at: Date;
 }
 
+export interface Webtoon {
+  id: number;
+  root_directory: string;
+  title: string;
+  num_episodes: number;
+  created_at: Date;
+  upvotes: number;
+  user: User;
+  language: string;
+  views: number;
+  comments: Comment[];
+  chapters: WebtoonChapter[]
+  cover_art: string;
+  wide_cover: string;
+  description: string;
+}
+
+export interface WebtoonChapter {
+  id: number;
+  webtoon_id: number;
+  directory: string;
+}
+
 export interface Dictionary {
   [key: string]: Entry
 }
@@ -82,7 +105,7 @@ interface Entry {
   [key: string]: string
 }
 
-export interface WebtoonContent {
+export interface CurriculumContent {
   id: string;
   title: string;
   subtitle: string;

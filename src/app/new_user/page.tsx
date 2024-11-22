@@ -127,7 +127,7 @@ export default function NewUser() {
                         <NewUserNicknameComponent />
                         <NewUserBioComponent />
                         <NewUserCodeComponent />
-                     <p className="">
+                     <div className="">
                        <FormControlLabel
                          required
                          sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
@@ -145,7 +145,7 @@ export default function NewUser() {
                         //  label="I agree to the terms & privacy policy"
                          label={phrase(dictionary, 'agree_terms', language)}
                        />
-                     </p>   
+                     </div>   
                         <NewUserSubmitComponent />
                         <p className="text-center text-[12px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
                     </div>

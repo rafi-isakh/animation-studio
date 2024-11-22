@@ -339,7 +339,7 @@ const Header = () => {
                                     <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
-                                <Link href="#">
+                                <Link href="/webtoons">
                                     <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600 hover:text-pink-600`}>
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
@@ -646,7 +646,7 @@ const Header = () => {
                           
                             {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
-                        <Link href="/">
+                        <Link href="/webtoons">
                             <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                             {phrase(dictionary, "webtoons", language)}</p>
                         </Link>

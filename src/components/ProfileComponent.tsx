@@ -37,11 +37,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
 
-    
-    useEffect(() => {
-        console.log(user);
-    }, [user])
-
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language])

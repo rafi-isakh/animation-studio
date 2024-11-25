@@ -54,13 +54,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
-    const [initialTheme, setInitialTheme] = useState<Theme>(theme)
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const hiddenDivRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        return () => toggleTheme(initialTheme)
-    }, [])
 
     const readerStyle = {
         fontSize: `${fontSize}px`,

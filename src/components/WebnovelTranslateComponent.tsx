@@ -11,11 +11,14 @@ interface WordToken {
 }
 
 const WebnovelTranslateComponent = (
-    { content,
-        chapterId
+    {
+        content,
+        chapterId,
+        webnovelId
     }: {
         content: string,
-        chapterId: string
+        chapterId: string,
+        webnovelId: string
     }) => {
 
     const [text, setText] = useState('');
@@ -32,9 +35,7 @@ const WebnovelTranslateComponent = (
         fontFamily = 'default',
         lineHeight,
         margin,
-        setMargin,
         padding,
-        setPadding,
         scrollType,
         page = 1,
         setPage
@@ -216,7 +217,7 @@ const WebnovelTranslateComponent = (
         hiddenDiv.style.whiteSpace = 'pre-wrap';
         hiddenDiv.style.width = '100%';
         const viewHeight = window.innerHeight * 0.7;
-        
+
         let wordsInDiv = "";
         let neverBroke = true;
         let _wordsCount = 0;

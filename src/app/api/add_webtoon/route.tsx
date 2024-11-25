@@ -8,8 +8,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!session || !session.user) {
     return NextResponse.json({
-      "message": "Unauthorized",
-      "status": 401
+      message: "Unauthorized",
+    }, {
+      status: 401
     });
   }
 
@@ -64,6 +65,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   for (const chapter of chapters) {
+    console.log("adding chapter", chapter.episode_number)
     const response2 = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_chapter_to_webtoon`, {
       method: 'POST',
       body: JSON.stringify(chapter),

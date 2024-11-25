@@ -26,10 +26,6 @@ const WebnovelTranslateComponent = (
     const [changeCount, setChangeCount] = useState(0)
     const [firstPageWords, setFirstPageWords] = useState("")
     const [secondPageWords, setSecondPageWords] = useState("")
-    const [firstWordIndex, setFirstWordIndex] = useState(0)
-    const [lastPage, setLastPage] = useState(1)
-    const [prevFirstWordIndex, setPrevFirstWordIndex] = useState(0)
-    const [pageToFirstWordIndex, setPageToFirstWordIndex] = useState<{ [key: number]: number }>({ 1: 0 })
     const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const { fontSize,

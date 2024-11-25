@@ -8,8 +8,9 @@ export async function GET(request: NextRequest) {
   
     if (!session || !session.user) {
       return NextResponse.json({
-        "message": "Unauthorized!!",
-        "status": 401
+        message: "Unauthorized!!",
+      }, {
+        status: 401
       });
     }
 
@@ -23,14 +24,16 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
         console.error("Failed to delete account", email)
         return NextResponse.json({
-            "message": "Failed to delete account",
-            "status": 500
+            message: "Failed to delete account",
+        }, {
+            status: 500
         })
     }
     
     return NextResponse.json({
-        "message": "Deleted account",
-        "status": 200
+        message: "Deleted account",
+    }, {
+        status: 200
     })
 
 }

@@ -11,11 +11,16 @@ interface WordToken {
 }
 
 const WebnovelTranslateComponent = (
-    { content,
-        chapterId
+    {
+        content,
+        chapterId,
+        webnovelId,
+        sourceLanguage
     }: {
         content: string,
-        chapterId: string
+        chapterId: string,
+        webnovelId: string,
+        sourceLanguage: string
     }) => {
 
     const [text, setText] = useState('');
@@ -44,11 +49,10 @@ const WebnovelTranslateComponent = (
         setPage
     } = useReader();
 
-
     useEffect(() => {
         if (fetchRef.current) return;
+        if (!language) return;
         fetchRef.current = true;
-
         const handleTranslate = async () => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
@@ -64,8 +68,13 @@ const WebnovelTranslateComponent = (
                 initialized.current = true;
             }
         }
-        handleTranslate();
-    }, []);
+        if (sourceLanguage == language) {
+            setText(content);
+            setFinished(true);
+        } else {
+            handleTranslate();
+        }
+    }, [language]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);
@@ -135,7 +144,7 @@ const WebnovelTranslateComponent = (
     };
 
     const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
-        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
+        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?source=${sourceLanguage}&target=${language}&webnovel_id=${webnovelId}&chapter_id=${chapterId}`);
 
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -220,7 +229,7 @@ const WebnovelTranslateComponent = (
         hiddenDiv.style.whiteSpace = 'pre-wrap';
         hiddenDiv.style.width = '100%';
         const viewHeight = window.innerHeight * 0.7;
-        
+
         let wordsInDiv = "";
         let neverBroke = true;
         let _wordsCount = 0;

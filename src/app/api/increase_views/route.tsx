@@ -11,15 +11,17 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!session || !session.user) {
         return NextResponse.json({
-            "message": "Unauthorized",
-            "status": 401
+            message: "Unauthorized",
+        }, {
+            status: 401
         });
     }
 
     if (!chapter_id || !email) {
         return NextResponse.json({
-            "message": "Chapter id and email are required",
-            "status": 400
+            message: "Chapter id and email are required",
+        }, {
+            status: 400
         });
     }
 
@@ -33,14 +35,16 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Failed to increase views",
-            "status": response.status
+            message: "Failed to increase views",
+        }, {
+            status: response.status
         });
     }
 
     return NextResponse.json({
-        "message": "Increase views success",
-        "status": 200,
+        message: "Increase views success",
+    }, {
+        status: 200
     });
 }
 

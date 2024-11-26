@@ -35,8 +35,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
   } catch (error) {
     console.error('Error uploading file to s3:', error);
     return NextResponse.json({
-      "message": "Upload to s3 failed",
-      "status": 500
+      message: "Upload to s3 failed",
+    }, {
+      status: 500
     });
   }
 
@@ -64,14 +65,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!response.ok) {
     return NextResponse.json({
-      "message": "Add webnovel failed",
-      "status": response.status
+      message: "Add webnovel failed",
+    }, {
+      status: response.status
     });
   }
 
   return NextResponse.json({
-    "message": "Add webnovel success",
-    "status": 200,
-    "id": r["id"]
+    message: "Add webnovel success",
+    id: r.id
+  }, {
+    status: 200,
   });
 }

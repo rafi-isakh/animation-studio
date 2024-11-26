@@ -24,13 +24,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  useEffect(() => {
-    // Update document class when theme changes
-    document.documentElement.className = theme
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
   const toggleTheme = (newTheme: Theme) => {
+    document.documentElement.className = newTheme
+    localStorage.setItem('theme', newTheme)
     setTheme(newTheme)
   }
 

@@ -12,6 +12,7 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useReaderTheme } from '@/contexts/ReaderThemeContext';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -32,14 +33,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             setFontFamily, 
             lineHeight, 
             setLineHeight, 
-            margin, 
-            setMargin,
-            padding,
-            setPadding,
-            setScrollType,
-            containerWidth = 600,
-            setContainerWidth } = useReader();
-    const { theme, toggleTheme } = useTheme()
+            setScrollType } = useReader();
+    const { toggleReaderTheme } = useReaderTheme()
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -211,19 +206,19 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                            <div className='flex flex-row gap-2'>  
                              <Link 
                              href='' 
-                             onClick={() => toggleTheme('light')}
+                             onClick={() => toggleReaderTheme('light')}
                              className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                 Aa
                              </Link>
                              <Link 
                                 href='' 
-                                onClick={() => toggleTheme('dark')}
+                                onClick={() => toggleReaderTheme('dark')}
                                 className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
                              <Link 
                                 href='' 
-                                onClick={() => toggleTheme('sepia')}
+                                onClick={() => toggleReaderTheme('sepia')}
                                 className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>

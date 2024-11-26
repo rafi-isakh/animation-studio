@@ -9,15 +9,17 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!session || !session.user) {
         return NextResponse.json({
-            "message": "Unauthorized",
-            "status": 401
+            message: "Unauthorized",
+        }, {
+            status: 401
         });
     }
 
     if (!email) {
         return NextResponse.json({
-            "message": "Email is required",
-            "status": 400
+            message: "Email is required",
+        }, {
+            status: 400
         });
     }
 
@@ -31,14 +33,16 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Failed to get library",
-            "status": response.status
+            message: "Failed to get library",
+        }, {
+            status: response.status
         });
     }
 
     return NextResponse.json({
-        "message": "Get library success",
-        "status": 200,
+        message: "Get library success",
+    }, {
+        status: 200
     });
 }
 

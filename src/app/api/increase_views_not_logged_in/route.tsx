@@ -12,14 +12,16 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Failed to increase views",
-            "status": response.status
+            message: "Failed to increase views",
+        }, {
+            status: response.status
         });
     }
 
     return NextResponse.json({
-        "message": "Increase views success",
-        "status": 200,
+        message: "Increase views success",
+    }, {
+        status: 200
     });
 }
 

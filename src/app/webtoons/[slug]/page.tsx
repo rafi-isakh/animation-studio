@@ -1,8 +1,14 @@
 import { WebtoonChapter } from "@/components/Types";
 import { Webtoon } from "@/components/Types";
 import ViewWebtoonComponent from "@/components/ViewWebtoonComponent";
+import moment from 'moment';
 import { listObjectsInWebtoonsDirectory } from "@/utils/s3";
 import Link from "next/link";
+import { Heart } from "lucide-react";
+import ViewWebtoonEpisodeComponent from "@/components/ViewWebtoonEpisodeComponent";
+import Image from "next/image";
+import { getImageDimensions, getSignedUrlForWebtoonImage } from "@/utils/s3";
+
 
 async function getWebtoonById(id: string) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`,
@@ -18,21 +24,56 @@ async function getWebtoonById(id: string) {
 export default async function WebtoonPage({ params }: { params: { slug: string } }) {
     // slug is webtoon id
     const webtoon = await getWebtoonById(params.slug);
-
+    const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY hh:mm');
+    const coverArt = await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)
+    const { width, height } = await getImageDimensions(coverArt)
+    console.log(width, height)
 
     return (
-        <div>
-            <div className="flex flex-col space-y-4 justify-center items-center">
-                <h1 className="text-2xl font-bold">{webtoon.title}</h1>
-                <h1 className="text-xl font-bold">Episodes</h1>
-                {webtoon.chapters.map((chapter: WebtoonChapter) =>
-                    <Link href={`/webtoons/${params.slug}/${chapter.directory}`}>
-                        <div key={`chapter-${chapter.id}`}>
-                            {chapter.directory}
-                        </div>
-                    </Link>
-                )}
-            </div>
+        <div key={`webtoon-${params.slug}`}  className="w-full min-h-screen  max-w-screen-xl mx-auto">
+            <div className="flex flex-col md:h-[439px] h-auto  justify-center items-center bg-[#929292]/10 backdrop-blur-[300px]">
+                <div className="flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1">
+                  
+                   <div className="flex flex-col gap-2 p-10 w-[450px]">
+                    <div className="px-5 md:px-0 space-y-2"> {/* mobile screen padding-x 5 */}
+                        <span className="text-sm text-gray-400">Genre</span>
+                        <h1 className="text-2xl font-bold"> {webtoon.title} </h1>
+                        <p>{webtoon.user.username}</p>
+                        <ul className="flex flex-row gap-2">
+                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#hashtag</li>
+                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#hashtag</li>
+                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#Genre</li>
+                        </ul>
+                        <p className="text-sm text-gray-400">{formattedDate}</p>
+                        <p className="text-sm text-gray-400 mb-5"> 
+                            {webtoon.description}
+                        </p>
+                
+                
+                     <div className="flex flex-row gap-2">
+                        <button className="bg-gray-300 text-white rounded-md px-10 py-1">Start To Read Episode 1 &gt;</button>
+                        <button className="border-2 border-gray-300 text-white rounded-md px-2">
+                            <Heart size={22} className="text-gray-300"/> 
+                        </button>
+                     </div>
+                    </div>
+                  </div>
+
+                    <div className="w-[270px] md:h-[350px] h-auto min-h-[350px] bg-gray-300 order-first md:order-last"> 
+                        
+                       <Image 
+                        src={coverArt} 
+                        alt={webtoon.title} 
+                        width={270} 
+                        height={350}
+                        className="object-fit w-full h-full"
+                        />
+
+                    </div>
+                    
+              </div>
+           </div>
+              <ViewWebtoonEpisodeComponent webtoon={webtoon} slug={params.slug} />
         </div>
     )
 }

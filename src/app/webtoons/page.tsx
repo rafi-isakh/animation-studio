@@ -1,5 +1,6 @@
 import WebtoonsCardList from "@/components/WebtoonsCardList";
 import { Webtoon } from "@/components/Types";
+import WebtoonsCarousel from "@/components/WebtoonsCarousel";
 
 const Webtoons = async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`,
@@ -9,7 +10,10 @@ const Webtoons = async () => {
     )
     const data: Webtoon[] = await response.json()
     return (
-        <WebtoonsCardList title="Trending" webtoons={data} />
+        <div className="space-y-20">
+            <WebtoonsCarousel />
+            <WebtoonsCardList title="Trending" webtoons={data} />
+        </div>
     )
 }
 

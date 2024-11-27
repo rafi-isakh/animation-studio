@@ -11,7 +11,7 @@ const Webtoons = async () => {
     const data: Webtoon[] = await response.json()
     return (
         <div className="space-y-20">
-            <WebtoonsCarousel />
+            <WebtoonsCarousel webtoons={data} />
             <WebtoonsCardList title="Trending" webtoons={data} />
         </div>
     )

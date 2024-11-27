@@ -4,10 +4,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Updated interface to include genres
 interface CarouselItem {
   id: string;
+  link: string;
   title: string;
   imageUrl: string;
   description?: string;
@@ -131,17 +133,20 @@ const CarouselComponentSquareStyle: React.FC<CarouselProps> = ({
               "
             >
               {/* Background Image */}
-              <Image 
-                src={item.imageUrl} 
-                alt={item.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw"
-                className="
-                  absolute inset-0 w-full h-full 
-                  object-cover object-center
-                  filter brightness-75
-                "
-              />
+
+              <Link href={item.link}>
+                <Image 
+                  src={item.imageUrl} 
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw"
+                  className="
+                    absolute inset-0 w-full h-full 
+                    object-cover object-center
+                    filter brightness-75
+                  "
+                />
+              </Link>
 
               {/* Content Overlay */}
               <div 

@@ -12,29 +12,37 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = ({
     title,
     webtoons
 }) => {
-    console.log(webtoons)
-
     return (
-        <div className={`relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full`}>
-            <div className="md:px-5 px-2">
+        <div className="relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full">
+            <div className="">
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {title}
                 </h1>
 
                 <div className="relative">
-                    <div
-                        className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4"
-                    >
-
+                    {/* Desktop flexbox layout */}
+                    <div className="hidden md:flex justify-start gap-4 overflow-x-auto no-scrollbar">
                         {webtoons.map((item, index) => (
-                            <div key={item.id || index} className="flex-none ">
+                            <div 
+                                key={item.id || index} 
+                                className="w-[calc(16.666%-1rem)] flex-grow-0 flex-shrink-0"
+                            >
+                                <WebtoonsCardComponent webtoon={item} />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Mobile horizontal scroll */}
+                    <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-4">
+                        {webtoons.map((item, index) => (
+                            <div key={item.id || index} className="flex-none">
                                 <WebtoonsCardComponent webtoon={item} />
                             </div>
                         ))}
                     </div>
 
                     <button
-                        className="group-hover:opacity-100 transition-opacity duration-300 absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0"
+                        className="group-hover:opacity-100 transition-opacity duration-300 absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0 hidden md:block"
                     >
                         <ChevronRight className="w-6 h-6 text-gray-700" />
                     </button>

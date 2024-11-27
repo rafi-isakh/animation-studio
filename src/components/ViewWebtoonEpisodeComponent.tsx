@@ -15,6 +15,7 @@ import WebtoonChapterList from "@/components/WebtoonChapterList";
 interface ViewWebtoonEpisodeComponentProps {
     webtoon: {
         title: string;
+        description: string;
         chapters: WebtoonChapter[];
         user: { 
             username: string;
@@ -61,7 +62,7 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
                          
                         </div>
 
-                        <div className="flex flex-col w-1/3 ">
+                        <div className="flex-col w-1/3 md:flex hidden">
                             <h1 className="text-sm">You might like this </h1>
                            
                            
@@ -88,7 +89,7 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
                             comments list
                     </TabPanel>
                     <TabPanel value="3">
-                            Description
+                            {webtoon.description}
                     </TabPanel>
                     </TabContext>
 

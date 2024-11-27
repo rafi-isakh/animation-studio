@@ -47,12 +47,12 @@ const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoo
           </Link>
         ))}
       </div>
-      <button
+      {/* <button
         className="mt-4 px-4 py-2 bg-whit text-black rounded"
         onClick={toggleChapters}
       >
         {showMoreChapters ? 'Show Less' : 'Read More'}
-      </button>
+      </button> */}
     </div>
   );
 };

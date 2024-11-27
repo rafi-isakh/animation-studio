@@ -1,13 +1,14 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import CarouselComponentSquareStyle from '@/components/CarouselComponentSquareStyle';
+import { Webtoon } from '@/components/Types';
 
-const WebtoonsCarousel: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false)
+const WebtoonsCarousel: React.FC<{ webtoons: Webtoon[] }> = ({ webtoons }) => {  const [isMobile, setIsMobile] = useState(false)
 
   const carouselItems = [
     {
       id: '1',
+      link: '/webtoons/3',
       title: '도사님이 오셨습니다',
       imageUrl: '/carousel/webtoons/carousel_1.png',
       imageUrl_mobile: '/carousel/webtoons/carousel_1_mobile.png',
@@ -16,7 +17,8 @@ const WebtoonsCarousel: React.FC = () => {
       tags: ['Ongoing', 'Free']
     },
     {
-      id: '2',
+      id: '2', 
+      link: '/webtoons/4',
       title: '대표님 안되요',
       imageUrl: '/carousel/webtoons/carousel_2.png',
       imageUrl_mobile: '/carousel/webtoons/carousel_2_mobile.png',
@@ -26,6 +28,7 @@ const WebtoonsCarousel: React.FC = () => {
     },
     {
       id: '3',
+      link: '/webtoons/5',
       title: '대표님이 사랑한 두명의 나',
       imageUrl: '/carousel/webtoons/carousel_3.png',
       imageUrl_mobile: '/carousel/webtoons/carousel_3_mobile.png',
@@ -35,6 +38,7 @@ const WebtoonsCarousel: React.FC = () => {
     },
     {
       id: '4',
+      link: '/webtoons/6',
       title: 'Attaque',
       imageUrl: '/carousel/webtoons/carousel_4.png',
       imageUrl_mobile: '/carousel/webtoons/carousel_4_mobile.png',

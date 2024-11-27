@@ -21,7 +21,7 @@
     margin: 8px 0;
   }
 
-
+/* 
   .webtoon-chapters-container {
     @apply h-[300px] overflow-y-auto border border-gray-300 rounded-md p-2;
   }
@@ -37,4 +37,4 @@
   .read-more-button {
     @apply mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded;
   }
-  
+   */

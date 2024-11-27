@@ -16,13 +16,18 @@ interface ViewWebtoonEpisodeComponentProps {
     webtoon: {
         title: string;
         chapters: WebtoonChapter[];
+        user: { 
+            username: string;
+        };
       };
-      slug: string;
+      slug: string; 
+      coverArt: string;
     }
 
 const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = ({ 
     webtoon, 
-    slug 
+    slug,
+    coverArt
 }) => {
     const [tabValue, setTabValue] = useState('1');
     const {dictionary, language} = useLanguage();
@@ -34,38 +39,45 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
 
     return (
             <div className="flex flex-col gap-2">
-
                     <TabContext value={tabValue} >
                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
                      <div className="flex flex-row justify-between items-center">
                         <TabList onChange={handleChange} aria-label="lab API tabs" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500 ">
-                                
-                            <Tab label={phrase(dictionary, "episodes", language)} value="1" className="dark:text-white dark:focus:text-purple-500 dark:active:text-purple-500" /> 
-                        
+                            <Tab label={phrase(dictionary, "episodes", language)} value="1" className="dark:text-white dark:focus:text-purple-500 dark:active:text-purple-500" />              
                             <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
+                            <Tab label={phrase(dictionary, "description", language)} value="3" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
                         </TabList>
-                        <div className='self-center'>
-                            Read
-
+                        <div className='self-center text-sm md:block hidden'>
+                           <button className="bg-purple-500 text-white px-2 py-1 rounded-md">Read the first episode </button>
                         </div>
                     </div>
                     </Box>
 
                     <TabPanel value="1">
                         
-                    <div className="flex flex-row justify-between">
-                       <div>
-                            <WebtoonChapterList webtoon={webtoon} slug={slug} />
-                          {/* {webtoon.chapters.map((chapter: WebtoonChapter) =>
-                            <Link href={`/webtoons/${slug}/${chapter.directory}`}>
-                                <div key={`chapter-${chapter.id}`}>
-                                    {chapter.directory}
-                                </div>
-                            </Link>
-                            )} */}
+                    <div className="flex flex-row justify-between gap-3">
+                       <div className="w-full">
+                            <WebtoonChapterList webtoon={webtoon} slug={slug} coverArt={coverArt} />
+                         
                         </div>
-                        <div className="flex flex-col ">
-                            You might like this
+
+                        <div className="flex flex-col w-1/3 ">
+                            <h1 className="text-sm">You might like this </h1>
+                           
+                           
+
+                            <div>
+                                {/* profile card  */}
+                                <div className="flex flex-col gap-2 justify-center items-center">
+                                    <div className="rounded-full w-30 h-30 bg-gray-300 font-extrabold"> 
+                                        {" "}
+                                    </div >
+                                   {webtoon.user.username && <p>by{webtoon.user.username}</p>}
+                                    by Author
+                                    <button className="border-2 border-gray-500 bg-white text-black px-2 py-1 rounded-md"> +Follow </button>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
@@ -73,9 +85,11 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
 
                     </TabPanel>
                     <TabPanel value="2">
-
-                     </TabPanel>
-                     
+                            comments list
+                    </TabPanel>
+                    <TabPanel value="3">
+                            Description
+                    </TabPanel>
                     </TabContext>
 
               

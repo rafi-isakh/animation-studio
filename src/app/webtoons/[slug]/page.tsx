@@ -30,50 +30,58 @@ export default async function WebtoonPage({ params }: { params: { slug: string }
     console.log(width, height)
 
     return (
-        <div key={`webtoon-${params.slug}`}  className="w-full min-h-screen  max-w-screen-xl mx-auto">
-            <div className="flex flex-col md:h-[439px] h-auto  justify-center items-center bg-[#929292]/10 backdrop-blur-[300px]">
-                <div className="flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1">
-                  
-                   <div className="flex flex-col gap-2 p-10 w-[450px]">
-                    <div className="px-5 md:px-0 space-y-2"> {/* mobile screen padding-x 5 */}
-                        <span className="text-sm text-gray-400">Genre</span>
-                        <h1 className="text-2xl font-bold"> {webtoon.title} </h1>
-                        <p>{webtoon.user.username}</p>
-                        <ul className="flex flex-row gap-2">
-                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#hashtag</li>
-                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#hashtag</li>
-                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#Genre</li>
-                        </ul>
-                        <p className="text-sm text-gray-400">{formattedDate}</p>
-                        <p className="text-sm text-gray-400 mb-5"> 
-                            {webtoon.description}
-                        </p>
+        <div key={`webtoon-${params.slug}`} className="w-full min-h-screen max-w-screen-xl mx-auto">
+            <div className="relative flex flex-col md:h-[439px] h-auto justify-center items-center">
+                {/* Blurred background */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-10 backdrop-blur-[300px]"
+                    style={{ 
+                        backgroundImage: `url(${coverArt})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                    }}
+                />
                 
-                
-                     <div className="flex flex-row gap-2">
-                        <button className="bg-gray-300 text-white rounded-md px-10 py-1">Start To Read Episode 1 &gt;</button>
-                        <button className="border-2 border-gray-300 text-white rounded-md px-2">
-                            <Heart size={22} className="text-gray-300"/> 
-                        </button>
-                     </div>
-                    </div>
-                  </div>
-
-                    <div className="w-[270px] md:h-[350px] h-auto min-h-[350px] bg-gray-300 order-first md:order-last"> 
-                        
-                       <Image 
-                        src={coverArt} 
-                        alt={webtoon.title} 
-                        width={270} 
-                        height={350}
-                        className="object-fit w-full h-full"
-                        />
-
-                    </div>
+                {/* Existing content container */}
+                <div className="relative z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1 bg-[#929292]/10 w-full">
+                    <div className="flex flex-col gap-2 p-10 w-[450px]">
+                        <div className="px-5 md:px-0 space-y-2">
+                            <span className="text-sm text-gray-400">Genre</span>
+                            <h1 className="text-2xl font-bold">{webtoon.title}</h1>
+                            <p>{webtoon.user.username}</p>
+                            <ul className="flex flex-row gap-2">
+                                <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#hashtag</li>
+                                <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#hashtag</li>
+                                <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-300">#Genre</li>
+                            </ul>
+                            <p className="text-sm text-gray-400">{formattedDate}</p>
+                            <p className="text-sm text-gray-400 mb-5">
+                                {webtoon.description}
+                            </p>
                     
-              </div>
-           </div>
-              <ViewWebtoonEpisodeComponent webtoon={webtoon} slug={params.slug} />
+                            <div className="flex flex-row gap-2">
+                                <button className="bg-gray-300 text-white rounded-md px-10 py-1">
+                                    Start To Read Episode 1 &gt;
+                                </button>
+                                <button className="border-2 border-gray-300 text-white rounded-md px-2">
+                                    <Heart size={22} className="text-gray-300"/> 
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-[270px] md:h-[350px] h-auto min-h-[350px] order-first md:order-last md:pt-0 pt-5"> 
+                        <Image 
+                            src={coverArt} 
+                            alt={webtoon.title} 
+                            width={270} 
+                            height={350}
+                            className="object-cover w-full h-full"
+                        />
+                    </div>
+                </div>
+            </div>
+            <ViewWebtoonEpisodeComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} />
         </div>
-    )
+    );
 }

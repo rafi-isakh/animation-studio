@@ -4,6 +4,7 @@ import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { CircularProgress } from '@mui/material';
 
 interface WordToken {
     word: string;
@@ -273,56 +274,65 @@ const WebnovelTranslateComponent = (
 
     return (
         <div className="relative min-h-screen mb-16" style={paragraphStyle}>
-            {scrollType === 'vertical' &&
-                <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
-                </div>
+            {text &&
+                <>
+                    {scrollType === 'vertical' &&
+                        <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                        </div>
+                    }
+                    {scrollType === 'horizontal' &&
+                        <div className='relative flex flex-col'>
+                            {/* Navigation buttons - positioned absolutely on the sides */}
+                            <div className="fixed top-1/2 left-5 transform -translate-y-1/2 ">
+                                <button
+                                    onClick={prevPage}
+                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    aria-label="Previous page"
+                                >
+                                    <ChevronLeft size={68} />
+                                    {/* Left */}
+                                </button>
+                            </div>
+
+                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 ">
+                                <button
+                                    onClick={nextPage}
+                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    aria-label="Next page"
+                                >
+                                    <ChevronRight size={68} />
+                                    {/* Right */}
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className='flex flex-row'>
+                                <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-1'>
+                                    <div
+                                        id='first-half'
+                                        className='w-full'
+                                        style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(firstPageWords) }}>
+                                    </div>
+                                </div>
+                                <div className='w-[4rem]'>
+                                </div>
+                                <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-2'>
+                                    <div
+                                        id='second-half'
+                                        className='w-full'
+                                        style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(secondPageWords) }}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </>
             }
-            {scrollType === 'horizontal' &&
-                <div className='relative flex flex-col'>
-                    {/* Navigation buttons - positioned absolutely on the sides */}
-                    <div className="fixed top-1/2 left-5 min-[768px]:left-[40rem] max-[500px]:left-[5rem] transform -translate-y-1/2 ">
-                        <button
-                            onClick={prevPage}
-                            className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
-                            aria-label="Previous page"
-                        >
-                            <ChevronLeft size={68} />
-                            {/* Left */}
-                        </button>
-                    </div>
-
-                    <div className="fixed top-1/2 right-5 min-[768px]:right-[40rem] max-[500px]:right-[5rem] transform -translate-y-1/2 ">
-                        <button
-                            onClick={nextPage}
-                            className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
-                            aria-label="Next page"
-                        >
-                            <ChevronRight size={68} />
-                            {/* Right */}
-                        </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className='flex flex-row'>
-                        <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-1'>
-                            <div
-                                id='first-half'
-                                className='w-full'
-                                style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(firstPageWords) }}>
-                            </div>
-                        </div>
-                        <div className='w-[4rem]'>
-                        </div>
-                        <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-2'>
-                            <div
-                                id='second-half'
-                                className='w-full'
-                                style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(secondPageWords) }}>
-                            </div>
-                        </div>
-                    </div>
+            {!text &&
+                <div className='flex justify-center items-center h-full'>
+                    <CircularProgress color='secondary' />
                 </div>
             }
         </div >

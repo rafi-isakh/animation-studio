@@ -13,12 +13,6 @@ const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoo
   // const coverArt = await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)
   const { language, dictionary } = useLanguage();
 
-  const toggleChapters = (e: React.MouseEvent) => {
-    e.preventDefault(); // This prevents any default link behavior
-    e.stopPropagation(); // This stops the event from propagating to parent elements
-    setShowMoreChapters(!showMoreChapters);
-  };
-
   return (
     <div className="w-full">
       <div className="overflow-y-auto border border-gray-300 rounded-md p-2">

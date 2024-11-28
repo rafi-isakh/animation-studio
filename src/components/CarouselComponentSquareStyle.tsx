@@ -156,9 +156,6 @@ const CarouselComponentSquareStyle: React.FC<CarouselProps> = ({
                   p-8 text-white
                 "
               >
-
-
-                
                 <h3 className="text-xl md:text-3xl font-bold mb-2">
                   {item.title}
 

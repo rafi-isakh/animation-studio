@@ -180,7 +180,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                             />
 
                                              
-                                            <div className='flex flex-row gap-2 mb-2 opacity-70'>
+                                            <div className='flex flex-row gap-2 m-2 opacity-70'>
                                                 {getGenre(index).map((el: string, idx: number) => (
                                                     <span key={idx} className="text-[10px] rounded-md  bg-transparents px-3 py-[1px] mr-1 bg-gray-800  no-outlined-text">
                                                         {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
@@ -188,8 +188,8 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                                 ))}
                                             </div>
                                     
-                                          <div className="ml-2 md:mt-3 mt-2">
-                                               
+                                          <div className="ml-2 ">
+                                               {/* md:mt-3 mt-2 */}
                                                 <OtherTranslateComponent
                                                     key={`hook-${index}-${language}`}
                                                     content={item.hook}

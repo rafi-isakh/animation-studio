@@ -74,6 +74,8 @@ const WebtoonsCarousel: React.FC<{ searchParams: { [key: string]: string | strin
 
   return (
       <CarouselComponentSquareStyle 
+        // searchParams={searchParams}
+        // webnovels={webnovel}
         items={responsiveCarouselItems}
         title="Featured Series"
         autoSlide={true}

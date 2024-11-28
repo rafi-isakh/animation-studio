@@ -42,6 +42,10 @@ const GenresComponent = () => {
         return () => window.removeEventListener('resize', adjustFontSize);
     }, [language]); // Re-run when language changes
 
+    const capitalize = (word: string) => {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    }
+
     const genres = ['all', 'toonyzOnly', 'event', 'toonyzCut', 'studio',];
     const genresIcon = [<CalendarDays key="calendarDays" />, <Image src='/toonyzLogo.png' alt="Toonyz Logo" width={35} height={5} key="heart" />, <Gift key="gift" />, <Clapperboard key="clapperboard" />, <Star key="star" />,];
 
@@ -77,7 +81,7 @@ const GenresComponent = () => {
                         }}
                          >
                         <h6 className="flex justify-center tracking-tight keep-all">
-                          {phrase(dictionary, genre, language)}
+                          {capitalize(phrase(dictionary, genre, language))}
                         </h6>
                     </Link>
                  </div>

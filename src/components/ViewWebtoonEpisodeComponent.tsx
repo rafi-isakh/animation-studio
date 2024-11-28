@@ -58,15 +58,30 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
     <TabContext value={tabValue} >
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
             <div className="flex flex-row justify-between items-center">
-                <TabList onChange={handleChange} aria-label="lab API tabs" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500 ">
-                    <Tab label={phrase(dictionary, "episodes", language)} value="1" className="dark:text-white dark:focus:text-purple-500 dark:active:text-purple-500" />
-                    <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
-                    <Tab label={phrase(dictionary, "description", language)} value="3" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
+                <TabList 
+                    onChange={handleChange} 
+                    aria-label="lab API tabs"
+                    sx={{
+                        '& .MuiTab-root': {
+                        color: 'gray', // Default tab color
+                        '&.Mui-selected': {
+                            color: '#8A2BE2', // Color when tab is selected
+                        },
+                        },
+                        '& .MuiTabs-indicator': {
+                        backgroundColor: '#8A2BE2', // Indicator color
+                        }
+                    }}
+                    className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]"
+                   >
+                    <Tab label={phrase(dictionary, "episodes", language)} value="1" className="dark:text-white dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
+                    <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
+                    <Tab label={phrase(dictionary, "description", language)} value="3" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
                 </TabList>
                 <div className='self-center text-sm md:block hidden'>
                     <button 
                     onClick={handleSortToggle}
-                    className="bg-white text-black hover:text-purple-500 px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
+                    className="bg-white text-black hover:text-[#8A2BE2] px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
                          <ArrowDownUp size={16} className="text-gray-500 group-hover:text-white self-center"/> 
                          {phrase(
                             dictionary, 
@@ -88,8 +103,11 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
                 </div>
 
                 <div className="flex-col w-1/3 md:flex hidden">
-                    <div className="p-2">
-                    <h1 className="text-sm font-bold">You might like this </h1>
+                    <div className="px-5">
+                    <h1 className="text-sm font-bold">
+                       {/* You might like this : recommend webtoons  */}
+                       {phrase(dictionary, "youMightLikeThis", language)}
+                    </h1>
                         {webtoon.chapters.map((chapter: WebtoonChapter, index: number) => (
                         <Link
                             href={`/webtoons/${slug}/${chapter.directory}`}
@@ -98,31 +116,39 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
                             index >= 10 && !showMoreChapters ? 'hidden' : ''
                             }`}
                         >
-                            <div className="flex flex-row justify-between gap-3 p-3 bg-gray-200 ">
+                            <div className="flex flex-row bg-gray-200 hover:opacity-80 transition duration-150 ease-in-out">
+                               <Image 
+                                src={coverArt} 
+                                alt={chapter.directory} 
+                                className="self-center" 
+                                width={50}
+                                height={50}
+                                />
                                 
-                                <div className="flex flex-row gap-3 h-full ">
-                                    <Image 
-                                        src={coverArt} 
-                                        alt={chapter.directory} 
-                                        className="elf-center" 
-                                        width={10}
-                                        height={10}
-                                    
-                                        />
-                                    <p className="text-sm text-center self-center"> 
-                                        {language === 'en' ? `episodes ${parseInt(chapter.directory)}` : 
-                                        language === 'ko' ? `${parseInt(chapter.directory)}화` : 
-                                        `episodes ${parseInt(chapter.directory)} `}
-                                    </p>
+                                <div className="flex flex-row justify-between items-center w-full">
+                                    <div className="ml-3 flex flex-col gap-1">
+                                        <p className="text-sm"> 
+                                             Title
+                                        </p>
+                                        <p className="flex flex-row gap-1">
+                                            <span className="text-gray-100 text-[10px] rounded-full bg-gray-800 px-1">
+                                                #genre
+                                            </span>
+                                            <span className="text-gray-600 text-[10px] ">
+                                                author
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm text-center self-center">
+                                    {/* <LockOpen size={16} className="text-gray-200" /> */}
+                                        <p className="text-gray-600 text-[10px] mr-5">
+                                            {/* Free */}
+                                            {phrase(dictionary, "readingForFree", language)}
+                                        </p>
+                                     </div>
                                  </div>
 
-                                <div className="text-sm text-center self-center">
-                                    {/* <LockOpen size={16} className="text-gray-200" /> */}
-                                    <span className="text-gray-600 text-[10px]">
-                                        {/* Free */}
-                                        {phrase(dictionary, "readingForFree", language)}
-                                    </span>
-                                </div>
+                                
                           </div>
                        </Link>
                     ))}
@@ -139,22 +165,24 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
 
                 by Author
                 {/* {webtoon.user.nickname && <p>by {webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>} */}
-                <button className="border-2 border-gray-500 bg-white text-black px-2 py-1 rounded-md text-[10px]"> +Follow </button>
+                <button className="border-2 border-gray-500 bg-white text-black px-2 py-1 rounded-md text-[10px] hover:opacity-80 transition duration-150 ease-in-out"> 
+                    +Follow 
+                </button>
 
                 <div className="flex flex-col gap-2 justify-center items-center">
                     <span className="text-[10px] uppercase"> Share </span>
-                    <button className="border-2 border-[#3C5997] bg-[#3C5997] py-1 px-1 text-black rounded-full">
+                    <button className="border-2 border-[#3C5997] bg-[#3C5997] py-1 px-1 text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
                         <Facebook size={22} className="text-white" />
                     </button>
-                    <button className="border-2 border-[#54ACEE] bg-[#54ACEE]  py-1 px-1  text-black rounded-full">
+                    <button className="border-2 border-[#54ACEE] bg-[#54ACEE]  py-1 px-1  text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
                         <Twitter size={22} className="text-white" />
                     </button>
-                    <button className="border-2 border-gray-500 bg-gray-500  py-1 px-1  text-black rounded-full">
+                    <button className="border-2 border-gray-500 bg-gray-500  py-1 px-1  text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
                         <CodeXml size={22} className="text-white" />
                     </button>
 
                     <li className="flex flex-col items-center justify-center list-none">
-                        <button onClick={toggleUserDropdown} className="border-2 border-gray-100 bg-gray-100  py-1 px-1  text-black rounded-full">
+                        <button onClick={toggleUserDropdown} className="border-2 border-gray-100 bg-gray-100  py-1 px-1  text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
                             <Ellipsis size={22} className="text-gray-600" />
                         </button>
 

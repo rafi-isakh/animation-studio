@@ -19,40 +19,33 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt}: { w
     const { email } = useUser();
 
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
-    //         const data = await response.json();
-    //         console.log(data);
-    //         if (data.includes(id)) {
-    //             setLikeToggle(true);
-    //         }
-    //     }
-    //     if (email) {
-    //         fetchData();
-    //     }
-    // }, [email])
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
+            const data = await response.json();
+            if (data.includes(webtoon.id)) {
+                setLikeToggle(true);
+            }
+        }
+        if (email) {
+            fetchData();
+        }
+    }, [email])
 
-    // useEffect(() => { // upvotes
-    //     fetch(`/api/get_chapter_by_id?id=${webtoon.id}`)
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             // setChapter(data);
-    //             setUpvotes(data.upvotes)
-    //             fetch(`/api/get_webnovel_by_id?id=${data.webtoon_id}`)
-    //                 .then(response2 => response2.json())
-    //                 .then(data2 => {
-    //                     setWebtoon(data2)
-    //                 })
-    //         }
-    //         )
-    // }, []);
-
-
-    const handleStartToReadClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        event.preventDefault();
-        console.log("Start to read clicked")
-    }
+    useEffect(() => { // upvotes
+        fetch(`/api/get_chapter_by_id?id=${webtoon.id}`)
+            .then(response => response.json())
+            .then(data => {
+                // setChapter(data);
+                setUpvotes(data.upvotes)
+                fetch(`/api/get_webnovel_by_id?id=${data.webtoon_id}`)
+                    .then(response2 => response2.json())
+                    .then(data2 => {
+                        setWebtoon(data2)
+                    })
+            }
+            )
+    }, []);
 
     return (
         <div className="relative flex flex-col md:h-[439px] h-auto justify-center items-center">
@@ -71,7 +64,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt}: { w
          
             <div className="flex flex-col gap-2 p-10 w-[450px]">
                 <div className="px-12 md:px-0 space-y-2">
-                    <span className="text-sm text-gray-800">Genre</span>
+                    <span className="text-sm text-gray-400">{phrase(dictionary, webtoon.genre, language)}</span>
                     <h1 className="text-2xl font-bold">
                         {webtoon.title}
                         {/* <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id} elementType='webtoon' elementSubtype="title" classParams="text-2xl mt-2 mb-2" /> */}

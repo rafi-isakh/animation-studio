@@ -17,18 +17,13 @@ async function getWebtoonById(id: string) {
         }
     )
     const data = await response.json()
-    console.log(data)
     return data;
 }
 
 export default async function WebtoonPage({ params }: { params: { slug: string } }) {
     // slug is webtoon id
     const webtoon = await getWebtoonById(params.slug);
-    const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY hh:mm');
     const coverArt = await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)
-    const { width, height } = await getImageDimensions(coverArt)
-
-    console.log(width, height)
 
     return (
         <div key={`webtoon-${params.slug}`} className="w-full min-h-screen max-w-screen-xl mx-auto">

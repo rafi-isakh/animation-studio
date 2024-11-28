@@ -89,6 +89,7 @@ export interface Webtoon {
   cover_art: string;
   wide_cover: string;
   description: string;
+  genre: string;
 }
 
 export interface WebtoonChapter {

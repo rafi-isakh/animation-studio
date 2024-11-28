@@ -98,7 +98,7 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
 
             <div className="flex flex-row justify-between gap-3">
                 <div className="w-full">
-                    <WebtoonChapterList webtoon={webtoon as Webtoon} slug={slug} coverArt={coverArt} />
+                    <WebtoonChapterList webtoon={webtoon as unknown as Webtoon} slug={slug} coverArt={coverArt} />
 
                 </div>
 

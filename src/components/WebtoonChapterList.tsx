@@ -11,7 +11,6 @@ import { LockOpen } from 'lucide-react';
 
 const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoon, slug: string, coverArt: string }) => {
   const [showMoreChapters, setShowMoreChapters] = useState(false);
-  // const coverArt = await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)
   const { language, dictionary } = useLanguage();
 
   return (
@@ -26,20 +25,20 @@ const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoo
             }`}
           >
             <div className="flex flex-row justify-between gap-3 p-3">
-                <div className="flex flex-row gap-3 ">
+                <div className="flex flex-row gap-3">
                   <Image 
                     src={coverArt} 
                     alt={chapter.directory} 
-                    className="w-10 h-10 self-center" 
-                    width={100}
-                    height={100}
+                    className="object-cover " 
+                    width={50}
+                    height={50}
                     />
                 
                   <p className="text-xl text-center self-center"> {index + 1} </p>
                   <p className="text-sm text-center self-center"> 
                     {language === 'en' ? `episodes ${parseInt(chapter.directory)}` : 
-                    language === 'ko' ? `${parseInt(chapter.directory)}화` : 
-                    `episodes ${parseInt(chapter.directory)} `}
+                     language === 'ko' ? `${parseInt(chapter.directory)}화` : 
+                     `episodes ${parseInt(chapter.directory)} `}
                   </p>
                 </div>
 

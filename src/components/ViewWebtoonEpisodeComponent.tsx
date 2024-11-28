@@ -12,6 +12,7 @@ import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterList from "@/components/WebtoonChapterList";
 import { Facebook, Twitter, CodeXml, Ellipsis, Flag, CircleHelp, ArrowDownUp } from "lucide-react";
+import Image from "next/image";
 
 interface ViewWebtoonEpisodeComponentProps {
     webtoon: {
@@ -38,6 +39,7 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
+    const [isSortedByLatest, setIsSortedByLatest] = useState(true);
 
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
         setTabValue(newValue);
@@ -46,6 +48,10 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
     const toggleUserDropdown = () => {
         setIsUserDropdownOpen(prev => !prev);
     }
+
+    const handleSortToggle = () => {
+      setIsSortedByLatest(prev => !prev);
+    };
 
     return (
 <div className="flex flex-col gap-2 mt-10">  {/* Top tab margin 10 */}
@@ -58,9 +64,15 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
                     <Tab label={phrase(dictionary, "description", language)} value="3" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
                 </TabList>
                 <div className='self-center text-sm md:block hidden'>
-                    <button className="bg-white text-black hover:text-purple-500 px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
+                    <button 
+                    onClick={handleSortToggle}
+                    className="bg-white text-black hover:text-purple-500 px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
                          <ArrowDownUp size={16} className="text-gray-500 group-hover:text-white self-center"/> 
-                         {phrase(dictionary, "start_to_read_episode_1", language)}
+                         {phrase(
+                            dictionary, 
+                            isSortedByLatest ? "sort_latest" : "sort_oldest", 
+                            language
+                        )}
                     </button>
                     
                 </div>
@@ -76,15 +88,54 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
                 </div>
 
                 <div className="flex-col w-1/3 md:flex hidden">
-                    {/* <h1 className="text-sm">You might like this </h1> */}
-                    <div>
+                    <div className="p-2">
+                    <h1 className="text-sm font-bold">You might like this </h1>
+                        {webtoon.chapters.map((chapter: WebtoonChapter, index: number) => (
+                        <Link
+                            href={`/webtoons/${slug}/${chapter.directory}`}
+                            key={`chapter-${chapter.id}`}
+                            className={`cursor-pointer block py-2 border-gray-200 last:border-b-0 ${
+                            index >= 10 && !showMoreChapters ? 'hidden' : ''
+                            }`}
+                        >
+                            <div className="flex flex-row justify-between gap-3 p-3 bg-gray-200 ">
+                                
+                                <div className="flex flex-row gap-3 h-full ">
+                                    <Image 
+                                        src={coverArt} 
+                                        alt={chapter.directory} 
+                                        className="elf-center" 
+                                        width={10}
+                                        height={10}
+                                    
+                                        />
+                                    <p className="text-sm text-center self-center"> 
+                                        {language === 'en' ? `episodes ${parseInt(chapter.directory)}` : 
+                                        language === 'ko' ? `${parseInt(chapter.directory)}화` : 
+                                        `episodes ${parseInt(chapter.directory)} `}
+                                    </p>
+                                 </div>
 
-            {/* profile card  */}
-            <div className="flex flex-col gap-2 justify-center items-center mt-10">
-                <svg
-                    className="w-[30px] h-[30px] text-gray-400 rounded-full bg-gray-200" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                </svg>
+                                <div className="text-sm text-center self-center">
+                                    {/* <LockOpen size={16} className="text-gray-200" /> */}
+                                    <span className="text-gray-600 text-[10px]">
+                                        {/* Free */}
+                                        {phrase(dictionary, "readingForFree", language)}
+                                    </span>
+                                </div>
+                          </div>
+                       </Link>
+                    ))}
+                   </div>
+
+                <div>
+
+                {/* profile card  */}
+                <div className="flex flex-col gap-2 justify-center items-center mt-10">
+                    <svg
+                        className="w-[30px] h-[30px] text-gray-400 rounded-full bg-gray-200" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
 
                 by Author
                 {/* {webtoon.user.nickname && <p>by {webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>} */}
@@ -132,7 +183,7 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
             </div>
         </div>
 
-    </div>
+     </div>
 
      </div>
 

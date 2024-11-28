@@ -40,17 +40,15 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <ApplyCreatorBanner />
             <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem]'>
 
-
-                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-             
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
          
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
               
-                <div className='bg-black w-full mx-auto '>
-                    <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+                <div className='w-full mx-auto '>
+                  {/* <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} /> */}
+                  <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
               
                 <PromotionBannerComponent />

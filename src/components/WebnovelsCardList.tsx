@@ -26,26 +26,37 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
     return (
-        <div className={`relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full`}>
-            <div className="md:px-5 px-2">
+        <div className={`relative md:max-w-screen-xl w-full mx-auto group overflow-hidden `}>
+            <div className="">
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {title}
-                    {subtitle && (
+                    {/* {subtitle && (
                         <span className="text-gray-400 text-[14px] md:block hidden">
                             {subtitle}
                         </span>
-                    )}
+                    )} */}
                 </h1>
                 
                 <div className="relative">
                     <div 
                         ref={scrollRef}
-                        className="flex overflow-x-auto no-scrollbar scroll-smooth gap-4"     
+                        className="hidden md:flex justify-start gap-4 overflow-x-auto no-scrollbar"     
                         // card list gap-4
                     > 
-             
                         {webnovels.map((item, index) => (
-                            <div key={item.id || index} className="flex-none ">
+                            <div 
+                                key={item.id || index} 
+                                className="w-[calc(16.666%-1rem)] flex-grow-0 flex-shrink-0"
+                            >
+                                {renderItem(item, index)}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Mobile horizontal scroll */}
+                    <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-4">
+                        {webnovels.map((item, index) => (
+                            <div key={item.id || index} className="flex-none">
                                 {renderItem(item, index)}
                             </div>
                         ))}

@@ -47,6 +47,7 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
                     index={index + 1} 
                     ranking={true} 
                     details={true}
+                    up={true}
                 />
             )}
         />

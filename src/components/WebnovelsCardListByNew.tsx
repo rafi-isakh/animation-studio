@@ -56,8 +56,9 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
                     <WebnovelPictureComponent 
                         webnovel={item} 
                         index={index + 1} 
-                        ranking={true} 
+                        ranking={false} 
                         details={false}
+                        up={false}
                     />
             )}
         />

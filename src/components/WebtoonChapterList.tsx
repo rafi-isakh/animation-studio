@@ -6,6 +6,7 @@ import '@/styles/Webtoons.module.css';
 import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { LockOpen } from 'lucide-react';
 
 
 const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoon, slug: string, coverArt: string }) => {
@@ -24,19 +25,31 @@ const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoo
               index >= 10 && !showMoreChapters ? 'hidden' : ''
             }`}
           >
-            <div className="flex flex-row justify-start gap-3 p-3">
-              <Image 
-                src={coverArt} 
-                alt={chapter.directory} 
-                className="w-10 h-10 self-center" 
-                width={100}
-                height={100}
-                />
-            
-              <p className="text-xl text-center self-center"> {index + 1} </p>
-              <p className="text-sm text-center self-center"> 
-                {chapter.directory} { language === 'en' ? ' episodes ' : language === 'ko' ? '화' : '' } 
-              </p>
+            <div className="flex flex-row justify-between gap-3 p-3">
+                <div className="flex flex-row gap-3 ">
+                  <Image 
+                    src={coverArt} 
+                    alt={chapter.directory} 
+                    className="w-10 h-10 self-center" 
+                    width={100}
+                    height={100}
+                    />
+                
+                  <p className="text-xl text-center self-center"> {index + 1} </p>
+                  <p className="text-sm text-center self-center"> 
+                    {language === 'en' ? `episodes ${parseInt(chapter.directory)}` : 
+                    language === 'ko' ? `${parseInt(chapter.directory)}화` : 
+                    `episodes ${parseInt(chapter.directory)} `}
+                  </p>
+                </div>
+
+              <div className="text-sm text-center self-center">
+                  {/* <LockOpen size={16} className="text-gray-200" /> */}
+                  <span className="text-gray-600 text-[10px]">
+                    {/* Free */}
+                    {phrase(dictionary, "readingForFree", language)}
+                  </span>
+              </div>
             </div>
           </Link>
         ))}

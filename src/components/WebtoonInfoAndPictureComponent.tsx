@@ -8,6 +8,7 @@ import moment from "moment";
 import { Heart } from "lucide-react"
 import { useUser } from "@/contexts/UserContext"
 import Link from "next/link";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 
 
 export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { webtoon: Webtoon, coverArt: string }) {
@@ -66,14 +67,17 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
         <div className="relative z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1 bg-[#929292]/10 w-full">
          
             <div className="flex flex-col gap-2 p-10 w-[450px]">
-                <div className="px-5 md:px-0 space-y-2">
+                <div className="px-12 md:px-0 space-y-2">
                     <span className="text-sm text-gray-400">Genre</span>
-                    <h1 className="text-2xl font-bold">{webtoon.title}</h1>
+                    <h1 className="text-2xl font-bold">
+                        {webtoon.title}
+                        {/* <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id} elementType='webtoon' elementSubtype="title" classParams="text-2xl mt-2 mb-2" /> */}
+                    </h1>
                     <p>{webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname }</p>
                     <ul className="flex flex-row gap-2">
-                        <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-pink-600">#hashtag</li>
-                        <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-pink-600">#hashtag</li>
-                        <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-pink-600">#Genre</li>
+                        <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">#hashtag</li>
+                        <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">#hashtag</li>
+                        <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">#Genre</li>
                     </ul>
                     <p className="text-sm text-gray-400">{formattedDate}</p>
                     <p className="text-sm text-gray-400 mb-5">
@@ -81,17 +85,17 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                     </p>
             
                     <div className="flex flex-row gap-2">
-                        <button className="bg-pink-600 hover:bg-pink-800 text-white rounded-md px-10 py-2 transition duration-150 ease-in-out">
+                        <button className="bg-gray-500 hover:bg-pink-600 text-white rounded-md px-10 py-2 transition duration-150 ease-in-out">
                             {/* Start To Read Episode 1 &gt; */}
                             {phrase(dictionary, "start_to_read_episode_1", language)}
                         </button>
 
-                        <button className="group border-2 px-10 py-2 border-pink-600 hover:border-pink-800  hover:bg-pink-800 text-white rounded-md px-2 transition duration-150 ease-in-out">
+                        <button className="group border-2 px-2 py-2 border-gray-500 hover:border-pink-600  hover:border-pink-600  hover:bg-pink-600 text-white rounded-md transition duration-150 ease-in-out">
                                 <Link
                                     href=''
                                     className="text-center flex flex-row items-center "
                                 >
-                                    <Heart size={22} className="text-pink-600 group-hover:text-white"/> 
+                                    <Heart size={22} className="text-gray-500 group-hover:text-white"/> 
                                     {/* {
                                                 likeToggle ?
                                                     <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center" style={{ fontSize: '16px' }}></i>
@@ -101,11 +105,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                 </Link>
                         </button>
                         
-                                   
-                                   
-                              
-
-
                     </div>
                 </div>
             </div>

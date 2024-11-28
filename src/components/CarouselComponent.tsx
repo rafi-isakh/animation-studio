@@ -13,6 +13,7 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
+import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 
 
 const CarouselComponent = ({ searchParams, webnovels, items }: { 
@@ -79,7 +80,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
       </h1>
 
       <TabContext value={tabValue} >
-        <Box sx={{ borderBottom: 0, borderColor: 'none' }} className='dark:text-gray-700'>
+        <Box sx={{ borderBottom: 0, borderColor: 'none' }}>
             <div className="flex flex-row justify-between items-center">
                 <TabList 
                     onChange={handleChange} 
@@ -95,7 +96,6 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                           borderRadius: '100px',
                           minHeight: '25px', // Set your desired height here
                           height: '25px', // Set your desired height here
-                       
                         },
                         '& button:focus': {
                           color: 'white',
@@ -136,141 +136,13 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             </div>
         </Box>
 
-        <TabPanel value="1">
-       {/* Main carousel */}
-       <div 
-        className="flex transition-transform duration-500 ease-in-out h-full"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-       >
-        {/* Desktop view */}
-        <div className="hidden md:flex w-full">
-          {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-            <div 
-              key={slideIndex}
-              className="min-w-full h-[350px] flex gap-4" 
-            >
-              {items.slice(slideIndex * 3, (slideIndex * 3) + 3).map((item, itemIndex) => (
-                <div 
-                  key={item.id}
-                  className="flex-1 relative rounded-sm overflow-hidden"
-                >
-                  <Image
-                    src={getLocalImageUrl(item.image)}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                    alt={item.image}
-                    className="object-cover rounded-sm"
-                    priority={slideIndex === 0}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                    <h2 className="text-white dark:text-white text-lg font-bold">
-                      {/* {item.title} */}
-                     <OtherTranslateComponent
-                        key={`title-${item.id}-${language}`}
-                        content={item.title}
-                        elementId={item.id.toString()}
-                        classParams={`md:text-xl lg:text-xl text-sm !min-[400px]:text-[12px] font-extrabold text-white dark:text-white`}
-                        elementType={'carouselItem'}
-                        elementSubtype="title"
-                        showLoading={false}
-                    />
-                      </h2>
-                    <OtherTranslateComponent 
-                      key={`hook-${item.id}-${language}`}
-                      content={item.hook}
-                      elementId={item.id.toString()}
-                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-white`}
-                      elementType={'carouselItem'}
-                      elementSubtype="hook"
-                      showLoading={false}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
-         {/* Mobile view */}
-         <div className="flex md:hidden w-full">
-              {items.map((item, slideIndex) => (
-                <div 
-                  key={item.id}
-                  className="min-w-full h-[350px] flex gap-4 px-4"
-                >
-                  <div 
-                    className="flex-1 relative rounded-xl overflow-hidden"
-                  >
-                    <Image
-                      src={getLocalImageUrl(item.image)}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 25vw"
-                      alt={item.image}
-                      className="object-cover rounded-sm"
-                      priority={slideIndex === 0}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                      <h2 className="text-white dark:text-white text-lg font-bold">
-                        <OtherTranslateComponent
-                          key={`title-${item.id}-${language}`}
-                          content={item.title}
-                          elementId={item.id.toString()}
-                          classParams={`md:text-xl lg:text-xl text-sm !min-[400px]:text-[12px] font-extrabold text-white dark:text-white`}
-                          elementType={'carouselItem'}
-                          elementSubtype="title"
-                          showLoading={false}
-                        />
-                      </h2>
-                      <OtherTranslateComponent 
-                        key={`hook-${item.id}-${language}`}
-                        content={item.hook}
-                        elementId={item.id.toString()}
-                        classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-white`}
-                        elementType={'carouselItem'}
-                        elementSubtype="hook"
-                        showLoading={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-     
-      {/* Indicators */}
-      <div className=''>
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              currentIndex === index ? 'bg-white w-6' : 'bg-white/50'
-            }`}
-          />
-        ))}
-          </div>
-
-        <div className='absolute bottom-2 right-1 flex text-white text-[10px] font-bold'>
-          <div className="flex">
-            <button
-              onClick={handlePrev}
-              className="bg-black/50 p-2 rounded-full text-white hover:bg-black/70 transition-colors"
-            >
-              <ChevronLeft className="w-2 h-2" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="bg-black/50 p-2 rounded-full text-white hover:bg-black/70 transition-colors"
-            >
-              <ChevronRight className="w-2 h-2" />
-            </button>
-          </div>
-        </div>
-        
-      </div>
-
+        <TabPanel value="1"
+         sx={{
+          padding: 0,  // Remove all padding
+          margin: 0,   // Remove all margin
+        }}
+        >
+          <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
         </TabPanel>
 
         <TabPanel value="2">

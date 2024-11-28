@@ -12,6 +12,8 @@ import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 // import ThemeToggle from '@/components/ThemeToggle'   
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
+import WebnovelsCarousel from '@/components/WebnovelsCarousel';
+
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
     const data = await response.json()
@@ -39,7 +41,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
           
             <ApplyCreatorBanner />
             <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem]'>
-
+                <WebnovelsCarousel searchParams={searchParams} webnovel={webnovels} />
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
@@ -47,8 +49,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
               
                 <div className='w-full mx-auto '>
-                  {/* <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} /> */}
-                  <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+                {/* <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} /> */}
+                <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
               
                 <PromotionBannerComponent />

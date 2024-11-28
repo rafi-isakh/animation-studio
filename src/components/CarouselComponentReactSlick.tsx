@@ -72,7 +72,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                         <ChevronLeft className="w-6 h-6 text-gray-700" />
                    </button>
                         :
-                        <></>
+                    <></>
                 }
             </>
         );
@@ -126,7 +126,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: '12px',
+        centerPadding: '0px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -152,10 +152,10 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             <div className='flex flex-col relative'>
                 <Slider {...settings}>
                     {items.map((item, index) => (
-                          <div key={index} className={`carousel-slide px-2 md:px-4 ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
+                          <div key={index} className={`carousel-slide  ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
+                            <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto mr-2">
                                 <Link href={getHref(index)}>
-                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px]">
+                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px] ">
                                     <Image 
                                         className="object-cover object-center rounded-xl transition-all duration-300" 
                                         src={getLocalImageUrl(item.image)} 
@@ -167,6 +167,8 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                      {/* Overlay */}
                                     <div className="absolute rounded-xl bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent text-white">
                                         <div className="flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32">
+                                        
+
                                             <OtherTranslateComponent
                                                 key={`title-${index}-${language}`}
                                                 content={item.title}
@@ -176,6 +178,15 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                                 elementSubtype="title"
                                                 showLoading={false}
                                             />
+
+                                             
+                                            <div className='flex flex-row gap-2 mb-2 opacity-70'>
+                                                {getGenre(index).map((el: string, idx: number) => (
+                                                    <span key={idx} className="text-[10px] rounded-md  bg-transparents px-3 py-[1px] mr-1 bg-gray-800  no-outlined-text">
+                                                        {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
+                                                    </span>
+                                                ))}
+                                            </div>
                                     
                                           <div className="ml-2 md:mt-3 mt-2">
                                                
@@ -189,11 +200,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                                     showLoading={false}
                                                 />
                                             
-                                            {getGenre(index).map((el: string, idx: number) => (
-                                                <span key={idx} className="text-[8px] w-20 rounded-md border border-purple-500 text-purple-500 bg-transparents px-1 py-[1px] mr-1 no-outlined-text">
-                                                    {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
-                                                </span>
-                                            ))}
+
                                          </div>
                                        </div>
                                      </div>
@@ -213,22 +220,19 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                   }
 
                   .slide-content img {
-                     
-                       border-radius: 0.75rem;
+                       border-radius: 0.25rem;
                   }
                    .active-slide img {
-                       border-radius: 0.75rem !important;
+                       border-radius: 0.25rem !important;
                    }
 
-                  .active-slide {
-                    
+                  .active-slide {        
                       opacity: 1;
                       z-index: 2;
-                      border-radius: 0.75rem;
+                      border-radius: 0.25rem;
                   }
 
                   .inactive-slide {
-                      transform: scale(0.85);
                       opacity: 0.5;
                   } 
 

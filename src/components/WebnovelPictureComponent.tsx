@@ -44,7 +44,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                              </span>)}
                     {/* Ranking Number Overlay */}
                     {ranking && (
-                        <div className="absolute bottom-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+                        <div className="absolute md:bottom-2 bottom-5 md:left-0 left-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
                             <div className="absolute inset-0 bg-transparent opacity-90"></div>
                             <p className="relative text-7xl md:text-6xl font-bold text-white font-outline-1">
                                 {index}
@@ -74,11 +74,11 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                         { details && (
                              // Total Chapters and Views
                              <div className="flex flex-row justify-center font-bold">
-                                <p className="text-[10px] md:text-[11px]  text-black dark:text-white">
+                                <p className="text-[10px] md:text-[11px]  text-gray-500 dark:text-white">
                                     <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
                                     <span>{phrase(dictionary, "numchapters", language)}</span>
                                 </p>
-                                <p className="text-[10px] md:text-[11px] text-black dark:text-white md:flex flex-row items-center ml-2 hidden gap-1 ">
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-white md:flex flex-row items-center ml-2 hidden gap-1 ">
                                     <TrendingUp size={10} />
                                     <span> {webnovel.views} </span>
                                 </p>

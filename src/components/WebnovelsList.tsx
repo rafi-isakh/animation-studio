@@ -32,13 +32,24 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         dots: false,
         infinite: false,
         autoplay: false,
-        slidesToShow: !isMobile ? 1 : 3,
+        slidesToShow: isMobile ? 1 : 1,
         slidesToScroll: 1,
-        rows: !isMobile ? 3 : 3,
-        slidesPerRow: !isMobile ? 3 : 1 ,
+        rows: isMobile ? 3 : 3,
+        slidesPerRow: isMobile ? 1 : 3,
         nextArrow: <SampleNextArrow />,
-        prevArrow: <SamplePrevArrow />
-      };
+        prevArrow: <SamplePrevArrow />,
+        responsive: [
+            {
+                breakpoint: 768,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                    rows: 3,
+                    slidesPerRow: 1
+                }
+            }
+        ]
+    };
 
 
       function SampleNextArrow(props: any) {
@@ -46,7 +57,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return (
                 <button
                     onClick={onClick}
-                    className='absolute md:-right-2 right-8 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block  bg-white/80 '
+                    className='absolute md:-right-2 -right-5 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 '
                 >
                         <ChevronRight className="w-6 h-6 text-gray/80" />
                 </button>
@@ -58,7 +69,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return (
                     <button 
                         onClick={onClick}
-                        className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block  bg-white/80 "
+                        className="absolute md:left-8 left-1 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 "
                     >
                         <ChevronLeft className="w-6 h-6 text-gray/80" />
                    </button>
@@ -95,34 +106,26 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     return (
         <div className='relative w-full md:max-w-screen-xl mx-auto group'>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                    <span className='bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text'>
+                    <span className='text-black dark:text-white'>
                      {/* Title  */}
                      { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
                     </span>
                 </h1>
                 <Slider {...settings} className="custom-slider">
                     {webnovelsToShow.map((webnovel, index) => (
-                        <div key={webnovel.id} className='w-full flex-nowrap shrink-0'>
+                        <div key={webnovel.id} className='w-full flex flex-nowrap shrink-0'>
                             <WebnovelComponent webnovel={webnovel} index={index + 1} ranking={true} />
                         </div>
                     ))} 
                 </Slider>
                 <style jsx global>
                 {`
-
-          
                   .custom-slider {
                      width: 100%;
-                     
+
                      }
 
-                  .slide-content {
-                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-
-                  }
-
-
-              `}
+                 `}
             </style>
         </div>
     )

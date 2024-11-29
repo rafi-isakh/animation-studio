@@ -49,12 +49,12 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-         
-                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
               
                 <div className='w-full mx-auto'>
                 <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
+         
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
               
                 <PromotionBannerComponent />
             </div>

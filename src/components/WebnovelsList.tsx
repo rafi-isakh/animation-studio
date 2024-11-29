@@ -1,6 +1,9 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
 import { useEffect, useState, useRef } from 'react';
+import Slider from 'react-slick';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import WebnovelComponent from "@/components/WebnovelComponent"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -23,6 +26,19 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
+
+
+    const settings = {
+        dots: false,
+        infinite: false,
+        autoplay: false,
+        // speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        // rows: 3,
+        slidesPerRow: 3
+      };
+
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -52,38 +68,27 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative w-full max-w-screen-xl mx-auto group'>
-            {/* Left Arrow */}
-            <button
-                onClick={() => scroll('left', scrollRef)}
-                className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
-                >
-                <ChevronLeft className="w-6 h-6 text-gray-700" />
-            </button>
-                    <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                        <span className='bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text'>
-                        { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
-                        </span>
-                    </h1>
-                    <div className="grid grid-cols-3 gap-6 overflow-x-auto">
+        <div className='relative w-full md:max-w-screen-xl mx-auto group'>
+                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+                    <span className='bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text'>
+                     {/* Title  */}
+                     { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
+                    </span>
+                </h1>
+                <Slider {...settings}>
+                    {/* <div className="grid grid-cols-3 gap-1 w-full overflow-x-auto"> */}
                         {columns.map((column, colIndex) => (
-                            <div key={colIndex} className="space-y-4 ">
+                            <div key={colIndex} className="space-y-1">
                                 {column.map((item, rowIndex) => (
-                                    <div key={rowIndex}>
+                                    <div key={rowIndex} className='md:w-full w-[800px]'>
                                         <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
                                     </div>
                                 ))}
                             </div>
-                        ))}
-                    </div>
-
-            {/* Right Arrow */}
-            <button
-                onClick={() => scroll('right', scrollRef)}
-                className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 translate-x-1/2 "
-            >
-                <ChevronRight className="w-6 h-6 text-gray-700" />
-            </button>
+                        ))}                                 
+                    {/* </div> */}
+                </Slider>
+            
         </div>
     )
 };

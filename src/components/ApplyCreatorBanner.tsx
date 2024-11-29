@@ -1,23 +1,39 @@
 "use client"
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
     const { isLoggedIn } = useAuth();
+    const [isBannerVisible, setIsBannerVisible] = useState(true);
 
     const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault(); // Prevent the default browser navigation
         console.log("Link clicked, but it does nothing.");
       };
 
+    const handleCloseBanner = () => {
+        setIsBannerVisible(false);
+    };
+
+    if (!isBannerVisible) {
+        return null;
+    }
 
     return (
-        <Link onClick={handleClick} href={isLoggedIn? '#': '/signin'} className="">
-        <div className='bg-black w-full h-[3rem] mb-4 mt-0 -z-[99]'> 
-        {language == 'ko' ? (
+        <div className='relative bg-black w-full h-[3rem] mb-4 mt-0 z-[99]'> 
+            <button 
+                onClick={handleCloseBanner}
+                className="absolute right-0 top-0 bg-white border-gray-200 border w-6 h-6 flex items-center justify-center">
+                 <X className="w-4 h-4 text-black" />
+            </button>
+
+            <Link onClick={handleClick} href={isLoggedIn? '#': '/signin'} className="block h-full">
+                   {language == 'ko' ? (
                             <>
                             <Image
                                 src='/apply_creator_banner_KR.svg' 
@@ -74,8 +90,8 @@ const ApplyCreatorBanner = () => {
                             </>
                      )
                  }
+            </Link>
         </div>
-     </Link>
     )
 }
 

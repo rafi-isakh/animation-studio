@@ -39,9 +39,9 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                     />
 
                     {/* UP Badge */}
-                   { up && ( <span className="absolute top-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
-                        UP
-                    </span>)}
+                    { up && ( <span className="absolute top-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+                                   UP
+                             </span>)}
                     {/* Ranking Number Overlay */}
                     {ranking && (
                         <div className="absolute bottom-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">

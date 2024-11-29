@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { scroll } from '@/utils/scroll'
 import { useMediaQuery } from 'react-responsive';
 
@@ -47,6 +47,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                             <div 
                                 key={item.id || index} 
                                 className="w-[calc(16.666%-1rem)] flex-grow-0 flex-shrink-0"
+                                //
                             >
                                 {renderItem(item, index)}
                             </div>

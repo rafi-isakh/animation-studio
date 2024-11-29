@@ -174,7 +174,7 @@ const CarouselComponentReactSlick = ({
                                 <Link href={getHref(index)}>
                                   <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px] ">
                                     <Image 
-                                        className="object-cover object-center rounded-xl transition-all duration-300" 
+                                        className="object-cover object-center transition-all duration-300" 
                                         src={getLocalImageUrl(item.image)} 
                                         fill
                                         alt={item.image}
@@ -182,7 +182,7 @@ const CarouselComponentReactSlick = ({
                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
                                      {/* Overlay */}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8">
+                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-sm overflow-hidden">
                                         <div className="flex flex-col justify-end ">
                                     
                                             <OtherTranslateComponent
@@ -255,7 +255,7 @@ const CarouselComponentReactSlick = ({
     
                   .carousel-slide {
                       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-                      
+                      border-radius: 0.25rem;
                   }
 
                   .slide-content img {

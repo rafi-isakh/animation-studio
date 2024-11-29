@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { scroll } from '@/utils/scroll'
 import { useMediaQuery } from 'react-responsive';
 
@@ -63,12 +63,20 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                     </div>
                     
                     {!isMobile && (
+                        <>
+                        <button
+                            onClick={() => scroll('left', scrollRef)}
+                            className="group-hover:opacity-80 transition-opacity duration-300 absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 opacity-0"
+                        >
+                            <ChevronLeft className="w-6 h-6 text-gray-700" />
+                        </button>
                         <button
                             onClick={() => scroll('right', scrollRef)}
-                            className="group-hover:opacity-100 transition-opacity duration-300 absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-md opacity-0"
+                            className="group-hover:opacity-80 transition-opacity duration-300 absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 opacity-0"
                         >
                             <ChevronRight className="w-6 h-6 text-gray-700" />
                         </button>
+                        </>
                     )}
                 </div>
             </div>

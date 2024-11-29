@@ -56,29 +56,18 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             {/* Left Arrow */}
             <button
                 onClick={() => scroll('left', scrollRef)}
-                className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
+                className="absolute md:left-0 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
                 >
                 <ChevronLeft className="w-6 h-6 text-gray-700" />
             </button>
-
-            <div className='md:px-5 px-2 m-5 mb-10'>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                    {/* {(webnovels.length > 0) ?
-                        phrase(dictionary, text, language) : <></>
-                    } */}
-
-                    <span className='bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text'>
-                    { language === 'ko' ? <>{phrase(dictionary, "ranking", language)} 🚀</> : "Toonyz's Top Series 🚀" }
-                    </span>
-                  
-                   <span className="text-gray-400 text-[14px] md:block hidden">
-                            {phrase(dictionary, "more", language)}
-                   </span>
-                </h1>
-                <div className="overflow-x-auto no-scrollbar" ref={scrollRef}>
-                    <div className={`grid md:grid-cols-3 grid-cols-3 gap-2 min-w-max`}>
+                    <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+                        <span className='bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-400 inline-block text-transparent bg-clip-text'>
+                        { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
+                        </span>
+                    </h1>
+                    <div className="grid grid-cols-3 gap-6 overflow-x-auto">
                         {columns.map((column, colIndex) => (
-                            <div key={colIndex} className="space-y-4">
+                            <div key={colIndex} className="space-y-4 ">
                                 {column.map((item, rowIndex) => (
                                     <div key={rowIndex}>
                                         <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
@@ -87,13 +76,11 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                             </div>
                         ))}
                     </div>
-                </div>
-            </div>
 
             {/* Right Arrow */}
             <button
                 onClick={() => scroll('right', scrollRef)}
-                className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2 "
+                className="absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 translate-x-1/2 "
             >
                 <ChevronRight className="w-6 h-6 text-gray-700" />
             </button>

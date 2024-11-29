@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
 
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
-const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean }) => {
+const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
@@ -46,7 +46,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up }: { w
                     {ranking && (
                         <div className="absolute bottom-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
                             <div className="absolute inset-0 bg-transparent opacity-90"></div>
-                            <p className="relative text-6xl md:text-6xl font-bold text-white">
+                            <p className="relative text-7xl md:text-6xl font-bold text-white font-outline-1">
                                 {index}
                             </p>
                         </div>

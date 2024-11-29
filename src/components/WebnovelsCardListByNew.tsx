@@ -47,7 +47,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
 
         return (
             <WebnovelsCardList
-                title={phrase(dictionary, "popularWebnovels", language)}
+                title={phrase(dictionary, "newReleasesWebnovels", language)}
+                //New Releases
                 subtitle={phrase(dictionary, "more", language)}
                 webnovels={sortedWebnovels}
                 scrollRef={scrollRef}
@@ -59,6 +60,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
                         ranking={false} 
                         details={false}
                         up={false}
+                        isOriginal={false}
                     />
             )}
         />

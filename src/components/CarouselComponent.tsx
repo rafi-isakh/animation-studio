@@ -99,26 +99,28 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                         },
                         '& button:focus': {
                           color: 'white',
-                          backgroundColor: '#8A2BE2',
+                          backgroundColor: '#e5e7eb',
+                          // text-gray-200 #e5e7eb
+                          // gray-500 #6b7280
                         },
                         '& button:active': {
                           color: 'white',
-                          backgroundColor: '#8A2BE2',
+                          backgroundColor: '#e5e7eb',
                         },
                         '& button:hover': {
                           color: 'white',
-                          backgroundColor: '#8A2BE2',
+                          backgroundColor: '#e5e7eb',
                         },
                         '& .MuiTab-root': {
                           // padding: '0px 10px',
                           color: 'gray', // Default tab color
                           '&.Mui-selected': {
-                              backgroundColor: '#8A2BE2',
-                              color: 'white', // Color when tab is selected
+                              backgroundColor: '#e5e7eb',
+                              color: '#6b7280', // Color when tab is selected
                           },
                         },
                         '& .MuiTabs-indicator': {
-                          backgroundColor: '#8A2BE2', // Indicator color
+                          backgroundColor: '#e5e7eb', // Indicator color
                         }
                     }}
                    >
@@ -142,7 +144,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
           margin: 0,   // Remove all margin
         }}
         >
-          <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
+          <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={3} indicator={false} />
         </TabPanel>
 
         <TabPanel value="2">

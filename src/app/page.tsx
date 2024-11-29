@@ -6,13 +6,13 @@ import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
 import Promotion from '@/components/Promotion';
 import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
 import CarouselComponent from '@/components/CarouselComponent';
-
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 // import ThemeToggle from '@/components/ThemeToggle'   
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import WebnovelsCarousel from '@/components/WebnovelsCarousel';
+import GenresComponent from '@/components/GenresComponent';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
@@ -40,16 +40,19 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             {showPreloader && <Preloader />}    
           
             <ApplyCreatorBanner />
-            <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem]'>
-                <WebnovelsCarousel searchParams={searchParams} webnovel={webnovels} />
+            {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
+            <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem] px-4 md:px-0'>   
+                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} />
+
+                <GenresComponent />
+
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
          
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
               
-                <div className='w-full mx-auto '>
-                {/* <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} /> */}
+                <div className='w-full mx-auto'>
                 <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
               

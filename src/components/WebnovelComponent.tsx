@@ -34,7 +34,8 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
                 <div className="flex items-center w-full ">
                     {/* md:w-full md:h-[155px] */}
                     <div className="flex flex-row gap-4 items-center">
-                        <div className="relative w-20 h-28 md:w-40 md:h-52 flex-shrink-0"> {/* Add this wrapper div */}
+                        <div className="relative w-20 h-28 md:w-40 md:h-52 flex-shrink-0">
+                             {/* Add this wrapper div */}
                             <Image
                                 src={imageSrc}
                                 width={imageWidth}

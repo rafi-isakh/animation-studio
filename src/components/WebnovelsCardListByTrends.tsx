@@ -36,7 +36,7 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
 
     return (
         <WebnovelsCardList
-            title={webnovels.length > 0 ? phrase(dictionary, "newAndTrending", language) : "No new and trending novels available."}
+            title={webnovels.length > 0 ? phrase(dictionary, "newAndTrends", language) : "No new and trending novels available."}
             subtitle={phrase(dictionary, "more", language)}
             webnovels={webnovelsToShow as Webnovel[]}
             scrollRef={newAndTrendingRef}
@@ -47,7 +47,8 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
                     index={index + 1} 
                     ranking={true} 
                     details={true}
-                    up={true}
+                    up={false}
+                    isOriginal={false}
                 />
             )}
         />

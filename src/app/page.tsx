@@ -11,7 +11,6 @@ import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 // import ThemeToggle from '@/components/ThemeToggle'   
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import WebnovelsCarousel from '@/components/WebnovelsCarousel';
 import GenresComponent from '@/components/GenresComponent';
 
 async function getCarouselItems() {

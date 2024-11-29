@@ -29,16 +29,16 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
     }, [language, webnovel])
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id} block w-full`}>
-            <div className='flex items-center space-x-4 md:w-full w-50 border border-gray-100 dark:border-gray-700 p-4 text-sm overflow-x-auto'>
+        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+            <div className='flex justify-start items-center space-x-4 md:w-full w-50 border border-gray-100 dark:border-gray-700 p-4 text-sm overflow-x-auto'>
                 <div className="relative w-12 h-20 flex-shrink-0 rounded-md overflow-hidden ">     
                     {/* overflow-hidden  */}
                     {/* Add this wrapper div */}
                     <Image
                         src={imageSrc}
-                        width={imageWidth}
-                        height={imageHeight}
-                        // fill
+                        // width={imageWidth}
+                        // height={imageHeight}
+                        fill
                         alt={webnovel.cover_art}
                         className="object-cover"
                         placeholder="blur"
@@ -75,7 +75,7 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
                 <i className="fa-solid fa-eye mr-1"></i> {webnovel.views}
                 </span> */}
                   </div>
-                <div className="text-[10px]  md:text-xl text-gray-200 self-center justify-end">
+                <div className="text-[10px] md:text-xl text-gray-200 self-center justify-end">
                    <i className="fas fa-heart"></i>
                      {/* {webnovel.upvotes} */}
                 </div>

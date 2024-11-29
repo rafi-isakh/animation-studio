@@ -26,17 +26,44 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
-
+ 
 
     const settings = {
         dots: false,
         infinite: false,
         autoplay: false,
-        slidesToShow: 1,
+        slidesToShow: !isMobile ? 1 : 3,
         slidesToScroll: 1,
-        slidesPerRow: 3
+        rows: !isMobile ? 3 : 3,
+        slidesPerRow: !isMobile ? 3 : 1 ,
+        nextArrow: <SampleNextArrow />,
+        prevArrow: <SamplePrevArrow />
       };
 
+
+      function SampleNextArrow(props: any) {
+        const { className, style, onClick } = props;
+        return (
+                <button
+                    onClick={onClick}
+                    className='absolute md:-right-2 right-8 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block  bg-white/80 '
+                >
+                        <ChevronRight className="w-6 h-6 text-gray/80" />
+                </button>
+                                        
+        )
+    }
+    function SamplePrevArrow(props: any) {
+        const { className, style, onClick } = props;
+        return (
+                    <button 
+                        onClick={onClick}
+                        className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block  bg-white/80 "
+                    >
+                        <ChevronLeft className="w-6 h-6 text-gray/80" />
+                   </button>
+        );
+    }
 
     useEffect(() => {
         for (const novel of webnovels) {
@@ -73,20 +100,30 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                      { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
                     </span>
                 </h1>
-                <Slider {...settings}>
-                    {/* <div className="grid grid-cols-3 gap-1 w-full overflow-x-auto"> */}
-                        {columns.map((column, colIndex) => (
-                            <div key={colIndex} className="space-y-1">
-                                {column.map((item, rowIndex) => (
-                                    <div key={rowIndex} className='md:w-full w-[800px]'>
-                                        <WebnovelComponent webnovel={item} index={calculateIndex(rowIndex, colIndex, columns)} ranking={true} />
-                                    </div>
-                                ))}
-                            </div>
-                        ))}                                 
-                    {/* </div> */}
+                <Slider {...settings} className="custom-slider">
+                    {webnovelsToShow.map((webnovel, index) => (
+                        <div key={webnovel.id} className='w-full flex-nowrap shrink-0'>
+                            <WebnovelComponent webnovel={webnovel} index={index + 1} ranking={true} />
+                        </div>
+                    ))} 
                 </Slider>
-            
+                <style jsx global>
+                {`
+
+          
+                  .custom-slider {
+                     width: 100%;
+                     
+                     }
+
+                  .slide-content {
+                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+                  }
+
+
+              `}
+            </style>
         </div>
     )
 };

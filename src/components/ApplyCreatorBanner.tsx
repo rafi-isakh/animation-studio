@@ -28,7 +28,7 @@ const ApplyCreatorBanner = () => {
         <div className='relative bg-black w-full h-[3rem] mb-4 mt-0 z-10'> 
             <button 
                 onClick={handleCloseBanner}
-                className="absolute right-0 top-0 bg-white border-gray-200 border w-6 h-6 flex items-center justify-center">
+                className="absolute z-[99] right-0 top-0 bg-white border-gray-200 border w-5 h-5 flex items-center justify-center">
                  <X className="w-4 h-4 text-black" />
             </button>
 

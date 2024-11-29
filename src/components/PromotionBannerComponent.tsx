@@ -40,7 +40,7 @@ const PromotionBannerComponent = () => {
    return(
     <Link href='https://www.instagram.com/stelland_official/'>
       <div 
-        className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3'
+        className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3 '
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -73,7 +73,7 @@ const PromotionBannerComponent = () => {
 
   const ComponentTwo: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => (    
     <div 
-      className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3  pb-1'
+      className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3 pb-1'
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -156,7 +156,7 @@ const PromotionBannerComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className='dark:text-black self-center'>
+    <div className='dark:text-black self-center mr-2'>
       <SelectedComponent isHovered={isHovered} setIsHovered={setIsHovered} />
     </div>
   );

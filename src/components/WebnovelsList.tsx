@@ -105,7 +105,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
     return (
         <div className='relative w-full md:max-w-screen-xl mx-auto group'>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3 mr-2">
                     <span className='text-black dark:text-white'>
                      {/* Title  */}
                      { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }

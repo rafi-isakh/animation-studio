@@ -40,7 +40,7 @@ const PromotionBannerComponent = () => {
    return(
     <Link href='https://www.instagram.com/stelland_official/'>
       <div 
-        className='flex flex-row justify-center rounded-xl md:w-[1280px] sm:w-[100vw] w-[100vw] bg-pink-100 mx-auto gap-6 pt-3'
+        className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3'
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -54,7 +54,7 @@ const PromotionBannerComponent = () => {
             height={logoHeight}
             className=''
           />
-          <p>{phrase(dictionary, 'promotionInsta', language)}</p>
+          <p className='md:text-base text-[10px]'>{phrase(dictionary, 'promotionInsta', language)}</p>
         </div>
         <div className='md:p-0'>
           <Image 
@@ -73,7 +73,7 @@ const PromotionBannerComponent = () => {
 
   const ComponentTwo: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => (    
     <div 
-      className='flex flex-row justify-center rounded-xl md:w-[1280px] sm:w-[100vw] w-[100vw] bg-purple-100 mx-auto gap-6 pt-3  pb-1'
+      className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3  pb-1'
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -98,7 +98,7 @@ const PromotionBannerComponent = () => {
           height={logoHeight}
           className=''
         />
-        <p>{phrase(dictionary, 'promotionApplyAuthor', language)}</p>
+        <p className='md:text-base text-[10px]'>{phrase(dictionary, 'promotionApplyAuthor', language)}</p>
       </div>
     </div>
   );
@@ -107,7 +107,7 @@ const PromotionBannerComponent = () => {
     
     return (    
     <div 
-      className='flex flex-row justify-center rounded-xl md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3 pb-1'
+      className='flex flex-row justify-center rounded-md md:w-[1280px] sm:w-[100vw] w-[100vw] bg-gray-100 mx-auto gap-6 pt-3 pb-1'
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -127,11 +127,11 @@ const PromotionBannerComponent = () => {
 
         <div className='flex flex-row gap-4 justify-center md:p-0 md:pb-1 pb-2'>     {/* items-center */}
                
-            <button className='flex flex-row justify-center items-center gap-1 bg-white rounded-xl px-3 md:h-10 h-5 hover:bg-purple-100 md:text-base text-[10px]'>
+            <button className='flex flex-row justify-center items-center gap-1 bg-white rounded-md px-3 md:h-10 h-5 hover:bg-purple-100 md:text-base text-[10px]'>
                 <i className="fab fa-apple"></i> 
                   <span className='md:block hidden'> iOS </span> Download
                 </button>
-                <button className='flex flex-row justify-center items-center gap-1 bg-white rounded-xl px-3 md:h-10 h-5 hover:bg-purple-100 md:text-base text-[10px]'>
+                <button className='flex flex-row justify-center items-center gap-1 bg-white rounded-md px-3 md:h-10 h-5 hover:bg-purple-100 md:text-base text-[10px]'>
                    <i className="fab fa-android text-[12px]"></i>
                     <span className='md:block hidden'> Android </span> Download
             </button>

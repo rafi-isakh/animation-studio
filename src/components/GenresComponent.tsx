@@ -97,7 +97,7 @@ const GenresComponent = () => {
                                 href={getGenreUrl(genre)}
                                 className={`${highlightGenre(genre) ? "" : "text-gray-500"} flex flex-col items-center justify-center cursor-pointer w-full`}
                             >
-                                <div className='genre-icon flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-200 rounded-full hover:bg-pink-300 hover:text-white text-black dark:text-black'>
+                                <div className='genre-icon flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-200 rounded-full hover:bg-purple-100 hover:text-white text-black dark:text-black'>
                                     {genresIcon[index]}
                                 </div>
                                 <h6 className="genre-text flex justify-center tracking-tight keep-all mt-4 text-[12px] text-center">

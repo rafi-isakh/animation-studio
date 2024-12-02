@@ -64,12 +64,10 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                             <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500">
                                 {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
                             </p>
-                            <p className="flex flex-row justify-start font-bold">
-                                <span className="text-[10px] md:text-[12px] text-gray-500 dark:text-gray-500">
-                                    {phrase(dictionary, "totalchapters", language)} 
-                                    {webnovel.chapters.length} 
-                                    {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
-                                </span>
+                                {/* total chapters and num chapters */}
+                            <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
+                                <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
+                                <span>{phrase(dictionary, "numchapters", language)}</span>
                             </p>
                         </div>
                         

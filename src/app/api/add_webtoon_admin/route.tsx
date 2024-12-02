@@ -29,6 +29,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   const send_data = {
     user_email: email,
+    author: author,
     title: title,
     description: description,
     genre: genre,
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     cover_art: coverArt,
   };
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webtoon`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webtoon_admin`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -5,7 +5,7 @@ export default function NewWebtoon() {
     const [isLoading, setIsLoading] = useState(false)
     const addWebtoon = async (formData: FormData) => {
         setIsLoading(true)
-        const response = await fetch(`/api/add_webtoon`, {
+        const response = await fetch(`/api/add_webtoon_admin`, {
             method: "POST",
             body: formData
         })

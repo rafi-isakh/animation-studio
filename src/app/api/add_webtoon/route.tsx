@@ -19,6 +19,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const genre = formData.get('genre')
   const language = formData.get('language')
   const rootDirectory = formData.get('rootDirectory')
+  const author = formData.get('author')
+  const email = formData.get('email')
   const coverArt = "cover_art.jpg"
 
   if (!title || !description || !rootDirectory || !genre) {
@@ -26,7 +28,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   const send_data = {
-    user_email: session.user.email,
+    user_email: email,
     title: title,
     description: description,
     genre: genre,

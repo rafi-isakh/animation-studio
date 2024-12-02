@@ -34,30 +34,42 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
 
+    const largeGap = () => {
+        return (
+            <div className='md:h-[5rem] h-[3rem]' />
+        )
+    }
+
+    const smallGap = () => {
+        return (
+            <div className='md:h-[2rem] h-[1rem]' />
+        )
+    }
+
     return (
         <div>
-            {showPreloader && <Preloader />}    
-          
+            {showPreloader && <Preloader />}
+
             <ApplyCreatorBanner />
             {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
-            <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem] px-4 md:px-0'>   
+            <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>
                 <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} centerPadding='0px' />
-
+                {smallGap()}
                 <GenresComponent />
-
+                {smallGap()}
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                
+                {largeGap()}
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-              
+                {largeGap()}
                 <div className='w-full mx-auto'>
-                <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+                    <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
-         
-                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
-              
+                {largeGap()}
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {largeGap()}
                 <PromotionBannerComponent />
             </div>
-        
+
             <Footer />
             {/* Bookmark button : Only displys in mobile screen */}
             <BookmarkButton />

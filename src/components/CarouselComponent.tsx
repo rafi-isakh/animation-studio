@@ -150,11 +150,54 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 />
             </div>
         </TabPanel>
-
-        <TabPanel value="2">
+        <TabPanel value="2" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "bl")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
         </TabPanel>
-        
-        <TabPanel value="3">
+        <TabPanel value="3" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "fantasy")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+
+        <TabPanel value="4" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "romance")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+        <TabPanel value="5" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "sf")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
         </TabPanel>
       </TabContext>
     </div>

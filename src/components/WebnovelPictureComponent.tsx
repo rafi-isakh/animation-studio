@@ -33,7 +33,6 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                         alt={webnovel.cover_art}
                         width={180}
                         height={160}
-                        // fill
                         quality={85}
                         className="object-cover w-[100px] h-[150px] md:w-[180px] md:h-auto"
                         sizes="(max-width: 768px) 100px, 150px"

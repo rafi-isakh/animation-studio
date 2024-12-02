@@ -263,7 +263,6 @@ const CarouselComponentReactSlick = ({
                   .carousel-slide {
                       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
                       border-radius: 0.25rem;
-                      padding: 0 2px;
                    
                   }
 

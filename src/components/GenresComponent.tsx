@@ -6,48 +6,70 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getUrlWithParams } from '@/utils/stringUtils';
-// import ToonyzLogo from '@/public/toonyzLogo.png';
 import Image from 'next/image';
-import { Gem, Heart, Gift, Star, Clapperboard, CalendarDays } from 'lucide-react';
+import { CalendarDays, Gift, Clapperboard, Star } from 'lucide-react';
 
 const GenresComponent = () => {
     const { dictionary, language } = useLanguage();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+    const linkRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     useEffect(() => {
-        const adjustFontSize = () => {
-            linkRefs.current.forEach((link, index) => {
-                if (link) {
-                    const text = link.querySelector('h6');
-                    if (text) {
-                        let fontSize = 16; // Starting font size
-                        text.style.fontSize = `${fontSize -2}px`;
+        const adjustLayout = () => {
+            // Reset styles first
+            linkRefs.current.forEach(container => {
+                if (container) {
+                    const icon = container.querySelector('.genre-icon');
+                    const text = container.querySelector('.genre-text');
+                    if (icon && text) {
+                        icon.setAttribute('style', '');
+                        text.setAttribute('style', '');
+                    }
+                }
+            });
 
-                        while (text.scrollWidth > link.offsetWidth || text.scrollHeight > link.offsetHeight) {
-                            fontSize--;
-                            text.style.fontSize = `${fontSize}px`;
-                            if (fontSize <= 8) break; // Minimum font size
-                        }
+            // Find max height for icons and texts separately
+            const maxIconHeight = Math.max(...linkRefs.current.map(container => 
+                container?.querySelector('.genre-icon')?.getBoundingClientRect().height || 0
+            ));
+
+            const maxTextHeight = Math.max(...linkRefs.current.map(container => 
+                container?.querySelector('.genre-text')?.getBoundingClientRect().height || 0
+            ));
+
+            // Apply consistent heights
+            linkRefs.current.forEach(container => {
+                if (container) {
+                    const icon = container.querySelector('.genre-icon');
+                    const text = container.querySelector('.genre-text');
+                    if (icon && text) {
+                        icon.setAttribute('style', `height: ${maxIconHeight}px; min-height: ${maxIconHeight}px;`);
+                        text.setAttribute('style', `height: ${maxTextHeight}px; min-height: ${maxTextHeight}px;`);
                     }
                 }
             });
         };
 
-        adjustFontSize();
-        window.addEventListener('resize', adjustFontSize);
+        adjustLayout();
+        window.addEventListener('resize', adjustLayout);
 
-        return () => window.removeEventListener('resize', adjustFontSize);
+        return () => window.removeEventListener('resize', adjustLayout);
     }, [language]); // Re-run when language changes
 
     const capitalize = (word: string) => {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     }
 
-    const genres = ['all', 'toonyzOnly', 'event', 'toonyzCut', 'studio',];
-    const genresIcon = [<CalendarDays key="calendarDays" />, <Image src='/toonyzLogo.png' alt="Toonyz Logo" width={35} height={5} key="heart" />, <Gift key="gift" />, <Clapperboard key="clapperboard" />, <Star key="star" />,];
+    const genres = ['all', 'toonyzOnly', 'event', 'toonyzCut', 'studio'];
+    const genresIcon = [
+        <CalendarDays key="calendarDays" />, 
+        <Image src='/toonyzLogo.png' alt="Toonyz Logo" width={35} height={35} key="toonyzLogo" />, 
+        <Gift key="gift" />, 
+        <Clapperboard key="clapperboard" />, 
+        <Star key="star" />
+    ];
 
     const getGenreUrl = (genre: string) => {
         return getUrlWithParams('genre', genre, pathname, searchParams);
@@ -59,52 +81,34 @@ const GenresComponent = () => {
 
     return (
         <div className='flex flex-col w-full md:w-[1280px] justify-center items-center mx-auto'>
-        {/* <h1 className='font-extrabold text-xl md:text-xl text-left justify-start self-start mt-10 '>
-            {phrase(dictionary, "viewByGenre", language)}
-        </h1>
-         */}
-        <div className="w-full overflow-x-auto">   
-            <div className="flex flex-row w-full md:w-[1280px] px-4 justify-center items-center mx-auto gap-9">  
-                {genres.map((genre, index) =>  (
-                  <div key={index} className="flex flex-col justify-start items-center h-full">
-                     <div className='flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-200 rounded-full hover:bg-pink-300 hover:text-white text-black dark:text-black'>
-                      {/* Full rounded div */}
-                      {genresIcon[index]}
-                      </div>
-                      <Link
-                        href={getGenreUrl(genre)}
-                        className={`${highlightGenre(genre) ? "text-pink-300" : ""} flex flex-col items-center justify-center mt-4 cursor-pointer`}
-                        ref={el => {
-                            if (el) {
-                                linkRefs.current[index] = el;
-                            }
-                        }}
-                         >
-                        <h6 className="flex justify-center tracking-tight keep-all">
-                          {capitalize(phrase(dictionary, genre, language))}
-                        </h6>
-                    </Link>
-                 </div>
-                ))}
-
-                {/* <div className="flex flex-col justify-end items-center">
-                   <div className='flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-200 rounded-full hover:bg-pink-600 hover:text-white'>
-                       <Rocket />
-                    </div>  
-                    <Link
-                        href=''
-                        className={` flex flex-col items-center justify-center mt-4`}
+            <div className="w-full overflow-x-auto">   
+                <div className="flex flex-row w-full md:w-[1280px] h-full px-4 justify-center items-center mx-auto gap-9">  
+                    {genres.map((genre, index) =>  (
+                        <div 
+                            key={index} 
+                            className="flex flex-col justify-center items-center h-full"
+                            ref={el => {
+                                if (el) {
+                                    linkRefs.current[index] = el;
+                                }
+                            }}
+                        >
+                            <Link
+                                href={getGenreUrl(genre)}
+                                className={`${highlightGenre(genre) ? "" : "text-gray-500"} flex flex-col items-center justify-center cursor-pointer w-full`}
                             >
-                    <h6 className="flex justify-center tracking-tight hover:text-pink-600 keep-all">
-                        new
-                    </h6>
-                   </Link>
-                </div> */}
-
+                                <div className='genre-icon flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-200 rounded-full hover:bg-pink-300 hover:text-white text-black dark:text-black'>
+                                    {genresIcon[index]}
+                                </div>
+                                <h6 className="genre-text flex justify-center tracking-tight keep-all mt-4 text-[12px] text-center">
+                                    {capitalize(phrase(dictionary, genre, language))}
+                                </h6>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
             </div>
-
         </div>
-      </div>
     );
 };
 

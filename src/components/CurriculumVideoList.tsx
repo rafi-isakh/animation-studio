@@ -1,6 +1,6 @@
 'use client'
 import React, {useState, useRef} from 'react';
-import { WebtoonContent } from '@/components/Types';
+import { CurriculumContent } from '@/components/Types';
 import { VideoModal } from '@/components/VideoModal';
 import CurriculumCard from '@/components/CurriculumCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -8,7 +8,7 @@ import { scroll } from '@/utils/scroll'
  
 interface CurriculumVideoListProps {
     title: string;
-    contents: WebtoonContent[];
+    contents: CurriculumContent[];
     language: string;
     onVideoClick: (video: JSX.Element) => void;
     imageType: 'webtoon' | 'webnovel';

@@ -26,14 +26,17 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
             <div className="group relative flex flex-col items-center w-full">
                 {/* Image Container - Reduced sizes */}
-                <div className="relative shrink-0 w-[150px] h-[200px] md:w-[180px] md:h-[240px] overflow-hidden rounded-sm">
+                <div className="relative shrink-0 overflow-hidden rounded-sm h-full">
+                    {/*  w-[100px] h-[150px] md:w-[140px] md:h-[200px] */}
                     <Image
                         src={imageSrc}
                         alt={webnovel.cover_art}
-                        fill
+                        width={180}
+                        height={160}
+                        // fill
                         quality={85}
-                        className="object-cover"
-                        sizes="(max-width: 768px) 150px, 180px"
+                        className="object-cover w-[100px] h-[150px] md:w-[180px] md:h-auto"
+                        sizes="(max-width: 768px) 100px, 150px"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
@@ -44,9 +47,10 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                              </span>)}
                     {/* Ranking Number Overlay */}
                     {ranking && (
-                        <div className="absolute md:bottom-2 bottom-5 md:left-0 left-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+                        <div className="absolute md:bottom-3 bottom-5 md:-left-1 left-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
                             <div className="absolute inset-0 bg-transparent opacity-90"></div>
-                            <p className="relative text-7xl md:text-6xl font-bold text-white font-outline-1">
+                            <p className="relative italic text-6xl md:text-7xl font-extrabold text-white outlined-text">
+                                {/*  font-outline-2 */}
                                 {index}
                             </p>
                         </div>
@@ -54,7 +58,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                 </div>
 
                 {/* Text Content Container */}
-                <div className="mt-2 w-[150px] md:w-[180px]">
+                <div className="mt-2 w-full">
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
@@ -74,11 +78,11 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                         { details && (
                              // Total Chapters and Views
                              <div className="flex flex-row justify-center font-bold">
-                                <p className="text-[10px] md:text-[11px]  text-gray-500 dark:text-white">
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
                                     <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
                                     <span>{phrase(dictionary, "numchapters", language)}</span>
                                 </p>
-                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-white md:flex flex-row items-center ml-2 hidden gap-1 ">
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">
                                     <TrendingUp size={10} />
                                     <span> {webnovel.views} </span>
                                 </p>

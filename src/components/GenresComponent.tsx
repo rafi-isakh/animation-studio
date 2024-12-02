@@ -8,12 +8,12 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { getUrlWithParams } from '@/utils/stringUtils';
 import Image from 'next/image';
 import { CalendarDays, Gift, Clapperboard, Star } from 'lucide-react';
-
+import { useTheme } from '@/contexts/providers';
 const GenresComponent = () => {
     const { dictionary, language } = useLanguage();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-
+    const { theme } = useTheme()
     const linkRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     useEffect(() => {
@@ -65,7 +65,13 @@ const GenresComponent = () => {
     const genres = ['all', 'toonyzOnly', 'event', 'toonyzCut', 'studio'];
     const genresIcon = [
         <CalendarDays key="calendarDays" />, 
-        <Image src='/toonyzLogo.png' alt="Toonyz Logo" width={35} height={35} key="toonyzLogo" />, 
+        <Image 
+            src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'} 
+            alt="Toonyz Logo" 
+            width={40} 
+            height={40} 
+            key="toonyzLogo" 
+        />, 
         <Gift key="gift" />, 
         <Clapperboard key="clapperboard" />, 
         <Star key="star" />
@@ -80,9 +86,9 @@ const GenresComponent = () => {
     }
 
     return (
-        <div className='w-full h-full md:w-[1280px] mx-auto'>
+        <div className='w-full h-full md:max-w-screen-lg mx-auto'>
             <div className="overflow-x-auto">   
-                <div className="flex flex-row px-4 md:justify-center justify-start items-center mx-auto gap-9">  
+                <div className="flex flex-row px-6 md:justify-center justify-start items-center mx-auto gap-9">  
                     {genres.map((genre, index) =>  (
                         <div 
                             key={index} 
@@ -95,12 +101,19 @@ const GenresComponent = () => {
                         >
                             <Link
                                 href={getGenreUrl(genre)}
-                                className={`${highlightGenre(genre) ? "" : "text-gray-500"} flex flex-col items-center justify-center cursor-pointer w-full`}
-                            >
-                                <div className='genre-icon flex justify-center items-center w-[50px] h-[50px] md:w-[70px] md:h-[70px] bg-gray-200 rounded-full hover:bg-purple-100 hover:text-white text-black dark:text-black'>
+                                className={`${highlightGenre(genre) ? "" : "text-gray-500 dark:text-gray-400"} 
+                                    flex flex-col items-center justify-center cursor-pointer w-full
+                                `}
+                                >
+                                <div className="genre-icon flex justify-center items-center w-[50px] h-[50px] 
+                                  md:w-[90px] md:h-[90px] bg-gray-200 dark:bg-gray-500 rounded-full
+                                 hover:bg-purple-100 hover:text-white text-black dark:text-white
+                                 ">
                                     {genresIcon[index]}
                                 </div>
-                                <h6 className="genre-text flex justify-center tracking-tight keep-all mt-4 text-[12px] text-center">
+                                <h6 className="genre-text flex justify-center tracking-tight keep-all 
+                                    mt-4 md:text-md text-sm text-center w-full
+                                ">
                                     {capitalize(phrase(dictionary, genre, language))}
                                 </h6>
                             </Link>

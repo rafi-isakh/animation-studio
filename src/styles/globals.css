@@ -33,6 +33,14 @@
     -webkit-text-stroke: 4px black;
   }
 
+  .outlined-text {
+    text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
+  }
+
+  .outlined-text-white {
+    text-shadow: 2px 0 2px white, -2px 0 2px white, 0 2px 2px white, 0 -2px 2px white;
+  }
+
 }
 
 .button-style {

@@ -41,7 +41,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <ApplyCreatorBanner />
             {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
             <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem] px-4 md:px-0'>   
-                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} />
+                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} centerPadding='0px' />
 
                 <GenresComponent />
 

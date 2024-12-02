@@ -22,13 +22,15 @@ const CarouselComponentReactSlick = ({
     webnovels, 
     items,
     slidesToShow = 3,
-    indicator = true
+    indicator = true,
+    centerPadding = '0px'
 }: { searchParams: 
     { [key: string]: string | string[] | undefined }, 
     items: SlickCarouselItem[], 
     webnovels: Webnovel[], 
     slidesToShow: number,
-    indicator: boolean
+    indicator: boolean,
+    centerPadding: string
 }) => {
 
     const [key1, setKey1] = useState(0);
@@ -138,7 +140,7 @@ const CarouselComponentReactSlick = ({
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: '0px',
+        centerPadding: centerPadding,
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -165,14 +167,16 @@ const CarouselComponentReactSlick = ({
     };
 
     return (
-        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
-            <div className='flex flex-col relative'>
+        <div className={`slider-container max-w-screen-lg items-center mx-auto w-full group`}>
+            <div className='flex flex-col relative '>
                 <Slider {...settings}>
                     {items.map((item, index) => (
-                          <div key={index} className={`carousel-slide  ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto mr-2">
+                          <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
+                            <div className="relative aspect-[1/1] md:aspect-[1024/400] mx-auto">
+                            {/*  */}
                                 <Link href={getHref(index)}>
-                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px] ">
+                                  <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px] ">
+                                    {/* max-w-screen-lg */}
                                     <Image 
                                         className="object-cover object-center transition-all duration-300" 
                                         src={getLocalImageUrl(item.image)} 
@@ -252,14 +256,24 @@ const CarouselComponentReactSlick = ({
             </div>
             <style jsx global>
             {`
-    
+
+                  .slider-container  {
+                    
+                  }
                   .carousel-slide {
                       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
                       border-radius: 0.25rem;
+                      padding: 0 2px;
+                   
+                  }
+
+                  .slide-content {
+                    margin-left: 1rem;
                   }
 
                   .slide-content img {
                        border-radius: 0.25rem;
+                       margin-right: 1rem;
                   }
                    .active-slide img {
                        border-radius: 0.25rem !important;

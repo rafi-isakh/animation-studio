@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useMediaQuery } from '@mui/material';
 import { getColumnLayout, calculateIndex } from '@/utils/webnovelUtils';
 import { scroll } from '@/utils/scroll'
+import _ from 'lodash';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -26,16 +27,18 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
- 
+    const chunkedItems = _.chunk(webnovels, 3);
 
     const settings = {
         dots: false,
         infinite: false,
         autoplay: false,
-        slidesToShow: isMobile ? 1 : 1,
+        slidesToShow: 3,
         slidesToScroll: 1,
-        rows: isMobile ? 3 : 3,
-        slidesPerRow: isMobile ? 1 : 3,
+        rows: 1,
+        // slidesPerRow: 1,
+        // centerMode: true,
+        centerPadding: '0px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         responsive: [
@@ -44,8 +47,8 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
-                    rows: 3,
-                    slidesPerRow: 1
+                    rows: 1,
+                    // slidesPerRow: 2
                 }
             }
         ]
@@ -57,7 +60,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return (
                 <button
                     onClick={onClick}
-                    className='absolute md:-right-2 -right-5 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 '
+                    className='absolute md:-right-5 -right-6 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 '
                 >
                         <ChevronRight className="w-6 h-6 text-gray/80" />
                 </button>
@@ -69,7 +72,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return (
                     <button 
                         onClick={onClick}
-                        className="absolute md:left-8 left-1 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 "
+                        className="absolute md:left-5 left-3 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 "
                     >
                         <ChevronLeft className="w-6 h-6 text-gray/80" />
                    </button>
@@ -80,16 +83,16 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         for (const novel of webnovels) {
             novel.version = premium.includes(novel.id) ? "premium" : "free";
         }
-        const _webnovelsToShow = webnovels
-            .filter(item => filter_by_genre(item, genre))
-            .filter(item => filter_by_version(item, version))
-            .sort((a, b) => sortByFn(a, b, sortBy));
+        // const _webnovelsToShow = webnovels
+        //     .filter(item => filter_by_genre(item, genre))
+        //     .filter(item => filter_by_version(item, version))
+        //     .sort((a, b) => sortByFn(a, b, sortBy));
 
-        setWebnovelsToShow(_webnovelsToShow);
-        setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
-        const divider = Math.ceil(_webnovelsToShow.length / 3)
-        const _mobileGrid = `grid-cols-${divider.toString()}`
-        setMobileGrid(_mobileGrid)
+        // setWebnovelsToShow(_webnovelsToShow);
+        // setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
+        // const divider = Math.ceil(_webnovelsToShow.length / 3)
+        // const _mobileGrid = `grid-cols-${divider.toString()}`
+        // setMobileGrid(_mobileGrid)
     }, [version, genre, sortBy, webnovels]);
 
 
@@ -104,26 +107,41 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative w-full md:max-w-screen-xl mx-auto group'>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3 mr-2">
+        <div className='relative w-full md:max-w-screen-lg mx-auto group'>
+                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     <span className='text-black dark:text-white'>
                      {/* Title  */}
                      { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
                     </span>
                 </h1>
                 <Slider {...settings} className="custom-slider">
-                    {webnovelsToShow.map((webnovel, index) => (
-                        <div key={webnovel.id} className='w-full flex flex-nowrap shrink-0'>
-                            <WebnovelComponent webnovel={webnovel} index={index + 1} ranking={true} />
-                        </div>
-                    ))} 
+                {chunkedItems.map((chunk, chunkIndex) => (
+                    <div 
+                    key={chunkIndex} 
+                    className="grid grid-cols-3 gap-4"
+                    >
+                    {chunk.map((item, index) => (
+                        <div
+                        key={`${chunkIndex}-${index}`}
+                        className="bg-white dark:bg-black dark:text-white overflow-hidden border-gray-100 border-b dark:border-gray-700 flex flex-row items-center"
+                        >
+                         <WebnovelComponent 
+                             webnovel={item} 
+                             index={calculateIndex(index, chunkIndex, chunkedItems)} 
+                             ranking={true} 
+                             chunkIndex={chunkIndex}
+                         />
+                         </div> 
+                      ))}
+                      </div>
+                    ))}
                 </Slider>
                 <style jsx global>
                 {`
                   .custom-slider {
                      width: 100%;
-
-                     }
+                     gap: 10px;
+                   }
 
                  `}
             </style>

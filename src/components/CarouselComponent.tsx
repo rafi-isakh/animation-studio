@@ -70,7 +70,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
 
   return (
     <div 
-      className="relative max-w-screen-xl mx-auto overflow-hidden"
+      className="relative max-w-screen-lg mx-auto overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -138,13 +138,17 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             </div>
         </Box>
 
-        <TabPanel value="1"
-         sx={{
-          padding: 0,  // Remove all padding
-          margin: 0,   // Remove all margin
-        }}
-        >
-          <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={3} indicator={false} />
+        <TabPanel value="1" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
         </TabPanel>
 
         <TabPanel value="2">

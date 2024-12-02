@@ -52,12 +52,12 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
 
   return (
     <div 
-      className="relative max-w-screen-xl mx-auto h-[350px] overflow-hidden"
+      className="relative max-w-screen-lg mx-auto h-[350px] overflow-hidden"
       // max-w-screen-xl
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <h1 className='text-white text-xl font-bold max-w-screen-xl mx-auto mt-[10px] md:px-1 px-2'>
+      <h1 className='text-white text-xl font-bold max-w-screen-lg mx-auto mt-[10px] md:px-1 px-2'>
            {/* 오직 투니즈에서만! */}
            {phrase(dictionary, "onlyToonyz", language)}
       </h1>

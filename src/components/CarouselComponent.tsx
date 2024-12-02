@@ -8,6 +8,13 @@ import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import { Box } from "@mui/material";
+import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
+
 
 const CarouselComponent = ({ searchParams, webnovels, items }: { 
   searchParams: { [key: string]: string | string[] | undefined }, 
@@ -17,10 +24,10 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const { dictionary, language } = useLanguage();
-
   // Calculate the number of slides needed
   const totalSlides = Math.ceil(items.length / 3); // For larger screens
-  const totalMobileSlides = items.length; // For smaller screens
+  const totalMobileSlides = items.length; 
+  const [tabValue, setTabValue] = useState('1');
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -56,142 +63,143 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
     return items[currentIndex];
   };
 
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setTabValue(newValue);
+  };
+
+
   return (
     <div 
-      className="relative max-w-screen-xl mx-auto h-[410px] overflow-hidden"
+      className="relative max-w-screen-lg mx-auto overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-   
-      {/* Main carousel */}
-      <div 
-        className="flex transition-transform duration-500 ease-in-out h-full"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {/* Desktop view */}
-        <div className="hidden md:flex w-full">
-          {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-            <div 
-              key={slideIndex}
-              className="min-w-full h-[350px] flex gap-4 mt-[20px]" // image top margin px-4
-            >
-              {items.slice(slideIndex * 3, (slideIndex * 3) + 3).map((item, itemIndex) => (
-                <div 
-                  key={item.id}
-                  className="flex-1 relative rounded-xl overflow-hidden"
-                >
-                  <Image
-                    src={getLocalImageUrl(item.image)}
-                    fill
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                    alt={item.image}
-                    className="object-cover rounded-xl"
-                    priority={slideIndex === 0}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                    <h2 className="text-white dark:text-white text-lg font-bold">
-                      {/* {item.title} */}
-                     <OtherTranslateComponent
-                        key={`title-${item.id}-${language}`}
-                        content={item.title}
-                        elementId={item.id.toString()}
-                        classParams={`md:text-xl lg:text-xl text-sm !min-[400px]:text-[12px] font-extrabold text-white dark:text-white`}
-                        elementType={'carouselItem'}
-                        elementSubtype="title"
-                        showLoading={false}
-                    />
-                      </h2>
-                    <OtherTranslateComponent 
-                      key={`hook-${item.id}-${language}`}
-                      content={item.hook}
-                      elementId={item.id.toString()}
-                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-white`}
-                      elementType={'carouselItem'}
-                      elementSubtype="hook"
-                      showLoading={false}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+      <h1 className='flex flex-row justify-between text-xl font-extrabold mb-3'>
+         {/* Recommended Webnovels */}
+         {phrase(dictionary, "recommendedWebnovels", language)}
+      </h1>
 
-        {/* Mobile view */}
-        <div className="flex md:hidden w-full">
-          {Array.from({ length: totalMobileSlides }).map((_, slideIndex) => (
-            <div 
-              key={slideIndex}
-              className="min-w-full h-[350px] flex gap-4 px-4 mt-[20px]"
-            >
-              {items.slice(slideIndex, slideIndex + 1).map((item) => (
-                <div 
-                  key={item.id}
-                  className="flex-1 relative rounded-xl overflow-hidden"
-                >
-                  <Image
-                    src={getLocalImageUrl(item.image)}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                    alt={item.image}
-                    className="object-cover rounded-xl"
-                    priority={slideIndex === 0}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                    <h2 className="text-white dark:text-white text-lg font-bold">{item.title}</h2>
-                    <OtherTranslateComponent 
-                      key={`hook-${item.id}-${language}`}
-                      content={item.hook}
-                      elementId={item.id.toString()}
-                      classParams={`md:text-sm lg:text-sm !min-[400px]:text-[12px] text-white dark:text-white`}
-                      elementType={'carouselItem'}
-                      elementSubtype="hook"
-                      showLoading={false}
-                    />
-                  </div>
+      <TabContext value={tabValue} >
+        <Box sx={{ borderBottom: 0, borderColor: 'none' }}>
+            <div className="flex flex-row justify-between items-center">
+                <TabList 
+                    onChange={handleChange} 
+                    aria-label="lab API tabs"
+                    TabIndicatorProps={{
+                      style: {
+                        backgroundColor: 'transparent',
+                      },
+                    }}
+                    sx={{
+                        '& button': {
+                          margin: '0px 10px 0px 0px',
+                          borderRadius: '100px',
+                          minHeight: '25px', // Set your desired height here
+                          height: '25px', // Set your desired height here
+                        },
+                        '& button:focus': {
+                          color: 'white',
+                          backgroundColor: '#e5e7eb',
+                          // text-gray-200 #e5e7eb
+                          // gray-500 #6b7280
+                        },
+                        '& button:active': {
+                          color: 'white',
+                          backgroundColor: '#e5e7eb',
+                        },
+                        '& button:hover': {
+                          color: 'white',
+                          backgroundColor: '#e5e7eb',
+                        },
+                        '& .MuiTab-root': {
+                          // padding: '0px 10px',
+                          color: 'gray', // Default tab color
+                          '&.Mui-selected': {
+                              backgroundColor: '#e5e7eb',
+                              color: '#6b7280', // Color when tab is selected
+                          },
+                        },
+                        '& .MuiTabs-indicator': {
+                          backgroundColor: '#e5e7eb', // Indicator color
+                        }
+                    }}
+                   >
+                    <Tab label={phrase(dictionary, "all", language)} value="1"/>
+                    <Tab label={phrase(dictionary, "bl", language)} value="2" />
+                    <Tab label={phrase(dictionary, "fantasy", language)} value="3"  />
+                    <Tab label={phrase(dictionary, "romance", language)} value="4"  />
+                    <Tab label={phrase(dictionary, "sf", language)} value="5"  />
+                </TabList>
+                <div className='self-center text-sm md:block hidden'>
+                    {/* <button 
+                    className="bg-white text-black hover:text-[#8A2BE2] px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
+                    </button> */}
                 </div>
-              ))}
             </div>
-          ))}
-        </div>
-      </div>
+        </Box>
 
-     
-      {/* Indicators */}
-      <div className=''>
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-        {Array.from({ length: totalSlides }).map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              currentIndex === index ? 'bg-white w-6' : 'bg-white/50'
-            }`}
-          />
-        ))}
-      </div>
-  
-      <div className='absolute bottom-2 right-1 flex text-white text-[10px] font-bold'>
-        {/* <h1>
-          {phrase(dictionary, "onlyToonyz", language)}
-        </h1> */}
-        <div className="flex">
-          <button
-            onClick={handlePrev}
-            className="bg-black/50 p-2 rounded-full text-white hover:bg-black/70 transition-colors"
-          >
-            <ChevronLeft className="w-2 h-2" />
-          </button>
-          <button
-            onClick={handleNext}
-            className="bg-black/50 p-2 rounded-full text-white hover:bg-black/70 transition-colors"
-          >
-            <ChevronRight className="w-2 h-2" />
-          </button>
-        </div>
-      </div>
-      
-      </div>
+        <TabPanel value="1" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+        <TabPanel value="2" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "bl")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+        <TabPanel value="3" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "fantasy")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+
+        <TabPanel value="4" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "romance")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+        <TabPanel value="5" sx={{ padding: 0, margin: 0 }}>
+            <div className="h-[380px]">
+                <CarouselComponentReactSlick 
+                    items={items} 
+                    searchParams={searchParams} 
+                    webnovels={webnovels.filter(webnovel => webnovel.genre === "sf")} 
+                    slidesToShow={3} 
+                    indicator={false} 
+                    centerPadding='0px' 
+                />
+            </div>
+        </TabPanel>
+      </TabContext>
     </div>
   );
 };

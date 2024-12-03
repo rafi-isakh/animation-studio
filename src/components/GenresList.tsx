@@ -78,7 +78,7 @@ export default function GenresList() {
 
   return (
     // <div className={styles.container}>
-    <div className='relative max-w-screen-xl mx-auto px-4 mt-16 mb-20'>
+    <div className='relative max-w-screen-lg mx-auto px-4 mt-16 mb-20'>
         <div className={styles.projectContainer}>
             {
               projects.map((project, index) => {

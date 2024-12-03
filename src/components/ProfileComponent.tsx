@@ -34,7 +34,7 @@ import { createEmailHash } from '@/utils/cryptography';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
-import {  } from 'next/dist/lib/metadata/types/extra-types';
+
 
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
@@ -275,9 +275,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                       {phrase(dictionary, "author", language)}
                     </span>
                        {user.nickname} 
-                        <Button sx={{ border: 0, color: 'black', padding: 0, margin: 0,  minWidth: 0,  width: '5px' }} onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'> 
+                        <Link href="#" onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'> 
                             <Ellipsis size={18} /> 
-                        </Button> 
+                        </Link> 
                     </p>
                     {isUserDropdownOpen && (
                             <div id="user-dropdown" ref={userDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 -mt-2 ml-10 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-32 dark:divide-gray-600`}>
@@ -459,6 +459,8 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                             index={index} 
                                             ranking={false} 
                                             details={false}
+                                            up={false}
+                                            isOriginal={false}
                                         />
                                         )}
                                         />

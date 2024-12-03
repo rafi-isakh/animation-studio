@@ -10,7 +10,7 @@ import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
-const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, index: number, ranking: boolean }) => {
+const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel: Webnovel, index: number, ranking: boolean, chunkIndex: number }) => {
 
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -29,56 +29,54 @@ const WebnovelComponent = ({ webnovel, index, ranking }: { webnovel: Webnovel, i
     }, [language, webnovel])
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`}>
-            <div className='border border-gray-100 dark:border-gray-700 rounded'>
-                <div className="flex items-center w-full ">
-                    {/* md:w-full md:h-[155px] */}
-                    <div className="flex flex-row gap-4 items-center">
-                        <div className="relative w-20 h-28 md:w-40 md:h-52 flex-shrink-0"> {/* Add this wrapper div */}
-                            <Image
-                                src={imageSrc}
-                                width={imageWidth}
-                                height={imageHeight}
-                                alt={webnovel.cover_art}
-                                className="w-full h-full object-cover rounded-lg"
-                                placeholder="blur"
-                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                            />
-                            <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-500 px-1 py-1">
-                                NEW
-                            </span>
-                        </div>
-
-                        {ranking && <p className={`text-3xl md:text-2xl`}>{index}</p>}
-                        <div className="mt-1">
-                            {/* Genre */}
-                            <OtherTranslateComponent
-                                key={key}
-                                content={webnovel.title}
-                                elementId={webnovel.id.toString()}
-                                elementType='webnovel'
-                                elementSubtype="title"
-                                classParams="text-md md:text-lg w-64 md:max-w-32 lg:max-w-48 break-words"
-                            />
-                            <div className="flex flex-col">
-                                <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500">
-                                    {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
-                                </p>
-                                <p className="flex flex-row justify-start font-bold">
-                                    <span className="text-[10px] md:text-[12px] text-black">
-                                        {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}
-                                    </span>
-                                    <span className="text-[10px]  md:text-[12px]  text-black ml-2">
-                                        <i className="fa-regular fa-heart mr-1"></i> {webnovel.upvotes}
-                                    </span>
-                                </p>
-                            </div>
-                            {/* <span className="text-[10px] text-black ml-2">
-                        <i className="fa-solid fa-eye mr-1"></i> {webnovel.views}
-                       </span> */}
-
-                        </div>
+        <Link href={`/view_webnovels?id=${webnovel.id}`}  className="w-full">
+            <div className='flex flex-shrink-0 flex-nowrap justify-start items-start space-x-4 w-full  p-4 text-sm'>
+                <div className="relative w-[45px] md:w-[45px] h-[60px] md:h-[60px] flex-shrink-0 rounded-sm overflow-hidden">     
+                    <Image
+                        src={imageSrc}
+                        // width={imageWidth}
+                        // height={imageHeight}
+                        fill
+                        alt={webnovel.cover_art}
+                        className="object-cover"
+                        placeholder="blur"
+                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                    />
+                    {/* <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-500 px-1 py-1">
+                        NEW
+                    </span> */}
                     </div>
+
+                   {ranking && <p className={`text-xl md:text-2xl self-center p-3`}>{index}</p>}
+                   {/* {chunkIndex * 3 + index + 1} */}
+
+                    <div className="flex-grow overflow-hidden">
+                    {/* Genre */}
+                        <OtherTranslateComponent
+                            key={key}
+                            content={webnovel.title}
+                            elementId={webnovel.id.toString()}
+                            elementType='webnovel'
+                            elementSubtype="title"
+                            classParams={language === 'ko' ? "text-md md:text-lg w-full break-words" : "text-md md:text-md w-full break-words"}
+                        />
+                        <div className="flex flex-col">
+                            <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500">
+                                {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
+                            </p>
+                                {/* total chapters and num chapters */}
+                            <p className="text-[10px] md:text-[11px] text-gray-500 font-bold dark:text-gray-500 ">
+                                <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
+                                <span>{phrase(dictionary, "numchapters", language)}</span>
+                            </p>
+                        </div>
+                        
+                  </div>
+                <div className="text-[10px] md:text-xl text-gray-200 dark:text-gray-500 self-center">
+                    <i className="fas fa-heart"></i>
+                    <p className="block text-[10px] text-black dark:text-gray-500 text-center -mt-2">
+                        {webnovel.upvotes}
+                    </p>
                 </div>
             </div>
         </Link >

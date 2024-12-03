@@ -5,7 +5,7 @@ import { phrase } from "@/utils/phrases";
 const News = () => {
     const {language, dictionary} = useLanguage();
     return (
-        <div className="max-w-screen-xl flex mx-auto justify-center">
+        <div className="max-w-screen-lg flex mx-auto justify-center">
             {phrase(dictionary, "preparing", language)}
         </div>
     )

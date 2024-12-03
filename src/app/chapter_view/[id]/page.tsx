@@ -166,7 +166,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }
 
     useEffect(() => {
-        const _screenWidth = scrollType === 'horizontal' ? 'max-w-screen-xl' : 'max-w-screen-sm';
+        const _screenWidth = scrollType === 'horizontal' ? 'max-w-screen-lg' : 'max-w-screen-sm';
         setScreenWidth(_screenWidth);
     }, [scrollType])
 

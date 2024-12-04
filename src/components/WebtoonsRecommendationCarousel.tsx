@@ -134,7 +134,7 @@ const WebtoonsRecommendationCarousel = () => {
     >
       <h1 className='flex flex-row justify-between text-xl font-extrabold mb-3'>
          {/* Recommended Webnovels */}
-         {phrase(dictionary, "recommendedWebnovels", language)}
+         {phrase(dictionary, "recommendedWebtoons", language)}
       </h1>
 
       <TabContext value={tabValue} >

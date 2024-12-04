@@ -155,28 +155,29 @@ const CarouselComponentSquareStyle: React.FC<CarouselProps> = ({
           disabled={isTransitioning}
           className="
             absolute left-0 top-1/2 transform -translate-y-1/2 
-            z-20 bg-black/50 hover:bg-black/70 
+            z-20 bg-transparent 
             rounded-full p-2 m-4 
             opacity-0 group-hover:opacity-100 
             transition-all duration-300
-            disabled:opacity-30
+            disabled:opacity-30 
           "
         >
-          <ChevronLeft className="text-white" size={32} />
+          {/* w-6 h-6 */}
+          <ChevronLeft className="text-white" size={24} />
         </button>
         <button
           onClick={nextSlide}
           disabled={isTransitioning}
           className="
             absolute right-0 top-1/2 transform -translate-y-1/2 
-            z-20 bg-black/50 hover:bg-black/70 
+            z-20 bg-transparent 
             rounded-full p-2 m-4 
             opacity-0 group-hover:opacity-100 
             transition-all duration-300
             disabled:opacity-30
           "
         >
-          <ChevronRight className="text-white" size={32} />
+          <ChevronRight className="text-white" size={24} />
         </button>
 
         {/* Carousel Container */}

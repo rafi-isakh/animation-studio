@@ -25,7 +25,7 @@ const Library = () => {
     }, [email])
 
     return (
-        <div className="max-w-screen-xl flex mx-auto justify-center">
+        <div className="max-w-screen-lg flex mx-auto justify-center">
             <LibraryComponent library={library}/>
         </div>
     )

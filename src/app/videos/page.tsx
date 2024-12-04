@@ -30,7 +30,7 @@ export default function Videos() {
     return (
         <div className="flex flex-col items-center justify-center">
                 <Billboard />
-                <div className="md:max-w-screen-xl max-w-[360px] mx-auto overflow-x-auto">
+                <div className="md:max-w-screen-lg max-w-[360px] mx-auto overflow-x-auto">
                     <CurriculumVideoList 
                         title={phrase(dictionary, "webtoonCurriculum", language)} 
                         contents={webtoonContents}
@@ -41,7 +41,7 @@ export default function Videos() {
                         }}  
                     />
                  </div>
-                <div className="md:max-w-screen-xl max-w-[360px] mx-auto overflow-x-auto pb-40">
+                <div className="md:max-w-screen-lg max-w-[360px] mx-auto overflow-x-auto pb-40">
                     <CurriculumVideoList 
                         title={phrase(dictionary, "webnovelCurriculum", language)} 
                         contents={webnovelContents}

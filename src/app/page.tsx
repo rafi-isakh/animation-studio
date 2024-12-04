@@ -6,12 +6,13 @@ import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
 import Promotion from '@/components/Promotion';
 import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
 import CarouselComponent from '@/components/CarouselComponent';
-
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 // import ThemeToggle from '@/components/ThemeToggle'   
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
+import GenresComponent from '@/components/GenresComponent';
+
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
     const data = await response.json()
@@ -33,29 +34,42 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
 
+    const largeGap = () => {
+        return (
+            <div className='md:h-[5rem] h-[3rem]' />
+        )
+    }
+
+    const smallGap = () => {
+        return (
+            <div className='md:h-[2rem] h-[1rem]' />
+        )
+    }
+
     return (
         <div>
-            {showPreloader && <Preloader />}    
-          
+            {showPreloader && <Preloader />}
+
             <ApplyCreatorBanner />
-            <div className='flex flex-col md:justify-start md:items-start md:gap-[5rem] gap-[3rem]'>
-
-
-                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-             
+            {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
+            <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>
+                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} centerPadding='0px' />
+                {smallGap()}
+                <GenresComponent />
+                {smallGap()}
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                
+                {largeGap()}
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-         
-                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
-              
-                <div className='bg-black w-full mx-auto '>
+                {largeGap()}
+                <div className='w-full mx-auto'>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
-              
+                {largeGap()}
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {largeGap()}
                 <PromotionBannerComponent />
             </div>
-        
+
             <Footer />
             {/* Bookmark button : Only displys in mobile screen */}
             <BookmarkButton />

@@ -114,7 +114,7 @@ free,자유연재,自由連載,Free
 premium,프리미엄,プレミアム,Premium
 pleaseLogin,로그인해 주세요.,ログインしてください。,Please login.
 error,일시적인 오류입니다. 잠시 후에 다시 시도해주세요.,一時的なエラーです。しばらくしてから再度お試しください。,Temporary error. Please try again in a short while.
-newAndTrending,최신 및 인기작,最新と人気の作品,New and Trending
+newAndTrends,최신 및 인기작,最新と人気の作品,New and Trends
 romanticComedy,로맨스 코미디,ロマンスコメディ,Romantic Comedy
 romanceFantasy,로맨스 판타지,ロマンスファンタジー,Romance Fantasy
 drama,드라마,ドラマ,Drama
@@ -164,9 +164,10 @@ noPopularSearch,인기 검색어가 없습니다.,,No popular search
 searchTurnOff,최근 검색어 끄기,,Turn off search history
 searchTurnOn,최근 검색어 켜기,,Turn on search history
 searchPlaceholder,검색어를 입력해주세요.,,Search title, author, or keyword
-popularWebnovels,실시간 인기작 추천,,Popular Webnovels
+popularWebnovels,인기작 추천,,Popular Webnovels
+newReleasesWebnovels,투니즈 최신작,,New Releases
 more,더 보기,,More
-onlyToonyz,오직 투니즈에서만!,,Only Toonyz,
+toonyzHot,투니즈 핫,,Hot on Toonyz,
 currentPromotion,진행중인 이벤트,,Current Event
 ranking,투니즈 인기작,Toonyz's Top Series
 promotionInsta,인스타그램 팔로우하고 선물 받자!,,Follow our Instagram and receive gifts!
@@ -188,10 +189,10 @@ Billboard_subheader,Your Favorite Story Universe Toonyz,,Your Favorite Story Uni
 episodes,에피소드,,Episodes
 start_to_read_episode_1,첫화 부터 보기,,Start To Read First Episode
 readingForFree,무료,,Free
+recommendedWebnovels,추천 웹소설,,Recommended Webnovels
 toonyzOnly,오리지널,,Toonyz Only
 event,이벤트,,Event
 toonyzCut,투니즈컷,,Toonyz Cut
 sort_latest,최신 순,,Sort Latest
 sort_oldest,오래된 순,,Sort Oldest
 youMightLikeThis,이런 작품 어떠세요?,,You might like this
-custom_signin,이메일로 로그인,,Sign in with Email

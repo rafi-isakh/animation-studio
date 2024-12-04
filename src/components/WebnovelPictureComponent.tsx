@@ -10,10 +10,9 @@ import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
 import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
 
-
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
-const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean }) => {
+const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const [key, setKey] = useState(0);
     const { language, dictionary } = useLanguage();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
@@ -23,41 +22,42 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webno
         setKey(prevKey => prevKey + 1)
     }, [language, webnovel])
 
-
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
-            <div className="group relative flex flex-col items-center w-[100px] md:w-[240px]">
-                {/* Image Container */}
-                <div className="relative shrink-0 w-[83px] h-[135px] md:w-[240px] md:h-[380px] md:aspect-[3/4] overflow-hidden rounded-xl">
+            <div className="group relative flex flex-col items-center w-full">
+                {/* Image Container - Reduced sizes */}
+                <div className="relative shrink-0 overflow-hidden rounded-sm h-full">
+                    {/*  w-[100px] h-[150px] md:w-[140px] md:h-[200px] */}
                     <Image
                         src={imageSrc}
                         alt={webnovel.cover_art}
-                        fill
+                        width={180}
+                        height={160}
                         quality={85}
-                        className="object-cover"
-                        sizes="(max-width: 768px) 83px, 240px"
+                        className="object-cover w-[100px] h-[150px] md:w-[180px] md:h-auto"
+                        sizes="(max-width: 768px) 100px, 150px"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
 
-                      {/* UP Badge */}
-                      <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
-                        UP
-                    </span>
+                    {/* UP Badge */}
+                    { up && ( <span className="absolute top-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+                                   UP
+                             </span>)}
                     {/* Ranking Number Overlay */}
                     {ranking && (
-                        <div className="absolute top-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-800 opacity-90"></div>
-                            <p className="relative text-xl md:text-3xl font-bold text-white">
+                        <div className="absolute md:bottom-3 bottom-5 md:-left-1 left-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-transparent opacity-90"></div>
+                            <p className="relative italic text-6xl md:text-7xl font-extrabold text-white outlined-text">
+                                {/*  font-outline-2 */}
                                 {index}
                             </p>
                         </div>
                     )}
-
                 </div>
 
                 {/* Text Content Container */}
-                <div className="mt-2">
+                <div className="mt-2 w-full">
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
@@ -66,9 +66,9 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webno
                             elementId={webnovel.id.toString()}
                             elementType="webnovel"
                             elementSubtype="title"
-                            classParams="text-[12px] md:text-base font-medium line-clamp-2 w-full"
+                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-full"
                         />
-                        <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
+                        <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                             {webnovel.user.nickname} 
                             <span className="hidden md:block"> • </span>
                             <span className="">{phrase(dictionary, webnovel.genre, language)}</span>                   
@@ -77,22 +77,16 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details }: { webno
                         { details && (
                              // Total Chapters and Views
                              <div className="flex flex-row justify-center font-bold">
-                                <p className="text-[10px] md:text-[12px]  text-black dark:text-white">
-                                   
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
                                     <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
-                                    
-                                    <span>{phrase(dictionary, "numchapters", language)} {/* 총 x 화 */}</span>
+                                    <span>{phrase(dictionary, "numchapters", language)}</span>
                                 </p>
-                                <p className="text-[10px] md:text-[12px] text-black dark:text-white md:flex flex-row items-center ml-2 hidden gap-1 ">
-                                    {/* icon and text between gap-1 */}
-                                    {/* <i className="fa-solid fa-eye mr-1"></i>  */}
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">
                                     <TrendingUp size={10} />
                                     <span> {webnovel.views} </span>
                                 </p>
                              </div>
                           )}
-
-
                     </div>
                 </div>
             </div>

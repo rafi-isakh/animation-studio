@@ -119,7 +119,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     } else if (atLeastOneWebnovel) {
         return (
             <ThemeProvider theme={grayTheme}>
-                <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
+                <div className='max-w-screen-lg flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
 
                     {/*--  left-hand side:  Author's other works link */}
                    <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>

@@ -110,8 +110,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         <div className='relative w-full md:max-w-screen-lg mx-auto group'>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     <span className='text-black dark:text-white'>
-                     {/* Title  */}
-                     { language === 'ko' ? <>{phrase(dictionary, "onlyToonyz", language)}</> : "Toonyz Original" }
+                     {phrase(dictionary, "toonyzHot", language)}
                     </span>
                 </h1>
                 <Slider {...settings} className="custom-slider">

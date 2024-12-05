@@ -9,12 +9,14 @@ interface WebtoonsCardListProps {
     webtoons: Webtoon[];
     titleVar: string;
     detail: boolean;
+    ranking: boolean;
 }
 
 const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
     webtoons,
     titleVar,
-    detail
+    detail,
+    ranking
 }) => {
 
     const coverArts: string[] = await Promise.all(webtoons.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
@@ -33,7 +35,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
                                 key={item.id || index}
                                 className="w-[calc(16.666%-1rem)] flex-grow-0 flex-shrink-0"
                             >
-                                <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} />
+                                <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} ranking={ranking} index={index + 1} />
                             </div>
                         ))}
                     </div>
@@ -42,7 +44,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
                     <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-4">
                         {webtoons.map((item, index) => (
                             <div key={item.id || index} className="flex-none">
-                                <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} />
+                                <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} ranking={ranking} index={index + 1} />
                             </div>
                         ))}
                     </div>

@@ -32,18 +32,17 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                         src={imageSrc}
                         alt={webnovel.cover_art}
                         width={180}
-                        height={160}
+                        height={257}
                         quality={85}
-                        className="object-cover w-[100px] h-[150px] md:w-[180px] md:h-auto"
-                        sizes="(max-width: 768px) 100px, 150px"
+                        className="object-cover w-[100px] h-[143px] md:w-[180px] md:h-[257px]"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
 
                     {/* UP Badge */}
-                    { up && ( <span className="absolute top-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
-                                   UP
-                             </span>)}
+                    {up && (<span className="absolute top-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+                        UP
+                    </span>)}
                     {/* Ranking Number Overlay */}
                     {ranking && (
                         <div className="absolute md:bottom-3 bottom-5 md:-left-1 left-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
@@ -69,14 +68,14 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                             classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-full"
                         />
                         <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                            {webnovel.user.nickname} 
+                            {webnovel.user.nickname}
                             <span className="hidden md:block"> • </span>
-                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>                   
+                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>
 
-                        { details && (
-                             // Total Chapters and Views
-                             <div className="flex flex-row justify-center font-bold">
+                        {details && (
+                            // Total Chapters and Views
+                            <div className="flex flex-row justify-center font-bold">
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
                                     <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
                                     <span>{phrase(dictionary, "numchapters", language)}</span>
@@ -85,8 +84,8 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                                     <TrendingUp size={10} />
                                     <span> {webnovel.views} </span>
                                 </p>
-                             </div>
-                          )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

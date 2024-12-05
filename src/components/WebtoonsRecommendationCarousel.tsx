@@ -20,7 +20,6 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
   const { dictionary, language } = useLanguage();
   const [tabValue, setTabValue] = useState('1');
   const isMediumScreen = useMediaQuery('(min-width:768px)')
-  console.log(carouselItems)
 
   const settings = {
     dots: false,

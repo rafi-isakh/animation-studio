@@ -20,7 +20,6 @@ export default async function WebtoonPage({ params }: { params: { slug: string }
     return (
         <div key={`webtoon-${params.slug}`} className="w-full min-h-screen max-w-screen-xl mx-auto">
              <WebtoonInfoAndPictureComponent webtoon={webtoon} coverArt={coverArt} />
-    
              <WebtoonChapterListComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} />
         </div>
     );

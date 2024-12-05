@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { Webtoon } from "@/components/Types";
 
-export default function WebtoonsCardComponent({ webtoon, coverArt, detail }: { webtoon: Webtoon, coverArt: string, detail: boolean }) {
+export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranking, index }: { webtoon: Webtoon, coverArt: string, detail: boolean, ranking: boolean, index: number }) {
 
     const { language } = useLanguage();
     const [key, setKey] = useState<number>(0);
@@ -19,15 +19,36 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail }: { w
     }, [language]);
 
     return (
-        <div className="flex flex-col">
+        <div className="group relative flex flex-col items-center w-full">
+            <div className="relative shrink-0 overflow-hidden rounded-sm h-full">
             <Link href={`/webtoons/${webtoon.id}`}>
-                <Image
+                {/* <Image
                     src={coverArt}
                     alt={webtoon.title}
                     width={160}
                     height={225}
-                    className="w-[160px] rounded-md h-[225px] md:w-[160px] md:h-[225px]" />
+                    className="w-[160px] rounded-md h-[225px] md:w-[160px] md:h-[225px]" /> */}
+                <Image
+                    src={coverArt}
+                    alt={webtoon.title}
+                    width={180}
+                    height={257}
+                    quality={85}
+                    className="object-cover w-[100px] h-[143px] md:w-[180px] md:h-[257px]"
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                />
             </Link>
+                {ranking && (
+                    <div className="absolute md:bottom-3 bottom-5 md:-left-1 left-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-transparent opacity-90"></div>
+                        <p className="relative italic text-6xl md:text-7xl font-extrabold text-white outlined-text">
+                            {/*  font-outline-2 */}
+                            {index}
+                        </p>
+                    </div>
+                )}
+            </div>
             <div className="flex-grow overflow-hidden">
                 <div className="mt-2 w-full">
                     <div className="flex flex-col items-center text-center">

@@ -46,9 +46,9 @@ const Webtoons = async () => {
                     <GenresComponent />
                     {smallGap()}
                 </div>
-                <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} detail={false}/>
+                <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} detail={false} ranking={false}/>
                 {largeGap()}
-                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} detail={true}/>
+                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} detail={true} ranking={true}/>
                 {largeGap()}
                 <WebtoonsRecommendationCarousel carouselItems={carouselItems} />
                 {largeGap()}

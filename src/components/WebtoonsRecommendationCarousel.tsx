@@ -3,10 +3,6 @@ import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getLocalImageUrl } from '@/utils/urls';
-import { SlickCarouselItem } from '@/components/Types';
-import { Webtoon } from '@/components/Types';
 
 import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
@@ -18,11 +14,13 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box, useMediaQuery } from "@mui/material";
 
+import { SlickCarouselItem } from '@/components/Types';
 
-const WebtoonsRecommendationCarousel = () => {
+const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: SlickCarouselItem[] }) => {
   const { dictionary, language } = useLanguage();
   const [tabValue, setTabValue] = useState('1');
   const isMediumScreen = useMediaQuery('(min-width:768px)')
+  console.log(carouselItems)
 
   const settings = {
     dots: false,
@@ -82,50 +80,6 @@ const WebtoonsRecommendationCarousel = () => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
-
-  const carouselItems = [
-    {
-      id: '1',
-      link: '/webtoons/3',
-      title: '도사님이 오셨습니다',
-      imageUrl: '/carousel/webtoons/carousel_1.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_1_mobile.png',
-      description: '도사님과의 스윗한 사랑 이야기!',
-      genres: 'fantasy',
-      tags: ['Ongoing', 'Free']
-    },
-    {
-      id: '2', 
-      link: '/webtoons/4',
-      title: '대표님 안되요',
-      imageUrl: '/carousel/webtoons/carousel_2.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_2_mobile.png',
-      description: '대표님과 금기적인 오피스 로맨스',
-      genres: 'Romance',
-      tags: ['Office love', 'Comedy']
-    },
-    {
-      id: '3',
-      link: '/webtoons/5',
-      title: '대표님이 사랑한 두명의 나',
-      imageUrl: '/carousel/webtoons/carousel_3.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_3_mobile.png',
-      description: '두명의 나와 대표님과의 러브 스토리',
-      genres: 'Romance',
-      tags: ['Ongoing', 'lovely']
-    },
-    {
-      id: '4',
-      link: '/webtoons/6',
-      title: 'Attaque',
-      imageUrl: '/carousel/webtoons/carousel_4.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_4_mobile.png',
-      description: '큐트 러블리 커플의 로맨틱 코미디',
-      genres: 'Romance',
-      tags: ['Free', 'Comedy']
-    }
-  ];
-
 
 
   return (
@@ -201,17 +155,16 @@ const WebtoonsRecommendationCarousel = () => {
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
                     <Image
-                      src={item.imageUrl_mobile}
+                      src={item.image_mobile}
                       alt={item.title}
-                      sizes="100vw"
                       layout="fill"
                       className="rounded-md w-full h-full overflow-hidden object-cover"
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
-                      <p className="text-sm">{item.description}</p>
+                      <p className="text-sm">{item.hook}</p>
                       <div className="flex mt-2">
-                        {item.tags.map((tag, index) => (
+                        {item.parsed_tags.map((tag, index) => (
                           <span key={index} className="bg-white/20 text-xs px-2 py-1 rounded-full mr-2">
                             {tag}
                           </span>
@@ -231,7 +184,7 @@ const WebtoonsRecommendationCarousel = () => {
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
                     <Image
-                      src={item.imageUrl_mobile}
+                      src={item.image_mobile}
                       alt={item.title}
                       sizes="100vw"
                       layout="fill"
@@ -239,9 +192,9 @@ const WebtoonsRecommendationCarousel = () => {
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
-                      <p className="text-sm">{item.description}</p>
+                      <p className="text-sm">{item.hook}</p>
                       <div className="flex mt-2">
-                        {item.tags.map((tag, index) => (
+                        {item.parsed_tags.map((tag, index) => (
                           <span key={index} className="bg-white/20 text-xs px-2 py-1 rounded-full mr-2">
                             {tag}
                           </span>
@@ -261,7 +214,7 @@ const WebtoonsRecommendationCarousel = () => {
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
                     <Image
-                      src={item.imageUrl_mobile}
+                      src={item.image_mobile}
                       alt={item.title}
                       sizes="100vw"
                       layout="fill"
@@ -269,9 +222,9 @@ const WebtoonsRecommendationCarousel = () => {
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
-                      <p className="text-sm">{item.description}</p>
+                      <p className="text-sm">{item.hook}</p>
                       <div className="flex mt-2">
-                        {item.tags.map((tag, index) => (
+                        {item.parsed_tags.map((tag, index) => (
                           <span key={index} className="bg-white/20 text-xs px-2 py-1 rounded-full mr-2">
                             {tag}
                           </span>

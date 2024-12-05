@@ -1,4 +1,5 @@
-import { getImageDimensions, getSignedUrlForWebtoonImage, listObjectsInWebtoonsDirectory } from "@/utils/s3"
+import { getSignedUrlForWebtoonImage, listObjectsInWebtoonsDirectory } from "@/utils/s3"
+import { getImageDimensions } from "@/utils/imageDimensions"
 import WebtoonImageComponent from "@/components/WebtoonImageComponent"
 
 interface WebtoonImage {

@@ -1,55 +1,13 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import CarouselComponentSquareStyle from '@/components/CarouselComponentSquareStyle';
-import { Webtoon } from '@/components/Types';
+import { SlickCarouselItem, Webtoon } from '@/components/Types';
 
-const WebtoonsCarousel: React.FC<{ webtoons: Webtoon[] }> = ({ webtoons }) => {  const [isMobile, setIsMobile] = useState(false)
+const WebtoonsCarousel: React.FC<{ webtoons: Webtoon[], carouselItems: SlickCarouselItem[] }> = ({ webtoons, carouselItems }) => {
+  const [isMobile, setIsMobile] = useState(false)
 
-  const carouselItems = [
-    {
-      id: '1',
-      link: '/webtoons/3',
-      title: '도사님이 오셨습니다',
-      imageUrl: '/carousel/webtoons/carousel_1.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_1_mobile.png',
-      description: '도사님과의 스윗한 사랑 이야기!',
-      genres: 'fantasy',
-      tags: ['Ongoing', 'Free']
-    },
-    {
-      id: '2', 
-      link: '/webtoons/4',
-      title: '대표님 안되요',
-      imageUrl: '/carousel/webtoons/carousel_2.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_2_mobile.png',
-      description: '대표님과 금기적인 오피스 로맨스',
-      genres: 'Romance',
-      tags: ['Office love', 'Comedy']
-    },
-    {
-      id: '3',
-      link: '/webtoons/5',
-      title: '대표님이 사랑한 두명의 나',
-      imageUrl: '/carousel/webtoons/carousel_3.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_3_mobile.png',
-      description: '두명의 나와 대표님과의 러브 스토리',
-      genres: 'Romance',
-      tags: ['Ongoing', 'lovely']
-    },
-    {
-      id: '4',
-      link: '/webtoons/6',
-      title: 'Attaque',
-      imageUrl: '/carousel/webtoons/carousel_4.png',
-      imageUrl_mobile: '/carousel/webtoons/carousel_4_mobile.png',
-      description: '큐트 러블리 커플의 로맨틱 코미디',
-      genres: 'Romance',
-      tags: ['Free', 'Comedy']
-    }
-  ];
-
-   // Check screen size and update isMobile state
-   useEffect(() => {
+  // Check screen size and update isMobile state
+  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768); // Adjust breakpoint as needed
     };
@@ -67,16 +25,16 @@ const WebtoonsCarousel: React.FC<{ webtoons: Webtoon[] }> = ({ webtoons }) => { 
   // Modify carousel items to use mobile image when appropriate
   const responsiveCarouselItems = carouselItems.map(item => ({
     ...item,
-    imageUrl: isMobile ? (item.imageUrl_mobile || item.imageUrl) : item.imageUrl
+    image: isMobile ? (item.image_mobile || item.image) : item.image
   }));
 
 
   return (
-      <CarouselComponentSquareStyle 
-        items={responsiveCarouselItems}
-        title="Featured Series"
-        autoSlide={true}
-      />
+    <CarouselComponentSquareStyle
+      items={responsiveCarouselItems}
+      title="Featured Series"
+      autoSlide={true}
+    />
   );
 };
 

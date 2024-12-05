@@ -8,7 +8,6 @@ import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 import { Webnovel } from '@/components/Types'
-import { getLocalImageUrl } from '@/utils/urls';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
@@ -179,7 +178,7 @@ const CarouselComponentReactSlick = ({
                                     {/* max-w-screen-lg */}
                                     <Image 
                                         className="object-cover object-center transition-all duration-300" 
-                                        src={getLocalImageUrl(item.image)} 
+                                        src={item.image} 
                                         fill
                                         alt={item.image}
                                         placeholder="blur" 

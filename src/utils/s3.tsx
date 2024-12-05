@@ -8,6 +8,7 @@ const WEBTOONS_BUCKET_NAME = "toonyzwebtoonsbucket"
 const AWS_S3_ACCESS_KEY = process.env.AWS_S3_ACCESS_KEY ?? "";
 const AWS_S3_SECRET_ACCESS_KEY = process.env.AWS_S3_SECRET_ACCESS_KEY ?? "";
 
+
 const credentials = {
   accessKeyId: AWS_S3_ACCESS_KEY,
   secretAccessKey: AWS_S3_SECRET_ACCESS_KEY
@@ -59,27 +60,4 @@ export async function getSignedUrlForWebtoonImage(key: string) {
   const command = new GetObjectCommand({ Bucket: WEBTOONS_BUCKET_NAME, Key: key });
   const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // URL valid for 1 hour
   return signedUrl;
-}
-
-import sharp from 'sharp';
-import axios from 'axios';
-
-export async function getImageDimensions(url: string) {
-    try {
-        const response = await axios({
-            url,
-            responseType: 'arraybuffer'
-        });
-
-        const imageBuffer = Buffer.from(response.data, 'binary');
-        const metadata = await sharp(imageBuffer).metadata();
-
-        return {
-            width: metadata.width,
-            height: metadata.height
-        };
-    } catch (error) {
-        console.error('Error fetching image dimensions:', error);
-        throw error;
-    }
 }

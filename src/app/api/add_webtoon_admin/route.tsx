@@ -69,7 +69,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   for (const chapter of chapters) {
     console.log("adding chapter", chapter.episode_number)
-    const response2 = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_chapter_to_webtoon`, {
+    const response2 = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_chapter_to_webtoon_admin`, {
       method: 'POST',
       body: JSON.stringify(chapter),
       headers: {

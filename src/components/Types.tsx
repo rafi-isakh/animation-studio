@@ -52,10 +52,15 @@ export interface Comment {
 export interface SlickCarouselItem {
   id: number;
   image: string;
+  image_mobile: string;
   description: string;
   title: string;
   hook: string;
   webnovel_id: number;
+  webtoon_id: number;
+  webtoon: Webtoon;
+  webnovel: Webnovel;
+  parsed_tags: string[];
 }
 
 export interface Webnovel {
@@ -72,6 +77,7 @@ export interface Webnovel {
   views: number;
   version?: string;
   created_at: Date;
+  tags: string;
 }
 
 export interface Webtoon {
@@ -90,6 +96,7 @@ export interface Webtoon {
   wide_cover: string;
   description: string;
   genre: string;
+  tags: string;
 }
 
 export interface WebtoonChapter {

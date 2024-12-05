@@ -14,7 +14,7 @@ import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import GenresComponent from '@/components/GenresComponent';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
     const data = await response.json()
     return data;
 }

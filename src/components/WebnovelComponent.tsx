@@ -65,7 +65,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                                 {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
                             </p>
                                 {/* total chapters and num chapters */}
-                            <p className="text-[10px] md:text-[11px] text-gray-500 font-bold dark:text-gray-500 ">
+                            <p className="text-[10px] md:text-[12px] text-gray-500 font-bold dark:text-gray-500 ">
                                 <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
                                 <span>{phrase(dictionary, "numchapters", language)}</span>
                             </p>

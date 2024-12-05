@@ -10,11 +10,11 @@ import { phrase } from '@/utils/phrases'
 import { Webtoon } from "@/components/Types";
 import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
-import WebtoonChapterList from "@/components/WebtoonChapterList";
+import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
 import { Facebook, Twitter, CodeXml, Ellipsis, Flag, CircleHelp, ArrowDownUp } from "lucide-react";
 import Image from "next/image";
 
-interface ViewWebtoonEpisodeComponentProps {
+interface WebtoonChapterListComponentProps {
     webtoon: {
         title: string;
         description: string;
@@ -28,7 +28,7 @@ interface ViewWebtoonEpisodeComponentProps {
     coverArt: string;
 }
 
-const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = ({
+const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = ({
     webtoon,
     slug,
     coverArt
@@ -98,7 +98,7 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
 
             <div className="flex flex-row justify-between gap-3">
                 <div className="w-full">
-                    <WebtoonChapterList webtoon={webtoon as unknown as Webtoon} slug={slug} coverArt={coverArt} />
+                    <WebtoonChapterListSubcomponent webtoon={webtoon as unknown as Webtoon} slug={slug} coverArt={coverArt} />
 
                 </div>
 
@@ -230,4 +230,4 @@ const ViewWebtoonEpisodeComponent: React.FC<ViewWebtoonEpisodeComponentProps> = 
 }
 
 
-export default ViewWebtoonEpisodeComponent;
+export default WebtoonChapterListComponent;

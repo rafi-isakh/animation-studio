@@ -3,16 +3,21 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import WebtoonsCardComponent from '@/components/WebtoonsCardComponent';
 import { Webtoon } from '@/components/Types';
 import DictionaryPhrase from '@/components/DictionaryPhrase';
+import { getSignedUrlForWebtoonImage } from '@/utils/s3';
 
 interface WebtoonsCardListProps {
     webtoons: Webtoon[];
     titleVar: string;
+    detail: boolean;
 }
 
-const WebtoonsCardList: React.FC<WebtoonsCardListProps> = ({
+const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
     webtoons,
-    titleVar
+    titleVar,
+    detail
 }) => {
+
+    const coverArts: string[] = await Promise.all(webtoons.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
     return (
         <div className="relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full">
             <div className="">
@@ -28,7 +33,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = ({
                                 key={item.id || index}
                                 className="w-[calc(16.666%-1rem)] flex-grow-0 flex-shrink-0"
                             >
-                                <WebtoonsCardComponent webtoon={item} />
+                                <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} />
                             </div>
                         ))}
                     </div>
@@ -37,7 +42,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = ({
                     <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-4">
                         {webtoons.map((item, index) => (
                             <div key={item.id || index} className="flex-none">
-                                <WebtoonsCardComponent webtoon={item} />
+                                <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} />
                             </div>
                         ))}
                     </div>

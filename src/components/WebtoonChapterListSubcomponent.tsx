@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LockOpen } from 'lucide-react';
 
 
-const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoon, slug: string, coverArt: string }) => {
+const WebtoonChapterListSubcomponent = async ({ webtoon, slug, coverArt }: { webtoon: Webtoon, slug: string, coverArt: string }) => {
   const [showMoreChapters, setShowMoreChapters] = useState(false);
   const { language, dictionary } = useLanguage();
 
@@ -63,4 +63,4 @@ const WebtoonChapterList = async ({ webtoon, slug, coverArt }: { webtoon: Webtoo
   );
 };
 
-export default WebtoonChapterList;
+export default WebtoonChapterListSubcomponent;

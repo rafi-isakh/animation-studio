@@ -217,9 +217,9 @@ const CarouselComponentSquareStyle: React.FC<CarouselProps> = ({
                                     </h3>
 
                                     {/* Genres and Tags */}
-                                    {(item.genres || item.tags) && (
+                                    {(item.webtoon.genre || item.parsed_tags) && (
                                         <div className="flex space-x-2 mb-3">
-                                            {item.genres && (
+                                            {item.webtoon.genre && (
                                                 <span
                                                     className="
                                                         bg-white/20 
@@ -230,10 +230,10 @@ const CarouselComponentSquareStyle: React.FC<CarouselProps> = ({
                                                         tracking-wider
                                                     "
                                                 >
-                                                    {item.genres}
+                                                    {item.webtoon.genre}
                                                 </span>
                                             )}
-                                            {item.tags?.map((tag) => (
+                                            {item.parsed_tags?.map((tag) => (
                                                 <span
                                                     key={tag}
                                                     className="

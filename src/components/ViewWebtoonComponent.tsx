@@ -1,12 +1,8 @@
 import { getSignedUrlForWebtoonImage, listObjectsInWebtoonsDirectory } from "@/utils/s3"
 import { getImageDimensions } from "@/utils/imageDimensions"
 import WebtoonImageComponent from "@/components/WebtoonImageComponent"
-
-interface WebtoonImage {
-    url: string;
-    width: number;
-    height: number;
-}
+import ViewWebtoonChapterComponent from "@/components/ViewWebtoonChapterComponent"
+import { WebtoonImage } from "@/components/Types"
 
 const imagesCache: { [key: string]: WebtoonImage } = {}
 
@@ -38,14 +34,7 @@ const ViewWebtoonComponent = async (props: { webtoonId: string, episode: string 
     }
 
     return (
-        <div className="flex flex-col justify-center items-center mx-auto w-[720px]">
-            {images.map((image, index) =>
-                <div key={`webtoon-${index}`}>
-                    <WebtoonImageComponent image={image.url} width={image.width!} height={image.height!} />
-                </div>
-            )
-            }
-        </div>
+        <ViewWebtoonChapterComponent images={images} episodeNumber={props.episode} webtoon={webtoon} />
     )
 }
 

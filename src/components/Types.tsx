@@ -4,7 +4,7 @@ export interface WebnovelIdProps {
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' 
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon'
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
 
@@ -78,6 +78,12 @@ export interface Webnovel {
   version?: string;
   created_at: Date;
   tags: string;
+}
+
+export interface WebtoonImage {
+    url: string;
+    width: number;
+    height: number;
 }
 
 export interface Webtoon {

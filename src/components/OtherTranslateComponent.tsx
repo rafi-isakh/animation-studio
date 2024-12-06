@@ -58,7 +58,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
             setText(content);
             setLoading(false);
         }
-    }, []);
+    }, [language]); // don't need keys for each instance of this component
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);

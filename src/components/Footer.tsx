@@ -54,6 +54,9 @@ export default function Footer() {
                             <p>
                                 hello@stelland.io
                             </p>
+                            <p>
+                                (+82) 02-6952-7933
+                            </p>
                         </div>
                     )}
 

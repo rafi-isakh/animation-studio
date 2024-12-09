@@ -9,7 +9,7 @@ import { getUrlWithParams } from '@/utils/stringUtils';
 import Image from 'next/image';
 import { CalendarDays, Gift, Clapperboard, Star } from 'lucide-react';
 import { useTheme } from '@/contexts/providers';
-const GenresComponent = () => {
+const CircularMenuItemsComponent = () => {
     const { dictionary, language } = useLanguage();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -21,8 +21,8 @@ const GenresComponent = () => {
             // Reset styles first
             linkRefs.current.forEach(container => {
                 if (container) {
-                    const icon = container.querySelector('.genre-icon');
-                    const text = container.querySelector('.genre-text');
+                    const icon = container.querySelector('.circle-icon');
+                    const text = container.querySelector('.circle-text');
                     if (icon && text) {
                         icon.setAttribute('style', '');
                         text.setAttribute('style', '');
@@ -32,18 +32,18 @@ const GenresComponent = () => {
 
             // Find max height for icons and texts separately
             const maxIconHeight = Math.max(...linkRefs.current.map(container => 
-                container?.querySelector('.genre-icon')?.getBoundingClientRect().height || 0
+                container?.querySelector('.circle-icon')?.getBoundingClientRect().height || 0
             ));
 
             const maxTextHeight = Math.max(...linkRefs.current.map(container => 
-                container?.querySelector('.genre-text')?.getBoundingClientRect().height || 0
+                container?.querySelector('.circle-text')?.getBoundingClientRect().height || 0
             ));
 
             // Apply consistent heights
             linkRefs.current.forEach(container => {
                 if (container) {
-                    const icon = container.querySelector('.genre-icon');
-                    const text = container.querySelector('.genre-text');
+                    const icon = container.querySelector('.circle-icon');
+                    const text = container.querySelector('.circle-text');
                     if (icon && text) {
                         icon.setAttribute('style', `height: ${maxIconHeight}px; min-height: ${maxIconHeight}px;`);
                         text.setAttribute('style', `height: ${maxTextHeight}px; min-height: ${maxTextHeight}px;`);
@@ -62,8 +62,8 @@ const GenresComponent = () => {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     }
 
-    const genres = ['all', 'toonyzOnly', 'event', 'toonyzCut', 'studio'];
-    const genresIcon = [
+    const circles = ['all', 'toonyzOnly', 'event', 'toonyzCut', 'studio'];
+    const circlesIcon = [
         <CalendarDays key="calendarDays" />, 
         <Image 
             src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'} 
@@ -77,19 +77,31 @@ const GenresComponent = () => {
         <Star key="star" />
     ];
 
-    const getGenreUrl = (genre: string) => {
-        return getUrlWithParams('genre', genre, pathname, searchParams);
-    };
-
-    const highlightGenre = (genre: string) => {
-        return searchParams.get("genre") == genre
+    const getCircleUrl = (circle: string) => {
+        switch (circle) {
+            case 'all':
+                return '#'
+            case 'toonyzOnly':
+                return '#'
+            case 'event':
+                return '#'
+            case 'toonyzCut':
+                return '#'
+            case 'studio':
+                return '/studio'
+            default:
+                return '#'
+        }
+    }
+    const highlightCircle = (circle: string) => {
+        return searchParams.get("circle") == circle
     }
 
     return (
         <div className='w-full h-full md:max-w-screen-lg mx-auto'>
             <div className="overflow-x-auto">   
                 <div className="flex flex-row px-6 md:justify-center justify-start items-center mx-auto gap-9">  
-                    {genres.map((genre, index) =>  (
+                    {circles.map((circle, index) =>  (
                         <div 
                             key={index} 
                             className="flex flex-col justify-center items-center h-full"
@@ -100,21 +112,21 @@ const GenresComponent = () => {
                             }}
                         >
                             <Link
-                                href={getGenreUrl(genre)}
-                                className={`${highlightGenre(genre) ? "" : "text-gray-500 dark:text-gray-400"} 
+                                href={getCircleUrl(circle)}
+                                className={`${highlightCircle(circle) ? "" : "text-gray-500 dark:text-gray-400"} 
                                     flex flex-col items-center justify-center cursor-pointer w-full
                                 `}
                                 >
-                                <div className="genre-icon flex justify-center items-center w-[50px] h-[50px] 
+                                <div className="circle-icon flex justify-center items-center w-[50px] h-[50px] 
                                   md:w-[90px] md:h-[90px] bg-gray-200 dark:bg-gray-500 rounded-full
                                  hover:bg-purple-100 hover:text-white text-black dark:text-white
                                  ">
-                                    {genresIcon[index]}
+                                    {circlesIcon[index]}
                                 </div>
-                                <h6 className="genre-text flex justify-center tracking-tight keep-all 
+                                <h6 className="circle-text flex justify-center tracking-tight keep-all 
                                     mt-4 md:text-md text-sm text-center w-full
                                 ">
-                                    {capitalize(phrase(dictionary, genre, language))}
+                                    {capitalize(phrase(dictionary, circle, language))}
                                 </h6>
                             </Link>
                         </div>
@@ -125,4 +137,4 @@ const GenresComponent = () => {
     );
 };
 
-export default GenresComponent;
+export default CircularMenuItemsComponent;

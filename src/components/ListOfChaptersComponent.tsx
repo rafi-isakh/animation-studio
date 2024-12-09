@@ -35,7 +35,6 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const date = new Date();
     const router = useRouter();
-    const { email } = useUser();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)

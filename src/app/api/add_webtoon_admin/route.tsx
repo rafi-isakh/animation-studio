@@ -8,9 +8,17 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!session || !session.user) {
     return NextResponse.json({
-      message: "Unauthorized",
+      message: "Unauthenticated",
     }, {
       status: 401
+    });
+  }
+
+  if (session.user.email?.endsWith("@stelland.io") === false) {
+    return NextResponse.json({
+      message: "Unauthorized",
+    }, {
+      status: 403
     });
   }
 
@@ -79,7 +87,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
       },
     })
     const data2 = await response2.json()
-    console.log(data2)
   }
 
   return NextResponse.json(

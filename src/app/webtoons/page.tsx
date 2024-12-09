@@ -1,7 +1,7 @@
 import WebtoonsCardList from "@/components/WebtoonsCardList";
 import { Webtoon } from "@/components/Types";
 import WebtoonsCarousel from "@/components/WebtoonsCarousel";
-import GenresComponent from "@/components/GenresComponent";
+import CircularMenuItemsComponent from "@/components/CircularMenuItemsComponent";
 import Footer from "@/components/Footer";
 import WebtoonsRecommendationCarousel from "@/components/WebtoonsRecommendationCarousel";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
@@ -12,7 +12,6 @@ async function getWebtoonCarouselItems() {
         throw new Error('Failed to fetch webtoon carousel items')
     }
     const data = await response.json()
-    console.log(data)
     return data
 }
 const Webtoons = async () => {
@@ -43,7 +42,7 @@ const Webtoons = async () => {
                 <WebtoonsCarousel webtoons={data} carouselItems={carouselItems} />
                 <div className="flex flex-col justify-center items-center">
                     {smallGap()}
-                    <GenresComponent />
+                    <CircularMenuItemsComponent />
                     {smallGap()}
                 </div>
                 <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} detail={false} ranking={false}/>

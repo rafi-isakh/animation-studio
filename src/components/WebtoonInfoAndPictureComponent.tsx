@@ -9,6 +9,7 @@ import { Heart } from "lucide-react"
 import { useUser } from "@/contexts/UserContext"
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import DictionaryPhrase from "./DictionaryPhrase";
 
 
 export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { webtoon: Webtoon, coverArt: string }) {
@@ -17,6 +18,12 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
+    const [tags, setTags] = useState([]);
+
+    useEffect(() => {
+        const tagsJSON = JSON.parse(webtoon.tags);
+        setTags(tagsJSON);
+    }, [webtoon.tags]);
 
     return (
         <div className="relative flex flex-col md:h-[439px] h-auto justify-center items-center">
@@ -36,26 +43,26 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                 <div className="flex flex-col gap-2 p-10 w-[450px]">
                     <div className="px-12 md:px-0 space-y-2">
                         <span className="text-sm text-gray-400">{phrase(dictionary, webtoon.genre, language)}</span>
-                        <h1 className="text-2xl font-bold">
-                            {webtoon.title}
-                            {/* <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id} elementType='webtoon' elementSubtype="title" classParams="text-2xl mt-2 mb-2" /> */}
-                        </h1>
+                        <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold" />
                         <p>{webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>
                         <ul className="flex flex-row gap-2">
-                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">#hashtag</li>
-                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">#hashtag</li>
-                            <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">#Genre</li>
+                            {
+                                webtoon.genre && (
+                                    <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out"><DictionaryPhrase phraseVar={webtoon.genre} /></li>
+                                )
+                            }
+                            {tags.map((tag: string) => (
+                                <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">{tag}</li>
+                            ))}
                         </ul>
                         {/* <p className="text-sm text-gray-400">{formattedDate}</p> */}
-                        <p className="text-sm text-gray-800 ">
-                            {webtoon.description}
-                        </p>
+                        <OtherTranslateComponent content={webtoon.description} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="description" classParams="text-sm text-gray-800" />
 
                         <div className="flex flex-row gap-2 pt-5">
                             {/* button's top padding 5 */}
                             <button className="bg-gray-500 hover:bg-pink-600 text-white rounded-md px-10 py-2 transition duration-150 ease-in-out">
                                 <Link
-                                    href=''
+                                    href={`/webtoons/${webtoon.id}/001`}
                                     className="text-center flex flex-row items-center"
                                 >
 
@@ -83,7 +90,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                     </div>
                 </div>
 
-                <div className="w-[270px] md:h-[350px] h-auto min-h-[350px] order-first md:order-last md:pt-0 pt-5">
+                <div className="w-[270px] h-auto min-h-[350px] order-first md:order-last md:pt-0 pt-5">
                     <Image
                         src={coverArt}
                         alt={webtoon.title}

@@ -109,6 +109,7 @@ export interface WebtoonChapter {
   id: number;
   webtoon_id: number;
   directory: string;
+  created_at: Date;
 }
 
 export interface Dictionary {

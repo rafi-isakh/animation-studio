@@ -13,6 +13,7 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box, useMediaQuery } from "@mui/material";
+import Link from 'next/link';
 
 import { SlickCarouselItem } from '@/components/Types';
 
@@ -82,83 +83,85 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
 
 
   return (
-    <div 
+    <div
       className={`slider-container relative max-w-screen-lg mx-auto overflow-hidden`}
     >
       <h1 className='flex flex-row justify-between text-xl font-extrabold mb-3'>
-         {/* Recommended Webnovels */}
-         {phrase(dictionary, "recommendedWebtoons", language)}
+        {/* Recommended Webnovels */}
+        {phrase(dictionary, "recommendedWebtoons", language)}
       </h1>
 
       <TabContext value={tabValue} >
         <Box sx={{ borderBottom: 0, borderColor: 'none' }}>
-            <div className="flex flex-row justify-between items-center">
-                <TabList 
-                    onChange={handleChange} 
-                    aria-label="lab API tabs"
-                    TabIndicatorProps={{
-                      style: {
-                        backgroundColor: 'transparent',
-                      },
-                    }}
-                    sx={{
-                        '& button': {
-                          margin: '0px 10px 0px 0px',
-                          borderRadius: '100px',
-                          minHeight: '25px', // Set your desired height here
-                          height: '25px', // Set your desired height here
-                        },
-                        '& button:focus': {
-                          color: 'white',
-                          backgroundColor: '#e5e7eb',
-                          // text-gray-200 #e5e7eb
-                          // gray-500 #6b7280
-                        },
-                        '& button:active': {
-                          color: 'white',
-                          backgroundColor: '#e5e7eb',
-                        },
-                        '& button:hover': {
-                          color: 'white',
-                          backgroundColor: '#e5e7eb',
-                        },
-                        '& .MuiTab-root': {
-                          // padding: '0px 10px',
-                          color: 'gray', // Default tab color
-                          '&.Mui-selected': {
-                              backgroundColor: '#e5e7eb',
-                              color: '#6b7280', // Color when tab is selected
-                          },
-                        },
-                        '& .MuiTabs-indicator': {
-                          backgroundColor: '#e5e7eb', // Indicator color
-                        }
-                    }}
-                   >
-                    <Tab label={phrase(dictionary, "all", language)} value="1"/>
-                    <Tab label={phrase(dictionary, "bl", language)} value="2" />
-                    <Tab label={phrase(dictionary, "fantasy", language)} value="3"  />
-                </TabList>
-                <div className='self-center text-sm md:block hidden'>
-                    {/* <button 
+          <div className="flex flex-row justify-between items-center">
+            <TabList
+              onChange={handleChange}
+              aria-label="lab API tabs"
+              TabIndicatorProps={{
+                style: {
+                  backgroundColor: 'transparent',
+                },
+              }}
+              sx={{
+                '& button': {
+                  margin: '0px 10px 0px 0px',
+                  borderRadius: '100px',
+                  minHeight: '25px', // Set your desired height here
+                  height: '25px', // Set your desired height here
+                },
+                '& button:focus': {
+                  color: 'white',
+                  backgroundColor: '#e5e7eb',
+                  // text-gray-200 #e5e7eb
+                  // gray-500 #6b7280
+                },
+                '& button:active': {
+                  color: 'white',
+                  backgroundColor: '#e5e7eb',
+                },
+                '& button:hover': {
+                  color: 'white',
+                  backgroundColor: '#e5e7eb',
+                },
+                '& .MuiTab-root': {
+                  // padding: '0px 10px',
+                  color: 'gray', // Default tab color
+                  '&.Mui-selected': {
+                    backgroundColor: '#e5e7eb',
+                    color: '#6b7280', // Color when tab is selected
+                  },
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#e5e7eb', // Indicator color
+                }
+              }}
+            >
+              <Tab label={phrase(dictionary, "all", language)} value="1" />
+              <Tab label={phrase(dictionary, "bl", language)} value="2" />
+              <Tab label={phrase(dictionary, "romance", language)} value="3" />
+            </TabList>
+            <div className='self-center text-sm md:block hidden'>
+              {/* <button 
                     className="bg-white text-black hover:text-[#8A2BE2] px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
                     </button> */}
-                </div>
             </div>
+          </div>
         </Box>
 
         <TabPanel value="1" sx={{ padding: 0, margin: 0 }}>
-            <div className="h-[380px]">
+          <div className="h-[380px]">
             <Slider {...settings}>
               {carouselItems.map((item) => (
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
-                    <Image
-                      src={item.image_mobile}
-                      alt={item.title}
-                      layout="fill"
-                      className="rounded-md w-full h-full overflow-hidden object-cover"
-                    />
+                    <Link href={`/webtoons/${item.id}`}>
+                      <Image
+                        src={item.image_mobile}
+                        alt={item.title}
+                        layout="fill"
+                        className="rounded-md w-full h-full overflow-hidden object-cover"
+                      />
+                    </Link>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
                       <p className="text-sm">{item.hook}</p>
@@ -177,18 +180,20 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
           </div>
         </TabPanel>
         <TabPanel value="2" sx={{ padding: 0, margin: 0 }}>
-        <div className="h-[380px]">
+          <div className="h-[380px]">
             <Slider {...settings}>
               {carouselItems.map((item) => (
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
-                    <Image
-                      src={item.image_mobile}
-                      alt={item.title}
-                      sizes="100vw"
-                      layout="fill"
-                      className="rounded-md w-full h-full overflow-hidden object-cover"
-                    />
+                    <Link href={`/webtoons/${item.id}`}>
+                      <Image
+                        src={item.image_mobile}
+                        alt={item.title}
+                        sizes="100vw"
+                        layout="fill"
+                        className="rounded-md w-full h-full overflow-hidden object-cover"
+                      />
+                    </Link>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
                       <p className="text-sm">{item.webtoon.description}</p>
@@ -207,18 +212,20 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
           </div>
         </TabPanel>
         <TabPanel value="3" sx={{ padding: 0, margin: 0 }}>
-        <div className="h-[380px]">
+          <div className="h-[380px]">
             <Slider {...settings}>
               {carouselItems.map((item) => (
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
-                    <Image
-                      src={item.image_mobile}
-                      alt={item.title}
-                      sizes="100vw"
-                      layout="fill"
-                      className="rounded-md w-full h-full overflow-hidden object-cover"
-                    />
+                    <Link href={`/webtoons/${item.id}`}>
+                      <Image
+                        src={item.image_mobile}
+                        alt={item.title}
+                        sizes="100vw"
+                        layout="fill"
+                        className="rounded-md w-full h-full overflow-hidden object-cover"
+                      />
+                    </Link>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
                       <p className="text-sm">{item.webtoon.description}</p>

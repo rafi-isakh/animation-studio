@@ -251,9 +251,9 @@ const CarouselComponentSquareStyle: React.FC<CarouselProps> = ({
                                         </div>
                                     )}
 
-                                    {item.hook && (
+                                    {item.webtoon.description && (
                                         <p className="text-sm md:text-lg line-clamp-2 mb-3">
-                                            {item.hook}
+                                            {item.webtoon.description}
                                         </p>
                                     )}
 

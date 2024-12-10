@@ -5,6 +5,7 @@ import CircularMenuItemsComponent from "@/components/CircularMenuItemsComponent"
 import Footer from "@/components/Footer";
 import WebtoonsRecommendationCarousel from "@/components/WebtoonsRecommendationCarousel";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
+import { getSignedUrlForWebtoonImage } from "@/utils/s3";
 
 async function getWebtoonCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`,
@@ -28,6 +29,7 @@ const Webtoons = async () => {
     const shuffledCarouselItems = carouselItems.sort(() => Math.random() - 0.5)
     const data: Webtoon[] = await response.json()
 
+    const coverArts = await Promise.all(data.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
 
     const largeGap = () => {
         return (
@@ -50,9 +52,9 @@ const Webtoons = async () => {
                     <CircularMenuItemsComponent />
                     {smallGap()}
                 </div>
-                <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} detail={false} ranking={false}/>
+                <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} coverArts={coverArts} detail={false} ranking={false}/>
                 {largeGap()}
-                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} detail={true} ranking={true}/>
+                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} coverArts={coverArts} detail={true} ranking={true}/>
                 {largeGap()}
                 <WebtoonsRecommendationCarousel carouselItems={shuffledCarouselItems} />
                 {largeGap()}

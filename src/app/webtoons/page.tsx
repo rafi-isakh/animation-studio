@@ -7,7 +7,11 @@ import WebtoonsRecommendationCarousel from "@/components/WebtoonsRecommendationC
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 
 async function getWebtoonCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`,
+        {
+            cache: "no-store"
+        }
+    )
     if (!response.ok) {
         throw new Error('Failed to fetch webtoon carousel items')
     }

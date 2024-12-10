@@ -51,8 +51,8 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                     <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out"><DictionaryPhrase phraseVar={webtoon.genre} /></li>
                                 )
                             }
-                            {tags.map((tag: string) => (
-                                <li className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">{tag}</li>
+                            {tags.map((tag: string, index: number) => (
+                                <li key={`tag-${index}`} className="text-sm text-gray-100 rounded-xl px-2 py-1 bg-gray-500 hover:bg-pink-600 transition duration-150 ease-in-out">{tag}</li>
                             ))}
                         </ul>
                         {/* <p className="text-sm text-gray-400">{formattedDate}</p> */}

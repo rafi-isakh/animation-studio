@@ -103,6 +103,10 @@ export const code_to_lang = (iso_code: string) => {
         return 'vietnamese';
     } else if (iso_code == 'ar') {
         return 'arabic';
+    } else if (iso_code == 'fr') {
+        return 'french';
+    } else if (iso_code == 'es') {
+        return 'spanish';
     } else {
         return '';
     }

@@ -19,6 +19,9 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
     ranking
 }) => {
 
+    const sortedWebtoons = webtoons.sort((a, b) => a.views - b.views);
+    const shownWebtoons = ranking? sortedWebtoons: webtoons;
+
     const coverArts: string[] = await Promise.all(webtoons.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
     return (
         <div className="relative md:max-w-screen-xl mx-auto group overflow-hidden max-w-full">
@@ -30,7 +33,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
                 <div className="relative">
                     {/* Desktop flexbox layout */}
                     <div className="hidden md:flex justify-start gap-4 overflow-x-auto no-scrollbar">
-                        {webtoons.map((item, index) => (
+                        {shownWebtoons.map((item, index) => (
                             <div
                                 key={item.id || index}
                                 className="w-[calc(16.666%-1rem)] flex-grow-0 flex-shrink-0"
@@ -42,7 +45,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
 
                     {/* Mobile horizontal scroll */}
                     <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-4">
-                        {webtoons.map((item, index) => (
+                        {shownWebtoons.map((item, index) => (
                             <div key={item.id || index} className="flex-none">
                                 <WebtoonsCardComponent webtoon={item} coverArt={coverArts[index]} detail={detail} ranking={ranking} index={index + 1} />
                             </div>

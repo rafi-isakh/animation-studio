@@ -154,7 +154,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
               {carouselItems.map((item) => (
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
-                    <Link href={`/webtoons/${item.id}`}>
+                    <Link href={`/webtoons/${item.webtoon.id}`}>
                       <Image
                         src={item.image_mobile}
                         alt={item.title}
@@ -185,7 +185,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
               {carouselItems.map((item) => (
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
-                    <Link href={`/webtoons/${item.id}`}>
+                    <Link href={`/webtoons/${item.webtoon.id}`}>
                       <Image
                         src={item.image_mobile}
                         alt={item.title}
@@ -217,7 +217,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
               {carouselItems.map((item) => (
                 <div key={item.id} className="px-2">
                   <div className="relative h-[380px]">
-                    <Link href={`/webtoons/${item.id}`}>
+                    <Link href={`/webtoons/${item.webtoon.id}`}>
                       <Image
                         src={item.image_mobile}
                         alt={item.title}

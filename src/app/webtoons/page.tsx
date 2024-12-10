@@ -25,6 +25,7 @@ const Webtoons = async () => {
         }
     )
     const carouselItems = await getWebtoonCarouselItems()
+    const shuffledCarouselItems = carouselItems.sort(() => Math.random() - 0.5)
     const data: Webtoon[] = await response.json()
 
 
@@ -53,7 +54,7 @@ const Webtoons = async () => {
                 {largeGap()}
                 <WebtoonsCardList titleVar="newAndTrends" webtoons={data} detail={true} ranking={true}/>
                 {largeGap()}
-                <WebtoonsRecommendationCarousel carouselItems={carouselItems} />
+                <WebtoonsRecommendationCarousel carouselItems={shuffledCarouselItems} />
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>

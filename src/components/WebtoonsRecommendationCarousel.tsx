@@ -191,7 +191,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
-                      <p className="text-sm">{item.hook}</p>
+                      <p className="text-sm">{item.webtoon.description}</p>
                       <div className="flex mt-2">
                         {item.parsed_tags.map((tag, index) => (
                           <span key={index} className="bg-white/20 text-xs px-2 py-1 rounded-full mr-2">
@@ -221,7 +221,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 rounded-md">
                       <h2 className="text-lg font-bold">{item.title}</h2>
-                      <p className="text-sm">{item.hook}</p>
+                      <p className="text-sm">{item.webtoon.description}</p>
                       <div className="flex mt-2">
                         {item.parsed_tags.map((tag, index) => (
                           <span key={index} className="bg-white/20 text-xs px-2 py-1 rounded-full mr-2">

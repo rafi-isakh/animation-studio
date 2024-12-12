@@ -215,7 +215,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                
         {/* Existing content container */}
         <div className="relative p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
-        <div className="absolute bg-white dark:bg-black rounded-md inset-0 bg-cover bg-center opacity-10 backdrop-blur-[300px] z-0" 
+        <div className="absolute bg-white dark:bg-black rounded-md inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0" 
             style={{ backgroundImage: `url(${getImageUrl(user.picture)})`, backgroundColor: 'white', backgroundSize: 'cover', backgroundPosition: 'center',  }}>
         </div>
             {/* profile picture */}
@@ -382,16 +382,22 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
                 <div className='flex flex-col gap-4 w-full order-2 md:m-10 m-0'>
                    
-                       
-
-
-                        <Button color='gray' variant='outlined'className='border-b border-gray-300 rounded-sm px-4 py-2 '>
-                            {/* Start To Read From Episode 1 &gt;  */}
-                            {/* <span className='text-sm'>{getRecentNovel().title}</span> */}
-                          <p className='flex flex-row gap-2 justify-center items-center'> 
-                            <OtherTranslateComponent key={key1} content={getRecentNovel().title} elementId={user.id.toString()} elementType='user' /> 
-                            {phrase(dictionary, "startToRead", language)}
-                         </p> 
+                        <Button color='gray' variant='outlined'className='border-b border-gray-300 rounded-sm px-4 py-2'>
+                            {novels.length > 0 ? (
+                                <p className='flex flex-row gap-2 justify-center items-center'> 
+                                    <OtherTranslateComponent 
+                                        key={key1} 
+                                        content={getRecentNovel().title} 
+                                        elementId={user.id.toString()} 
+                                        elementType='user' 
+                                    /> 
+                                    {phrase(dictionary, "startToRead", language)}
+                                </p>
+                            ) : (
+                                <p className='flex flex-row gap-2 justify-center items-center'>
+                                    {phrase(dictionary, "noNovelsYet", language)}
+                                </p>
+                            )}
                         </Button>
                         {/* {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
                             {phrase(dictionary, "unlockNextEpisode", language)}

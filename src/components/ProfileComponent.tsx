@@ -63,11 +63,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
 
-    
-    useEffect(() => {
-        console.log(user);
-    }, [user])
-
     useEffect(() => {
         setKey1(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)

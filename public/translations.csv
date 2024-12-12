@@ -167,7 +167,7 @@ searchPlaceholder,검색어를 입력해주세요.,,Search title, author, or key
 popularWebnovels,인기작 추천,,Popular Webnovels
 newReleasesWebnovels,투니즈 최신작,,New Releases
 more,더 보기,,More
-onlyToonyz,오직 투니즈에서만,,Toonyz Original,
+toonyzHot,투니즈 핫,,Hot on Toonyz,
 currentPromotion,진행중인 이벤트,,Current Event
 ranking,투니즈 인기작,Toonyz's Top Series
 promotionInsta,인스타그램 팔로우하고 선물 받자!,,Follow our Instagram and receive gifts!
@@ -196,10 +196,16 @@ works,작품,,Works
 views,조회,,Views
 likes,좋아요,,Likes
 peopleAlsoLike,추천 작품,,People Also Like
+episodes,에피소드,,Episodes
+start_to_read_episode_1,첫화부터 보기,,Read First Episode
+readingForFree,무료,,Free
 recommendedWebnovels,추천 웹소설,,Recommended Webnovels
 toonyzOnly,오리지널,,Toonyz Only
 event,이벤트,,Event
 toonyzCut,투니즈컷,,Toonyz Cut
 sort_latest,최신 순,,Sort Latest
 sort_oldest,오래된 순,,Sort Oldest
+youMightLikeThis,이런 작품 어떠세요?,,You might like this
+recommendedWebtoons,추천 웹툰,,Recommended Webtoons
+custom_signin,이메일로 로그인,,Sign in with Email
 youMightLikeThis,이런 작품 어떠세요?,,You might like this

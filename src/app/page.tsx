@@ -11,16 +11,16 @@ import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 // import ThemeToggle from '@/components/ThemeToggle'   
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import GenresComponent from '@/components/GenresComponent';
+import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
     const data = await response.json()
     return data;
 }
 
 async function getWebnovels() {
-    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`)
+    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) // probably should get rid of this function
     const data = (await response).json();
     return data;
 
@@ -55,7 +55,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>
                 <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} centerPadding='0px' />
                 {smallGap()}
-                <GenresComponent />
+                <CircularMenuItemsComponent />
                 {smallGap()}
                 <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 {largeGap()}

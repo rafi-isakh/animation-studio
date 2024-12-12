@@ -8,7 +8,6 @@ import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 import { Webnovel } from '@/components/Types'
-import { getLocalImageUrl } from '@/utils/urls';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
@@ -172,21 +171,21 @@ const CarouselComponentReactSlick = ({
                 <Slider {...settings}>
                     {items.map((item, index) => (
                           <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative aspect-[1/1] md:aspect-[1024/400] mx-auto">
+                            <div className="relative h-[380px] mx-auto">
                             {/*  */}
                                 <Link href={getHref(index)}>
                                   <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px] ">
                                     {/* max-w-screen-lg */}
                                     <Image 
                                         className="object-cover object-center transition-all duration-300" 
-                                        src={getLocalImageUrl(item.image)} 
+                                        src={item.image} 
                                         fill
                                         alt={item.image}
                                         placeholder="blur" 
                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
                                      {/* Overlay */}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-sm overflow-hidden">
+                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-sm overflow-hidden ">
                                         <div className="flex flex-col justify-end ">
                                     
                                             <OtherTranslateComponent

@@ -3,11 +3,19 @@ import { auth } from '@/auth';
 import { uploadFile } from '@/utils/s3'
 
 export async function GET(req: NextRequest, res: NextResponse) {
-    console.log("increase views")
     const session = await auth();
     const { searchParams } = new URL(req.url);
     const chapter_id = searchParams.get("chapter_id")
     const email = searchParams.get("user_email")
+    const is_webnovel = searchParams.get("is_webnovel")
+    const is_webtoon = searchParams.get("is_webtoon")
+
+    let is_webnovel_or_webtoon_param = ""
+    if (is_webnovel) {
+        is_webnovel_or_webtoon_param = "is_webnovel=true"
+    } else if (is_webtoon) {
+        is_webnovel_or_webtoon_param = "is_webtoon=true"
+    }
 
     if (!session || !session.user) {
         return NextResponse.json({
@@ -25,7 +33,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
         });
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/increase_views?chapter_id=${chapter_id}&user_email=${email}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/increase_views?chapter_id=${chapter_id}&user_email=${email}&${is_webnovel_or_webtoon_param}`, {
         headers: {
             'Authorization': `Bearer ${session.accessToken}`,
             'Provider': session.provider

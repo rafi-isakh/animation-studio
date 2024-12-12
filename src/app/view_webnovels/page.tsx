@@ -1,7 +1,6 @@
 "use client"
 import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
-import { decrypt } from "@/utils/cryptography";
 import { useEffect, useState } from "react";
 
 async function getWebnovel(id: string | string[] | undefined) {

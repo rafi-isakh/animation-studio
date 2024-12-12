@@ -13,7 +13,7 @@ export default function Footer() {
 
     return (
         <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
-            <div className="flex flex-col md:flex-row w-full md:w-[1280px] md:px-4 justify-between items-center mx-auto mt-6">
+            <div className="flex flex-col md:flex-row w-full md:max-w-screen-lg md:px-4 justify-between items-center mx-auto mt-6">
                 <div>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
@@ -53,6 +53,9 @@ export default function Footer() {
                             </p>
                             <p>
                                 hello@stelland.io
+                            </p>
+                            <p>
+                                (+82) 02-6952-7933
                             </p>
                         </div>
                     )}
@@ -111,19 +114,44 @@ export default function Footer() {
                 <div className="sns order-first md:order-last">
                     <ul className="flex flex-row gap-3">
                         <Link href="https://www.instagram.com/stelland_official/">
-                            <i className="fab fa-instagram cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
+                            <i className="fab fa-instagram cursor-pointer
+                             text-white rounded-full px-[0.6rem] py-2
+                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              transition ease-in-out delay-150
+                             dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
+                            "></i>
                         </Link>
                         <Link href="#">
-                            <i className="fab fa-youtube cursor-pointer text-white rounded-full px-2 py-2 hover:bg-pink-600 bg-gray-300 text-[15px] transition ease-in-out delay-150 dark:text-gray-700"></i>
+                            <i className="fab fa-youtube cursor-pointer
+                             text-white rounded-full px-2 py-2
+                              hover:bg-pink-600 bg-gray-300 text-[15px] 
+                              transition ease-in-out delay-150
+                             dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
+                             "></i>
                         </Link>
                         <Link href="https://x.com/stelland_hello">
-                            <i className="fab fa-x cursor-pointer text-white rounded-full px-[0.7rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
+                            <i className="fab fa-x cursor-pointer
+                             text-white rounded-full px-[0.7rem] py-2
+                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              transition ease-in-out delay-150
+                               dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
+                             "></i>
                         </Link>
                         <Link href="https://stelland.medium.com">
-                            <i className="fa-brands fa-medium cursor-pointer text-white rounded-full px-[0.44rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
+                            <i className="fa-brands fa-medium cursor-pointer
+                             text-white rounded-full px-[0.44rem] py-2
+                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              transition ease-in-out delay-150
+                              dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
+                              "></i>
                         </Link>
                         <Link href="https://www.linkedin.com/company/stellandio/">
-                            <i className="fa-brands fa-linkedin-in cursor-pointer text-white rounded-full px-[0.6rem] py-2 hover:bg-pink-600 bg-gray-300 text-[16px] transition ease-in-out delay-150 dark:text-gray-700"></i>
+                            <i className="fa-brands fa-linkedin-in cursor-pointer
+                             text-white rounded-full px-[0.6rem] py-2
+                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              transition ease-in-out delay-150
+                             dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
+                            "></i>
                         </Link>
                     </ul>
                 </div>

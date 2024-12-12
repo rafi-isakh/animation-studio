@@ -17,11 +17,8 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (fetchRef.current) return;
-        fetchRef.current = true;
-
         const handleTranslate = async () => {
-            // elmeentId is either chapter_id (for chapter title) or webnovel_id (for webnovel title and description) or user_id (for user bio)
+            // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
             const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
@@ -49,6 +46,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
         }
         if (defaultLanguage != language) {
             if (content) {
+                initialized.current = false;
                 handleTranslate();
             } else {
                 setText("");
@@ -58,7 +56,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
             setText(content);
             setLoading(false);
         }
-    }, []);
+    }, [language]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);

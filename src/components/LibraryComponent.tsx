@@ -24,7 +24,7 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
             }
             <div className="flex flex-wrap space-x-4">
             {library.map((item, index) => (
-                <WebnovelComponent key={index} webnovel={item} index={index} ranking={false} />
+                <WebnovelComponent key={index} webnovel={item} index={index} ranking={false} chunkIndex={0} />
             ))}
             </div>
         </div>

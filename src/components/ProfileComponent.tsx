@@ -37,11 +37,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
 
-    
-    useEffect(() => {
-        console.log(user);
-    }, [user])
-
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language])
@@ -282,7 +277,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     <div id="works" ref={novelsRef} className={`max-w-screen-sm hidden md:max-w-screen-md flex flex-row gap-x-2 gap-y-4 flex-wrap after:content-[''] after:flex-auto`}>
                         {novels.map((item, index) => (
                             <div key={index} className='mx-2'> {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
-                                <WebnovelComponent webnovel={item} index={index} ranking={false} />
+                                <WebnovelComponent webnovel={item} index={index} ranking={false} chunkIndex={0} />
                             </div>
                         ))}
                     </div>

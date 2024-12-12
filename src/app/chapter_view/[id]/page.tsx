@@ -117,10 +117,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     useEffect(() => {
         if (!viewed.current) {
             if (email) {
-                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
+                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}&is_webnovel=true`)
                 viewed.current = true;
             } else {
-                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
+                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}&is_webnovel=true`)
                 viewed.current = true;
             }
         }
@@ -166,7 +166,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }
 
     useEffect(() => {
-        const _screenWidth = scrollType === 'horizontal' ? 'max-w-screen-xl' : 'max-w-screen-sm';
+        const _screenWidth = scrollType === 'horizontal' ? 'max-w-screen-lg' : 'max-w-screen-sm';
         setScreenWidth(_screenWidth);
     }, [scrollType])
 

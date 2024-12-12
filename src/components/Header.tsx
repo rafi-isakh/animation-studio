@@ -178,11 +178,13 @@ const Header = () => {
         logout(true, '/');
     };
 
-    const handleLanguageChange = (language: Language) => {
+
+    const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
+        event.preventDefault(); 
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
         if (device === 'mobile') {
-            handleMobileMenuClick();
+          handleMobileMenuClick();
         }
     }
 
@@ -322,14 +324,14 @@ const Header = () => {
     return (
         <div className=''>
             <nav className="fixed left-0 top-0 right-0 z-50 mx-auto max-w-screen bg-white  dark:text-white  dark:bg-black  ">
-                <div className="max-w-screen-xl mx-auto">
+                <div className="max-w-screen-lg mx-auto">
                     <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-3 md:pt-3 pt-2 px-4">
                         {/* logo, webnovels, studio */}
                         <div className='flex flex-row items-center justify-center space-x-4'>
                             <Link href="/?version=premium" className="flex items-center space-x-3 rtl:space-x-reverse">
                                 <Image 
                                 // src="/toonyzLogo.png" 
-                                src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyzLogo.png'}
+                                src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
                                 alt="Toonyz Logo" 
                                 width={logoWidth} 
                                 height={logoHeight} />
@@ -339,7 +341,7 @@ const Header = () => {
                                     <p className={`${isActive('/') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                                     {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
-                                <Link href="#">
+                                <Link href="/webtoons">
                                     <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-pink-600 hover:text-pink-600`}>
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
@@ -351,14 +353,14 @@ const Header = () => {
                             </div>
                         </div>
                         <div className="flex md:order-1">
-                            {/*Search icon in mobile screen (md:hidden)*/}
+                            {/*Globe icon in mobile screen (md:hidden)*/}
                             <div ref={searchRef}>
                                 <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700  text-sm p-2.5 me-1">
-                                    {/* <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                                </svg>
-                                <span className="sr-only">Search</span> */}
-                                    <i className="fa-solid fa-globe text-black dark:text-white text-xl "></i>
+                                    <Image 
+                                    src={theme === 'dark' ? '/globe_icon_white.png' : '/globe_icon.png'} 
+                                    alt="Globe Icon" 
+                                    width={20} 
+                                    height={20} />
                                 </button>
                             </div>
                             {/*Main menu in mobile screen (md:hidden)*/}
@@ -382,27 +384,16 @@ const Header = () => {
                                 <input type="text" id="search-navbar" value={query} onChange={handleChange} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md dark:bg-black dark:text-white focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-pink-500 dark:focus:border-pink-500" />
                             </div>
                             {/*Search bar visible in screens larger than md (md:block)*/}
-                            <div className="relative hidden md:block mr-8">
+                            <div className="relative hidden md:block mr-6">
                                 <button
                                     onClick={toggleSearchDropdown}
-                                    className="flex items-center ps-3 cursor-pointer hover:text-pink-600"
-                                >
-                                    <svg
-                                        className="w-4 h-4 text-black dark:text-white rounded"
-                                        aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            stroke="currentColor"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                                        />
-                                    </svg>
-                                    <span className="sr-only">Search icon</span>
+                                    className="flex items-center ps-3 cursor-pointer"
+                                     >
+                                     <Image 
+                                            src={theme === 'dark' ? '/search_line_icon_white.png' : '/search_line_icon.png'} 
+                                            alt="Search Icon" 
+                                            width={20} 
+                                            height={20} />
                                 </button>
                                 {isSearchDropdownOpen && (
                                     <div
@@ -511,20 +502,20 @@ const Header = () => {
                                     </div>
                                 )}
                             </div>
-                            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 ">
-                                {/* News menu
-                            <li>
-                                <Link href="/news" className="justify-start flex block px-4 py-5 md:py-1 text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:w-auto dark:text-black md:dark:hover:text-pink-600 dark:focus:text-black dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-                                    <i className="fas fa-newspaper mt-1"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "news", language)}</p></Link>
-                            </li> */}
-                                {/*Language menu*/}
+                            <ul className="flex flex-col md:flex-row font-medium p-4 md:p-0 mt-4 border border-gray-600 md:space-x-6 rtl:space-x-reverse md:mt-0 md:border-0 ">
+                              
+                                {/*Language globe icon menu - Desktop*/}
                                 <li className="py-2 relative">
                                     <div ref={languageMenuRef}>
                                         <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white  dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-                                            <i className="fa-solid fa-globe text-black dark:text-white"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p>
-                                            <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                                            </svg>
+                                            {/* <i className="fa-solid fa-globe text-black dark:text-white"></i> */}
+                                            <Image 
+                                            src={theme === 'dark' ? '/globe_icon_white.png' : '/globe_icon.png'} 
+                                            alt="Globe Icon" 
+                                            width={19} 
+                                            height={19} />
+                                            <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "language", language)}</p>
+                                            
                                         </button>
                                     </div>
                                     {isLanguageDropdownOpen && (
@@ -532,23 +523,29 @@ const Header = () => {
                                             <ul className="py-2 text-sm  text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
                                                 {langPairList.map((langPair, index) => (
                                                     <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
-                                                        <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        <Link href="#" onClick={(event) => handleLanguageChange(event, langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black">
                                                             {langPair.name}
                                                         </Link>
+                                                    {/*  href={isLoggedIn? '#': '/signin'}  */}
                                                     </li>
                                                 ))}
                                             </ul>
                                         </div>
                                     )}
                                 </li>
-                                {/*User menu*/}
+                                {/*User menu - Desktop*/}
                                 <li className="py-2 relative">
                                     <div ref={userMenuRef}>
                                         <button id="dropdownNavbarUserLink" onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-pink-600 md:p-0 md:w-auto dark:text-white md:dark:hover:text-pink-600 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-                                            <i className="fa-solid fa-user text-black dark:text-white"></i><p className='ml-2 md:hidden'>{phrase(dictionary, "profile", language)}</p>
-                                            <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                                            </svg></button>
+                                            {/* <i className="fa-solid fa-user text-black dark:text-white"></i> */}
+                                            <Image 
+                                            src={theme === 'dark' ? '/profile_line_icon_white.png' : '/profile_line_icon.png'} 
+                                            alt="Globe Icon" 
+                                            width={20} 
+                                            height={20} />
+                                            <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "profile", language)}</p>
+                                        
+                                        </button>
                                     </div>
                                     {isUserDropdownOpen && (
                                         <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded-md md:border-0 border border-gray-400 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-52 dark:divide-gray-600`}>
@@ -640,13 +637,13 @@ const Header = () => {
                         </div>
                     </div>
                     {/* mobile webnovels, webtoons, studio mobile bottom menu */}
-                    <div id="below-header" className="max-w-screen-xl mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
+                    <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row block md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
                         <Link href="/?version=premium">
                             <p className={`${isActive('/') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600   hover:text-pink-600 `}>   {/* has-[:clicked]:bg-indigo-50  */}
                           
                             {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
-                        <Link href="/">
+                        <Link href="/webtoons">
                             <p className={`${isActive('/webtoons') ? 'text-pink-600 font-bold pb-2 border-b-2 border-pink-600' : ''} webnovel mt-1 text-xl text-black dark:text-white dark:hover:text-pink-600  hover:text-pink-600`}>
                             {phrase(dictionary, "webtoons", language)}</p>
                         </Link>
@@ -661,7 +658,7 @@ const Header = () => {
             </nav>
             {pathname == '/' && (
                 <>
-                    <div id="free-premium" className="max-w-screen-xl mx-auto md:mt-[4rem] mt-[5.6rem] z-[99]">
+                    <div id="free-premium" className="max-w-screen-lg mx-auto md:mt-[4rem] mt-[5.6rem] z-[99]">
                         <div className="flex flex-row space-x-4 items-center justify-start ml-4 md:p-0 p-1">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
                             <p className={`text-gray-500 text-md font-bold ${highlightPremium() ? "text-pink-600 md:p-1 md:border-b-2 md:border-pink-600 border-0" : ""}`}>
                                 <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>

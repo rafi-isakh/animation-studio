@@ -173,7 +173,7 @@ export default function Contact() {
 
                 <div className="flex flex-col gap-1 mt-10">
                     <Image
-                        src="/N_Logo.png"
+                        src="/images/N_logo.svg"
                         alt="Toonyz Logo"
                         width={0}
                         height={0}
@@ -181,6 +181,7 @@ export default function Contact() {
                         style={{
                             height: '20px',
                             width: '20px',
+                            padding: '2px',
                             // justifyContent: 'center',
                             // alignSelf: 'center',
                             borderRadius: '25%',

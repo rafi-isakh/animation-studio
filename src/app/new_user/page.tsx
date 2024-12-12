@@ -102,7 +102,7 @@ export default function NewUser() {
            <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
       
             <Image
-            src="/N_Logo.png"
+            src="/images/N_logo.svg"
             alt="Toonyz Logo"
             width={0}
             height={0}
@@ -111,6 +111,7 @@ export default function NewUser() {
                 marginTop: '15px',
                 height: '35px', 
                 width: '35px', 
+                padding: '2px',
                 justifyContent: 'center', 
                 alignSelf: 'center', 
                 borderRadius: '25%', 

@@ -91,7 +91,7 @@ export default function Footer() {
                     </div>
                     <div className="flex flex-row items-center justify-center md:justify-start md:mb-3 mb-10 mt-5">
                         <Image
-                            src="/N_Logo.png"
+                            src="/images/N_logo.svg"
                             alt="Toonyz Logo"
                             width={0}
                             height={0}
@@ -99,6 +99,7 @@ export default function Footer() {
                             style={{
                                 height: '20px',
                                 width: '20px',
+                                padding: '2px',
                                 justifyContent: 'center',
                                 alignSelf: 'center',
                                 borderRadius: '25%',

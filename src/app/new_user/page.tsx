@@ -37,6 +37,7 @@ async function createUser() {
 }
 
 async function updateUser(formData: FormData) {
+    // TODO: add option to upload picture at user registration
     let nickname = formData.get('nickname') as string;
     if (!nickname) {
         nickname = "Anonymous";
@@ -51,12 +52,9 @@ async function updateUser(formData: FormData) {
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/update_user?promo_code=${promoCode}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: formData
     });
-    redirect('/');
+    redirect('/welcome');
 }
 
 async function isUserInDB() {

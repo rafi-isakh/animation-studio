@@ -1,4 +1,4 @@
-"use client"
+    "use client"
 import { usePathname, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';

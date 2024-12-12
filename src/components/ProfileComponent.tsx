@@ -16,19 +16,20 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Box, Button, Modal, useMediaQuery } from '@mui/material';
 import { useModalStyle } from '@/styles/ModalStyles';
-import { Book, 
-        Pencil, 
-        Heart, 
-        ExternalLink, 
-        Ellipsis, 
-        Eye, 
-        CircleHelp, 
-        Flag, 
-        UserRoundX, 
-        Twitter,
-        Facebook,
-        Copy
- } from 'lucide-react';
+import {
+    Book,
+    Pencil,
+    Heart,
+    ExternalLink,
+    Ellipsis,
+    Eye,
+    CircleHelp,
+    Flag,
+    UserRoundX,
+    Twitter,
+    Facebook,
+    Copy
+} from 'lucide-react';
 import { createEmailHash } from '@/utils/cryptography';
 
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
@@ -161,23 +162,23 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const handleDeleteAccount = async () => {
         if (!isProfileOwner()) {
             console.error("Deleting account failed");
-            return 
+            return
         }
 
         try {
             const response = await fetch(`/api/delete_account?email=${email}`);
-                if (!response.ok) {
-                    console.error("Deleting account failed");
-                    return;
-                }
+            if (!response.ok) {
+                console.error("Deleting account failed");
+                return;
+            }
 
-                await logout(true, `/`);
-            } catch (error) {
-                console.error('Error signing out:', error);
-            }
-            finally {
-                setShowDeleteAccountModal(false);
-            }
+            await logout(true, `/`);
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
+        finally {
+            setShowDeleteAccountModal(false);
+        }
     }
 
     const getNumberOfChapters = () => {
@@ -197,6 +198,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
 
     const getRecentNovel = () => {
+        // TODO: optimize this
         return novels.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
     }
 
@@ -212,201 +214,199 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             {/*Left component :: Profile picture */}
 
             <div className='w-full rounded-md flex md:flex-row flex-col gap-10 justify-center items-center order-1 mb-10 md:mb-0 relative'>
-               
-        {/* Existing content container */}
-        <div className="relative p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
-        <div className="absolute bg-white dark:bg-black rounded-md inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0" 
-            style={{ backgroundImage: `url(${getImageUrl(user.picture)})`, backgroundColor: 'white', backgroundSize: 'cover', backgroundPosition: 'center',  }}>
-        </div>
-            {/* profile picture */}
-            <div className='z-20 flex md:flex-row flex-col w-full justify-center items-center gap-6'>
-            <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex items-center justify-center">
-                    <Link href={createEmailHash(email) == user.email_hash ? "#" : ""}>
-                        {profilePicturePreview || user.picture ?
-                            <div>
-                                {profilePicturePreview ?
-                                    <p onClick={handleProfilePictureUpload}> 
-                                    <Image 
-                                    src={profilePicturePreview} 
-                                    alt="Profile Picture Preview" 
-                                    className="object-cover object-center" 
-                                    width={80} 
-                                    height={80} />
-                                    </p>
-                                    :
-                                    user.picture ?
-                                        <p onClick={handleProfilePictureUpload}>
-                                            <Image 
-                                            src={getImageUrl(user.picture)} 
-                                            className="object-cover object-center" 
-                                            alt="Profile Picture Preview" 
-                                            width={80} 
-                                            height={80}
-                                             />
-                                        </p>
-                                        : <></>
-                                }
-                            </div>
-                            :
-                            <div>
-                                <svg 
-                                onClick={handleProfilePictureUpload} 
-                                className="w-[80px] h-[80px] text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                        }
-                    </Link>
 
-                    <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
-                </div>
-        
-                      
-
-                {/* nickname */}
-                <div className='flex flex-col justify-center md:items-start items-center gap-4'>
-                    <p className="flex flex-row justify-start items-start font-boldtext-left">
-                    <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
-                      {phrase(dictionary, "author", language)}
-                    </span>
-                       {user.nickname} 
-                        <Link href="#" onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'> 
-                            <Ellipsis size={18} /> 
-                        </Link> 
-                    </p>
-                    {isUserDropdownOpen && (
-                            <div id="user-dropdown" ref={userDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 -mt-2 ml-10 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-32 dark:divide-gray-600`}>
-                                <ul className="py-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                    <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                      { isProfileOwner() && 
-                                       <Link href="#" onClick={() => setShowDeleteAccountModal(true)} className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                        <UserRoundX size={20} />
-                                        {phrase(dictionary, "deleteAccount", language)}
-                                             {/* {isProfileOwner() && <Button color='gray' variant='outlined' className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>} */}
-                                        </Link>
+                {/* Existing content container */}
+                <div className="relative p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
+                    <div className="absolute bg-white dark:bg-black rounded-md inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
+                        style={{ backgroundImage: `url(${getImageUrl(user.picture)})`, backgroundColor: 'white', backgroundSize: 'cover', backgroundPosition: 'center', }}>
+                    </div>
+                    {/* profile picture */}
+                    <div className='z-20 flex md:flex-row flex-col w-full justify-center items-center gap-6'>
+                        <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex items-center justify-center">
+                            <Link href={createEmailHash(email) == user.email_hash ? "#" : ""}>
+                                {profilePicturePreview || user.picture ?
+                                    <div>
+                                        {profilePicturePreview ?
+                                            <p onClick={handleProfilePictureUpload}>
+                                                <Image
+                                                    src={profilePicturePreview}
+                                                    alt="Profile Picture Preview"
+                                                    className="object-cover object-center"
+                                                    width={80}
+                                                    height={80} />
+                                            </p>
+                                            :
+                                            user.picture ?
+                                                <p onClick={handleProfilePictureUpload}>
+                                                    <Image
+                                                        src={getImageUrl(user.picture)}
+                                                        className="object-cover object-center"
+                                                        alt="Profile Picture Preview"
+                                                        width={80}
+                                                        height={80}
+                                                    />
+                                                </p>
+                                                : <></>
                                         }
-                                    </li>
-                                     { !isProfileOwner() &&
-                                    <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">   
-                                        <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                            <Flag size={20} className="dark:text-white text-black" />
-                                              {phrase(dictionary, "report", language)}
-                                        </Link>
-                                    </li>
-                                    }
-                                    <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                        <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                            <CircleHelp size={20} className="dark:text-white text-black" />
-                                               {phrase(dictionary, "help", language)}
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                {/* number of webnovels, chapters, likes */}
-                   <div>
-                  <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
-                    <div className='flex flex-col justify-center items-center pr-3 border-r border-gray-300'>
-                        {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p> */}
-                        <p className='flex flex-row justify-center items-center gap-2'> 
-                            <Book size={15} /> 
-                            {/* Works  */}
-                            {phrase(dictionary, "works", language)}
-                        </p>
-                        <p>{novels.length}</p>
-                    </div>
-                        <div className='flex flex-col justify-center items-center pr-3 border-r border-gray-300'>
-                            {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p> */}
-                            <p className='flex flex-row justify-center items-center gap-2'> 
-                                {/* <Pencil size={15} />  */}
-                                <Eye size={15} />
-                                {/* Views  */}
-                                {phrase(dictionary, "views", language)}
-                            </p>
-                            <p>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
-                            {/* <p>{getNumberOfChapters()}</p> */}
-                        </div>
-                        <div className='flex flex-col justify-center items-center'>
-                            <p className='flex flex-row justify-center items-center gap-2'>
-                            <Heart size={15} /> 
-                            {/* Likes */}
-                            {phrase(dictionary, "likes", language)}
-                            {/* {Object.keys(dictionary).length != 0 && dictionary["likes"][language]} */}
-                            </p>
-                            <p>{getNumberOfLikes()}</p>
-                        </div>
-                    </div>
-              </div>
-                        
-                    <div className='flex flex-row gap-4 text-gray-600'>
-                        <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-24'>
-                            {/* +Follow */}
-                            {phrase(dictionary, "follow", language)}
-                        </Button>
-                        <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-24 flex flex-row justify-center items-center'>
-                            <ExternalLink size={18} />
-                            {/* share */}
-                            {phrase(dictionary, "share", language)}
-                        </Button>
-                        {isShareDropdownOpen && (
-                            <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
-                                <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
-                                <ul className="flex flex-row gap-2 justify-center items-center m-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                    <li className="hover:opacity-80 transition duration-150 ease-in-out">
-                                        <Link href="#" className="flex items-center dark:text-white text-black">
-                                            <Facebook size={30} className="dark:text-white text-white bg-blue-900 rounded-full p-1" />
-                                        
-                                        </Link>
-                                    </li>
-                                    <li className="hover:opacity-80 transition duration-150 ease-in-out">
-                                        <Link href="#" className="flex items-center dark:text-white text-black">
-                                            <Twitter size={30} className="dark:text-white text-white bg-blue-500 rounded-full p-1" />
-                                        
-                                        </Link>
-                                    </li>
-                                    <li className="hover:opacity-80 transition duration-150 ease-in-out">
-                                        <Link href="#" className="flex items-center dark:text-white text-black">
-                                            <Copy size={30} className="dark:text-white text-white bg-gray-500 rounded-full p-1" />
-                                        
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-               </div>
-            </div>
-        </div>
+                                    </div>
+                                    :
+                                    <div>
+                                        <svg
+                                            onClick={handleProfilePictureUpload}
+                                            className="w-[80px] h-[80px] text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                }
+                            </Link>
 
-            </div>
+                            <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
+                        </div>
 
-                <div className='flex flex-col gap-4 w-full order-2 md:m-10 m-0'>
-                   
-                        <Button color='gray' variant='outlined'className='border-b border-gray-300 rounded-sm px-4 py-2'>
-                            {novels.length > 0 ? (
-                                <p className='flex flex-row gap-2 justify-center items-center'> 
-                                    <OtherTranslateComponent 
-                                        key={key1} 
-                                        content={getRecentNovel().title} 
-                                        elementId={user.id.toString()} 
-                                        elementType='user' 
-                                    /> 
-                                    {phrase(dictionary, "startToRead", language)}
-                                </p>
-                            ) : (
-                                <p className='flex flex-row gap-2 justify-center items-center'>
-                                    {phrase(dictionary, "noNovelsYet", language)}
-                                </p>
+
+
+                        {/* nickname */}
+                        <div className='flex flex-col justify-center md:items-start items-center gap-4'>
+                            <p className="flex flex-row justify-start items-start font-boldtext-left">
+                                <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                                    {phrase(dictionary, "author", language)}
+                                </span>
+                                {user.nickname}
+                                <Link href="#" onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'>
+                                    <Ellipsis size={18} />
+                                </Link>
+                            </p>
+                            {isUserDropdownOpen && (
+                                <div id="user-dropdown" ref={userDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 -mt-2 ml-10 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-32 dark:divide-gray-600`}>
+                                    <ul className="py-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                        <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
+                                            {isProfileOwner() &&
+                                                <Link href="#" onClick={() => setShowDeleteAccountModal(true)} className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
+                                                    <UserRoundX size={20} />
+                                                    {phrase(dictionary, "deleteAccount", language)}
+                                                    {/* {isProfileOwner() && <Button color='gray' variant='outlined' className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>} */}
+                                                </Link>
+                                            }
+                                        </li>
+                                        {!isProfileOwner() &&
+                                            <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
+                                                <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
+                                                    <Flag size={20} className="dark:text-white text-black" />
+                                                    {phrase(dictionary, "report", language)}
+                                                </Link>
+                                            </li>
+                                        }
+                                        <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
+                                            <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
+                                                <CircleHelp size={20} className="dark:text-white text-black" />
+                                                {phrase(dictionary, "help", language)}
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </div>
                             )}
+                            {/* number of webnovels, chapters, likes */}
+                            <div>
+                                <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
+                                    <div className='flex flex-col justify-center items-center pr-3 border-r border-gray-300'>
+                                        {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p> */}
+                                        <p className='flex flex-row justify-center items-center gap-2'>
+                                            <Book size={15} />
+                                            {/* Works  */}
+                                            {phrase(dictionary, "works", language)}
+                                        </p>
+                                        <p>{novels.length}</p>
+                                    </div>
+                                    <div className='flex flex-col justify-center items-center pr-3 border-r border-gray-300'>
+                                        {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p> */}
+                                        <p className='flex flex-row justify-center items-center gap-2'>
+                                            {/* <Pencil size={15} />  */}
+                                            <Eye size={15} />
+                                            {/* Views  */}
+                                            {phrase(dictionary, "views", language)}
+                                        </p>
+                                        <p>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
+                                        {/* <p>{getNumberOfChapters()}</p> */}
+                                    </div>
+                                    <div className='flex flex-col justify-center items-center'>
+                                        <p className='flex flex-row justify-center items-center gap-2'>
+                                            <Heart size={15} />
+                                            {/* Likes */}
+                                            {phrase(dictionary, "likes", language)}
+                                            {/* {Object.keys(dictionary).length != 0 && dictionary["likes"][language]} */}
+                                        </p>
+                                        <p>{getNumberOfLikes()}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex flex-row gap-4 text-gray-600'>
+                                <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-24'>
+                                    {/* +Follow */}
+                                    {phrase(dictionary, "follow", language)}
+                                </Button>
+                                <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-24 flex flex-row justify-center items-center'>
+                                    <ExternalLink size={18} />
+                                    {/* share */}
+                                    {phrase(dictionary, "share", language)}
+                                </Button>
+                                {isShareDropdownOpen && (
+                                    <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
+                                        <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
+                                        <ul className="flex flex-row gap-2 justify-center items-center m-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
+                                            <li className="hover:opacity-80 transition duration-150 ease-in-out">
+                                                <Link href="#" className="flex items-center dark:text-white text-black">
+                                                    <Facebook size={30} className="dark:text-white text-white bg-blue-900 rounded-full p-1" />
+
+                                                </Link>
+                                            </li>
+                                            <li className="hover:opacity-80 transition duration-150 ease-in-out">
+                                                <Link href="#" className="flex items-center dark:text-white text-black">
+                                                    <Twitter size={30} className="dark:text-white text-white bg-blue-500 rounded-full p-1" />
+
+                                                </Link>
+                                            </li>
+                                            <li className="hover:opacity-80 transition duration-150 ease-in-out">
+                                                <Link href="#" className="flex items-center dark:text-white text-black">
+                                                    <Copy size={30} className="dark:text-white text-white bg-gray-500 rounded-full p-1" />
+
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div className='flex flex-col gap-4 w-full order-2 md:m-10 m-0'>
+                {
+                    novels.length > 0 ? (
+                        <Button color='gray' onClick={() => router.push(`/view_webnovels?id=${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
+                            <p className='flex flex-row gap-2 justify-center items-center'>
+                                <OtherTranslateComponent
+                                    key={key1}
+                                    content={getRecentNovel().title}
+                                    elementId={user.id.toString()}
+                                    elementType='user'
+                                />
+                                {phrase(dictionary, "startToRead", language)}
+                            </p>
                         </Button>
-                        {/* {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
+                    ) : <p className='flex flex-row gap-2 justify-center items-center'>
+                        {phrase(dictionary, "noNovelsYet", language)}
+                    </p>
+                }
+                {/* {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
                             {phrase(dictionary, "unlockNextEpisode", language)}
                         </button> 
                         : <><button className='border-b-2 border-gray-300 rounded-sm px-4 py-2'>
                             {phrase(dictionary, "viewAnotherWorks", language)}
                         </button></> } */}
-                  
-                </div>
+            </div>
 
             {/*Right component :: Author bio & view webnovel */}
             <div className='flex flex-col w-full justify-center items-center order-2 mt-5'>
@@ -420,53 +420,53 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 </div> 
                 */}
 
-               {/*--  left-hand side:  Author's other works link */}
+                {/*--  left-hand side:  Author's other works link */}
                 {/* <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
                     <Suspense>
                         <AuthorAndWebnovelsAsideComponent webnovels={novels} nickname={user.nickname} />
                     </Suspense>
                 </div>  */}
-                    {/*-- left-hand side:  Author's other works link end */}
+                {/*-- left-hand side:  Author's other works link end */}
 
-                
+
                 <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-10'>
-                   
+
                     <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
                         {Object.keys(dictionary).length !== 0 && phrase(dictionary, "authorBio", language)}
                     </p>
-        
+
                     <div>
                         <OtherTranslateComponent key={key2} content={user.bio} elementId={user.id.toString()} elementType='user' />
                     </div>
-                 
-    
+
+
                     <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
                         {Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}
                     </p>
-             
+
                     <div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
                         {/* after:content-[''] after:flex-auto */}
-                            {/* <div key={index} className=''> */}
-                                 {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
-                                <WebnovelsCardList
-                                    title=""
-                                    subtitle=""
-                                    webnovels={novels}
-                                    scrollRef={scrollRef}
-                                    isMobile={isMobile}
-                                    renderItem={(item: Webnovel, index: number) => (
-                                        <WebnovelPictureComponent 
-                                            webnovel={item} 
-                                            index={index} 
-                                            ranking={false} 
-                                            details={false}
-                                            up={false}
-                                            isOriginal={false}
-                                        />
-                                        )}
-                                        />
-                            {/* </div> */}
-                     
+                        {/* <div key={index} className=''> */}
+                        {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
+                        <WebnovelsCardList
+                            title=""
+                            subtitle=""
+                            webnovels={novels}
+                            scrollRef={scrollRef}
+                            isMobile={isMobile}
+                            renderItem={(item: Webnovel, index: number) => (
+                                <WebnovelPictureComponent
+                                    webnovel={item}
+                                    index={index}
+                                    ranking={false}
+                                    details={false}
+                                    up={false}
+                                    isOriginal={false}
+                                />
+                            )}
+                        />
+                        {/* </div> */}
+
                     </div>
 
                     <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
@@ -476,7 +476,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
 
                 </div>
-            
+
             </div>
             <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
                 <Box sx={useModalStyle}>

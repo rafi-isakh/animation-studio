@@ -8,7 +8,14 @@ export async function GET(req: NextRequest, res: NextResponse) {
     const is_webtoon = searchParams.get("is_webtoon")
     const is_webnovel = searchParams.get("is_webnovel")
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/increase_views_not_logged_in?chapter_id=${chapter_id}&is_webtoon=${is_webtoon}&is_webnovel=${is_webnovel}`);
+    let appendString = ""
+    if (is_webtoon) {
+        appendString = "&is_webtoon=true"
+    } else if (is_webnovel) {
+        appendString = "&is_webnovel=true"
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/increase_views_not_logged_in?chapter_id=${chapter_id}${appendString}`);
 
     if (!response.ok) {
         return NextResponse.json({

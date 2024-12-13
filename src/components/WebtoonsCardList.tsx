@@ -24,7 +24,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
     ranking
 }) => {
 
-    const sortedWebtoons = webtoons.sort((a, b) => a.views - b.views);
+    const sortedWebtoons: Webtoon[] = JSON.parse(JSON.stringify(webtoons)).sort((a: Webtoon, b: Webtoon) => b.views - a.views)
     const shownWebtoons = ranking ? sortedWebtoons : webtoons;
     const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
     const scrollRef = useRef<HTMLDivElement>(null);

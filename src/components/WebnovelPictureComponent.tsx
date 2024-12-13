@@ -34,7 +34,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                         width={180}
                         height={257}
                         quality={85}
-                        className="object-cover w-[100px] h-[143px] md:w-[180px] md:h-[257px]"
+                        className="object-cover w-[100px] h-[143px] md:w-[151px] md:h-[216px]"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
@@ -65,7 +65,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                             elementId={webnovel.id.toString()}
                             elementType="webnovel"
                             elementSubtype="title"
-                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-full"
+                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-[100px] md:w-[151px]"
                         />
                         <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                             {webnovel.user.nickname}

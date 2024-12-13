@@ -36,7 +36,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     const largeGap = () => {
         return (
-            <div className='md:h-[5rem] h-[3rem]' />
+            <div className='md:h-[3rem] h-[2rem]' />
         )
     }
 

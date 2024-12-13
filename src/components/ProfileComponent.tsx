@@ -28,6 +28,8 @@ import {
     UserRoundX,
     Twitter,
     Facebook,
+    Plus,
+    ChevronRight,
     Copy
 } from 'lucide-react';
 import { createEmailHash } from '@/utils/cryptography';
@@ -268,9 +270,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         {/* nickname */}
                         <div className='flex flex-col justify-center md:items-start items-center gap-4'>
                             <p className="flex flex-row justify-start items-start font-boldtext-left">
-                                <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                              { novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
                                     {phrase(dictionary, "author", language)}
-                                </span>
+                                </span> }
                                 {user.nickname}
                                 <Link href="#" onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'>
                                     <Ellipsis size={18} />
@@ -308,47 +310,48 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                             {/* number of webnovels, chapters, likes */}
                             <div>
                                 <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
-                                    <div className='flex flex-col justify-center items-center pr-3 border-r border-gray-300'>
+                                    <div className='flex flex-col justify-center items-center pr-6 border-r border-gray-300'>
                                         {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p> */}
-                                        <p className='flex flex-row justify-center items-center gap-2'>
+                                        <p className='flex flex-row justify-center items-center gap-2 text-sm'>
                                             <Book size={15} />
                                             {/* Works  */}
                                             {phrase(dictionary, "works", language)}
                                         </p>
-                                        <p>{novels.length}</p>
+                                        <p className='text-sm text-center text-gray-500'>{novels.length}</p>
                                     </div>
-                                    <div className='flex flex-col justify-center items-center pr-3 border-r border-gray-300'>
+                                    <div className='flex flex-col justify-center items-center pr-6 border-r border-gray-300'>
                                         {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p> */}
-                                        <p className='flex flex-row justify-center items-center gap-2'>
+                                        <p className='flex flex-row justify-center items-center gap-2 text-sm'>
                                             {/* <Pencil size={15} />  */}
                                             <Eye size={15} />
                                             {/* Views  */}
                                             {phrase(dictionary, "views", language)}
                                         </p>
-                                        <p>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
+                                        <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
                                         {/* <p>{getNumberOfChapters()}</p> */}
                                     </div>
                                     <div className='flex flex-col justify-center items-center'>
-                                        <p className='flex flex-row justify-center items-center gap-2'>
+                                        <p className='flex flex-row justify-center items-center gap-2 text-sm'>
                                             <Heart size={15} />
                                             {/* Likes */}
                                             {phrase(dictionary, "likes", language)}
                                             {/* {Object.keys(dictionary).length != 0 && dictionary["likes"][language]} */}
                                         </p>
-                                        <p>{getNumberOfLikes()}</p>
+                                        <p className='text-sm text-center text-gray-500'>{getNumberOfLikes()}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className='flex flex-row gap-4 text-gray-600'>
-                                <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-24'>
+                                <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
                                     {/* +Follow */}
-                                    {phrase(dictionary, "follow", language)}
+                                    <Plus size={10} />
+                                    <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
                                 </Button>
-                                <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-24 flex flex-row justify-center items-center'>
-                                    <ExternalLink size={18} />
+                                <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
                                     {/* share */}
-                                    {phrase(dictionary, "share", language)}
+                                    <ExternalLink size={10} />
+                                    <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
                                 {isShareDropdownOpen && (
                                     <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
@@ -395,12 +398,13 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 />
                                 {phrase(dictionary, "startToRead", language)}
                             </p>
+                            <ChevronRight size={10} />
                         </Button>
                     ) : <p className='flex flex-row gap-2 justify-center items-center'>
-                        {phrase(dictionary, "noNovelsYet", language)}
+                       
                     </p>
                 }
-                {/* {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
+                {/*    {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
                             {phrase(dictionary, "unlockNextEpisode", language)}
                         </button> 
                         : <><button className='border-b-2 border-gray-300 rounded-sm px-4 py-2'>
@@ -436,16 +440,27 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </p>
 
                     <div>
-                        <OtherTranslateComponent key={key2} content={user.bio} elementId={user.id.toString()} elementType='user' />
-                    </div>
+                        {/* 종민님 bio 표시 부분 버그가 있음. 추후 수정 필요합니다. */}
+                       {user.bio ? (
+                            <OtherTranslateComponent 
+                                key={key2} 
+                                content={user.bio} 
+                                elementId={user.id.toString()} 
+                                elementType='user' 
+                            /> )
+                        : <p className='text-sm text-gray-500'>
+                            {phrase(dictionary, "noBioYet", language)}
+                            </p>
+                        }
+                     </div>
 
 
                     <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
                         {Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}
                     </p>
 
-                    <div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
-                        {/* after:content-[''] after:flex-auto */}
+                    { novels.length > 0 ? (<div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
+                    
                         {/* <div key={index} className=''> */}
                         {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                         <WebnovelsCardList
@@ -467,12 +482,26 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         />
                         {/* </div> */}
 
-                    </div>
+                    </div> ) : ( <div className='flex flex-col gap-4 justify-center items-center text-center text-sm border-b-1 border-gray-300 w-full uppercase'>
+                       {/* 작품이 없습니다 */}
+                       <p>{phrase(dictionary, "noNovelsYet", language)} </p> 
+                       <Button className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
+                        <Link href="/new_webnovel">
+                          {phrase(dictionary, "writeYourStory", language)}
+                        </Link>
+                    </Button>
+                    </div>)}
 
+
+                    {/* <div>
                     <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
-                        {/* PEOPLE ALSO LIKE */}
+                        PEOPLE ALSO LIKE 
                         {phrase(dictionary, "peopleAlsoLike", language)}
                     </p>
+                       
+                    </div> 
+                    */}
+
 
 
                 </div>

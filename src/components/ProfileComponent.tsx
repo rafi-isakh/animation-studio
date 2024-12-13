@@ -270,7 +270,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 </div>
                 <div className='flex flex-shrink-0 -translate-y-4' ref={introRef}>
                     <div id='bio'>
-                        <OtherTranslateComponent key={key} content={user.bio} elementId={user.id.toString()} elementType='user' />
+                        <OtherTranslateComponent content={user.bio} elementId={user.id.toString()} elementType='user' />
                     </div>
                 </div>
                 <div className="flex flex-shrink-0 -translate-y-12" ref={viewRef} >

@@ -57,7 +57,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {smallGap()}
                 <CircularMenuItemsComponent />
                 {smallGap()}
-                <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                 {largeGap()}
                 <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                 {largeGap()}

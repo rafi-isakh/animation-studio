@@ -28,7 +28,6 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
-            .reverse();
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

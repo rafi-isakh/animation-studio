@@ -76,9 +76,9 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
 
     return (
         <>
-            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pt-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300"
+            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-0 pt-2 pb-2 transition-transform duration-300"
             ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-evenly mx-auto p-2">
+                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-evenly mx-auto">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='group hover:text-pink-600'>
                             <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600 mr-4"></i>

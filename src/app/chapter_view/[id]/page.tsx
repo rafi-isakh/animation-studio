@@ -232,8 +232,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </div>
                         {/* Title and content : end */}
-                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
+                    <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>

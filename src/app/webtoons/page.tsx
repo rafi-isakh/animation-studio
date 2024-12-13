@@ -48,7 +48,7 @@ const Webtoons = async () => {
 
     return (
         <>
-            <div className="max-w-screen-lg mx-auto md:px-0 px-4">
+            <div className="max-w-screen-lg mx-auto px-4 md:px-0">
                 <WebtoonsCarousel webtoons={webtoons} carouselItems={carouselItems} />
                 <div className="flex flex-col justify-center items-center">
                     {smallGap()}
@@ -61,8 +61,8 @@ const Webtoons = async () => {
                 {largeGap()}
                 <WebtoonsRecommendationCarousel carouselItems={shuffledCarouselItems} />
                 {largeGap()}
-                <PromotionBannerComponent />
             </div>
+            <PromotionBannerComponent />
 
             <Footer />
         </>

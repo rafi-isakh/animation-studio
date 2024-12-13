@@ -16,7 +16,7 @@ interface WebtoonsCardListProps {
     ranking: boolean;
 }
 
-const WebtoonsCardList: React.FC<WebtoonsCardListProps> = async ({
+const WebtoonsCardList: React.FC<WebtoonsCardListProps> = ({
     webtoons,
     coverArts,
     titleVar,

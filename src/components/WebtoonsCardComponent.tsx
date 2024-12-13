@@ -19,7 +19,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
     }, [language]);
 
     return (
-        <div className="group relative flex flex-col items-center w-full">
+        <div className="group relative flex flex-col items-center">
             <div className="relative shrink-0 overflow-hidden rounded-sm h-full">
             <Link href={`/webtoons/${webtoon.id}`}>
                 {/* <Image
@@ -59,13 +59,13 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                             elementId={webtoon.id.toString()}
                             elementType="webtoon"
                             elementSubtype="title"
-                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-full"
+                            classParams="text-[12px] md:text-sm font-medium w-[100px] md:w-[180px] line-clamp-2"
                         />
-                        <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                            {webtoon.user.nickname}
+                        <div className="text-[10px] md:text-[11px] font-bold w-full text-gray-500 flex flex-col md:flex-row justify-center">
+                            <div className="truncate">{webtoon.user.nickname}</div>
                             <span className="hidden md:block"> • </span>
-                            <DictionaryPhrase phraseVar={webtoon.genre} />
-                        </p>
+                            <div className="truncate"><DictionaryPhrase phraseVar={webtoon.genre} /></div>
+                        </div>
 
                         {/* Total Chapters and Views */}
                         {detail &&

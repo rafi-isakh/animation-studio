@@ -156,15 +156,15 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     type Direction = 'ltr' | 'rtl';
 
     return (
-        <div className={`${classParams}`} style={{ direction: `${isRtl}` as Direction }}>
+        <div style={{ direction: `${isRtl}` as Direction }}>
             {
                 loading && showLoading ?
                    (
-                    <div role="status" className='w-4'>
+                    <div role="status" className='w-4 self-center'>
                         {/* genre */}
                         <CircularProgress size="0.8rem" color='secondary' />
                     </div>
-                   ) : <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
+                   ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
             }
         </div>

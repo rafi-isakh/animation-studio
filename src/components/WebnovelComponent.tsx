@@ -31,7 +31,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`} className="w-full">
             <div className='flex flex-shrink-0 flex-nowrap justify-start items-start space-x-4 w-full  p-4 text-sm'>
-                <div className="relative w-[45px] md:w-[45px] h-[60px] md:h-[60px] flex-shrink-0 rounded-sm overflow-hidden">
+                <div className="relative w-[45px] md:w-[75px] h-[60px] md:h-[105px] flex-shrink-0 rounded-sm overflow-hidden">
                     <Image
                         src={imageSrc}
                         // width={imageWidth}

@@ -59,7 +59,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                             elementId={webtoon.id.toString()}
                             elementType="webtoon"
                             elementSubtype="title"
-                            classParams="text-[12px] md:text-sm font-medium w-[100px] md:w-[180px] line-clamp-2"
+                            classParams="text-[12px] md:text-sm font-medium w-[90px] md:w-[160px] line-clamp-2"
                         />
                         <div className="text-[10px] md:text-[11px] font-bold w-full text-gray-500 flex flex-col md:flex-row justify-center">
                             <div className="truncate">{webtoon.user.nickname}</div>

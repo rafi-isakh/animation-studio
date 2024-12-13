@@ -28,6 +28,7 @@ const Webtoons = async () => {
     const carouselItems = await getWebtoonCarouselItems()
     const shuffledCarouselItems = carouselItems.sort(() => Math.random() - 0.5)
     const data: Webtoon[] = await response.json()
+    const webtoonsSorted = JSON.parse(JSON.stringify(data)).sort((a: Webtoon, b: Webtoon) => b.views - a.views)
 
     const coverArts = await Promise.all(data.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
 
@@ -54,7 +55,7 @@ const Webtoons = async () => {
                 </div>
                 <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} coverArts={coverArts} detail={false} ranking={false}/>
                 {largeGap()}
-                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} coverArts={coverArts} detail={true} ranking={true}/>
+                <WebtoonsCardList titleVar="newAndTrends" webtoons={webtoonsSorted} coverArts={coverArts} detail={true} ranking={true}/>
                 {largeGap()}
                 <WebtoonsRecommendationCarousel carouselItems={shuffledCarouselItems} />
                 {largeGap()}

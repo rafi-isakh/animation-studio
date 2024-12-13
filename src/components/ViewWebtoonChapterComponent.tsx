@@ -23,10 +23,10 @@ const ViewWebtoonChapterComponent = ({ images, episodeNumber, webtoon }: { image
     }, [email])
 
     return (
-        <div className="flex flex-col justify-center items-center mx-auto w-[720px]">
+        <div className="flex flex-col justify-center items-center mx-auto">
             {images.map((image, index) =>
                 <div key={`webtoon-${index}`}>
-                    <WebtoonImageComponent image={image.url} width={image.width!} height={image.height!} />
+                    <WebtoonImageComponent image={image.url} />
                 </div>
             )
             }

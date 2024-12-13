@@ -82,8 +82,6 @@ export interface Webnovel {
 
 export interface WebtoonImage {
     url: string;
-    width: number;
-    height: number;
 }
 
 export interface Webtoon {

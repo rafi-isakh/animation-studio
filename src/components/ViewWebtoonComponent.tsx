@@ -19,6 +19,7 @@ const ViewWebtoonComponent = async (props: { webtoonId: string, episode: string 
     const webtoon = await getWebtoonById(props.webtoonId)
     const files = await listObjectsInWebtoonsDirectory(`${webtoon.root_directory}/${props.episode}`)
     const images: WebtoonImage[] = []
+    const before = performance.now()
     for (const file of files) {
         if (!file) continue;
         const cachedFile = imagesCache[file]
@@ -27,11 +28,12 @@ const ViewWebtoonComponent = async (props: { webtoonId: string, episode: string 
             continue;
         }
         const signedUrl = await getSignedUrlForWebtoonImage(file)
-        const { width, height } = await getImageDimensions(signedUrl)
-        const image = { url: signedUrl, width: width!, height: height! }
+        const image = { url: signedUrl }
         images.push(image)
         imagesCache[file] = image;
     }
+    const after = performance.now()
+    console.log(`for loop took ${after - before}ms`)
 
     return (
         <ViewWebtoonChapterComponent images={images} episodeNumber={props.episode} webtoon={webtoon} />

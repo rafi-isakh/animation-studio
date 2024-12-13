@@ -74,7 +74,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                                     <span><DictionaryPhrase phraseVar={"totalchapters"} /> {webtoon.chapters.length} </span>
                                     <span><DictionaryPhrase phraseVar={"numchapters"} /></span>
                                 </p>
-                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 gap-1 ">
                                     <TrendingUp size={10} />
                                     <span> {webtoon.views} </span>
                                 </p>

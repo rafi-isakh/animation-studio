@@ -22,6 +22,7 @@ const Webtoons = async () => {
     )
     const carouselItems = await getWebtoonCarouselItems()
     const data: Webtoon[] = await response.json()
+    const webtoonsSorted = JSON.parse(JSON.stringify(data)).sort((a: Webtoon, b: Webtoon) => b.views - a.views)
 
 
     const largeGap = () => {
@@ -47,7 +48,7 @@ const Webtoons = async () => {
                 </div>
                 <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} detail={false} ranking={false}/>
                 {largeGap()}
-                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} detail={true} ranking={true}/>
+                <WebtoonsCardList titleVar="newAndTrends" webtoons={webtoonsSorted} detail={true} ranking={true}/>
                 {largeGap()}
                 <WebtoonsRecommendationCarousel carouselItems={carouselItems} />
                 {largeGap()}

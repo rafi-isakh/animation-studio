@@ -73,7 +73,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     })
 
     useEffect(() => {
-        if (initialized.current) {
+        if (initialized.current && finished) {
             setLoading(false)
             saveTranslationToDB(true);
         }
@@ -131,7 +131,6 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     };
 
     const startEventSource = (textId: string) => {
-        setLoading(false);
         const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
 
         eventSource.onmessage = (event) => {

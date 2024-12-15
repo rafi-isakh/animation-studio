@@ -85,4 +85,5 @@ const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details
     )
 });
 
+WebnovelPictureComponent.displayName = 'WebnovelPictureComponent'; // need this because this is a React.meo
 export default WebnovelPictureComponent

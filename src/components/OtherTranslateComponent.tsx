@@ -199,4 +199,5 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     );
 });
 
+OtherTranslateComponent.displayName = 'OtherTranslateComponent'; // need this because this is a React.memo
 export default OtherTranslateComponent;

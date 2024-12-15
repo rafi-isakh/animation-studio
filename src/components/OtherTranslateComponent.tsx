@@ -35,8 +35,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             const data = await response.json();
             const langcode = data.langcode;
             if (langcode == language) {
-                setText(content);
-                setLoading(false);
                 originalAndTargetLangSame = true;
             }
             return originalAndTargetLangSame;
@@ -45,6 +43,8 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         const handleTranslate = async () => {
             const originalAndTargetLangSame = await detectLanguage();
             if (originalAndTargetLangSame) {
+                setText(content);
+                setLoading(false);
                 return;
             }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)

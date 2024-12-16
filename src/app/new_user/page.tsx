@@ -43,6 +43,7 @@ async function createUser() {
 }
 
 async function updateUser(formData: FormData) {
+    // TODO: add option to upload picture at user registration
     let nickname = formData.get('nickname') as string;
     if (!nickname) {
         nickname = "Anonymous";
@@ -59,7 +60,7 @@ async function updateUser(formData: FormData) {
         method: 'POST',
         body: formDataToSend,
     });
-    redirect('/');
+    redirect('/welcome');
 }
 
 async function isUserInDB() {
@@ -112,7 +113,7 @@ export default function NewUser() {
            <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
       
             <Image
-            src="/N_Logo.png"
+            src="/images/N_logo.svg"
             alt="Toonyz Logo"
             width={0}
             height={0}
@@ -121,6 +122,7 @@ export default function NewUser() {
                 marginTop: '15px',
                 height: '35px', 
                 width: '35px', 
+                padding: '2px',
                 justifyContent: 'center', 
                 alignSelf: 'center', 
                 borderRadius: '25%', 

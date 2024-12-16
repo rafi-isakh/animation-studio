@@ -19,12 +19,8 @@ import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeWrapper from '@/components/ThemeWrapper';
-<<<<<<< HEAD
-import {useTheme, Theme} from '@/contexts/providers'
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
-=======
 import { useTheme, Theme } from '@/contexts/providers'
->>>>>>> main
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();

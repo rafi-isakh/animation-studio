@@ -15,8 +15,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Failed to send content",
-            "status": response.status
+            message: "Failed to send content",
+            status: response.status
         });
     }
 

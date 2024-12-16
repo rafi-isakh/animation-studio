@@ -1,7 +1,6 @@
 "use client"
 import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
-import { decrypt } from "@/utils/cryptography";
 import { useEffect, useState } from "react";
 import LottieLoader from '@/components/LottieLoader';
 import animationData from '@/assets/N_logo_loader.json'

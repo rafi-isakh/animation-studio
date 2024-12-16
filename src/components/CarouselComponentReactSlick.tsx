@@ -8,7 +8,6 @@ import Image from 'next/image'
 import styles from '@/styles/CarouselComponent.module.css';
 import { SlickCarouselItem } from '@/components/Types'
 import { Webnovel } from '@/components/Types'
-import { getLocalImageUrl } from '@/utils/urls';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
@@ -17,7 +16,21 @@ import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: SlickCarouselItem[], webnovels: Webnovel[] },) => {
+const CarouselComponentReactSlick = ({ 
+    searchParams, 
+    webnovels, 
+    items,
+    slidesToShow = 3,
+    indicator = true,
+    centerPadding = '0px'
+}: { searchParams: 
+    { [key: string]: string | string[] | undefined }, 
+    items: SlickCarouselItem[], 
+    webnovels: Webnovel[], 
+    slidesToShow: number,
+    indicator: boolean,
+    centerPadding: string
+}) => {
 
     const [key1, setKey1] = useState(0);
     const [key2, setKey2] = useState(1000);
@@ -48,10 +61,10 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                 {
                     isMediumScreen ?
                         <button
-                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
+                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-1 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
                             onClick={onClick}
                         >
-                             <ChevronRight className="w-6 h-6 text-gray-700" />
+                             <ChevronRight className="w-6 h-6 text-white/80" />
                         </button>
                         :
                         <></>
@@ -67,12 +80,12 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                     isMediumScreen ?
                     <button 
                         onClick={onClick}
-                        className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full md:p-2 p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
+                        className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
                     >
-                        <ChevronLeft className="w-6 h-6 text-gray-700" />
+                        <ChevronLeft className="w-6 h-6 text-white/80" />
                    </button>
                         :
-                        <></>
+                    <></>
                 }
             </>
         );
@@ -118,7 +131,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
     }
 
     const settings = {
-        slidesToShow: 3,
+        slidesToShow: slidesToShow,
         swipeToSlide: true,
         infinite: true,
         speed: 300,
@@ -126,7 +139,7 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: '12px',
+        centerPadding: centerPadding,
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -138,47 +151,73 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
         },
         responsive: [
             {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 1,
-                    centerPadding: '32px',
-                }
+              breakpoint: 1024,
+              settings: {
+                slidesToShow: Math.max(1, slidesToShow - 1),
+              }
+            },
+            {
+              breakpoint: 768,
+              settings: {
+                slidesToShow: 1,
+              }
             }
-        ]
+          ]
     };
 
     return (
-        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
-            <div className='flex flex-col relative'>
+        <div className={`slider-container max-w-screen-lg items-center mx-auto w-full group`}>
+            <div className='flex flex-col relative '>
                 <Slider {...settings}>
                     {items.map((item, index) => (
-                          <div key={index} className={`carousel-slide px-2 md:px-4 ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative aspect-[1/1] md:aspect-[1280/500] mx-auto">
+                          <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
+                            <div className="relative h-[380px] mx-auto">
+                            {/*  */}
                                 <Link href={getHref(index)}>
-                                  <div className="slide-content w-96 h-64 md:w-[1280px] md:h-[430px]">
+                                  <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px] ">
+                                    {/* max-w-screen-lg */}
                                     <Image 
-                                        className="object-cover object-center rounded-xl transition-all duration-300" 
-                                        src={getLocalImageUrl(item.image)} 
+                                        className="object-cover object-center transition-all duration-300" 
+                                        src={item.image} 
                                         fill
                                         alt={item.image}
                                         placeholder="blur" 
                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
                                      {/* Overlay */}
-                                    <div className="absolute rounded-xl bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent text-white">
-                                        <div className="flex flex-col justify-end h-full relative left-0 -bottom-30 md:pt-44 lg:pt-44 !min-[500px]:pt-32 !min-[400px]:pt-20 pt-32">
+                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-sm overflow-hidden ">
+                                        <div className="flex flex-col justify-end ">
+                                    
                                             <OtherTranslateComponent
                                                 key={`title-${index}-${language}`}
                                                 content={item.title}
                                                 elementId={item.id.toString()}
-                                                classParams={`${breakKeepOrNot()} md:text-2xl lg:text-2xl text-xl !min-[400px]:text-[12px] font-extrabold px-2`}
+                                                classParams={`${breakKeepOrNot()} md:text-2xl lg:text-2xl text-xl !min-[400px]:text-[12px] font-extrabold`}
                                                 elementType={'carouselItem'}
                                                 elementSubtype="title"
                                                 showLoading={false}
                                             />
+
+                                             
+                                            <div className='flex space-x-2 mb-3 mt-3'>
+                                                {getGenre(index).map((el: string, idx: number) => (
+                                                    <span 
+                                                    key={idx} 
+                                                    className="
+                                                        bg-white/20 
+                                                        px-2 py-1 
+                                                        rounded-md 
+                                                        text-xs 
+                                                        uppercase 
+                                                        tracking-wider
+                                                         ">
+                                                        {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
+                                                    </span>
+                                                ))}
+                                            </div>
                                     
-                                          <div className="ml-2 md:mt-3 mt-2">
-                                               
+                                          <div className="text-sm md:text-lg line-clamp-2 mb-3">
+                                               {/* md:mt-3 mt-2 */}
                                                 <OtherTranslateComponent
                                                     key={`hook-${index}-${language}`}
                                                     content={item.hook}
@@ -188,12 +227,22 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
                                                     elementSubtype="hook"
                                                     showLoading={false}
                                                 />
-                                            
-                                            {getGenre(index).map((el: string, idx: number) => (
-                                                <span key={idx} className="text-[8px] w-20 rounded-md border border-purple-500 text-purple-500 bg-transparents px-1 py-[1px] mr-1 no-outlined-text">
-                                                    {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
-                                                </span>
-                                            ))}
+                                               {/* Numeric Indicator */}
+                                               { indicator && (
+                                               <div 
+                                                    className="
+                                                    bg-white/20 
+                                                    px-3 py-1 
+                                                    mt-3
+                                                    rounded-full 
+                                                    text-sm 
+                                                    inline-block
+                                                    text-white
+                                                    "
+                                                >
+                                                    {currentIndex + 1} / {items.length}
+                                                </div> )
+                                                }
                                          </div>
                                        </div>
                                      </div>
@@ -206,29 +255,35 @@ const CarouselComponentReactSlick = ({ searchParams, webnovels, items }: { searc
             </div>
             <style jsx global>
             {`
-    
+
+                  .slider-container  {
+                    
+                  }
                   .carousel-slide {
                       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-                      
+                      border-radius: 0.25rem;
+                   
+                  }
+
+                  .slide-content {
+                    margin-left: 1rem;
                   }
 
                   .slide-content img {
-                     
-                       border-radius: 0.75rem;
+                       border-radius: 0.25rem;
+                       margin-right: 1rem;
                   }
                    .active-slide img {
-                       border-radius: 0.75rem !important;
+                       border-radius: 0.25rem !important;
                    }
 
-                  .active-slide {
-                    
+                  .active-slide {        
                       opacity: 1;
                       z-index: 2;
-                      border-radius: 0.75rem;
+                      border-radius: 0.25rem;
                   }
 
                   .inactive-slide {
-                      transform: scale(0.85);
                       opacity: 0.5;
                   } 
 

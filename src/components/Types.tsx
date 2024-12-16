@@ -2,9 +2,9 @@ export interface WebnovelIdProps {
     webnovelId: number;
 }
 
-export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' 
+export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon'
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
 
@@ -52,10 +52,15 @@ export interface Comment {
 export interface SlickCarouselItem {
   id: number;
   image: string;
+  image_mobile: string;
   description: string;
   title: string;
   hook: string;
   webnovel_id: number;
+  webtoon_id: number;
+  webtoon: Webtoon;
+  webnovel: Webnovel;
+  parsed_tags: string[];
 }
 
 export interface Webnovel {
@@ -72,6 +77,37 @@ export interface Webnovel {
   views: number;
   version?: string;
   created_at: Date;
+  tags: string;
+}
+
+export interface WebtoonImage {
+    url: string;
+}
+
+export interface Webtoon {
+  id: number;
+  root_directory: string;
+  title: string;
+  num_episodes: number;
+  created_at: Date;
+  upvotes: number;
+  user: User;
+  language: string;
+  views: number;
+  comments: Comment[];
+  chapters: WebtoonChapter[]
+  cover_art: string;
+  wide_cover: string;
+  description: string;
+  genre: string;
+  tags: string;
+}
+
+export interface WebtoonChapter {
+  id: number;
+  webtoon_id: number;
+  directory: string;
+  created_at: Date;
 }
 
 export interface Dictionary {
@@ -82,18 +118,20 @@ interface Entry {
   [key: string]: string
 }
 
-export interface WebtoonContent {
+export interface CurriculumContent {
   id: string;
   title: string;
   subtitle: string;
   title_en: string;
   subtitle_en: string;
-  title_jp?: string; 
-  subtitle_jp?: string; 
+  title_jp: string; 
+  subtitle_jp: string; 
   image: string;
-  en?: string;
+  image_en: string;
+  image_jp: string; 
   videoUrl: string;
   file_src: string;
-  file_src_jp?: string; 
+  file_src_en: string;
+  file_src_jp: string; 
   video: JSX.Element;
 }

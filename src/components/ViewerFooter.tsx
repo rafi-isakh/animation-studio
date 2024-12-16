@@ -11,6 +11,7 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useReaderTheme } from '@/contexts/ReaderThemeContext';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -31,14 +32,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             setFontFamily, 
             lineHeight, 
             setLineHeight, 
-            margin, 
-            setMargin,
-            padding,
-            setPadding,
-            setScrollType,
-            containerWidth = 600,
-            setContainerWidth } = useReader();
-    const { theme, toggleTheme } = useTheme()
+            setScrollType } = useReader();
+    const { toggleReaderTheme } = useReaderTheme()
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -118,7 +113,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <>
-            <div className={`z-[100] fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pt-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
+            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 transition-transform duration-300 
                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 
@@ -190,7 +185,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </p>
                         <hr className='my-2 border-gray-200'/>
 
-                        <p className='text-sm justify-between md:flex hidden'> 
+                        <div className='text-sm justify-between md:flex hidden'> 
                             {/* 넘김 방식 */}
                             {phrase(dictionary, "scrollType", language)}
                            <div className='flex flex-row gap-2'>  
@@ -203,26 +198,26 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              {phrase(dictionary, "viewSettings_page", language)}
                              </Link>
                            </div>
-                        </p>
-                        <p className='text-sm flex justify-between'> 
+                        </div>
+                        <div className='text-sm flex justify-between'> 
                             {/* 테마  */}
                             {phrase(dictionary, "theme", language)}
                            <div className='flex flex-row gap-2'>  
                              <Link 
                              href='' 
-                             onClick={() => toggleTheme('light')}
+                             onClick={() => toggleReaderTheme('light')}
                              className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                 Aa
                              </Link>
                              <Link 
                                 href='' 
-                                onClick={() => toggleTheme('dark')}
+                                onClick={() => toggleReaderTheme('dark')}
                                 className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
                              <Link 
                                 href='' 
-                                onClick={() => toggleTheme('sepia')}
+                                onClick={() => toggleReaderTheme('sepia')}
                                 className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
@@ -233,9 +228,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     Aa
                                 </Link> */}
                            </div>
-                        </p>
+                        </div>
 
-                        <p className='text-sm flex justify-between'> 
+                        <div className='text-sm flex justify-between'> 
                             {/* 글꼴  */}
                             {phrase(dictionary, "font", language)}
                            <div className='flex flex-row gap-2'>  
@@ -269,8 +264,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     <span className='nanum-gothic text-[12px]'> {phrase(dictionary, "gothicFont", language)} </span>
                                 </Link>
                            </div>
-                        </p>
-                        <p className='text-sm flex justify-between'> 
+                        </div>
+                        <div className='text-sm flex justify-between'> 
                             {/* 글자 크기 */}
                             {phrase(dictionary, "fontSize", language)}
                           <div className='flex flex-row gap-2 justify-evenly'>  
@@ -288,8 +283,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
-                        </p>
-                        <p className='text-sm flex justify-between'> 
+                        </div>
+                        <div className='text-sm flex justify-between'> 
                             {/* 줄 간격 */}
                             {phrase(dictionary, "lineHeight", language)}
                            <div className='flex flex-row gap-2 justify-evenly'>  
@@ -307,7 +302,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              <i className="fas fa-minus"></i>
                              </Link>
                            </div>
-                        </p>
+                        </div>
                         {/*   <p className='text-sm flex justify-between'> 
                        
                             {phrase(dictionary, "paragraphSpacing", language)}     {/* 문단 여백 

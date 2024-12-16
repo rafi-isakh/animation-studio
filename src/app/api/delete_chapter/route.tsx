@@ -9,15 +9,17 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!session || !session.user) {
         return NextResponse.json({
-            "message": "Unauthorized",
-            "status": 401
+            message: "Unauthorized",
+        }, {
+            status: 401
         });
     }
 
     if (!id) {
         return NextResponse.json({
-            "message": "Id is required",
-            "status": 400
+            message: "Id is required",
+        }, {
+            status: 400
         });
     }
 
@@ -31,14 +33,16 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Delete chapter failed",
-            "status": response.status
+            message: "Delete chapter failed",
+        }, {
+            status: response.status
         });
     }
 
     return NextResponse.json({
-        "message": "Delete chapter success",
-        "status": 200,
+        message: "Delete chapter success",
+    }, {
+        status: 200
     });
 }
 

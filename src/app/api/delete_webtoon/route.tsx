@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { uploadFile } from '@/utils/s3'
+
+export async function GET(req: NextRequest, res: NextResponse) {
+  const session = await auth();
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id")
+
+  if (!session || !session.user) {
+    return NextResponse.json({
+      message: "Unauthorized",
+    }, {
+      status: 401
+    });
+  }
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_webtoon?id=${id}`, {
+    headers: {
+        'Authorization': `Bearer ${session.accessToken}`,
+        'Provider': session.provider
+      }
+    }
+  );
+
+  if (!response.ok) {
+    return NextResponse.json({
+      message: "Delete webtoon failed",
+    }, {
+      status: response.status
+    });
+  }
+
+  return NextResponse.json({
+    message: "Delete webtoon success",
+  }, {
+    status: 200
+  });
+}
+

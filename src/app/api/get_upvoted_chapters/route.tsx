@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
     const response = await fetch(url);
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Failed to get upvoted chapters",
+            message: "Failed to get upvoted chapters",
         },
         { status: response.status }
     );

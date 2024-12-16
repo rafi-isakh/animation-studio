@@ -6,12 +6,14 @@ export type Theme = 'dark' | 'light' | 'sepia'
 type ThemeContextType = {
   theme: Theme
   toggleTheme: (theme: Theme) => void
+  isDarkMode: boolean
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light')
+  const isDarkMode = theme === 'dark' // New state derived from theme
 
   useEffect(() => {
     // Check local storage or system preference on mount
@@ -24,18 +26,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  useEffect(() => {
-    // Update document class when theme changes
-    document.documentElement.className = theme
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
   const toggleTheme = (newTheme: Theme) => {
+    document.documentElement.className = newTheme
+    localStorage.setItem('theme', newTheme)
     setTheme(newTheme)
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode }}>
       {children}
     </ThemeContext.Provider>
   )

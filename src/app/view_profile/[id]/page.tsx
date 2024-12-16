@@ -19,7 +19,6 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
             return null;
         }
         const user: User = await response.json();
-        console.log(user)
         return user;
     }
 

@@ -23,6 +23,11 @@ const nextConfig = {
                 hostname: process.env.NEXT_PUBLIC_VIDEOS_S3 || 'localhost',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: process.env.NEXT_PUBLIC_WEBTOONS_S3,
+                pathname: '/**',
+            },
         ],
     },
     async headers() {

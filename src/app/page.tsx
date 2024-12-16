@@ -2,24 +2,25 @@ import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
 import BookmarkButton from '@/components/BookmarkButton';
-import WebnovelsListByCover from '@/components/WebnovelsListByCover';
+import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
 import Promotion from '@/components/Promotion';
-import WebnovelsByTrends from '@/components/WebnovelsByTrends';
+import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
 import CarouselComponent from '@/components/CarouselComponent';
-
 import Preloader from '@/components/Preloader';
 import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
-// import ThemeToggle from '@/components/ThemeToggle'
+// import ThemeToggle from '@/components/ThemeToggle'   
+import PromotionBannerComponent from '@/components/PromotionBannerComponent';
+import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
     const data = await response.json()
     return data;
 }
 
 async function getWebnovels() {
-    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`)
+    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) // probably should get rid of this function
     const data = (await response).json();
     return data;
 
@@ -33,33 +34,44 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
 
+    const largeGap = () => {
+        return (
+            <div className='md:h-[3rem] h-[2rem]' />
+        )
+    }
+
+    const smallGap = () => {
+        return (
+            <div className='md:h-[2rem] h-[1rem]' />
+        )
+    }
+
     return (
         <div>
-            {showPreloader && <Preloader />}    
-            {/* Top banner : applying a creator */}
+            {showPreloader && <Preloader />}
+
             <ApplyCreatorBanner />
-          
-            {/* <div className='bg-black w-full mx-auto h-[480px] pt-5'> */}
-            <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} />
-            {/* </div> */}
-            {/* Popular Webnovels */}
-            <WebnovelsListByCover searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-            {/* Webnovels by trends */}
-            <WebnovelsByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-             {/* webnovels list by ranking */}
-            <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />  
-        
-            {/* only Toonyz */}
-            <div className='bg-black w-full mx-auto '>  {/* bg-black */}
-                <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+            {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
+            <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>
+                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} centerPadding='0px' />
+                {smallGap()}
+                <CircularMenuItemsComponent />
+                {smallGap()}
+                <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+                {largeGap()}
+                <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {largeGap()}
+                <div className='w-full mx-auto'>
+                    <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
+                </div>
+                {largeGap()}
+                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {largeGap()}
+                <PromotionBannerComponent />
             </div>
 
-            {/* Event promotion part */}
-            <Promotion />
-            {/* Footer Banner : instagram promotion image */}
-            {/* Footer */}            
             <Footer />
-            {/* Bookmark button : it only displys mobile screen */}
+            {/* Bookmark button : Only displys in mobile screen */}
             <BookmarkButton />
         </div>
     );

@@ -112,6 +112,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const getWebnovel = () => {
         return webnovels.find(w => w.id.toString() == id)
     }
+    const theWebnovel = getWebnovel();
+
     if (loading) {
         return (
             <div role="status" className={`flex items-center justify-center min-h-screen`}> 
@@ -126,7 +128,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     } else if (atLeastOneWebnovel) {
         return (
             <ThemeProvider theme={grayTheme}>
-                <div className='max-w-screen-xl flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
+                <div className='max-w-screen-lg flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
 
                     {/*--  left-hand side:  Author's other works link */}
                    <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
@@ -182,7 +184,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
 
                        <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
                         {/* Webnovel info and details */}   
-                        <WebNovelInfoAndPictureComponent webnovel={getWebnovel()} />
+                        <WebNovelInfoAndPictureComponent webnovel={theWebnovel} />
 
                         <TabContext value={tabValue} >
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
@@ -195,11 +197,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                             </Box>
                             <TabPanel value="1">
                                 {/* Chapters list */}
-                                <ListOfChaptersComponent webnovel={getWebnovel()} />
+                                <ListOfChaptersComponent webnovel={theWebnovel} />
                             </TabPanel>
                             <TabPanel value="2">
                                 {/* Comments list */}
-                                {getWebnovel() && <ListOfChapterComments webnovel={getWebnovel()!} />}
+                                {theWebnovel && <ListOfChapterComments webnovel={theWebnovel} />}
                             </TabPanel>
                         </TabContext>
                            

@@ -14,7 +14,7 @@ const Promotion: React.FC = () => {
   
     return (
     <>
-     <div className='flex flex-col relative max-w-screen-xl group px-4 justify-center items-center mx-auto md:mb-6'>
+     <div className='flex flex-col relative max-w-screen-lg group px-4 justify-center items-center mx-auto md:mb-6'>
                 {/* relative max-w-screen-xl mx-auto px-4 group  */}
                   {/* Left Arrow */}
                <button 

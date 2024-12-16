@@ -35,7 +35,6 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const date = new Date();
     const router = useRouter();
-    const { email } = useUser();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -90,7 +89,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
                                                     <h2 className="text-xl font-bold mx-2 text-black dark:text-white">{index + 1}</h2>
                                                     <div className="flex-1">
                                                         <div className="flex flex-row space-x-4 mb-2">
-                                                            <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-64 md:max-w-128 truncate whitespace-nowrap text-black dark:text-white" />
+                                                            <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-64 md:max-w-128 truncate whitespace-nowrap text-black dark:text-white" />
                                                         </div>
                                                         <div className="flex flex-row space-x-4 text-[10px]">
                                                             <p>{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>

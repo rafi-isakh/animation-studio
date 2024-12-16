@@ -139,7 +139,7 @@ export default function Contact() {
             </div>
         </main>
 
-        <div className="flex flex-col relative max-w-screen-xl group px-4 justify-center items-center mx-auto md:mb-6 mb-6">
+        <div className="flex flex-col relative max-w-screen-lg group px-4 justify-center items-center mx-auto md:mb-6 mb-6">
            
            <div className="flex flex-col justify-start items-start mt-10 gap-4">
              <h1 className="text-5xl font-semibold items-start text-left py-10">Contact Us</h1>

@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     other: {
       "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
     }
-  } 
+  }
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -89,33 +89,32 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <LanguageProvider>
           <ThemeProvider>
-           <AuthProvider>
-            <UserProvider>
-              <DeviceProvider>
-                <ReaderProvider>   
-                <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
+            <AuthProvider>
+              <UserProvider>
+                <DeviceProvider>
+                  <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                  <Suspense >
-                    <Header />
-                  </Suspense>
-                  <Margin>
-                    {children}
-                  </Margin>
-                  {/* 
+                    <Suspense>
+                      <Header />
+                    </Suspense>
+                    <Margin>
+                      {children}
+                    </Margin>
+                    {/* 
                   <div className={`children min-h-screen`}>  
                    // Header bottom margin :: pt-28 md:pt-24 mb-4
                     {children}
                   </div> 
                  */}
-                </div>
-                </ReaderProvider>
-              </DeviceProvider>
-            </UserProvider>
-           </AuthProvider>
+                  </div>
+                </DeviceProvider>
+              </UserProvider>
+            </AuthProvider>
           </ThemeProvider>
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
+        <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
       </body>
     </html >
   );

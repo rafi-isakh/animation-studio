@@ -1,16 +1,39 @@
 "use client"
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 const ApplyCreatorBanner = () => {
     const { dictionary, language } = useLanguage();
+    const { isLoggedIn } = useAuth();
+    const [isBannerVisible, setIsBannerVisible] = useState(true);
+
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault(); // Prevent the default browser navigation
+        console.log("Link clicked, but it does nothing.");
+      };
+
+    const handleCloseBanner = () => {
+        setIsBannerVisible(false);
+    };
+
+    if (!isBannerVisible) {
+        return null;
+    }
 
     return (
-        <div className='bg-black w-full h-[3rem] mb-4 mt-0 max-[520px]:mt-[0px]'> 
-        {/*  <div className='flex justify-center self-center'>  */}
-        <Link href='/signin'>
-        {language == 'ko' ? (
+        <div className='relative bg-black max-w-screen-lg mx-auto rounded-sm h-[3rem] mb-4 mt-0 z-10'> 
+            <button 
+                onClick={handleCloseBanner}
+                className="absolute z-[99] right-0 top-0 bg-white border-gray-200 border w-5 h-5 flex items-center justify-center">
+                 <X className="w-4 h-4 text-black" />
+            </button>
+
+            <Link onClick={handleClick} href={isLoggedIn? '#': '/signin'} className="block h-full">
+                   {language == 'ko' ? (
                             <>
                             <Image
                                 src='/apply_creator_banner_KR.svg' 
@@ -18,9 +41,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] top-1 mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='relative top-[-2px] mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
-                                    width: '1280px',
+                                    width: '400px',
                                     height: 'auto'
                                 }}
                                 />
@@ -30,8 +53,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative w-full md:-top-[19px] -top-[17px] max-[430px]:-top-[15px] max-[400px]:-top-[10px] max-[520px]:-top-[22px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[2px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
+                                    width: '300px',
                                     height: 'auto'
                                 }}
                                 />
@@ -45,9 +69,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] top-1 mx-auto md:block lg:block hidden hover:opacity-[0.8]'
+                                className='relative top-[-2px] mx-auto md:block lg:block hidden hover:opacity-[0.8]'
                                 style={{
-                                    width: '1280px',
+                                    width: '400px',
                                     height: 'auto'
                                 }}
                             />
@@ -57,9 +81,9 @@ const ApplyCreatorBanner = () => {
                                 sizes="cover"
                                 width={0}
                                 height={0}
-                                className='relative md:-top-[19px] -top-[10px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
+                                className='relative top-[2px] mx-auto md:hidden lg:hidden hover:opacity-[0.8]'
                                 style={{
-                                    width: '450px',
+                                    width: '300px',
                                     height: 'auto'
                                 }}
                                 />

@@ -49,8 +49,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const introRef = useRef<HTMLDivElement>(null);
     const novelsRef = useRef<HTMLDivElement>(null);
     const [introWidth, setIntroWidth] = useState<string>("0px")
-    const [key1, setKey1] = useState(0);
-    const [key2, setKey2] = useState(1000);
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false);
@@ -65,11 +63,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     // const userMenuRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
-
-    useEffect(() => {
-        setKey1(prevKey => prevKey + 1)
-        setKey2(prevKey => prevKey + 1)
-    }, [language])
 
     useEffect(() => {
 
@@ -270,9 +263,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         {/* nickname */}
                         <div className='flex flex-col justify-center md:items-start items-center gap-4'>
                             <p className="flex flex-row justify-start items-start font-boldtext-left">
-                              { novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
                                     {phrase(dictionary, "author", language)}
-                                </span> }
+                                </span>}
                                 {user.nickname}
                                 <Link href="#" onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'>
                                     <Ellipsis size={18} />
@@ -391,7 +384,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         <Button color='gray' onClick={() => router.push(`/view_webnovels?id=${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
                             <p className='flex flex-row gap-2 justify-center items-center'>
                                 <OtherTranslateComponent
-                                    key={key1}
                                     content={getRecentNovel().title}
                                     elementId={user.id.toString()}
                                     elementType='user'
@@ -401,7 +393,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                             <ChevronRight size={10} />
                         </Button>
                     ) : <p className='flex flex-row gap-2 justify-center items-center'>
-                       
+
                     </p>
                 }
                 {/*    {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
@@ -435,32 +427,34 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
                 <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-10'>
 
-                    <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
-                        {Object.keys(dictionary).length !== 0 && phrase(dictionary, "authorBio", language)}
+                    <p className='text-lg border-b-1 border-gray-500 font-bold w-full uppercase'>
+                        {phrase(dictionary, "authorBio", language)}
                     </p>
 
                     <div>
                         {/* 종민님 bio 표시 부분 버그가 있음. 추후 수정 필요합니다. */}
-                       {user.bio ? (
-                            <OtherTranslateComponent 
-                                key={key2} 
-                                content={user.bio} 
-                                elementId={user.id.toString()} 
-                                elementType='user' 
-                            /> )
-                        : <p className='text-sm text-gray-500'>
-                            {phrase(dictionary, "noBioYet", language)}
+                        {user.bio ? (
+                            <>
+                                <OtherTranslateComponent
+                                    content={user.bio}
+                                    elementId={user.id.toString()}
+                                    elementType='user'
+                                />
+                            </>
+                        )
+                            : <p className='text-sm text-gray-500'>
+                                {phrase(dictionary, "noBioYet", language)}
                             </p>
                         }
-                     </div>
+                    </div>
 
 
-                    <p className='text-lg border-b-1 border-gray-500 w-full uppercase'>
-                        {Object.keys(dictionary).length != 0 && dictionary["viewWebnovels"][language]}
+                    <p className='text-lg border-b-1 border-gray-500 w-full uppercase font-bold'>
+                        {phrase(dictionary, "viewWebnovels", language)}
                     </p>
 
-                    { novels.length > 0 ? (<div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
-                    
+                    {novels.length > 0 ? (<div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
+
                         {/* <div key={index} className=''> */}
                         {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                         <WebnovelsCardList
@@ -482,14 +476,14 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         />
                         {/* </div> */}
 
-                    </div> ) : ( <div className='flex flex-col gap-4 justify-center items-center text-center text-sm border-b-1 border-gray-300 w-full uppercase'>
-                       {/* 작품이 없습니다 */}
-                       <p>{phrase(dictionary, "noNovelsYet", language)} </p> 
-                       <Button className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
-                        <Link href="/new_webnovel">
-                          {phrase(dictionary, "writeYourStory", language)}
-                        </Link>
-                    </Button>
+                    </div>) : (<div className='flex flex-col gap-4 justify-center items-center text-center text-sm border-b-1 border-gray-300 w-full uppercase'>
+                        {/* 작품이 없습니다 */}
+                        <p>{phrase(dictionary, "noNovelsYet", language)} </p>
+                        <Button className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
+                            <Link href="/new_webnovel">
+                                {phrase(dictionary, "writeYourStory", language)}
+                            </Link>
+                        </Button>
                     </div>)}
 
 

@@ -16,6 +16,12 @@ import { CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {phrase} from '@/utils/phrases'
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
+import animationData from '@/assets/N_logo_loader.json'
 
 async function createUser() {
  
@@ -44,17 +50,14 @@ async function updateUser(formData: FormData) {
     const bio = formData.get('bio') as string;
     const promoCode = formData.get('promoCode') as string;
 
-    const data = {
-        'nickname': nickname,
-        'bio': bio,
-    }
+    const formDataToSend = new FormData();
+    formDataToSend.append('nickname', nickname);
+    formDataToSend.append('bio', bio);
+    formDataToSend.append('promoCode', promoCode);
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/update_user?promo_code=${promoCode}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: formDataToSend,
     });
     redirect('/');
 }
@@ -97,9 +100,14 @@ export default function NewUser() {
 
     return (
         loading ? 
-        <div role="status" className='w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8'>
-            <CircularProgress color='secondary'/>
-            </div> :
+        <div role="status" className={`flex items-center justify-center min-h-screen`}> 
+            <LottieLoader 
+                animationData={animationData}
+                width="w-32"
+                centered={true}
+                pulseEffect={true}
+            />
+        </div> :
          <div className='flex flex-col items-center justify-center h-[70vh] mt-10 !p-10'>
            <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
       

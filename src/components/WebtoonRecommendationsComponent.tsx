@@ -61,7 +61,7 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
                         />
                         <div className="flex flex-row justify-between items-center w-full">
                             <div className="ml-3 flex flex-col gap-1 text-sm">
-                                <OtherTranslateComponent key={key} content={webtoon.title} elementId={webtoon.id.toString()} elementType="webtoon" elementSubtype="title"/>
+                                <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType="webtoon" elementSubtype="title"/>
                                 <p className="flex flex-row gap-1">
                                     <span className="text-gray-100 text-[10px] rounded-full bg-gray-800 px-1">
                                         {phrase(dictionary, webtoon.genre, language)}

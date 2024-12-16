@@ -9,18 +9,11 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
 import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
+import React from "react"
 
-const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
-
-const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
-    const [key, setKey] = useState(0);
+const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
-    const isMediumScreen = useMediaQuery('(min-width:768px)')
     const imageSrc = getImageUrl(webnovel.cover_art)
-
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1)
-    }, [language, webnovel])
 
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
@@ -34,7 +27,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                         width={180}
                         height={257}
                         quality={85}
-                        className="object-cover w-[100px] h-[143px] md:w-[180px] md:h-[257px]"
+                        className="object-cover w-[100px] h-[143px] md:w-[151px] md:h-[216px]"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
@@ -60,12 +53,11 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
-                            key={key}
                             content={webnovel.title}
                             elementId={webnovel.id.toString()}
                             elementType="webnovel"
                             elementSubtype="title"
-                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-full"
+                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-[100px] md:w-[151px]"
                         />
                         <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                             {webnovel.user.nickname}
@@ -91,6 +83,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
             </div>
         </Link>
     )
-}
+});
 
+WebnovelPictureComponent.displayName = 'WebnovelPictureComponent'; // need this because this is a React.meo
 export default WebnovelPictureComponent

@@ -6,5 +6,5 @@ export default function DictionaryPhrase({ phraseVar }: { phraseVar: string }) {
     const { language, dictionary } = useLanguage();
     const translatedPhrase = phrase(dictionary, phraseVar, language)
 
-    return <>{translatedPhrase}</>
+    return translatedPhrase
 }

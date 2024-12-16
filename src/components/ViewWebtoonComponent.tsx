@@ -2,22 +2,12 @@ import { getSignedUrlForWebtoonImage, listObjectsInWebtoonsDirectory } from "@/u
 import { getImageDimensions } from "@/utils/imageDimensions"
 import WebtoonImageComponent from "@/components/WebtoonImageComponent"
 import ViewWebtoonChapterComponent from "@/components/ViewWebtoonChapterComponent"
-import { WebtoonImage } from "@/components/Types"
+import { Webtoon, WebtoonImage } from "@/components/Types"
 
 const imagesCache: { [key: string]: WebtoonImage } = {}
 
-const getWebtoonById = async (id: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`,
-        {
-            cache: "no-store"
-        }
-    )
-    return await response.json()
-}
-
-const ViewWebtoonComponent = async (props: { webtoonId: string, episode: string }) => {
-    const webtoon = await getWebtoonById(props.webtoonId)
-    const files = await listObjectsInWebtoonsDirectory(`${webtoon.root_directory}/${props.episode}`)
+const ViewWebtoonComponent = async ({ webtoon, episode }: { webtoon: Webtoon, episode: string }) => {
+    const files = await listObjectsInWebtoonsDirectory(`${webtoon.root_directory}/${episode}`)
     const images: WebtoonImage[] = []
     const before = performance.now()
     for (const file of files) {
@@ -36,7 +26,7 @@ const ViewWebtoonComponent = async (props: { webtoonId: string, episode: string 
     console.log(`for loop took ${after - before}ms`)
 
     return (
-        <ViewWebtoonChapterComponent images={images} episodeNumber={props.episode} webtoon={webtoon} />
+        <ViewWebtoonChapterComponent images={images} episodeNumber={episode} webtoon={webtoon} />
     )
 }
 

@@ -46,7 +46,7 @@ export const listObjectsInWebtoonsDirectory = async (directoryPrefix: string) =>
   try {
     const data = await s3Client.send(new ListObjectsV2Command(params));
     if (data.Contents) {
-      return data.Contents.map(item => item.Key);
+      return data.Contents.map(item => item.Key).filter(str => !str?.startsWith("."));
     } else {
       return [];
     }

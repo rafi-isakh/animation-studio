@@ -19,7 +19,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
     }, [language]);
 
     return (
-        <div className="group relative flex flex-col items-center w-full">
+        <div className="group relative flex flex-col items-center">
             <div className="relative shrink-0 overflow-hidden rounded-sm h-full">
             <Link href={`/webtoons/${webtoon.id}`}>
                 {/* <Image
@@ -34,7 +34,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                     width={180}
                     height={257}
                     quality={85}
-                    className="object-cover w-[100px] h-[143px] md:w-[180px] md:h-[257px]"
+                    className="object-cover w-[100px] h-[143px] md:w-[151px] md:h-[216px]"
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                 />
@@ -59,13 +59,13 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                             elementId={webtoon.id.toString()}
                             elementType="webtoon"
                             elementSubtype="title"
-                            classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-full"
+                            classParams="text-[12px] md:text-sm font-medium w-[100px] md:w-[150px] line-clamp-2"
                         />
-                        <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                            {webtoon.user.nickname}
+                        <div className="text-[10px] md:text-[11px] font-bold w-full text-gray-500 flex flex-col md:flex-row justify-center">
+                            <div className="truncate">{webtoon.user.nickname}</div>
                             <span className="hidden md:block"> • </span>
-                            <DictionaryPhrase phraseVar={webtoon.genre} />
-                        </p>
+                            <div className="truncate"><DictionaryPhrase phraseVar={webtoon.genre} /></div>
+                        </div>
 
                         {/* Total Chapters and Views */}
                         {detail &&
@@ -74,7 +74,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                                     <span><DictionaryPhrase phraseVar={"totalchapters"} /> {webtoon.chapters.length} </span>
                                     <span><DictionaryPhrase phraseVar={"numchapters"} /></span>
                                 </p>
-                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">
+                                <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 flex flex-row items-center gap-1 ">
                                     <TrendingUp size={10} />
                                     <span> {webtoon.views} </span>
                                 </p>

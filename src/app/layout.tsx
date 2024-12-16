@@ -114,6 +114,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </LanguageProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
+        <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
       </body>
     </html >
   );

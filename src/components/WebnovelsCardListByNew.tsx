@@ -1,6 +1,6 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import WebnovelPictureComponent from "@/components/WebnovelPictureComponent"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,10 +21,11 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
-        for (const novel of webnovels) {
-            novel.version = premium.includes(novel.id) ? "premium" : "free";
-        }
-        const _webnovelsToShow = webnovels
+        const _webnovels = webnovels.map(novel => ({
+            ...novel,
+            version: premium.includes(novel.id) ? "premium" : "free",
+        }));
+        const _webnovelsToShow = _webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
@@ -33,8 +34,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     }, [version, genre]);
 
     const text = sortBy === 'views' ? 'popularWebnovels' :
-                 sortBy === 'likes' ? 'likedWebnovels' :
-                 sortBy === 'date' ? 'latestWebnovels' : '';
+        sortBy === 'likes' ? 'likedWebnovels' :
+            sortBy === 'date' ? 'latestWebnovels' : '';
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
@@ -42,29 +43,26 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     } else {
     }
 
-    const sortedWebnovels = webnovelsToShow
-    .sort((a, b) => sortByFn(a, b, sortBy));
-
-        return (
-            <WebnovelsCardList
-                title={phrase(dictionary, "newReleasesWebnovels", language)}
-                //New Releases
-                subtitle={phrase(dictionary, "more", language)}
-                webnovels={sortedWebnovels}
-                scrollRef={scrollRef}
-                isMobile={isMobile}
-                renderItem={(item: Webnovel, index: number) => (
-                    <WebnovelPictureComponent 
-                        webnovel={item} 
-                        index={index + 1} 
-                        ranking={false} 
-                        details={false}
-                        up={false}
-                        isOriginal={false}
-                    />
+    return (
+        <WebnovelsCardList
+            title={phrase(dictionary, "newReleasesWebnovels", language)}
+            //New Releases
+            subtitle={phrase(dictionary, "more", language)}
+            webnovels={webnovelsToShow}
+            scrollRef={scrollRef}
+            isMobile={isMobile}
+            renderItem={(item: Webnovel, index: number) => (
+                <WebnovelPictureComponent
+                    webnovel={item}
+                    index={index + 1}
+                    ranking={false}
+                    details={false}
+                    up={false}
+                    isOriginal={false}
+                />
             )}
         />
-        )
-    };
+    )
+};
 
 export default WebnovelsCardListByNew;

@@ -80,7 +80,7 @@ export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ webnovel
                 sortedChapters.map((chapter, index) => (
                     <div key={chapter.id} className="border rounded-lg p-4 mb-4">
                         <h3 className="text-sm font-semibold mb-4 border-b pb-4 flex flex-row justify-between" >
-                            {phrase(dictionary, "comments", language)} <OtherTranslateComponent key={key} content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
+                            {phrase(dictionary, "comments", language)} <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
                         </h3>
                         {(!chapter.comments || chapter.comments.length === 0) ? (
                             <p className="text-gray-500 text-sm text-center py-8 ">

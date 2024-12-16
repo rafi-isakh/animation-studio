@@ -185,7 +185,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>
                                 <div className="flex flex-row space-x-1 items-center">
                                     <ChevronLeftIcon className="w-6 h-6" />
-                                    <OtherTranslateComponent key={key2} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
                                 </div>
                             </Button>
 
@@ -232,8 +232,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </div>
                         {/* Title and content : end */}
-                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
+                    <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>

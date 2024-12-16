@@ -21,6 +21,12 @@ import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+import animationData from '@/assets/N_logo_loader.json'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -126,9 +132,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                     <p className="text-md"> {phrase(dictionary, "noWebnovelsFound_subtitle", language)} </p>
                     <Button className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
                         <Link href="/new_webnovel">
-                          {phrase(dictionary, "writeYourStory", language)}
+                            {phrase(dictionary, "writeYourStory", language)}
                         </Link>
-                      
+
                     </Button>
                 </div>
             </div>
@@ -223,7 +229,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                             </TabContext>
 
                         </div>
-                    </div >
+                    </div>
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
                         <Box sx={useModalStyle}>
                             <div className='flex flex-col space-y-4 items-center justify-center'>
@@ -233,11 +239,17 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                             </div>
                         </Box>
                     </Modal>
-                </ThemeProvider>
+                </ThemeProvider >
+            )
+        } else {
+            return (
+                <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                    {phrase(dictionary, "noWebnovelsFound", language)}
+                </div>
             )
         }
     }
-};
+}
 
 export default ViewWebnovelsComponent;
 

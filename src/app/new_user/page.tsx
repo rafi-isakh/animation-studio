@@ -50,17 +50,14 @@ async function updateUser(formData: FormData) {
     const bio = formData.get('bio') as string;
     const promoCode = formData.get('promoCode') as string;
 
-    const data = {
-        'nickname': nickname,
-        'bio': bio,
-    }
+    const formDataToSend = new FormData();
+    formDataToSend.append('nickname', nickname);
+    formDataToSend.append('bio', bio);
+    formDataToSend.append('promoCode', promoCode);
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/update_user?promo_code=${promoCode}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: formDataToSend,
     });
     redirect('/');
 }

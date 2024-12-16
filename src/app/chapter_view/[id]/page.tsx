@@ -233,15 +233,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-<<<<<<< HEAD
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
                                     <FloatingMenu >
-                                       <WebnovelTranslateComponent content={chapter.content} chapterId={id} margin={margin} padding={padding} wordsPerPage={wordsCount}  />
-                                    </FloatingMenu>
-=======
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-[60vh]' : ""}`}>
                                     <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
->>>>>>> main
+                                    </FloatingMenu>
                                 </div>
                             </div>
                         </div>

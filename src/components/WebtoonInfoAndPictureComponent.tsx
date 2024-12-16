@@ -51,11 +51,23 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                 webtoon.genre && (
                                     <li className="text-sm text-gray-500">
                                         <DictionaryPhrase phraseVar={webtoon.genre.toLowerCase()} />
+                                        <span style={{
+                                                height: '2px',
+                                                width: '2px',
+                                                backgroundColor: '#bbb',
+                                                borderRadius: '50%',
+                                                display: 'inline-block',
+                                                marginLeft: '5px',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                alignSelf: 'center'
+                                        }} />
                                     </li>
                                 )
                             }
                             {/* 무료/프리미엄 */}
                                <li className="text-sm text-gray-500">
+                            
                                 {phrase(dictionary, "premium", language)}
                                </li>
                         </ul>

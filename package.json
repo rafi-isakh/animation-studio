@@ -26,6 +26,7 @@
     "@heroicons/react": "^2.1.5",
     "@mui/lab": "^6.0.0-beta.13",
     "@mui/material": "^6.1.2",
+    "@portone/browser-sdk": "^0.0.11",
     "@tosspayments/payment-widget-sdk": "^0.12.0",
     "@tosspayments/tosspayments-sdk": "^2.3.2",
     "@types/jsonwebtoken": "^9.0.6",

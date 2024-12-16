@@ -19,7 +19,11 @@ import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 import { createEmailHash } from '@/utils/cryptography'
-import LottieLoader from '@/components/LottieLoader';
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
 import animationData from '@/assets/N_logo_loader.json'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {

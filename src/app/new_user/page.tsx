@@ -16,7 +16,11 @@ import { CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {phrase} from '@/utils/phrases'
 import Image from 'next/image';
-import LottieLoader from '@/components/LottieLoader';
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
 import animationData from '@/assets/N_logo_loader.json'
 
 async function createUser() {

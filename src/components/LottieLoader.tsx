@@ -51,7 +51,7 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({
   return (
     <div className={containerClasses}>
       <div className={wrapperClasses} style={{ width: widthStyle }}> 
-        <div className="transition-all duration-1000 ease-in-out">
+        <div className="transition-all ease-in-out">
           <Lottie
             animationData={parsedAnimation}
             className={lottieClasses}

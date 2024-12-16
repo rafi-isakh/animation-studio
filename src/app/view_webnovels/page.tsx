@@ -2,7 +2,11 @@
 import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";
-import LottieLoader from '@/components/LottieLoader';
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
 import animationData from '@/assets/N_logo_loader.json'
 
 async function getWebnovel(id: string | string[] | undefined) {

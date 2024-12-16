@@ -9,7 +9,11 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { useModalStyle } from "@/styles/ModalStyles";
 import { useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
-import LottieLoader from '@/components/LottieLoader';
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
 import animationData from '@/assets/N_logo_loader.json'
 
 export default function PicturesStudioPage() {

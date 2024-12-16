@@ -1,22 +1,26 @@
 "use client";
 
+import { useMediaQuery } from "@mui/material";
 import Image from "next/image";
 
-export default function WebtoonImageComponent(props: { image: string, width: number, height: number }) {
+export default function WebtoonImageComponent({ image }: { image: string }) {
 
     const handleContextMenu = (event: React.MouseEvent) => {
         event.preventDefault();
     };
 
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const width = isMobile ? 360 : 720;
+
     return (
         <Image
             src="/placeholder.png"
-            loader={() => props.image}
+            loader={() => image}
             alt="webtoon"
             objectFit="contain"
-            width={props.width}
-            height={props.height}
             onContextMenu={handleContextMenu}
+            width={width}
+            height={0}
         />
     );
 }

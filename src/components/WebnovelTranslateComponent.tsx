@@ -271,7 +271,10 @@ const WebnovelTranslateComponent = (
             {text &&
                 <>
                     {scrollType === 'vertical' &&
-                        <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}>
+                        <div 
+                            dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} 
+                            style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
+                            onContextMenu={(e) => e.preventDefault()}>
                         </div>
                     }
                     {scrollType === 'horizontal' &&
@@ -306,7 +309,8 @@ const WebnovelTranslateComponent = (
                                         id='first-half'
                                         className='w-full'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(firstPageWords) }}>
+                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(firstPageWords) }}
+                                        onContextMenu={(e) => e.preventDefault()}>
                                     </div>
                                 </div>
                                 <div className='w-[4rem]'>
@@ -316,7 +320,8 @@ const WebnovelTranslateComponent = (
                                         id='second-half'
                                         className='w-full'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(secondPageWords) }}>
+                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(secondPageWords) }}
+                                        onContextMenu={(e) => e.preventDefault()}>
                                     </div>
                                 </div>
                             </div>

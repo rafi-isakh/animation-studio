@@ -28,8 +28,11 @@ const Webtoons = async () => {
     const carouselItems = await getWebtoonCarouselItems()
     const shuffledCarouselItems = carouselItems.sort(() => Math.random() - 0.5)
     const data: Webtoon[] = await response.json()
+    const webtoons: Webtoon[] = JSON.parse(JSON.stringify(data)).sort((a: Webtoon, b: Webtoon) => b.id - a.id)
+    const webtoonsSorted: Webtoon[] = JSON.parse(JSON.stringify(webtoons)).sort((a: Webtoon, b: Webtoon) => b.views - a.views)
 
-    const coverArts = await Promise.all(data.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
+    const webtoonsCoverArts = await Promise.all(webtoons.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
+    const webtoonsSortedCoverArts = await Promise.all(webtoonsSorted.map(async (webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
 
     const largeGap = () => {
         return (
@@ -45,21 +48,21 @@ const Webtoons = async () => {
 
     return (
         <>
-            <div className="max-w-screen-lg mx-auto md:px-0 px-4">
-                <WebtoonsCarousel webtoons={data} carouselItems={carouselItems} />
+            <div className="max-w-screen-lg mx-auto px-4 md:px-0">
+                <WebtoonsCarousel webtoons={webtoons} carouselItems={carouselItems} />
                 <div className="flex flex-col justify-center items-center">
                     {smallGap()}
                     <CircularMenuItemsComponent />
                     {smallGap()}
                 </div>
-                <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={data} coverArts={coverArts} detail={false} ranking={false}/>
+                <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={webtoons} coverArts={webtoonsCoverArts} detail={false} ranking={false}/>
                 {largeGap()}
-                <WebtoonsCardList titleVar="newAndTrends" webtoons={data} coverArts={coverArts} detail={true} ranking={true}/>
+                <WebtoonsCardList titleVar="newAndTrends" webtoons={webtoonsSorted} coverArts={webtoonsSortedCoverArts} detail={true} ranking={true}/>
                 {largeGap()}
                 <WebtoonsRecommendationCarousel carouselItems={shuffledCarouselItems} />
                 {largeGap()}
-                <PromotionBannerComponent />
             </div>
+            <PromotionBannerComponent />
 
             <Footer />
         </>

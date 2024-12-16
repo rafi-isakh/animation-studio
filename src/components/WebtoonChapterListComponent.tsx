@@ -38,12 +38,6 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
         setTabValue(newValue);
     };
 
-    useEffect(() => {
-        webtoon.chapters = webtoon.chapters.sort((a, b) => {
-            return isSortedByLatest ? b.id - a.id : a.id - b.id;
-        });
-    }, [isSortedByLatest, webtoon.chapters]);
-
     const handleSortToggle = () => {
         setIsSortedByLatest(prev => !prev);
     };
@@ -91,7 +85,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                 <TabPanel value="1">
                     <div className="flex flex-row justify-between gap-3">
                         <div className="w-full">
-                            <WebtoonChapterListSubcomponent webtoon={webtoon} slug={slug} coverArt={coverArt} />
+                            <WebtoonChapterListSubcomponent webtoon={webtoon} slug={slug} coverArt={coverArt} sortToggle={isSortedByLatest} />
                         </div>
                         <div className="flex-col space-y-4 w-1/3 md:flex hidden">
                             <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />

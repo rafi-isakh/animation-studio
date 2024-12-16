@@ -38,7 +38,7 @@ const BookmarkButton = () => {
     style={{ zIndex: 1000 }}
       >
       <Image
-        src="/N_Logo.png"
+        src="/images/N_logo.svg"
         alt="Toonyz Logo"
         width={0}
         height={0}
@@ -47,6 +47,7 @@ const BookmarkButton = () => {
           marginRight: '8px',
           height: '15px',
           width: '15px',
+          padding: '1px',
           justifyContent: 'center',
           alignSelf: 'center',
           borderRadius: '25%',

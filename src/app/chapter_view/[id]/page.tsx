@@ -19,6 +19,7 @@ import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeWrapper from '@/components/ThemeWrapper';
+import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
@@ -173,6 +174,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <ThemeWrapper>
+                
                 <div
                     className={` text-gray-900 dark:text-white`}
                     style={{
@@ -221,16 +223,20 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </div>
                         {/* Title and content */}
+                      
                         <div className='flex flex-col space-y-4' >
                             <div key={key} id='translate-div'>
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-[60vh]' : ""}`}>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
+                                    <FloatingMenu >
                                     <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
+                                    </FloatingMenu>
                                 </div>
                             </div>
                         </div>
+                      
                         {/* Title and content : end */}
                     </div>
                     <ViewerFooter webnovel={webnovel} chapter={chapter} />

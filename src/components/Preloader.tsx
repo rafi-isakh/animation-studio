@@ -93,7 +93,7 @@ export default function Preloader() {
                 <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col md:justify-center space-y-0 md:space-y-8 items-center'>
 
                     <Image
-                        src="/N_Logo.png"
+                        src="/images/N_logo.svg"
                         alt="Toonyz Logo"
                         width={0}
                         height={0}
@@ -103,6 +103,7 @@ export default function Preloader() {
                             marginTop: '15px',
                             height: '35px',
                             width: '35px',
+                            padding: '2px',
                             justifyContent: 'center',
                             alignSelf: 'center',
                             borderRadius: '25%',

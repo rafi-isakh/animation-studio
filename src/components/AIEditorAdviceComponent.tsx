@@ -7,6 +7,7 @@ import { ElementType, ElementSubtype } from '@/components/Types';
 import markdownToHtml from '@/utils/markdown';
 import { CircularProgress } from '@mui/material';
 
+
 const AIEditorAdviceComponent = ({ content, novelLanguage }: { content: string, novelLanguage: string }) => {
   const [text, setText] = useState("");
   const { language, isRtl } = useLanguage();

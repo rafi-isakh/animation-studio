@@ -2,6 +2,12 @@
 import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
+import animationData from '@/assets/N_logo_loader.json'
 
 async function getWebnovel(id: string | string[] | undefined) {
     if (Array.isArray(id)) {
@@ -35,6 +41,8 @@ async function getUserWebnovels(email_hash: string) {
 const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         const fetchData = async () => {
             const webnovel = await getWebnovel(searchParams.id);
@@ -47,11 +55,27 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
 
                 await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
             }
+            setLoading(false);
         }
         fetchData();
-    }, [])
+    }, [searchParams.id])
+
     return (
-        <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+        <>
+        {loading? (
+               <div role="status" className={`flex items-center justify-center min-h-screen`}>    
+                   <LottieLoader 
+                       animationData={animationData}
+                       width="w-32"
+                       centered={true}
+                       pulseEffect={true}
+                   />
+               </div>
+           ) : (
+               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+           )
+        }
+        </>
     )
 }
 

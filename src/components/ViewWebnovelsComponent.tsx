@@ -19,6 +19,12 @@ import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
 import { ListOfChapterComments } from '@/components/ListOfChapterComments';
 import { createEmailHash } from '@/utils/cryptography'
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
+import animationData from '@/assets/N_logo_loader.json'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -114,8 +120,13 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
 
     if (loading) {
         return (
-            <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
-                <CircularProgress color='secondary' />
+            <div role="status" className={`flex items-center justify-center min-h-screen`}> 
+                <LottieLoader 
+                    animationData={animationData}
+                    width="w-32"
+                    centered={true}
+                    pulseEffect={true}
+                />
             </div>
         )
     } else if (atLeastOneWebnovel) {
@@ -176,7 +187,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                      </div>
 
                        <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
-
                         {/* Webnovel info and details */}   
                         <WebNovelInfoAndPictureComponent webnovel={theWebnovel} />
 
@@ -213,12 +223,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             </ThemeProvider>
         )
     } else {
-        return null;
-        // return (
-        //     <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
-        //         {phrase(dictionary, "noWebnovelsFound", language)}
-        //     </div>
-        // )
+        // return null;
+        return (
+            <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                {phrase(dictionary, "noWebnovelsFound", language)}
+            </div>
+        )
     }
 };
 

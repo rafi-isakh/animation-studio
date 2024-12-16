@@ -4,9 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import phrases, { phrase } from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
 import { Box, Button, Modal, ThemeProvider } from '@mui/material';
-import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';

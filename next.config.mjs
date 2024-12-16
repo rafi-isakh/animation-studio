@@ -1,15 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    webpack: (config) => {
+        // Add rule for Lottie JSON files
+        config.module.rules.push({
+          test: /\.lottie$/,
+          type: 'asset/source',
+          use: {
+            loader: 'lottie-loader',
+          },
+        });
+        return config;
+      },
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_PICTURES_S3,
+                hostname: process.env.NEXT_PUBLIC_PICTURES_S3  || 'localhost',
                 pathname: '/**',
             },
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_VIDEOS_S3,
+                hostname: process.env.NEXT_PUBLIC_VIDEOS_S3 || 'localhost',
                 pathname: '/**',
             },
             {

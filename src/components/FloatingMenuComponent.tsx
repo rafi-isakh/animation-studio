@@ -7,7 +7,6 @@ import { Box, Button, Modal, Skeleton, Typography, Drawer } from '@mui/material'
 import { grey } from '@mui/material/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { generatePicturesHandler } from '@/utils/generatePictures'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import dynamic from 'next/dynamic';
 import animationData from '@/assets/MagicStick.json';
@@ -123,7 +122,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
 
 
     const handlePicturesGenerated = (newPictures: string[]) => {
-        generatePicturesHandler(newPictures, setPictures)
         setOpen(true); 
     };
         

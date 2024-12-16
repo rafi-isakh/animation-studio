@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
 import { Alert } from '@mui/material';
 import { Loader2 } from 'lucide-react';
+import GeneratedPicture from '@/components/GeneratedPicture';
 
 interface PictureGeneratorProps {
     prompt: string;
@@ -30,7 +31,7 @@ interface PictureGeneratorProps {
       setError(null);
       
       try {
-        const response = await fetch('/api/generate-pictures', {
+        const response = await fetch('/api/onoma/anima/generate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -51,12 +52,12 @@ interface PictureGeneratorProps {
   
         const data = await response.json();
         
-        if (!data.pictures || !Array.isArray(data.pictures)) {
+        if (!data.images || !Array.isArray(data.images)) {
           throw new Error('Invalid response format from server');
         }
   
-        setPictures(data.pictures);
-        onComplete(data.pictures);
+        setPictures(data.images);
+        onComplete(data.images);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       } finally {
@@ -102,12 +103,7 @@ interface PictureGeneratorProps {
             <div className="grid grid-cols-2 gap-4 mt-6">
               {pictures.map((picture, index) => (
                 <div key={index} className="relative group">
-                  <img
-                    src={picture}
-                    alt={`Generated ${index + 1}`}
-                    className="w-full rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
-                    loading="lazy"
-                  />
+                  <GeneratedPicture index={index} image={picture} />
                 </div>
               ))}
             </div>

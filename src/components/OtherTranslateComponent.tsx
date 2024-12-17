@@ -2,7 +2,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, formControlClasses } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 import { useMediaQuery } from '@mui/material';
 
@@ -17,9 +17,12 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        console.log("elementType and content", elementType, content)
         const handleTranslate = async () => {
+            console.log("handling translate for ", elementType, elementId, elementSubtype)
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
+            console.log("sessionKey", sessionKey)
             const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {
@@ -27,8 +30,10 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                 setLoading(false)
             }
             else {
+                console.log("fetching other translation")
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
                 const data = await response.json();
+                console.log("data", data)
                 if (data.text) {
                     setText(data.text);
                     setLoading(false)
@@ -39,6 +44,8 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                 // initialized.current is bc useEffect runs twice
                 // submitContent with ongoing translation
                 if (!data.done && !initialized.current) {
+                    console.log("submitting content")
+                    console.log("data.text", data.text)
                     submitContent(data.text);
                     initialized.current = true;
                 }
@@ -46,6 +53,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
         }
         if (defaultLanguage != language) {
             if (content) {
+                console.log("content", content)
                 initialized.current = false;
                 handleTranslate();
             } else {
@@ -56,7 +64,7 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
             setText(content);
             setLoading(false);
         }
-    }, [language]);
+    }, [language, elementType, elementId, elementSubtype]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);
@@ -106,6 +114,8 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
 
     const submitContent = async (translation: string) => {
         if (!translation) translation = "";
+        console.log("submitting content")
+        console.log("original", content)
         const data = {
             "original": content,
             "translation": translation

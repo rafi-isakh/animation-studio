@@ -8,13 +8,32 @@ import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon } from "@/components/Types";
+import { Webtoon, Comment } from "@/components/Types";
 import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
-import { Facebook, Twitter, CodeXml, Ellipsis, Flag, CircleHelp, ArrowDownUp, List, MessageCircle, FileText } from "lucide-react";
+import {  Flag, CircleHelp, ArrowDownUp, List, MessageCircle, FileText, Heart } from "lucide-react";
 import WebtoonRecommendationsComponent from "@/components/WebtoonRecommendationsComponent";
 import AuthorProfileCard from "./AuthorProfileCard";
+import moment from "moment";
+import { FacebookShareButton, 
+    TwitterShareButton, 
+    FacebookIcon, 
+    TwitterIcon, 
+    EmailShareButton, 
+    EmailIcon, 
+    LinkedinShareButton, 
+    LinkedinIcon,
+    TumblrShareButton,
+    TumblrIcon,
+    TelegramShareButton,
+    TelegramIcon,
+    WhatsappShareButton,
+    WhatsappIcon,
+    PinterestShareButton,
+    PinterestIcon,
+} from "react-share";
+import { ListOfChapterComments } from "@/components/ListOfChapterComments";
 
 interface WebtoonChapterListComponentProps {
     webtoon: Webtoon;
@@ -22,6 +41,7 @@ interface WebtoonChapterListComponentProps {
     coverArt: string;
     webtoons: Webtoon[];
     coverArtUrls: string[];
+    
 }
 
 const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = ({
@@ -29,12 +49,21 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
     coverArtUrls,
     webtoon,
     slug,
-    coverArt
+    coverArt,
+    
 }) => {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [isSortedByLatest, setIsSortedByLatest] = useState(true);
+    const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY');
+    const [currentPageUrl, setCurrentPageUrl] = useState('');
 
+    useEffect(() => {
+        if (window !== undefined) { 
+            setCurrentPageUrl(window.location.href);
+        }
+    }, []);
+ 
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
         setTabValue(newValue);
     };
@@ -106,7 +135,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                    <MessageCircle size={16} />   {phrase(dictionary, "comments", language)}
                                 </span> 
                                 <span className="flex flex-row items-center gap-1 md:hidden">
-                                   <MessageCircle size={16} />   
+                                   <MessageCircle size={16} />  
                                 </span>
                                 </>
                             }
@@ -147,41 +176,96 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
 
                     <div className="flex flex-col gap-4 space-y-4">
                       <p className="text-sm text-black dark:text-white"> {webtoon.description} </p>
+                    {/* <hr /> */}
+                    
+                    <div className="flex flex-col gap-0 space-y-4">
 
+                        <p className="text-sm text-black dark:text-white font-bold"> 
+                            {/* 연재 시작 */}
+                            {phrase(dictionary, "created_at", language)}
+                        </p>
+                        
+                        <p className="text-sm capitalize">
+                            {/* {webtoon.language.toLowerCase()} */}
+                            <p className="text-sm text-black dark:text-white"> {formattedDate} </p>
+                        </p>
+                                               
+                    <hr /> 
+
+                        <p className="text-sm text-black dark:text-white font-bold"> 
+                            {/* 지원 언어  */}
+                         {phrase(dictionary, "language", language)}
+                         </p>
+                    
+                        <p className="text-sm capitalize">
+                            {/* {webtoon.language.toLowerCase()} */}
+                            {phrase(dictionary, webtoon.language.toLowerCase(), language)}
+                        </p>
+                                
+                    <hr />
+                
+                        <p className="text-sm text-black dark:text-white font-bold"> 
+                           {/* 조회수 */}
+                            {phrase(dictionary, "views", language)}
+                        </p>
+                    
+                        <p className="text-sm capitalize">
+                            {webtoon.views}
+                        </p>
+                                
                     <hr />
 
-                    <div className="flex flex-col gap-2">
-                    <p className="text-sm text-black dark:text-white font-bold"> 지원 언어 </p>
-                   
-                    <p className="text-sm capitalize">
-                        {/* {webtoon.language.toLowerCase()} */}
-                        {phrase(dictionary, webtoon.language.toLowerCase(), language)}
-                    </p>
-                               
-                   <hr />
-                                {/* Genre part */}
-                             
-                              
-                              <div></div>
-                                <p className=' flex items-center'>
-                                    <i className="fa-regular fa-heart mr-1"></i> {webtoon.upvotes}
-                                </p>
-                                <p className=' flex items-center'>
-                                    <i className="fa-solid fa-eye mr-1"></i> {webtoon.views}
-                                </p>
-                                <p className=' flex items-center'>
-                                    <i className="fa-solid fa-list mr-1"></i>
+                        <p className="text-sm text-black dark:text-white font-bold"> 
+                            {/* 좋아요수 */}
+                            {phrase(dictionary, "likes", language)}
+                        </p>
+                    
+                        <p className="text-sm capitalize">
+                    
+                         {webtoon.upvotes}
+                        </p>
+                                
+                    <hr />
                         
-                                    {webtoon.chapters.length}
-                                  
-                                </p>
-                   
+                    <p className="text-sm text-black dark:text-white font-bold">
+                         {/* Share */}
+                         {phrase(dictionary, "share", language)}
+                    </p>
+              
+                       <div className="flex flex-row gap-2">
+                            <FacebookShareButton url={currentPageUrl} title={webtoon.title}>
+                                <FacebookIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                            </FacebookShareButton>
+                    
+                            <TwitterShareButton url={currentPageUrl} title={webtoon.title}>
+                                <TwitterIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                            </TwitterShareButton>
+                    
+                            <TumblrShareButton url={currentPageUrl} title={webtoon.title}> 
+                                <TumblrIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                            </TumblrShareButton>
+
+                            <TelegramShareButton url={currentPageUrl} title={webtoon.title}>
+                                <TelegramIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                            </TelegramShareButton>
+
+                            <WhatsappShareButton url={currentPageUrl} title={webtoon.title}>
+                                <WhatsappIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                            </WhatsappShareButton>
+
+                            <PinterestShareButton url={currentPageUrl} title={webtoon.title} media={webtoon.cover_art || ""}>
+                                <PinterestIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                            </PinterestShareButton>
+                        </div>
+
+
                     </div>
                     </div>
 
                 </TabPanel>
                 <TabPanel value="3">
-                    <p className="text-center text-gray-500"> There's no comments yet. </p>
+                     {/* Comments list */}
+                     {webtoon && <ListOfChapterComments content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false}/>}
                 </TabPanel>
             </TabContext>
         </div>

@@ -11,14 +11,23 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image'
 import Link from 'next/link';
-import { useModalStyle } from '@/styles/ModalStyles';
-import { Button, Modal, Box, Typography, ThemeProvider, CircularProgress } from '@mui/material';
+import { useModalStyle, useCoverArtModalStyle, useWebnovelSubmitModalStyle } from '@/styles/ModalStyles';
+import { Button, 
+         Modal, 
+         Box, 
+         Typography, 
+         ThemeProvider, 
+         CircularProgress, 
+         styled, 
+         FormControlLabel, 
+         Checkbox 
+        } from '@mui/material';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import AIEditorCharactersComponent from './AIEditorCharactersComponent';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-
-
-
+import { Info } from 'lucide-react';
+import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import '@/styles/AddWebnovelComponent.css';
 
 
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
@@ -36,6 +45,10 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
     const [currText, setCurrText] = useState(0);
     const [openModal, setOpenModal] = useState(false);
+    const [showCoverArtModal, setShowCoverArtModal] = useState(false);
+    const [showTermsOfServiceModal, setShowTermsOfServiceModal] = useState(false);
+    const [agreementOne, setAgreementOne] = useState(false);
+    const [agreementTwo, setAgreementTwo] = useState(false);
 
     useEffect(() => {
         setCurrText(description.length);
@@ -55,6 +68,26 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
 
     const handleAddWebnovel = async (event: React.FormEvent) => {
         event.preventDefault();
+        
+        // Check if all required fields are filled
+        if (!title || !description || !coverArt || !genre || !novelLanguage) {
+            setOpenModal(true);
+            return;
+        }
+    
+        // Show terms of service modal for final confirmation
+        setShowTermsOfServiceModal(true);
+    };
+
+    const handleFinalSubmit = async () => {
+            // Check if both checkboxes are checked
+        if (!agreementOne || !agreementTwo) {
+            // You can show an error message here
+            alert(phrase(dictionary, "pleaseAgreeToTerms", language));
+            return;
+        }
+        setIsSubmitting(true);
+        
         const formData = new FormData();
         formData.append('title', title);
         formData.append('description', description);
@@ -63,24 +96,23 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
         }
         formData.append('genre', genre);
         formData.append('language', novelLanguage);
-        if (!title || !description || !coverArt || !genre || !novelLanguage) {
-            setOpenModal(true);
-            return;
+    
+        try {
+            const res = await fetch('/api/add_webnovel', {
+                method: 'POST',
+                body: formData,
+            });
+    
+            if (!res.ok) {
+                throw new Error("Add webnovel failed");
+            }
+            const data = await res.json();
+            router.push(`/view_webnovels?id=${data["id"]}`);
+        } catch (error) {
+            // Handle error
+            setIsSubmitting(false);
+            // Optionally show error message
         }
-        setIsSubmitting(true);
-
-        const res = await fetch('/api/add_webnovel', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!res.ok) {
-            throw new Error("Add webnovel failed");
-        }
-        const data = await res.json();
-        setIsSubmitting(true);
-
-        router.push(`/view_webnovels?id=${data["id"]}`)
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,24 +136,79 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     }
 
 
+    const handleCoverArtUploadModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        setShowCoverArtModal(true);
+    }
+
+    const InfoTooltip = styled(({ className, ...props }: TooltipProps) => (
+        <Tooltip {...props} classes={{ popper: className }} />
+      ))(({ theme }) => ({
+        [`& .${tooltipClasses.tooltip}`]: {
+          backgroundColor: '#f5f5f9',
+          color: 'rgba(0, 0, 0, 0.87)',
+          maxWidth: 320,
+          padding: '5px',
+          fontSize: theme.typography.pxToRem(12),
+          border: '1px solid #dadde9',
+        },
+      }));
+
+      const [coverArtOptions] = useState(Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        src: `/coverArts/${i + 1}.jpg`, // Cycles through images 1-4
+        value: i < 4 ? 'small' : 'big' // Example of varying the value
+    })));
+
 
     return (
         <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
             <div className='flex flex-col border border-gray-300 rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
                 <form onSubmit={handleAddWebnovel}>
-                <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
+                  <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
 
                       <div className="mt-10 md:w-[500px] w-full">
                          <>
                             <label htmlFor="author" className='text-sm ml-2'>
-                            {/* 커버등록 */}
-                            {phrase(dictionary, "uploadCoverArt", language)}
-                            <span className='text-red-500'>* </span>
-                            <span className='text-gray-500 text-[12px]'>
-                                {/* 작품의 표지를 등록해 주세요. */}
-                                {language == 'ko' ? <> {phrase(dictionary, "uploadCoverArtDescription", language)}</> : <></>}
+                             <div className='flex flex-row gap-1 items-center'>
+                                {/* 커버등록 */}
+                                {phrase(dictionary, "uploadCoverArt", language)}
+                                <span className='text-red-500'>*</span>
+                                <span className='text-gray-500 text-[12px]'>
+                                    {/* 작품의 표지를 등록해 주세요. */}
+                                    {language == 'ko' ? <> {phrase(dictionary, "uploadCoverArtDescription", language)}</> : ''}
                                 </span>
+                                <InfoTooltip
+                                    title={
+                                    <div className='flex flex-col gap-2 space-y-2'>
+                                        <p className='text-sm font-bold'>
+                                            {/* The cover art must be in a 5:3 aspect ratio. */}
+                                            {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
+                                        </p>
+                                        <p className='text-sm'>
+                                            {/* It ideally sized at 1500 x 900 pixels, must be in PNG, GIF, or JPG format, smaller than 2MB. */}
+                                            {phrase(dictionary, "coverArtSize", language)}
+                                        </p>
+                                        <p className='text-sm font-bold'>
+                                            {/* Do you need a guide line for cover art? */}
+                                            {phrase(dictionary, "doYouNeedAGuideLineForCoverArt", language)}
+                                        </p>
+                                        <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                                        <Button sx={{backgroundColor: '#eee', color: 'black' }} className='text-black bg-gray-300 rounded-sm px-2 text-sm w-32'>
+                                            <Link href="">
+                                                {/* Learn more */}
+                                                {phrase(dictionary, "learnMore", language)}
+                                            </Link>
+                                        </Button>
+                                        </Tooltip>
+                                    </div>
+                                    }
+                                    >
+                                    <Link href="" className='p-0'><Info size={12}/></Link> 
+                                </InfoTooltip>
+                             </div>
                             </label>
+                            <div className='flex md:flex-row flex-col gap-2 items-center mt-2'>
                                 <Link href="#" className=''>
                                 {coverArtPreview ?
                                     <div className="">
@@ -145,6 +232,22 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     </div>
                                 }
                                 </Link>
+                                <Button 
+                                    sx={{
+                                        backgroundColor: 'black',
+                                        color: 'white',
+                                        borderStyle: 'solid',
+                                        borderRadius: '4px',
+                                        padding: '4px 8px',
+                                        fontSize: '12px',
+                                    }}
+                                    onClick={handleCoverArtUploadModal}
+                                    variant='outlined' 
+                                    color='gray' 
+                                    className='bg-black dark:bg-white dark:text-black md:self-start self-center'>
+                                Upload Cover Art
+                                </Button>
+                            </div>
                             </>
                             <input
                                 type="file"
@@ -171,7 +274,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     type="text"
                                     value={title}
                                     id="title"
-                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300'
+                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 dark:bg-black dark:text-white text-black'
                                     placeholder={phrase(dictionary, "webnovelTitle", language)}
                                     onChange={(e) => setTitle(trim(e.target.value, 50))}
                                 />
@@ -192,7 +295,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     value={nickname}
                                     disabled
                                     id="author"
-                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-gray-300'
+                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-gray-300 dark:text-black'
                                     placeholder={nickname}
                                 />
                              </div>
@@ -250,7 +353,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             <div className="flex flex-row space-x-4">
                                 <div className='flex flex-col w-full'>
                                     <label htmlFor="description" className='text-sm ml-2'>
-                                        {/* 작품소개 */}
+                                        {/* ��품소개 */}
                                         {phrase(dictionary, "description", language)}
                                         <span className='text-red-500'>* </span>
                                         <span className='text-gray-500 text-[12px]'>
@@ -271,7 +374,13 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             <br />
                             {/* submit button */}
                             <div className='flex flex-col space-y-4 items-center mb-8'>
-                                <NoCapsButton color='gray' variant='outlined' ref={buttonRef} type="submit" disabled={isSubmitting}
+                                <NoCapsButton 
+                                    color='gray' 
+                                    variant='outlined' 
+                                    ref={buttonRef} 
+                                    type="submit" 
+                                    disabled={isSubmitting}
+                                    // onClick={() => setShowTermsOfServiceModal(true)}
                                     className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-pink-600 dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
                                     {isSubmitting ?
@@ -281,7 +390,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                 </NoCapsButton>
                             </div>
                         </div>
-                        
+                        {/* modal for input all info */}
                         <Modal open={openModal} onClose={() => setOpenModal(false)}>
                             <Box sx={useModalStyle}>
                                 <Typography className="text-center">
@@ -297,6 +406,216 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                         </ThemeProvider>
                                     </div>
                                 </Typography>
+                            </Box>
+                        </Modal>
+                        {/* modal for cover art upload */}
+                        <Modal open={showCoverArtModal} onClose={() => setShowCoverArtModal(false)}>
+                         <Box sx={useCoverArtModalStyle}>
+                            <div className='flex flex-col space-y-4'>
+                                <p className='text-lg font-bold text-black dark:text-black'>
+                                {/* Cover Art Register */}
+                                {phrase(dictionary, "coverArtRegister", language)}
+                                </p>
+
+                                <p className='text-sm text-black font-bold'>
+                                {/* Please upload the cover art for your webnovel. */}
+                                {phrase(dictionary, "pleaseUploadTheCoverArt", language)}
+                                </p>
+
+                                <p className='text-sm text-gray-500 font-bold'>
+                                {/* The cover art must be in a 5:3 aspect ratio. */}
+                                {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
+                                </p>
+                                <p className='text-sm text-gray-500'>
+                                    {/*
+                                    It ideally sized at 1500 x 900 px, but can be smaller than 1000 x 600 px.
+                                    It must be in PNG, GIF, or JPG format, smaller than 2MB. */}
+                                    {phrase(dictionary, "coverArtSize", language)}
+                                </p>
+
+                                <div className='flex flex-row gap-1 items-center'>
+                                     <Info size={12} className='self-center text-[#DB2777]'/> 
+                                     <p className='text-sm text-[#DB2777]'> 
+                                        {/* Mature Content and Cover Art Violence rules */}
+                                        {phrase(dictionary, "matureContentAndCoverArtViolenceRules", language)}
+                                        </p>
+                                </div>
+
+                                <p className='text-sm text-gray-500'>
+                                        {/* Book cover must be safe for all ages.
+                                        Graphic violence, sexual nudity, and hateful content are strictly prohibited. */}
+                                        {phrase(dictionary, "bookCoverMustBeSafeForAllAges", language)}
+                                </p>
+
+                                <p className='text-sm text-black font-bold'>
+                                {/* Do you need a guide line for cover art? */}
+                                {phrase(dictionary, "doYouNeedAGuideLineForCoverArt", language)}
+                                </p>
+                                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                                <Button sx={{backgroundColor: '#eee', color: 'black' }} className='text-black bg-gray-300 rounded-sm px-2 text-sm w-32'>
+                                    <Link href="">
+                                        {/* Learn more */}
+                                        {phrase(dictionary, "learnMore", language)}
+                                    </Link>
+                                </Button>
+                                </Tooltip>
+
+                               <div className='grid grid-cols-4 gap-2 overflow-y-auto h-60 p-1'>
+                                 {coverArtOptions.map((option) => (
+                                    <label key={option.id}>
+                                      <input 
+                                        type="radio" 
+                                        name="Selecting_CoverArt" 
+                                        value={option.value}
+                                       />
+                                      <Image 
+                                        src={option.src} 
+                                        alt={`Option ${option.id}`} 
+                                        width={200} 
+                                        height={300}
+                                       />
+                                   </label>
+                                    ))}
+                                  </div>
+
+                                    <div className='flex flex-row space-x-4 justify-center items-center'>
+                                    <Button color='gray' variant='outlined' className='mt-10 w-32 text-blue-500 dark:text-blue-500'>
+                                        {phrase(dictionary, "confirm", language)}
+                                    </Button>
+                                    <Button 
+                                    onClick={() => setShowCoverArtModal(false)}
+                                    color='gray' 
+                                    variant='outlined' 
+                                    className='mt-10 w-32 text-[#DB2777] dark:text-[#DB2777] hover:bg-[#DB2777] hover:text-white dark:hover:bg-[#DB2777] dark:hover:text-white'>
+                                        {phrase(dictionary, "close", language)}
+                                    </Button>
+                                    </div>
+                                </div>
+                            </Box>
+                        </Modal>
+                        {/* modal for consent to terms of service */}
+                        <Modal open={showTermsOfServiceModal} onClose={() => setShowTermsOfServiceModal(false)}>
+                            <Box sx={useWebnovelSubmitModalStyle}>
+                                <div className='flex flex-col space-y-4 text-[12px]'>
+                                    <h3 className="mb-5 text-lg font-normal text-black dark:text-black">
+                                        {phrase(dictionary, "guideToRegisteringYourWork", language)}
+                                    </h3>
+                                    
+                                    <div className="flex flex-col space-y-4">
+                                        <p className='text-sm text-black font-bold'>
+                                            {/* 1. Toonyz 커뮤니티 규칙 */}
+                                            {phrase(dictionary, "toonyzCommunityRules", language)}
+                                        </p>
+                                    
+                                        <p>{phrase(dictionary, "anySerializedArticles", language)}</p>
+                                        <ul className='list-none list-inside flex flex-col gap-1'>
+                                            <li>{phrase(dictionary, "contentInfringesUponCopyrights", language)}</li>
+                                            <li>{phrase(dictionary, "contentIncludesSensitivePersonalInformation", language)}</li>
+                                            <li>{phrase(dictionary, "contentDefamesIndividualsOrGroups", language)}</li>
+                                            <li>{phrase(dictionary, "contentIsAntiSocialAndHarmsPublicOrder", language)}</li>
+                                            <li>{phrase(dictionary, "contentWrittenOnlyForCommercialGain", language)}</li>
+                                            <li>{phrase(dictionary, "contentContainingRepetitivePhrases", language)}</li>
+                                            <li>{phrase(dictionary, "contentDirectlyMentionsOrInducesUsersToOtherSites", language)}</li>
+                                            <li>{phrase(dictionary, "titlesImplyOrIncludeAnyOfTheAbove", language)}</li>
+                                        </ul>
+                                    
+                                        <p>{phrase(dictionary, "allResponsibilityForSeries", language)}</p>
+                                     
+
+                                        <p className='text-sm text-black font-bold'>
+                                             {/* 2. Cover Terms and Conditions    */}
+                                             {phrase(dictionary, "coverTermsAndConditions", language)}
+                                        </p>
+                                    
+                                        
+                                        <p>{phrase(dictionary, "followingCoversAreProhibited", language)}</p>
+                                        <ul className='list-none list-inside flex flex-col gap-1'>
+                                            <li>{phrase(dictionary, "coversThatIncludeAnyOfTheFollowing", language)}:
+                                                <ul className='list-none list-inside flex flex-col gap-1 pl-4'>
+                                                    <li>{phrase(dictionary, "violence", language)}</li>
+                                                    <li>{phrase(dictionary, "sexualContent", language)}</li>
+                                                    <li>{phrase(dictionary, "hateSpeech", language)}</li>
+                                                    <li>{phrase(dictionary, "anyContentThatIsNotSafeForAllAges", language)}</li>
+                                                </ul>
+                                            </li>
+                                            <li>{phrase(dictionary, "coversWhoseCopyrightBelongsToAnotherPerson", language)}</li>
+                                            <li>{phrase(dictionary, "coversThatAreInappropriateForMinorsUnderTheAgeOf18", language)}</li>
+                                            <li>{phrase(dictionary, "coversThatDefameIndividualsOrGroups", language)}</li>
+                                            <li>{phrase(dictionary, "coversThatDoNotAccuratelyAndClearlyIndicateTheCopyrightOrSource", language)}</li>
+                                            <li>{phrase(dictionary, "coversThatInfringeUponThePortraitRightsOfOthers", language)}</li>
+                                          
+                                        </ul>
+                                    
+                                        <p>{phrase(dictionary, "coversOrImagesMayBeSubjectToSanctions", language)}</p>
+                                     
+
+                                          <div className="flex flex-col dark:text-black text-black">
+                                            <FormControlLabel
+                                                required
+                                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
+                                                    // color: '#ec4899', // font color
+                                                }}
+                                                control={
+                                                <Checkbox 
+                                                required 
+                                                checked={agreementOne}
+                                                onChange={(e) => setAgreementOne(e.target.checked)}
+                                                sx={{
+                                                    color: '#db2777',
+                                                    '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                    }
+                                                }} 
+                                                />
+                                                }
+                                                //  연재 작품의 저작권은 전적으로 연재 작가에게 속한다는 것에 동의하시나요?
+                                                //  Do you agree that the copyright of all serialized works, including fan fiction and parodies, belongs entirely to the serial writer?
+                                                label={phrase(dictionary, 'agree_writing_terms', language)}
+                                            />
+                                            <FormControlLabel
+                                                required
+                                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
+                                                    // color: '#ec4899', // font color
+                                                }}
+                                                control={
+                                                <Checkbox 
+                                                required 
+                                                checked={agreementTwo}
+                                                onChange={(e) => setAgreementTwo(e.target.checked)}
+                                                sx={{
+                                                    color: '#db2777',
+                                                    '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                    }
+                                                }} 
+                                                />}
+                                                //  작품 등록 안내에 명시되지 않은 사항에 대해서는 'Toonyz 커뮤니티 규칙', '표지 약관' 정책을 따르십시오.
+                                                //  Do you agree that the copyright of all serialized works, including fan fiction and parodies, belongs entirely to the serial writer?
+                                                label={phrase(dictionary, 'agree_writing_terms_2', language)}
+                                            />
+                                            </div>   
+                    
+                                           <div className="flex flex-row justify-center gap-4">
+                                            <Button 
+                                                color='gray' 
+                                                variant='outlined' 
+                                                onClick={handleFinalSubmit}
+                                                disabled={isSubmitting}
+                                            >
+                                                {isSubmitting ? 
+                                                    <CircularProgress size="1rem" color='secondary' /> 
+                                                    : phrase(dictionary, "confirm", language)}
+                                            </Button>
+                                            <Button 
+                                                color='gray' 
+                                                variant='outlined' 
+                                                onClick={() => setShowTermsOfServiceModal(false)}
+                                            >
+                                                {phrase(dictionary, "cancel", language)}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
                             </Box>
                         </Modal>
                     </div>

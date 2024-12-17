@@ -221,3 +221,42 @@ writeYourStory,새 웹소설 쓰기,,Write your webnovel
 discoverStories,작품 둘러보기,,Browse webnovels
 noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
 noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels
+preparing,준비중 입니다,,Preparing..
+confirm,확인,,Confirm
+close,닫기,,Close
+learnMore,더 알아보기,,Learn More
+coverArtRegister,표지 등록,,Cover Art Register
+pleaseUploadTheCoverArt,작품의 표지를 등록해 주세요.,,Please upload the cover art for your webnovel.
+coverArtMustBeInA53AspectRatio,작가님의 아름다운 표지 사이즈는 5:3 비율을 권장합니다.,,The cover art must be in a 5:3 aspect ratio.
+coverArtSize, 이미지는 1500 x 900 픽셀이 가장 잘 보여지고 PNG GIF JPG 파일 포맷으로 등록하세요. 파일 용량은 2MB 이하를 추천합니다.,,the cover art must be in a 5:3 aspect ratio. It ideally sized at 1500 x 900 px but can be smaller than 1000 x 600 px. It must be in PNG GIF or JPG format smaller than 2MB.
+matureContentAndCoverArtViolenceRules,성인 연령별 표지 제한이 있습니다.,,Mature Content and Cover Art Violence rules
+bookCoverMustBeSafeForAllAges,책 표지는 모든 연령대에 안전해야 합니다. 그래픽 폭력 성적 노출 혐오 발언은 금지됩니다.,,Book cover must be safe for all ages. Graphic violence sexual nudity and hateful content are strictly prohibited.
+doYouNeedAGuideLineForCoverArt,책 표지 가이드라인이 필요하신가요?,Do you need a guide line for cover art?
+guideToRegisteringYourWork,작품 등록 규칙,,Guide to Registering Your Work
+agree_writing_terms,모든 연재 작품 작품의 저작권은 전적으로 연재 작가에게 속한다는 것에 동의하시나요?,,Do you agree that the copyright of all serialized works including fan fiction and parodies belongs entirely to the serial writer?
+agree_writing_terms_2,작품 등록 안내에 명시되지 않은 사항에 대해서는 'Toonyz 커뮤니티 규칙' '표지 약관' 정책을 따르십시오.,,Do you agree to follow the 'Toonyz Community Rules' and 'Cover Art Policy' for any items not specified in the webnovel registration guide?
+pleaseAgreeToTerms,모든 약관에 동의해 주세요.,Please agree to all terms.
+toonyzCommunityRules,1. Toonyz 커뮤니티 규칙,,1. Toonyz Community Rules
+anySerializedArticles,다음 약관을 위반하는 연재 작품은 Toonyz의 내부 심사에 따라 통지 후 삭제될 수 있습니다.,,Any serialized articles that violate the terms and conditions below may be deleted at Toonyz's discretion after notification of the content.
+contentInfringesUponCopyrights,a. 타인의 저작권을 침해하는 내용,,a. Content that infringes upon the copyrights of others.
+contentIncludesSensitivePersonalInformation,b. 민감한 개인정보를 포함하는 내용,,b. Content that includes sensitive personal information.
+contentDefamesIndividualsOrGroups,c. 개인 또는 단체를 비방하는 내용,,c. Content that defames individuals or groups.
+contentIsAntiSocialAndHarmsPublicOrder,d. 사회적으로 부정적이고 공공의 안전을 해치는 내용,,d. Content that is anti-social and harms public order.
+contentWrittenOnlyForCommercialGain,e. 상업적 목적으로만 작성된 내용,,e. Content written solely for commercial gain.
+contentContainingRepetitivePhrases,f. 반복적인 표현 비난 욕설 등 정상적인 웹소설이 아닌 내용,,f. Content containing repetitive phrases slander or abusive language that is not characteristic of normal web novels.
+contentDirectlyMentionsOrInducesUsersToOtherSites,g. 다른 사이트를 직접 언급하거나 유도하는 내용,,g. Content that directly mentions or is intended to induce users to other sites.
+titlesImplyOrIncludeAnyOfTheAbove,h. 위 내용을 포함하거나 암시하는 제목,,h. Titles that imply or include any of the above.
+allResponsibilityForSeries,이 약관을 위반하는 연재 작품의 모든 책임은 해당 연재 작품의 작성자에게 있습니다.,,All responsibility for series that violate these terms and conditions lies with the author of the serialized article in question.
+coverTermsAndConditions,2. 표지 약관,,2. Cover Terms and Conditions
+followingCoversAreProhibited,다음 표지는 사용이 금지됩니다. 이 조건을 위반할 경우 Toonyz는 안내 후 재량에 따라 표지를 변경하거나 삭제할 수 있습니다.,,The following covers are prohibited. If these conditions are violated Toonyz may change or delete the cover at its discretion after providing guidance.
+coversThatIncludeAnyOfTheFollowing,a. 다음 중 하나를 포함하는 표지,,a. Covers that include any of the following:
+violence,1. 폭력,,1. Violence
+sexualContent,2. 성적 내용,,2. Sexual content
+hateSpeech,3. 혐오 발언,,3. Hate speech
+anyContentThatIsNotSafeForAllAges,4. 모든 연령대에 안전하지 않은 내용,,4. Any content that is not safe for all ages
+coversWhoseCopyrightBelongsToAnotherPerson,b. 저작권이 다른 사람에게 속한 표지 단 상업적 사용이 가능하거나 원 저작권자의 허가를 받은 경우는 제외 ,,b. Covers whose copyright belongs to another person unless they are capable of commercial use or permission has been obtained from the original copyright holder.      
+coversThatAreInappropriateForMinorsUnderTheAgeOf18,c. 미성년자에게 부적절한 표지,,c. Covers that are inappropriate for minors under the age of 18.
+coversThatDefameIndividualsOrGroups,d. 개인 또는 단체를 비방하는 표지,,d. Covers that defame individuals or groups.
+coversThatDoNotAccuratelyAndClearlyIndicateTheCopyrightOrSource,e. 저작권 또는 출처를 정확하고 명확하게 표시하지 않는 표지,,e. Covers that do not accurately and clearly indicate the copyright or source.
+coversThatInfringeUponThePortraitRightsOfOthers,f. 다른 사람의 초상권을 침해하는 표지,,f. Covers that infringe upon the portrait rights of others.
+coversOrImagesMayBeSubjectToSanctions,표지 또는 이미지는 앱스토어의 정책에 따라 제재를 받을 수 있습니다. 투니즈는 표지 및 이미지와 관련된 법적 분쟁 또는 문제에 대해 책임을 지지 않습니다.,,Covers or Images may be subject to sanctions according to the policies of the Android or Apple App Store regardless of Toonyz's policies. Toonyz is not responsible for any legal disputes or issues arising in connection with covers and illustrations

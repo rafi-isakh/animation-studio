@@ -28,7 +28,7 @@ import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { Info } from 'lucide-react';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import '@/styles/AddWebnovelComponent.css';
-
+import TermsOfServiceModal from '@/components/TermsOfServiceModal';
 
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
@@ -37,7 +37,6 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null);
     const [genre, setGenre] = useState('');
     const [novelLanguage, setNovelLanguage] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const buttonRef = useRef(null);
     const { email, nickname } = useUser();
     const { language, dictionary } = useLanguage();
@@ -47,8 +46,9 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [openModal, setOpenModal] = useState(false);
     const [showCoverArtModal, setShowCoverArtModal] = useState(false);
     const [showTermsOfServiceModal, setShowTermsOfServiceModal] = useState(false);
-    const [agreementOne, setAgreementOne] = useState(false);
-    const [agreementTwo, setAgreementTwo] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    
 
     useEffect(() => {
         setCurrText(description.length);
@@ -80,12 +80,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     };
 
     const handleFinalSubmit = async () => {
-            // Check if both checkboxes are checked
-        if (!agreementOne || !agreementTwo) {
-            // You can show an error message here
-            alert(phrase(dictionary, "pleaseAgreeToTerms", language));
-            return;
-        }
+
         setIsSubmitting(true);
         
         const formData = new FormData();
@@ -494,130 +489,13 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             </Box>
                         </Modal>
                         {/* modal for consent to terms of service */}
-                        <Modal open={showTermsOfServiceModal} onClose={() => setShowTermsOfServiceModal(false)}>
-                            <Box sx={useWebnovelSubmitModalStyle}>
-                                <div className='flex flex-col space-y-4 text-[12px]'>
-                                    <h3 className="mb-5 text-lg font-normal text-black dark:text-black">
-                                        {phrase(dictionary, "guideToRegisteringYourWork", language)}
-                                    </h3>
-                                    
-                                    <div className="flex flex-col space-y-4">
-                                        <p className='text-sm text-black font-bold'>
-                                            {/* 1. Toonyz 커뮤니티 규칙 */}
-                                            {phrase(dictionary, "toonyzCommunityRules", language)}
-                                        </p>
-                                    
-                                        <p>{phrase(dictionary, "anySerializedArticles", language)}</p>
-                                        <ul className='list-none list-inside flex flex-col gap-1'>
-                                            <li>{phrase(dictionary, "contentInfringesUponCopyrights", language)}</li>
-                                            <li>{phrase(dictionary, "contentIncludesSensitivePersonalInformation", language)}</li>
-                                            <li>{phrase(dictionary, "contentDefamesIndividualsOrGroups", language)}</li>
-                                            <li>{phrase(dictionary, "contentIsAntiSocialAndHarmsPublicOrder", language)}</li>
-                                            <li>{phrase(dictionary, "contentWrittenOnlyForCommercialGain", language)}</li>
-                                            <li>{phrase(dictionary, "contentContainingRepetitivePhrases", language)}</li>
-                                            <li>{phrase(dictionary, "contentDirectlyMentionsOrInducesUsersToOtherSites", language)}</li>
-                                            <li>{phrase(dictionary, "titlesImplyOrIncludeAnyOfTheAbove", language)}</li>
-                                        </ul>
-                                    
-                                        <p>{phrase(dictionary, "allResponsibilityForSeries", language)}</p>
-                                     
-
-                                        <p className='text-sm text-black font-bold'>
-                                             {/* 2. Cover Terms and Conditions    */}
-                                             {phrase(dictionary, "coverTermsAndConditions", language)}
-                                        </p>
-                                    
-                                        
-                                        <p>{phrase(dictionary, "followingCoversAreProhibited", language)}</p>
-                                        <ul className='list-none list-inside flex flex-col gap-1'>
-                                            <li>{phrase(dictionary, "coversThatIncludeAnyOfTheFollowing", language)}:
-                                                <ul className='list-none list-inside flex flex-col gap-1 pl-4'>
-                                                    <li>{phrase(dictionary, "violence", language)}</li>
-                                                    <li>{phrase(dictionary, "sexualContent", language)}</li>
-                                                    <li>{phrase(dictionary, "hateSpeech", language)}</li>
-                                                    <li>{phrase(dictionary, "anyContentThatIsNotSafeForAllAges", language)}</li>
-                                                </ul>
-                                            </li>
-                                            <li>{phrase(dictionary, "coversWhoseCopyrightBelongsToAnotherPerson", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatAreInappropriateForMinorsUnderTheAgeOf18", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatDefameIndividualsOrGroups", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatDoNotAccuratelyAndClearlyIndicateTheCopyrightOrSource", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatInfringeUponThePortraitRightsOfOthers", language)}</li>
-                                          
-                                        </ul>
-                                    
-                                        <p>{phrase(dictionary, "coversOrImagesMayBeSubjectToSanctions", language)}</p>
-                                     
-
-                                          <div className="flex flex-col dark:text-black text-black">
-                                            <FormControlLabel
-                                                required
-                                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
-                                                    // color: '#ec4899', // font color
-                                                }}
-                                                control={
-                                                <Checkbox 
-                                                required 
-                                                checked={agreementOne}
-                                                onChange={(e) => setAgreementOne(e.target.checked)}
-                                                sx={{
-                                                    color: '#db2777',
-                                                    '&.Mui-checked': {
-                                                    color: '#db2777',
-                                                    }
-                                                }} 
-                                                />
-                                                }
-                                                //  연재 작품의 저작권은 전적으로 연재 작가에게 속한다는 것에 동의하시나요?
-                                                //  Do you agree that the copyright of all serialized works, including fan fiction and parodies, belongs entirely to the serial writer?
-                                                label={phrase(dictionary, 'agree_writing_terms', language)}
-                                            />
-                                            <FormControlLabel
-                                                required
-                                                sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
-                                                    // color: '#ec4899', // font color
-                                                }}
-                                                control={
-                                                <Checkbox 
-                                                required 
-                                                checked={agreementTwo}
-                                                onChange={(e) => setAgreementTwo(e.target.checked)}
-                                                sx={{
-                                                    color: '#db2777',
-                                                    '&.Mui-checked': {
-                                                    color: '#db2777',
-                                                    }
-                                                }} 
-                                                />}
-                                                //  작품 등록 안내에 명시되지 않은 사항에 대해서는 'Toonyz 커뮤니티 규칙', '표지 약관' 정책을 따르십시오.
-                                                //  Do you agree that the copyright of all serialized works, including fan fiction and parodies, belongs entirely to the serial writer?
-                                                label={phrase(dictionary, 'agree_writing_terms_2', language)}
-                                            />
-                                            </div>   
-                    
-                                           <div className="flex flex-row justify-center gap-4">
-                                            <Button 
-                                                color='gray' 
-                                                variant='outlined' 
-                                                onClick={handleFinalSubmit}
-                                                disabled={isSubmitting}
-                                            >
-                                                {isSubmitting ? 
-                                                    <CircularProgress size="1rem" color='secondary' /> 
-                                                    : phrase(dictionary, "confirm", language)}
-                                            </Button>
-                                            <Button 
-                                                color='gray' 
-                                                variant='outlined' 
-                                                onClick={() => setShowTermsOfServiceModal(false)}
-                                            >
-                                                {phrase(dictionary, "cancel", language)}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Box>
-                        </Modal>
+                        <TermsOfServiceModal 
+                            open={showTermsOfServiceModal}
+                            onClose={() => setShowTermsOfServiceModal(false)}
+                            onSubmit={handleFinalSubmit}
+                            isSubmitting={isSubmitting}
+                        />
+                        
                     </div>
                 </form>
             </div>

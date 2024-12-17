@@ -216,7 +216,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 className='w-full'>
                 <div className="flex flex-row !items-left justify-start flex-1">
                     <ChevronLeftIcon className="w-6 h-6" />
-                    <OtherTranslateComponent key={key3} content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
+                    <OtherTranslateComponent content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
                 </div>
             </Button>
             <div className='flex flex-col'>

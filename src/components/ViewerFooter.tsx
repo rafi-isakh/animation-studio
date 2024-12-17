@@ -4,9 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import phrases, { phrase } from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
 import { Box, Button, Modal, ThemeProvider } from '@mui/material';
-import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
@@ -115,7 +114,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <>
-            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pt-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
+            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 transition-transform duration-300 
                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 

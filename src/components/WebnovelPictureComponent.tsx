@@ -9,18 +9,11 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
 import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
+import React from "react"
 
-const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
-
-const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
-    const [key, setKey] = useState(0);
+const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
-    const isMediumScreen = useMediaQuery('(min-width:768px)')
     const imageSrc = getImageUrl(webnovel.cover_art)
-
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1)
-    }, [language, webnovel])
 
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
@@ -60,7 +53,6 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
-                            key={key}
                             content={webnovel.title}
                             elementId={webnovel.id.toString()}
                             elementType="webnovel"
@@ -91,6 +83,7 @@ const WebnovelPictureComponent = ({ webnovel, index, ranking, details, up, isOri
             </div>
         </Link>
     )
-}
+});
 
+WebnovelPictureComponent.displayName = 'WebnovelPictureComponent'; // need this because this is a React.meo
 export default WebnovelPictureComponent

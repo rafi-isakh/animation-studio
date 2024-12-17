@@ -43,10 +43,12 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
             {/* Existing content container */}
             <div className="relative z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1 bg-[#929292]/10 w-full">
 
-                <div className="flex flex-col gap-2 p-10 w-[450px]">
-                    <div className="px-4 md:px-0 space-y-2">
-                       
-                       <ul className="flex flex-row items-center gap-2">
+                <div className="flex flex-col gap-2 p-10 w-[360px] md:w-[450px]">
+                    <div className="px-12 md:px-0 space-y-2">
+                        <span className="text-sm text-gray-400">{phrase(dictionary, webtoon.genre, language)}</span>
+                        <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold" />
+                        <p>{webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>
+                        <ul className="flex flex-row gap-2">
                             {
                                 webtoon.genre && (
                                     <li className="text-sm text-gray-500 flex items-center" >

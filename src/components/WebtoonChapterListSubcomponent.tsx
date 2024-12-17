@@ -9,14 +9,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LockOpen } from 'lucide-react';
 
 
-const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt }: { webtoon: Webtoon, slug: string, coverArt: string }) => {
+const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }: { webtoon: Webtoon, slug: string, coverArt: string, sortToggle: boolean }) => {
   const [showMoreChapters, setShowMoreChapters] = useState(false);
   const { language, dictionary } = useLanguage();
+
+  const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
 
   return (
     <div className="w-full">
       <div className="overflow-y-auto border border-gray-300 rounded-md p-2">
-        {webtoon.chapters.map((chapter: WebtoonChapter, index: number) => (
+        {sortedChapters.map((chapter: WebtoonChapter, index: number) => (
           <Link
             href={`/webtoons/${slug}/${chapter.directory}`}
             key={`chapter-${chapter.id}`}
@@ -35,9 +37,9 @@ const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt }: { webtoon: 
 
                 <p className="text-xl text-center self-center"> {index + 1} </p>
                 <p className="text-sm text-center self-center">
-                  {language === 'en' ? `episodes ${parseInt(chapter.directory)}` :
+                  {language === 'en' ? `Episode ${parseInt(chapter.directory)}` :
                     language === 'ko' ? `${parseInt(chapter.directory)}화` :
-                      `episodes ${parseInt(chapter.directory)} `}
+                      `Episode ${parseInt(chapter.directory)} `}
                 </p>
               </div>
 

@@ -6,8 +6,8 @@ import { CircularProgress, formControlClasses } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 import { useMediaQuery } from '@mui/material';
 
-const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
-    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string}) => {
+const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
+    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
     const [text, setText] = useState(incomingText);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
@@ -17,9 +17,29 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        console.log("elementType and content", elementType, content)
+        setText("");
+        setLoading(true);
+        const detectLanguage = async () => {
+            let originalAndTargetLangSame = false;
+            const response = await fetch('/api/detect_language', {
+                method: 'POST',
+                body: JSON.stringify({ text: content }),
+            });
+            const data = await response.json();
+            const langcode = data.langcode;
+            if (langcode == language) {
+                originalAndTargetLangSame = true;
+            }
+            return originalAndTargetLangSame;
+        }
+
         const handleTranslate = async () => {
-            console.log("handling translate for ", elementType, elementId, elementSubtype)
+            const originalAndTargetLangSame = await detectLanguage();
+            if (originalAndTargetLangSame) {
+                setText(content);
+                setLoading(false);
+                return;
+            }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
             console.log("sessionKey", sessionKey)
@@ -78,10 +98,10 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
             }
             setChangeCount(0);
         }
-    })
+    }, [changeCount, finished, initialized.current])
 
     useEffect(() => {
-        if (initialized.current) {
+        if (initialized.current && finished) {
             setLoading(false)
             saveTranslationToDB(true);
         }
@@ -141,7 +161,6 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     };
 
     const startEventSource = (textId: string) => {
-        setLoading(false);
         const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
 
         eventSource.onmessage = (event) => {
@@ -169,16 +188,17 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
         <div style={{ direction: `${isRtl}` as Direction }}>
             {
                 loading && showLoading ?
-                   (
-                    <div role="status" className='w-4 self-center'>
-                        {/* genre */}
-                        <CircularProgress size="0.8rem" color='secondary' />
-                    </div>
-                   ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
+                    (
+                        <div role="status" className='w-4 self-center'>
+                            {/* genre */}
+                            <CircularProgress size="0.8rem" color='secondary' />
+                        </div>
+                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
             }
         </div>
     );
-};
+});
 
+OtherTranslateComponent.displayName = 'OtherTranslateComponent'; // need this because this is a React.memo
 export default OtherTranslateComponent;

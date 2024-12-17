@@ -82,7 +82,7 @@ const PromotionBannerComponent = () => {
     >
       <div className='flex flex-col justify-center justify-none md:p-0'>
         <Image 
-          src='/stelli_2.png'
+          src='/stelli/stelli_2.png'
           alt='Toonyz banner image'
           sizes="100vw"
           quality={85}

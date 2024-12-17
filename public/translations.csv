@@ -182,10 +182,21 @@ viewSettings_scroll,스크롤,,Scroll
 viewSettings_page,페이지,,Page
 webtoonCurriculum,웹툰 커리큘럼,Webtoon カリキュラム,Webtoon Curriculum
 webnovelCurriculum,웹소설 커리큘럼,Webnovel カリキュラム,Webnovel Curriculum
+toonyzStudioPlay,투니즈 스튜디오 요술봉으로 이야기를 시작하세요,Toonyz Studio Play,Create magic with Toonyz Studio Play?
 numchapters,화,,Chapters
 totalchapters,총,,,
 Billboard_header,여러분의 꿈을 Toonyz와 함께 하세요!,,Your Dream with Toonyz
 Billboard_subheader,Your Favorite Story Universe Toonyz,,Your Favorite Story Universe Toonyz
+help,도움말,,Help
+follow,팔로우,,Follow
+share,공유,,Share
+startToRead,읽어 보기,,Start To Read
+unlockNextEpisode,유료 다음 화 보기,,View Author's Other Works 
+viewAnotherWorks,다른 작품 보기,,View More Works by the Author 
+works,작품,,WORKS
+views,조회,,VIEWS
+likes,좋아요,,LIKES
+peopleAlsoLike,추천 작품,,People Also Like
 episodes,에피소드,,Episodes
 start_to_read_episode_1,첫 화 보기,,Read First Episode
 readingForFree,무료,,Free
@@ -202,3 +213,14 @@ youMightLikeThis,이런 작품 어떠세요?,,You might like this
 report,신고하기,,Report
 help,도움말,,Help
 share,공유하기,,Share   
+noNovelsYet,작품이 없습니다,,No Novels Yet
+welcome_to_toonyz,Toonyz 회원가입을 환영 합니다!,,Welcome to Toonyz!
+enjoy_variety_of_stories,다양한 이야기를 즐겨보세요,,Enjoy variety of stories with us
+signedup_first_time_user,첫 회원가입 별 구매하고 혜택 받기 >,,Buy stars and get benefits >
+check_out_toonyz_works,Toonyz 작품 확인하러 가기 >,,Check out Toonyz works >
+Billboard_subheader,Your Favorite Story Universe Toonyz,,Your Favorite Story Universe Toonyz
+noWebnovelsFound_subtitle,새로운 작품을 작성해 보세요,,Would you like to write a new webnovel?
+writeYourStory,새 웹소설 쓰기,,Write your webnovel
+discoverStories,작품 둘러보기,,Browse webnovels
+noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
+noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels

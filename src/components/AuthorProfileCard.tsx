@@ -8,11 +8,29 @@ import { Ellipsis, CodeXml, Facebook, Twitter, Flag, CircleHelp, Plus } from "lu
 import { useRef } from "react";
 import { useState } from "react";
 import { Button } from "@mui/material";
+import { FacebookShareButton, 
+        TwitterShareButton, 
+        FacebookIcon, 
+        TwitterIcon, 
+        EmailShareButton, 
+        EmailIcon, 
+        LinkedinShareButton, 
+        LinkedinIcon,
+        TumblrShareButton,
+        TumblrIcon,
+        TelegramShareButton,
+        TelegramIcon,
+        WhatsappShareButton,
+        WhatsappIcon,
+        PinterestShareButton,
+        PinterestIcon,
+ } from "react-share";
 
 export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const { language, dictionary } = useLanguage();
+    const currentPageUrl = window.location.href;
 
     const toggleUserDropdown = () => {
         setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -36,19 +54,35 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
 
             <div className="flex flex-col gap-2 justify-center items-center">
                 <span className="text-[10px] uppercase"> Share </span>
-                <button className="border-2 border-[#3C5997] bg-[#3C5997] py-1 px-1 text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                    <Facebook size={22} className="text-white" />
-                </button>
-                <button className="border-2 border-[#54ACEE] bg-[#54ACEE]  py-1 px-1  text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                    <Twitter size={22} className="text-white" />
-                </button>
-                <button className="border-2 border-gray-500 bg-gray-500  py-1 px-1  text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                    <CodeXml size={22} className="text-white" />
-                </button>
+              
+                    <FacebookShareButton url={currentPageUrl} title={webtoon.title}>
+                        <FacebookIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                    </FacebookShareButton>
+             
+                     <TwitterShareButton url={currentPageUrl} title={webtoon.title}>
+                        <TwitterIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                     </TwitterShareButton>
+            
+                    <TumblrShareButton url={currentPageUrl} title={webtoon.title}> 
+                        <TumblrIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                    </TumblrShareButton>
 
-                <li className="flex flex-col items-center justify-center list-none">
-                    <button onClick={toggleUserDropdown} className="border-2 border-gray-100 bg-gray-100  py-1 px-1  text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                        <Ellipsis size={22} className="text-gray-600" />
+                    <TelegramShareButton url={currentPageUrl} title={webtoon.title}>
+                        <TelegramIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                    </TelegramShareButton>
+
+                    <WhatsappShareButton url={currentPageUrl} title={webtoon.title}>
+                        <WhatsappIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                    </WhatsappShareButton>
+
+                    <PinterestShareButton url={currentPageUrl} title={webtoon.title} media={webtoon.cover_art || ""}>
+                        <PinterestIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                    </PinterestShareButton>
+
+
+                  <li className="flex flex-col items-center justify-center list-none">
+                    <button onClick={toggleUserDropdown} className="border-2 border-gray-100 bg-gray-100 text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
+                        <Ellipsis size={20} className="text-gray-600" />
                     </button>
 
                     {isUserDropdownOpen && (

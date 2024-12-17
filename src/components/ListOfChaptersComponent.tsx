@@ -1,4 +1,4 @@
-import { Chapter, Webnovel } from "@/components/Types";
+import { Chapter, Webnovel, Webtoon, WebtoonChapter } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import { phrase } from '@/utils/phrases';

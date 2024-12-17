@@ -46,10 +46,10 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                 <div className="flex flex-col gap-2 p-10 w-[450px]">
                     <div className="px-4 md:px-0 space-y-2">
                        
-                       <ul className="flex flex-row gap-2">
+                       <ul className="flex flex-row items-center gap-2">
                             {
                                 webtoon.genre && (
-                                    <li className="text-sm text-gray-500">
+                                    <li className="text-sm text-gray-500 flex items-center" >
                                         <DictionaryPhrase phraseVar={webtoon.genre.toLowerCase()} />
                                         <span style={{
                                                 height: '2px',
@@ -58,9 +58,8 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                                 borderRadius: '50%',
                                                 display: 'inline-block',
                                                 marginLeft: '5px',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                alignSelf: 'center'
+                                                marginRight: '0px',
+                                                verticalAlign: 'middle'
                                         }} />
                                     </li>
                                 )
@@ -87,8 +86,8 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                 <li key={`tag-${index}`} 
                                     className="text-sm text-black rounded-md px-2 border border-gray-500 hover:bg-[#8A2BE2] transition duration-150 ease-in-out">#{tag}</li>
                             ))}
-                               {/* 연령별 태그 */}
-                               <li className="text-sm text-black rounded-md bg-green-400 px-2 transition duration-150 ease-in-out self-center text-center">13+</li>
+                               {/* 연령별 태그
+                               <li className="text-sm text-black rounded-md bg-green-400 px-2 transition duration-150 ease-in-out self-center text-center">13+</li> */}
                         </ul>
 
 
@@ -96,26 +95,12 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                         {/* <p className="text-sm text-gray-400">{formattedDate}</p> */}
                         <OtherTranslateComponent content={webtoon.description} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="description" classParams="text-sm text-gray-800" />
                        
-                        {/* <div className="flex flex-row space-x-4 items-center text-[12px] ">
-                              
-                                <p className=' flex items-center'>
-                                    <i className="fa-regular fa-heart mr-1"></i> {webtoon.upvotes}
-                                </p>
-                                <p className=' flex items-center'>
-                                    <i className="fa-solid fa-eye mr-1"></i> {webtoon.views}
-                                </p>
-                                <p className=' flex items-center'>
-                                    <i className="fa-solid fa-list mr-1"></i>
-                        
-                                    {webtoon.chapters.length}
-                                </p>
-                            </div> */}
                         <div className="flex flex-row gap-2 pt-5">
                             {/* button's top padding 5 */}
                             <Button 
                               variant="contained" 
                               disableElevation
-                              className="bg-gray-500 hover:bg-[#8A2BE2] text-white rounded-md w-[200px] py-2 transition duration-150 ease-in-out">
+                              className="bg-gray-500 hover:bg-[#8A2BE2] text-white rounded-md md:w-[200px] w-full md:py-2 py-1 transition duration-150 ease-in-out">
                                 <Link
                                     href={`/webtoons/${webtoon.id}/001`}
                                     className="text-center flex flex-row items-center"

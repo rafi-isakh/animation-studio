@@ -4,7 +4,7 @@ export interface WebnovelIdProps {
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter'
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
 
@@ -68,7 +68,6 @@ export interface Webnovel {
   title: string;
   cover_art: string;
   chapters: Chapter[];
-  comments: Comment[];
   description: string;
   genre: string;
   user: User;
@@ -94,7 +93,6 @@ export interface Webtoon {
   user: User;
   language: string;
   views: number;
-  comments: Comment[];
   chapters: WebtoonChapter[]
   cover_art: string;
   wide_cover: string;
@@ -105,6 +103,8 @@ export interface Webtoon {
 
 export interface WebtoonChapter {
   id: number;
+  title: string;
+  comments: Comment[];
   webtoon_id: number;
   directory: string;
   created_at: Date;

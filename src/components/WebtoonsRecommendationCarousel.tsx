@@ -93,7 +93,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
 
       <TabContext value={tabValue} >
         <Box sx={{ borderBottom: 0, borderColor: 'none' }}>
-          <div className="flex flex-row justify-between items-center">
+          <div className="flex flex-row justify-between items-center overflow-x-auto">
             <TabList
               onChange={handleChange}
               aria-label="lab API tabs"

@@ -61,7 +61,7 @@ const WebnovelsList = ({ items }: { items: any[] }) => {
       {chunkedItems.map((chunk, chunkIndex) => (
         <div 
           key={chunkIndex} 
-          className="grid grid-cols-2 gap-4 -z-10"
+          className="grid grid-cols-2 gap-2 -z-10"
         >
           {chunk.map((item, index) => (
             <div

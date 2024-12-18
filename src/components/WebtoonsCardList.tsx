@@ -38,7 +38,7 @@ const WebtoonsCardList: React.FC<WebtoonsCardListProps> = ({
 
                 <div className="relative">
                     {/* Desktop flexbox layout */}
-                    <div ref={scrollRef} className="hidden md:flex justify-start gap-4 overflow-x-auto no-scrollbar">
+                    <div ref={scrollRef} className="hidden md:flex justify-start gap-2 overflow-x-auto no-scrollbar">
                         {shownWebtoons.map((item, index) => (
                             <div
                                 key={item.id || index}

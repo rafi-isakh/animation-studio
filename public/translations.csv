@@ -107,6 +107,8 @@ createMainCharacterSentence,주연 줄거리 만들기,,Generate Main character 
 createSubCharacterSentence,조연 줄거리 만들기,,Generate Sub character sentence
 createEpisode,에피소드 만들기,,Generate Episode
 createSynopsis,시놉시스 만들기,,Generate Synopsis
+createTreatment,트리트먼트 만들기,,Generate Treatment
+createScenario,시나리오 만들기,,Generate Scenario
 author,작가,作者,Author,作者,作者,
 viewByGenre,장르별로 보기,ジャンル別に見る,View by Genre
 downloadImage,이미지를 다운로드 하시겠습니까?,画像をダウンロードしますか?,Download the image?

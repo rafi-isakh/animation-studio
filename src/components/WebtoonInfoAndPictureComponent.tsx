@@ -73,9 +73,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                </li>
                         </ul>
                         
-                        <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold" />
-                        <p> {webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>
-                        
                         <ul className="flex flex-row gap-2">
                             {/* {
                                 webtoon.genre && (

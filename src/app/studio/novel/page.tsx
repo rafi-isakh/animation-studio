@@ -414,40 +414,6 @@ export default function NovelStudioPage() {
                         </svg>
 
                     </Button>
-                    <div className="">
-                        {isGeneratingMainCharacter ? (
-                            <></>
-                        ) : (
-                            <CharacterInfo data={mainCharacter} title="주연 캐릭터" />
-                        )}
-                    </div>
-                    <Button
-                        variant="outlined"
-                        color="gray"
-                        onClick={() => generateMainCharacter(streamedLogline)}
-                        disabled={isGeneratingMainCharacter}
-                        className="self-center font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
-                    >
-                        {isGeneratingMainCharacter ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p>)
-                            : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "createMainCharacter", language)}</p>)}
-
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="lucide lucide-brush ml-3"
-                        >
-                            <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08" />
-                            <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z" />
-                        </svg>
-
-                    </Button>
                 </div>
             </div>
 
@@ -459,6 +425,40 @@ export default function NovelStudioPage() {
             </div>
 
             <div className="max-[300px]:w-[350px] w-[350px] sm:w-[720px] flex flex-col bg-transparent rounded-xl border py-6 px-6  mt-10 space-y-4">
+                <div className="">
+                    {isGeneratingMainCharacter ? (
+                        <></>
+                    ) : (
+                        <CharacterInfo data={mainCharacter} title="주연 캐릭터" />
+                    )}
+                </div>
+                <Button
+                    variant="outlined"
+                    color="gray"
+                    onClick={() => generateMainCharacter(streamedLogline)}
+                    disabled={isGeneratingMainCharacter}
+                    className="self-center font-bold border border-gray-600 bg-transparent hover:text-pink-600 hover:border-pink-600"
+                >
+                    {isGeneratingMainCharacter ? (<p className="dark:text-pink-600 dark:border-pink-600">{phrase(dictionary, "generatingPrompt", language)}</p>)
+                        : (<p className="dark:text-white dark:border-pink-600">{phrase(dictionary, "createMainCharacter", language)}</p>)}
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-brush ml-3"
+                    >
+                        <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08" />
+                        <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z" />
+                    </svg>
+
+                </Button>
 
                 <div className="text-black dark:text-black">
                     {subCharacter && <CharacterInfo data={subCharacter} title="조연 캐릭터" />}

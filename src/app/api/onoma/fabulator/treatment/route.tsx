@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+
 export async function POST(req: NextRequest) {
     const data = await req.json();
-    const { logline, mainCharacters, subCharacters, episodeConfig } = data;
+    const { synopsis, episodeConfig } = data;
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/synopsis?apiKey=${process.env.ONOMA_API_KEY}&logline=${logline}&mainCharacters=${mainCharacters}&subCharacters=${subCharacters}&episodeConfig=${episodeConfig}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/treatment?apiKey=${process.env.ONOMA_API_KEY}&synopsis=${encodeURIComponent(synopsis)}&episodeConfig=${encodeURIComponent(episodeConfig)}`)
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

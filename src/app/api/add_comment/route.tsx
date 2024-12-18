@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
   if (!response.ok) {
     return NextResponse.json({
-        message: "Add comment failed",
+        message: response.statusText,
     }, {
         status: response.status
     });

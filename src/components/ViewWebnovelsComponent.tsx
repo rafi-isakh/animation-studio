@@ -224,7 +224,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 </TabPanel>
                                 <TabPanel value="2">
                                     {/* Comments list */}
-                                    {theWebnovel && <ListOfChapterComments webnovel={theWebnovel} />}
+                                    {theWebnovel && <ListOfChapterComments content={theWebnovel} chapter={theWebnovel.chapters[0]} webnovelOrWebtoon={true}/>}
                                 </TabPanel>
                             </TabContext>
 

@@ -7,6 +7,7 @@ import { useModalStyle } from "@/styles/ModalStyles"
 import { Box } from "@mui/material"
 import { Button } from "@mui/material"
 import { Modal } from "@mui/material"
+import { MessageCircle } from "lucide-react"
 
 export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Webtoon, episode: string }) {
     const [isVisible, setIsVisible] = useState(true)
@@ -71,6 +72,14 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
         }
     }
 
+    const getCurrentChapterId = (episode: string) => {
+        return sortedChapters.find((ch: WebtoonChapter) => ch.directory === episode)?.id;
+    }
+
+    const getCurrentChapterCommentsLength = (episode: string) => {
+        return sortedChapters.find((ch: WebtoonChapter) => ch.directory === episode)?.comments?.length;
+    }
+
     const prevChapterLink = `/webtoons/${webtoon.id}/${getPrevChapterId(episode)}`
     const nextChapterLink = `/webtoons/${webtoon.id}/${getNextChapterId(episode)}`
 
@@ -83,6 +92,13 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
                         <p className='group hover:text-pink-600'>
                             <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600 mr-4"></i>
                             {<DictionaryPhrase phraseVar="prevChapter" />}
+                        </p>
+                    </Link>
+                    <Link href={`/comments?chapter_id=${getCurrentChapterId(episode)?.toString()}&webnovel_or_webtoon=false`}>
+                        {/*webnovel_or_webtoon=false means webtoon*/}
+                        <p className='hover:text-[#DB2777] relative'>
+                            <MessageCircle size={16} />
+                            <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{getCurrentChapterCommentsLength(episode)}</span>
                         </p>
                     </Link>
                     <Link href={nextChapterLink} onClick={handleNextChapter}>

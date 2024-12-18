@@ -2,7 +2,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, formControlClasses } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 import { useMediaQuery } from '@mui/material';
 
@@ -15,13 +15,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        console.log(`Effect running for: ${content}.${elementType}.${elementId}.${language}.${elementSubtype}.${defaultLanguage}.${classParams}.${showLoading}.${incomingText}`);
-        return () => {
-            console.log(`Cleanup for: ${content}.${elementType}.${elementId}.${language}.${elementSubtype}.${defaultLanguage}.${classParams}.${showLoading}.${incomingText}`);
-        };
-    }, [content, elementType, elementId, language, elementSubtype, defaultLanguage, classParams, showLoading, incomingText]);
 
     useEffect(() => {
         setText("");
@@ -49,6 +42,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
+            console.log("sessionKey", sessionKey)
             const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {
@@ -56,8 +50,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 setLoading(false)
             }
             else {
+                console.log("fetching other translation")
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
                 const data = await response.json();
+                console.log("data", data)
                 if (data.text) {
                     setText(data.text);
                     setLoading(false)
@@ -68,6 +64,8 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 // initialized.current is bc useEffect runs twice
                 // submitContent with ongoing translation
                 if (!data.done && !initialized.current) {
+                    console.log("submitting content")
+                    console.log("data.text", data.text)
                     submitContent(data.text);
                     initialized.current = true;
                 }
@@ -75,6 +73,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         }
         if (defaultLanguage != language) {
             if (content) {
+                console.log("content", content)
                 initialized.current = false;
                 handleTranslate();
             } else {
@@ -85,7 +84,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             setText(content);
             setLoading(false);
         }
-    }, [language]);
+    }, [language, elementType, elementId, elementSubtype]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);
@@ -135,6 +134,8 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
 
     const submitContent = async (translation: string) => {
         if (!translation) translation = "";
+        console.log("submitting content")
+        console.log("original", content)
         const data = {
             "original": content,
             "translation": translation

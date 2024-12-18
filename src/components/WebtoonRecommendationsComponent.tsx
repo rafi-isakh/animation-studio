@@ -51,11 +51,11 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
                     key={`webtoon-${webtoon.id}`}
                     className={`cursor-pointer block py-2 border-gray-200 last:border-b-0`}
                 >
-                    <div className="flex flex-row bg-gray-200 hover:opacity-80 transition duration-150 ease-in-out">
+                    <div className="flex flex-row bg-gray-200 hover:opacity-80 transition duration-150 ease-in-out rounded-sm">
                         <Image
                             src={recommendedCoverArtUrls[index]}
                             alt={webtoon.title}
-                            className="self-center"
+                            className="self-center rounded-l-sm "
                             width={50}
                             height={50}
                         />
@@ -64,20 +64,20 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
                                 <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType="webtoon" elementSubtype="title"/>
                                 <p className="flex flex-row gap-1">
                                     <span className="text-gray-100 text-[10px] rounded-full bg-gray-800 px-1">
-                                        {phrase(dictionary, webtoon.genre, language)}
+                                        {phrase(dictionary, webtoon.genre.toLowerCase(), language)}
                                     </span>
                                     <span className="text-gray-600 text-[10px] ">
                                         {webtoon.user.nickname}
                                     </span>
                                 </p>
                             </div>
-                            <div className="text-sm text-center self-center">
-                                {/* <LockOpen size={16} className="text-gray-200" /> */}
+                            {/* <div className="text-sm text-center self-center">
+                               
                                 <p className="text-gray-600 text-[10px] mr-5">
-                                    {/* Free */}
+                                 
                                     {phrase(dictionary, "readingForFree", language)}
                                 </p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </Link>

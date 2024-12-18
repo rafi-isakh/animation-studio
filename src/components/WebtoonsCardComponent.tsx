@@ -69,7 +69,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
 
                         {/* Total Chapters and Views */}
                         {detail &&
-                            <div className="flex flex-row justify-center font-bold">
+                            <div className="flex flex-row justify-center font-bold gap-1">
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
                                     <span><DictionaryPhrase phraseVar={"totalchapters"} /> {webtoon.chapters.length} </span>
                                     <span><DictionaryPhrase phraseVar={"numchapters"} /></span>

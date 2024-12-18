@@ -74,7 +74,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
             {/* Existing content container */}
             <div className="relative z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1 bg-[#929292]/10 w-full">
 
-                <div className="flex flex-col gap-2 p-10 w-[360px] md:w-[450px]">
+                <div className="flex flex-col gap-2 md:p-10 p-5 w-[360px] md:w-[450px]">
                     <div className="md:px-0 px-0 space-y-2">
                         <span className="text-sm text-gray-400">{phrase(dictionary, webtoon.genre, language)}</span>
                         <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold" />
@@ -136,7 +136,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                     backgroundColor: '#8A2BE2',
                                     color: 'white',
                                     borderRadius: '5px',
-                                    width: '200px',
+                                    // width: '200px',
                                     height: '40px',
                                     transition: 'background-color 0.3s ease-in-out',
                                     '&:hover': {
@@ -157,8 +157,8 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
 
                             <Link
                                 href=''
-                                className="text-center flex justify-center items-center contents-center md:p-0 p-1
-                                               group border w-[40px] h-[40px] border-gray-500 hover:border-[#8A2BE2]  hover:bg-[#8A2BE2]
+                                className="text-center flex justify-center items-center contents-center md:p-0 p-1 flex-shrink-0
+                                            group border w-[40px] h-[40px] border-gray-500 hover:border-[#8A2BE2]  hover:bg-[#8A2BE2]
                                              text-white rounded-md transition duration-150 ease-in-out
                                             "
                             >
@@ -176,7 +176,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                 <Link
                                     onClick={toggleShareDropdown}
                                     href=''
-                                    className="text-center flex justify-center items-center contents-center md:p-0 p-1
+                                    className="text-center flex justify-center items-center contents-center md:p-0 p-1 flex-shrink-0
                                                   group border w-[40px] h-[40px] border-gray-500 hover:border-[#8A2BE2] hover:bg-[#8A2BE2]
                                                 text-white rounded-md transition duration-150 ease-in-out"
                                 >

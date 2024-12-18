@@ -94,7 +94,7 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
                             {<DictionaryPhrase phraseVar="prevChapter" />}
                         </p>
                     </Link>
-                    <Link href={`/comments?chapter_id=${getCurrentChapterId(episode).toString()}&webnovel_or_webtoon=false`}>
+                    <Link href={`/comments?chapter_id=${getCurrentChapterId(episode)?.toString() ?? ''}&webnovel_or_webtoon=false`}>
                         {/*webnovel_or_webtoon=false means webtoon*/}
                         <p className='hover:text-[#DB2777] relative'>
                             <MessageCircle size={16} />

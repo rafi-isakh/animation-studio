@@ -45,7 +45,7 @@ const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
 
 const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !keyPressed && query !== '') {
-        e.preventDefault(); // Prevent default Enter behavior
+        e.preventDefault();
         setKeyPressed(true);
         handleSearch(searchQuery);
         

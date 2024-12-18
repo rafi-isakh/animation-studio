@@ -456,3 +456,71 @@ Stella& Inc.
 주소 : 서울특별시 강남구 테헤란로 79길 6 
 전자우편주소/고객센터 : hello@stelland.com
 `
+
+
+export const WebnovelTermsInfo = `
+작가님의 아름다운 표지 사이즈는 5:3 비율을 권장합니다.
+이미지는 1500 x 900 픽셀이 가장 잘 보여지고 PNG GIF JPG 파일 포맷으로 등록하세요. 
+파일 용량은 2MB 이하를 추천합니다.
+`
+
+export const WebnovelTermsInfo_en = `
+The cover art must be in a 5:3 aspect ratio.
+The image is best viewed at 1500 x 900 pixels and 
+must be in PNG GIF or JPG format smaller than 2MB.
+`
+
+export const WebnovelTerms = `1. Toonyz 커뮤니티 규칙
+
+다음 약관을 위반하는 연재 작품은 Toonyz의 내부 심사에 따라 통지 후 삭제될 수 있습니다.
+
+a. 타인의 저작권을 침해하는 내용
+b. 민감한 개인 정보를 포함하는 내용
+c. 개인이나 단체를 비방하는 내용
+d. 반사회적이고 공공질서를 해치는 내용
+e. 상업적 이익을 위해 작성된 내용
+f. 반복적인 구절, 비방, 또는 정상적인 웹 소설로 간주하기 어려운 욕설을 포함하는 내용
+g. 다른 사이트로 유도하려는 의도가 있는 내용
+h. 위의 내용을 암시하거나 포함하는 제목
+
+이 약관을 위반하는 연재 작품의 모든 책임은 해당 연재 작품의 작성자에게 있습니다.
+
+2. 표지 약관
+
+다음 표지는 사용이 금지됩니다. 이 조건을 위반할 경우 Toonyz는 안내 후 재량에 따라 표지를 변경하거나 삭제할 수 있습니다.
+
+a. 다른 사람의 저작권이 있는 표지, 단, 상업적 사용이 가능하거나 원 저작권자의 허가를 받은 경우는 제외
+b. 18세 미만의 미성년자에게 부적합한 표지
+c. 개인이나 단체를 비방하거나 불쾌감 또는 수치를 유발하는 표지
+d. 저작권이나 출처를 명확하게 표시하지 않은 표지
+e. 타인의 초상권을 침해하는 표지
+
+표지나 이미지는 Toonyz의 정책과 무관하게 Android 또는 Apple App Store의 정책에 따라 제재를 받을 수 있습니다. 
+Toonyz는 표지와 일러스트와 관련된 법적 분쟁이나 문제에 대한 책임을 지지 않습니다.
+`
+
+export const WebnovelTerms_en = `1. Toonyz community rules
+
+Any serialized articles that violate the terms and conditions below may be deleted at Toonyz's discretion after notification of the content.
+a. Content that infringes upon the copyrights of others.
+b. Content that includes sensitive personal information.
+c. Content that defames individuals or groups.
+d. Content that is anti-social and harms public order.
+e. Content written solely for commercial gain.
+f. Content containing repetitive phrases, slander, or abusive language that is not characteristic of normal web novels.
+g. Content that directly mentions or is intended to induce users to other sites.
+h. Titles that imply or include any of the above.
+
+All responsibility for series that violate these terms and conditions lies with the author of the serialized article in question.
+
+2. Cover Terms and Conditions
+
+The following covers are prohibited. If these conditions are violated, Toonyz may change or delete the cover at its discretion after providing guidance.
+a. Covers whose copyright belongs to another person, unless they are capable of commercial use or permission has been obtained from the original copyright holder.
+b. Covers that are inappropriate for minors under the age of 18.
+c. Covers that defame individuals or groups, or cause discomfort or shame.
+d. Covers that do not accurately and clearly indicate the copyright or source.
+e. Covers that infringe upon the portrait rights of others.
+
+Covers or Images may be subject to sanctions according to the policies of the Android or Apple App Store, regardless of Toonyz's policies. Toonyz is not responsible for any legal disputes or issues arising in connection with covers and illustrations.
+`

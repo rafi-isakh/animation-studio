@@ -1,8 +1,11 @@
-import { Modal, Box, Button, CircularProgress, FormControlLabel, Checkbox } from '@mui/material';
-import { useWebnovelSubmitModalStyle } from '@/styles/ModalStyles';
+import { Modal, Box, Button, CircularProgress, FormControlLabel, Checkbox, ThemeProvider, Typography } from '@mui/material';
+import { useModalStyle, useWebnovelSubmitModalStyle } from '@/styles/ModalStyles';
 import { phrase } from '@/utils/phrases';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { replaceSmartQuotes } from '@/utils/font';
+import { WebnovelTerms, WebnovelTerms_en } from '@/utils/terms';
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 interface TermsOfServiceModalProps {
     open: boolean;
@@ -19,75 +22,34 @@ const TermsOfServiceModal = ({
 }: TermsOfServiceModalProps) => {
     const [agreementOne, setAgreementOne] = useState(false);
     const [agreementTwo, setAgreementTwo] = useState(false);
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const { dictionary, language } = useLanguage();
 
     const handleSubmit = async () => {
         if (!agreementOne || !agreementTwo) {
-            alert(phrase(dictionary, "pleaseAgreeToTerms", language));
+            setIsModalOpen(true);
+            // alert(phrase(dictionary, "pleaseAgreeToTerms", language));
             return;
         }
         await onSubmit();
     };
 
     return (
+        <>
         <Modal open={open} onClose={onClose}>
             <Box sx={useWebnovelSubmitModalStyle}>
                 <div className='flex flex-col space-y-4 text-[12px]'>
-                    <h3 className="mb-5 text-lg font-normal text-black dark:text-black">
+                    <h3 className="text-lg font-normal text-black dark:text-black">
                         {phrase(dictionary, "guideToRegisteringYourWork", language)}
                     </h3>
                     
                     {/* Terms content */}
-                    <div className="flex flex-col space-y-4">
-                                        
-                    <p className='text-sm text-black font-bold'>
-                    {/* 1. Toonyz 커뮤니티 규칙 */}
-                    {phrase(dictionary, "toonyzCommunityRules", language)}
-                   </p>
-
-                     <p>{phrase(dictionary, "anySerializedArticles", language)}</p>
-                                        <ul className='list-none list-inside flex flex-col gap-1'>
-                                            <li>{phrase(dictionary, "contentInfringesUponCopyrights", language)}</li>
-                                            <li>{phrase(dictionary, "contentIncludesSensitivePersonalInformation", language)}</li>
-                                            <li>{phrase(dictionary, "contentDefamesIndividualsOrGroups", language)}</li>
-                                            <li>{phrase(dictionary, "contentIsAntiSocialAndHarmsPublicOrder", language)}</li>
-                                            <li>{phrase(dictionary, "contentWrittenOnlyForCommercialGain", language)}</li>
-                                            <li>{phrase(dictionary, "contentContainingRepetitivePhrases", language)}</li>
-                                            <li>{phrase(dictionary, "contentDirectlyMentionsOrInducesUsersToOtherSites", language)}</li>
-                                            <li>{phrase(dictionary, "titlesImplyOrIncludeAnyOfTheAbove", language)}</li>
-                                        </ul>
-                                    
-                                        <p>{phrase(dictionary, "allResponsibilityForSeries", language)}</p>
-                                     
-
-                                        <p className='text-sm text-black font-bold'>
-                                             {/* 2. Cover Terms and Conditions    */}
-                                             {phrase(dictionary, "coverTermsAndConditions", language)}
-                                        </p>    
-
-                                        <p>{phrase(dictionary, "followingCoversAreProhibited", language)}</p>
-                                        <ul className='list-none list-inside flex flex-col gap-1'>
-                                            <li>{phrase(dictionary, "coversThatIncludeAnyOfTheFollowing", language)}:
-                                                <ul className='list-none list-inside flex flex-col gap-1 pl-4'>
-                                                    <li>{phrase(dictionary, "violence", language)}</li>
-                                                    <li>{phrase(dictionary, "sexualContent", language)}</li>
-                                                    <li>{phrase(dictionary, "hateSpeech", language)}</li>
-                                                    <li>{phrase(dictionary, "anyContentThatIsNotSafeForAllAges", language)}</li>
-                                                </ul>
-                                            </li>
-                                            <li>{phrase(dictionary, "coversWhoseCopyrightBelongsToAnotherPerson", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatAreInappropriateForMinorsUnderTheAgeOf18", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatDefameIndividualsOrGroups", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatDoNotAccuratelyAndClearlyIndicateTheCopyrightOrSource", language)}</li>
-                                            <li>{phrase(dictionary, "coversThatInfringeUponThePortraitRightsOfOthers", language)}</li>
-                                          
-                                        </ul>
-                                    
-                                        <p>{phrase(dictionary, "coversOrImagesMayBeSubjectToSanctions", language)}</p>
-                                     
-
-
+                    <div className="flex flex-col">
+                        <div className="max-h-[400px] overflow-y-auto p-4 bg-gray-50 rounded-lg text-sm">
+                            <p className="whitespace-pre-line leading-6 text-gray-700">
+                               {language === "en" ? replaceSmartQuotes(WebnovelTerms_en) : replaceSmartQuotes(WebnovelTerms)}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex flex-col dark:text-black text-black">
@@ -151,6 +113,27 @@ const TermsOfServiceModal = ({
                 </div>
             </Box>
         </Modal>
+
+         {/* modal for input all info */}
+         <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <Box sx={useModalStyle}>
+                <Typography className="text-center">
+                    <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+                    <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+                          {phrase(dictionary, "pleaseAgreeToTerms", language)}
+                    </h3>
+                    <div className="flex justify-center gap-4">
+            
+                        <Button color='gray' variant='outlined' onClick={() => setIsModalOpen(false)}>
+                            {phrase(dictionary, "ok", language)}
+                        </Button>
+                        
+                    </div>
+                </Typography>
+            </Box>
+        </Modal>
+
+        </>
     );
 };
 

@@ -169,7 +169,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                         
                         <div className="flex flex-col w-full md:hidden mt-10">
                            <h1 className="text-sm font-bold">
-                                {/* share  */}
+                                {/* share author's card for mobile*/}
                                 {phrase(dictionary, "share", language)}
                             </h1>
                             <AuthorProfileCardLandscape webtoon={webtoon} />
@@ -177,7 +177,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
 
                         <div className="flex flex-col w-full md:hidden mt-10">
                            <h1 className="text-sm font-bold">
-                                {/* You might like this : recommend webtoons  */}
+                                {/* You might like this : recommend webtoons for mobile  */}
                                 {phrase(dictionary, "youMightLikeThis", language)}
                             </h1>
                              <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
@@ -186,7 +186,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                         </div>
                         <div className="flex-col w-1/2 md:flex hidden px-5">
                             <h1 className="text-sm font-bold">
-                                {/* You might like this : recommend webtoons  */}
+                                {/* You might like this : recommend webtoons for desktop  */}
                                 {phrase(dictionary, "youMightLikeThis", language)}
                             </h1>
                             <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />

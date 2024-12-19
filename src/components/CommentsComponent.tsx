@@ -1,6 +1,6 @@
 "use client"
-import { useEffect, useRef, useState } from 'react';
-import { Chapter, Comment, User, UserCreate } from '@/components/Types'
+import { useEffect, useState } from 'react';
+import { Chapter, Comment } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
@@ -30,6 +30,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
     const { language, dictionary } = useLanguage();
     const [repliesKey, setRepliesKey] = useState(4000);
     const [chapterTitle, setChapterTitle] = useState("");
+    const MAX_CHARS = 500;
 
     useEffect(() => {
         setKey1(prevKey => prevKey + 1)
@@ -183,7 +184,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 setAllReplies(index);
                 updateReplyContent(index, '');
             }
-
         }
     }
 
@@ -227,14 +227,20 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                         <textarea
                             value={commentContent}
                             rows={6}
-                            className='textarea rounded-t-xl focus:ring-pink-600 w-full resize-none border border-gray-300 text-black dark:text-black'
+                            className='textarea rounded-t-xl focus:ring-[#DB2777] w-full resize-none border border-gray-300 text-black dark:text-black'
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder={phrase(dictionary, "typeYourComment", language)}
 
                         />
                         <div className='border-gray-400 border border-t-0 flex justify-end rounded-b-xl'>
-                            <span className='justify-start self-start text-gray-300 mr-4 mt-[9px]'> character 0/500 </span>
-                            <button type="submit" className='group/item rounded-br-xl bg-pink-600 px-4 py-3 group-hover/item:bg-pink-200'>
+                            <span className={`justify-start self-start mr-4 mt-[9px] ${
+                                commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' : 
+                                commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' : 
+                                'text-gray-300'
+                            }`}>
+                                character {commentContent.length}/{MAX_CHARS}
+                            </span>
+                            <button type="submit" className='group/item rounded-br-xl bg-[#DB2777] px-4 py-3 group-hover/item:bg-pink-200'>
 
                                 <i className="fa-solid fa-paper-plane group-hover/item:text-white" aria-hidden="true"></i>
                             </button>
@@ -313,7 +319,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                     <textarea
                                                         value={replyContent[index]}
                                                         rows={1}
-                                                        className='textarea rounded focus:ring-pink-600 w-full resize-none border border-gray-300 text-black dark:text-black'
+                                                        className='textarea rounded focus:ring-[#DB2777] w-full resize-none border border-gray-300 text-black dark:text-black'
                                                         onChange={(e) => updateReplyContent(index, e.target.value)}
                                                     />
                                                     <button type="submit" className=''>

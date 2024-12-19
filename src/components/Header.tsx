@@ -27,7 +27,7 @@ import { useTheme } from '@/contexts/providers'
 import { Box, Button, Modal, Skeleton, Typography, Drawer, styled } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 
-const Header = () => {
+export const Header = () => {
     const router = useRouter();
     const { isLoggedIn, loading, logout } = useAuth();
     const { email, nickname } = useUser();
@@ -65,6 +65,7 @@ const Header = () => {
     const [deletingQuery, setDeletingQuery] = useState(false);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [triggerSearch, setTriggerSearch] = useState(false);
+    // const isChapterView = pathname?.startsWith('/chapter_view');
 
     useEffect(() => {
         if (pathname == "/") {

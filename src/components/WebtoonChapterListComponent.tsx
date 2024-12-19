@@ -142,10 +142,11 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                             <Button
                                 sx={{
                                     color: 'gray',
+                                    backgroundColor: 'transparent',
                                 }}
                                 variant="text"
                                 onClick={handleSortToggle}
-                                className="bg-white text-black dark:text-white 
+                                className="bg-transparent text-black dark:text-white 
                                             hover:text-[#8A2BE2] dark:hover:text-[#8A2BE2] 
                                             px-2 py-1 rounded-md flex flex-row items-center gap-2">
                                 <ArrowDownUp size={16} className="text-gray-500 group-hover:text-white self-center" />
@@ -168,7 +169,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                         
                         <div className="flex flex-col w-full md:hidden mt-10">
                            <h1 className="text-sm font-bold">
-                                {/* share  */}
+                                {/* share author's card for mobile*/}
                                 {phrase(dictionary, "share", language)}
                             </h1>
                             <AuthorProfileCardLandscape webtoon={webtoon} />
@@ -176,7 +177,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
 
                         <div className="flex flex-col w-full md:hidden mt-10">
                            <h1 className="text-sm font-bold">
-                                {/* You might like this : recommend webtoons  */}
+                                {/* You might like this : recommend webtoons for mobile  */}
                                 {phrase(dictionary, "youMightLikeThis", language)}
                             </h1>
                              <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
@@ -185,7 +186,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                         </div>
                         <div className="flex-col w-1/2 md:flex hidden px-5">
                             <h1 className="text-sm font-bold">
-                                {/* You might like this : recommend webtoons  */}
+                                {/* You might like this : recommend webtoons for desktop  */}
                                 {phrase(dictionary, "youMightLikeThis", language)}
                             </h1>
                             <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />

@@ -28,7 +28,6 @@ import { Box, Button, Modal, Skeleton, Typography, Drawer, styled } from '@mui/m
 import SearchComponent from '@/components/SearchComponent';
 
 const Header = () => {
-
     const router = useRouter();
     const { isLoggedIn, loading, logout } = useAuth();
     const { email, nickname } = useUser();

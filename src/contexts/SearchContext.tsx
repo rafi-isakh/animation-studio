@@ -6,6 +6,8 @@ interface SearchContextType {
     setRecentQueries: React.Dispatch<React.SetStateAction<string[]>>;
     lastIndex: number;
     setLastIndex: React.Dispatch<React.SetStateAction<number>>;
+    query: string;
+    setQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -13,9 +15,9 @@ const SearchContext = createContext<SearchContextType | undefined>(undefined);
 export const SearchProvider = ({ children }: { children: ReactNode }) => {
     const [recentQueries, setRecentQueries] = useState<string[]>([]);
     const [lastIndex, setLastIndex] = useState(0);
-
+    const [query, setQuery] = useState('');
     return (
-        <SearchContext.Provider value={{ recentQueries, setRecentQueries, lastIndex, setLastIndex }}>
+        <SearchContext.Provider value={{ recentQueries, setRecentQueries, lastIndex, setLastIndex, query, setQuery }}>
             {children}
         </SearchContext.Provider>
     );

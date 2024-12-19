@@ -21,8 +21,7 @@ export default function SearchComponent({ mode,
     setIsMobileMenuOpen?: (isOpen: boolean) => void,
     setOpen?: (isOpen: boolean) => void,
 }) {
-    const [query, setQuery] = useState('');
-    const {recentQueries, setRecentQueries, lastIndex, setLastIndex} = useSearch();
+    const {query, setQuery, recentQueries, setRecentQueries, lastIndex, setLastIndex} = useSearch();
     const [searchRemember, setSearchRemember] = useState(true);
     const [triggerSearch, setTriggerSearch] = useState(false);
     const router = useRouter();
@@ -38,11 +37,6 @@ export default function SearchComponent({ mode,
             setTriggerSearch(false)
         }
     }, [query, triggerSearch])
-
-    useEffect(() => {
-        console.log("recentQueries", recentQueries)
-        console.log("lastIndex", lastIndex)
-    }, [recentQueries, lastIndex])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(e.target.value);

@@ -1,15 +1,18 @@
-
 import { NextRequest, NextResponse } from "next/server";
 export const maxDuration = 300;
 
+
 export async function POST(req: NextRequest) {
     const data = await req.json();
-    const { character } = data;
+    const { treatment, episode } = data; // episode is a subset of treatment
+    console.log("treatment", treatment);
+    console.log("episode", episode);
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/main-character-sentence?apiKey=${process.env.ONOMA_API_KEY}&character=${character}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/scenario?apiKey=${process.env.ONOMA_API_KEY}&treatment=${encodeURIComponent(treatment)}&episode=${encodeURIComponent(episode)}`)
 
         if (!response.ok) {
+            console.error(response.statusText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 

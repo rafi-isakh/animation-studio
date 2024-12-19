@@ -1,29 +1,35 @@
+export const maxDuration = 300; // This function can run for a maximum of 100 seconds5
+
 import { NextRequest, NextResponse } from "next/server";
-export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
     const data = await req.json();
-    const { logline } = data;
+    const { prompt } = data;
 
+    const sendData = {
+        apiKey: process.env.ONOMA_API_KEY,
+        qty: 4,
+        prompt: prompt,
+        aspectRatio: '9:16',
+        addedStyle: 'default'
+    }
+
+    console.log(sendData);
     try {
-        var source;
-        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/main-character`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/anima/generate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                apiKey: process.env.ONOMA_API_KEY,
-                logline: logline,
-            }),
+            body: JSON.stringify(sendData),
         });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const responseData = await response.json();
-        return NextResponse.json(responseData);
+        const data = await response.json();
+        return NextResponse.json(data);
     } catch (error) {
         console.error('Error fetching data:', error);
         return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });

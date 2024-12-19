@@ -12,6 +12,7 @@ import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP
 import Margin from '@/components/Margin';
 import { ReaderProvider } from '@/contexts/ReaderContext';
 import { ThemeProvider } from '@/contexts/providers'
+import { SearchProvider } from '@/contexts/SearchContext';
 
 
 
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <AuthProvider>
               <UserProvider>
                 <DeviceProvider>
+                  <SearchProvider>
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
                     <Suspense>
@@ -107,6 +109,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   </div> 
                  */}
                   </div>
+                  </SearchProvider>
                 </DeviceProvider>
               </UserProvider>
             </AuthProvider>

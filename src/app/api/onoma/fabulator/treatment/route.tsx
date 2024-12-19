@@ -1,25 +1,35 @@
-
 import { NextRequest, NextResponse } from "next/server";
 export const maxDuration = 300;
 
+
 export async function POST(req: NextRequest) {
     const data = await req.json();
-    const { character } = data;
+    const { synopsis, episodeConfig } = data;
 
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/main-character-sentence?apiKey=${process.env.ONOMA_API_KEY}&character=${character}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_ONOMA}/api/external/fabulator/generate/treatment?apiKey=${process.env.ONOMA_API_KEY}&synopsis=${encodeURIComponent(synopsis)}&episodeConfig=${encodeURIComponent(episodeConfig)}`)
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const reader = response.body?.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
         const stream = new ReadableStream({
             async start(controller) {
                 while (true) {
                     const { done, value } = await reader?.read() ?? { done: true, value: undefined };
-                    if (done) break;
-                    controller.enqueue(value);
+                    if (done) {
+                        if (buffer.length > 0) {
+                            controller.enqueue(buffer);
+                        }
+                        break;
+                    }
+                    const decodedValue = decoder.decode(value, { stream: true });
+                    buffer += decodedValue;
+                    controller.enqueue(buffer);
+                    buffer = '';
                 }
                 controller.close();
             },

@@ -107,6 +107,8 @@ createMainCharacterSentence,주연 줄거리 만들기,,Generate Main character 
 createSubCharacterSentence,조연 줄거리 만들기,,Generate Sub character sentence
 createEpisode,에피소드 만들기,,Generate Episode
 createSynopsis,시놉시스 만들기,,Generate Synopsis
+createTreatment,트리트먼트 만들기,,Generate Treatment
+createScenario,시나리오 만들기,,Generate Scenario
 author,작가,作者,Author,作者,作者,
 viewByGenre,장르별로 보기,ジャンル別に見る,View by Genre
 downloadImage,이미지를 다운로드 하시겠습니까?,画像をダウンロードしますか?,Download the image?
@@ -163,7 +165,7 @@ noRecentSearch,최근 검색어가 없습니다.,,No recent search
 noPopularSearch,인기 검색어가 없습니다.,,No popular search
 searchTurnOff,최근 검색어 끄기,,Turn off search history
 searchTurnOn,최근 검색어 켜기,,Turn on search history
-searchPlaceholder,검색어를 입력해주세요.,,Search title, author, or keyword
+searchPlaceholder,검색어를 입력해주세요.,,Search title author or keyword
 popularWebnovels,인기작 추천,,Popular Webnovels
 newReleasesWebnovels,투니즈 최신작,,New Releases
 more,더 보기,,More

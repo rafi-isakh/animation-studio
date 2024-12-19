@@ -34,7 +34,7 @@ export default function WebtoonsCardComponent({ webtoon, coverArt, detail, ranki
                     width={180}
                     height={257}
                     quality={85}
-                    className="object-cover w-[100px] h-[143px] md:w-[151px] md:h-[216px]"
+                    className="object-cover w-[100px] h-[143px] md:w-[160px] md:h-[240px]"
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                 />

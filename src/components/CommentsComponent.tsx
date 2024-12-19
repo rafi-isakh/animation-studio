@@ -12,9 +12,7 @@ import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
 import { createEmailHash } from '@/utils/cryptography';
 import Image from 'next/image';
-import { Flag } from 'lucide-react';
-import { Ellipsis } from 'lucide-react';
-import { CircleHelp } from 'lucide-react';
+import { Flag, Ellipsis, CircleHelp, Trash } from 'lucide-react';
 
 // user could be undefined if not logged in
 const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string, webnovelOrWebtoon: boolean }) => {
@@ -340,10 +338,14 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                                 </Link>
                                                             </li>
                                                             <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                                    <CircleHelp size={20} className="dark:text-white text-black" />
-                                                                    {phrase(dictionary, "help", language)}
+                                                            {comment.user.email_hash === createEmailHash(email) &&
+                                                                <Link href="#" onClick={() => handleDeleteComment(comment.id.toString())} className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black'>
+                                                                    
+                                                                        <Trash size={20} className="dark:text-white text-black" />
+                                                                        {phrase(dictionary, "delete", language)}
+                                                                    
                                                                 </Link>
+                                                            }
                                                             </li>
                                                         </ul>
                                                     </div>
@@ -358,11 +360,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                 elementType='comment'
                                             />
                                             <div className='flex justify-end space-x-4'>
-                                                {comment.user.email_hash === createEmailHash(email) &&
-                                                    <a href="#">
-                                                        <i onClick={() => handleDeleteComment(comment.id.toString())} className='fa-solid fa-trash mb-3'></i>
-                                                    </a>
-                                                }
+                                            
                                                 <a href="#">
                                                     <i onClick={() => updateShowForm(index, !showForm[index])} className='fa-solid fa-reply mb-3'></i>
                                                 </a>

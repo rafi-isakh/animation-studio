@@ -8,20 +8,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 
-
-
-
-
 const CoverArtModal = ({ showCoverArtModal, setShowCoverArtModal }
     : { showCoverArtModal: boolean, setShowCoverArtModal: (show: boolean) => void }) => {
     const { dictionary, language } = useLanguage();
-
     const [coverArtOptions] = useState(Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         src: `/coverArts/${i + 1}.jpg`, // Cycles through images 1-4
         value: i < 4 ? 'small' : 'big' // Example of varying the value
     })));
-    
     
     return (
         <Modal open={showCoverArtModal} onClose={() => setShowCoverArtModal(false)}>

@@ -344,7 +344,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             <div className="flex flex-row space-x-4">
                                 <div className='flex flex-col w-full'>
                                     <label htmlFor="description" className='text-sm ml-2'>
-                                        {/* ��품소개 */}
+                                        {/* 작품소개 */}
                                         {phrase(dictionary, "description", language)}
                                         <span className='text-red-500'>* </span>
                                         <span className='text-gray-500 text-[12px]'>

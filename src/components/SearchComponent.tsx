@@ -58,7 +58,6 @@ export default function SearchComponent({ mode,
             setLastIndex(prev => prev + 1)
         }
         router.push(`/search?query=${query}&remember=${searchRemember}`);
-        setQuery('')
     }
     const handleDeleteRecentQuery = async (event: React.MouseEvent<SVGSVGElement>, index: number) => {
         event.stopPropagation()

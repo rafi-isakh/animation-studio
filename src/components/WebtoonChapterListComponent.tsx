@@ -142,10 +142,11 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                             <Button
                                 sx={{
                                     color: 'gray',
+                                    backgroundColor: 'transparent',
                                 }}
                                 variant="text"
                                 onClick={handleSortToggle}
-                                className="bg-white text-black dark:text-white 
+                                className="bg-transparent text-black dark:text-white 
                                             hover:text-[#8A2BE2] dark:hover:text-[#8A2BE2] 
                                             px-2 py-1 rounded-md flex flex-row items-center gap-2">
                                 <ArrowDownUp size={16} className="text-gray-500 group-hover:text-white self-center" />

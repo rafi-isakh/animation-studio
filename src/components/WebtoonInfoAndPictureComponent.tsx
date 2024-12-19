@@ -104,9 +104,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                             </li>
                         </ul>
 
-                        <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold" />
-                        <p> {webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>
-
                         <ul className="flex flex-row gap-2 py-2">
                             {/* tags padding 2 */}
                             {
@@ -120,7 +117,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                 <li key={`tag-${index}`}
                                     className="text-sm text-black rounded-md px-2 border border-gray-500 hover:bg-[#8A2BE2] transition duration-150 ease-in-out">#{tag}</li>
                             ))}
-                            {/* 연령별 태그
+                            {/* 연령별 태그 추가 필요 
                                <li className="text-sm text-black rounded-md bg-green-400 px-2 transition duration-150 ease-in-out self-center text-center">13+</li> */}
                         </ul>
 

@@ -42,7 +42,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
-            console.log("sessionKey", sessionKey)
             const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {
@@ -50,10 +49,8 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 setLoading(false)
             }
             else {
-                console.log("fetching other translation")
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
                 const data = await response.json();
-                console.log("data", data)
                 if (data.text) {
                     setText(data.text);
                     setLoading(false)
@@ -64,8 +61,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 // initialized.current is bc useEffect runs twice
                 // submitContent with ongoing translation
                 if (!data.done && !initialized.current) {
-                    console.log("submitting content")
-                    console.log("data.text", data.text)
                     submitContent(data.text);
                     initialized.current = true;
                 }
@@ -73,7 +68,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         }
         if (defaultLanguage != language) {
             if (content) {
-                console.log("content", content)
                 initialized.current = false;
                 handleTranslate();
             } else {

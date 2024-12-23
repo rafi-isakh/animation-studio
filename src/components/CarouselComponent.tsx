@@ -15,7 +15,6 @@ import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 
-
 const CarouselComponent = ({ searchParams, webnovels, items }: { 
   searchParams: { [key: string]: string | string[] | undefined }, 
   items: SlickCarouselItem[], 
@@ -80,28 +79,50 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
       </h1>
 
       <TabContext value={tabValue} >
-        <Box sx={{ borderBottom: 0, borderColor: 'none' }}>
-            <div className="flex flex-row justify-between items-center">
+        <Box sx={{ 
+          width: '100%',
+          // Remove any fixed width constraints
+          '& .MuiTabs-root': {
+            // minHeight: 'unset',
+          },
+          '& .MuiTabs-scroller': {
+            overflow: 'auto !important', // Force overflow auto
+            '&::-webkit-scrollbar': {
+              height: '6px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: '#f1f1f1',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#888',
+              borderRadius: '3px',
+            },
+          }
+        }} >
+            <div className="flex flex-row justify-between items-center md:overflow-visible overflow-x-auto">
                 <TabList 
                     onChange={handleChange} 
                     aria-label="lab API tabs"
+                    variant="scrollable"
+                    scrollButtons="auto"
                     TabIndicatorProps={{
                       style: {
                         backgroundColor: 'transparent',
                       },
                     }}
                     sx={{
+                        overflowX: { xs: 'auto', md: 'visible' }, 
                         '& button': {
                           margin: '0px 10px 0px 0px',
                           borderRadius: '100px',
-                          minHeight: '25px', // Set your desired height here
-                          height: '25px', // Set your desired height here
+                          minHeight: '25px', 
+                          height: '25px',
+                          whiteSpace: 'nowrap',
                         },
                         '& button:focus': {
                           color: 'white',
                           backgroundColor: '#e5e7eb',
-                          // text-gray-200 #e5e7eb
-                          // gray-500 #6b7280
+                      
                         },
                         '& button:active': {
                           color: 'white',
@@ -112,7 +133,6 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                           backgroundColor: '#e5e7eb',
                         },
                         '& .MuiTab-root': {
-                          // padding: '0px 10px',
                           color: 'gray', // Default tab color
                           '&.Mui-selected': {
                               backgroundColor: '#e5e7eb',
@@ -131,13 +151,11 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                     <Tab label={phrase(dictionary, "sf", language)} value="5"  />
                 </TabList>
                 <div className='self-center text-sm md:block hidden'>
-                    {/* <button 
-                    className="bg-white text-black hover:text-[#8A2BE2] px-2 py-1 rounded-md flex flex-row items-center gap-2"> 
-                    </button> */}
+                  
                 </div>
             </div>
         </Box>
-
+  
         <TabPanel value="1" sx={{ padding: 0, margin: 0 }}>
             <div className="h-[380px]">
                 <CarouselComponentReactSlick 
@@ -199,7 +217,8 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 />
             </div>
         </TabPanel>
-      </TabContext>
+       </TabContext>
+    
     </div>
   );
 };

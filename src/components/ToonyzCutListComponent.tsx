@@ -8,15 +8,16 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box } from '@mui/material';
 import { Button } from '@mui/material';
-import { ArrowDownUp, Share } from 'lucide-react';
+import { Share } from 'lucide-react';
 import ToonyzCutCard from '@/components/ToonyzCutCard';
 import Link from 'next/link';
-export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
-    const [logoWidth, setLogoWidth] = useState(141);
-    const [logoHeight, setLogoHeight] = useState(32);
-    const [tabValue, setTabValue] = useState('1');
+import { phrase } from '@/utils/phrases';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-    
+export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
+    const [tabValue, setTabValue] = useState('1');
+    const { dictionary, language } = useLanguage();
+
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
         setTabValue(newValue);
     };
@@ -77,7 +78,8 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
                                 w-full rounded-md flex flex-row items-center gap-2 md:text-sm text-[10px]">
                               
                                     <Share size={16} />
-                                    Offer your proposal
+                                    {/* Offer your proposal */}
+                                    {phrase(dictionary, 'toonyzcut_offer_proposal', language)}
                                  </Button>
                              </Link>
                         </div>

@@ -8,6 +8,7 @@ import { phrase } from "@/utils/phrases"
 import { useState } from "react"
 import Link from "next/link"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { useToonyzCutViewerModalStyle } from "@/styles/ModalStyles"
 
 const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel, open: boolean, onClose: () => void }) => {
     const imageSrc = getImageUrl(webnovel?.cover_art)
@@ -15,18 +16,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
 
     return (
         <Modal open={open} onClose={onClose}>
-        <Box sx={{
-             position: 'absolute',
-             top: '50%',
-             left: '50%',
-             transform: 'translate(-50%, -50%)',
-             width: 500,
-             height: 480,
-             bgcolor: 'background.paper',
-             border: '1px solid #e5e5e5',
-             borderRadius: '12px',
-             p: 4,
-        }}>
+        <Box sx={useToonyzCutViewerModalStyle}>
             <div className="flex flex-col justify-center items-center gap-4">
                 <div className="relative w-[150px] h-[200px]">
                     <Image

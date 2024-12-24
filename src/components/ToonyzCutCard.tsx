@@ -44,7 +44,8 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
                 <div className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
                     <Button
                         onClick={handleOpenModal}
-                        className='bg-[#070B34] border-2 text-white hover:text-[#8A2BE2] 
+                        className='bg-[#070B34] dark:bg-[#070B34] border-2 text-white 
+                                dark:text-white hover:text-[#8A2BE2] 
                                 rounded-md flex items-center justify-center 
                                 gap-2 md:text-[10px] text-[10px] px-4 py-2'
                     >

@@ -12,7 +12,7 @@ const useToonyzCutSubmitModalStyle = () => {
         transform: 'translate(-50%, -50%)',
         width: isMobile ? '95%' : 500, 
         maxHeight: isMobile ? '100%' : '100%', // Limit height on mobile
-        overflowY: isMobile ? 'auto' : 'visible', // Enable scrolling on mobile if needed
+        overflowY: isMobile ? 'auto' : 'auto', // Enable scrolling on mobile if needed
         bgcolor: 'background.paper',
         border: '1px solid #e5e5e5',
         borderRadius: '12px',

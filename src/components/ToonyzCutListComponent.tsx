@@ -66,16 +66,21 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
                         <Link href="/toonyzcut/submit">
                             <Button
                                 sx={{
-                                    border: '1px solid #070B34',
-                                    color: '#070B34',
+                                    backgroundColor: 'transparent',
+                                    border: '2px solid #8A2BE2',
+                                    color: '#fff',
+                                    
                                     '&:hover': {
-                                        backgroundColor: '#070B34',
-                                        color: 'white',
-                                    },
+                                        backgroundColor: '#8A2BE2',
+                                        color: '#fff',
+                                    }
                                 }}
-                                variant="outlined"
-                                className="bg-white border-2 text-black hover:text-[#8A2BE2] 
-                                w-full rounded-md flex flex-row items-center gap-2 md:text-sm text-[10px]">
+                                className='bg-transparent border-2 text-[#8A2BE2]
+                                           dark:text-[#8A2BE2]
+                                           hover:text-white
+                                           rounded-md flex flex-row items-center justify-center
+                                           gap-2 md:text-sm text-[10px] w-full mt-2 py-2'
+                                >
                               
                                     <Share size={16} />
                                     {/* Offer your proposal */}

@@ -11,6 +11,7 @@ import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
+import TrailerComponent from '@/components/TrailerComponent';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
@@ -64,6 +65,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 </div>
                 {largeGap()}
                 <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                {largeGap()}
+                <TrailerComponent />
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>

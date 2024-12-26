@@ -2,18 +2,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
-import { Brush, WandSparkles } from 'lucide-react';
-import { Box, Button, Modal, Skeleton, Typography, Drawer } from '@mui/material';
+import { Brush, WandSparkles, Paintbrush } from 'lucide-react';
+
+import { Box, Button, Modal, Skeleton, Typography, Drawer, SwipeableDrawer } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import dynamic from 'next/dynamic';
-import animationData from '@/assets/MagicStick.json';
+import animationData from '@/assets/shinny.json';
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
+
+
 
 type Position = {
     x: number;
@@ -23,25 +26,27 @@ type Position = {
     window?: () => Window;
 };
 
- const StyledBox = styled('div')(({ theme }) => ({
-    backgroundColor: '#fff',
-    ...theme.applyStyles('dark', {
-      backgroundColor: grey[800],
-    }),
-  }));
-  
+  const drawerBleeding = 24;
+
   const Puller = styled('div')(({ theme }) => ({
     width: 30,
     height: 6,
-    backgroundColor: grey[300],
+    backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',
+    // gray-600 #4b5563 
     borderRadius: 3,
     position: 'absolute',
     top: 8,
     left: 'calc(50% - 15px)',
-    ...theme.applyStyles('dark', {
-      backgroundColor: grey[900],
-    }),
+    zIndex: 1000,
   }));
+
+const StyledBox = styled('div')(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'light' ? '#fff' : '#ffffff',
+    position: 'relative',
+    height: '100%',
+    overflow: 'auto',
+}));
+
 
 const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window }> = ({ children, window }) => {
     const [selection, setSelection] = useState<string>()
@@ -140,21 +145,16 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                     }}
                 >
                 <button 
-                    className="rounded-full border-1  border-purple-300 bg-purple-300"
+                    className="rounded-full bg-[#FFF0EC] -mt-10"
                     onClick={() => setShowMessage(!showMessage)}
                   >
-                    {/* <Brush 
-                      size={16} 
-                      className="transition-colors duration-300 " // Changed this line
-                    /> */}
-                   {/* <WandSparkles className='text-pink-300' /> */}
-                   <LottieLoader 
+                    <LottieLoader 
                         animationData={animationData} 
                         centered={false} 
-                        width="w-[40px]" 
-                        className="text-pink-300"
+                        width="w-[50px]" 
+                        className=""
                         />
-                   {/* <i className="fas fa-magic text-[1.2rem]" ></i> */}
+
 
                   </button>
                     {showMessage && selectedText && (
@@ -181,7 +181,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                                             animationData={animationData} 
                                             centered={false} 
                                             width="w-[40px]" 
-                                            className="text-pink-300"
+                                            className=""
                                             />
                                 </Button>
                             </button>
@@ -197,47 +197,47 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                         '.MuiDrawer-root > .MuiPaper-root': {
                             zIndex: 30,
                             height: `calc(50% - ${drawerBleeding}px)`,
-                            // overflow: 'visible',
                         },
                         }}
                     />
-                      <Drawer
+                      <SwipeableDrawer
                         container={container}
                         anchor="bottom"
                         open={open}
+                        onOpen={toggleDrawer(true)}
                         onClose={toggleDrawer(false)}
-                        // swipeAreaWidth={drawerBleeding}
-                        // disableSwipeToOpen={false}
+                        swipeAreaWidth={drawerBleeding}
+                        disableSwipeToOpen={false}
                         ModalProps={{
-                        keepMounted: true,
+                            keepMounted: true,
                         }}
-                        // sx={{ zIndex: 20 }} 
+                        sx={{
+                            '& .MuiDrawer-paper': {
+                                height: {
+                                    xs: '70%',    // Mobile height
+                                    sm: '70%',    // Tablet height
+                                    md: '50%'     // Desktop height
+                                },
+                                // height: `calc(80% - ${drawerBleeding}px)`,
+                                overflow: 'visible',
+                                borderTopLeftRadius: 16,
+                                borderTopRightRadius: 16,
+                            },
+                        }}
                         >
-                        <StyledBox
-                            sx={{
-                                position: 'absolute',
-                                top: -drawerBleeding,
-                                borderTopLeftRadius: 20,
-                                borderTopRightRadius: 20,
-                                visibility: 'visible',
-                                right: 0,
-                                left: 0,
-                                height: '400px',
-                            }}
-                            >
-                        </StyledBox>
-
+                       {/* Puller */}
                         <Puller />
-                        <StyledBox sx={{ px: 2, pb: 2, height: '2%', }} />
 
-                        <p className='text-center z-50 mt-10'>
-                        </p>
+                       {/* Content */}
+                       <StyledBox>
+                        <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5'>
                         <PictureGenerator
-                            // selectedText={selectedText}
                             prompt={selectedText}
                             onComplete={handlePicturesGenerated}
                         />
-                    </Drawer>
+                         </div>
+                        </StyledBox>
+                    </SwipeableDrawer>
                     </>
         </div>
     );

@@ -28,16 +28,11 @@ async function getWebnovels() {
 }
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-
+    const cookieStore = cookies()
+    const didSelectLanguage = cookieStore.get('didSelectLanguage')
+    const showPreloader = !didSelectLanguage
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
-
-    const cookieStore = await cookies();
-    const didSelectLanguage = cookieStore.get('didSelectLanguage');
-    let showPreloader = true;
-    if (didSelectLanguage) {
-        showPreloader = false;
-    }
 
     const largeGap = () => {
         return (

@@ -38,7 +38,6 @@ export default function Home({ searchParams }: { searchParams: { [key: string]: 
     const [items, setItems] = useState<SlickCarouselItem[]>([]);
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [showPreloader, setShowPreloader] = useState(true);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const didSelectLanguage = localStorage.getItem('didSelectLanguage')
@@ -50,7 +49,6 @@ export default function Home({ searchParams }: { searchParams: { [key: string]: 
             const _webnovels = await getWebnovels();
             setItems(_items);
             setWebnovels(_webnovels);
-            setLoading(false)
         }
         fetchData();
     }, [])

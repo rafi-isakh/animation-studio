@@ -27,7 +27,8 @@ const CarouselComponentReactSlick = ({
     slidesToShow = 3,
     indicator = true,
     centerPadding = { desktop: '20px', mobile: '10px' }  
-}: { items: SlickCarouselItem[], 
+}: {
+    items: SlickCarouselItem[], 
     slidesToShow: number,
     indicator: boolean,
     centerPadding?: string | PaddingConfig
@@ -35,7 +36,6 @@ const CarouselComponentReactSlick = ({
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [nextIndex, setNextIndex] = useState(1);
-    const router = useRouter();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     const { language, dictionary } = useLanguage();

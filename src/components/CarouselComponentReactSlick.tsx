@@ -38,12 +38,6 @@ const CarouselComponentReactSlick = ({
     centerPadding?: string | PaddingConfig
 }) => {
 
-    const [key1, setKey1] = useState(0);
-    const [key2, setKey2] = useState(1000);
-    const [key3, setKey3] = useState(2000);
-    const [key4, setKey4] = useState(3000);
-    const [key5, setKey5] = useState(4000);
-    const [key6, setKey6] = useState(5000);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [nextIndex, setNextIndex] = useState(1);
     const router = useRouter();
@@ -66,15 +60,6 @@ const CarouselComponentReactSlick = ({
             ? (paddingConfig?.desktop || '20px')
             : (paddingConfig?.mobile || '10px');
     };
-
-    useEffect(() => {
-        setKey1(prevKey => prevKey + 1);
-        setKey2(prevKey => prevKey + 1);
-        setKey3(prevKey => prevKey + 1);
-        setKey4(prevKey => prevKey + 1);
-        setKey5(prevKey => prevKey + 1);
-        setKey6(prevKey => prevKey + 1);
-    }, [language])
 
     function SampleNextArrow(props: any) {
         const { onClick } = props;

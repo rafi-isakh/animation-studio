@@ -23,7 +23,7 @@ async function getCarouselItems() {
 
 async function getWebnovels() {
     const start = performance.now();
-    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) // probably should get rid of this function
+    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) 
     const data = (await response).json();
     const end = performance.now();
     console.log(`getWebnovels took ${end - start} milliseconds`)
@@ -35,8 +35,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
-    const items: any[] = []
-    const webnovels: any[] = []
+    const items = await getCarouselItems();
+    const webnovels = await getWebnovels();
 
     const largeGap = () => {
         return (

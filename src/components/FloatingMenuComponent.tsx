@@ -190,7 +190,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                 </div>
             )}
             {children}
-       
                  <>
                     <Global
                         styles={{
@@ -218,7 +217,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                                     sm: '70%',    // Tablet height
                                     md: '50%'     // Desktop height
                                 },
-                                // height: `calc(80% - ${drawerBleeding}px)`,
                                 overflow: 'visible',
                                 borderTopLeftRadius: 16,
                                 borderTopRightRadius: 16,

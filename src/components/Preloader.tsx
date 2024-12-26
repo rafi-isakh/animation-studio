@@ -77,7 +77,7 @@ export default function Preloader() {
         setLanguage(language);
         setIsLanguageDropdownOpen(false);
         setShowModal(false)
-        localStorage.setItem('didSelectLanguage', 'true')
+        document.cookie = "didSelectLanguage=true; path=/; max-age=31536000" // Set cookie for 1 year
     }
 
     const toggleLanguageDropdown = () => {

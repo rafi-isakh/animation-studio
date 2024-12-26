@@ -1,57 +1,43 @@
-"use client"
 import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
 import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import Promotion from '@/components/Promotion';
 import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
 import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
-import { useEffect, useState } from 'react';
-import { SlickCarouselItem, Webtoon } from '@/components/Types';
-import { Webnovel } from '@/components/Types';
+import { cookies } from 'next/headers';
 
 async function getCarouselItems() {
-    const start = performance.now();
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
-    const data = await response.json()
-    const end = performance.now();
-    console.log(`getCarouselItems took ${end - start} milliseconds`)
-    return data;
+    const response = await fetch('/api/get_carousel_items')
+    if (!response.ok) {
+        throw new Error("Failed to fetch carousel items", { cause: response.status });
+    }
+    return response.json();
 }
 
 async function getWebnovels() {
-    const start = performance.now();
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) 
-    const data = await response.json();
-    const end = performance.now();
-    console.log(`getWebnovels took ${end - start} milliseconds`)
-    return data;
+    const response = await fetch('/api/get_webnovels')
+    if (!response.ok) {
+        throw new Error("Failed to fetch webnovels", { cause: response.status });
+    }
+    return response.json();
 }
 
-export default function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
 
-    const [items, setItems] = useState<SlickCarouselItem[]>([]);
-    const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-    const [showPreloader, setShowPreloader] = useState(true);
+    const items = await getCarouselItems();
+    const webnovels = await getWebnovels();
 
-    useEffect(() => {
-        const didSelectLanguage = localStorage.getItem('didSelectLanguage')
-        if (didSelectLanguage) {
-            setShowPreloader(false)
-        }
-        const fetchData = async () => {
-            const _items = await getCarouselItems();
-            const _webnovels = await getWebnovels();
-            setItems(_items);
-            setWebnovels(_webnovels);
-        }
-        fetchData();
-    }, [])
+    const cookieStore = await cookies();
+    const didSelectLanguage = cookieStore.get('didSelectLanguage');
+    let showPreloader = true;
+    if (didSelectLanguage) {
+        showPreloader = false;
+    }
 
     const largeGap = () => {
         return (

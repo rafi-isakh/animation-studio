@@ -47,7 +47,7 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
             <Button 
             color='gray' 
             variant='outlined'
-            className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-md px-2 py-2 w-28 flex flex-row justify-center items-center gap-1'>
+            className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-md px-1 py-1 w-20 flex flex-row justify-center items-center gap-1'>
                 {/* +Follow */}
                 <Plus size={10} />
                 <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>

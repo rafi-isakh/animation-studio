@@ -13,14 +13,20 @@ import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
 
 async function getCarouselItems() {
+    const start = performance.now();
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
     const data = await response.json()
+    const end = performance.now();
+    console.log(`getCarouselItems took ${end - start} milliseconds`)
     return data;
 }
 
 async function getWebnovels() {
+    const start = performance.now();
     const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) // probably should get rid of this function
     const data = (await response).json();
+    const end = performance.now();
+    console.log(`getWebnovels took ${end - start} milliseconds`)
     return data;
 
 }
@@ -29,8 +35,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
-    const items = await getCarouselItems();
-    const webnovels = await getWebnovels();
+    const items: any[] = []
+    const webnovels: any[] = []
 
     const largeGap = () => {
         return (

@@ -12,7 +12,7 @@ import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent'
 import { cookies } from 'next/headers';
 
 async function getCarouselItems() {
-    const response = await fetch('/api/get_carousel_items')
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
@@ -20,7 +20,7 @@ async function getCarouselItems() {
 }
 
 async function getWebnovels() {
-    const response = await fetch('/api/get_webnovels')
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }

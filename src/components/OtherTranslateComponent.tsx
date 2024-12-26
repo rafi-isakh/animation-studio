@@ -15,8 +15,9 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
-
+    const languageChangedRef = useRef(false);
     useEffect(() => {
+        languageChangedRef.current = true;
         setText("");
         setLoading(true);
         const detectLanguage = async () => {
@@ -65,6 +66,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                     initialized.current = true;
                 }
             }
+            languageChangedRef.current = false;
         }
         if (defaultLanguage != language) {
             if (content) {
@@ -73,10 +75,12 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             } else {
                 setText("");
                 setLoading(false);
+                languageChangedRef.current = false;
             }
         } else {
             setText(content);
             setLoading(false);
+            languageChangedRef.current = false;
         }
     }, [language, elementType, elementId, elementSubtype]);
 
@@ -160,7 +164,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.ended == 0) {
-                setText(text => text + data.token);
+                console.log("languageChangedRef.current", languageChangedRef.current)
+                if (!languageChangedRef.current) {
+                    setText(text => text + data.token);
+                }
             } else if (data.ended == 1) {
                 setFinished(true);
             }

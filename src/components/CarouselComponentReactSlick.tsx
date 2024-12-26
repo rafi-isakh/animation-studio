@@ -23,16 +23,11 @@ interface PaddingConfig {
 }
 
 const CarouselComponentReactSlick = ({ 
-    searchParams, 
-    webnovels, 
     items,
     slidesToShow = 3,
     indicator = true,
     centerPadding = { desktop: '20px', mobile: '10px' }  
-}: { searchParams: 
-    { [key: string]: string | string[] | undefined }, 
-    items: SlickCarouselItem[], 
-    webnovels: Webnovel[], 
+}: { items: SlickCarouselItem[], 
     slidesToShow: number,
     indicator: boolean,
     centerPadding?: string | PaddingConfig

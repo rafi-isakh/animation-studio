@@ -37,12 +37,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
-    useEffect(() => {
-        setKey1(prevKey => prevKey + 1)
-        setKey2(prevKey => prevKey + 1)
-        setKey3(prevKey => prevKey + 1)
-    }, [language])
-
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
@@ -109,7 +103,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
 
     useEffect(() => {
         const fetchComments = async () => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
             const data = await response.json();
             if (Array.isArray(data)) {
                 setAllComments(data);
@@ -117,7 +111,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
             }
         }
         const fetchChapter = async () => {
-            const response = await fetch(`/api/get_chapter_by_id?id=${chapterId}`)
+            const response = await fetch(`/api/get_chapter_by_id?id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
             const data = await response.json();
             setChapter(data);
             setChapterTitle(data.title);
@@ -240,7 +234,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 className='w-full'>
                 <div className="flex flex-row !items-left justify-start flex-1">
                     <ChevronLeftIcon className="w-6 h-6" />
-                    <OtherTranslateComponent content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
+                    <OtherTranslateComponent key={key3} content={chapterTitle} elementId={chapterId} elementType={webnovelOrWebtoon ? 'chapter' : 'webtoon_chapter'} elementSubtype="title" />
                 </div>
             </Button>
             <div className='flex flex-col'>

@@ -34,7 +34,7 @@ async function getWebnovels() {
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     // const cookieStore = cookies()
     // const didSelectLanguage = cookieStore.get('didSelectLanguage')
-    const showPreloader = false
+    const showPreloader = true
     const items = await getCarouselItems();
     const webnovels = await getWebnovels();
 

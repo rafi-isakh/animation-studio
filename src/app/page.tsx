@@ -23,8 +23,8 @@ async function getCarouselItems() {
 
 async function getWebnovels() {
     const start = performance.now();
-    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) 
-    const data = (await response).json();
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) 
+    const data = await response.json();
     const end = performance.now();
     console.log(`getWebnovels took ${end - start} milliseconds`)
     return data;

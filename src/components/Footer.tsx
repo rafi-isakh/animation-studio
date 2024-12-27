@@ -43,6 +43,9 @@ export default function Footer() {
                                 {language == 'ko' ? <>사업자등록번호 221-88-02281</> : <></>}
                             </p>
                             <p>
+                                {language == 'ko' ? <>통신판매업신고번호 2024-서울강남-07231호</> : <></>}
+                            </p>
+                            <p>
                                 {language == 'ko' ? <>대표자 강서연</> : <>CEO Seoyeon Kang</>}
                             </p>
                             <p>

@@ -12,22 +12,12 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/stelli_loader.json';
 
 export default function Loading() {
-  const [showLoader, setShowLoader] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoader(false);
-    }, 1000); 
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <>
-      {showLoader && (
-        <div className="loader-container">
-          <LottieLoader animationData={animationData} />
-        </div>
-      )}
+      <div className="loader-container">
+        <LottieLoader animationData={animationData} />
+      </div>
     </>
   );
 }

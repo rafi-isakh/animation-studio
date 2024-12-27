@@ -3,26 +3,28 @@ import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlic
 import Footer from '@/components/Footer';
 import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import Promotion from '@/components/Promotion';
 import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
 import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
-import { cookies } from 'next/headers'
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
+import { cookies } from 'next/headers';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
-    const data = await response.json()
-    return data;
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
+    if (!response.ok) {
+        throw new Error("Failed to fetch carousel items", { cause: response.status });
+    }
+    return response.json();
 }
 
 async function getWebnovels() {
-    const response = fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) // probably should get rid of this function
-    const data = (await response).json();
-    return data;
-
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels`)
+    if (!response.ok) {
+        throw new Error("Failed to fetch webnovels", { cause: response.status });
+    }
+    return response.json();
 }
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
@@ -51,7 +53,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <ApplyCreatorBanner />
             {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
             <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>
-                <CarouselComponentReactSlick items={items} searchParams={searchParams} webnovels={webnovels} slidesToShow={1} indicator={true} centerPadding={{ desktop: '50px', mobile: '14px' }}  />
+                <CarouselComponentReactSlick items={items} slidesToShow={1} indicator={true} centerPadding={{ desktop: '50px', mobile: '14px' }}  />
                 {smallGap()}
                 <CircularMenuItemsComponent />
                 {smallGap()}

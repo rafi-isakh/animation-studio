@@ -26,6 +26,7 @@ import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Modal, Skeleton, Typography, Drawer, styled } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
+import { useSearch } from '@/contexts/SearchContext';
 
 const Header = () => {
 
@@ -34,7 +35,6 @@ const Header = () => {
     const { email, nickname } = useUser();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const [query, setQuery] = useState('');
     const [belowHeaderToggle, setBelowHeaderToggle] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -54,18 +54,11 @@ const Header = () => {
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
         Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
     );
-    const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
-    const searchDropdownRef = useRef<HTMLDivElement>(null);
     const { theme } = useTheme()
-
-    // let keyPressed = false
-    const [recentQueries, setRecentQueries] = useState<string[]>([]);
-    const [lastIndex, setLastIndex] = useState(0);
+    const {recentQueries, setRecentQueries, lastIndex, setLastIndex} = useSearch();
     const [searchRemember, setSearchRemember] = useState(true);
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
-    const [deletingQuery, setDeletingQuery] = useState(false);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
-    const [triggerSearch, setTriggerSearch] = useState(false);
 
     useEffect(() => {
         if (pathname == "/") {
@@ -101,10 +94,10 @@ const Header = () => {
                 setLastIndex(data.last_index)
             }
         }
-        if (isSearchDropdownOpen && email) {
+        if (open && email) {
             fetchRecentQueries()
         }
-    }, [isSearchDropdownOpen, email])
+    }, [open, email])
 
     useEffect(() => {
         // if mobile menu is open, or on desktop, display menu
@@ -222,15 +215,10 @@ const Header = () => {
     const toggleUserDropdown = () => {
         setIsUserDropdownOpen(!isUserDropdownOpen);
         setIsLanguageDropdownOpen(false);
-        setIsSearchDropdownOpen(false);
     }
     const toggleLanguageDropdown = () => {
         setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
         setIsUserDropdownOpen(false);
-        setIsSearchDropdownOpen(false);
-    }
-    const toggleSearchDropdown = () => {
-        setIsSearchDropdownOpen(!isSearchDropdownOpen);
     }
 
     const isNovelPath = (pathname: string) => {

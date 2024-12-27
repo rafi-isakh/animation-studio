@@ -1,12 +1,13 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
-import { Button } from '@mui/material';
-import { Alert } from '@mui/material';
+import { Button, Alert, styled } from '@mui/material';
+import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import { Loader2 } from 'lucide-react';
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ChevronRight } from 'lucide-react';
 
 interface PictureGeneratorProps {
     prompt: string;
@@ -75,21 +76,31 @@ interface PictureGeneratorProps {
     useEffect(() => {
       if (error) {
           setShowAlert(true);
-          
           // Set timer to hide alert
           const timer = setTimeout(() => {
               setShowAlert(false);
           }, 5000);
-
           // Cleanup timer
           return () => clearTimeout(timer);
       }
   }, [error]);
 
 
+  const BorderLinearProgress = styled(LinearProgress)(() => ({
+    height: 10,
+    borderRadius: 5,
+    [`&.${linearProgressClasses.colorPrimary}`]: {
+      backgroundColor: '#eee',
+    },
+    [`& .${linearProgressClasses.bar}`]: {
+      borderRadius: 5,
+      backgroundColor: '#1a90ff',
+    },
+  }));
+
+
     return (
       <div className="p-4 z-50">
-
         <div className="space-y-4">
           <div className="flex md:flex-row flex-col items-center gap-4">
             <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
@@ -140,7 +151,6 @@ interface PictureGeneratorProps {
                     )}
                 </Button>
           </div>
-
            {error && showAlert && (
                 <Snackbar
                     open={showAlert}
@@ -158,16 +168,36 @@ interface PictureGeneratorProps {
                 </Snackbar>
             )}
         
-          
           {pictures.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="flex md:flex-row flex-col gap-4 mt-6">
               {pictures.map((picture, index) => (
-                <div key={index} className="relative group">
+                <div key={index} className="flex-shrink flex-wrap">
                   <GeneratedPicture index={index} image={picture} />
                 </div>
               ))}
             </div>
           )}
+          <div className='flex flex-row justify-center border border-black rounded-md w-full'>
+            <div className='flex-1 p-4 text-left self-center'>
+            
+              <p>Free Trial </p>
+              <BorderLinearProgress value={30} variant="determinate" />
+              <p>1000 credits</p>
+           
+            </div>
+            <div className='flex-1 relative py-8 md:block hidden'>
+                <div className='absolute left-0 top-4 bottom-4 w-[1px] bg-black'></div>
+               <div className="flex flex-row">
+                <div className='pl-6'>
+                    <p>Have you enjoyed Toonyz Studio?</p>
+                    <p>You can unlock your free trial</p>
+                </div>
+                <div className='w-8 h-8'>
+                  <ChevronRight className='w-8 h-8' />
+                </div>
+                </div>
+            </div>
+          </div>
         </div>
       </div>
     );

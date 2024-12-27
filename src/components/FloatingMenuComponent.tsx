@@ -2,10 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
-import { Brush, WandSparkles, Paintbrush } from 'lucide-react';
-
 import { Box, Button, Modal, Skeleton, Typography, Drawer, SwipeableDrawer } from '@mui/material';
-import { grey } from '@mui/material/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
@@ -15,8 +12,6 @@ import animationData from '@/assets/shinny.json';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
-
-
 
 type Position = {
     x: number;
@@ -154,7 +149,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                         width="w-[50px]" 
                         className=""
                         />
-
 
                   </button>
                     {showMessage && selectedText && (

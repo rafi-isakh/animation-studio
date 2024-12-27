@@ -54,7 +54,6 @@ export default function SearchComponent({ mode,
         }
         if (searchRemember) {
             setRecentQueries(prev => [query, ...prev])
-            console.log("query", query)
             setLastIndex(prev => prev + 1)
         }
         router.push(`/search?query=${query}&remember=${searchRemember}`);

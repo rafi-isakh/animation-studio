@@ -15,11 +15,11 @@ export const langPairList = [
     },
     {
         code: 'zh-CN',
-        name: '中国语（繁体）'
+        name: '中国语（简体）'
     },
     {
         code: 'zh-TW',
-        name: '中國語（簡體）'
+        name: '中國語（繁體）'
     },
     {
         code: 'th',

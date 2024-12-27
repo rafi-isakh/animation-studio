@@ -16,7 +16,7 @@ export default function Loading() {
   return (
     <>
       <div className="loader-container">
-        <LottieLoader animationData={animationData} />
+        <LottieLoader width="w-32" animationData={animationData} />
       </div>
     </>
   );

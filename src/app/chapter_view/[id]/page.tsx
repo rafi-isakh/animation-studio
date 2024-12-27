@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ThemeWrapper from '@/components/ThemeWrapper';
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
+import { useReaderTheme } from '@/contexts/ReaderThemeContext'
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -56,6 +57,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
+    const { readerTheme, toggleReaderTheme } = useReaderTheme()
 
     const readerStyle = {
         fontSize: `${fontSize}px`,
@@ -173,10 +175,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     if (webnovel && chapter) {
         return (
-            <ThemeWrapper>
-                
+            <ThemeWrapper> 
                 <div
-                    className={` text-gray-900 dark:text-white`}
+                    className={`${readerTheme} text-gray-900 dark:text-white`}
                     style={{
                         ...readerStyle,
                     }}

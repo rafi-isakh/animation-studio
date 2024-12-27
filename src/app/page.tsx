@@ -49,7 +49,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     return (
         <div>
             {showPreloader && <Preloader />}
-
             <ApplyCreatorBanner />
             {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
             <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>

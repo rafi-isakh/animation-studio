@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import styles from '@/styles/Contact.module.css'
 import Lenis from 'lenis'
 import { useTransform, useScroll, motion, MotionValue } from 'framer-motion';
-import { FloatingMenu } from '@/components/FloatingMenuComponent';
+
 
 const images = [
   "Contact_1.png",
@@ -158,8 +158,7 @@ export default function Contact() {
                 <span className="text-black dark:text-white font-semibold">{' '}jongminbaek@stelland.io</span> 
                 {' '}for IP, copyright, or other issues.
                 </p> 
-              
-                <FloatingMenu >
+            
                 <h1 className="text-2xl font-semibold items-start text-left pt-10">Meet Toonyz</h1>
 
                 <p className="text-sm text-gray-600 leading-8">
@@ -169,9 +168,7 @@ export default function Contact() {
                 we are free from language barriers and ready to embark on a global journey. <br/>
                 Join us and start your adventure today!
 
-
                 </p>
-                </FloatingMenu> 
                 <div className="flex flex-col gap-1 mt-10">
                     <Image
                         src="/images/N_logo.svg"

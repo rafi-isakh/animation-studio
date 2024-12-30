@@ -56,12 +56,20 @@
   --foreground: #000;
   --background: #fff;
 }
-
 .dark {
   --foreground: #fff;
   --background: #000;
 }
 
+.light {
+  --foreground: #000;
+  --background: #fff;
+}
+
+.sepia {
+  --foreground: #000;
+  --background: #f1e7d0;
+}
 
 
 body {

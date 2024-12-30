@@ -18,7 +18,6 @@ import { useReader } from '@/contexts/ReaderContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
-import ThemeWrapper from '@/components/ThemeWrapper';
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
@@ -57,13 +56,13 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { readerTheme, toggleReaderTheme } = useReaderTheme()
+    const { readerTheme, toggleReaderTheme, isReaderMode } = useReaderTheme()
 
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                  fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
@@ -177,9 +176,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     if (webnovel && chapter) {
         return (
-            <ThemeWrapper> 
+            <> 
                 <div
-                    className={`${readerTheme} text-gray-900 dark:text-white relative`}
+                    className={`${readerTheme} relative`}
                     style={{
                         ...readerStyle,
                     }}
@@ -266,7 +265,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </Modal>
                     {/* delete confirmation modal */}
                 </div>
-            </ThemeWrapper>
+            </>
         )
     }
     else {

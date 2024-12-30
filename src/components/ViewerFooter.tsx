@@ -34,7 +34,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             lineHeight, 
             setLineHeight, 
             setScrollType } = useReader();
-    const { readerTheme, toggleReaderTheme, isReaderMode, setIsReaderMode } = useReaderTheme()
+    const { readerTheme, toggleReaderTheme } = useReaderTheme()
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;

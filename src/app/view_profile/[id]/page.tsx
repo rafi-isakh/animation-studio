@@ -7,7 +7,6 @@ export default async function ViewProfile({ params: { id }, }: { params: { id: s
     // must do this because profile can be any user's
 
     async function getUser() {
-        console.log("getting user by id")
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_by_id?id=${id}`,
             {
                 cache: 'no-store'

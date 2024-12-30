@@ -37,6 +37,7 @@ import { createEmailHash } from '@/utils/cryptography';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
 import ReportButton from '@/components/ReportButton';
+import BlockButton from '@/components/BlockButton';
 
 
 
@@ -63,9 +64,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     // const userMenuRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [reportMessage, setReportMessage] = useState('');
-    const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
+
     useEffect(() => {
 
         if (introRef.current) {
@@ -349,6 +348,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
                                 <ReportButton user={user} />
+                                <BlockButton user={user} />
                                 {isShareDropdownOpen && (
                                     <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
                                         <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>

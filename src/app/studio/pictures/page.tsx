@@ -9,6 +9,12 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { useModalStyle } from "@/styles/ModalStyles";
 import { useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+  });
+import animationData from '@/assets/N_logo_loader.json'
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -109,7 +115,12 @@ export default function PicturesStudioPage() {
                 </div>
             </div>
 
-            {isGeneratingPictures && <CircularProgress color="secondary" />}
+            {isGeneratingPictures &&  <LottieLoader 
+                animationData={animationData}
+                width="w-32" 
+                className=""
+                />
+            }
 
             <div className="flex flex-row fixed bottom-5">
                 <textarea

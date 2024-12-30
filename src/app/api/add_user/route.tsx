@@ -11,8 +11,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
         if (!session || !session.user) {
             return NextResponse.json({
-                "message": "Unauthorized",
-                "status": 401
+                message: "Unauthorized",
+            }, {
+                status: 401
             });
         }
         const data: UserCreate = {

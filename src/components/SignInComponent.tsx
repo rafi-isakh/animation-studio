@@ -13,7 +13,7 @@ const SignInComponent = () => {
          <div className="flex flex-col items-center justify-center lg:px-10 md:px-10 py-20 rounded-xl border border-gray-300">
          
           <Image
-          src="/N_Logo.png"
+          src="/images/N_logo.svg"
           alt="Toonyz Logo"
           width={0}
           height={0}
@@ -22,6 +22,7 @@ const SignInComponent = () => {
             marginTop: '15px',
             height: '35px', 
             width: '35px', 
+            padding: '2px',
             justifyContent: 'center', 
             alignSelf: 'center', 
             borderRadius: '25%', 

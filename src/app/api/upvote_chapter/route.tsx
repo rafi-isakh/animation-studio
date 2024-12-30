@@ -11,15 +11,17 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!session || !session.user) {
         return NextResponse.json({
-            "message": "Unauthorized",
-            "status": 401
+            message: "Unauthorized",
+        }, {
+            status: 401
         });
     }
 
     if (!id || !email) {
         return NextResponse.json({
-            "message": "Id and email are required",
-            "status": 400
+            message: "Id and email are required",
+        }, {
+            status: 400
         });
     }
 
@@ -39,16 +41,18 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         return NextResponse.json({
-            "message": "Failed to upvote chapter",
-            "status": response.status
+            message: "Failed to upvote chapter",
+        }, {
+            status: response.status
         });
     }
 
     const data = await response.json();
     return NextResponse.json({
-        "message": "Upvote chapter success",
-        "status": 200,
-        "upvotes": data
+        message: "Upvote chapter success",
+        upvotes: data
+    }, {
+        status: 200,
     });
 }
 

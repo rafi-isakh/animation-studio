@@ -15,11 +15,11 @@ export const langPairList = [
     },
     {
         code: 'zh-CN',
-        name: '中国语（繁体）'
+        name: '中国语（简体）'
     },
     {
         code: 'zh-TW',
-        name: '中國語（簡體）'
+        name: '中國語（繁體）'
     },
     {
         code: 'th',
@@ -103,6 +103,10 @@ export const code_to_lang = (iso_code: string) => {
         return 'vietnamese';
     } else if (iso_code == 'ar') {
         return 'arabic';
+    } else if (iso_code == 'fr') {
+        return 'french';
+    } else if (iso_code == 'es') {
+        return 'spanish';
     } else {
         return '';
     }

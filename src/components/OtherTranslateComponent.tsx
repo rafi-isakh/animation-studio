@@ -2,12 +2,12 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, formControlClasses } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 import { useMediaQuery } from '@mui/material';
 
-const OtherTranslateComponent = ({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
-    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string}) => {
+const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
+    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
     const [text, setText] = useState(incomingText);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
@@ -15,13 +15,33 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
-
+    const languageChangedRef = useRef(false);
     useEffect(() => {
-        if (fetchRef.current) return;
-        fetchRef.current = true;
+        languageChangedRef.current = true;
+        setText("");
+        setLoading(true);
+        const detectLanguage = async () => {
+            let originalAndTargetLangSame = false;
+            const response = await fetch('/api/detect_language', {
+                method: 'POST',
+                body: JSON.stringify({ text: content }),
+            });
+            const data = await response.json();
+            const langcode = data.langcode;
+            if (langcode == language) {
+                originalAndTargetLangSame = true;
+            }
+            return originalAndTargetLangSame;
+        }
 
         const handleTranslate = async () => {
-            // elmeentId is either chapter_id (for chapter title) or webnovel_id (for webnovel title and description) or user_id (for user bio)
+            const originalAndTargetLangSame = await detectLanguage();
+            if (originalAndTargetLangSame) {
+                setText(content);
+                setLoading(false);
+                return;
+            }
+            // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
             const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
             const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
@@ -46,19 +66,23 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
                     initialized.current = true;
                 }
             }
+            languageChangedRef.current = false;
         }
         if (defaultLanguage != language) {
             if (content) {
+                initialized.current = false;
                 handleTranslate();
             } else {
                 setText("");
                 setLoading(false);
+                languageChangedRef.current = false;
             }
         } else {
             setText(content);
             setLoading(false);
+            languageChangedRef.current = false;
         }
-    }, []);
+    }, [language, elementType, elementId, elementSubtype]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);
@@ -72,10 +96,10 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
             }
             setChangeCount(0);
         }
-    })
+    }, [changeCount, finished, initialized.current])
 
     useEffect(() => {
-        if (initialized.current) {
+        if (initialized.current && finished) {
             setLoading(false)
             saveTranslationToDB(true);
         }
@@ -108,6 +132,8 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
 
     const submitContent = async (translation: string) => {
         if (!translation) translation = "";
+        console.log("submitting content")
+        console.log("original", content)
         const data = {
             "original": content,
             "translation": translation
@@ -133,13 +159,15 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     };
 
     const startEventSource = (textId: string) => {
-        setLoading(false);
         const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
 
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.ended == 0) {
-                setText(text => text + data.token);
+                console.log("languageChangedRef.current", languageChangedRef.current)
+                if (!languageChangedRef.current) {
+                    setText(text => text + data.token);
+                }
             } else if (data.ended == 1) {
                 setFinished(true);
             }
@@ -158,19 +186,20 @@ const OtherTranslateComponent = ({ content, elementId, elementType, elementSubty
     type Direction = 'ltr' | 'rtl';
 
     return (
-        <div className={`${classParams}`} style={{ direction: `${isRtl}` as Direction }}>
+        <div style={{ direction: `${isRtl}` as Direction }}>
             {
                 loading && showLoading ?
-                   (
-                    <div role="status" className='w-4'>
-                        {/* genre */}
-                        <CircularProgress size="0.8rem" color='secondary' />
-                    </div>
-                   ) : <div dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
+                    (
+                        <div role="status" className='w-4 self-center'>
+                            {/* genre */}
+                            <CircularProgress size="0.8rem" color='secondary' />
+                        </div>
+                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
             }
         </div>
     );
-};
+});
 
+OtherTranslateComponent.displayName = 'OtherTranslateComponent'; // need this because this is a React.memo
 export default OtherTranslateComponent;

@@ -29,7 +29,7 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
                         ${params.get('id') == webnovel.id.toString()? "font-black text-white bg-purple-500": ""}`}>
                         {/* Right arrow display only when the webnovel is selected */}
                         { params.get('id') == webnovel.id.toString() ? <ChevronRight size={18} className="self-center" /> : '' }
-                     <OtherTranslateComponent key={key} content={webnovel.title} 
+                     <OtherTranslateComponent content={webnovel.title} 
                         elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title"/>
                     </Link>
                 ))}

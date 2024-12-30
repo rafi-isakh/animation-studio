@@ -13,7 +13,7 @@ import { phrase } from '@/utils/phrases';
 import { createEmailHash } from '@/utils/cryptography';
 
 // user could be undefined if not logged in
-const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
+const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string, webnovelOrWebtoon: boolean }) => {
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>([]);
     const [chapter, setChapter] = useState<Chapter>();
@@ -50,7 +50,8 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     "content": commentContent,
                     "upvotes": 0,
                     "chapter_id": chapterId,
-                    "replies": []
+                    "replies": [],
+                    "webnovel_or_webtoon": webnovelOrWebtoon
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -63,15 +64,20 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                 if (!response.ok) {
                     console.error("Error adding comment");
                 }
-
-                const comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
-                    .then(data => data.json())
+                let comments_sans_replies;
+                if (webnovelOrWebtoon) {
+                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
+                        .then(data => data.json())
+                }
+                else {
+                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webtoon_comments?chapter_id=${chapterId}`)
+                        .then(data => data.json())
+                }
 
                 if (Array.isArray(comments_sans_replies)) {
                     setAllComments(comments_sans_replies);
                     setRepliesKey(prevKey => prevKey + 1)
                 }
-
                 setCommentContent('');
             }
         }
@@ -158,7 +164,8 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
                     "content": commentContent,
                     "upvotes": 0,
                     "chapter_id": chapterId,
-                    "replies": []
+                    "replies": [],
+                    "webnovel_or_webtoon": webnovelOrWebtoon
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -201,10 +208,15 @@ const CommentsComponent = ({ chapterId }: { chapterId: string }) => {
     return (
         loaded &&
         <div className='max-w-md flex flex-col items-left mx-auto space-y-4 p-4'>
-            <Button color='gray' variant='text' href={`/chapter_view/${chapterId}`} className='w-full'>
+            <Button
+                color='gray'
+                variant='text'
+                onClick={() => window.history.back()}
+                // href={`/chapter_view/${chapterId}`} 
+                className='w-full'>
                 <div className="flex flex-row !items-left justify-start flex-1">
                     <ChevronLeftIcon className="w-6 h-6" />
-                    <OtherTranslateComponent key={key3} content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
+                    <OtherTranslateComponent content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
                 </div>
             </Button>
             <div className='flex flex-col'>

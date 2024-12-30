@@ -21,14 +21,15 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
     
 
     useEffect(() => {
-        for (const novel of webnovels) {
-            novel.version = premium.includes(novel.id) ? "premium" : "free";
-        }
-        const _webnovelsToShow = webnovels
+        const _webnovels = webnovels.map(novel => ({
+            ...novel,
+            version: premium.includes(novel.id) ? "premium" : "free",
+        }));
+
+        const _webnovelsToShow = _webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
-            .reverse();
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);
@@ -36,9 +37,9 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
 
     return (
         <WebnovelsCardList
-            title={webnovels.length > 0 ? phrase(dictionary, "newAndTrending", language) : "No new and trending novels available."}
+            title={phrase(dictionary, "newAndTrends", language)}
             subtitle={phrase(dictionary, "more", language)}
-            webnovels={webnovelsToShow as Webnovel[]}
+            webnovels={webnovelsToShow}
             scrollRef={newAndTrendingRef}
             isMobile={isMobile}
             renderItem={(item: Webnovel, index: number) => (
@@ -47,6 +48,8 @@ const WebnovelsCardListByTrends = ({ searchParams, sortBy, webnovels }: { search
                     index={index + 1} 
                     ranking={true} 
                     details={true}
+                    up={false}
+                    isOriginal={false}
                 />
             )}
         />

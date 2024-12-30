@@ -4,14 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import phrases, { phrase } from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
 import { Box, Button, Modal, ThemeProvider } from '@mui/material';
-import { bwTheme, grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useReaderTheme } from '@/contexts/ReaderThemeContext';
+import { MessageCircle, Settings, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -32,14 +33,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             setFontFamily, 
             lineHeight, 
             setLineHeight, 
-            margin, 
-            setMargin,
-            padding,
-            setPadding,
-            setScrollType,
-            containerWidth = 600,
-            setContainerWidth } = useReader();
-    const { theme, toggleTheme } = useTheme()
+            setScrollType } = useReader();
+    const { toggleReaderTheme } = useReaderTheme()
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -119,7 +114,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <>
-            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-2 pt-2 pb-2 right-2 md:mr-0 mr-[15px] md:ml-0 transition-transform duration-300 
+            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 transition-transform duration-300 
                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 
@@ -127,37 +122,39 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-evenly mx-auto p-2">
                    
                    <Link href={prevChapterLink} onClick={handlePrevChapter}>
-                        <p className='group hover:text-pink-600'>
-                        <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600 mr-4"></i>
+                        <div className='group hover:text-[#DB2777] flex flex-row'>
+                        <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4'/>
+                    
                             {phrase(dictionary, "prevChapter", language)}
-                        </p>
+                        </div>
                     </Link>
                     {/* <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
                     <Link href={`/my_library`}>
                         <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link> */}
-                    <Link href={`/comments?chapter_id=${chapterId.toString()}`}>
-                        <p className='hover:text-pink-600 relative'><i className="far fa-comment"></i>
-                        <span className='absolute -top-[1px] -right-1 text-[9px] bg-pink-600 text-white rounded-full px-1'>{chapter.comments.length}</span>
+                    <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
+                        <p className='hover:text-[#DB2777] relative'>
+                            <MessageCircle size={16} />
+                        <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{chapter.comments.length}</span>
                         </p>
                     </Link>
                     {/* <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p> */}
                     <Link href={``} onClick={handleViewSettings}>
-                    <p className='hover:text-pink-600 relative'>
-                        <i className="fas fa-cog"></i>
-                        <span className='self-center group-hover:text-pink-600 absolute -top-[5px] -right-2 text-[12px] text-pink-600 rounded-full'>
-                          <i className="fas fa-language "></i>
-                        </span>
+                    <p className='hover:text-[#DB2777] relative'>
+                             <Settings size={16} />
+                            <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
+                            <Languages size={10} />
+                            </span>
                     </p>
                     </Link>
                     {/* view next and prev btn */}
                    
                     {/* <div className='border border-r-gray-300 py-2' /> */}
                     <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px]'>
-                        <p className='group hover:text-pink-600 '>
+                        <div className='group hover:text-[#DB2777] flex flex-row'>
                             {phrase(dictionary, "nextChapter", language)}
-                            <i className="fas fa-angle-right text-gray-500 self-center group-hover:text-pink-600 ml-4"></i>
-                        </p>
+                            <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4'/>
+                        </div>
                     </Link>
                 </div>
             </div>
@@ -211,19 +208,19 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                            <div className='flex flex-row gap-2'>  
                              <Link 
                              href='' 
-                             onClick={() => toggleTheme('light')}
+                             onClick={() => toggleReaderTheme('light')}
                              className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                 Aa
                              </Link>
                              <Link 
                                 href='' 
-                                onClick={() => toggleTheme('dark')}
+                                onClick={() => toggleReaderTheme('dark')}
                                 className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
                              <Link 
                                 href='' 
-                                onClick={() => toggleTheme('sepia')}
+                                onClick={() => toggleReaderTheme('sepia')}
                                 className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>

@@ -21,7 +21,6 @@ import ViewVideos from './ViewVideos';
 import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
 import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft, X } from 'lucide-react';
-import KeywordsComponent from '@/components/KeywordsComponent';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Modal, Skeleton, Typography, Drawer, styled } from '@mui/material';

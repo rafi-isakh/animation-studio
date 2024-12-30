@@ -12,6 +12,7 @@ import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
 import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, Noto_Sans_SC, Noto_Sans_Arabic } from 'next/font/google';
+import RegisterSW from '@/components/RegisterSW';
 
 export const metadata: Metadata = {
   title: '투니즈 Toonyz',
@@ -83,41 +84,41 @@ const notoSansSC = Noto_Sans_SC({
 
 
 export default function RootLayout({ children }: RootLayoutProps) {
-    return (
-      <html>
-        <body>
-          <LanguageProvider>
-            <ThemeProvider>
-              <AuthProvider>
-                <UserProvider>
-                  <DeviceProvider>
-                    <SearchProvider>
-                      <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
+  return (
+    <html>
+      <body>
+        <RegisterSW />
+        <LanguageProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <UserProvider>
+                <DeviceProvider>
+                  <SearchProvider>
+                    <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                     ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                        <Suspense>
-                          <Header />
-                        </Suspense>
-                        <Margin>
-                          {children}
-                        </Margin>
-                        {/* 
+                      <Suspense>
+                        <Header />
+                      </Suspense>
+                      <Margin>
+                        {children}
+                      </Margin>
+                      {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                       {children}
                     </div> 
                    */}
-                      </div>
-                    </SearchProvider>
-                  </DeviceProvider>
-                </UserProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </LanguageProvider>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
-          <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
-          <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>
-        </body>
-      </html >
-    );
-  }
-  
+                    </div>
+                  </SearchProvider>
+                </DeviceProvider>
+              </UserProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
+        <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
+        <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>
+      </body>
+    </html >
+  );
+}

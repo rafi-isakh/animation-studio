@@ -34,10 +34,9 @@ import {
 } from 'lucide-react';
 import { createEmailHash } from '@/utils/cryptography';
 
-import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
-import { Textarea } from 'flowbite-react';
+import ReportButton from '@/components/ReportButton';
 
 
 
@@ -207,20 +206,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
         setIsShareDropdownOpen(prev => !prev);
     }
 
-    const handleReport = () => {
-        setShowReportModal(true);
-    }
-
-    const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname} - ${user.email}\n\nReport message: ${reportMessage}`;
-        await fetch('/api/send_email', {
-            method: 'POST',
-            body: JSON.stringify({ message: message })
-        });
-        setShowReportModal(false);
-        setShowReportSuccessModal(true);
-    }
-
     return (
         <div className='max-w-screen-lg mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
             {/*Left component :: Profile picture */}
@@ -363,11 +348,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     <ExternalLink size={10} />
                                     <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
-                                <Button color='gray' variant='outlined' onClick={handleReport} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
-                                    {/* report */}
-                                    <Flag size={10} />
-                                    <span className='text-sm'>{phrase(dictionary, "report", language)}</span>
-                                </Button>
+                                <ReportButton user={user} />
                                 {isShareDropdownOpen && (
                                     <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
                                         <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
@@ -530,24 +511,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         <p className='text-lg font-bold'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "yes", language)}</Button>
                         <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
-            <Modal open={showReportModal} onClose={() => setShowReportModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        {/* Report */}
-                        <p className='text-lg font-bold'>{phrase(dictionary, "wouldYouLikeToReport", language)}</p>
-                        <Textarea rows={4} className='w-full p-4' placeholder={phrase(dictionary, "reportReason", language)} value={reportMessage} onChange={(e) => setReportMessage(e.target.value)}/>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleSendReportEmail}>{phrase(dictionary, "report", language)}</Button>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowReportModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
-            <Modal open={showReportSuccessModal} onClose={() => setShowReportSuccessModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        <p className='text-lg font-bold'>{phrase(dictionary, "reportSuccess", language)}</p>
                     </div>
                 </Box>
             </Modal>

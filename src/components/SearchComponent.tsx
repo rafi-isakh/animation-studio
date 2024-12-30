@@ -6,7 +6,6 @@ import { phrase } from "@/utils/phrases";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
 import { X } from "lucide-react";
-import KeywordsComponent from "@/components/KeywordsComponent";
 import { useSearch } from "@/contexts/SearchContext";
 
 export default function SearchComponent({ mode,
@@ -171,7 +170,7 @@ export default function SearchComponent({ mode,
 
                                 </div>
 
-                                <div className='h-[100px]'>
+                                {/* <div className='h-[100px]'>
                                     <p className='text-gray-500 text-md'>
 
                                         {phrase(dictionary, "genresAndKeyword", language)}
@@ -181,7 +180,7 @@ export default function SearchComponent({ mode,
                                         <KeywordsComponent />
                                     </p>
 
-                                </div>
+                                </div> */}
 
                             </div>
 

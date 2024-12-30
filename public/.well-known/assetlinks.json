@@ -1,0 +1,8 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.toonyz.twa",
+      "sha256_cert_fingerprints": ["8F:35:36:AF:31:09:C3:EC:C3:38:C1:A3:34:1B:8C:D1:A3:60:E4:D8:C1:92:28:B8:EC:76:43:0E:1B:D5:BA:E6"]
+    }
+  }]

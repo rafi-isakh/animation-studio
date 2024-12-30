@@ -26,7 +26,6 @@ async function getWebnovels() {
     }
     return response.json();
 }
-
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
@@ -70,8 +69,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             </div>
 
             <Footer />
-            {/* Bookmark button : Only displys in mobile screen */}
-            <BookmarkButton />
         </div>
     );
 }

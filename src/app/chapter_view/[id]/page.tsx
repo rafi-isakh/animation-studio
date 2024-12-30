@@ -2,7 +2,7 @@
 
 import { Chapter, Webnovel } from "@/components/Types"
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
@@ -70,6 +70,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
+
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -173,6 +174,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setScreenWidth(_screenWidth);
     }, [scrollType])
 
+
     if (webnovel && chapter) {
         return (
             <ThemeWrapper> 
@@ -230,10 +232,21 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
-                                    <FloatingMenu >
-                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                    </FloatingMenu>
+                                <div 
+                                ref={webnovelViewRef} 
+                                id="translated" 
+                                className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}
+                               
+                                >
+                                    <FloatingMenu 
+                            
+                                    >
+                                    <WebnovelTranslateComponent 
+                                        content={chapter.content} 
+                                        chapterId={id} 
+                                        webnovelId={webnovel.id.toString()} 
+                                        sourceLanguage={webnovel.language} />
+                                 </FloatingMenu>
                                 </div>
                             </div>
                         </div>

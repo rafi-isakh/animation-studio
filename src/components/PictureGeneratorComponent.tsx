@@ -1,13 +1,13 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
-import { Button, Alert, styled } from '@mui/material';
+import { Button, Alert, styled, Box } from '@mui/material';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import { Loader2 } from 'lucide-react';
+import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, CircleHelp, Settings, Loader2 } from 'lucide-react';
 
 interface PictureGeneratorProps {
     prompt: string;
@@ -21,7 +21,7 @@ interface PictureGeneratorProps {
     const [savedPrompt, setSavedPrompt] = useState<string>(initialPrompt);
     const { dictionary, language } = useLanguage();
     const [showAlert, setShowAlert] = useState(false);
-  
+
     useEffect(() => {
       if (initialPrompt) {
         setSavedPrompt(initialPrompt);
@@ -72,7 +72,6 @@ interface PictureGeneratorProps {
       }
     };
   
-
     useEffect(() => {
       if (error) {
           setShowAlert(true);
@@ -98,23 +97,85 @@ interface PictureGeneratorProps {
     },
   }));
 
+  const InfoTooltip = styled(({ className, ...props }: TooltipProps) => (
+    <Tooltip {...props} classes={{ popper: className }} />
+  ))(({ theme }) => ({
+    [`& .${tooltipClasses.tooltip}`]: {
+      backgroundColor: '#f5f5f9',
+      color: 'rgba(0, 0, 0, 0.87)',
+      maxWidth: 320,
+      padding: '5px',
+      border: '1px solid #dadde9',
+    },
+  }));
 
     return (
-      <div className="p-4 z-50">
-        <div className="space-y-4">
-          <div className="flex md:flex-row flex-col items-center gap-4">
-            <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-               {savedPrompt}
+      <div className="z-50">
+
+            {/* picture generator */}
+  
+         <div className="flex md:flex-row flex-col items-center gap-4 space-y-4">
+          <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex flex-col min-h-[100px]">
+          {/* Text content with scrolling if needed */}
+          <div className="flex-1 overflow-y-auto">
+              <p className="text-sm text-gray-600 dark:text-gray-300  p-4">
+                  {savedPrompt}
               </p>
+          </div>
+
+          <div className='flex-shrink-0 flex flex-row justify-between text-gray-500'>
+            <div className='flex flex-row gap-4 p-4 items-center '>
+            {savedPrompt.length}/{savedPrompt.length}
+            <InfoTooltip title={
+                  <div className='flex flex-row justify-center rounded-md w-full'>
+                    {phrase(dictionary, "preparing", language)}
+                  </div>
+              }
+            placement="bottom">
+              <CircleHelp size={16} />
+            </InfoTooltip>
+
+            <InfoTooltip title={
+                  <div className='flex flex-row justify-center border border-black rounded-md w-full'>
+                    <div className='flex-1 p-4 text-left self-center'>
+                    
+                      <p>{phrase(dictionary, "freeTrial", language)}</p>
+                      <BorderLinearProgress value={30} variant="determinate" />
+                      <p>1000 credits</p>
+                  
+                    </div>
+                    <div className='flex-1 relative py-8 px-2'>
+                        <div className='absolute left-0 top-4 bottom-4 w-[1px] bg-black'></div>
+                      <div className="flex flex-row">
+                        <div className='px-2'>
+                            <p>{phrase(dictionary, "haveYouEnjoyed", language)}</p>
+                            <p>{phrase(dictionary, "youCanUnlock", language)}</p>
+                        </div>
+                        <div className='self-center'>
+                          <ChevronRight size={16} />
+                        </div>
+                        </div>
+                    </div>
+                  </div>
+              } placement="bottom">
+              <Settings size={16} />
+            </InfoTooltip>
             </div>
               <Button
-                    variant="contained"
-                    color="gray"
+                    variant="text"
+                    sx={{
+                      color: 'gray',
+                      backgroundColor: 'white',
+                      borderRadius: '10px',
+                      padding: '10px',
+                      fontWeight: 'bold',
+                      minWidth: '100px',
+                      alignSelf: 'flex-end',
+                    }}
                     onClick={generatePictures}
                     disabled={isLoading}
                     className='px-4 py-2 font-bold ml-4 bg-white dark:text-pink-600 dark:bg-white 
-                        inline-flex items-center justify-center gap-2 min-w-[100px]'
+                        inline-flex items-center justify-center gap-2 min-w-[100px] self-end'
                 >
                     {isLoading ? (
                         <>
@@ -150,6 +211,9 @@ interface PictureGeneratorProps {
                         </>
                     )}
                 </Button>
+              </div>
+            </div>
+              
           </div>
            {error && showAlert && (
                 <Snackbar
@@ -168,6 +232,7 @@ interface PictureGeneratorProps {
                 </Snackbar>
             )}
         
+
           {pictures.length > 0 && (
             <div className="flex md:flex-row flex-col gap-4 mt-6">
               {pictures.map((picture, index) => (
@@ -177,28 +242,7 @@ interface PictureGeneratorProps {
               ))}
             </div>
           )}
-          <div className='flex flex-row justify-center border border-black rounded-md w-full'>
-            <div className='flex-1 p-4 text-left self-center'>
-            
-              <p>Free Trial </p>
-              <BorderLinearProgress value={30} variant="determinate" />
-              <p>1000 credits</p>
-           
-            </div>
-            <div className='flex-1 relative py-8 md:block hidden'>
-                <div className='absolute left-0 top-4 bottom-4 w-[1px] bg-black'></div>
-               <div className="flex flex-row">
-                <div className='pl-6'>
-                    <p>Have you enjoyed Toonyz Studio?</p>
-                    <p>You can unlock your free trial</p>
-                </div>
-                <div className='w-8 h-8'>
-                  <ChevronRight className='w-8 h-8' />
-                </div>
-                </div>
-            </div>
-          </div>
-        </div>
+          
       </div>
     );
   };

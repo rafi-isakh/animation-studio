@@ -6,7 +6,7 @@ import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 
 export default function PurchaseStarsComponent() {
-    const starsOptions = [10, 30, 50, 100, 300]
+    const starsOptions = [10, 30, 50, 100, 300, 500, 1000]
     const { dictionary, language } = useLanguage();
     const { email, nickname } = useUser();
 

@@ -14,7 +14,7 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box, useMediaQuery } from "@mui/material";
 import Link from 'next/link';
-
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { SlickCarouselItem } from '@/components/Types';
 
 const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: SlickCarouselItem[] }) => {
@@ -31,7 +31,8 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
-    // adaptiveHeight: true,
+    nextArrow: <SampleNextArrow />,
+    prevArrow: <SamplePrevArrow />,
     responsive: [
       {
         breakpoint: 1024,
@@ -48,34 +49,33 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
     ]
   };
 
-  // function SampleNextArrow(props: any) {
-  //   const { onClick } = props;
-  //   return (
-  //     <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-50">
-  //       <button
-  //         className="bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors duration-300"
-  //         onClick={onClick}
-  //       >
-  //         <ChevronRight className="w-6 h-6 text-white" />
-  //       </button>
-  //     </div>
-  //   );
-  // }
+  function SampleNextArrow(props: any) {
+    const { onClick } = props;
+    return (
+      <div className="absolute top-1/2 right-0 transform -translate-y-1/2 z-50">
+        <button
+          className="bg-transparent rounded-full p-2 transition-colors duration-300"
+          onClick={onClick}
+        >
+          <ChevronRight className="w-6 h-6 text-white" />
+        </button>
+      </div>
+    );
+  }
 
-  // function SamplePrevArrow(props: any) {
-  //   const { onClick } = props;
-  //   return (
-  //     <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-50">
-  //       <button
-  //         className="bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors duration-300"
-  //         onClick={onClick}
-  //       >
-  //         {/* w-6 h-6 */}
-  //         <ChevronLeft className="w-6 h-6 text-white" />
-  //       </button>
-  //     </div>
-  //   );
-  // }
+  function SamplePrevArrow(props: any) {
+    const { onClick } = props;
+    return (
+      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 z-50">
+        <button
+          className="bg-transparent rounded-full p-2 transition-colors duration-300"
+          onClick={onClick}
+        >
+          <ChevronLeft className="w-6 h-6 text-white" />
+        </button>
+      </div>
+    );
+  }
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -93,7 +93,7 @@ const WebtoonsRecommendationCarousel = ({ carouselItems }: { carouselItems: Slic
 
       <TabContext value={tabValue} >
         <Box sx={{ borderBottom: 0, borderColor: 'none' }}>
-          <div className="flex flex-row justify-between items-center">
+          <div className="flex flex-row justify-between items-center overflow-x-auto">
             <TabList
               onChange={handleChange}
               aria-label="lab API tabs"

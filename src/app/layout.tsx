@@ -13,8 +13,7 @@ import Margin from '@/components/Margin';
 import { ReaderProvider } from '@/contexts/ReaderContext';
 import { ThemeProvider } from '@/contexts/providers'
 import { SearchProvider } from '@/contexts/SearchContext';
-
-
+import HeaderWrapper from '@/components/HeaderWrapper';
 
 const notoSans = Noto_Sans({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext', 'greek', 'greek-ext', 'devanagari'],
@@ -84,8 +83,6 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-
-
   return (
     <html>
       <body>
@@ -97,9 +94,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   <SearchProvider>
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                    <Suspense>
-                      <Header />
-                    </Suspense>
+                    <HeaderWrapper />
                     <Margin>
                       {children}
                     </Margin>

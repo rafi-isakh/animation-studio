@@ -133,7 +133,7 @@ export default function NewUser() {
 
             <form action={updateUser}>
                 <div className="flex flex-col w-72">
-                    <div className="flex flex-col space-y-4 items-center justify-center ">
+                    <div className="flex flex-col space-y-4 items-center justify-center text-black dark:text-white ">
                         <NewUserNicknameComponent />
                         <NewUserBioComponent />
                         <NewUserCodeComponent />

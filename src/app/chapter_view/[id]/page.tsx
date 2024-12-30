@@ -56,7 +56,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { readerTheme, toggleReaderTheme, isReaderMode } = useReaderTheme()
+    const { readerTheme, toggleReaderTheme } = useReaderTheme()
 
     const readerStyle = {
         fontSize: `${fontSize}px`,

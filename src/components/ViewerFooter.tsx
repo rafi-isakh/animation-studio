@@ -66,8 +66,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     };
   }, [lastScrollY]); // Dependency array to trigger when lastScrollY changes
 
-
-
     useEffect(() => {
         setWebnovelId(webnovel.id);
         setChapterId(chapter.id);
@@ -113,16 +111,16 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     return (
-        <>
-            <div className={`z-50 fixed w-full justify-center bg-white dark:bg-black text-black
+        <div className="fixed w-full bottom-0 left-0 z-50">
+            <div className={`w-full justify-center bg-white dark:bg-black text-black
                              dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
                              ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
 
-                <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2">
+                <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2 z-50">
                    
                    <Link href={prevChapterLink} onClick={handlePrevChapter}>
-                        <div className='group hover:text-[#DB2777] flex flex-row'>
+                        <div className='group hover:text-[#DB2777] flex flex-row z-[99]'>
                         <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4'/>
                     
                             {phrase(dictionary, "prevChapter", language)}
@@ -130,14 +128,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     </Link>
                 
                     <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
-                        <p className='hover:text-[#DB2777] relative'>
+                        <p className='hover:text-[#DB2777] relative z-[99]'>
                             <MessageCircle size={16} />
                         <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{chapter.comments.length}</span>
                         </p>
                     </Link>
                     {/* <p onClick={adjustViewSettings} className='hover:text-pink-600'>{phrase(dictionary, "viewSettings", language)}</p> */}
                     <Link href={``} onClick={handleViewSettings}>
-                    <p className='hover:text-[#DB2777] relative'>
+                    <p className='hover:text-[#DB2777] relative z-[99]'>
                              <Settings size={16} />
                             <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
                             <Languages size={10} />
@@ -145,7 +143,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     </p>
                     </Link>
                     {/* view next and prev btn */}
-                    <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px]'>
+                    <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px] z-[99]'>
                         <div className='group hover:text-[#DB2777] flex flex-row'>
                             {phrase(dictionary, "nextChapter", language)}
                             <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4'/>
@@ -295,38 +293,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                              </Link>
                            </div>
                         </div>
-                        {/*   <p className='text-sm flex justify-between'> 
                        
-                            {phrase(dictionary, "paragraphSpacing", language)}     {/* 문단 여백 
-                           <div className='flex flex-row gap-2'>  
-                             <Link 
-                                href='' 
-                                onClick={() => {
-                                    setMargin(margin + 1)
-                                    setPadding(padding + 1)
-                                    setContainerWidth(containerWidth * 1.1); 
-                                }} 
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                             <i className="fas fa-plus"></i>
-                             </Link>
-                             {Math.round(margin)}
-                             <Link 
-                                href='' 
-                                onClick={() => {
-                                    setMargin(margin - 1)
-                                    setPadding(padding - 1)
-                                    setContainerWidth(containerWidth * 0.9); 
-                                }} 
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                             <i className="fas fa-minus"></i>
-                             </Link>
-                           </div>
-                        </p> */}
 
                     </div>
                 </Box>
             </Modal>
-        </>
+        </div>
     );
 };
 

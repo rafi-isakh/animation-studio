@@ -179,12 +179,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         return (
             <ThemeWrapper> 
                 <div
-                    className={`${readerTheme} text-gray-900 dark:text-white`}
+                    className={`${readerTheme} text-gray-900 dark:text-white relative`}
                     style={{
                         ...readerStyle,
                     }}
                 >
-                    <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto `}>
+                    <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto z-10`}>
                         {/* Back to novel and like button */}
                         <div className="flex flex-row max-w-full w-full justify-between">
                             <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>
@@ -235,25 +235,24 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div 
                                 ref={webnovelViewRef} 
                                 id="translated" 
-                                className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}
-                               
+                                className={`${scrollType == 'horizontal'? 'h-[60vh]': ""} relative z-10`}
                                 >
-                                    <FloatingMenu 
-                            
-                                    >
+                                    <FloatingMenu>
                                     <WebnovelTranslateComponent 
                                         content={chapter.content} 
                                         chapterId={id} 
                                         webnovelId={webnovel.id.toString()} 
                                         sourceLanguage={webnovel.language} />
-                                 </FloatingMenu>
+                                    </FloatingMenu>
                                 </div>
                             </div>
                         </div>
                       
                         {/* Title and content : end */}
                     </div>
-                    <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                    <div  className="relative z-50">
+                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                    </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>

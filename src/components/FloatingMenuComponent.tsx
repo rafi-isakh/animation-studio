@@ -17,6 +17,8 @@ import dynamic from 'next/dynamic';
 import animationData from '@/assets/shinny.json';
 import { X, ArrowRight } from 'lucide-react';
 import { Language } from '@/components/Types';
+import { useReaderTheme } from '@/contexts/ReaderThemeContext'
+
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
@@ -33,17 +35,15 @@ type Position = {
   const Puller = styled('div')(({ theme }) => ({
     width: 30,
     height: 6,
-    backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',
-    // gray-600 #4b5563 
+    backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',  // gray-600 #4b5563 
     borderRadius: 3,
     position: 'absolute',
     top: 8,
     left: 'calc(50% - 15px)',
-    zIndex: 1000,
+    zIndex: 5,
   }));
 
-const StyledBox = styled('div')(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'light' ? '#fff' : '#ffffff',
+const StyledBox = styled('div')(() => ({
     position: 'relative',
     height: '100%',
     overflow: 'auto',
@@ -88,6 +88,8 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
     const [pictures, setPictures] = useState([]);
     const [value, setValue] = React.useState('1');
     const drawerRef = useRef<HTMLDivElement>(null);
+    const { readerTheme } = useReaderTheme(); 
+
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -128,11 +130,18 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
         const handleClickOutside = (event: MouseEvent) => {
             if (
                 containerRef.current && 
-                drawerRef.current &&
                 !containerRef.current.contains(event.target as Node) && 
+                drawerRef.current &&
                 !drawerRef.current.contains(event.target as Node)
             ) {
-                handleClose();
+                // Close floating menu only and clear timeout
+                setSelection(undefined);
+                setPosition(undefined);
+                setSelectedText('');
+                setShowMessage(false);
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
             }
         };
 
@@ -169,12 +178,16 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
         setOpen(true); 
     };
 
+    const handleDrawerClose = () => {
+        setOpen(false);
+    };
+
       const handleClose = () => {
         setSelection(undefined);
         setPosition(undefined);
         setSelectedText('');
         setShowMessage(false);
-        setOpen(false);
+        // setOpen(false);
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
@@ -191,7 +204,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
         <div className='relative' ref={containerRef} >
             {selection && position && (
                 <div
-                    className="absolute z-50 w-30"
+                    className="absolute z-10 w-30"
                     style={{
                         top: `${position.y}px`,
                         left: `${position.x}px`,
@@ -200,7 +213,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                 <button 
                     className="rounded-full bg-[#FFF0EC] -mt-10"
                     onClick={toggleDrawer(true)} 
-                    // onClick={() => setShowMessage(!showMessage)}
                   >
                     <LottieLoader 
                         animationData={animationData} 
@@ -222,8 +234,8 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                  <div ref={drawerRef}>
                     <Global
                         styles={{
-                        '.MuiDrawer-root > .MuiPaper-root': {
-                            zIndex: 30,
+                            '.MuiDrawer-root > .MuiPaper-root': {
+                            zIndex: 1,
                             height: `calc(50% - ${drawerBleeding}px)`,
                         },
                         }}
@@ -233,7 +245,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                         anchor="bottom"
                         open={open}
                         onOpen={toggleDrawer(true)}
-                        onClose={toggleDrawer(false)}
+                        onClose={handleDrawerClose}
                         swipeAreaWidth={drawerBleeding}
                         disableSwipeToOpen={false}
                         ModalProps={{
@@ -241,6 +253,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                         }}
                         sx={{
                             '& .MuiDrawer-paper': {
+                                backgroundColor: readerTheme === 'dark' ? 'black' : '#fff',
                                 height: {
                                     xs: '70%',    // Mobile height
                                     sm: '70%',    // Tablet height
@@ -255,7 +268,12 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                        {/* Puller */}
                         <Puller />
                        {/* Content */}
-                       <StyledBox>
+                       <StyledBox
+                         sx={{
+                            backgroundColor: readerTheme === 'dark' ? 'black' : '#fff',
+                            color: readerTheme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
+                        }}
+                       >
                 
                         <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5'>
                         <TabContext value={value}>
@@ -283,7 +301,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                             }}
                             >
                                 <Tab label="Image Studio" value="1" />
-                                <Tab label="Storyboard" value="2" />
+                                {/* <Tab label="Storyboard" value="2" /> */}
                             </TabList>
                         
                             <TabPanel value="1">
@@ -294,26 +312,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                                 />
 
                             </TabPanel>
-
-                            <TabPanel value="2">
-                                {/* Toonyz storyboard */}
-                             <div className="flex flex-col gap-4">
-                              <p className="text-base mt-1">                  
-                                    {phrase(dictionary, "moreToonyzStudio", language)}
-                              </p>
-                                <Link href="/studio/novel">
-                                    <Button 
-                                        sx={{ backgroundColor: '#D62A79', color: '#fff',  borderRadius: '100%', padding: '15px 20px', paddingLeft: '5px'}} 
-                                        className='bg-[#D62A79] text-white p-2 rounded-md ml-2 px-4'>
-                                         
-                                         {/* Toonyz Storyboard 가기 */}
-                                         {phrase(dictionary, "GotoonyzStoryboard", language)}
-                                         <ArrowRight size={16} className='text-white dark:text-white rounded-full ml-1' />
-                                    </Button>
-                                </Link>
-                             </div>
-                            </TabPanel>
-                            
                             </Box>
                         </TabContext>
 

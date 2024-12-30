@@ -83,14 +83,14 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
                <div className="relative flex flex-col gap-2 items-center justify-center list-none">
                
 
-                    <Button 
+                    {/* <Button 
                     color='gray' 
                     variant='outlined'
-                    className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
+                    className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'> */}
                         {/* +Follow */}
-                        <Plus size={10} />
+                        {/* <Plus size={10} />
                         <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
-                    </Button>
+                    </Button> */}
 
 
                     <Button 

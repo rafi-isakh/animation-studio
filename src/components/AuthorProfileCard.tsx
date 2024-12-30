@@ -44,14 +44,14 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
             { language === 'en' ? <>by{' '}</> : ''}
             {webtoon.user.nickname}
             {/* {webtoon.user.nickname && <p>by {webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>} */}
-            <Button 
+            {/* <Button 
             color='gray' 
             variant='outlined'
-            className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-md px-1 py-1 w-20 flex flex-row justify-center items-center gap-1'>
+            className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-md px-1 py-1 w-20 flex flex-row justify-center items-center gap-1'> */}
                 {/* +Follow */}
-                <Plus size={10} />
+                {/* <Plus size={10} />
                 <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
-            </Button>
+            </Button> */}
 
             <div className="flex flex-col gap-2 justify-center items-center">
                 <span className="text-[10px] uppercase"> Share </span>

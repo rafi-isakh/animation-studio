@@ -1,8 +1,8 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { useTheme } from './providers'
+import { useTheme, Theme } from './providers'
 
-export type ReaderTheme = 'dark' | 'light' | 'sepia'
+export type ReaderTheme = Theme 
 
 type ReaderThemeContextType = {
   readerTheme: ReaderTheme
@@ -12,32 +12,40 @@ type ReaderThemeContextType = {
 const ReaderThemeContext = createContext<ReaderThemeContextType | undefined>(undefined)
 
 export function ReaderThemeProvider({ children }: { children: React.ReactNode }) {
-  const [readerTheme, setReaderTheme] = useState<ReaderTheme>('light')
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
+  const [readerTheme, setReaderTheme] = useState<ReaderTheme>(theme)
 
+  // Sync with main theme initially and when it changes
   useEffect(() => {
-    // Check local storage or system preference on mount
     const savedReaderTheme = localStorage.getItem('readerTheme') as ReaderTheme
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     if (savedReaderTheme) {
-      toggleReaderTheme(savedReaderTheme)
-    } else if (systemPrefersDark) {
-      toggleReaderTheme('dark')
+      setReaderTheme(savedReaderTheme)
+    } else {
+      setReaderTheme(theme)
     }
-    return () => {
-      toggleTheme(theme)
-    }
-  }, [])
+  }, [theme])
 
+  // Handle theme changes and storage
+  const toggleReaderTheme = (newTheme: ReaderTheme) => {
+    setReaderTheme(newTheme)
+    localStorage.setItem('readerTheme', newTheme)
+    document.documentElement.classList.remove('light', 'dark', 'sepia')
+    document.documentElement.classList.add(newTheme)
+  }
+
+  // Apply theme class
   useEffect(() => {
-    // Update document class when theme changes
-    document.documentElement.className = readerTheme
-    localStorage.setItem('readerTheme', readerTheme)
+    document.documentElement.classList.remove('light', 'dark', 'sepia')
+    document.documentElement.classList.add(readerTheme)
   }, [readerTheme])
 
-  const toggleReaderTheme = (newReaderTheme: ReaderTheme) => {
-    setReaderTheme(newReaderTheme)
-  }
+  // Cleanup when unmounting
+  useEffect(() => {
+    return () => {
+      document.documentElement.classList.remove('light', 'dark', 'sepia')
+      document.documentElement.classList.add(theme)
+    }
+  }, [theme])
 
   return (
     <ReaderThemeContext.Provider value={{ readerTheme, toggleReaderTheme }}>

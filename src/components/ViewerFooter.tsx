@@ -114,12 +114,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
     return (
         <>
-            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 transition-transform duration-300 
-               ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-                {/* <div className='flex flex-row justify-center border-b py-3 md:hidden'>
-                    <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType='chapter' elementSubtype="title" classParams="text-[12px]" /> 
-                </div> */}
-                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-evenly mx-auto p-2">
+            <div className={`z-50 fixed w-full justify-center bg-white dark:bg-black text-black
+                             dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
+                             transition-transform duration-300 
+                             ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+
+                <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2">
                    
                    <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <div className='group hover:text-[#DB2777] flex flex-row'>
@@ -128,10 +128,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                             {phrase(dictionary, "prevChapter", language)}
                         </div>
                     </Link>
-                    {/* <Link href={`/view_webnovels?id=${webnovelId.toString()}`}>
-                        <p className='hover:text-pink-600'>{phrase(dictionary, "list", language)}</p></Link>
-                    <Link href={`/my_library`}>
-                        <p className='hover:text-pink-600'>{phrase(dictionary, "myLibrary", language)}</p></Link> */}
+                
                     <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
                         <p className='hover:text-[#DB2777] relative'>
                             <MessageCircle size={16} />
@@ -148,8 +145,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     </p>
                     </Link>
                     {/* view next and prev btn */}
-                   
-                    {/* <div className='border border-r-gray-300 py-2' /> */}
                     <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px]'>
                         <div className='group hover:text-[#DB2777] flex flex-row'>
                             {phrase(dictionary, "nextChapter", language)}
@@ -224,12 +219,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
-                             {/* <Link 
-                                href='' 
-                                onClick={() => toggleTheme('gray')}
-                                className='text-[10px] bg-gray-500 text-gray-400 rounded-full border px-2 py-1 self-center text-center'>
-                                    Aa
-                                </Link> */}
                            </div>
                         </div>
 

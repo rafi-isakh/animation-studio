@@ -30,7 +30,7 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const { language, dictionary } = useLanguage();
-    const currentPageUrl = window.location.href;
+    const [currentPageUrl, setCurrentPageUrl] = useState('');
 
     const toggleUserDropdown = () => {
         setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -45,11 +45,12 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
             {webtoon.user.nickname}
             {/* {webtoon.user.nickname && <p>by {webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>} */}
             <Button 
-                variant="outlined" 
-                className="flex flex-row justify-center items-center gap-1 border-2
-                         border-gray-500 bg-white text-black px-2 py-1 rounded-md 
-                         text-[10px] hover:opacity-80 transition duration-150 ease-in-out">
-                <Plus size={10} /> Follow
+            color='gray' 
+            variant='outlined'
+            className='text-black dark:text-white border-2 bg-white border-gray-300 dark:border-white dark:bg-black rounded-md px-1 py-1 w-20 flex flex-row justify-center items-center gap-1'>
+                {/* +Follow */}
+                <Plus size={10} />
+                <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
             </Button>
 
             <div className="flex flex-col gap-2 justify-center items-center">
@@ -109,3 +110,5 @@ export default function AuthorProfileCard({ webtoon }: { webtoon: Webtoon }) {
         </div>
     )
 }
+
+

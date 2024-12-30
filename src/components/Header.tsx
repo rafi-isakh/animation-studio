@@ -47,6 +47,8 @@ export const Header = () => {
     const languageMenuRef = useRef<HTMLDivElement>(null);
     const { dictionary, language, setLanguage } = useLanguage();
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
+    const isIOS = useMediaQuery({ query: '(device-type: ios)' });
+    const isAndroid = useMediaQuery({ query: '(device-type: android)' });
     const [logoWidth, setLogoWidth] = useState(141);
     const [logoHeight, setLogoHeight] = useState(32);
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
@@ -451,10 +453,10 @@ export const Header = () => {
                                                                     {phrase(dictionary, "myLibrary", language)}
                                                                 </Link>
                                                             </li>
-                                                            <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
+                                                            {!isIOS && !isAndroid && <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
                                                                 <Sparkles size={18} className='dark:text-white text-black ' />
                                                                 <ChargeStarsTemporary />
-                                                            </li>
+                                                            </li>}
                                                             <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                                 <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
                                                                     <Video size={20} className='dark:text-white text-black' />

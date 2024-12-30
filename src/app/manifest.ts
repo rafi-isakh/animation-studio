@@ -19,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
             "type": "image/png"
         }
     ],
-    "start_url": "https://toonyz.com",
+    "start_url": "/",
     "display": "standalone",
     "orientation": "portrait"
     }

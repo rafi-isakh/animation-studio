@@ -63,8 +63,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
                 {largeGap()}
-                <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                {largeGap()}
                 <PromotionBannerComponent />
             </div>
 

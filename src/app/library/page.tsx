@@ -21,7 +21,9 @@ const Library = () => {
             const data = await response.json();
             setLibrary(data);
         }
-        fetchData();
+        if (email) {
+            fetchData();
+        }
     }, [email])
 
     return (

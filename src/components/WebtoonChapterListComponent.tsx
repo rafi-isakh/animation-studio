@@ -74,7 +74,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
     };
 
     return (
-        <div className="flex flex-col gap-2 mt-10">  {/* Top tab margin 10 */}
+        <div className="flex flex-col flex-1 flex-shrink-0  w-full">  {/* Top tab margin 10 */}
             <TabContext value={tabValue} >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
                     <div className="flex flex-row justify-between items-center">
@@ -124,19 +124,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]
                                 md:w-auto sm:w-[10px]
                                 " />
-                           <Tab label={
-                             <>
-                                <span className="flex-row items-center gap-1 hidden md:flex">
-                                   <MessageCircle size={16} />   {phrase(dictionary, "comments", language)}
-                                </span> 
-                                <span className="flex flex-row items-center gap-1 md:hidden">
-                                   <MessageCircle size={16} />  
-                                </span>
-                                </>
-                            }
-                                value="3" 
-                                className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
-
+                          
                         </TabList>
                         <div className='self-center text-sm'>
                             <Button
@@ -163,37 +151,24 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                 </Box>
 
                 <TabPanel value="1">
-                    <div className="flex flex-row justify-between gap-3">
-                        <div className="flex flex-col w-full">
-                            <WebtoonChapterListSubcomponent webtoon={webtoon} slug={slug} coverArt={coverArt} sortToggle={isSortedByLatest} />
+                    <div className="flex flex-col">
                         
-                        <div className="flex flex-col w-full md:hidden mt-10">
-                           <h1 className="text-sm font-bold">
-                                {/* share author's card for mobile*/}
-                                {phrase(dictionary, "share", language)}
-                            </h1>
-                            <AuthorProfileCardLandscape webtoon={webtoon} />
-                        </div>
-
-                        <div className="flex flex-col w-full md:hidden mt-10">
-                           <h1 className="text-sm font-bold">
-                                {/* You might like this : recommend webtoons for mobile  */}
-                                {phrase(dictionary, "youMightLikeThis", language)}
-                            </h1>
-                             <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
-                        </div>
+                        <div className="flex flex-col w-full gap-3">
+                         <WebtoonChapterListSubcomponent webtoon={webtoon} slug={slug} coverArt={coverArt} sortToggle={isSortedByLatest} />
                         
-                        </div>
-                        <div className="flex-col w-1/2 md:flex hidden px-5">
-                            <h1 className="text-sm font-bold">
+                        <h1 className="text-base font-bold">
                                 {/* You might like this : recommend webtoons for desktop  */}
                                 {phrase(dictionary, "youMightLikeThis", language)}
-                            </h1>
+                        </h1>
+
+                        <div className="flex flex-col ">
                             <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
-                             <div className="h-[40px]" />
-                             {/* gap between webtoon recommendations and author profile card */}
-                            <AuthorProfileCard webtoon={webtoon} />
                         </div>
+                    
+                        {/* Comments list */}
+                        {webtoon && <ListOfChapterComments content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false}/>}
+                        </div>
+                      
                     </div>
                 </TabPanel>
                 <TabPanel value="2">
@@ -287,10 +262,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                     </div>
 
                 </TabPanel>
-                <TabPanel value="3">
-                     {/* Comments list */}
-                     {webtoon && <ListOfChapterComments content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false}/>}
-                </TabPanel>
+
             </TabContext>
         </div>
     )

@@ -60,10 +60,11 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
 
 
     return (
-        <div className="relative flex flex-col md:h-[439px] h-auto justify-center items-center">
+        <div className="relative md:w-[300px] h-screen justify-start self-start">
             {/* Blurred background */}
             <div
-                className="absolute inset-0 bg-cover bg-center opacity-10 backdrop-blur-[300px]"
+                className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl"
+                //   bg-[#929292]/10
                 style={{
                     backgroundImage: `url(${coverArt})`,
                     backgroundSize: 'cover',
@@ -72,14 +73,22 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
             />
 
             {/* Existing content container */}
-            <div className="relative z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[439px] h-auto space-y-1 bg-[#929292]/10 w-full">
-
-                <div className="flex flex-col gap-2 md:p-10 p-5 w-[360px] md:w-[450px]">
-                    <div className="md:px-0 px-0 space-y-2">
-                        <span className="text-sm text-gray-400">{phrase(dictionary, webtoon.genre, language)}</span>
-                        <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold" />
-                        <p>{webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>
-                        <ul className="flex flex-row gap-2">
+            <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full h-screen rounded-xl">
+                <div className="flex flex-col space-y-2">
+                    <div className="md:px-4 p-2">
+                        <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto">
+                            <Image
+                                src={coverArt}
+                                alt={webtoon.title}
+                                width={270}
+                                height={350}
+                                className="object-cover w-full h-full rounded-xl"
+                            />
+                        </div>
+                        {/* <span className="text-sm text-gray-400">{phrase(dictionary, webtoon.genre, language)}</span> */}
+                        <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="title" classParams="text-2xl font-bold self-center text-center" />
+                        <p className="text-center">{webtoon.user.nickname === 'Anonymous' ? '' : webtoon.user.nickname}</p>
+                        <ul className="flex flex-row gap-2 justify-center items-center">
                             {
                                 webtoon.genre && (
                                     <li className="text-sm text-gray-500 flex items-center" >
@@ -99,24 +108,23 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                             }
                             {/* 무료/프리미엄 */}
                             <li className="text-sm text-gray-500">
-
                                 {phrase(dictionary, "premium", language)}
                             </li>
                         </ul>
 
                         <ul className="flex flex-row gap-2 py-2">
                             {/* tags padding 2 */}
-                            {
+                            {/* {
                                 webtoon.genre && (
                                     <li className="text-sm text-black dark:text-white rounded-md px-2 border border-gray-500 hover:bg-[#8A2BE2] transition duration-150 ease-in-out">
                                         <DictionaryPhrase phraseVar={webtoon.genre.toLowerCase()} />
                                     </li>
                                 )
-                            }
-                            {tags.map((tag: string, index: number) => (
+                            } */}
+                            {/* {tags.map((tag: string, index: number) => (
                                 <li key={`tag-${index}`}
                                     className="text-sm text-black rounded-md px-2 border border-gray-500 hover:bg-[#8A2BE2] transition duration-150 ease-in-out">#{tag}</li>
-                            ))}
+                            ))} */}
                             {/* 연령별 태그 추가 필요 
                                <li className="text-sm text-black rounded-md bg-green-400 px-2 transition duration-150 ease-in-out self-center text-center">13+</li> */}
                         </ul>
@@ -142,7 +150,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                 }}
                                 variant="contained"
                                 disableElevation
-                                className="bg-gray-500 hover:bg-[#8A2BE2] text-white rounded-md md:w-[200px] w-full md:py-2 py-1 transition duration-150 ease-in-out">
+                                className="bg-gray-500 hover:bg-[#8A2BE2] text-white rounded-md w-full md:py-2 py-1 transition duration-150 ease-in-out">
                                 <Link
                                     href={`/webtoons/${webtoon.id}/001`}
                                     className="text-center flex flex-row items-center"
@@ -222,15 +230,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                     </div>
                 </div>
 
-                <div className="w-[270px] h-auto min-h-[350px] order-first md:order-last md:pt-0 pt-5">
-                    <Image
-                        src={coverArt}
-                        alt={webtoon.title}
-                        width={270}
-                        height={350}
-                        className="object-cover w-full h-full"
-                    />
-                </div>
             </div>
 
         </div>

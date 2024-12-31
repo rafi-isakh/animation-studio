@@ -62,7 +62,6 @@ export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ content,
                     </div>
                 </div>
 
-
                 {/* Render replies */}
 
                 {comment.replies?.map((reply, index) => (

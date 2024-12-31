@@ -17,7 +17,7 @@ const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }:
 
   return (
     <div className="w-full">
-      <div className="overflow-y-auto border border-gray-300 rounded-md p-2">
+      <div className="overflow-y-auto rounded-md">
         {sortedChapters.map((chapter: WebtoonChapter, index: number) => (
           <Link
             href={`/webtoons/${slug}/${chapter.directory}`}
@@ -25,7 +25,7 @@ const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }:
             className={`cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 ${index >= 10 && !showMoreChapters ? 'hidden' : ''
               }`}
           >
-            <div className="flex flex-row justify-between gap-3 p-3">
+            <div className="flex flex-row justify-between">
               <div className="flex flex-row gap-3">
                 <Image
                   src={coverArt}
@@ -45,7 +45,7 @@ const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }:
 
               <div className="text-sm text-center self-center">
                 {/* <LockOpen size={16} className="text-gray-200" /> */}
-                <span className="text-gray-600 text-[10px]">
+                <span className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-2">
                   {/* Free */}
                   {phrase(dictionary, "readingForFree", language)}
                 </span>
@@ -55,10 +55,10 @@ const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }:
         ))}
       </div>
       {/* <button
-        className="mt-4 px-4 py-2 bg-whit text-black rounded"
-        onClick={toggleChapters}
+        className="mt-4 w-full hover:bg-gray-400 text-black rounded-xl p-2 text-sm"
+        onClick={() => setShowMoreChapters(!showMoreChapters)}
       >
-        {showMoreChapters ? 'Show Less' : 'Read More'}
+        더보기
       </button> */}
     </div>
   );

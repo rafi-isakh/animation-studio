@@ -37,8 +37,10 @@ import { createEmailHash } from '@/utils/cryptography';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
 import ReportButton from '@/components/ReportButton';
-
-
+import BlockButton from '@/components/BlockButton';
+import dynamic from 'next/dynamic';
+import animationData from '@/assets/N_logo_loader.json';
+import UserBlockedComponent from '@/components/UserBlockedComponent';
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
@@ -55,7 +57,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const { email } = useUser();
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
-    const [isPremium, setIsPremium] = useState<boolean>(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
@@ -63,11 +64,25 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     // const userMenuRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [reportMessage, setReportMessage] = useState('');
-    const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
-    useEffect(() => {
+    const [blockedUsers, setBlockedUsers] = useState<number[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
 
+    useEffect(() => {
+        async function getBlockedUsers() {
+            setLoading(true);
+            const response = await fetch('/api/get_blocked_users');
+            if (!response.ok) {
+                return null;
+            }
+            const data = await response.json();
+            setBlockedUsers(data.blockedUsers.map((user: User) => user.id));
+            setLoading(false);
+        }
+        getBlockedUsers();
+    }, [refreshBlockedUsers]);
+
+    useEffect(() => {
         if (introRef.current) {
             const width = introRef.current.offsetWidth + 1 + 'px';
             setIntroWidth(width);
@@ -79,6 +94,13 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             novelsRef.current.style.transform = `translateX(-${introWidth}px)`
         }
     }, [introWidth])
+
+
+    // Import the LottieLoader dynamically
+    const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+        ssr: false,
+    });
+
 
     // implementing utils function
     const isProfileOwner = (): boolean => {
@@ -205,6 +227,15 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const toggleShareDropdown = () => {
         setIsShareDropdownOpen(prev => !prev);
     }
+    if (loading) {
+        return <div className="loader-container">
+            <LottieLoader animationData={animationData} />
+        </div>
+    }
+
+    if (blockedUsers.includes(user.id)) {
+        return <UserBlockedComponent id={user.id.toString()} />
+    }
 
     return (
         <div className='max-w-screen-lg mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
@@ -251,7 +282,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                         <svg
                                             onClick={handleProfilePictureUpload}
                                             className="w-[80px] h-[80px] text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
                                         </svg>
                                     </div>
                                 }
@@ -339,8 +370,8 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
                             <div className='flex flex-row gap-4 text-gray-600'>
                                 {/* <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'> */}
-                                    {/* +Follow */}
-                                    {/* <Plus size={10} />
+                                {/* +Follow */}
+                                {/* <Plus size={10} />
                                     <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
                                 </Button> */}
                                 <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
@@ -349,6 +380,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
                                 <ReportButton user={user} />
+                                <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />
                                 {isShareDropdownOpen && (
                                     <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
                                         <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>

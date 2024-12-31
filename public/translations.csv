@@ -196,6 +196,9 @@ report,신고,,Report
 wouldYouLikeToReport,,신고하시겠습니까?,,Would you like to report this user?
 reportReason,신고 사유,,Report Reason
 reportSuccess,신고가 접수되었습니다.,,Report has been submitted.
+block,차단,,Block
+wouldYouLikeToBlock,차단하시겠습니까?,,Would you like to block this user?
+blockSuccess,차단되었습니다.,,User has been blocked.
 startToRead,읽어 보기,,Read First Episode
 unlockNextEpisode,유료 다음 화 보기,,View Author's Other Works 
 viewAnotherWorks,다른 작품 보기,,View More Works by the Author 
@@ -230,3 +233,7 @@ writeYourStory,새 웹소설 쓰기,,Write your webnovel
 discoverStories,작품 둘러보기,,Browse webnovels
 noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
 noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels
+userBlocked,차단되었습니다,,User blocked
+userBlocked_subtitle,이 사용자는 차단되었습니다.,,You have blocked this user.
+unblock,차단 해제,,Unblock
+

@@ -18,17 +18,12 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [dictionary, setDictionary] = useState<Dictionary>({});
   const [isRtl, setIsRtl] = useState("ltr");
 
-useEffect(() => {
-
+  useEffect(() => {
     const fetchPhrases = async () => {
       const dictionary = await phrases();
       setDictionary(dictionary);
     }
     fetchPhrases();
-  }, [])
-
-
-  useEffect(() => {
     setLanguage(localStorage.getItem('language') as Language || 'ko');
     localStorage.setItem('language', language);
     if (language == 'ar') {

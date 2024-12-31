@@ -453,10 +453,6 @@ export const Header = () => {
                                                                     {phrase(dictionary, "myLibrary", language)}
                                                                 </Link>
                                                             </li>
-                                                            {!isIOS && !isAndroid && <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
-                                                                <Sparkles size={18} className='dark:text-white text-black ' />
-                                                                <ChargeStarsTemporary />
-                                                            </li>}
                                                             <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                                 <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
                                                                     <Video size={20} className='dark:text-white text-black' />

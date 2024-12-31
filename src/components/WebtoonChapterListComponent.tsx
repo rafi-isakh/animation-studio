@@ -83,17 +83,20 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                             aria-label="lab API tabs"
                             sx={{
                                 '& .MuiTab-root': {
+                                    margin: '0 10px',
+                                    padding: '0 1px',
+                                    border: '1px solid #8A2BE2',
+                                    borderRadius: '20px',
                                     color: 'gray', // Default tab color
                                     '&.Mui-selected': {
                                         color: '#8A2BE2', // Color when tab is selected
                                     },
                                 },
                                 '& .MuiTabs-indicator': {
-                                    backgroundColor: '#8A2BE2', // Indicator color
+                                    backgroundColor: 'transparent', // Indicator color
                                 }
                             }}
-                            className={`first-line:dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]
-                                     `}
+                            className={`first-line:dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]`}
                              >
                             <Tab 
                                label={

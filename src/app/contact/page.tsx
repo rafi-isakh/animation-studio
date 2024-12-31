@@ -142,18 +142,18 @@ export default function Contact() {
         <div className="flex flex-col relative max-w-screen-lg group px-4 justify-center items-center mx-auto md:mb-6 mb-6">
            
            <div className="flex flex-col justify-start items-start mt-10 gap-4">
-             <h1 className="text-5xl font-semibold items-start text-left py-10">Contact Us</h1>
-
-                <p className="text-sm text-gray-600">Contact e-mail {' '}
+             <h1 className="text-5xl font-semibold items-start text-left">Contact Us</h1>
+                <br/>
+                <p className="text-sm text-gray-600">Contact us at {' '}
                 <span className="text-black dark:text-white font-semibold">hello@stelland.io</span> 
-                 {' '}for general help, questions, or feedback. we are always here to help you.
+                 {' '}for general help, questions, or feedback. We are always here to help you.
                 </p>
              
                 <p className="text-sm text-gray-600">If you have a question about Toonyz, please contact our customer support team at 
                 <span className="text-black dark:text-white font-semibold">{' '}dami@stelland.io</span> 
                 </p>
                
-                <p className="text-sm text-gray-600">We are always welcome to hear from you. </p>
+                <p className="text-sm text-gray-600">We are always happy to hear from you. </p>
                 <p className="text-sm text-gray-600">Please contact us at
                 <span className="text-black dark:text-white font-semibold">{' '}jongminbaek@stelland.io</span> 
                 {' '}for IP, copyright, or other issues.
@@ -161,15 +161,13 @@ export default function Contact() {
               
                 <FloatingMenu >
                 <h1 className="text-2xl font-semibold items-start text-left pt-10">Meet Toonyz</h1>
+                <br/>
 
                 <p className="text-sm text-gray-600 leading-8">
-
-                Toonyz is the  <span className="text-black dark:text-white font-semibold">{' '}#globalstoryplatform.</span> <br/>
-                Thanks to our translation solution powered by a state-of-the-art LLM engine, <br/>
-                we are free from language barriers and ready to embark on a global journey. <br/>
+                Toonyz is the  <span className="text-black dark:text-white font-semibold">{' '}#GlobalStoryPlatform.</span> <br/>
+                With our translation solution powered by a state-of-the-art LLM engine, <br/>
+                We are free from language barriers and ready to embark on a global journey with you. <br/>
                 Join us and start your adventure today!
-
-
                 </p>
                 </FloatingMenu> 
                 <div className="flex flex-col gap-1 mt-10">

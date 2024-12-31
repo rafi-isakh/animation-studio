@@ -1,6 +1,5 @@
 'use client';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
 
 // Import the LottieLoader dynamically
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {

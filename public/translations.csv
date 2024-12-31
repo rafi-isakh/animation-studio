@@ -233,3 +233,7 @@ writeYourStory,새 웹소설 쓰기,,Write your webnovel
 discoverStories,작품 둘러보기,,Browse webnovels
 noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
 noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels
+userBlocked,차단되었습니다,,User blocked
+userBlocked_subtitle,이 사용자는 차단되었습니다.,,You have blocked this user.
+unblock,차단 해제,,Unblock
+

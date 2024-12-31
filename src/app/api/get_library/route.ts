@@ -39,10 +39,9 @@ export async function GET(req: NextRequest, res: NextResponse) {
         });
     }
 
+    const data = await response.json();
     return NextResponse.json({
-        message: "Get library success",
-    }, {
-        status: 200
+        library: data
     });
 }
 

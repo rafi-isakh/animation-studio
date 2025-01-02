@@ -7,6 +7,7 @@ import { useModalStyle } from "@/styles/ModalStyles"
 import { Box } from "@mui/material"
 import { Button } from "@mui/material"
 import { Modal } from "@mui/material"
+import { MessageCircle } from "lucide-react"
 
 export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Webtoon, episode: string }) {
     const [isVisible, setIsVisible] = useState(true)
@@ -71,18 +72,36 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
         }
     }
 
+    const getCurrentChapterId = (episode: string) => {
+        return sortedChapters.find((ch: WebtoonChapter) => ch.directory === episode)?.id;
+    }
+
+    const getCurrentChapterCommentsLength = (episode: string) => {
+        return sortedChapters.find((ch: WebtoonChapter) => ch.directory === episode)?.comments?.length;
+    }
+
     const prevChapterLink = `/webtoons/${webtoon.id}/${getPrevChapterId(episode)}`
     const nextChapterLink = `/webtoons/${webtoon.id}/${getNextChapterId(episode)}`
 
     return (
         <>
-            <div className={`z-50 fixed w-full justify-center bg-white text-black dark:text-black border-t bottom-0 left-0 pt-2 pb-2 transition-transform duration-300"
-            ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-                <div className="max-w-lg text-black dark:text-black flex flex-wrap items-center justify-evenly mx-auto">
+            <div className={`z-50 fixed w-full justify-center
+                             bg-white dark:bg-black text-black
+                             dark:text-white border-t bottom-0 left-0 pt-2 pb-2 
+                             transition-transform duration-300"
+                             ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+                <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
                         <p className='group hover:text-pink-600'>
                             <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600 mr-4"></i>
                             {<DictionaryPhrase phraseVar="prevChapter" />}
+                        </p>
+                    </Link>
+                    <Link href={`/comments?chapter_id=${getCurrentChapterId(episode)?.toString() ?? ''}&webnovel_or_webtoon=false`}>
+                        {/*webnovel_or_webtoon=false means webtoon*/}
+                        <p className='hover:text-[#DB2777] relative'>
+                            <MessageCircle size={16} />
+                            <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{getCurrentChapterCommentsLength(episode)}</span>
                         </p>
                     </Link>
                     <Link href={nextChapterLink} onClick={handleNextChapter}>

@@ -30,6 +30,7 @@ import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import '@/styles/AddWebnovelComponent.css';
 import TermsOfServiceModal from '@/components/TermsOfServiceModal';
 import CoverArtModal from '@/components/CoverArtModal';
+import CoverArtPreview from './CoverArtPreview';
 
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
@@ -111,11 +112,15 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
         }
     };
 
+    const setCoverArtFile = (file: File) => {
+        setCoverArt(file);
+        setCoverArtPreview(URL.createObjectURL(file));
+    }
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setCoverArt(file);
-            setCoverArtPreview(URL.createObjectURL(file));
+            setCoverArtFile(file);
         }
     };
 
@@ -131,7 +136,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
         document.getElementById('coverArtFile')?.click();
     }
 
-    const handleCoverArtUploadModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleCoverArtUploadModal = (e: React.MouseEvent) => {
         e.preventDefault();
         setShowCoverArtModal(true);
     }
@@ -172,25 +177,11 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     title={
                                     <div className='flex flex-col gap-2 space-y-2'>
                                         <p className='text-sm font-bold'>
-                                            {/* The cover art must be in a 5:3 aspect ratio. */}
                                             {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
                                         </p>
                                         <p className='text-sm'>
-                                            {/* It ideally sized at 1500 x 900 pixels, must be in PNG, GIF, or JPG format, smaller than 2MB. */}
                                             {phrase(dictionary, "coverArtSize", language)}
                                         </p>
-                                        <p className='text-sm font-bold'>
-                                            {/* Do you need a guide line for cover art? */}
-                                            {phrase(dictionary, "doYouNeedAGuideLineForCoverArt", language)}
-                                        </p>
-                                        <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                        <Button sx={{backgroundColor: '#eee', color: 'black' }} className='text-black bg-gray-300 rounded-sm px-2 text-sm w-32'>
-                                            <Link href="">
-                                                {/* Learn more */}
-                                                {phrase(dictionary, "learnMore", language)}
-                                            </Link>
-                                        </Button>
-                                        </Tooltip>
                                     </div>
                                     }
                                     >
@@ -199,29 +190,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                              </div>
                             </label>
                             <div className='flex flex-col gap-2 mt-2'>
-                                <Link href="#" className=''>
-                                {coverArtPreview ?
-                                    <div className="">
-                                        <a onClick={handleCoverArtUpload} >
-                                            <Image 
-                                                src={coverArtPreview} 
-                                                alt="Cover Art Preview" 
-                                                className="max-w-xs rounded" 
-                                                width={200} height={120} 
-                                                />
-                                        </a>
-                                    </div> :
-                                    <div className=''>
-                                        <Image
-                                            src='/coverArt_thumbnail.png'
-                                            alt='Cover Art Thubmnail'
-                                            onClick={handleCoverArtUpload}
-                                            className="max-w-xs rounded"
-                                            width={198} height={322}
-                                           />
-                                    </div>
-                                }
-                                </Link>
+                                <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal}/>
                                 <Button 
                                     sx={{
                                         backgroundColor: '#DB2777',
@@ -236,12 +205,14 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     variant='outlined' 
                                     color='gray' 
                                     className='bg-[#DB2777] dark:bg-white dark:text-black md:self-start self-center'>
-                                Upload Cover Art
+                                {/* Upload Cover Art */}
+                                {phrase(dictionary, "uploadCoverArt", language)}
                                 </Button>
                             </div>
                             </>
                             <input
                                 type="file"
+                                accept="image/*"
                                 className="hidden"
                                 id='coverArtFile'
                                 onChange={handleFileChange}
@@ -401,6 +372,11 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                         </Modal>
                         {/* modal for cover art upload */}
                         <CoverArtModal 
+                            coverArt={coverArt}
+                            setCoverArtFile={setCoverArtFile}
+                            handleCoverArtUploadModal={handleCoverArtUploadModal}
+                            handleUploadFile={handleCoverArtUpload}
+                            handleFileChange={handleFileChange}
                             showCoverArtModal={showCoverArtModal}
                             setShowCoverArtModal={setShowCoverArtModal}
                         />

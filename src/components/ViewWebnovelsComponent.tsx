@@ -185,17 +185,17 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                                         color='gray'
                                                         variant='outlined'
                                                         onClick={handleNewChapter}
-                                                        className='px-4 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                                        className='px-4 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
                                                     >
-                                                        {isMediumScreen ? <>{phrase(dictionary, "uploadNewChapter", language)}</> : (<> <PenLine className='hover:text-pink-600' size={18} /> </>)}
+                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
                                                     </NoCapsButton>
                                                     <NoCapsButton
                                                         color='gray'
                                                         variant='outlined'
                                                         onClick={() => setShowDeleteModal(true)}
-                                                        className='px-6 flex items-center justify-center hover:border-pink-600 hover:text-pink-600'
+                                                        className='px-6 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
                                                     >
-                                                        {isMediumScreen ? <>{phrase(dictionary, "deleteWebnovel", language)}</> : (<> <Trash className='hover:text-pink-600' size={18} /> </>)}
+                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
                                                     </NoCapsButton>
                                                 </div>
                                             }
@@ -224,7 +224,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 </TabPanel>
                                 <TabPanel value="2">
                                     {/* Comments list */}
-                                    {theWebnovel && <ListOfChapterComments webnovel={theWebnovel} />}
+                                    {theWebnovel && <ListOfChapterComments content={theWebnovel} chapter={theWebnovel.chapters[0]} webnovelOrWebtoon={true}/>}
                                 </TabPanel>
                             </TabContext>
 
@@ -233,7 +233,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
                         <Box sx={useModalStyle}>
                             <div className='flex flex-col space-y-4 items-center justify-center'>
-                                <p className='text-lg font-bold text-black dark:text-white'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
                                 <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
                                 <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                             </div>

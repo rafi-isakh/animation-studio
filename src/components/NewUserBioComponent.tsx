@@ -3,6 +3,7 @@
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
+import '@/styles/new_user.css'
 
 const NewUserBioComponent = () => {
     const { dictionary, language } = useLanguage();
@@ -20,14 +21,14 @@ const NewUserBioComponent = () => {
     }
     
     return (
-        <div className='w-full'>
+        <div className='w-full text-black dark:text-black'>
             <textarea
                 placeholder={phrase(dictionary, "intro", language)}
                 name="bio"
                 rows={6}
                 value={content}
                 onChange={(e) => setContent(trim(e.target.value))}
-                className='input rounded-xl w-full border border-gray-300'
+                className='input rounded-xl w-full border border-gray-300 text-black dark:text-black'
             />
         </div>
 

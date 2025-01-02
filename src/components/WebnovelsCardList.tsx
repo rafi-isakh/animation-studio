@@ -35,7 +35,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                     {/* Desktop layout with fixed 6 cards */}
                     <div 
                         ref={scrollRef}
-                        className="hidden md:grid grid-cols-6 gap-4 overflow-x-auto no-scrollbar"
+                        className="hidden md:grid grid-cols-6 gap-2 overflow-x-auto no-scrollbar"
                     > 
                         {webnovels.map((item, index) => (
                             <div 
@@ -48,7 +48,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                     </div>
 
                     {/* Mobile horizontal scroll */}
-                    <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-4">
+                    <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-2">
                         {webnovels.map((item, index) => (
                             <div key={item.id || index} className="flex-none">
                                 {renderItem(item, index)}

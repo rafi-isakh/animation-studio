@@ -70,7 +70,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const chapter = {
       episode_number: i,
       directory: i.toString().padStart(3, '0'),
-      webtoon_id: data["id"]
+      webtoon_id: data["id"],
+      title: "Episode " + i,
     }
     chapters.push(chapter)
   }

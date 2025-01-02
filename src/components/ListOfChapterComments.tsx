@@ -1,25 +1,40 @@
 'use client'
-import { Webnovel, Comment as CommentType, Chapter } from "@/components/Types";
+import { Webnovel, Comment as CommentType, Chapter, Webtoon, WebtoonChapter } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import moment from 'moment';
 import { FC, useEffect, useState } from "react";
+import { ElementType } from "@/components/Types";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 
 interface ListOfChapterCommentsProps {
-    webnovel: Webnovel;
+    content: Webnovel | Webtoon;
+    chapter: Chapter | WebtoonChapter;
+    webnovelOrWebtoon: boolean;
 }
 
-export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ webnovel }) => {
+export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ content, chapter, webnovelOrWebtoon }) => {
     const { dictionary, language } = useLanguage();
     const [key, setKey] = useState(0);
+    const [otherTranslationType, setOtherTranslationType] = useState<ElementType>('chapter' as ElementType);
+    useEffect(() => {
+        console.log("content", content)
+        if (webnovelOrWebtoon) {
+            setOtherTranslationType('chapter' as ElementType);
+            console.log("setting other translation type to chapter")
+        }
+        else {
+            setOtherTranslationType('webtoon_chapter' as ElementType);
+            console.log("setting other translation type to webtoon_chapter")
+        }
+    }, [content])
 
     useEffect(() => {
         setKey(prev => prev + 1);
     }, [language])
 
     // Sort chapters by creation date if needed
-    const sortedChapters = [...webnovel.chapters].sort((a, b) =>
+    const sortedChapters = [...(content?.chapters || [])].sort((a, b) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
 
@@ -80,7 +95,7 @@ export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ webnovel
                 sortedChapters.map((chapter, index) => (
                     <div key={chapter.id} className="border rounded-lg p-4 mb-4">
                         <h3 className="text-sm font-semibold mb-4 border-b pb-4 flex flex-row justify-between" >
-                            {phrase(dictionary, "comments", language)} <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
+                            {phrase(dictionary, "comments", language)} <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType={otherTranslationType} />
                         </h3>
                         {(!chapter.comments || chapter.comments.length === 0) ? (
                             <p className="text-gray-500 text-sm text-center py-8 ">

@@ -16,43 +16,45 @@ import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
+
+interface PaddingConfig {
+    desktop?: string;
+    mobile?: string;
+}
+
 const CarouselComponentReactSlick = ({ 
-    searchParams, 
-    webnovels, 
     items,
     slidesToShow = 3,
     indicator = true,
-    centerPadding = '0px'
-}: { searchParams: 
-    { [key: string]: string | string[] | undefined }, 
+    centerPadding = { desktop: '20px', mobile: '10px' }  
+}: {
     items: SlickCarouselItem[], 
-    webnovels: Webnovel[], 
     slidesToShow: number,
     indicator: boolean,
-    centerPadding: string
+    centerPadding?: string | PaddingConfig
 }) => {
 
-    const [key1, setKey1] = useState(0);
-    const [key2, setKey2] = useState(1000);
-    const [key3, setKey3] = useState(2000);
-    const [key4, setKey4] = useState(3000);
-    const [key5, setKey5] = useState(4000);
-    const [key6, setKey6] = useState(5000);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [nextIndex, setNextIndex] = useState(1);
-    const router = useRouter();
     const isMediumScreen = useMediaQuery('(min-width:768px)')
 
     const { language, dictionary } = useLanguage();
 
-    useEffect(() => {
-        setKey1(prevKey => prevKey + 1);
-        setKey2(prevKey => prevKey + 1);
-        setKey3(prevKey => prevKey + 1);
-        setKey4(prevKey => prevKey + 1);
-        setKey5(prevKey => prevKey + 1);
-        setKey6(prevKey => prevKey + 1);
-    }, [language])
+
+    const getCenterPadding = (padding?: string | PaddingConfig) => {
+        if (typeof window === 'undefined') return '0px';
+
+        // If padding is a string, use it for both desktop and mobile
+        if (typeof padding === 'string') {
+            return padding;
+        }
+
+        // If padding is an object with desktop/mobile values
+        const paddingConfig = padding as PaddingConfig;
+        return isMediumScreen 
+            ? (paddingConfig?.desktop || '20px')
+            : (paddingConfig?.mobile || '10px');
+    };
 
     function SampleNextArrow(props: any) {
         const { onClick } = props;
@@ -139,7 +141,8 @@ const CarouselComponentReactSlick = ({
         autoplay: true,
         className: "center",
         centerMode: true,
-        centerPadding: centerPadding,
+        centerPadding: getCenterPadding(centerPadding),
+        spacing: 0, 
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         beforeChange: (current: number, next: number) => {
@@ -171,13 +174,13 @@ const CarouselComponentReactSlick = ({
                 <Slider {...settings}>
                     {items.map((item, index) => (
                           <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative h-[380px] mx-auto">
+                            <div className="relative h-[380px]">
                             {/*  */}
                                 <Link href={getHref(index)}>
-                                  <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px] ">
+                                  <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px]">
                                     {/* max-w-screen-lg */}
                                     <Image 
-                                        className="object-cover object-center transition-all duration-300" 
+                                        className="object-cover object-center transition-all duration-300 rounded-md" 
                                         src={item.image} 
                                         fill
                                         alt={item.image}
@@ -185,7 +188,7 @@ const CarouselComponentReactSlick = ({
                                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                     />
                                      {/* Overlay */}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-sm overflow-hidden ">
+                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-md overflow-hidden ">
                                         <div className="flex flex-col justify-end ">
                                     
                                             <OtherTranslateComponent
@@ -255,14 +258,12 @@ const CarouselComponentReactSlick = ({
             </div>
             <style jsx global>
             {`
+                 .slick-slide {
+                    padding: 0 8px;  
+                  }   
 
-                  .slider-container  {
-                    
-                  }
                   .carousel-slide {
                       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-                      border-radius: 0.25rem;
-                   
                   }
 
                   .slide-content {
@@ -270,27 +271,27 @@ const CarouselComponentReactSlick = ({
                   }
 
                   .slide-content img {
-                       border-radius: 0.25rem;
-                       margin-right: 1rem;
+                    margin-right: 0;
                   }
                    .active-slide img {
-                       border-radius: 0.25rem !important;
+                     
                    }
 
                   .active-slide {        
                       opacity: 1;
                       z-index: 2;
-                      border-radius: 0.25rem;
+
                   }
 
                   .inactive-slide {
-                      opacity: 0.5;
+                      opacity: 0.3;
                   } 
 
                   .slide-content {
                       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 
                   }
+
                   .carousel-slide:hover .slide-content {
                       opacity: 0.8;
                   }

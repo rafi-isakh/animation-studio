@@ -83,7 +83,7 @@ export default function PurchaseStarsComponent() {
     }
 
     return (
-        <div className="flex flex-col w-[360px] space-y-4 items-center justify-center m-auto tall:h-[calc(100vh-16rem)]">
+        <div className="flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto tall:h-[calc(100vh-16rem)]">
             <div className="flex flex-col w-full items-center justify-center">
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
                 <h1 className="text-2xl font-extrabold text-center">
@@ -91,8 +91,8 @@ export default function PurchaseStarsComponent() {
                 </h1>
                 <div className="flex flex-col w-full gap-2 pt-5">
                 {/* top padding 5 */}
-                { language === 'ko' && <p className="text-sm text-gray-500 text-left py-2 ">현재 보유중인 스타 0 개 </p> }
-                { language === 'en' && <p className="text-sm text-gray-500 text-left py-2 ">You have 0 stars </p> }
+                { language === 'ko' && <p className="text-sm text-gray-500 text-left">현재 보유중인 투니즈 별 <span className="font-bold text-[#DE2B74]">1000</span> 개 </p> }
+                { language === 'en' && <p className="text-sm text-gray-500 text-left">You have <span className="font-bold text-[#DE2B74]">1000</span> stars </p> }
                 </div>
             </div>
             
@@ -194,9 +194,8 @@ export default function PurchaseStarsComponent() {
             ))}
             </div>
 
-
-            <p className="text-[10px] text-left py-2 px-2 rounded-md text-black">
-
+            <div className="text-[10px] text-left py-2 px-2 rounded-md text-black">
+            
             <p> 취소 환불 규정 </p> 
             <br/> 
             - 구글, 애플 인앱결제로 결제한 포인트의 결제 취소는 구글플레이 고객센터, 애플 고객지원에 문의하여 진행 가능합니다. <br/>
@@ -212,7 +211,9 @@ export default function PurchaseStarsComponent() {
             <span> Stella& Inc. </span> 에서 운영하는 사이트에서 판매되는 모든 상품은 <span> Stella& Inc.</span> 에서 책임지고 있습니다.  <br/> 
                   * 민원 담당자 플랫폼 운영실 강다미 / 연락처 02-6952-7933
 
-            </p>
+            
+            </div>
+
         </div>
     );
 }

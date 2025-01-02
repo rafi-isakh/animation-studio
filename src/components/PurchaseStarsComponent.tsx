@@ -38,7 +38,6 @@ export default function PurchaseStarsComponent() {
         /* 3. 콜백 함수 정의하기 */
         function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;
-
             if (success) {
                 alert("결제 성공");
             } else {
@@ -73,7 +72,6 @@ export default function PurchaseStarsComponent() {
         /* 3. 콜백 함수 정의하기 */
         function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;
-
             if (success) {
                 alert("결제 성공");
             } else {

@@ -236,7 +236,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     type="text"
                                     value={title}
                                     id="title"
-                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 dark:bg-black dark:text-white text-black'
+                                    className='input rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:bg-black dark:text-white text-black'
                                     placeholder={phrase(dictionary, "webnovelTitle", language)}
                                     onChange={(e) => setTitle(trim(e.target.value, 50))}
                                 />
@@ -257,7 +257,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     value={nickname}
                                     disabled
                                     id="author"
-                                    className='input rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-gray-300 dark:text-black'
+                                    className='input rounded-md focus:ring-[#DB2777] w-full border border-gray-300 bg-gray-300 dark:text-black'
                                     placeholder={nickname}
                                 />
                              </div>
@@ -273,7 +273,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     </label>
                                 <select
                                     id="genre"
-                                    className='rounded-md focus:ring-pink-600 bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500'
+                                    className='rounded-md focus:ring-[#DB2777] bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500'
                                     onChange={handleChangeGenre}
                                 >
                                     <option disabled selected value="">{phrase(dictionary, "genre", language)}</option>
@@ -297,7 +297,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                     </label>
                                 <select
                                     id="language"
-                                    className="rounded-md focus:ring-pink-600 bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500"
+                                    className="rounded-md focus:ring-[#DB2777] bg-gray-200 w-full border border-gray-300 bg-transparent text-gray-500"
                                     onChange={handleChangeLanguage}>
                                     <option disabled selected value="">{phrase(dictionary, "language", language)}</option>
                                     <option value="ko">{phrase(dictionary, "korean", language)}</option>
@@ -327,7 +327,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                         value={description}
                                         rows={5}
                                         id="description"
-                                        className='textarea rounded-md focus:ring-pink-600 w-full border border-gray-300 bg-transparent'
+                                        className='textarea rounded-md focus:ring-[#DB2777] w-full border border-gray-300 bg-transparent'
                                         placeholder={phrase(dictionary, "description", language)}
                                         onChange={(e) => setDescription(trim(e.target.value, 500))}
                                     />
@@ -336,14 +336,8 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                             <br />
                             {/* submit button */}
                             <div className='flex flex-col space-y-4 items-center mb-8'>
-                                <NoCapsButton 
-                                    color='gray' 
-                                    variant='outlined' 
-                                    ref={buttonRef} 
-                                    type="submit" 
-                                    disabled={isSubmitting}
-                                    // onClick={() => setShowTermsOfServiceModal(true)}
-                                    className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-pink-600 dark:focus:ring-gray-700 dark:border-gray-700">
+                                <NoCapsButton color='gray' variant='outlined' ref={buttonRef} type="submit" disabled={isSubmitting}
+                                    className="whitespace-nowrap button-style dark:bg-gray-800 dark:hover:bg-gray-700 hover:border-[#DB2777] dark:focus:ring-gray-700 dark:border-gray-700">
                                     {/*Spinny wheel when submitting*/}
                                     {isSubmitting ?
                                         <CircularProgress size="1rem" color='secondary' />

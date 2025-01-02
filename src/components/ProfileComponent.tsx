@@ -301,7 +301,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         {/* nickname */}
                         <div className='flex flex-col justify-center md:items-start items-center gap-4'>
                             <p className="flex flex-row justify-start items-start font-boldtext-left">
-                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
                                     {phrase(dictionary, "author", language)}
                                 </span>}
                                 {user.nickname}
@@ -447,8 +447,8 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             {/*Right component :: Author bio & view webnovel */}
             <div className='flex flex-col w-full justify-center items-center order-2'>
                 {/* <div>
-                   <p className="flex flex-row  font-bold hover:text-pink-600">
-                    <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                   <p className="flex flex-row  font-bold hover:text-[#DB2777]">
+                    <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
                       {phrase(dictionary, "author", language)}
                         </span>
                        {user.nickname}

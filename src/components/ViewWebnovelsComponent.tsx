@@ -211,11 +211,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
 
                             <TabContext value={tabValue} >
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
-                                    <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500">
+                                    <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]">
                                         {/* Chapters : 연재글 */}
-                                        <Tab label={phrase(dictionary, "chapters", language)} value="1" className="dark:text-white dark:focus:text-purple-500 dark:active:text-purple-500" />
+                                        <Tab label={phrase(dictionary, "chapters", language)} value="1" className="dark:text-white dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
                                         {/* Comments : 댓글 */}
-                                        <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
+                                        <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
                                     </TabList>
                                 </Box>
                                 <TabPanel value="1">

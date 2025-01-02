@@ -275,11 +275,11 @@ export const Header = () => {
                             </Link>
                             <div className="flex flex-row space-x-4 items-center justify-center">
                                 <Link href="/?version=premium">
-                                    <p className={`${isActive('/') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                    <p className={`${isActive('/') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl dark:text-white dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
                                 <Link href="/webtoons">
-                                    <p className={`${isActive('/webtoons') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl text-black dark:text-white dark:hover:text-[#DB2777] hover:text-[#DB2777]`}>
+                                    <p className={`${isActive('/webtoons') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl dark:text-white dark:hover:text-[#DB2777] hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
                                 </Link>
@@ -517,9 +517,9 @@ export const Header = () => {
                 <>
                     <div id="free-premium" className="max-w-screen-lg mx-auto md:mt-[4rem] mt-[5.6rem] z-[99]">
                         <div className="flex flex-row space-x-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
-                            <p className={`text-gray-500 text-md font-bold ${highlightPremium() ? "text-[#DB2777] md:p-1 md:border-b-2 md:border-[#DB2777] border-0" : ""}`}>
+                            <p className={`text-md font-bold ${highlightPremium() ? "text-[#DB2777] md:p-1 md:border-b-2 md:border-[#DB2777] border-0" : "text-gray-500"}`}>
                                 <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
-                            <p className={`text-gray-500 text-md font-bold  ${highlightFree() ? "text-[#DB2777] md:p-1 md:border-b-2 md:border-[#DB2777] border-0" : ""}`}>
+                            <p className={`text-md font-bold  ${highlightFree() ? "text-[#DB2777] md:p-1 md:border-b-2 md:border-[#DB2777] border-0" : "text-gray-500"}`}>
                                 <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
                         </div>
                     </div>

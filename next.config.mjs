@@ -29,6 +29,11 @@ const nextConfig = {
                 hostname: process.env.NEXT_PUBLIC_WEBTOONS_S3,
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'picsum.photos',
+                pathname: '/**',
+            },
         ],
     },
     async headers() {

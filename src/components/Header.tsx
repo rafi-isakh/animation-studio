@@ -1,7 +1,6 @@
 "use client"
 
-import React, { MouseEventHandler, useEffect, useRef, useState } from 'react';
-// import { MdVideoLibrary } from "react-icons/md";
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/components/Types';
@@ -11,19 +10,16 @@ import { useUser } from '@/contexts/UserContext';
 import { useDevice } from '@/contexts/DeviceContext';
 import Link from 'next/link';
 import styles from '@/styles/Header.module.css';
-import phrases, { phrase } from '@/utils/phrases';
-import { signOut } from "next-auth/react"
+import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
-import ViewVideos from './ViewVideos';
-import { free, premium } from "@/components/WebnovelsList"
 import { getUrlWithParams } from '@/utils/stringUtils';
-import { SquarePen, Video, Sparkles, Book, SquareLibrary, ChevronLeft, X } from 'lucide-react';
+import { SquarePen, Video, Sparkles, Book, SquareLibrary } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
-import { Box, Button, Modal, Skeleton, Typography, Drawer, styled } from '@mui/material';
+import { Box, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 
@@ -47,8 +43,6 @@ export const Header = () => {
     const languageMenuRef = useRef<HTMLDivElement>(null);
     const { dictionary, language, setLanguage } = useLanguage();
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
-    const isIOS = useMediaQuery({ query: '(device-type: ios)' });
-    const isAndroid = useMediaQuery({ query: '(device-type: android)' });
     const [logoWidth, setLogoWidth] = useState(141);
     const [logoHeight, setLogoHeight] = useState(32);
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
@@ -453,10 +447,10 @@ export const Header = () => {
                                                                     {phrase(dictionary, "myLibrary", language)}
                                                                 </Link>
                                                             </li>
-                                                            {!isIOS && !isAndroid && <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
+                                                            <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
                                                                 <Sparkles size={18} className='dark:text-white text-black ' />
                                                                 <ChargeStarsTemporary />
-                                                            </li>}
+                                                            </li>
                                                             <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                                 <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
                                                                     <Video size={20} className='dark:text-white text-black' />

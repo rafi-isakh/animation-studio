@@ -119,7 +119,7 @@ const CircularMenuItemsComponent = () => {
                                 >
                                 <div className="circle-icon flex justify-center items-center w-[50px] h-[50px] 
                                   md:w-[90px] md:h-[90px] bg-gray-200 dark:bg-gray-500 rounded-full
-                                 hover:bg-purple-100 hover:text-white text-black dark:text-white
+                                 hover:bg-[#FFF0EC] hover:text-white text-black dark:text-white
                                  ">
                                     {circlesIcon[index]}
                                 </div>

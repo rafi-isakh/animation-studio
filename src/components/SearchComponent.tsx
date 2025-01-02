@@ -95,7 +95,7 @@ export default function SearchComponent({ mode,
                         id="search-navbar"
                         value={query}
                         onChange={handleChange}
-                        className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md dark:bg-black dark:text-white focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-pink-500 dark:focus:border-pink-500"
+                        className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md dark:bg-black dark:text-white focus:ring-[#DB2777] focus:border-[#DB2777] dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#DB2777] dark:focus:border-[#DB2777]"
                     />
                 }
                 {
@@ -130,7 +130,7 @@ export default function SearchComponent({ mode,
                                     placeholder={phrase(dictionary, "searchPlaceholder", language)}
                                     className="w-full p-2 pl-10 text-sm border-0 
                              text-black border-b-4 border-b-black focus:outline-none focus:ring-0
-                             focus:border-b-pink-600"
+                             focus:border-b-[#DB2777]"
                                 />
                             </div>
 
@@ -217,7 +217,7 @@ export default function SearchComponent({ mode,
                                 className="w-full p-2 pl-10 text-sm border-0 
                         text-black border-b-4 border-b-black 
                         focus:outline-none focus:ring-0
-                            focus:border-b-pink-600"
+                            focus:border-b-[#DB2777]"
                             />
                         </div>
                     </>

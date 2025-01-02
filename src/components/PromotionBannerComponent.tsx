@@ -130,11 +130,11 @@ const PromotionBannerComponent = () => {
 
         <div className='flex flex-row gap-4 justify-center md:p-0 md:pb-1 pb-2'>     {/* items-center */}
                
-            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-md px-3 md:h-10 h-5 hover:bg-purple-100 md:text-base text-[10px]'>
+            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-md px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
                 <i className="fab fa-apple"></i> 
                   <span className='md:block hidden'> iOS </span> Download
                 </button>
-                <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-md px-3 md:h-10 h-5 hover:bg-purple-100 md:text-base text-[10px]'>
+                <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-md px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
                    <i className="fab fa-android text-[12px]"></i>
                     <span className='md:block hidden'> Android </span> Download
             </button>

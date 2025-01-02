@@ -25,8 +25,8 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
                 {webnovels?.map((webnovel, index) => (
                     <Link key={index} href={`/view_webnovels?id=${webnovel.id}`} 
                     className={
-                        `flex flex-row rounded text-md hover:text-pink-600 hover:bg-gray-200 transition ease-in-out delay-150 px-3 py-2
-                        ${params.get('id') == webnovel.id.toString()? "font-black text-white bg-purple-500": ""}`}>
+                        `flex flex-row rounded text-md hover:text-[#DB2777] hover:bg-gray-200 transition ease-in-out delay-150 px-3 py-2
+                        ${params.get('id') == webnovel.id.toString()? "font-black text-white bg-[#8A2BE2]": ""}`}>
                         {/* Right arrow display only when the webnovel is selected */}
                         { params.get('id') == webnovel.id.toString() ? <ChevronRight size={18} className="self-center" /> : '' }
                      <OtherTranslateComponent content={webnovel.title} 

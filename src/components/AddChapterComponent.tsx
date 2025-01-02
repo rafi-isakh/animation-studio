@@ -131,7 +131,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
                         <div className="flex flex-col space-y-4">
                             <div className="flex flex-row justify-between">
                                 <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
-                                <p className='text-sm text-pink-600'>{currText} / {maxText}</p>
+                                <p className='text-sm text-[#DB2777]'>{currText} / {maxText}</p>
                             </div>
                             <div className='w-full max-w-full rounded-xl border border-gray-300'>
                                 <ReactQuill ref={contentRef} theme="bubble" value={content} onChange={setContent} className="content-editor" />
@@ -148,7 +148,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
                                  type="submit" 
                                  variant="outlined" 
                                  color="gray"
-                                 className='whitespace-nowrap hover:border-pink-600 hover:bg-pink-600 hover:text-white mb-10'
+                                 className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white mb-10'
                                  >{phrase(dictionary, "publish", language)}</Button>
                                 {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}
                             </div>
@@ -175,7 +175,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
                        
                            <div className="flex justify-center">
                             <Button 
-                            className=' hover:border-pink-600 hover:bg-pink-600 hover:text-white'
+                            className=' hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white'
                             color='gray' 
                             variant='outlined' 
                             onClick={() => setOpenModal(false)}>

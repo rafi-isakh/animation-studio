@@ -1,6 +1,5 @@
 'use client';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
 
 // Import the LottieLoader dynamically
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
@@ -8,14 +7,14 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 
 // Import the animation data
-import animationData from '@/assets/N_logo_loader.json';
+import animationData from '@/assets/stelli_loader.json';
 
 export default function Loading() {
 
   return (
     <>
       <div className="loader-container">
-        <LottieLoader animationData={animationData} />
+        <LottieLoader width="w-32" animationData={animationData} />
       </div>
     </>
   );

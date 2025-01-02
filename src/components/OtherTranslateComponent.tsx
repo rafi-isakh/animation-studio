@@ -2,7 +2,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Skeleton } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 
 const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
@@ -189,10 +189,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             {
                 loading && showLoading ?
                     (
-                        <div role="status" className='w-4 self-center'>
-                            {/* genre */}
-                            <CircularProgress size="0.8rem" color='secondary' />
-                        </div>
+                        <Skeleton variant='rectangular' width={100} height={15} />
                     ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
             }

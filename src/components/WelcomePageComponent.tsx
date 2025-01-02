@@ -38,8 +38,8 @@ export default function WelcomePageComponent() {
             />
         </div>
         <span className="relative flex h-28 w-28">
-            {/* <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-200 opacity-75"></span> */}
-            <span className="relative inline-flex rounded-full h-28 w-28 border-pink-200">
+            {/* <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFE2DC] opacity-75"></span> */}
+            <span className="relative inline-flex rounded-full h-28 w-28 border-[#FFE2DC]">
                 <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className='self-center mx-auto' />
             </span>
         </span>

@@ -37,8 +37,10 @@ import { createEmailHash } from '@/utils/cryptography';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
 import ReportButton from '@/components/ReportButton';
-
-
+import BlockButton from '@/components/BlockButton';
+import dynamic from 'next/dynamic';
+import animationData from '@/assets/N_logo_loader.json';
+import UserBlockedComponent from '@/components/UserBlockedComponent';
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
@@ -53,9 +55,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false);
     const { email } = useUser();
+    const { isLoggedIn } = useAuth();
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
-    const [isPremium, setIsPremium] = useState<boolean>(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
@@ -63,11 +65,29 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     // const userMenuRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [reportMessage, setReportMessage] = useState('');
-    const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
-    useEffect(() => {
+    const [blockedUsers, setBlockedUsers] = useState<number[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
 
+    useEffect(() => {
+        async function getBlockedUsers() {
+            setLoading(true);
+            const response = await fetch('/api/get_blocked_users');
+            if (!response.ok) {
+                return null;
+            }
+            const data = await response.json();
+            setBlockedUsers(data.blockedUsers.map((user: User) => user.id));
+            setLoading(false);
+        }
+        if (isLoggedIn) {
+            getBlockedUsers();
+        } else {
+            setLoading(false);
+        }
+    }, [refreshBlockedUsers, isLoggedIn]);
+
+    useEffect(() => {
         if (introRef.current) {
             const width = introRef.current.offsetWidth + 1 + 'px';
             setIntroWidth(width);
@@ -79,6 +99,13 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             novelsRef.current.style.transform = `translateX(-${introWidth}px)`
         }
     }, [introWidth])
+
+
+    // Import the LottieLoader dynamically
+    const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+        ssr: false,
+    });
+
 
     // implementing utils function
     const isProfileOwner = (): boolean => {
@@ -205,12 +232,21 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const toggleShareDropdown = () => {
         setIsShareDropdownOpen(prev => !prev);
     }
+    if (loading) {
+        return <div className="loader-container">
+            <LottieLoader animationData={animationData} />
+        </div>
+    }
+
+    if (blockedUsers.includes(user.id)) {
+        return <UserBlockedComponent id={user.id.toString()} />
+    }
 
     return (
         <div className='max-w-screen-lg mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
             {/*Left component :: Profile picture */}
 
-            <div className='w-full rounded-md flex md:flex-row flex-col gap-10 justify-center items-center order-1 mb-10 md:mb-0 relative'>
+            <div className='w-full rounded-md flex md:flex-row flex-col gap-6 justify-center items-center order-1 mb-10 md:mb-0 relative'>
 
                 {/* Existing content container */}
                 <div className="relative p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
@@ -251,7 +287,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                         <svg
                                             onClick={handleProfilePictureUpload}
                                             className="w-[80px] h-[80px] text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
                                         </svg>
                                     </div>
                                 }
@@ -265,7 +301,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         {/* nickname */}
                         <div className='flex flex-col justify-center md:items-start items-center gap-4'>
                             <p className="flex flex-row justify-start items-start font-boldtext-left">
-                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
                                     {phrase(dictionary, "author", language)}
                                 </span>}
                                 {user.nickname}
@@ -307,7 +343,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
                                     <div className='flex flex-col justify-center items-center pr-6 border-r border-gray-300'>
                                         {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numberOfWebnovels"][language]}</p> */}
-                                        <p className='flex flex-row justify-center items-center gap-2 text-sm'>
+                                        <p className='flex flex-row justify-center items-center gap-1 text-sm'>
                                             <Book size={15} />
                                             {/* Works  */}
                                             {phrase(dictionary, "works", language)}
@@ -316,7 +352,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     </div>
                                     <div className='flex flex-col justify-center items-center pr-6 border-r border-gray-300'>
                                         {/* <p>{Object.keys(dictionary).length != 0 && dictionary["numTotalChapters"][language]}</p> */}
-                                        <p className='flex flex-row justify-center items-center gap-2 text-sm'>
+                                        <p className='flex flex-row justify-center items-center gap-1 text-sm'>
                                             {/* <Pencil size={15} />  */}
                                             <Eye size={15} />
                                             {/* Views  */}
@@ -326,7 +362,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                         {/* <p>{getNumberOfChapters()}</p> */}
                                     </div>
                                     <div className='flex flex-col justify-center items-center'>
-                                        <p className='flex flex-row justify-center items-center gap-2 text-sm'>
+                                        <p className='flex flex-row justify-center items-center gap-1 text-sm'>
                                             <Heart size={15} />
                                             {/* Likes */}
                                             {phrase(dictionary, "likes", language)}
@@ -339,8 +375,8 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
                             <div className='flex flex-row gap-4 text-gray-600'>
                                 {/* <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'> */}
-                                    {/* +Follow */}
-                                    {/* <Plus size={10} />
+                                {/* +Follow */}
+                                {/* <Plus size={10} />
                                     <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
                                 </Button> */}
                                 <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
@@ -349,6 +385,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
                                 <ReportButton user={user} />
+                                {isLoggedIn && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
                                 {isShareDropdownOpen && (
                                     <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
                                         <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
@@ -381,18 +418,18 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
             </div>
 
-            <div className='flex flex-col gap-4 w-full order-2 md:m-10 m-0'>
+            <div className='flex flex-col gap-2 w-full order-2 md:m-6 m-0'>
                 {
                     novels.length > 0 ? (
                         <Button color='gray' onClick={() => router.push(`/view_webnovels?id=${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
-                            <p className='flex flex-row gap-2 justify-center items-center'>
+                            <div className='flex flex-row gap-1 justify-center items-center'>
                                 <OtherTranslateComponent
                                     content={getRecentNovel().title}
                                     elementId={user.id.toString()}
                                     elementType='user'
                                 />
                                 {phrase(dictionary, "startToRead", language)}
-                            </p>
+                            </div>
                             <ChevronRight size={10} />
                         </Button>
                     ) : <p className='flex flex-row gap-2 justify-center items-center'>
@@ -408,10 +445,10 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             </div>
 
             {/*Right component :: Author bio & view webnovel */}
-            <div className='flex flex-col w-full justify-center items-center order-2 mt-5'>
+            <div className='flex flex-col w-full justify-center items-center order-2'>
                 {/* <div>
-                   <p className="flex flex-row  font-bold hover:text-pink-600">
-                    <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                   <p className="flex flex-row  font-bold hover:text-[#DB2777]">
+                    <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
                       {phrase(dictionary, "author", language)}
                         </span>
                        {user.nickname}
@@ -428,14 +465,13 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 {/*-- left-hand side:  Author's other works link end */}
 
 
-                <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-10'>
+                <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-6'>
 
                     <p className='text-lg border-b-1 border-gray-500 font-bold w-full uppercase'>
                         {phrase(dictionary, "authorBio", language)}
                     </p>
 
                     <div>
-                        {/* 종민님 bio 표시 부분 버그가 있음. 추후 수정 필요합니다. */}
                         {user.bio ? (
                             <>
                                 <OtherTranslateComponent

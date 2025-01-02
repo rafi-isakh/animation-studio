@@ -14,7 +14,6 @@ import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
-// import animationData from '@/assets/N_logo_loader.json'
 import animationData from '@/assets/stelli_loader.json';
 
 export default function PicturesStudioPage() {

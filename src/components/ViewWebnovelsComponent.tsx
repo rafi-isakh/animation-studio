@@ -23,10 +23,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
-    ssr: false,
-});
-import animationData from '@/assets/N_logo_loader.json'
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },

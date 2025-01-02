@@ -8,7 +8,6 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 
 // Import the animation data
-// import animationData from '@/assets/N_logo_loader.json';
 import animationData from '@/assets/stelli_loader.json';
 
 export default function Loading() {

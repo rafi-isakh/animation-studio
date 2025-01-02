@@ -25,6 +25,7 @@ import { useSearch } from '@/contexts/SearchContext';
 
 export const Header = () => {
     const router = useRouter();
+    const [pathnameLoading, setPathnameLoading] = useState(true);
     const { isLoggedIn, loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
@@ -57,6 +58,7 @@ export const Header = () => {
     useEffect(() => {
         if (pathname == "/") {
             router.push(pathname + "?version=premium")
+            setPathnameLoading(false)
         }
     }, [])
 
@@ -513,13 +515,13 @@ export const Header = () => {
                 </div>
                 <hr />
             </nav>
-            {pathname == '/' && (
+            {(pathname == '/' || pathnameLoading) && (
                 <>
                     <div id="free-premium" className="max-w-screen-lg mx-auto md:mt-[4rem] mt-[5.6rem] z-[99]">
                         <div className="flex flex-row space-x-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
-                            <p className={`text-md font-bold ${highlightPremium() ? "text-[#DB2777] md:p-1 md:border-b-2 md:border-[#DB2777] border-0" : "text-gray-500"}`}>
+                            <p className={`text-md font-bold md:p-1 ${highlightPremium() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" : "text-gray-500"}`}>
                                 <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link></p>
-                            <p className={`text-md font-bold  ${highlightFree() ? "text-[#DB2777] md:p-1 md:border-b-2 md:border-[#DB2777] border-0" : "text-gray-500"}`}>
+                            <p className={`text-md font-bold md:p-1 ${highlightFree() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" : "text-gray-500"}`}>
                                 <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link></p>
                         </div>
                     </div>

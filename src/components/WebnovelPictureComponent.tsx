@@ -33,7 +33,7 @@ const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details
                     />
 
                     {/* UP Badge */}
-                    {up && (<span className="absolute top-0 left-0 text-[10px] text-white bg-pink-600 px-1 py-1">
+                    {up && (<span className="absolute top-0 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">
                         UP
                     </span>)}
                     {/* Ranking Number Overlay */}

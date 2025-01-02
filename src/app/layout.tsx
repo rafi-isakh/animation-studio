@@ -1,20 +1,62 @@
 // app/layout.tsx
 import '@/styles/globals.css';
-import { ReactNode, Suspense } from 'react';
-import React from 'react';
-import Header from '@/components/Header';
-import { UserProvider } from '@/contexts/UserContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { DeviceProvider } from '@/contexts/DeviceContext';
 import { Metadata } from 'next'
-import { Noto_Sans, Noto_Sans_KR, Noto_Sans_Arabic, Noto_Sans_Thai, Noto_Sans_JP, Noto_Sans_TC, Noto_Sans_SC } from 'next/font/google'
-import Margin from '@/components/Margin';
-import { ReaderProvider } from '@/contexts/ReaderContext';
-import { ThemeProvider } from '@/contexts/providers'
+import { DeviceProvider } from '@/contexts/DeviceContext';
+import { ThemeProvider } from '@/contexts/providers';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import '@/styles/globals.css';
+import { ReactNode, Suspense, useEffect } from 'react';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { UserProvider } from '@/contexts/UserContext';
+import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
+import Margin from '@/components/Margin';
+import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, Noto_Sans_SC, Noto_Sans_Arabic } from 'next/font/google';
+import RegisterSW from '@/components/RegisterSW';
+import HeaderWrapper from '@/components/HeaderWrapper';
 
 
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export const metadata: Metadata = {
+  title: '투니즈 Toonyz',
+  description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
+  manifest: '/manifest.json',
+  openGraph: {
+    type: 'website',
+    url: 'https://toonyz.com',
+    title: '투니즈 Toonyz',
+    description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
+    images: [
+      {
+        url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
+        alt: '스텔리 Stelli'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '투니즈 toonyz',
+    description: '웹소설, 웹툰 글로벌 스토리 플랫폼',
+    images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
+  },
+  alternates: {
+    canonical: 'https://toonyz.com/',
+  },
+  verification: {
+    google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
+    other: {
+      "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
+    }
+  }
+}
+
+
+interface RootLayoutProps {
+  children: ReactNode;
+}
 
 const notoSans = Noto_Sans({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext', 'greek', 'greek-ext', 'devanagari'],
@@ -46,69 +88,37 @@ const notoSansSC = Noto_Sans_SC({
 })
 
 
-interface RootLayoutProps {
-  children: ReactNode;
-}
-
-export const metadata: Metadata = {
-  title: '투니즈 Toonyz',
-  description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
-  openGraph: {
-    type: 'website',
-    url: 'https://toonyz.com',
-    title: '투니즈 Toonyz',
-    description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
-    images: [
-      {
-        url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
-        alt: '스텔리 Stelli'
-      }
-    ]
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '투니즈 toonyz',
-    description: '웹소설, 웹툰 글로벌 스토리 플랫폼',
-    images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
-  },
-  alternates: {
-    canonical: 'https://toonyz.com/',
-  },
-  verification: {
-    google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
-    other: {
-      "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
-    }
-  }
-}
 
 export default function RootLayout({ children }: RootLayoutProps) {
-
-
   return (
     <html>
       <body>
+        <RegisterSW />
         <LanguageProvider>
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>
                 <DeviceProvider>
                   <SearchProvider>
+                    <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
+                    ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
+                      <Suspense>
+                        <Header />
+                      </Suspense>
+                      <Margin>
+                        {children}
+                      </Margin>
+                      {/* 
+                    <div className={`children min-h-screen`}>  
+                     // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
                   ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                    <Suspense>
-                      <Header />
-                    </Suspense>
+                    <HeaderWrapper />
                     <Margin>
                       {children}
-                    </Margin>
-                    {/* 
-                  <div className={`children min-h-screen`}>  
-                   // Header bottom margin :: pt-28 md:pt-24 mb-4
-                    {children}
-                  </div> 
-                 */}
-                  </div>
+                    </div> 
+                   */}
+                    </div>
                   </SearchProvider>
                 </DeviceProvider>
               </UserProvider>

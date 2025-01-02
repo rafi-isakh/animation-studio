@@ -28,9 +28,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
     const [initialFetch, setInitialFetch] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const router = useRouter();
-    const [key1, setKey1] = useState(1000);
-    const [key2, setKey2] = useState(2000);
-    const [key3, setKey3] = useState(3000);
     const { language, dictionary } = useLanguage();
     const [repliesKey, setRepliesKey] = useState(4000);
     const [chapterTitle, setChapterTitle] = useState("");
@@ -39,12 +36,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        setKey1(prevKey => prevKey + 1)
-        setKey2(prevKey => prevKey + 1)
-        setKey3(prevKey => prevKey + 1)
-    }, [language])
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -112,7 +103,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
 
     useEffect(() => {
         const fetchComments = async () => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
             const data = await response.json();
             if (Array.isArray(data)) {
                 setAllComments(data);
@@ -120,11 +111,10 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
             }
         }
         const fetchChapter = async () => {
-            const response = await fetch(`/api/get_chapter_by_id?id=${chapterId}`)
+            const response = await fetch(`/api/get_chapter_by_id?id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
             const data = await response.json();
             setChapter(data);
             setChapterTitle(data.title);
-            setKey3(prevKey => prevKey + 1) // remount OtherTranslateComponent with retrieved chapter title
         }
         fetchComments();
         fetchChapter();
@@ -249,7 +239,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 className='w-full'>
                 <div className="flex flex-row !items-left justify-start flex-1">
                     <ChevronLeftIcon className="w-6 h-6" />
-                    <OtherTranslateComponent content={chapterTitle} elementId={chapterId} elementType='chapter' elementSubtype="title" />
+                    <OtherTranslateComponent content={chapterTitle} elementId={chapterId} elementType={webnovelOrWebtoon ? 'chapter' : 'webtoon_chapter'} elementSubtype="title" />
                 </div>
             </Button>
             <div className='flex flex-col'>
@@ -272,7 +262,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                 }`}>
                                 character {commentContent.length}/{MAX_CHARS}
                             </span>
-                            <button type="submit" className='group/item rounded-br-xl bg-[#DB2777] px-4 py-3 group-hover/item:bg-pink-200'>
+                            <button type="submit" className='group/item rounded-br-xl bg-[#DB2777] px-4 py-3 group-hover/item:bg-[#FFE2DC]'>
                                 <Send size={20} className="dark:text-white text-white" />
                             </button>
                         </div>
@@ -292,7 +282,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                             {allComments.map((comment, index) => (
                                 (!comment.parent_id) ? (
                                     <div key={`comment-${comment.id}`} className='flex flex-col py-3'>
-
                                         <div className="flex flex-row gap-2 justify-between">
                                             <div className='flex flex-row gap-2 items-center'>
                                                 {comment.user.picture ? (
@@ -379,27 +368,27 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                     elementType='comment'
                                                 />
 
-                                            <div className="flex flex-row gap-4 items-center">
-                                                <div className='flex flex-row gap-1 items-center'>
-                                                    <Heart size={16} className='text-gray-600' />
-                                                    {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
-                                                    <span className='text-[#DB2777] text-sm'>{comment.upvotes} </span>
-                                                </div>
-                                                
-                                                <Link
-                                                    href="#"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        updateShowForm(index, !showForm[index])
-                                                    }}
-                                                    className='flex flex-row gap-2 items-center hover:opacity-80 transition duration-150 ease-in-out'>
-                                                    <Redo2 size={16} className='text-gray-600' />
-                                                    {/* Reply */}
-                                                   <span className='text-gray-600 text-sm'>  {phrase(dictionary, "reply", language)}</span>
-                                                </Link>
-                                            </div>
+                                                <div className="flex flex-row gap-4 items-center">
+                                                    <div className='flex flex-row gap-1 items-center'>
+                                                        <Heart size={16} className='text-gray-600' />
+                                                        {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
+                                                        <span className='text-[#DB2777] text-sm'>{comment.upvotes} </span>
+                                                    </div>
 
-                                             
+                                                    <Link
+                                                        href="#"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            updateShowForm(index, !showForm[index])
+                                                        }}
+                                                        className='flex flex-row gap-2 items-center hover:opacity-80 transition duration-150 ease-in-out'>
+                                                        <Redo2 size={16} className='text-gray-600' />
+                                                        {/* Reply */}
+                                                        <span className='text-gray-600 text-sm'>  {phrase(dictionary, "reply", language)}</span>
+                                                    </Link>
+                                                </div>
+
+
                                             </div>
                                             <div className='flex justify-end space-x-4'>
                                             </div>
@@ -407,106 +396,107 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                         <hr />
                                         <div className='ml-4 py-3'>
                                             {/* replies */}
-                                            {comment.replies ? comment.replies.map((reply) => (
-                                                <div key={`reply-${reply.id}`}>
-                                                    <div className='flex flex-row justify-between'>
+                                            {
+                                                comment.replies ? comment.replies.map((reply) => (
+                                                    <div key={`reply-${reply.id}`}>
+                                                        <div className='flex flex-row justify-between'>
 
-                                                        <div className='flex flex-row gap-2 items-center'>
-                                                            {reply.user.picture ? (
-                                                                <Image
-                                                                    src={getImageUrl(reply.user.picture)}
-                                                                    alt={reply.user.nickname || 'User'}
-                                                                    width={32}
-                                                                    height={32}
-                                                                    className='rounded-full w-8 h-8 self-center'
-                                                                />
-                                                            ) : (
-                                                                <div className="bg-gray-400 rounded-full w-8 h-8 flex items-center justify-center">
-                                                                    <svg
-                                                                        className="w-8 h-8 text-gray-100 rounded-full"
-                                                                        fill="currentColor"
-                                                                        viewBox="0 0 20 20"
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                    >
-                                                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                                                                    </svg>
+                                                            <div className='flex flex-row gap-2 items-center'>
+                                                                {reply.user.picture ? (
+                                                                    <Image
+                                                                        src={getImageUrl(reply.user.picture)}
+                                                                        alt={reply.user.nickname || 'User'}
+                                                                        width={32}
+                                                                        height={32}
+                                                                        className='rounded-full w-8 h-8 self-center'
+                                                                    />
+                                                                ) : (
+                                                                    <div className="bg-gray-400 rounded-full w-8 h-8 flex items-center justify-center">
+                                                                        <svg
+                                                                            className="w-8 h-8 text-gray-100 rounded-full"
+                                                                            fill="currentColor"
+                                                                            viewBox="0 0 20 20"
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                        >
+                                                                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                                                                        </svg>
+                                                                    </div>
+                                                                )}
+                                                                <div className='flex flex-col mb-2 text-slate-600'>
+                                                                    <p className='font-extrabold text-slate-600'>
+                                                                        {reply.user.nickname.length > 20
+                                                                            ? `${reply.user.nickname.slice(0, 20)}...`
+                                                                            : reply.user.nickname
+                                                                        }
+                                                                    </p>
+                                                                    <p className='text-gray-500 text-[10px]'>
+                                                                        {moment(reply.created_at).format('YYYY/MM/DD hh:mm')}
+                                                                    </p>
                                                                 </div>
-                                                            )}
-                                                             <div className='flex flex-col mb-2 text-slate-600'>
-                                                                <p className='font-extrabold text-slate-600'>
-                                                                    {reply.user.nickname.length > 20
-                                                                        ? `${reply.user.nickname.slice(0, 20)}...`
-                                                                        : reply.user.nickname
-                                                                    }
-                                                                </p>
-                                                                <p className='text-gray-500 text-[10px]'>
-                                                                    {moment(reply.created_at).format('YYYY/MM/DD hh:mm')}
-                                                                </p>
                                                             </div>
-                                                        </div>
 
-                                                        <div className="relative flex flex-row gap-2 items-center">
-                                                            <button
-                                                                onClick={(e) => toggleReplyDropdown(e, reply.id.toString())}
-                                                                className="bg-transparent text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                                                                <Ellipsis size={20} className="text-gray-600" />
-                                                            </button>
-                                                            {openReplyDropdownId === reply.id.toString() && (
-                                                                <div
-                                                                    id={`reply-dropdown-${reply.id}`}
-                                                                    ref={replyDropdownRef}
-                                                                    className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
+                                                            <div className="relative flex flex-row gap-2 items-center">
+                                                                <button
+                                                                    onClick={(e) => toggleReplyDropdown(e, reply.id.toString())}
+                                                                    className="bg-transparent text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
+                                                                    <Ellipsis size={20} className="text-gray-600" />
+                                                                </button>
+                                                                {openReplyDropdownId === reply.id.toString() && (
+                                                                    <div
+                                                                        id={`reply-dropdown-${reply.id}`}
+                                                                        ref={replyDropdownRef}
+                                                                        className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
                                                                             top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
                                                                           divide-gray-100 shadow w-32 dark:divide-gray-600`}>
-                                                                    <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
-                                                                        <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                            <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                                                                <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                                                    <Flag size={20} className="dark:text-white text-black" />
-                                                                                    {phrase(dictionary, "report", language)}
-                                                                                </Link>
-                                                                            </Tooltip>
-                                                                        </li>
-                                                                        <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                            {reply.user.email_hash === createEmailHash(email) &&
-                                                                                <Link
-                                                                                    href="#"
-                                                                                    onClick={() => handleDeleteComment(reply.id.toString())}
-                                                                                    className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black'>
-                                                                                    <Trash size={20} className="dark:text-white text-black" />
-                                                                                    {phrase(dictionary, "delete", language)}
-                                                                                </Link>
-                                                                            }
-                                                                        </li>
-                                                                    </ul>
-                                                                </div>
-                                                            )}
+                                                                        <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
+                                                                            <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
+                                                                                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                                                                                    <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
+                                                                                        <Flag size={20} className="dark:text-white text-black" />
+                                                                                        {phrase(dictionary, "report", language)}
+                                                                                    </Link>
+                                                                                </Tooltip>
+                                                                            </li>
+                                                                            <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
+                                                                                {reply.user.email_hash === createEmailHash(email) &&
+                                                                                    <Link
+                                                                                        href="#"
+                                                                                        onClick={() => handleDeleteComment(reply.id.toString())}
+                                                                                        className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black'>
+                                                                                        <Trash size={20} className="dark:text-white text-black" />
+                                                                                        {phrase(dictionary, "delete", language)}
+                                                                                    </Link>
+                                                                                }
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
                                                         </div>
 
-                                                    </div>
+                                                        <div className='flex justify-between py-5'>
+                                                            <div className='flex flex-col gap-8'>
+                                                                <OtherTranslateComponent
+                                                                    key={`translate-reply-${reply.id}`}
+                                                                    content={reply.content}
+                                                                    elementId={reply.id.toString()}
+                                                                    elementType='comment'
+                                                                />
 
-                                                    <div className='flex justify-between py-5'>
-                                                        <div className='flex flex-col gap-8'>
-                                                            <OtherTranslateComponent
-                                                                key={`translate-reply-${reply.id}`}
-                                                                content={reply.content}
-                                                                elementId={reply.id.toString()}
-                                                                elementType='comment'
-                                                            />
+                                                                <p className='flex flex-row gap-2 items-center'>
+                                                                    <Heart size={16} className='text-gray-600' />
+                                                                    {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
+                                                                    <span className='text-[#DB2777]'>{reply.upvotes} </span>
+                                                                </p>
+                                                            </div >
 
-                                                            <p className='flex flex-row gap-2 items-center'>
-                                                                <Heart size={16} className='text-gray-600' />
-                                                                {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
-                                                                <span className='text-[#DB2777]'>{reply.upvotes} </span>
-                                                            </p>
-                                                        </div>
-                                                       
-                                                    </div>
-                                                    {/* each reply has a horizontal line with margin-bottom 2 */}
-                                                    <hr className='mb-2' />
-                                                </div>
-                                            )) : <></>}
-                                        </div>
+                                                        </div >
+                                                        {/* each reply has a horizontal line with margin-bottom 2 */}
+                                                        < hr className='mb-2' />
+                                                    </div >
+                                                )) : <></>}
+                                        </div >
                                         <div>
                                             {showForm[index] ? (
                                                 <form id={`replyForm.${index}`} onSubmit={handleReply}>
@@ -531,14 +521,14 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                 : <></>
                                             }
                                         </div>
-                                    </div>
+                                    </div >
                                 ) : <></>
                             ))}
-                        </div>
+                        </div >
                     )}
-                </div>
-            </div>
-        </div>
+                </div >
+            </div >
+        </div >
     )
 }
 

@@ -14,14 +14,16 @@ const Library = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library?email=${email}`);
+            const response = await fetch(`/api/get_library?email=${email}`);
             if (!response.ok) {
                 return;
             }
             const data = await response.json();
-            setLibrary(data);
+            setLibrary(data.library);
         }
-        fetchData();
+        if (email) {
+            fetchData();
+        }
     }, [email])
 
     return (

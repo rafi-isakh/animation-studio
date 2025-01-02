@@ -266,7 +266,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                 }`}>
                                 character {commentContent.length}/{MAX_CHARS}
                             </span>
-                            <button type="submit" className='group/item rounded-br-xl bg-[#DB2777] px-4 py-3 group-hover/item:bg-pink-200'>
+                            <button type="submit" className='group/item rounded-br-xl bg-[#DB2777] px-4 py-3 group-hover/item:bg-[#FFE2DC]'>
                                 <Send size={20} className="dark:text-white text-white" />
                             </button>
                         </div>

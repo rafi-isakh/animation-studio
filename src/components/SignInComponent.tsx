@@ -40,19 +40,19 @@ const SignInComponent = () => {
            </div>
 
             <div className="flex flex-row justify-center gap-4 mt-10">
-             <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-pink-600">
+             <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-[#DB2777]">
               <Link href="/terms">
               {/* 이용약관 : Terms of use */}
               {phrase(dictionary, "terms", language)}
               </Link>
             </p>
-             <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+             <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
               <Link href="/terms/privacy">
               {/* 개인정보 처리방침 : Privacy policy */}
               {phrase(dictionary, "privacy", language)}
               </Link>
             </p>
-              <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+              <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
               <Link href="/terms/youth">
               {/* 청소년 보호 정책 : Youth protection policy */}
               {phrase(dictionary, "youth_terms", language)}

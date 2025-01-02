@@ -65,8 +65,8 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
                 {/* Right side : Author profile part */}
                 <>
                 <Link href={`/view_profile/${webnovel.user.id}`}>
-                    <p className="text-sm font-bold hover:text-pink-600">
-                        <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                    <p className="text-sm font-bold hover:text-[#DB2777]">
+                        <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
                             {phrase(dictionary, "author", language)}
                         </span>
                         {webnovel.user.nickname}

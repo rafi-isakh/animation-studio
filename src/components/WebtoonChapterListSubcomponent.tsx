@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from "next/link";
 import { Webtoon, WebtoonChapter } from '@/components/Types';
 import '@/styles/Webtoons.module.css';
@@ -14,6 +14,15 @@ const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }:
   const { language, dictionary } = useLanguage();
 
   const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
+  useEffect(() => {
+    for (let i = 0; i < 2; i++) { 
+      webtoon.chapters[i].free_premium = false;
+    }
+    for (let i = 2; i < webtoon.chapters.length; i++) {
+      webtoon.chapters[i].free_premium = true;
+    }
+  }, [webtoon.chapters]);
+
 
   return (
     <div className="w-full">

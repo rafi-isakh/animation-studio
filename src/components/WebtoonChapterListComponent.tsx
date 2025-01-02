@@ -12,8 +12,9 @@ import { Webtoon, Comment } from "@/components/Types";
 import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
-import {  Flag, CircleHelp, ArrowDownUp, List, MessageCircle, FileText, Heart } from "lucide-react";
+import {  Flag, CircleHelp, ArrowDownUp, List, MessageCircle, FileText, Heart, AlignLeft, ChevronRightIcon } from "lucide-react";
 import WebtoonRecommendationsComponent from "@/components/WebtoonRecommendationsComponent";
+import Image from "next/image";
 import AuthorProfileCard from "./AuthorProfileCard";
 import AuthorProfileCardLandscape from "./AuthorProfileCardLandscape";
 import moment from "moment";
@@ -76,55 +77,52 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
     return (
         <div className="flex flex-col flex-1 flex-shrink-0  w-full">  {/* Top tab margin 10 */}
             <TabContext value={tabValue} >
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
+                <Box sx={{ borderBottom: 0, borderColor: 'divider', padding: 0, }} className='dark:text-gray-700'>
                     <div className="flex flex-row justify-between items-center">
                         <TabList
                             onChange={handleChange}
                             aria-label="lab API tabs"
                             sx={{
                                 '& .MuiTab-root': {
-                                    margin: '0 10px',
-                                    padding: '0 1px',
-                                    border: '1px solid #8A2BE2',
-                                    borderRadius: '20px',
+                                    marginLeft: '20px',
+                                    padding: '0 10px',
+                                    // border: '1px solid #8A2BE2',
+                                    // borderRadius: '20px',
                                     color: 'gray', // Default tab color
                                     '&.Mui-selected': {
-                                        color: '#8A2BE2', // Color when tab is selected
+                                        color: '#DB2777', // Color when tab is selected
                                     },
                                 },
                                 '& .MuiTabs-indicator': {
                                     backgroundColor: 'transparent', // Indicator color
                                 }
                             }}
-                            className={`first-line:dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]`}
+                            className={`first-line:dark:text-white  dark:focus:text-[#DB2777] dark:active:text-[#DB2777]`}
                              >
                             <Tab 
                                label={
-                                <>
-                                <span className="flex-row items-center gap-1 hidden md:flex">
-                                  <List size={16} /> {phrase(dictionary, "episodes", language)}
-                                </span>
-                                <span className="flex flex-row items-center gap-1 md:hidden">
-                                   <List size={16} /> {webtoon.chapters.length}
-                                </span>
-                                </>
+                                <div className="flex flex-row items-center gap-1">
+                                    <span className="flex flex-row items-center gap-1">
+                                         <AlignLeft size={16} /> {phrase(dictionary, "episodes", language)}
+                                    </span>
+                                    <span className="">
+                                    {webtoon.chapters.length}
+                                    </span>
+                                </div>
                             }
                                 value="1" 
-                                className="dark:text-white dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]
+                                className="dark:text-white dark:focus:text-[#DB2777] dark:active:text-[#DB2777]
                                  md:w-auto sm:w-[10px]
                                 " />
                             <Tab label={
                                 <>
-                                <span className="flex-row items-center gap-1 hidden md:flex">
+                                <span className="flex flex-row items-center gap-1">
                                     <FileText size={16} /> {phrase(dictionary, "description", language)}
-                                </span>
-                                <span className="flex flex-row items-center gap-1 md:hidden">
-                                   <FileText size={16} />   
                                 </span>
                                 </>
                             }
                                 value="2" 
-                                className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]
+                                className="dark:text-white  dark:focus:text-[#DB2777] dark:active:text-[#DB2777]
                                 md:w-auto sm:w-[10px]
                                 " />
                           
@@ -138,7 +136,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 variant="text"
                                 onClick={handleSortToggle}
                                 className="bg-transparent text-black dark:text-white 
-                                            hover:text-[#8A2BE2] dark:hover:text-[#8A2BE2] 
+                                            hover:text-[#DB2777] dark:hover:text-[#DB2777] 
                                             px-2 py-1 rounded-md flex flex-row items-center gap-2">
                                 <ArrowDownUp size={16} className="text-gray-500 group-hover:text-white self-center" />
                                 <span className="hidden md:flex">
@@ -155,8 +153,30 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
 
                 <TabPanel value="1">
                     <div className="flex flex-col">
-                        
                         <div className="flex flex-col w-full gap-3">
+                         <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black bg-gray-100 rounded-md py-3">
+                         <p className="text-sm flex flex-row items-center gap-2">
+                         <Image
+                            src="/images/N_logo.svg"
+                            alt="Toonyz Logo"
+                            width={0}
+                            height={0}
+                            sizes="100vh"
+                            style={{
+                                height: '20px',
+                                width: '20px',
+                                padding: '2px',
+                                justifyContent: 'center',
+                                alignSelf: 'center',
+                                borderRadius: '25%',
+                                border: '1px solid #eee',
+                                backgroundColor: 'white'
+                            }}
+                        />
+                          앱에서 광고 보고 무료로 대여해 보세요.
+                          </p>
+                          <ChevronRightIcon size={16} className="text-black" />
+                         </Button>
                          <WebtoonChapterListSubcomponent webtoon={webtoon} slug={slug} coverArt={coverArt} sortToggle={isSortedByLatest} />
                         
                         <h1 className="text-base font-bold">
@@ -164,6 +184,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 {phrase(dictionary, "youMightLikeThis", language)}
                         </h1>
 
+                         <hr/>
                         <div className="flex flex-col ">
                             <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
                         </div>
@@ -181,12 +202,10 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                     {/* <hr /> */}
                     
                     <div className="flex flex-col gap-0 space-y-4">
-
                         <p className="text-sm text-black dark:text-white font-bold"> 
                             {/* 연재 시작 */}
                             {phrase(dictionary, "created_at", language)}
                         </p>
-                        
                         <p className="text-sm capitalize">
                             {/* {webtoon.language.toLowerCase()} */}
                             <p className="text-sm text-black dark:text-white"> {formattedDate} </p>

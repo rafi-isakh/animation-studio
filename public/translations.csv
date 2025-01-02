@@ -135,7 +135,7 @@ created_at,연재 시작일,,Created At
 noChaptersAvailable,연재 중인 글이 없습니다.,連載中の章がありません。,No chapters available.
 chapters,연재글,連載中の章,Chapters,
 deleteChapterConfirm,정말로 연재글을 삭제하시겠습니까?,連載中の章を削除しますか?,Are you sure you want to delete the chapter?
-noComments,댓글이 없습니다.,コメントがありません。,There's no comment
+noComments,댓글이 없습니다.,コメントがありません。,There are no comments.
 signup,회원가입,,Welcome to Toonyz
 agree_terms,투니즈의 가입약관에 동의합니다,,I agree to the terms & privacy policy
 agree_submit,등록하시면 이메일 정보가 수집됩니다.,,Your email will be collected at signup.
@@ -233,6 +233,7 @@ writeYourStory,새 웹소설 쓰기,,Write your webnovel
 discoverStories,작품 둘러보기,,Browse webnovels
 noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
 noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels
+reply,답글,,Reply
 preparing,준비중 입니다,,Preparing..
 confirm,확인,,Confirm
 close,닫기,,Close

@@ -73,7 +73,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
     }, []);
 
     return (
-        <div className="relative md:w-[300px] md:h-screen h-full top-0 bg-gray-100 dark:bg-gray-900 justify-start self-start rounded-xl mx-auto">
+        <div className="relative md:w-[300px] md:h-screen h-full top-0  bg-gradient-to-b from-transparent to-transparent justify-start self-start rounded-xl mx-auto">
             {/* Blurred background */}
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
@@ -84,6 +84,8 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                     backgroundPosition: 'center'
                 }}
             />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-black/80 rounded-xl" />
             {/* Existing content container */}
             <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full md:h-screen rounded-xl">
                 <div className="flex flex-col space-y-2">

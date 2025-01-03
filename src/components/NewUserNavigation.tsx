@@ -11,13 +11,9 @@ export function NavigationEvents() {
   const {logout} = useAuth();
  
   useEffect(() => {
-    console.log('pathname', pathname);
-    console.log('prevPathname', prevPathname.current);
     if (prevPathname.current == '/new_user') { // if user logs in and doesn't register, log out
         if (pathname !== '/welcome' && pathname !== '/new_user' && pathname !== '/user_loggedin') {
-            console.log('logging out');
             logout(false, '/');
-            console.log('logged out');
         }
     }
     prevPathname.current = pathname;

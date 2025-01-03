@@ -17,7 +17,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { ListOfChapterComments } from '@/components/ListOfChapterComments';
+import { ListOfChapterComments } from '@/components/CommentList';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';

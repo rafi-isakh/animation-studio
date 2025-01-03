@@ -39,8 +39,12 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
         setRecommendedCoverArtUrls(recommendedCoverArtUrls);
     }, [webtoons]);
 
+    const truncateText = (text: string, maxLength: number) => {
+        return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+    };
+
     return (
-        <div className="flex flex-row w-[600px] overflow-x-auto">
+        <div className="flex flex-row md:w-[670px] w-full overflow-x-auto">
             {recommendedWebtoons.map((webtoon: Webtoon, index: number) => (
                 <Link
                     href={`/webtoons/${webtoon.id}`}
@@ -58,8 +62,8 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
                             />
                         </div>
                         <div className="flex flex-row justify-between items-center w-full mt-2">
-                            <div className="ml-3 flex flex-col gap-1 text-sm">
-                                <OtherTranslateComponent content={webtoon.title} elementId={webtoon.id.toString()} elementType="webtoon" elementSubtype="title"/>
+                            <div className="ml-3 flex flex-col gap-1 text-sm truncate">
+                                <OtherTranslateComponent content={truncateText(webtoon.title, 20)}  elementId={webtoon.id.toString()} elementType="webtoon" elementSubtype="title"/>
                                 <div className="flex flex-row gap-1 flex-shrink-0 flex-grow-0 whitespace-nowrap">
                                     <span className="text-gray-600 text-[10px] flex-shrink-0 ">
                                         {phrase(dictionary, webtoon.genre.toLowerCase(), language)}
@@ -70,13 +74,6 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
                                     </span>
                                 </div>
                             </div>
-                            {/* <div className="text-sm text-center self-center">
-                               
-                                <p className="text-gray-600 text-[10px] mr-5">
-                                 
-                                    {phrase(dictionary, "readingForFree", language)}
-                                </p>
-                            </div> */}
                         </div>
                     </div>
                 </Link>

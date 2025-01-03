@@ -29,7 +29,6 @@ import { FacebookShareButton,
     PinterestIcon,
 } from "react-share";
 
-
 export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { webtoon: Webtoon, coverArt: string }) {
     const { language, dictionary } = useLanguage();
     const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY hh:mm');
@@ -47,7 +46,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
         }
     }, []);
 
-
     useEffect(() => {
         const tagsJSON = JSON.parse(webtoon.tags);
         setTags(tagsJSON);
@@ -58,12 +56,27 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
         setIsShareDropdownOpen(prev => !prev);
     }
 
+     // Add click handler to close dropdown when clicking outside
+     useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const clickedElement = event.target as Node;
+            
+            if (shareDropdownRef.current && !shareDropdownRef.current.contains(clickedElement)) {
+                setIsShareDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     return (
-        <div className="relative md:w-[300px]  top-0 bg-gray-100 justify-start self-start rounded-xl mx-auto">
+        <div className="relative md:w-[300px] md:h-screen h-full top-0 bg-gray-100 dark:bg-gray-900 justify-start self-start rounded-xl mx-auto">
             {/* Blurred background */}
             <div
-                className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl"
+                className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
                 //   bg-[#929292]/10
                 style={{
                     backgroundImage: `url(${coverArt})`,
@@ -72,7 +85,7 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                 }}
             />
             {/* Existing content container */}
-            <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full h-screen rounded-xl">
+            <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full md:h-screen rounded-xl">
                 <div className="flex flex-col space-y-2">
                     <div className="md:px-4 p-2">
                         <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto pt-1">
@@ -112,13 +125,9 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                             </li>
                         </ul>
 
-                        <ul className="flex flex-row gap-2 py-2">
-                        </ul>
-
                         {/* <p className="text-sm text-gray-400">{formattedDate}</p> */}
                         <OtherTranslateComponent content={webtoon.description} elementId={webtoon.id.toString()} elementType='webtoon' elementSubtype="description" classParams="text-sm text-gray-800 dark:text-white" />
-
-                        <div className="flex flex-row gap-2 pt-5 flex-shrink-0 w-full">
+                        <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
                             {/* button's top padding 5 */}
                             <Button
                                 sx={{
@@ -142,7 +151,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                     {phrase(dictionary, "start_to_read_episode_1", language)}
                                 </Link>
                             </Button>
-
                             <Link
                                 href=''
                                 className="text-center flex justify-center items-center contents-center md:p-0 p-1 flex-shrink-0
@@ -158,8 +166,6 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                             <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center" style={{ fontSize: '16px' }}></i>
                                     } */}
                             </Link>
-
-
                             <div className="relative">
                                 <Link
                                     onClick={toggleShareDropdown}
@@ -207,15 +213,23 @@ export default function WebtoonInfoAndPictureComponent({ webtoon, coverArt }: { 
                                     </div>
                                 )}
                             </div>
-
-
+                        </div>
+                        <div className="flex flex-col gap-2 px-2 pt-5 pb-5 w-full bg-white dark:bg-gray-500 rounded-lg ">
+                            <div className="flex flex-row gap-2">
+                                <p className="text-sm text-gray-500 dark:text-white self-center">
+                                    <span className="font-extrabold">대여권</span> 0장
+                                </p>
+                            
+                            </div>
+                            <hr/>
+                            <p className="text-sm text-gray-500 dark:text-white">
+                                   <span className="font-extrabold"> 기다리면 무료 </span> 0장 
+                           </p>
                         </div>
                     </div>
                   </div>
                 </div>
-
             </div>
-
         </div>
     )
 }   

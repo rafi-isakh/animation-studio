@@ -421,7 +421,7 @@ export const Header = () => {
                                                     </li>
                                                 )
                                                     :
-                                                    isLoggedIn ? (
+                                                    isLoggedIn && email ? ( // if user is logged in and has been registered (has email from useUser)
                                                         <>
                                                             <li>
                                                                 <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white text-black dark:hover:text-black">

@@ -4,15 +4,26 @@ import styles from "@/styles/KoreanText.module.css"
 import { phrase } from '@/utils/phrases'
 import { useLanguage } from "@/contexts/LanguageContext"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight,  Heart, Share, Copy  } from 'lucide-react';
+import { Button } from "@mui/material";
+import Image from "next/image";
 
 const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname }:
     { webnovels: Webnovel[], nickname: string | null | undefined }) => {
     const {language, dictionary} = useLanguage();
     const [key, setKey] = useState(0);
     const params = useSearchParams();
+    const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
+    const shareDropdownRef = useRef<HTMLDivElement>(null);
+    const [currentPageUrl, setCurrentPageUrl] = useState('');
+
+    useEffect(() => {
+        if (window !== undefined) {
+            setCurrentPageUrl(window.location.href);
+        }
+    }, []);
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1);

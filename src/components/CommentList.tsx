@@ -39,14 +39,19 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
     useEffect(() => {
         console.log("content", content)
         if (webnovelOrWebtoon) {
+
+            const allComments = content.chapters.flatMap(chapter => chapter.comments || []);
+            setAllComments(allComments);
+
             setOtherTranslationType('chapter' as ElementType);
             console.log("setting other translation type to chapter")
         }
         else {
             setOtherTranslationType('webtoon_chapter' as ElementType);
             console.log("setting other translation type to webtoon_chapter")
+            setAllComments(chapter.comments || []);
         }
-    }, [content])
+    }, [content, chapter, webnovelOrWebtoon])
 
     useEffect(() => {
         setKey(prev => prev + 1);

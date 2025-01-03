@@ -17,7 +17,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { ListOfChapterComments } from '@/components/CommentList';
+import { CommentList } from '@/components/CommentList';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
@@ -130,7 +130,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         <Link href="/new_webnovel">
                             {phrase(dictionary, "writeYourStory", language)}
                         </Link>
-
                     </Button>
                 </div>
             </div>
@@ -220,7 +219,19 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 </TabPanel>
                                 <TabPanel value="2">
                                     {/* Comments list */}
-                                    {theWebnovel && <ListOfChapterComments content={theWebnovel} chapter={theWebnovel.chapters[0]} webnovelOrWebtoon={true}/>}
+                                    {theWebnovel && theWebnovel.chapters && theWebnovel.chapters.length > 0 ? (
+                                        <CommentList 
+                                            content={theWebnovel} 
+                                            chapter={theWebnovel.chapters[0]} 
+                                            webnovelOrWebtoon={true}
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-8">
+                                            <p className="text-gray-500 text-sm">
+                                                {phrase(dictionary, "noComments", language)}
+                                            </p>
+                                        </div>
+                                    )}
                                 </TabPanel>
                             </TabContext>
 

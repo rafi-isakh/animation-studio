@@ -7,7 +7,7 @@ const CharacterSection: React.FC<{ title: string; data: Record<string, string> }
       <div className="py-6 space-y-4">
         {Object.entries(data).map(([key, value]) => (
           <div key={key} className="w-full flex flex-row">
-            <span className="border-pink-200 rounded-md px-4 bg-pink-200 w-32 text-[12px] justify-center self-center text-center">
+            <span className="border-[#FFE2DC] rounded-md px-4 bg-[#FFE2DC] w-32 text-[12px] justify-center self-center text-center">
                      {formatTitle(key)}
             </span> 
             <p className="ml-4">{value}</p>

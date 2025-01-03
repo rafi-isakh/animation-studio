@@ -57,14 +57,14 @@ const KeywordsComponent = () => {
                       <Link
                         key={index}
                         href={getGenreUrl(genre)}
-                        className={`border border-gray-400 rounded-xl px-6 !cursor-pointer ${highlightGenre(genre) ? "text-pink-600" : ""}`}
+                        className={`border border-gray-400 rounded-xl px-6 !cursor-pointer ${highlightGenre(genre) ? "text-[#DB2777]" : ""}`}
                         ref={el => {
                             if (el) {
                                 linkRefs.current[index] = el;
                             }
                         }}
                          >
-                        <h6 className="!text-[16px] font-bold tracking-tight hover:text-pink-600 whitespace-nowrap !cursor-pointer">
+                        <h6 className="!text-[16px] font-bold tracking-tight hover:text-[#DB2777] whitespace-nowrap !cursor-pointer">
                           # {phrase(dictionary, genre, language).replaceAll(" ", "-")}
                         </h6>
                     </Link>

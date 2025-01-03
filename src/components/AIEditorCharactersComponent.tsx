@@ -47,7 +47,7 @@ const AIEditorCharactersComponent = ({ openModal, setOpenModal }: { openModal: b
                             <input
                                 type="text"
                                 value={item}
-                                className='input border-none rounded focus:ring-pink-600 w-full bg-gray-200'
+                                className='input border-none rounded focus:ring-[#DB2777] w-full bg-gray-200'
                                 onChange={(e) => handleNamesChange(index, e.target.value)}
                             />
                             <Button className="absolute right-4 top-1/4" onClick={(e) => handleXClick(index, e.target)}><i className="fa-solid fa-xmark text-[#142448]"></i></Button>

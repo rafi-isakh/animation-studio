@@ -38,7 +38,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
-                    {/* <span className="absolute bottom-0 left-0 text-[10px] text-white bg-pink-500 px-1 py-1">
+                    {/* <span className="absolute bottom-0 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">
                         NEW
                     </span> */}
                 </div>

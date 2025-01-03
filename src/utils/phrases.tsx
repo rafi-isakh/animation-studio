@@ -42,10 +42,10 @@ const phrases = async (): Promise<Dictionary> => {
         const dictionary: Dictionary = {};
         
         const rows = csvText.split('\n');
-        const languageCodes = rows[0].split(',');
+        const languageCodes = rows[0].split(",");
         
         for (let i = 1; i < rows.length; i++) {
-            const row = rows[i].split(',');
+            const row = rows[i].split(/(?<!\\),/); // split by comma, except for escaped commas
             if (row.length === 0) continue;
             
             const tsx = row[0];
@@ -53,7 +53,7 @@ const phrases = async (): Promise<Dictionary> => {
             
             for (let j = 1; j < row.length; j++) {
                 const languageCode = languageCodes[j];
-                entry[languageCode] = row[j];
+                entry[languageCode] = row[j].replace(/\\,/g, ','); // replace escaped commas with actual commas
             }
             
             dictionary[tsx] = entry;

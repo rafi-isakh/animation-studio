@@ -10,10 +10,6 @@ import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Box, Button, CircularProgress, Modal, ThemeProvider, useMediaQuery } from '@mui/material';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
@@ -22,7 +18,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-
+import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -145,97 +141,49 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         } else if (atLeastOneWebnovel) {
             return (
                 <ThemeProvider theme={grayTheme}>
-                    <div className='max-w-screen-lg flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
-
+                    <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
                         {/*--  left-hand side:  Author's other works link */}
-                        <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
+                        <div className="flex md:flex-row flex-col justify-between items-start">
                             <Suspense>
-                                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
+                                {theWebnovel && (
+                                    <AuthorAndWebnovelsAsideComponent
+                                        webnovels={[theWebnovel]}
+                                        nickname={nickname}
+                                        coverArt={theWebnovel.cover_art || ""}
+                                    />
+                                )}
                             </Suspense>
-                            <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-[1px]' />
-                        </div>
-                        {/*-- left-hand side:  Author's other works link end */}
 
-                        <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
-                            <div className="">
-                                {
-                                    <div className='flex flex-row justify-between'>
-                                        <div className='flex flex-row justify-center self-center'>
-                                            <ChevronLeft className='self-center' />
-                                            <h1>
-                                                {/* 목록보기 */}
-                                                {phrase(dictionary, "list", language)}
-                                            </h1>
-                                        </div>
-
-                                        <div>
-                                            {isAuthor() &&
-                                                <div className='flex flex-row gap-4 w-full justify-start'>
-                                                    {/* 
-                                        <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
-                                            {phrase(dictionary, "aieditor", language)}
-                                        </NoCapsButton> 
-                                        */}
-                                                    <NoCapsButton
-                                                        color='gray'
-                                                        variant='outlined'
-                                                        onClick={handleNewChapter}
-                                                        className='px-4 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                                    >
-                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
-                                                    </NoCapsButton>
-                                                    <NoCapsButton
-                                                        color='gray'
-                                                        variant='outlined'
-                                                        onClick={() => setShowDeleteModal(true)}
-                                                        className='px-6 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                                    >
-                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
-                                                    </NoCapsButton>
-                                                </div>
-                                            }
-                                        </div>
+                            <div className='w-full'>
+                                {/* {isAuthor() &&
+                                    <div className='flex flex-row gap-4 w-full justify-start'>
+                                        <NoCapsButton
+                                            color='gray'
+                                            variant='outlined'
+                                            onClick={handleNewChapter}
+                                            className='px-4 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                        >
+                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
+                                        </NoCapsButton>
+                                        <NoCapsButton
+                                            color='gray'
+                                            variant='outlined'
+                                            onClick={() => setShowDeleteModal(true)}
+                                            className='px-6 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                        >
+                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
+                                        </NoCapsButton>
                                     </div>
-                                }
+                                } */}
+                                <ContentChapterListComponent
+                                    content={theWebnovel as Webnovel}
+                                    coverArt={theWebnovel?.cover_art || ""}
+                                    isWebtoon={false}
+                                    relatedContent={webnovels}
+                                />
                             </div>
-
-                            <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
-
-                            {/* Webnovel info and details */}
-                            <WebNovelInfoAndPictureComponent webnovel={theWebnovel} />
-
-                            <TabContext value={tabValue} >
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
-                                    <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]">
-                                        {/* Chapters : 연재글 */}
-                                        <Tab label={phrase(dictionary, "chapters", language)} value="1" className="dark:text-white dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
-                                        {/* Comments : 댓글 */}
-                                        <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
-                                    </TabList>
-                                </Box>
-                                <TabPanel value="1">
-                                    {/* Chapters list */}
-                                    <ListOfChaptersComponent webnovel={theWebnovel} />
-                                </TabPanel>
-                                <TabPanel value="2">
-                                    {/* Comments list */}
-                                    {theWebnovel && theWebnovel.chapters && theWebnovel.chapters.length > 0 ? (
-                                        <CommentList 
-                                            content={theWebnovel} 
-                                            chapter={theWebnovel.chapters[0]} 
-                                            webnovelOrWebtoon={true}
-                                        />
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center py-8">
-                                            <p className="text-gray-500 text-sm">
-                                                {phrase(dictionary, "noComments", language)}
-                                            </p>
-                                        </div>
-                                    )}
-                                </TabPanel>
-                            </TabContext>
-
                         </div>
+
                     </div>
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
                         <Box sx={useModalStyle}>

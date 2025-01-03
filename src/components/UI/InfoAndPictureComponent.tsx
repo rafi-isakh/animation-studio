@@ -27,6 +27,11 @@ import {
     PinterestShareButton,
     PinterestIcon,
 } from "react-share";
+import { getImageUrl } from "@/utils/urls";
+import { createEmailHash } from '@/utils/cryptography'
+import { useUser } from '@/contexts/UserContext';
+import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
+
 
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;
@@ -40,6 +45,10 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
+    const nickname = content.user.nickname;
+    const author_email = content.user.email_hash;
+    const { email } = useUser();
+    
 
     useEffect(() => {
         if (window !== undefined) {
@@ -70,13 +79,22 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+
+    const isAuthor = (): boolean => {
+        // if (!email || !author_email) return false;
+        const userEmailHash = createEmailHash(email);
+        const authorEmailHash = author_email
+        return userEmailHash === authorEmailHash;
+    };
+
+
     return (
         <div className="relative md:w-[300px] md:h-screen h-full top-0 bg-gradient-to-b from-transparent to-transparent justify-start self-start rounded-xl mx-auto">
             {/* Blurred background */}
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
                 style={{
-                    backgroundImage: `url(${coverArt})`,
+                    backgroundImage: `url(${isWebtoon ? coverArt : getImageUrl(coverArt)})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}
@@ -91,7 +109,7 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                         {/* Cover Image */}
                         <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto pt-1">
                             <Image
-                                src={coverArt}
+                                src={isWebtoon ? coverArt : getImageUrl(coverArt)}
                                 alt={content.title}
                                 width={270}
                                 height={350}
@@ -140,12 +158,12 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                                 {/* Read Button */}
                                 <Button
                                     sx={{
-                                        backgroundColor: '#8A2BE2',
+                                        backgroundColor: '#DE2B74',
                                         color: 'white',
                                         borderRadius: '5px',
                                         height: '40px',
                                         '&:hover': {
-                                            backgroundColor: '#8A2BE2',
+                                            backgroundColor: '#DE2B74',
                                         },
                                     }}
                                     variant="contained"
@@ -215,6 +233,7 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                                                     </PinterestShareButton>
                                                 </div>
 
+                                        
                                                 <div className="flex flex-row gap-2 p-4">
                                                     <p className="text-center text-[10px] text-gray-500">{currentPageUrl} </p>
                                                     <Button 
@@ -239,7 +258,7 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                             </div>
 
                             {/* Premium Info */}
-                            <div className="flex flex-col gap-2 px-2 pt-5 pb-5 w-full bg-white dark:bg-gray-500 rounded-lg">
+                            <div className="flex flex-col gap-2 px-2 pt-5 pb-5 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
                                 <div className="flex flex-row gap-2">
                                     <p className="text-sm text-gray-500 dark:text-white self-center">
                                         <span className="font-extrabold">대여권</span> 0장

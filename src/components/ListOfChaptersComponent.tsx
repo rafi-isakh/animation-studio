@@ -9,30 +9,20 @@ import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableH
 import { useModalStyle } from '@/styles/ModalStyles';
 import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
 import { styled } from '@mui/system';
+import { ChevronDownIcon, Eye, Heart, MessageCircle } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
 import { createEmailHash } from "@/utils/cryptography";
 import { useUser } from "@/contexts/UserContext";
-
-const StyledTableCell = styled(TableCell)({
-    padding: '16px',
-    '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-    },
-});
-
-const StyledTableContainer = styled(TableContainer)({
-    maxHeight: '80vh',
-    border: '1px solid rgba(224, 224, 224, 1)',  // Add a subtle border
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',     // Add box shadow
-});
-
+import Image from "next/image";
+import { getImageUrl } from "@/utils/urls";
 
 const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
     const { dictionary, language } = useLanguage();
     const [key, setKey] = useState(0);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
+    const [showMoreChapters, setShowMoreChapters] = useState(false);
+
     const date = new Date();
     const router = useRouter();
 
@@ -40,15 +30,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
         setKey(prevKey => prevKey + 1)
     }, [language])
 
-    const sortFn = (a: Chapter, b: Chapter) => {
-        const aDate = new Date(a.created_at).getTime()
-        const bDate = new Date(b.created_at).getTime()
-        return aDate - bDate
-    }
-
-    const NoCapsButton = styled(Button)({
-        textTransform: 'none',
-    });
+    const sortedChapters = webnovel?.chapters.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
     const handleChapterDelete = async (id: number) => {
         try {
@@ -68,73 +50,90 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
 
     return (
         <>
-            <StyledTableContainer>
-                <Table aria-label="simple table">
-                    <TableBody>
-                        {webnovel?.chapters && webnovel.chapters.length > 0 ? (
-                            webnovel.chapters
-                                .sort(sortFn)
-                                .map((chapter, index) => (
-                                    <TableRow key={index}
-                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                        <StyledTableCell scope="row"
-                                            onClick={(e) => {
-                                                // Only navigate if the click didn't originate from the delete button
-                                                if (!(e.target as HTMLElement).closest('.delete-button')) {
-                                                    router.push(`/chapter_view/${chapter.id}`);
-                                                }
-                                            }}>
-                                            <div className="flex flex-col space-y-4 text-black dark:text-white">
-                                                <div className="group/edit flex flex-row space-x-4 items-center transition ease-in-out duration-300 delay-150">
-                                                    <h2 className="text-xl font-bold mx-2 text-black dark:text-white">{index + 1}</h2>
-                                                    <div className="flex-1">
-                                                        <div className="flex flex-row space-x-4 mb-2">
-                                                            <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="max-w-64 md:max-w-128 truncate whitespace-nowrap text-black dark:text-white" />
-                                                        </div>
-                                                        <div className="flex flex-row space-x-4 text-[10px]">
-                                                            <p>{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
-                                                            <p className='text-[10px] text-black dark:text-white'><i className="fa-solid fa-eye"></i> {chapter.views}</p>
-                                                            <p className='text-[10px] text-black dark:text-white'><i className="fa-regular fa-heart"></i> {chapter.upvotes}</p>
-                                                            <p className='text-[10px] text-black dark:text-white'><i className="fas fa-comment-dots"></i> {chapter.comments.length}</p>
-                                                        </div>
-                                                    </div>
-                                                    {/* delete button */}
-                                                    {/* <button className="transition ease-in-out duration-300 delay-150 hover:bg-gray-200 p-2 rounded-md group-hover/edit:block hidden"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowDeleteModal(true);
-                                                            setDeleteChapterId(chapter.id);
-                                                        }}>
-                                                        {webnovel?.user.email_hash === createEmailHash(email) && <i className="fa-solid fa-trash"></i>}
-                                                    </button> */}
-                                                    {/* delete button */}
-                                                </div>
+            <div className="w-full">
+                <div className="overflow-y-auto rounded-md">
+                    {sortedChapters?.map((chapter, index) => (
+                        <Link
+                            href={`/chapter_view/${chapter.id}`}
+                            key={`chapter-${chapter.id}`}
+                            className={`block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 
+                    ${index >= 10 && !showMoreChapters ? 'hidden' : ''}`}
+                        >
+                            <div className="flex flex-row justify-between items-center">
+                                <div className="flex flex-row gap-3 items-center">
+                                    {/* <p className="text-sm self-center">{index + 1}</p> */}
+                                    <Image
+                                        src={getImageUrl(webnovel?.cover_art)}
+                                        alt={webnovel?.title || ''}
+                                        width={50}
+                                        height={50}
+                                        className="rounded-lg"
+                                    />
+                                    <div className="flex flex-col text-sm">
+                                        <div className="flex flex-row">
+                                            <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" />
+                                        </div>
+                                        <p className="text-[11px] text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
+                                        <div className="flex flex-row space-x-2 text-sm">
+                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
+                                                <Eye size={11} /> {chapter.views}
                                             </div>
-                                        </StyledTableCell>
-                                    </TableRow>
-                                ))
-                        ) : (
-                            <TableRow>
-                                <div className="w-full flex justify-center">
-                                    <div className="py-8 text-gray-500 text-sm">
-                                        {phrase(dictionary, "noChaptersAvailable", language)}
+                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
+                                                <Heart size={11} /> {chapter.upvotes}
+                                            </div>
+                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
+                                                <MessageCircle size={11} /> {chapter.comments.length}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </StyledTableContainer>
+                                <div className="flex flex-row gap-2 items-center">
+                                    <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
+                                        {/* Free */}
+                                        {phrase(dictionary, "readingForFree", language)}
+                                        {/* {chapter.free_premium ? phrase(dictionary, "readingForFree", language)
+                            : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" /> 30</div>} */}
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+                {webnovel?.chapters && webnovel?.chapters.length > 10 && (
+                    <button
+                        className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
+                        onClick={() => setShowMoreChapters(!showMoreChapters)}
+                    >
+                        {phrase(dictionary, showMoreChapters ? "less" : "more", language)}
+                        <ChevronDownIcon size={16} />
+                    </button>
+                )}
+            </div>
             <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
                 <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        <p className='text-lg font-bold'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                    <div className="flex flex-col space-y-4 items-center justify-center">
+                        <p className="text-lg font-bold">
+                            {phrase(dictionary, "deleteChapterConfirm", language)}
+                        </p>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={() => handleChapterDelete(deleteChapterId!)}
+                        >
+                            {phrase(dictionary, "yes", language)}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setShowDeleteModal(false)}
+                        >
+                            {phrase(dictionary, "no", language)}
+                        </Button>
                     </div>
                 </Box>
             </Modal>
         </>
-    )
-}
+    );
+};
+
+
 export default ListOfChaptersComponent;

@@ -44,19 +44,19 @@ export default function WebtoonRecommendationsComponent({ webtoons, coverArtUrls
     };
 
     return (
-        <div className="flex flex-row md:w-[670px] w-full overflow-x-auto">
+        <div className="flex flex-row md:w-[670px] w-full overflow-x-auto gap-1">
             {recommendedWebtoons.map((webtoon: Webtoon, index: number) => (
                 <Link
                     href={`/webtoons/${webtoon.id}`}
                     key={`webtoon-${webtoon.id}`}
-                    className="cursor-pointer block py-2 min-w-[150px] max-w-[150px] mx-2 first:ml-0 last:mr-0"
+                    className="cursor-pointer block py-2 min-w-[150px] max-w-[150px]"
                 >
                     <div className="flex flex-col dark:text-white hover:opacity-80 transition duration-150 ease-in-out rounded-sm h-full">
                         <div className="w-[150px] h-[200px] relative">
                             <Image
                                 src={recommendedCoverArtUrls[index]}
                                 alt={webtoon.title}
-                                className="rounded-sm object-cover"
+                                className="rounded-lg object-cover"
                                 fill
                                 sizes="150px"
                             />

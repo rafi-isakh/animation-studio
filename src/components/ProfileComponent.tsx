@@ -39,7 +39,7 @@ import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
 import ReportButton from '@/components/ReportButton';
 import BlockButton from '@/components/BlockButton';
 import dynamic from 'next/dynamic';
-import animationData from '@/assets/N_logo_loader.json';
+import animationData from '@/assets/stelli_loader.json';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
 
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {

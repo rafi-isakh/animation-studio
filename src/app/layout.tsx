@@ -14,6 +14,7 @@ import Margin from '@/components/Margin';
 import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, Noto_Sans_SC, Noto_Sans_Arabic } from 'next/font/google';
 import RegisterSW from '@/components/RegisterSW';
 import HeaderWrapper from '@/components/HeaderWrapper';
+import { NavigationEvents } from '@/components/NewUserNavigation';
 
 
 interface RootLayoutProps {
@@ -107,6 +108,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       </Suspense>
                       <Margin>
                         {children}
+                        <Suspense>
+                          <NavigationEvents />
+                        </Suspense>
                       </Margin>
                       {/* 
                     <div className={`children min-h-screen`}>  

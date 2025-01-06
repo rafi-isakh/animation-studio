@@ -65,6 +65,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>
+            <Footer/>
         </div>
     );
 }

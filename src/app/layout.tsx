@@ -62,7 +62,7 @@ export const pretendard = localFont({
   src: '../../public/fonts/PretendardVariable.woff2',
   display: 'swap',
   variable: '--font-pretendard',
-  weight: '45 920',
+  weight: '100 900',
   preload: true,
 });
 
@@ -70,7 +70,7 @@ export const pretendardJP = localFont({
   src: '../../public/fonts/PretendardJPVariable.woff2',
   display: 'swap',
   variable: '--font-pretendard-jp',
-  weight: '45 920',
+  weight: '100 900',
   preload: true,
 });
 //PretendardStdVariable
@@ -78,7 +78,7 @@ export const pretendardStd = localFont({
   src: '../../public/fonts/PretendardStdVariable.woff2',
   display: 'swap',
   variable: '--font-pretendard-std',
-  weight: '45 920',
+  weight: '100 900',
   preload: true,
 });
 

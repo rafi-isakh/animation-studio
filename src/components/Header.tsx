@@ -28,10 +28,11 @@ import { SquarePen,
         User, 
         HeartHandshake, 
         Clapperboard,
+        Bell,
         HandHeart } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
-import { Box, Drawer } from '@mui/material';
+import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 
@@ -284,12 +285,12 @@ export const Header = () => {
             {/* Top font color gray-500 and weight bold */}
             <nav className="fixed left-0 top-0 right-0 z-50 mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black ">
                 <div className="max-w-screen-lg mx-auto">
-                    <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-2 pt-2 md:px-0 px-3">
+                    <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
                         {/* md:pb-3 md:pt-3 pt-2 md:px-0 px-3 */}
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, studio */}
-                        <div className='flex flex-row items-center justify-center space-x-4 '>
-                            <Link href="/?version=premium" className="flex items-center space-x-3 rtl:space-x-reverse md:p-0 pl-3">
+                        <div className='flex flex-row items-center justify-center gap-4 '>
+                            <Link href="/?version=premium" className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                             {/* logo padding on mobile screen */}
                             <Image
                                 src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
@@ -316,13 +317,13 @@ export const Header = () => {
                         <div className="flex md:order-1">
                             {/*Globe icon in mobile screen (md:hidden)*/}
                             <div ref={searchRef}>
-                                <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white hover:bg-gray-100 rounded-xl dark:hover:bg-gray-600 focus:outline-none text-sm p-2.5 me-1">
-                                    <Globe size={20} className='dark:text-white text-gray-500' />
+                                <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-600 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
+                                    <Globe size={20} className='dark:text-white text-gray-500 ' />
                                 </button>
                             </div>
-                            {/*Main menu in mobile screen (md:hidden)*/}
+                            {/*hamburger menu in mobile screen (md:hidden)*/}
                             <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-600 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                     <Menu size={20} className='dark:text-white text-gray-500' />
                                 </button>
                             </div>
@@ -332,11 +333,10 @@ export const Header = () => {
                             <div className="relative mt-3 md:hidden">
                                 <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                    <Search size={20} className='dark:text-white text-black' />
-                                   
                                 </div>
-                                <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
+                                   <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
                             </div>
-
+                            {/* Search bar in desktop screen */}
                             <div className="relative hidden md:block mr-3">
                                 <button
                                     onClick={toggleDrawer(true)}
@@ -366,17 +366,21 @@ export const Header = () => {
                                     </Box>
                                 </Drawer>
                             </div>
-                            <ul className="flex flex-col md:flex-row font-medium p-2 md:p-0 mt-4 border border-gray-600 md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0 ">
+                            <ul className="flex flex-col md:flex-row font-medium mt-4 border border-gray-600 md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0 ">
                                 {/* gap-1 for desktop header icons */}
                                 {/*Language globe icon menu button - Desktop*/}
+                                <li className='flex items-center justify-center'>
+                                    <button type="button" className="md:inline-flex hidden items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" >
+                                       <Bell size={20} className='dark:text-white text-gray-500' />
+                                    </button>
+                                </li>
                                 <li className="py-2 relative">
                                     <div ref={languageMenuRef}>
                                         <button
                                             id="dropdownNavbarLanguageLink"
                                             onClick={toggleLanguageDropdown}
-                                            className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448]  hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white  dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-
-                                            <div className='p-2 rounded-xl hover:bg-gray-100 transition duration-150 ease-in-out'>
+                                            className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white  dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                            <div className='p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
                                                 <Globe
                                                     size={20}
                                                     className='dark:text-white text-gray-500'
@@ -406,7 +410,7 @@ export const Header = () => {
                                     <div ref={userMenuRef}>
                                         <button id="dropdownNavbarUserLink" onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
                                             className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
-                                            <div className='p-2 rounded-xl hover:bg-gray-100 transition duration-150 ease-in-out'>
+                                            <div className='p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
                                                 {/* Desktop user menu icon */}
                                                 <Menu size={20} className='dark:text-white text-gray-500 md:block hidden  transition duration-150 ease-in-out' />
                                                 {/* Mobile user menu icon */}
@@ -500,7 +504,17 @@ export const Header = () => {
                                         </div>
                                     )}
                                 </li>
-
+                                <li className='md:flex items-center justify-center ml-1 hidden'>
+                                    <Button sx={{
+                                        backgroundColor: '#DB2777',
+                                        color: 'white',
+                                        '&:hover': {
+                                            color: 'white',
+                                        }
+                                    }} variant="text" className='capitalize rounded-lg'>
+                                          Publish
+                                    </Button>
+                              </li>
                             </ul>
                         </div>
                     </div>
@@ -527,25 +541,25 @@ export const Header = () => {
                 <>
                     <div id="free-premium" className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm ">
                         <div className="flex flex-row  gap-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
-                            <div className={`flex-1 flex flex-row items-center gap-2 text-md font-bold md:p-1 transition-all duration-300 ease-in-out
+                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 transition-all duration-300 ease-in-out
                                 ${highlightPremium() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
                                                      : "text-gray-500"}`}>
                                 <Sparkles size={20} /> 
                                 <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link>
                             </div>
-                            <div className={`flex-1 flex flex-row items-center gap-2 text-md font-bold md:p-1 
+                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 
                                 ${highlightFree() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
                                                      : "text-gray-500"}`}>
                                 <HeartHandshake size={20} />
                                 <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link>
                             </div>
-                            <div className={`flex-1 flex flex-row items-center gap-2 text-md font-bold md:p-1 
+                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 
                                 ${highlightRomance() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
                                                      : "text-gray-500"}`}>
                                 <FavoriteIcon sx={{ fontSize: 20 }}/>
                                 <Link href='#'>{phrase(dictionary, "romance", language)}</Link>
                             </div>
-                            <div className={`flex-1 flex flex-row items-center gap-2 text-md font-bold md:p-1 
+                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 
                                 ${isActive('/toonyzcut') ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
                                                      : "text-gray-500"}`}>
                                 <Clapperboard size={20} />

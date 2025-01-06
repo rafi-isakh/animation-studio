@@ -15,7 +15,7 @@ import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, No
 import RegisterSW from '@/components/RegisterSW';
 import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
-
+import localFont from "next/font/local";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -54,19 +54,34 @@ export const metadata: Metadata = {
   }
 }
 
-
 interface RootLayoutProps {
   children: ReactNode;
 }
 
-const notoSans = Noto_Sans({
-  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext', 'greek', 'greek-ext', 'devanagari'],
-  weight: '400'
-})
-const notoSansKR = Noto_Sans_KR({
-  subsets: ['latin'],
-  weight: '400'
-})
+export const pretendard = localFont({
+  src: '../../public/fonts/PretendardVariable.woff2',
+  display: 'swap',
+  variable: '--font-pretendard',
+  weight: '45 920',
+  preload: true,
+});
+
+export const pretendardJP = localFont({
+  src: '../../public/fonts/PretendardJPVariable.woff2',
+  display: 'swap',
+  variable: '--font-pretendard-jp',
+  weight: '45 920',
+  preload: true,
+});
+//PretendardStdVariable
+export const pretendardStd = localFont({
+  src: '../../public/fonts/PretendardStdVariable.woff2',
+  display: 'swap',
+  variable: '--font-pretendard-std',
+  weight: '45 920',
+  preload: true,
+});
+
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ['arabic'],
   weight: '400'
@@ -75,25 +90,18 @@ const notoSansThai = Noto_Sans_Thai({
   subsets: ['thai'],
   weight: '400'
 })
-const notoSansJP = Noto_Sans_JP({
-  subsets: ['latin'],
-  weight: '400'
-})
 const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
   weight: '400'
 })
-const notoSansSC = Noto_Sans_SC({
-  subsets: ['latin'],
-  weight: '400'
-})
-
-
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html>
-      <body>
+    <html lang="en" className={`${pretendard.variable}`}>
+      <body className={`${pretendard.className} 
+                        ${pretendardJP.className} 
+                        ${pretendardStd.className} 
+                        antialiased`}>
         <RegisterSW />
         <LanguageProvider>
           <ThemeProvider>
@@ -101,8 +109,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <UserProvider>
                 <DeviceProvider>
                   <SearchProvider>
-                    <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
-                    ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
+                    <div className={`font-pretendard pretendard-jp pretendard-std
+                    ${notoSansArabic.className} 
+                    ${notoSansThai.className} 
+                    ${notoSansTC.className}`}>
                       <Suspense>
                         <Header />
                       </Suspense>

@@ -275,7 +275,7 @@ export const Header = () => {
                                     width={logoWidth}
                                     height={logoHeight} />
                             </Link>
-                            <div className="flex flex-row space-x-4 items-center justify-center">
+                            <div className="flex flex-row space-x-4 items-center justify-center font-pretendard">
                                 <Link href="/?version=premium">
                                     <p className={`${isActive('/') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl dark:text-white dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>

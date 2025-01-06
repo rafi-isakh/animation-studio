@@ -30,7 +30,7 @@ const AuthorWorkListComponent = ({ webnovels, nickname }:
         <div className="flex flex-row md:w-[670px] w-full overflow-x-auto gap-1">
             {/* <p id="nickname" className={`text-2xl mb-5 font-black ${styles.korean}`}>{nickname} {phrase(dictionary, "whoseWebnovels", language)}</p> */}
             {webnovels?.map((webnovel, index) => (
-                <div className="flex flex-col space-y-1">
+                <div key={index} className="flex flex-col space-y-1">
                     <Link
                         key={index}
                         href={`/view_webnovels?id=${webnovel.id}`}

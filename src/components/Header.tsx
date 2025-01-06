@@ -55,6 +55,8 @@ export const Header = () => {
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
 
+    const isLoggedInAndRegistered = isLoggedIn && email;
+
     useEffect(() => {
         if (pathname == "/") {
             router.push(pathname + "?version=premium")
@@ -304,7 +306,7 @@ export const Header = () => {
                             </div>
                             {/*Main menu in mobile screen (md:hidden)*/}
                             <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-black md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-black dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                <button id="mobile-hamburger" onClick={isLoggedInAndRegistered ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-black md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-black dark:hover:bg-gray-600 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                     <span className="sr-only">Open main menu</span>
                                     <svg className="w-5 h-5 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
@@ -385,7 +387,6 @@ export const Header = () => {
                                                         <Link href="#" onClick={(event) => handleLanguageChange(event, langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black">
                                                             {langPair.name}
                                                         </Link>
-                                                        {/*  href={isLoggedIn? '#': '/signin'}  */}
                                                     </li>
                                                 ))}
                                             </ul>
@@ -395,7 +396,7 @@ export const Header = () => {
                                 {/*User menu - Desktop*/}
                                 <li className="py-2 relative">
                                     <div ref={userMenuRef}>
-                                        <button id="dropdownNavbarUserLink" onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] md:p-0 md:w-auto dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                        <button id="dropdownNavbarUserLink" onClick={isLoggedInAndRegistered ? () => toggleUserDropdown() : () => router.push('/signin')} className="block px-4 py-5 flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] md:p-0 md:w-auto dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                                             {/* <i className="fa-solid fa-user text-black dark:text-white"></i> */}
                                             <Image
                                                 src={theme === 'dark' ? '/profile_line_icon_white.png' : '/profile_line_icon.png'}
@@ -421,7 +422,7 @@ export const Header = () => {
                                                     </li>
                                                 )
                                                     :
-                                                    isLoggedIn && email ? ( // if user is logged in and has been registered (has email from useUser)
+                                                    isLoggedInAndRegistered ? ( // if user is logged in and has been registered (has email from useUser)
                                                         <>
                                                             <li>
                                                                 <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white text-black dark:hover:text-black">

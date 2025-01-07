@@ -58,30 +58,6 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-export const pretendard = localFont({
-  src: '../../public/fonts/PretendardVariable.woff2',
-  display: 'swap',
-  variable: '--font-pretendard',
-  weight: '45 920',
-  preload: true,
-});
-
-export const pretendardJP = localFont({
-  src: '../../public/fonts/PretendardJPVariable.woff2',
-  display: 'swap',
-  variable: '--font-pretendard-jp',
-  weight: '45 920',
-  preload: true,
-});
-//PretendardStdVariable
-export const pretendardStd = localFont({
-  src: '../../public/fonts/PretendardStdVariable.woff2',
-  display: 'swap',
-  variable: '--font-pretendard-std',
-  weight: '45 920',
-  preload: true,
-});
-
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ['arabic'],
   weight: '400'
@@ -97,11 +73,22 @@ const notoSansTC = Noto_Sans_TC({
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className={`${pretendard.variable}`}>
-      <body className={`${pretendard.className} 
-                        ${pretendardJP.className} 
-                        ${pretendardStd.className} 
-                        antialiased`}>
+    <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-std/dist/web/static/pretendard-std.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-jp/dist/web/static/pretendard-jp.css"
+        />
+      </head>
+      <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
           <ThemeProvider>

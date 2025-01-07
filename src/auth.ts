@@ -62,6 +62,17 @@ async function refreshAccessToken(token: any) {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+     },
+  },
   providers: [
     Google({
       // Google requires "offline" access_type to provide a `refresh_token`

@@ -64,12 +64,44 @@ async function refreshAccessToken(token: any) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
-        // Google requires "offline" access_type to provide a `refresh_token`
-        authorization: { params: { access_type: "offline", prompt: "consent" } },
+      // Google requires "offline" access_type to provide a `refresh_token`
+      authorization: { params: { access_type: "offline", prompt: "consent" } },
     }),
     Kakao,
-    Apple
-],
+    Apple({
+      clientId: process.env.AUTH_APPLE_ID!,
+      clientSecret: process.env.AUTH_APPLE_SECRET!,
+      wellKnown: "https://appleid.apple.com/.well-known/openid-configuration",
+      checks: ["pkce"],
+      token: {
+        url: `https://appleid.apple.com/auth/token`,
+      },
+      authorization: {
+        url: 'https://appleid.apple.com/auth/authorize',
+        params: {
+          scope: '',
+          response_type: 'code',
+          response_mode: 'query',
+          state: crypto.randomUUID()
+        },
+      },
+      client: {
+        token_endpoint_auth_method: "client_secret_post",
+      },
+    })
+  ],
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
+  secret: process.env.AUTH_SECRET,
   callbacks: {
     async jwt({ token, account, profile }) {
       // Initial sign in

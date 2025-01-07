@@ -80,8 +80,8 @@ isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
 isLastChapter,마지막 화입니다.,,You are at the last chapter.
 studio,스튜디오,スタジオ,STUDIO
 publish,발행,,Publish
-google_signin,구글로 로그인,,Sign in with Google
-kakao_signin,카카오로 로그인,,Sign in with Kakao
+google_signin,구글로 로그인,,Sign In with Google
+kakao_signin,카카오로 로그인,,Sign In with Kakao
 yes,예,,Yes
 no,아니오,,No
 deleteAccountConfirm,정말로 계정을 삭제하시겠습니까?,,Are you sure you want to delete your account?
@@ -255,4 +255,4 @@ userBlocked_subtitle,이 사용자는 차단되었습니다.,,You have blocked t
 unblock,차단 해제,,Unblock
 upload,업로드,,Upload
 starsTransaction,충전 내역,,Transactions
-
+apple_signin,애플로 로그인,,Sign In with Apple

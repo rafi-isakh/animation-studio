@@ -67,7 +67,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Google requires "offline" access_type to provide a `refresh_token`
         authorization: { params: { access_type: "offline", prompt: "consent" } },
     }),
-    Kakao
+    Kakao,
+    Apple
 ],
   callbacks: {
     async jwt({ token, account, profile }) {

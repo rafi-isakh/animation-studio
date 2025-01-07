@@ -61,3 +61,24 @@ export function KakaoSignIn() {
         </div>
     )
 }
+
+export function AppleSignIn() {
+    const { language, dictionary } = useLanguage();
+    const { login } = useAuth();
+    return (
+        <div className="flex flex-row items-center justify-center">
+            <NoCapsButton color='gray' variant='outlined' onClick={() => login('apple', true, `/new_user`)} className='rounded-lg border-1 border-gray-300 w-80 flex flex-row items-center justify-center' type="submit">
+                <Image 
+                src="/apple_logo.svg" 
+                alt="Apple Sign In" 
+                width={20} 
+                height={20}
+                placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg==" // 추가
+                >
+                </Image>
+                    <p className="text-lg ml-4"> {phrase(dictionary, "apple_signin", language)} </p>
+               
+            </NoCapsButton>
+        </div>
+    )
+}

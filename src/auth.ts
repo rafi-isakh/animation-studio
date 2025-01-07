@@ -94,7 +94,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       options: {
         httpOnly: false,
         sameSite: "none",
-        path: "/new_user",
+        path: "/",
         secure: true,
       },
     },

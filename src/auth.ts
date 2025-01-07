@@ -48,8 +48,6 @@ async function refreshAccessToken(token: any) {
         refresh_token: token.refreshToken,
         client_secret: process.env.AUTH_KAKAO_SECRET!,
       });
-    } else if (token.provider === 'apple') {
-      return getAppleToken();
     } else {
       throw new Error("Unsupported provider for token refresh");
     }
@@ -60,7 +58,11 @@ async function refreshAccessToken(token: any) {
       body: body,
     });
 
-    const refreshedTokens = await response.json();
+    let refreshedTokens = await response.json();
+    console.log("refreshedTokens", refreshedTokens)
+    if (token.provider === 'apple') {
+      refreshedTokens = await getAppleToken();
+    }
 
     if (!response.ok) {
       throw refreshedTokens;

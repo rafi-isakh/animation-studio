@@ -1,7 +1,7 @@
 import WebtoonsCardList from "@/components/WebtoonsCardList";
 import { Webtoon } from "@/components/Types";
 import WebtoonsCarousel from "@/components/WebtoonsCarousel";
-import CircularMenuItemsComponent from "@/components/CircularMenuItemsComponent";
+import CircularMenuItemsComponent from "@/components/MenuItemsComponent";
 import Footer from "@/components/Footer";
 import WebtoonsRecommendationCarousel from "@/components/WebtoonsRecommendationCarousel";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";

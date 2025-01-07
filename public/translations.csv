@@ -79,7 +79,7 @@ prevChapter,이전화,,Prev
 isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
 isLastChapter,마지막 화입니다.,,You are at the last chapter.
 studio,스튜디오,スタジオ,Studio
-publish,발행,,Publish
+publish,글쓰기,,Publish
 google_signin,구글로 로그인,,Sign in with Google
 kakao_signin,카카오로 로그인,,Sign in with Kakao
 yes,예,,Yes

@@ -33,6 +33,10 @@ import { SquarePen,
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Drawer } from '@mui/material';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 
@@ -67,6 +71,7 @@ export const Header = () => {
     const [searchRemember, setSearchRemember] = useState(true);
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
+    const [tabValue, setTabValue] = useState('1');
 
     useEffect(() => {
         if (pathname == "/") {
@@ -539,8 +544,8 @@ export const Header = () => {
             </nav>
             {(pathname == '/' || pathnameLoading) && (
                 <>
-                    <div id="free-premium" className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm ">
-                        <div className="flex flex-row  gap-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto">  {/* md:pt-2 md:pb-2 p-1 px-4 m-1 md:ml-[158px] */}
+                    <div id="free-premium" className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-2">
+                        <div className="flex flex-row  gap-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">  
                             <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 transition-all duration-300 ease-in-out
                                 ${highlightPremium() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
                                                      : "text-gray-500"}`}>

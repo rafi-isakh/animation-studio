@@ -89,6 +89,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         secure: true,
       },
      },
+     callbackUrl: {
+      name: `__Secure-next-auth.callback-url`,
+      options: {
+        httpOnly: false,
+        sameSite: "none",
+        path: "/new_user",
+        secure: true,
+      },
+    },
   },
   providers: [
     Google({
@@ -108,7 +117,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorization: {
         params: {
-          response_mode: "query",
+          response_mode: "form_post",
           response_type: "code",//do not set to "code id_token" as it will not work
           scope: "name email"
         },},

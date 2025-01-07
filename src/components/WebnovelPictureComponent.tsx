@@ -19,15 +19,15 @@ const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details
         <Link href={`/view_webnovels?id=${webnovel.id}`}>
             <div className="group relative flex flex-col items-center w-full">
                 {/* Image Container - Reduced sizes */}
-                <div className="relative shrink-0 overflow-hidden rounded-sm h-full">
-                    {/*  w-[100px] h-[150px] md:w-[140px] md:h-[200px] */}
+                <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257]">
+                    {/*   */}
                     <Image
                         src={imageSrc}
                         alt={webnovel.cover_art}
-                        width={180}
-                        height={257}
+                        fill
+                        sizes="(max-width: 768px) 100px, 160px"
                         quality={85}
-                        className="object-cover w-[100px] h-[143px] md:w-[160px] md:h-[240px]"
+                        className="object-cover"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />

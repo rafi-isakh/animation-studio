@@ -39,6 +39,7 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
+import HeaderTabs from '@/components/UI/HeaderTabs';
 
 export const Header = () => {
     const router = useRouter();
@@ -544,7 +545,13 @@ export const Header = () => {
             </nav>
             {(pathname == '/' || pathnameLoading) && (
                 <>
-                    <div id="free-premium" className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-2">
+
+                    <HeaderTabs 
+                    language={language} 
+                    dictionary={dictionary} 
+                    phrase={phrase} 
+                    />
+                    {/* <div id="free-premium" className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-2">
                         <div className="flex flex-row  gap-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">  
                             <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 transition-all duration-300 ease-in-out
                                 ${highlightPremium() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
@@ -572,7 +579,7 @@ export const Header = () => {
                             </div>
                         </div>
                     </div>
-                    {/* <hr className="mb-2" /> */}
+                    <hr className="mb-2" /> */}
                 </>
             )
             }

@@ -26,9 +26,6 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
             version: premium.includes(novel.id) ? "premium" : "free",
         }));
         const _webnovelsToShow = _webnovels
-            .filter(item => filter_by_genre(item, genre))
-            .filter(item => filter_by_version(item, version))
-            .sort((a, b) => sortByFn(a, b, sortBy))
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

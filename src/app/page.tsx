@@ -10,6 +10,7 @@ import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
+import WebnovelsCards from '@/components/WebnovelsCards';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -55,6 +56,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {smallGap()}
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
+                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}

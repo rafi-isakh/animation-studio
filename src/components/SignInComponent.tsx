@@ -1,6 +1,6 @@
 "use client"
 
-import { GoogleSignIn, KakaoSignIn } from '@/utils/SignIn';
+import { GoogleSignIn, KakaoSignIn, AppleSignIn } from '@/utils/SignIn';
 import { useLanguage } from "@/contexts/LanguageContext"
 import {phrase} from '@/utils/phrases'
 import Image from "next/image"
@@ -36,6 +36,7 @@ const SignInComponent = () => {
               <div className="flex flex-col space-y-4 m-4 justify-center mb-14" >
                 <GoogleSignIn></GoogleSignIn>
                 <KakaoSignIn></KakaoSignIn>
+                <AppleSignIn></AppleSignIn>
               </div>
            </div>
 

@@ -108,7 +108,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorization: {
         params: {
-          response_mode: "form_post",
+          response_mode: "query",
           response_type: "code",//do not set to "code id_token" as it will not work
           scope: "name email"
         },},

@@ -10,16 +10,18 @@ const NewUserSubmitComponent = () => {
     const { dictionary, language } = useLanguage();
 
     return (
-        <ThemeProvider theme={grayTheme}>
+        <div className="relative inline-flex group w-[300px]">
+            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+            </div>
             <NoCapsButton
-                className='w-32 mx-auto'
+                className='flex-shrink-1 w-full relative inline-flex items-center px-6 py-3 md:text-base text-md font-medium text-black transition-all duration-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900'
                 type="submit"
-                variant="outlined"
-                color="gray"
+                variant="text"
+                
             >
                 {phrase(dictionary, "register", language)}
             </NoCapsButton>
-        </ThemeProvider>
+        </div>
     )
 }
 

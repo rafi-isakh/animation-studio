@@ -34,7 +34,9 @@ const SignInComponent = () => {
           <AppleSignIn></AppleSignIn>
         </div>
 
-        <p className="text-center text-[10px] text-gray-400 dark:text-white"> Your Favorite Story Universe, Between Us, Toonyz </p>
+        <p className="text-center text-[10px] text-gray-400 dark:text-white"> 
+          Your Favorite Story Universe, Between Us, Toonyz 
+        </p>
         {/* <p className="text-center text-[10px] leading-tight">
         "Beyond reality, into your story" <br/>
         "Your world, more extraordinary than ever"

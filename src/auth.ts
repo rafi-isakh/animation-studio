@@ -12,7 +12,7 @@ import jwt from 'jsonwebtoken';
 
 const getAppleToken = async () => {
   const key = `-----BEGIN PRIVATE KEY-----\n${process.env.AUTH_APPLE_SECRET}\n-----END PRIVATE KEY-----\n`;
-
+  console.log("key", key)
   const appleToken = await new SignJWT({})
     .setAudience("https://appleid.apple.com")
     .setIssuer(process.env.AUTH_APPLE_TEAM_ID!)

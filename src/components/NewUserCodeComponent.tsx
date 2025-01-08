@@ -13,7 +13,7 @@ const NewUserNicknameComponent = () => {
         placeholder={phrase(dictionary, "promotion", language)}
         type="text"
         name="promoCode"
-        className='input rounded-xl w-full border border-gray-300 text-black dark:text-black'
+        className='input rounded-md w-full border border-gray-300 text-black dark:text-black'
       />
     </div>
   )

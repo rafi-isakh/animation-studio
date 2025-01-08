@@ -28,7 +28,7 @@ const NewUserBioComponent = () => {
                 rows={6}
                 value={content}
                 onChange={(e) => setContent(trim(e.target.value))}
-                className='input rounded-xl w-full border border-gray-300 text-black dark:text-black'
+                className='input rounded-md w-full border border-gray-300 text-black dark:text-black'
             />
         </div>
 

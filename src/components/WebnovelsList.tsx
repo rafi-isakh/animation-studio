@@ -13,6 +13,7 @@ import { useMediaQuery } from '@mui/material';
 import { getColumnLayout, calculateIndex } from '@/utils/webnovelUtils';
 import { scroll } from '@/utils/scroll'
 import _ from 'lodash';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -28,6 +29,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
     const chunkedItems = _.chunk(webnovels, 3);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     const settings = {
         dots: false,
@@ -35,10 +37,12 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         autoplay: false,
         slidesToShow: 3,
         slidesToScroll: 1,
-        rows: 1,
-        // slidesPerRow: 1,
+        swipeToSlide: true,
+        // rows: 3,
+        // slidesPerRow: 3,
         // centerMode: true,
         centerPadding: '0px',
+        className: "center",
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         responsive: [
@@ -48,7 +52,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     slidesToShow: 1,
                     slidesToScroll: 1,
                     rows: 1,
-                    // slidesPerRow: 2
+                    centerPadding: '0px',
                 }
             }
         ]
@@ -60,7 +64,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return (
                 <button
                     onClick={onClick}
-                    className='absolute md:-right-5 -right-6 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 '
+                    className='absolute md:-right-5 -right-6 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-transparent '
                 >
                         <ChevronRight className="w-6 h-6 text-gray/80" />
                 </button>
@@ -72,7 +76,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         return (
                     <button 
                         onClick={onClick}
-                        className="absolute md:left-5 left-3 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-white/80 "
+                        className="absolute md:left-5 left-3 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-transparent "
                     >
                         <ChevronLeft className="w-6 h-6 text-gray/80" />
                    </button>
@@ -107,7 +111,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative w-full md:max-w-screen-lg mx-auto group'>
+        <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     <span className='text-black dark:text-white'>
                      {phrase(dictionary, "toonyzHot", language)}
@@ -117,12 +121,14 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 {chunkedItems.map((chunk, chunkIndex) => (
                     <div 
                     key={chunkIndex} 
-                    className="grid grid-cols-3 gap-4"
+                    className="grid grid-cols-3 gap-40"
                     >
                     {chunk.map((item, index) => (
                         <div
                         key={`${chunkIndex}-${index}`}
-                        className="bg-white dark:bg-black dark:text-white overflow-hidden border-gray-100 border-b dark:border-gray-700 flex flex-row items-center"
+                        className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}
+                                    bg-white dark:bg-black dark:text-white overflow-hidden border-gray-100 
+                                    border-b dark:border-gray-700 flex flex-row items-center`}
                         >
                          <WebnovelComponent 
                              webnovel={item} 
@@ -139,9 +145,16 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 {`
                   .custom-slider {
                      width: 100%;
-                     gap: 10px;
+                     gap: 100px;
                    }
 
+                   .active-slide {
+                    opacity: 1;
+                   }
+
+                   .inactive-slide {
+                    opacity: 1;  
+                   }
                  `}
             </style>
         </div>

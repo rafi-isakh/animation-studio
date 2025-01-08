@@ -324,13 +324,13 @@ export const Header = () => {
                         <div className="flex md:order-1">
                             {/*Globe icon in mobile screen (md:hidden)*/}
                             <div ref={searchRef}>
-                                <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-600 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
+                                <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-100 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
                                     <Globe size={20} className='dark:text-white text-gray-500 ' />
                                 </button>
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
                             <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-600 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                     <Menu size={20} className='dark:text-white text-gray-500' />
                                 </button>
                             </div>
@@ -387,7 +387,7 @@ export const Header = () => {
                                             id="dropdownNavbarLanguageLink"
                                             onClick={toggleLanguageDropdown}
                                             className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
-                                            <div className='p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
+                                            <div className='p-2 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
                                                 <Globe
                                                     size={20}
                                                     className='dark:text-white text-gray-500'
@@ -415,7 +415,7 @@ export const Header = () => {
                                                     <Link 
                                                         href="#" 
                                                         onClick={(event) => handleLanguageChange(event, langPair.code as Language)} 
-                                                        className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black"
+                                                        className="block px-4 py-2 md:hover:bg-gray-100 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black"
                                                     >
                                                         {langPair.name}
                                                     </Link>
@@ -431,7 +431,7 @@ export const Header = () => {
                                             id="dropdownNavbarUserLink" 
                                             onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
                                             className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
-                                            <div className='p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
+                                            <div className='p-2 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
                                                 <Menu size={20} className='dark:text-white text-gray-500 md:block hidden' />
                                                 <User size={20} className='dark:text-white text-gray-500 md:hidden' />
                                             </div>
@@ -530,7 +530,8 @@ export const Header = () => {
                                             color: 'white',
                                         }
                                     }} variant="text" className='capitalize rounded-lg'>
-                                          Publish
+                                          {/* Publish */}
+                                          {phrase(dictionary, "publish", language)}
                                     </Button>
                               </li>
                             </ul>

@@ -11,6 +11,7 @@ import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
+import WebnovelsByRank from '@/components/WebnovelsByRank';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -52,16 +53,19 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <ApplyCreatorBanner />  
             {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}
             <div className='flex flex-col md:justify-start md:items-start md:px-0'>
-                <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '350px', mobile: '24px' }}  />
+                <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '300px', mobile: '24px' }}  />
                 {smallGap()}
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
+                    {smallGap()}
+                    <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy="date" />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="date" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}
-                    <WebnovelsCardListByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' />
+                    <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views'/>
+                    {/* <WebnovelsCardListByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' /> */}
                     {largeGap()}
                 </div>
                 <div className='px-4 w-full mx-auto'>

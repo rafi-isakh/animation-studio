@@ -60,10 +60,10 @@ const CarouselComponentReactSlick = ({
                 {
                     isMediumScreen ?
                         <button
-                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-1 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
+                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-1 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 group-hover:bg-black/20 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
                             onClick={onClick}
                         >
-                            <ChevronRight className="w-6 h-6 text-white/80" />
+                            <ChevronRight className="w-6 h-6 text-white" />
                         </button>
                         :
                         <></>
@@ -79,9 +79,9 @@ const CarouselComponentReactSlick = ({
                     isMediumScreen ?
                         <button
                             onClick={onClick}
-                            className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
+                            className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 group-hover:bg-black/20 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
                         >
-                            <ChevronLeft className="w-6 h-6 text-white/80" />
+                            <ChevronLeft className="w-6 h-6 text-white" />
                         </button>
                         :
                         <></>

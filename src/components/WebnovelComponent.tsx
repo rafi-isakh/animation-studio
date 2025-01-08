@@ -8,6 +8,8 @@ import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
+import FavoriteIcon from '@mui/icons-material/Favorite';
+
 const oleoScriptSwashCaps = Oleo_Script_Swash_Caps({ subsets: ['latin'], weight: '400' })
 
 const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel: Webnovel, index: number, ranking: boolean, chunkIndex: number }) => {
@@ -26,28 +28,24 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
 
     return (
         <Link href={`/view_webnovels?id=${webnovel.id}`} className="w-full">
-            <div className='flex flex-shrink-0 flex-nowrap justify-start items-start space-x-4 w-full  p-4 text-sm'>
-                <div className="relative w-[45px] md:w-[75px] h-[60px] md:h-[105px] flex-shrink-0 rounded-sm overflow-hidden">
+            <div className='flex flex-shrink-0 flex-nowrap justify-center items-center space-x-4 w-full p-4 text-sm font-pretendard'>
+                <div className="relative w-[45px] md:w-[75px] md:h-[105px] flex-shrink-0 rounded-lg">
                     <Image
                         src={imageSrc}
                         // width={imageWidth}
                         // height={imageHeight}
                         fill
                         alt={webnovel.cover_art}
-                        className="object-cover"
+                        className="object-cover w-full h-full rounded-lg"
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
-                    {/* <span className="absolute bottom-0 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">
-                        NEW
-                    </span> */}
                 </div>
 
                 {ranking && <p className={`text-xl md:text-2xl self-center p-3`}>{index}</p>}
-                {/* {chunkIndex * 3 + index + 1} */}
 
-                <div className="flex-grow overflow-hidden">
-                    {/* Genre */}
+                <div className="flex-grow overflow-hidden self-center">
+                    {/* Genre & Title */}
                     <OtherTranslateComponent
                         content={webnovel.title}
                         elementId={webnovel.id.toString()}
@@ -55,23 +53,24 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                         elementSubtype="title"
                         classParams={language === 'ko' ? "text-md md:text-lg w-full break-words" : "text-md md:text-md w-full break-words"}
                     />
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-1">
                         <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500">
                             {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
                         </p>
                         {/* total chapters and num chapters */}
-                        <p className="text-[10px] md:text-[12px] text-gray-500 font-bold dark:text-gray-500 ">
-                            <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
-                            <span>{phrase(dictionary, "numchapters", language)}</span>
-                        </p>
+                        <div className="flex flex-row gap-1 text-[10px] md:text-[12px] text-gray-500 font-bold dark:text-gray-500 ">
+                            <p> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)}</p>
+                            <p className="flex flex-row gap-1 items-center text-gray-500 dark:text-gray-500">
+                                <FavoriteIcon sx={{ fontSize: 12 }} />
+                                {webnovel.upvotes}
+                            </p>
+                        </div>
+                     
                     </div>
 
                 </div>
                 <div className="text-[12px] md:text-xl text-gray-200 dark:text-gray-500 self-center">
-                    <i className="fas fa-heart"></i>
-                    <p className="block text-[12px] text-black dark:text-gray-500 text-center -mt-2">
-                        {webnovel.upvotes}
-                    </p>
+                   {/* the left side of the webnovel */}
                 </div>
             </div>
         </Link >

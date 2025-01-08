@@ -2,70 +2,83 @@
 
 import { GoogleSignIn, KakaoSignIn, AppleSignIn } from '@/utils/SignIn';
 import { useLanguage } from "@/contexts/LanguageContext"
-import {phrase} from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
 import Image from "next/image"
 import Link from "next/link"
 
 const SignInComponent = () => {
-    const {language, dictionary} = useLanguage()
-    return (
-        <div className="flex flex-col justify-center text-2xl font-semibold">
-         <div className="flex flex-col items-center justify-center lg:px-10 md:px-10 py-20 rounded-xl border border-gray-300">
-         
-          <Image
+  const { language, dictionary } = useLanguage()
+  return (
+    <div className="md:w-max-screen-md flex flex-col justify-center text-lg font-semibold font-pretendard">
+      <div className="w-[360px] flex flex-col items-center justify-center rounded-xl">
+        <Image
           src="/images/N_logo.svg"
           alt="Toonyz Logo"
           width={0}
           height={0}
           sizes="100vh"
-          style={{ 
+          style={{
             marginTop: '15px',
-            height: '35px', 
-            width: '35px', 
-            padding: '2px',
-            justifyContent: 'center', 
-            alignSelf: 'center', 
-            borderRadius: '25%', 
-            // border: '1px solid #eee'  
-            }}
-          />
-            <p className="text-center"> {phrase(dictionary, 'loginOrSignup', language)} </p>  <br/>
-            {/* <h1> Login in to Toonyz</h1> */}
-            <p className="text-center text-[10px]"> Your Favorite Story Universe, Between Us, Toonyz </p>
+            height: '35px',
+            width: '35px',
+            padding: '4px',
+            justifyContent: 'center',
+            alignSelf: 'center',
+            borderRadius: '25%',
+            border: '1px solid #eee'  
+          }}
+        />
 
-              <div className="flex flex-col space-y-4 m-4 justify-center mb-14" >
-                <GoogleSignIn></GoogleSignIn>
-                <KakaoSignIn></KakaoSignIn>
-                <AppleSignIn></AppleSignIn>
-              </div>
-           </div>
+        <h1 className="text-center text-xl mt-2 mb-4">
+          {/* Welcome back */}
+          {phrase(dictionary, 'loginOrSignup', language)} 
+        </h1>
+       {/* 
+        <div className="my-4 flex items-center gap-4 w-full leading-tight">
+              <hr className="w-full border-gray-300" />
+              <p className="text-[10px] text-gray-800 text-center"> or  </p>
+              <hr className="w-full border-gray-300" />
+        </div> */}
 
-            <div className="flex flex-row justify-center gap-4 mt-10">
-             <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-[#DB2777]">
-              <Link href="/terms">
-              {/* 이용약관 : Terms of use */}
-              {phrase(dictionary, "terms", language)}
-              </Link>
-            </p>
-             <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
-              <Link href="/terms/privacy">
-              {/* 개인정보 처리방침 : Privacy policy */}
-              {phrase(dictionary, "privacy", language)}
-              </Link>
-            </p>
-              <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
-              <Link href="/terms/youth">
-              {/* 청소년 보호 정책 : Youth protection policy */}
-              {phrase(dictionary, "youth_terms", language)}
-              </Link>
-             </p>
-             <p className="text-center text-[10px] text-gray-400">
-              © Stella& Inc.
-            </p>
-           </div>
-           
+        <div className="flex flex-col space-y-4 m-4 justify-center" >
+          <GoogleSignIn></GoogleSignIn>
+          <KakaoSignIn></KakaoSignIn>
+          <AppleSignIn></AppleSignIn>
         </div>
-    )
+       
+        <p className="text-center text-[10px] text-gray-400 dark:text-white"> Your Favorite Story Universe, Between Us, Toonyz </p>
+        {/* <p className="text-center text-[10px] leading-tight">
+        "Beyond reality, into your story" <br/>
+        "Your world, more extraordinary than ever"
+        </p>   */}
+       </div>
+
+      <div className="flex flex-row justify-center gap-4 mt-10 leading-tight">
+        <p className="text-center text-[10px] font-extrabold text-gray-400 dark:text-white hover:text-[#DB2777]">
+          <Link href="/terms">
+            {/* 이용약관 : Terms of use */}
+            {phrase(dictionary, "terms", language)}
+          </Link>
+        </p>
+        <p className="text-center text-[10px]  text-gray-400 dark:text-white hover:text-[#DB2777]">
+          <Link href="/terms/privacy">
+            {/* 개인정보 처리방침 : Privacy policy */}
+            {phrase(dictionary, "privacy", language)}
+          </Link>
+        </p>
+        <p className="text-center text-[10px]  text-gray-400  dark:text-white hover:text-[#DB2777]">
+          <Link href="/terms/youth">
+            {/* 청소년 보호 정책 : Youth protection policy */}
+            {phrase(dictionary, "youth_terms", language)}
+          </Link>
+        </p>
+        <p className="text-center text-[10px] text-gray-400 dark:text-white">
+          © Stella& Inc.
+        </p>
+      </div>
+
+    </div>
+  )
 }
 
 export default SignInComponent;

@@ -159,7 +159,7 @@ const PromotionBannerComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className='dark:text-white self-center'>
+    <div className='dark:text-white self-center max-w-screen-lg mx-auto'>
       <SelectedComponent isHovered={isHovered} setIsHovered={setIsHovered} />
     </div>
   );

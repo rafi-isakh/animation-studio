@@ -16,7 +16,7 @@ import RegisterSW from '@/components/RegisterSW';
 import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
-
+import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -57,6 +57,30 @@ export const metadata: Metadata = {
 interface RootLayoutProps {
   children: ReactNode;
 }
+
+export const pretendard = localFont({
+  src: '../../public/fonts/PretendardVariable.woff2',
+  display: 'swap',
+  variable: '--font-pretendard',
+  weight: '100 900',
+  preload: true,
+});
+
+export const pretendardJP = localFont({
+  src: '../../public/fonts/PretendardJPVariable.woff2',
+  display: 'swap',
+  variable: '--font-pretendard-jp',
+  weight: '100 900',
+  preload: true,
+});
+//PretendardStdVariable
+export const pretendardStd = localFont({
+  src: '../../public/fonts/PretendardStdVariable.woff2',
+  display: 'swap',
+  variable: '--font-pretendard-std',
+  weight: '100 900',
+  preload: true,
+});
 
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ['arabic'],

@@ -161,7 +161,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -171,7 +171,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -181,7 +181,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -192,7 +192,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -202,7 +202,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>

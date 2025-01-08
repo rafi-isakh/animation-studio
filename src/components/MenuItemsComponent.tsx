@@ -82,18 +82,21 @@ const MenuItemsComponent = () => {
             className="opacity-80"
         />,
         <LottieLoader
+            key="publishLogo"
             animationData={animation_publish_icon_data}
             width="w-22"
             className="ml-2"
             centered={false}
         />,
         <LottieLoader
+            key="romanceLogo"
             animationData={animation_romance_icon_data}
             width="w-32"
             className=""
             centered={false}
         />,
         <LottieLoader
+            key="eventLogo"
             animationData={animation_event_icon_data}
             width="w-32"
             className=""

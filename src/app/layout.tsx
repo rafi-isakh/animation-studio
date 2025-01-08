@@ -97,11 +97,22 @@ const notoSansTC = Noto_Sans_TC({
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className={`${pretendard.variable}`}>
-      <body className={`${pretendard.className} 
-                        ${pretendardJP.className} 
-                        ${pretendardStd.className} 
-                        antialiased`}>
+    <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-std/dist/web/static/pretendard-std.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-jp/dist/web/static/pretendard-jp.css"
+        />
+      </head>
+      <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
           <ThemeProvider>

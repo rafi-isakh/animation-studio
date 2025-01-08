@@ -75,6 +75,8 @@ export const Header = () => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [tabValue, setTabValue] = useState('1');
 
+    const isLoggedInAndRegistered = isLoggedIn && email;
+
     useEffect(() => {
         if (pathname == "/") {
             router.push(pathname + "?version=premium")

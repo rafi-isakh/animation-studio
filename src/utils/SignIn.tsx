@@ -23,7 +23,7 @@ export function GoogleSignIn() {
     const { language, dictionary } = useLanguage();
     const { login } = useAuth();
     return (
-        <div className="relative inline-flex group w-full">
+        <div className="relative inline-flex group w-[300px]">
             <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
             </div>
             <NoCapsButton

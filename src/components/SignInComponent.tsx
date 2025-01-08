@@ -11,29 +11,17 @@ const SignInComponent = () => {
   return (
     <div className="md:w-max-screen-md flex flex-col justify-center text-lg font-semibold font-pretendard">
       <div className="w-[360px] flex flex-col items-center justify-center rounded-xl">
-        <Image
-          src="/images/N_logo.svg"
-          alt="Toonyz Logo"
-          width={0}
-          height={0}
-          sizes="100vh"
-          style={{
-            marginTop: '15px',
-            height: '35px',
-            width: '35px',
-            padding: '4px',
-            justifyContent: 'center',
-            alignSelf: 'center',
-            borderRadius: '25%',
-            border: '1px solid #eee'  
-          }}
-        />
+        <span className="relative flex h-28 w-28">
+          <span className="relative inline-flex rounded-full h-28 w-28 border-[#FFE2DC]">
+            <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className='self-center mx-auto' />
+          </span>
+        </span>
 
-        <h1 className="text-center text-xl mt-2 mb-4">
+        <h1 className="text-center text-xl mb-4">
           {/* Welcome back */}
-          {phrase(dictionary, 'loginOrSignup', language)} 
+          {phrase(dictionary, 'loginOrSignup', language)}
         </h1>
-       {/* 
+        {/* 
         <div className="my-4 flex items-center gap-4 w-full leading-tight">
               <hr className="w-full border-gray-300" />
               <p className="text-[10px] text-gray-800 text-center"> or  </p>
@@ -45,13 +33,13 @@ const SignInComponent = () => {
           <KakaoSignIn></KakaoSignIn>
           <AppleSignIn></AppleSignIn>
         </div>
-       
+
         <p className="text-center text-[10px] text-gray-400 dark:text-white"> Your Favorite Story Universe, Between Us, Toonyz </p>
         {/* <p className="text-center text-[10px] leading-tight">
         "Beyond reality, into your story" <br/>
         "Your world, more extraordinary than ever"
         </p>   */}
-       </div>
+      </div>
 
       <div className="flex flex-row justify-center gap-4 mt-10 leading-tight">
         <p className="text-center text-[10px] font-extrabold text-gray-400 dark:text-white hover:text-[#DB2777]">

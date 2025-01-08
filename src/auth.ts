@@ -138,9 +138,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       // Initial sign in
-      console.log("token", token)
-      console.log("account", account)
-      console.log("profile", profile)
       if (account && profile) {
         return {
           accessToken: account.access_token,

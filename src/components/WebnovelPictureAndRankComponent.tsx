@@ -8,10 +8,10 @@ import { Oleo_Script_Swash_Caps } from 'next/font/google'
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
-import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
+import { ChevronLeft, ChevronRight, TrendingUp, Eye } from "lucide-react"
 import React from "react"
 
-const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
+const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
     const imageSrc = getImageUrl(webnovel.cover_art)
 
@@ -71,7 +71,7 @@ const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details
                                     <span>{phrase(dictionary, "numchapters", language)}</span>
                                 </p>
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">
-                                    <TrendingUp size={10} />
+                                    <Eye size={10} />
                                     <span> {webnovel.views} </span>
                                 </p>
                             </div>
@@ -83,5 +83,5 @@ const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details
     )
 });
 
-WebnovelPictureComponent.displayName = 'WebnovelPictureComponent'; // need this because this is a React.meo
-export default WebnovelPictureComponent
+WebnovelPictureAndRankComponent.displayName = 'WebnovelPictureAndRankComponent'; // need this because this is a React.meo
+export default WebnovelPictureAndRankComponent

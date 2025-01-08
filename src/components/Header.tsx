@@ -40,6 +40,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
+import ApplyCreatorBanner from './ApplyCreatorBanner';
 
 export const Header = () => {
     const router = useRouter();
@@ -287,11 +288,11 @@ export const Header = () => {
     }
 
     return (
-        <div className=''>
+        <>
             {/* Top font color gray-500 and weight bold */}
             <nav className="fixed left-0 top-0 right-0 z-50 mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black ">
                 <div className="max-w-screen-lg mx-auto">
-                    <div id='above-header' className="max-w-screen flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
+                    <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
                         {/* md:pb-3 md:pt-3 pt-2 md:px-0 px-3 */}
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, studio */}
@@ -374,7 +375,7 @@ export const Header = () => {
                             </div>
                             <ul className="flex flex-col md:flex-row font-medium mt-4 border border-gray-600 md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0 ">
                                 {/* gap-1 for desktop header icons */}
-                                {/*Language globe icon menu button - Desktop*/}
+                                {/* Language globe icon menu button - Desktop */}
                                 <li className='flex items-center justify-center'>
                                     <button type="button" className="md:inline-flex hidden items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" >
                                        <Bell size={20} className='dark:text-white text-gray-500' />
@@ -385,7 +386,7 @@ export const Header = () => {
                                         <button
                                             id="dropdownNavbarLanguageLink"
                                             onClick={toggleLanguageDropdown}
-                                            className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white  dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
+                                            className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:hover:bg-gray-600 md:dark:hover:bg-transparent">
                                             <div className='p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
                                                 <Globe
                                                     size={20}
@@ -393,122 +394,133 @@ export const Header = () => {
                                                 />
                                             </div>
                                             <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "language", language)}</p>
-
                                         </button>
                                     </div>
-                                    {isLanguageDropdownOpen && (
-                                        <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} rounded-md md:border-0 border border-gray-500 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600`}>
-                                            <ul className="py-2 text-sm  text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
-                                                {langPairList.map((langPair, index) => (
-                                                    <li id={`li-${langPair.code}`} key={index} className={`${highlightLanguage[langPair.code as Language] ? 'text-[#DB2777]' : ''}`}>
-                                                        <Link href="#" onClick={(event) => handleLanguageChange(event, langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black">
-                                                            {langPair.name}
-                                                        </Link>
-                                                       
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
+                                    <div
+                                        id="language-dropdown" 
+                                        ref={languageDropdownRef} 
+                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-500 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
+                                        transform transition-all duration-300 ease-in-out origin-top
+                                        ${isLanguageDropdownOpen 
+                                            ? 'opacity-100 translate-y-0 scale-100' 
+                                            : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'}`}
+                                    >
+                                        <ul className="py-2 text-sm text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
+                                            {langPairList.map((langPair, index) => (
+                                                <li 
+                                                    id={`li-${langPair.code}`} 
+                                                    key={index} 
+                                                    className={`${highlightLanguage[langPair.code as Language] ? 'text-[#DB2777]' : ''}`}
+                                                >
+                                                    <Link 
+                                                        href="#" 
+                                                        onClick={(event) => handleLanguageChange(event, langPair.code as Language)} 
+                                                        className="block px-4 py-2 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-black"
+                                                    >
+                                                        {langPair.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </li>
                                 {/*User menu button - Desktop*/}
                                 <li className="py-2 relative">
                                     <div ref={userMenuRef}>
-                                        <button id="dropdownNavbarUserLink" onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
+                                        <button 
+                                            id="dropdownNavbarUserLink" 
+                                            onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
                                             className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
                                             <div className='p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
-                                                {/* Desktop user menu icon */}
-                                                <Menu size={20} className='dark:text-white text-gray-500 md:block hidden  transition duration-150 ease-in-out' />
-                                                {/* Mobile user menu icon */}
-                                                <User size={20} className='dark:text-white text-gray-500 md:hidden  transition duration-150 ease-in-out' />
+                                                <Menu size={20} className='dark:text-white text-gray-500 md:block hidden' />
+                                                <User size={20} className='dark:text-white text-gray-500 md:hidden' />
                                             </div>
                                             <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "profile", language)}</p>
                                         </button>
                                     </div>
-                                    {isUserDropdownOpen && (
-                                        <div id="user-dropdown" ref={userDropdownRef} className={`${styles.rightmostItem} rounded-md md:border-0 border border-gray-400 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-52 dark:divide-gray-600`}>
-                                            <ul className="py-2 text-sm   text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                                {loading ? (
+                                    <div 
+                                        id="user-dropdown" 
+                                        ref={userDropdownRef} 
+                                        className={`${styles.rightmostItem} absolute rounded-md md:border-0 border border-gray-500 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
+                                        transition-[opacity,transform] duration-200 ease-out
+                                        ${isUserDropdownOpen 
+                                            ? 'opacity-100 translate-y-0 visible' 
+                                            : 'opacity-0 -translate-y-4 invisible'}`}
+                                    >
+                                        <ul className="py-2 text-sm text-gray-700 dark:text-white">
+                                            {loading ? (
+                                                <li>
+                                                    <div role="status">
+                                                        <svg aria-hidden="true" className="w-6 h-6 m-2 text-gray-200  animate-spin dark:text-white fill-[#DB2777]" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                                                            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                                                        </svg>
+                                                        <span className="sr-only">Loading...</span>
+                                                    </div>
+                                                </li>
+                                            ) : isLoggedIn && email ? (
+                                                <>
                                                     <li>
-                                                        <div role="status">
-                                                            <svg aria-hidden="true" className="w-6 h-6 m-2 text-gray-200  animate-spin dark:text-white fill-[#DB2777]" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
-                                                                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
-                                                            </svg>
-                                                            <span className="sr-only">Loading...</span>
-                                                        </div>
+                                                        <Link href="/my_profile" onClick={() => handleUserItemClick()} 
+                                                            className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white text-black dark:hover:text-black">
+                                                            <span className='font-extrabold'>{nickname}</span>
+                                                            <span className='text-gray-500'>
+                                                                {language == 'ko' ? '의' : '\'s'} {phrase(dictionary, "profile", language)}
+                                                            </span>
+                                                        </Link>
                                                     </li>
-                                                )
-                                                    :
-                                                    isLoggedIn && email ? ( // if user is logged in and has been registered (has email from useUser)
-                                                        <>
-                                                            <li>
-                                                                <Link href="/my_profile" onClick={() => handleUserItemClick()} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white text-black dark:hover:text-black">
-                                                                    {/* Welcome greeting */}
-                                                                    {/* <span> {phrase(dictionary, "welcome", language)} </span>  */}
-                                                                    <span className='font-extrabold'>{nickname}</span>
-                                                                    <span className='text-gray-500 '>{' '}
-                                                                        {language == 'ko' ? '의' : '\'s'}{' '}
-                                                                        {phrase(dictionary, "profile", language)}
-                                                                    </span>
-
-                                                                </Link>
-                                                            </li>
-                                                            <hr />
-
-                                                            <li className="px-3 py-2 dark:hover:bg-gray-600">
-                                                                <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="flex items-center gap-2 dark:text-white text-black dark:hover:text-black">
-                                                                    <Book size={18} className='dark:text-white text-black' />
-                                                                    {phrase(dictionary, "myWebnovels", language)}
-                                                                </Link>
-                                                            </li>
-                                                            <li className="px-3 py-2 dark:hover:bg-gray-600">
-                                                                <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 dark:text-white text-black dark:hover:text-black">
-                                                                    <SquareLibrary size={18} className='dark:text-white text-black' />
-                                                                    {phrase(dictionary, "myLibrary", language)}
-                                                                </Link>
-                                                            </li>
-                                                            <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
-                                                                <Sparkles size={18} className='dark:text-white text-black ' />
-                                                                <ChargeStarsTemporary />
-                                                            </li>
-                                                            <li className="px-3 py-2 dark:hover:bg-gray-600">
-                                                                <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
-                                                                    <Video size={20} className='dark:text-white text-black' />
-                                                                    <span>{phrase(dictionary, "curriculum", language)}</span>
-                                                                </Link>
-                                                            </li>
-
-                                                            <li className="">
-                                                                <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-black">
-                                                                    <span className="w-full flex items-center gap-2 justify-center text-center border border-[#DB2777] hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-[#DB2777] hover:text-gray-400">
-                                                                        <SquarePen size={18} className='' />
-                                                                        {phrase(dictionary, "newWebnovel", language)}
-                                                                    </span>
-                                                                </Link>
-                                                            </li>
-                                                            <li className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-white w-full">
-
-                                                                <ThemeToggle />
-
-                                                            </li>
-                                                            <li>
-                                                                <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2 dark:text-white dark:hover:text-black ">
-                                                                    <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-[#DB2777]">
-                                                                        {phrase(dictionary, "logout", language)}
-                                                                    </span>
-                                                                </Link>
-                                                            </li>
-                                                        </>
-                                                    )
-                                                        : (
-                                                            <li>
-                                                                <Link href="/signin" onClick={() => handleUserItemClick()} className="block px-4 py-2 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">{phrase(dictionary, "login", language)}</Link>
-                                                            </li>
-                                                        )}
-                                            </ul>
-                                        </div>
-                                    )}
+                                                    <hr />
+                                                    <li className="px-3 py-2 dark:hover:bg-gray-600">
+                                                        <Link href="/my_webnovels" onClick={() => handleUserItemClick()} className="flex items-center gap-2 dark:text-white text-black dark:hover:text-black">
+                                                            <Book size={18} className='dark:text-white text-black' />
+                                                            {phrase(dictionary, "myWebnovels", language)}
+                                                        </Link>
+                                                    </li>
+                                                    <li className="px-3 py-2 dark:hover:bg-gray-600">
+                                                        <Link href="/my_library" onClick={() => handleUserItemClick()} className="flex items-center gap-2 dark:text-white text-black dark:hover:text-black">
+                                                            <SquareLibrary size={18} className='dark:text-white text-black' />
+                                                            {phrase(dictionary, "myLibrary", language)}
+                                                        </Link>
+                                                    </li>
+                                                    <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        <Sparkles size={18} className='dark:text-white text-black ' />
+                                                        <ChargeStarsTemporary />
+                                                    </li>
+                                                    <li className="px-3 py-2 dark:hover:bg-gray-600">
+                                                        <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
+                                                            <Video size={20} className='dark:text-white text-black' />
+                                                            <span>{phrase(dictionary, "curriculum", language)}</span>
+                                                        </Link>
+                                                    </li>
+                                                    <li className="">
+                                                        <Link href="/new_webnovel" onClick={() => handleUserItemClick()} className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-black">
+                                                            <span className="w-full flex items-center gap-2 justify-center text-center border border-[#DB2777] hover:border-gray-400 rounded-md px-3 py-2 bg-pink-100 text-[#DB2777] hover:text-gray-400">
+                                                                <SquarePen size={18} className='' />
+                                                                {phrase(dictionary, "newWebnovel", language)}
+                                                            </span>
+                                                        </Link>
+                                                    </li>
+                                                    <li className="flex items-center justify-center px-4 py-2 dark:text-white  dark:hover:text-white w-full">
+                                                        <ThemeToggle />
+                                                    </li>
+                                                    <li>
+                                                        <Link href="#" onClick={handleSignOut} className="flex items-center px-4 py-2 dark:text-white dark:hover:text-black ">
+                                                            <span className="w-full text-center border border-gray-300 rounded-md px-3 py-2 hover:text-[#DB2777]">
+                                                                {phrase(dictionary, "logout", language)}
+                                                            </span>
+                                                        </Link>
+                                                    </li>
+                                                </>
+                                            ) : (
+                                                <li>
+                                                    <Link href="/signin" onClick={() => handleUserItemClick()} 
+                                                        className="block px-4 py-2 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
+                                                        {phrase(dictionary, "login", language)}
+                                                    </Link>
+                                                </li>
+                                            )}
+                                        </ul>
+                                    </div>
                                 </li>
                                 <li className='md:flex items-center justify-center ml-1 hidden'>
                                     <Button sx={{
@@ -541,49 +553,20 @@ export const Header = () => {
                     </div>
                     {/* mobile webnovels, webtoons, studio bottom menu */}
                 </div>
-                <hr />
+                <hr className='md:hidden block'/>
             </nav>
             {(pathname == '/' || pathnameLoading) && (
                 <>
-
                     <HeaderTabs 
                     language={language} 
                     dictionary={dictionary} 
                     phrase={phrase} 
                     />
-                    {/* <div id="free-premium" className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-2">
-                        <div className="flex flex-row  gap-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">  
-                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 transition-all duration-300 ease-in-out
-                                ${highlightPremium() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
-                                                     : "text-gray-500"}`}>
-                                <Sparkles size={20} /> 
-                                <Link href={getFreePremiumUrl("premium")}>{phrase(dictionary, "premium", language)}</Link>
-                            </div>
-                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 
-                                ${highlightFree() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
-                                                     : "text-gray-500"}`}>
-                                <HeartHandshake size={20} />
-                                <Link href={getFreePremiumUrl("free")}>{phrase(dictionary, "free", language)}</Link>
-                            </div>
-                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 
-                                ${highlightRomance() ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
-                                                     : "text-gray-500"}`}>
-                                <FavoriteIcon sx={{ fontSize: 20 }}/>
-                                <Link href='#'>{phrase(dictionary, "romance", language)}</Link>
-                            </div>
-                            <div className={`w-auto flex flex-row items-center gap-2 text-md font-bold md:p-1 
-                                ${isActive('/toonyzcut') ? "text-[#DB2777] md:border-b-2 md:border-[#DB2777] border-0" 
-                                                     : "text-gray-500"}`}>
-                                <Clapperboard size={20} />
-                                <Link href='#'>{phrase(dictionary, "toonyzCut", language)}</Link>
-                            </div>
-                        </div>
-                    </div>
-                    <hr className="mb-2" /> */}
+                 <hr className='md:block hidden' />
                 </>
             )
             }
-        </div>
+        </>
     )
 };
 

@@ -13,7 +13,7 @@ interface WebnovelsCardListProps {
     className?: string;
 }
 
-const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
+const WebnovelsRankingWrapper: React.FC<WebnovelsCardListProps> = ({
     title,
     subtitle,
     webnovels = [],
@@ -78,4 +78,4 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     );
 };
 
-export default WebnovelsCardList;
+export default WebnovelsRankingWrapper;

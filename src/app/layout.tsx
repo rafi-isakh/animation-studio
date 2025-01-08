@@ -16,7 +16,7 @@ import RegisterSW from '@/components/RegisterSW';
 import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
-
+import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 interface RootLayoutProps {
   children: ReactNode;
 }

@@ -33,13 +33,13 @@ const HeaderTabs = ({ language, dictionary, phrase }: { language: string, dictio
     }
   ];
 
-  const handleTabClick = (tabId) => {
+  const handleTabClick = (tabId: string) => {
     setActiveTab(tabId);
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-2">
-      <div className="flex flex-row gap-4 items-center justify-start md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">
+    <div className="mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-4">
+      <div className="flex flex-row gap-4 items-center justify-center md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">
         {tabs.map((tab) => (
           <div
             key={tab.id}

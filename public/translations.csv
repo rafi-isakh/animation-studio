@@ -254,4 +254,9 @@ userBlocked,차단되었습니다,,User blocked
 userBlocked_subtitle,이 사용자는 차단되었습니다.,,You have blocked this user.
 unblock,차단 해제,,Unblock
 upload,업로드,,Upload
-starsTransaction,충전 내역,,Transactions
+starsTransaction,충전 내역,,Transactions,
+latest,최신순,,Latest
+mostLiked,좋아요순,,Likes
+mostSubscribed,구독순,,Subscribe
+applyCreator,투니즈의 크리에이터가 되어보세요!,,Join Toonyz as an Author!
+applyCreator_button,지금 신청하기,,Apply Now

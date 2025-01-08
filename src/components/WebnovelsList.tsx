@@ -38,9 +38,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         slidesToShow: 3,
         slidesToScroll: 1,
         swipeToSlide: true,
-        // rows: 3,
-        // slidesPerRow: 3,
-        // centerMode: true,
         centerPadding: '0px',
         className: "center",
         nextArrow: <SampleNextArrow />,
@@ -59,27 +56,27 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     };
 
 
-      function SampleNextArrow(props: any) {
+    function SampleNextArrow(props: any) {
         const { className, style, onClick } = props;
         return (
-                <button
-                    onClick={onClick}
-                    className='absolute md:-right-5 -right-6 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-transparent '
-                >
-                        <ChevronRight className="w-6 h-6 text-gray/80" />
-                </button>
-                                        
+            <button
+                onClick={onClick}
+                className='absolute md:-right-5 -right-6 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-transparent '
+            >
+                <ChevronRight className="w-6 h-6 text-gray/80" />
+            </button>
+
         )
     }
     function SamplePrevArrow(props: any) {
         const { className, style, onClick } = props;
         return (
-                    <button 
-                        onClick={onClick}
-                        className="absolute md:left-5 left-3 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-transparent "
-                    >
-                        <ChevronLeft className="w-6 h-6 text-gray/80" />
-                   </button>
+            <button
+                onClick={onClick}
+                className="absolute md:left-5 left-3 top-1/2 -translate-y-1/2 z-[99] rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 transition-opacity duration-300 -translate-x-1/2 bg-transparent "
+            >
+                <ChevronLeft className="w-6 h-6 text-gray/80" />
+            </button>
         );
     }
 
@@ -101,8 +98,8 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
 
     const text = sortBy === 'views' ? 'popularWebnovels' :
-                 sortBy === 'likes' ? 'likedWebnovels' :
-                 sortBy === 'date' ? 'latestWebnovels' : '';
+        sortBy === 'likes' ? 'likedWebnovels' :
+            sortBy === 'date' ? 'latestWebnovels' : '';
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
@@ -112,49 +109,56 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
 
     return (
         <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                    <span className='text-black dark:text-white'>
-                     {phrase(dictionary, "toonyzHot", language)}
-                    </span>
-                </h1>
-                <Slider {...settings} className="custom-slider">
+            <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+                <span className='text-black dark:text-white'>
+                    {phrase(dictionary, "toonyzHot", language)}
+                </span>
+            </h1>
+            <Slider {...settings} className="custom-slider">
                 {chunkedItems.map((chunk, chunkIndex) => (
-                    <div 
-                    key={chunkIndex} 
-                    className="grid grid-cols-3 gap-40"
+                    <div
+                        key={chunkIndex}
+                        className="grid grid-cols-3  gap-4"
                     >
-                    {chunk.map((item, index) => (
-                        <div
-                        key={`${chunkIndex}-${index}`}
-                        className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}
+                        {chunk.map((item, index) => (
+                            <div
+                                key={`${chunkIndex}-${index}`}
+                                className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}
                                     bg-white dark:bg-black dark:text-white overflow-hidden border-gray-100 
                                     border-b dark:border-gray-700 flex flex-row items-center`}
-                        >
-                         <WebnovelComponent 
-                             webnovel={item} 
-                             index={calculateIndex(index, chunkIndex, chunkedItems)} 
-                             ranking={true} 
-                             chunkIndex={chunkIndex}
-                         />
-                         </div> 
-                      ))}
-                      </div>
-                    ))}
-                </Slider>
-                <style jsx global>
+                            >
+                                <WebnovelComponent
+                                    webnovel={item}
+                                    index={calculateIndex(index, chunkIndex, chunkedItems)}
+                                    ranking={true}
+                                    chunkIndex={chunkIndex}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </Slider>
+            <style jsx global>
                 {`
                   .custom-slider {
-                     width: 100%;
-                     gap: 100px;
-                   }
+                        width: 100%;
+                    }
 
-                   .active-slide {
-                    opacity: 1;
-                   }
+                    .custom-slider .slick-slide {
+                        padding: 0 20px;  /* padding to slides */
+                    }
 
-                   .inactive-slide {
-                    opacity: 1;  
-                   }
+                    .active-slide {
+                        opacity: 1;
+                    }
+
+                    .inactive-slide {
+                        opacity: 1;  
+                    }
+
+                    .slick-list {
+                        padding-right: 100px;
+                    }
                  `}
             </style>
         </div>

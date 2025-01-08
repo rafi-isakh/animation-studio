@@ -166,8 +166,8 @@ const MenuItemsComponent = () => {
                                  ">
                                     {circlesIcon[index]}
                                 </div>
-                                <h6 className="circle-text flex justify-center tracking-tight keep-all 
-                                    mt-4 md:text-md text-sm text-center w-full
+                                <h6 className="circle-text flex justify-center tracking-tight keep-all korean
+                                    mt-4 md:text-base text-sm text-center w-full leading-tight
                                 ">
                                     {capitalize(phrase(dictionary, circle, language))}
                                 </h6>

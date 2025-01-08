@@ -16,7 +16,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_TEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[190px] md:gap-28 gap-44 w-fit pl-[150px] ">
+                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-28 w-fit pl-[120px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
@@ -25,9 +25,9 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
                             {/* Ranking number */}
-                            <div className="absolute -left-[120px] -top-10 select-none pointer-events-none -z-10">
+                            <div className="absolute -left-[90px] -top-8 select-none pointer-events-none -z-10">
                                 <span
-                                    className="text-[19.5rem] font-black leading-none text-white 
+                                    className="text-[15.5rem] font-black leading-none text-white 
                                                 [text-shadow:2px_0_2px_black,_-2px_0_2px_black,_0_2px_2px_black,_0_-2px_2px_black]
                                                 dark:text-gray-700
                                                 dark:[text-shadow:2px_0_2px_gray,_-2px_0_2px_gray,_0_2px_2px_gray,_0_-2px_2px_gray]"
@@ -39,10 +39,10 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                             {/* Card content */}
                             <div
                                 className={`relative overflow-hidden rounded-lg transition-all duration-300 pt-1 
-                  ${hoveredIndex === index ? 'transform scale-100' : ''}`}
+                                             ${hoveredIndex === index ? 'transform scale-100' : ''}`}
                             >
                                 {/* Image container - now using full width of the grid column */}
-                                <div className="relative w-[150px] aspect-[2/3] bg-gray-900 rounded-lg">
+                                <div className="relative w-[120px] aspect-[2/3] bg-gray-900 rounded-lg">
                                     <Image
                                         fill
                                         src={getImageUrl(webnovel.cover_art)}
@@ -58,7 +58,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
 
                                 {/* Title and badge */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
-                                    <h3 className="text-white font-semibold line-clamp-2">{webnovel.title}</h3>
+                                    <h3 className="text-white font-semibold line-clamp-2 text-base">{webnovel.title}</h3>
                                 </div>
                             </div>
                         </div>

@@ -55,9 +55,9 @@ const WebnovelPicture = React.memo(({ webnovel, index, ranking, details, up, isO
                                 elementId={webnovel.id.toString()}
                                 elementType="webnovel"
                                 elementSubtype="title"
-                                classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-[100px] md:w-[160px] text-white"
+                                classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] text-white break-keep korean"
                             />
-                            <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-white flex flex-col md:flex-row justify-center">
+                            <p className="text-[10px] md:text-sm font-bold w-full truncate text-white flex flex-col md:flex-row justify-center">
                                 {webnovel.user.nickname}
                                 <span className="hidden md:block text-white"> • </span>
                                 <span className="text-white">{phrase(dictionary, webnovel.genre, language)}</span>
@@ -65,11 +65,11 @@ const WebnovelPicture = React.memo(({ webnovel, index, ranking, details, up, isO
 
                             {details && (
                                 <div className="flex flex-row justify-center font-bold mt-2">
-                                    <p className="text-[10px] md:text-[11px] text-white">
+                                    <p className="text-[10px] md:text-sm text-white">
                                         <span>{phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
                                         <span>{phrase(dictionary, "numchapters", language)}</span>
                                     </p>
-                                    <p className="text-[10px] md:text-[11px] text-white md:flex flex-row items-center ml-2 hidden gap-1">
+                                    <p className="text-[10px] md:text-sm text-white md:flex flex-row items-center ml-2 hidden gap-1">
                                         <TrendingUp size={10} className="text-white" />
                                         <span>{webnovel.views}</span>
                                     </p>

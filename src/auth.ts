@@ -1,5 +1,7 @@
 import NextAuth, { User } from "next-auth"
 import { AdapterUser } from "next-auth/adapters";
+import { SignJWT } from "jose";
+import { createPrivateKey } from "crypto";
 
 import Google from "next-auth/providers/google"
 import Kakao from "next-auth/providers/kakao";
@@ -8,7 +10,22 @@ import Apple from "next-auth/providers/apple";
 import Facebook from "next-auth/providers/facebook";
 import jwt from 'jsonwebtoken';
 
-// ... existing imports ...
+const getAppleToken = async () => {
+  const key = `-----BEGIN PRIVATE KEY-----\n${process.env.AUTH_APPLE_SECRET}\n-----END PRIVATE KEY-----\n`;
+
+  const appleToken = await new SignJWT({})
+    .setAudience("https://appleid.apple.com")
+    .setIssuer(process.env.AUTH_APPLE_TEAM_ID!)
+    .setIssuedAt(new Date().getTime() / 1000)
+    .setExpirationTime(new Date().getTime() / 1000 + 3600 * 2)
+    .setSubject(process.env.AUTH_APPLE_ID!)
+    .setProtectedHeader({
+      alg: "ES256",
+      kid: process.env.AUTH_APPLE_KEY_ID!,
+    })
+    .sign(createPrivateKey(key));
+  return appleToken;
+};
 
 async function refreshAccessToken(token: any) {
   try {
@@ -41,7 +58,11 @@ async function refreshAccessToken(token: any) {
       body: body,
     });
 
-    const refreshedTokens = await response.json();
+    let refreshedTokens = await response.json();
+    console.log("refreshedTokens", refreshedTokens)
+    if (token.provider === 'apple') {
+      refreshedTokens = await getAppleToken();
+    }
 
     if (!response.ok) {
       throw refreshedTokens;
@@ -62,6 +83,26 @@ async function refreshAccessToken(token: any) {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  cookies: {
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+     },
+     callbackUrl: {
+      name: `__Secure-next-auth.callback-url`,
+      options: {
+        httpOnly: false,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
   providers: [
     Google({
       // Google requires "offline" access_type to provide a `refresh_token`
@@ -70,7 +111,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Kakao,
     Apple({
       clientId: process.env.AUTH_APPLE_ID,
-      clientSecret: ""+process.env.AUTH_APPLE_SECRET,
+      clientSecret: await getAppleToken(),
       checks: ["pkce"],
       token: {
         url: `https://appleid.apple.com/auth/token`,

@@ -58,7 +58,15 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
 
                                 {/* Title and badge */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
-                                    <h3 className="text-white font-semibold line-clamp-2 text-base">{webnovel.title}</h3>
+                                    <h3 className="text-white font-semibold line-clamp-2 text-base">
+                                        <OtherTranslateComponent
+                                            content={webnovel.title}
+                                            elementId={webnovel.id.toString()}
+                                            elementType="webnovel"
+                                            elementSubtype="title"
+                                            classParams="text-[12px] md:text-[12px] font-medium line-clamp-2 w-[100px] md:w-[160px] text-white break-keep korean"
+                                        />
+                                    </h3>
                                 </div>
                             </div>
                         </div>
@@ -70,8 +78,3 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
 }
 
 
-{/* {item.recentlyAdded && (
-  <span className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded mt-2">
-    Recently Added
-  </span>
-)} */}

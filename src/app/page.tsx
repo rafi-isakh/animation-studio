@@ -65,7 +65,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views'/>
-                    {/* <WebnovelsCardListByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' /> */}
                     {largeGap()}
                 </div>
                 <div className='px-4 w-full mx-auto'>

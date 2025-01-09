@@ -36,9 +36,9 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         slidesToShow: 3,
         slidesToScroll: 1,
         rows: 1,
-        // slidesPerRow: 1,
-        // centerMode: true,
-        centerPadding: '0px',
+        className: "center",
+        centerMode: true,
+        centerPadding: '30px',
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
         responsive: [

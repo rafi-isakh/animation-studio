@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 import '@/styles/new_user.css'
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import { useTheme } from "@/contexts/providers";
 
 const NewUserBioComponent = () => {
     const { dictionary, language } = useLanguage();
     const maxText = 500;
     const [currText, setCurrText] = useState(0);
     const [content, setContent] = useState('');
+    const { theme, isDarkMode } = useTheme();
 
     useEffect(() => {
         setCurrText(content.length);
@@ -23,11 +25,11 @@ const NewUserBioComponent = () => {
     }
     
     return (
-        <div className='w-full text-black dark:text-black focus:outline-none'>
+        <div className='w-full text-black dark:text-white focus:outline-none'>
             <Box
                 component="form"
                 sx={{
-                    color: 'black',
+                    color: isDarkMode ? 'white' : 'black',
                     '& .MuiTextField-root': { m: 0 },
                 }}
                 autoComplete="off"
@@ -40,7 +42,29 @@ const NewUserBioComponent = () => {
                     value={content}
                     multiline
                     onChange={(e) => setContent(trim(e.target.value))}
-                    className='input rounded-md w-full text-black dark:text-black'
+                    className='input w-full text-black dark:text-white'
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                                borderColor: isDarkMode ? 'gray' : 'rgba(0, 0, 0, 0.23)',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: isDarkMode ? 'white' : 'rgba(0, 0, 0, 0.87)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: isDarkMode ? 'white' : 'primary.main',
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: isDarkMode ? 'gray' : 'rgba(0, 0, 0, 0.6)',
+                            '&.Mui-focused': {
+                                color: isDarkMode ? 'white' : 'primary.main',
+                            }
+                        },
+                        '& .MuiOutlinedInput-input': {
+                            color: isDarkMode ? 'white' : 'black',
+                        },
+                    }}
                 />
             </Box>
         </div>

@@ -5,16 +5,18 @@ import { phrase } from '@/utils/phrases';
 import '@/styles/new_user.css'
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import { useTheme } from "@/contexts/providers";
 
 const NewUserNicknameComponent = () => {
     const { dictionary, language } = useLanguage();
+    const { theme, isDarkMode } = useTheme();
 
     return (
-        <div className='w-full text-black dark:text-black focus:outline-none'>
+        <div className='w-full text-black dark:text-white focus:outline-none'>
             <Box
                 component="form"
                 sx={{
-                    color: 'black',
+                    color: isDarkMode ? 'white' : 'black',
                     '& .MuiTextField-root': { m: 0 },
                 }}
                 autoComplete="off"
@@ -27,7 +29,29 @@ const NewUserNicknameComponent = () => {
                     name="nickname"
                     size="small"
                     required
-                    className='w-full'
+                    className='w-full text-black dark:text-white'
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                                borderColor: isDarkMode ? 'gray' : 'rgba(0, 0, 0, 0.23)',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: isDarkMode ? 'white' : 'rgba(0, 0, 0, 0.87)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: isDarkMode ? 'white' : 'primary.main',
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: isDarkMode ? 'gray' : 'rgba(0, 0, 0, 0.6)',
+                            '&.Mui-focused': {
+                                color: isDarkMode ? 'white' : 'primary.main',
+                            }
+                        },
+                        '& .MuiOutlinedInput-input': {
+                            color: isDarkMode ? 'white' : 'black',
+                        },
+                    }}
                 />
             </Box>
         </div>

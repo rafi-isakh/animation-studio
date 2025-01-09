@@ -28,7 +28,7 @@ const NewUserNicknameComponent = () => {
                     size="small"
                     required
                     className='w-full'
-            />
+                />
             </Box>
         </div>
     )

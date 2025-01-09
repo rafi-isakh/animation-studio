@@ -1,6 +1,6 @@
 "use client"
 
-import { GoogleSignIn, KakaoSignIn } from '@/utils/SignIn';
+import { GoogleSignIn, KakaoSignIn, AppleSignIn } from '@/utils/SignIn';
 import { useLanguage } from "@/contexts/LanguageContext"
 import {phrase} from '@/utils/phrases'
 import Image from "next/image"
@@ -29,13 +29,14 @@ const SignInComponent = () => {
             // border: '1px solid #eee'  
             }}
           />
-            <p className="text-center"> {phrase(dictionary, 'login', language)} </p>  <br/>
+            <p className="text-center"> {phrase(dictionary, 'loginOrSignup', language)} </p>  <br/>
             {/* <h1> Login in to Toonyz</h1> */}
             <p className="text-center text-[10px]"> Your Favorite Story Universe, Between Us, Toonyz </p>
 
               <div className="flex flex-col space-y-4 m-4 justify-center mb-14" >
                 <GoogleSignIn></GoogleSignIn>
                 <KakaoSignIn></KakaoSignIn>
+                <AppleSignIn></AppleSignIn>
               </div>
            </div>
 

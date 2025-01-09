@@ -220,12 +220,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => toggleReaderTheme('sepia')}
-                                    className='text-[10px] bg-orange-200 text-white rounded-full px-2 py-1 self-center text-center'>
-                                    Aa
-                                </Link>
                             </div>
                         </div>
 

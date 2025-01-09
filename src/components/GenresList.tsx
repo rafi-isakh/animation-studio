@@ -99,15 +99,11 @@ export default function GenresList() {
                                     UP
                                 </span>
                             )}
-                         
                         </p>
-                       
                         <Image 
                          src={`/thumbnails/${project.title.toLowerCase()}.png`} 
                          alt="thumbnail"
                          width={100} height={100} />
-
-
                      </div>
               })
             }

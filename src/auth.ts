@@ -138,14 +138,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       // Initial sign in
-      console.log("token", token)
-      console.log("account", account)
-      console.log("profile", profile)
       if (account && profile) {
         return {
           accessToken: account.access_token,
           accessTokenExpires: account.expires_at! * 1000,
           refreshToken: account.refresh_token,
+          idToken: account.id_token,
           provider: account.provider,
           user: profile,
         }
@@ -163,6 +161,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = token.user as AdapterUser & User
       session.accessToken = token.accessToken as string
       session.provider = token.provider as string
+      if (session.provider === 'apple') {
+        session.accessToken = token.idToken as string
+      }
       if (session.provider === 'kakao' && session.user.kakao_account) {
         session.user.email = session.user.kakao_account.email;
       }

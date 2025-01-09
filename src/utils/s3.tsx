@@ -47,7 +47,6 @@ export const listObjectsInWebtoonsDirectory = async (directoryPrefix: string) =>
     const data = await s3Client.send(new ListObjectsV2Command(params));
     if (data.Contents) {
       const withoutDots = data.Contents.map(item => item.Key).filter(str => !str?.split("/").some(s => s.startsWith(".")));
-      console.log('withoutDots', withoutDots)
       return withoutDots;
     } else {
       return [];

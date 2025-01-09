@@ -26,7 +26,7 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_WEBTOONS_S3,
+                hostname: process.env.NEXT_PUBLIC_WEBTOONS_S3 || 'localhost',
                 pathname: '/**',
             },
             {

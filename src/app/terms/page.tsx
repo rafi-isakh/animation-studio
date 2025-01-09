@@ -1,6 +1,9 @@
+"use client"
+import { useLanguage } from '@/contexts/LanguageContext';
 import { replaceSmartQuotes } from '@/utils/font';
-import {terms} from '@/utils/terms';
+import {terms, terms_english} from '@/utils/terms';
 
 export default function Terms() {
-    return <div className='max-w-screen-md mx-auto p-4 whitespace-pre-wrap'>{replaceSmartQuotes(terms)}</div>
+    const {language} = useLanguage();
+    return <div className='max-w-screen-md mx-auto p-4 whitespace-pre-wrap'>{replaceSmartQuotes(language === 'ko' ? terms : terms_english)}</div>
 }

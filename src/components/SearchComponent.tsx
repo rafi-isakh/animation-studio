@@ -5,8 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
-import { X } from "lucide-react";
-import KeywordsComponent from "@/components/KeywordsComponent";
+import { X, Search } from "lucide-react";
 import { useSearch } from "@/contexts/SearchContext";
 
 export default function SearchComponent({ mode,
@@ -96,7 +95,7 @@ export default function SearchComponent({ mode,
                         id="search-navbar"
                         value={query}
                         onChange={handleChange}
-                        className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md dark:bg-black dark:text-white focus:ring-pink-500 focus:border-pink-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-pink-500 dark:focus:border-pink-500"
+                        className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md dark:bg-black dark:text-white focus:ring-[#DB2777] focus:border-[#DB2777] dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#DB2777] dark:focus:border-[#DB2777]"
                     />
                 }
                 {
@@ -105,22 +104,8 @@ export default function SearchComponent({ mode,
                         <div className='flex flex-col items-center justify-center max-w-screen-lg mx-auto'>
 
                             <div className="relative w-full">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    <svg
-                                        className="w-4 h-4 text-black dark:text-black"
-                                        aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            stroke="currentColor"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                                        />
-                                    </svg>
+                                <div className="absolute top-2 left-3 flex items-center justify-center pointer-events-none">
+                                    <Search size={20} className='dark:text-white text-black' />
                                 </div>
 
                                 <input
@@ -130,10 +115,10 @@ export default function SearchComponent({ mode,
                                     onChange={handleChange}
                                     placeholder={phrase(dictionary, "searchPlaceholder", language)}
                                     className="w-full p-2 pl-10 text-sm border-0 
-                             text-black border-b-4 border-b-black focus:outline-none focus:ring-0
-                             focus:border-b-pink-600"
-                                />
-                            </div>
+                                            text-black border-b-4 border-b-black focus:outline-none focus:ring-0
+                                            focus:border-b-[#DB2777]"
+                                        />
+                                    </div>
 
 
                             <div className="flex flex-col w-full py-3">
@@ -171,7 +156,7 @@ export default function SearchComponent({ mode,
 
                                 </div>
 
-                                <div className='h-[100px]'>
+                                {/* <div className='h-[100px]'>
                                     <p className='text-gray-500 text-md'>
 
                                         {phrase(dictionary, "genresAndKeyword", language)}
@@ -181,7 +166,7 @@ export default function SearchComponent({ mode,
                                         <KeywordsComponent />
                                     </p>
 
-                                </div>
+                                </div> */}
 
                             </div>
 
@@ -216,9 +201,9 @@ export default function SearchComponent({ mode,
                                 onChange={handleChange}
                                 placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
                                 className="w-full p-2 pl-10 text-sm border-0 
-                        text-black border-b-4 border-b-black 
-                        focus:outline-none focus:ring-0
-                            focus:border-b-pink-600"
+                                    text-black border-b-4 border-b-black 
+                                    focus:outline-none focus:ring-0
+                                     focus:border-b-[#DB2777]"
                             />
                         </div>
                     </>

@@ -49,7 +49,7 @@ export default function Studio() {
                     sizes="100vh"
                     style={{ height: '35px', width: '35px', justifyContent: 'center', alignSelf: 'center' }}
                 />
-                <span className='ml-4 font-bold text-pink-600'>Studio</span>
+                <span className='ml-4 font-bold text-[#DB2777]'>Studio</span>
             </p>
             <p >Your Favorite Story Universe, Between Us, Toonyz</p>
             <p className="mb-10">Toonyz의 스마트한 AI로 여러분의 스토리텔링이 현실이 되는 즐거움을 경험 해 보세요. </p>
@@ -110,15 +110,15 @@ export default function Studio() {
                                  sx={{
                                     borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#374151',
                                     '&:hover': {
-                                        borderColor: '#db2777' // pink-600 equivalent
+                                        borderColor: '#db2777' // [#DB2777] equivalent
                                     },
                                     border: '1px solid'
                                 }}
                                 variant="contained"
                                 color="gray"
                                 className='w-full border border-gray-700 dark:border-white rounded-md px-10 py-3 
-                                        hover:border-pink-600 hover:text-pink-600 
-                                        dark:hover:border-pink-600 dark:hover:text-pink-600
+                                        hover:border-[#DB2777] hover:text-[#DB2777] 
+                                        dark:hover:border-[#DB2777] dark:hover:text-[#DB2777]
                                         dark:text-white'>
                                 <OtherTranslateComponent
                                     key={key3}
@@ -211,15 +211,15 @@ export default function Studio() {
                                      sx={{
                                         borderColor: (theme) => theme.palette.mode === 'dark' ? '#fff' : '#374151',
                                         '&:hover': {
-                                            borderColor: '#db2777' // pink-600 equivalent
+                                            borderColor: '#db2777' // [#DB2777] equivalent
                                         },
                                         border: '1px solid'
                                     }}
                                     variant="contained"
                                     color="gray"
                                     className='w-full border border-gray-700 dark:border-white rounded-md px-10 py-3 
-                                        hover:border-pink-600 hover:text-pink-600 
-                                        dark:hover:border-pink-600 dark:hover:text-pink-600
+                                        hover:border-[#DB2777] hover:text-[#DB2777] 
+                                        dark:hover:border-[#DB2777] dark:hover:text-[#DB2777]
                                         dark:text-white'>
                                     <OtherTranslateComponent
                                         key={key6}

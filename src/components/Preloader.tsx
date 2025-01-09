@@ -122,7 +122,7 @@ export default function Preloader() {
                     {/*Language menu*/}
                     <li className="py-2 relative list-none">
                         <div ref={languageMenuRef}>
-                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 w-36 rounded-md border border-gray-400 flex items-center justify-start md:justify-between text-white focus:border-pink-600 md:px-4 md:py-3 md:border md:hover:border-pink-600 md:hover:bg-transparent dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
+                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 w-36 rounded-md border border-gray-400 flex items-center justify-start md:justify-between text-white focus:border-[#DB2777] md:px-4 md:py-3 md:border md:hover:border-[#DB2777] md:hover:bg-transparent dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
                                 <div className='flex justify-between w-full'>
                                     <div className='flex'>
                                         <i className="fa-solid fa-globe self-center text-white dark:text-white"></i>
@@ -141,7 +141,7 @@ export default function Preloader() {
                             <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 font-normal bg-black divide-y divide-gray-100 border-gray-400 dark:divide-gray-600`}>
                                 <ul className="py-2 text-sm border rounded-md border-gray-400 w-36 text-gray-100" aria-labelledby="dropdownLargeButton">
                                     {langPairList.map((langPair, index) => (
-                                        <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-pink-500' : ''}`}>
+                                        <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-[#DB2777]' : ''}`}>
                                             <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
                                                 {langPair.name}
                                             </Link>

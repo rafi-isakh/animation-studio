@@ -240,6 +240,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                       
                         {/* Title and content : end */}
                     </div>
+                    <div className='md:h-[3rem] h-[2rem]' />
                     <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}

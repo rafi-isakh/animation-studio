@@ -16,6 +16,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
                 status: 401
             });
         }
+        console.log("session", session)
         const data: UserCreate = {
             'email': session.user.email ?? "",
             'provider': session.provider,

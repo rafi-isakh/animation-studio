@@ -155,7 +155,7 @@ const MenuItemsComponent = () => {
     return (
         <div className='w-full h-full md:max-w-screen-lg mx-auto no-scrollbar'>
             <div className="overflow-x-auto overflow-y-hidden no-scrollbar">
-                <div className="flex flex-row px-6 md:justify-between justify-start items-center mx-auto gap-1 ">
+                <div className="flex flex-row md:px-6 px-0 md:justify-between justify-start md:items-center items-start mx-auto gap-1 ">
                     {circles.map((circle, index) => (
                         <div
                             key={index}

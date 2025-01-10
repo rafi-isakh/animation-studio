@@ -88,7 +88,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       console.log("account.provider", account?.provider)
       if (account?.provider === 'apple') {
         // Set the cookie manually for Apple provider
-        const cookieValue = encodeURIComponent(account.callbackUrl as string)
+        const cookieValue = encodeURIComponent('/new_user')
         console.log("cookieValue", cookieValue)
         cookies().set('__Secure-next-auth.callback-url', cookieValue, {
           httpOnly: false,

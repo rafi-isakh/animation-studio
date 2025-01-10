@@ -158,7 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return refreshAccessToken(token)
     },
     async redirect({ url, baseUrl }) {
-      return "/new_user"
+      return decodeURIComponent("/new_user")
     },
     async session({ session, token }) {
       session.user = token.user as AdapterUser & User

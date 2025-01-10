@@ -9,6 +9,7 @@ import Naver from "next-auth/providers/naver";
 import Apple from "next-auth/providers/apple";
 import Facebook from "next-auth/providers/facebook";
 import jwt from 'jsonwebtoken';
+import { cookies } from "next/headers";
 
 const getAppleToken = async () => {
   const key = `-----BEGIN PRIVATE KEY-----\n${process.env.AUTH_APPLE_SECRET}\n-----END PRIVATE KEY-----\n`;
@@ -82,25 +83,30 @@ async function refreshAccessToken(token: any) {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  events: {
+    signIn: async ({ user, account }) => {
+      if (account?.provider === 'apple') {
+        // Set the cookie manually for Apple provider
+        const cookieValue = encodeURIComponent(account.callbackUrl as string)
+        cookies().set('__Secure-next-auth.callback-url', cookieValue, {
+          httpOnly: false,
+          sameSite: 'none',
+          path: '/',
+          secure: true
+        })
+      }
+    },
+  },
   cookies: {
-    // pkceCodeVerifier: {
-    //   name: "next-auth.pkce.code_verifier",
-    //   options: {
-    //     httpOnly: true,
-    //     sameSite: "none",
-    //     path: "/",
-    //     secure: true,
-    //   },
-    //  },
-     callbackUrl: {
-      name: `__Secure-next-auth.callback-url`,
+    pkceCodeVerifier: {
+      name: "next-auth.pkce.code_verifier",
       options: {
-        httpOnly: false,
+        httpOnly: true,
         sameSite: "none",
         path: "/",
         secure: true,
       },
-    },
+     },
   },
   providers: [
     Google({

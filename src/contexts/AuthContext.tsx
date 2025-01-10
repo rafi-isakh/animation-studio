@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
     async function login(provider: string, redirect: boolean, callbackUrl: string) {
-        await signIn(provider, { redirect: redirect, callbackUrl: callbackUrl, redirectTo: callbackUrl });
+        await signIn(provider, { redirect: redirect, redirectTo: callbackUrl });
         setInvokeAuthCheck(!invokeAuthCheck);
     }
 

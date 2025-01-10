@@ -85,9 +85,11 @@ async function refreshAccessToken(token: any) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   events: {
     signIn: async ({ user, account }) => {
+      console.log("account.provider", account?.provider)
       if (account?.provider === 'apple') {
         // Set the cookie manually for Apple provider
         const cookieValue = encodeURIComponent(account.callbackUrl as string)
+        console.log("cookieValue", cookieValue)
         cookies().set('__Secure-next-auth.callback-url', cookieValue, {
           httpOnly: false,
           sameSite: 'none',

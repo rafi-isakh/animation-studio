@@ -84,15 +84,15 @@ async function refreshAccessToken(token: any) {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   cookies: {
-    callbackUrl: {
-      name: `__Secure-next-auth.callback-url`,
-      options: {
-        httpOnly: false,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-      },
-    },
+    // callbackUrl: {
+    //   name: "__Secure-next-auth.callback-url",
+    //   options: {
+    //     httpOnly: false,
+    //     sameSite: "none",
+    //     path: "/",
+    //     secure: true, 
+    //   },
+    // },
     pkceCodeVerifier: {
       name: "next-auth.pkce.code_verifier",
       options: {
@@ -157,14 +157,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // Access token has expired, try to update it
       return refreshAccessToken(token)
-    },
-    async redirect({ url, baseUrl }) {
-      console.log("url", url)
-      console.log("baseUrl", baseUrl)
-      if (url !== "/") {
-        return "/new_user"
-      }
-      return "/"
     },
     async session({ session, token }) {
       session.user = token.user as AdapterUser & User

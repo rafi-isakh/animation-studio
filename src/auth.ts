@@ -101,7 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         path: "/",
         secure: true,
       },
-     },
+    },
   },
   providers: [
     Google({
@@ -124,15 +124,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           response_mode: "form_post",
           response_type: "code",//do not set to "code id_token" as it will not work
           scope: "name email"
-        },},
-        profile(profile) {
-          return {
-            id: profile.sub,
-            name: "Person Doe",//profile.name.givenName + " " + profile.name.familyName, but apple does not return name...
-            email: profile.email,
-            image: "",
-          }
+        },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: "Person Doe",//profile.name.givenName + " " + profile.name.familyName, but apple does not return name...
+          email: profile.email,
+          image: "",
         }
+      }
     }),
   ],
   callbacks: {
@@ -158,7 +159,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return refreshAccessToken(token)
     },
     async redirect({ url, baseUrl }) {
-      return decodeURIComponent("/new_user")
+      console.log("url", url)
+      console.log("baseUrl", baseUrl)
+      if (url !== "/") {
+        return "/new_user"
+      }
+      return "/"
     },
     async session({ session, token }) {
       session.user = token.user as AdapterUser & User

@@ -28,8 +28,8 @@ const StarsTransactionComponent = () => {
 
                 <div className="flex flex-col w-full gap-2 p-5 text-base text-gray-500">
                     {transactions?.map((transaction, index) => (
-                        <div className="flex flex-row space-x-4 justify-between items-center">
-                            <div key={index} className="flex flex-row items-center">
+                        <div key={'transaction-' + index} className="flex flex-row space-x-4 justify-between items-center">
+                            <div className="flex flex-row items-center">
                                 <Plus className="text-gray-500 w-4 h-4" />
                                 <p>{transaction.stars}</p>
                                 <p>{phrase(dictionary, "star", language)}</p>

@@ -59,7 +59,6 @@ async function refreshAccessToken(token: any) {
     });
 
     let refreshedTokens = await response.json();
-    console.log("refreshedTokens", refreshedTokens)
     if (token.provider === 'apple') {
       refreshedTokens = await getAppleToken();
     }
@@ -84,15 +83,15 @@ async function refreshAccessToken(token: any) {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   cookies: {
-    pkceCodeVerifier: {
-      name: "next-auth.pkce.code_verifier",
-      options: {
-        httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-      },
-     },
+    // pkceCodeVerifier: {
+    //   name: "next-auth.pkce.code_verifier",
+    //   options: {
+    //     httpOnly: true,
+    //     sameSite: "none",
+    //     path: "/",
+    //     secure: true,
+    //   },
+    //  },
      callbackUrl: {
       name: `__Secure-next-auth.callback-url`,
       options: {

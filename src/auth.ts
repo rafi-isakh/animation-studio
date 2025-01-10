@@ -83,18 +83,16 @@ async function refreshAccessToken(token: any) {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  events: {
-    signIn: async ({ user, account }) => {
-      console.log("account", account)
-      if (account?.provider === 'apple') {
-        // Set the cookie manually for Apple provider
-        const cookieValue = encodeURIComponent('/new_user')
-        // account.callbackUrl is undefined, just use '/new_user'
-        cookies().set('next-auth.callback-url', cookieValue)
-      }
-    },
-  },
   cookies: {
+    callbackUrl: {
+      name: `__Secure-next-auth.callback-url`,
+      options: {
+        httpOnly: false,
+        sameSite: "none",
+        path: "/",
+        secure: true,
+      },
+    },
     pkceCodeVerifier: {
       name: "next-auth.pkce.code_verifier",
       options: {
@@ -158,6 +156,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // Access token has expired, try to update it
       return refreshAccessToken(token)
+    },
+    async redirect({ url, baseUrl }) {
+      return "/new_user"
     },
     async session({ session, token }) {
       session.user = token.user as AdapterUser & User

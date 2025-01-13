@@ -72,8 +72,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <div className='px-4 w-full mx-auto'>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
-                {largeGap()}
-                <TrailerCardComponent />
+                {/* {largeGap()}
+                <TrailerCardComponent /> */}
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>

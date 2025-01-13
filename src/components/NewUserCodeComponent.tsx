@@ -14,7 +14,6 @@ const NewUserNicknameComponent = () => {
   return (
     <div className='w-full text-black dark:text-white focus:outline-none'>
       <Box
-        component="form"
         sx={{
           color: isDarkMode ? 'white' : 'black',
           '& .MuiTextField-root': { m: 0 },

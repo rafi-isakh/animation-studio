@@ -18,7 +18,6 @@ const NewUserNicknameComponent = () => {
                     color: isDarkMode ? 'white' : 'black',
                     '& .MuiTextField-root': { m: 0 },
                 }}
-                autoComplete="off"
             >
                 <TextField
                     label={phrase(dictionary, "nickname", language)}

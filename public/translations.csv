@@ -234,6 +234,38 @@ writeYourStory,새 웹소설 쓰기,,Write your webnovel
 discoverStories,작품 둘러보기,,Browse webnovels
 noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
 noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels
+toonyzcut_submit_title,작품 등록 요청하기,,Submit Your Webnovel
+toonyzcut_offer_proposal,작품 신청하기,,offer your proposal
+toonyzcut_submit_description,투니즈컷에 작품을 등록하시면 크리에이터와 영상 제작사를 직접 연결해 드립니다.,,If you submit your webnovel to Toonyz Cut we will directly connect you with creators and video production companies.
+toonyzcut_submit_title_placeholder,작품 제목을 적어주세요.,,Please enter the title of your webnovel.
+toonyzcut_submit_email_placeholder,연락 받으실 이메일을 적어주세요.,,Please enter your email address to receive updates.
+toonyzcut_submit_link_placeholder,작품 링크를 적어주세요.,,Please enter the link to your webnovel.
+toonyzcut_submit_platform_placeholder,연재 중인 플랫폼을 적어주세요.,,Please enter the platform where your webnovel is published.
+toonyzcut_submit_genre_placeholder,장르를 적어주세요.,,Please enter the genres of your webnovel.
+toonyzcut_submit_cover_placeholder,작품 표지를 등록해주세요.,,Please upload the cover art for your webnovel.
+toonyzcut_submit_description_placeholder,작품 소개를 적어주세요.,,Please enter the description of your webnovel.
+toonyzcut_submit_submit_button,제출하기,,Submit
+toonyzcut_submit_language_placeholder,선호 하시는 언어를 적어주세요.,,Please enter the language you prefer.
+toonyzcut_submit_title_label,작품 제목,,Webnovel Title
+toonyzcut_submit_email_label,이메일 주소,,Email Address
+toonyzcut_submit_link_label,작품 링크,,Webnovel Link
+toonyzcut_submit_platform_label,연재 중인 플랫폼,,Platform
+toonyzcut_submit_language_label,선호 하시는 언어,,Language
+toonyzcut_submit_genre_label,장르,,Genre
+toonyzcut_submit_cover_label,작품 표지,,Cover Art
+toonyzcut_submit_cover_description,표지 이미지를 등록해 주세요.,,Please upload the cover art for your webnovel.
+toonyzcut_submit_description_label,작품 소개,,Description
+toonyzCut_how_to_proceed,위 작품에 대해서 어떻게 영상을 진행하고 싶으세요?,,How do you want to proceed with this webnovel?
+readmore,더 보기,,Read More
+submit_proposal,제안 제출하기,,Submit Proposal
+submit,제출,,Submit
+company_name,회사 이름,,Company Name
+full_name,이름,,Full Name
+email_address,이메일 주소,,Email Address
+contact_number,연락처,,Contact Number
+country,국가,,Country
+toonyzCut_which_type_of_project,어떤 프로젝트를 개발하고 싶으세요?,,Which Type of Project Would You Like to Develop?
+full_description,작품에 대한 자세한 설명을 적어주세요,,Please enter a detailed description of your webnovel.
 reply,답글,,Reply
 preparing,준비중 입니다,,Preparing..
 confirm,확인,,Confirm
@@ -264,3 +296,4 @@ TOP_TEN_WEBNOVELS,TOP 10,,TOP 10
 starsTransaction,충전 내역,,Transactions
 apple_signin,애플로 로그인,,Sign In with Apple
 star,별,,Stars
+>>>>>>> main

@@ -2,9 +2,8 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
-import { CircularProgress, formControlClasses } from '@mui/material';
+import { CircularProgress, Skeleton } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
-import { useMediaQuery } from '@mui/material';
 
 const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
     { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
@@ -15,8 +14,9 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [finished, setFinished] = useState(false)
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
-
+    const languageChangedRef = useRef(false);
     useEffect(() => {
+        languageChangedRef.current = true;
         setText("");
         setLoading(true);
         const detectLanguage = async () => {
@@ -65,6 +65,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                     initialized.current = true;
                 }
             }
+            languageChangedRef.current = false;
         }
         if (defaultLanguage != language) {
             if (content) {
@@ -73,10 +74,12 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             } else {
                 setText("");
                 setLoading(false);
+                languageChangedRef.current = false;
             }
         } else {
             setText(content);
             setLoading(false);
+            languageChangedRef.current = false;
         }
     }, [language, elementType, elementId, elementSubtype]);
 
@@ -160,7 +163,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.ended == 0) {
-                setText(text => text + data.token);
+                console.log("languageChangedRef.current", languageChangedRef.current)
+                if (!languageChangedRef.current) {
+                    setText(text => text + data.token);
+                }
             } else if (data.ended == 1) {
                 setFinished(true);
             }
@@ -183,10 +189,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             {
                 loading && showLoading ?
                     (
-                        <div role="status" className='w-4 self-center'>
-                            {/* genre */}
-                            <CircularProgress size="0.8rem" color='secondary' />
-                        </div>
+                        <Skeleton variant='rectangular' width={100} height={15} />
                     ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
 
             }

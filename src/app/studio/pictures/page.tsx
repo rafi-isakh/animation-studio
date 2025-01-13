@@ -14,7 +14,7 @@ import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
-import animationData from '@/assets/N_logo_loader.json'
+import animationData from '@/assets/stelli_loader.json';
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -124,7 +124,7 @@ export default function PicturesStudioPage() {
 
             <div className="flex flex-row fixed bottom-5">
                 <textarea
-                    className="w-[250px] text-black dark:text-black lg:w-[650px] md:w-[650px] h-12 p-2 border border-gray-300 rounded focus:ring-pink-600 focus:border-pink-600"
+                    className="w-[250px] text-black dark:text-black lg:w-[650px] md:w-[650px] h-12 p-2 border border-gray-300 rounded focus:ring-[#DB2777] focus:border-[#DB2777]"
                     value={prompt}
                     onChange={handlePromptChange}
                     placeholder={phrase(dictionary, "typeYourPrompt", language)}
@@ -134,7 +134,7 @@ export default function PicturesStudioPage() {
                     color="gray"
                     onClick={generatePictures}
                     disabled={isGeneratingPictures}
-                    className='px-4 py-2 font-bold ml-4 bg-white dark:text-pink-600 dark:bg-white'
+                    className='px-4 py-2 font-bold ml-4 bg-white dark:text-[#DB2777] dark:bg-white'
                 >
                     {isGeneratingPictures ? (
                         // Generating..
@@ -153,7 +153,7 @@ export default function PicturesStudioPage() {
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        className="lucide lucide-palette ml-3 text-pink-600">
+                        className="lucide lucide-palette ml-3 text-[#DB2777]">
                         <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
                         <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
                         <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />

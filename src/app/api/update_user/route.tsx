@@ -7,10 +7,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const session = await auth();
     const promoCode = req.nextUrl.searchParams.get('promo_code');
     if (!session) {
-        return NextResponse.json({
-            "message": "Unauthorized",
-            "status": 401
-        });
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
     }
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -31,10 +31,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
             const s3Response = await uploadFile(fileContent, fileName, fileType);
         } catch (error) {
             console.error('Error uploading file to s3:', error);
-            return NextResponse.json({
-                message: "Failed to upload to s3",
-                status: 500
-            });
+            return NextResponse.json(
+                { error: "Failed to upload file to S3" },
+                { status: 500 }
+            );
         }
     }
 
@@ -61,16 +61,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
     });
 
     if (!response.ok) {
-        console.error("Error updating user", response.status)
-        return NextResponse.json({
-            message: "Failed to update user",
-            status: 500
-        });
+        console.error("Error updating user", response.status);
+        return NextResponse.json(
+            { error: "Failed to update user" },
+            { status: response.status }
+        );
     }
 
-    return NextResponse.json({
-        message: "Success!!",
-        status: 200,
-    });
+    return NextResponse.json(
+        { message: "User updated successfully" },
+        { status: 200 }
+    );
 }
 

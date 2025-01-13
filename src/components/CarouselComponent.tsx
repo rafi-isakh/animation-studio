@@ -160,10 +160,8 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             <div className="h-[380px]">
                 <CarouselComponentReactSlick 
                     items={items} 
-                    searchParams={searchParams} 
-                    webnovels={webnovels} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -172,10 +170,8 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             <div className="h-[380px]">
                 <CarouselComponentReactSlick 
                     items={items} 
-                    searchParams={searchParams} 
-                    webnovels={webnovels.filter(webnovel => webnovel.genre === "bl")} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -184,10 +180,8 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             <div className="h-[380px]">
                 <CarouselComponentReactSlick 
                     items={items} 
-                    searchParams={searchParams} 
-                    webnovels={webnovels.filter(webnovel => webnovel.genre === "fantasy")} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -197,10 +191,8 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             <div className="h-[380px]">
                 <CarouselComponentReactSlick 
                     items={items} 
-                    searchParams={searchParams} 
-                    webnovels={webnovels.filter(webnovel => webnovel.genre === "romance")} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>
@@ -209,10 +201,8 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
             <div className="h-[380px]">
                 <CarouselComponentReactSlick 
                     items={items} 
-                    searchParams={searchParams} 
-                    webnovels={webnovels.filter(webnovel => webnovel.genre === "sf")} 
                     slidesToShow={3} 
-                    indicator={false} 
+                    showDots={false} 
                     centerPadding='0px' 
                 />
             </div>

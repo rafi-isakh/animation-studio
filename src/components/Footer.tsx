@@ -43,10 +43,13 @@ export default function Footer() {
                                 {language == 'ko' ? <>사업자등록번호 221-88-02281</> : <></>}
                             </p>
                             <p>
+                                {language == 'ko' ? <>통신판매업신고번호 2024-서울강남-07231호</> : <></>}
+                            </p>
+                            <p>
                                 {language == 'ko' ? <>대표자 강서연</> : <>CEO Seoyeon Kang</>}
                             </p>
                             <p>
-                                {language == 'ko' ? <>서울특별시 강남구 테헤란로 79길 6</> : <>1111B S Governors Ave #23452 Dover, DE 19904, USA</>}
+                                {language == 'ko' ? <>서울특별시 강남구 테헤란로 79길 6 512호</> : <>1111B S Governors Ave #23452 Dover, DE 19904, USA</>}
                             </p>
                             <p>
                                 {language == 'ko' ? <>1111B S Governors Ave #23452 Dover, DE 19904, USA</> : <></>}
@@ -61,25 +64,25 @@ export default function Footer() {
                     )}
 
                     <div className={`flex ${language === 'ko' ? 'flex-row' : 'md:flex-row flex-col'} md:gap-4 gap-[10px] mb-10 mt-2`}>
-                        <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-pink-600">
+                        <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-[#DB2777]">
                             <Link href="/terms">
                             {/* 이용약관 : Terms of use */}
                             {phrase(dictionary, "terms", language)}
                             </Link>
                         </p>
-                        <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+                        <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
                             <Link href="/terms/privacy">
                             {/* 개인정보 처리방침 : Privacy policy */}
                             {phrase(dictionary, "privacy", language)}
                             </Link>
                         </p>
-                        <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+                        <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
                             <Link href="/terms/youth">
                             {/* 청소년 보호 정책 : Youth protection policy */}
                             {phrase(dictionary, "youth_terms", language)}
                             </Link>
                         </p>
-                        <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+                        <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
                             <Link href="/contact">
                             {/* 고객지원 */}
                             {phrase(dictionary, "contact", language)}
@@ -117,7 +120,7 @@ export default function Footer() {
                         <Link href="https://www.instagram.com/stelland_official/">
                             <i className="fab fa-instagram cursor-pointer
                              text-white rounded-full px-[0.6rem] py-2
-                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              hover:bg-[#DB2777] bg-gray-300 text-[16px] 
                               transition ease-in-out delay-150
                              dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                             "></i>
@@ -125,7 +128,7 @@ export default function Footer() {
                         <Link href="#">
                             <i className="fab fa-youtube cursor-pointer
                              text-white rounded-full px-2 py-2
-                              hover:bg-pink-600 bg-gray-300 text-[15px] 
+                              hover:bg-[#DB2777] bg-gray-300 text-[15px] 
                               transition ease-in-out delay-150
                              dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                              "></i>
@@ -133,7 +136,7 @@ export default function Footer() {
                         <Link href="https://x.com/stelland_hello">
                             <i className="fab fa-x cursor-pointer
                              text-white rounded-full px-[0.7rem] py-2
-                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              hover:bg-[#DB2777] bg-gray-300 text-[16px] 
                               transition ease-in-out delay-150
                                dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                              "></i>
@@ -141,7 +144,7 @@ export default function Footer() {
                         <Link href="https://stelland.medium.com">
                             <i className="fa-brands fa-medium cursor-pointer
                              text-white rounded-full px-[0.44rem] py-2
-                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              hover:bg-[#DB2777] bg-gray-300 text-[16px] 
                               transition ease-in-out delay-150
                               dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                               "></i>
@@ -149,7 +152,7 @@ export default function Footer() {
                         <Link href="https://www.linkedin.com/company/stellandio/">
                             <i className="fa-brands fa-linkedin-in cursor-pointer
                              text-white rounded-full px-[0.6rem] py-2
-                              hover:bg-pink-600 bg-gray-300 text-[16px] 
+                              hover:bg-[#DB2777] bg-gray-300 text-[16px] 
                               transition ease-in-out delay-150
                              dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                             "></i>

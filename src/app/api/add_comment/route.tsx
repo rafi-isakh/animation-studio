@@ -7,7 +7,6 @@ import path from "path";
 export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
   const data = await req.json();
-  console.log(data)
 
   if (!session) {
     return NextResponse.json({

@@ -14,17 +14,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {phrase} from '@/utils/phrases'
+import { phrase } from '@/utils/phrases'
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
-  });
-import animationData from '@/assets/N_logo_loader.json'
+});
+import animationData from '@/assets/stelli_loader.json';
 
 async function createUser() {
- 
+
     let nickname = "Anonymous";
     let bio = "";
 
@@ -63,6 +63,11 @@ async function updateUser(formData: FormData) {
     redirect('/welcome');
 }
 
+async function createAndUpdateUser(formData: FormData) {
+    await createUser();
+    await updateUser(formData);
+}
+
 async function isUserInDB() {
     const res = await fetch(`/api/check_user`);
     const data = await res.json();
@@ -71,19 +76,18 @@ async function isUserInDB() {
 
 export default function NewUser() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [userExists, setUserExists] = useState(false);   
-    const {language, dictionary} = useLanguage()
+    const [loading, setLoading] = useState(true);
+    const [userExists, setUserExists] = useState(false);
+    const { language, dictionary } = useLanguage()
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             const data = await isUserInDB();
-            await createUser();
             const { user_exists, user_with_same_email_exists } = data;
             if (user_exists) {
                 setUserExists(true);
-                router.push('/?version=free');
+                router.push('/user_loggedin');
             } else if (user_with_same_email_exists) {
                 signOut();
                 return (
@@ -100,68 +104,69 @@ export default function NewUser() {
     }
 
     return (
-        loading ? 
-        <div role="status" className={`flex items-center justify-center min-h-screen`}> 
-            <LottieLoader 
-                animationData={animationData}
-                width="w-32"
-                centered={true}
-                pulseEffect={true}
-            />
-        </div> :
-         <div className='flex flex-col items-center justify-center h-[70vh] mt-10 !p-10'>
-           <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
-      
-            <Image
-            src="/images/N_logo.svg"
-            alt="Toonyz Logo"
-            width={0}
-            height={0}
-            sizes="100vh"
-            style={{ 
-                marginTop: '15px',
-                height: '35px', 
-                width: '35px', 
-                padding: '2px',
-                justifyContent: 'center', 
-                alignSelf: 'center', 
-                borderRadius: '25%', 
-                }}
-            />
-            <h1 className='text-center text-2xl font-bold mb-10'>{phrase(dictionary, 'signup', language)}</h1>
-            <p className="text-center text-[10px] mb-10"> Your Favorite Story Universe, Between Us, Toonyz </p>
+        loading ?
+            <div role="status" className={`flex items-center justify-center min-h-screen`}>
+                <LottieLoader
+                    animationData={animationData}
+                    width="w-32"
+                    centered={true}
+                    pulseEffect={true}
+                />
+            </div> :
+            <div className='flex flex-col items-center justify-center h-[70vh] mt-10 !p-10'>
+                <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
 
-            <form action={updateUser}>
-                <div className="flex flex-col w-72">
-                    <div className="flex flex-col space-y-4 items-center justify-center ">
-                        <NewUserNicknameComponent />
-                        <NewUserBioComponent />
-                        <NewUserCodeComponent />
-                     <div className="">
-                       <FormControlLabel
-                         required
-                         sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' },
-                            // color: '#ec4899', // font color
+                    <Image
+                        src="/images/N_logo.svg"
+                        alt="Toonyz Logo"
+                        width={0}
+                        height={0}
+                        sizes="100vh"
+                        style={{
+                            marginTop: '15px',
+                            height: '35px',
+                            width: '35px',
+                            padding: '2px',
+                            justifyContent: 'center',
+                            alignSelf: 'center',
+                            borderRadius: '25%',
                         }}
-                         control={
-                         <Checkbox required 
-                          sx={{
-                            color: '#db2777',
-                            '&.Mui-checked': {
-                              color: '#db2777',
-                            }
-                          }} 
-                         />}
-                        //  label="I agree to the terms & privacy policy"
-                         label={phrase(dictionary, 'agree_terms', language)}
-                       />
-                     </div>   
-                        <NewUserSubmitComponent />
-                        <p className="text-center text-[12px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
-                    </div>
+                    />
+                    <h1 className='text-center text-2xl font-bold mb-10'>{phrase(dictionary, 'signup', language)}</h1>
+                    <p className="text-center text-[10px] mb-10"> Your Favorite Story Universe, Between Us, Toonyz </p>
+
+                    <form action={createAndUpdateUser}>
+                        <div className="flex flex-col w-72">
+                            <div className="flex flex-col space-y-4 items-center justify-center text-black dark:text-white ">
+                                <NewUserNicknameComponent />
+                                <NewUserBioComponent />
+                                <NewUserCodeComponent />
+                                <div className="">
+                                    <FormControlLabel
+                                        required
+                                        sx={{
+                                            '& .MuiFormControlLabel-label': { fontSize: '12px' },
+                                            // color: '#ec4899', // font color
+                                        }}
+                                        control={
+                                            <Checkbox required
+                                                sx={{
+                                                    color: '#db2777',
+                                                    '&.Mui-checked': {
+                                                        color: '#db2777',
+                                                    }
+                                                }}
+                                            />}
+                                        //  label="I agree to the terms & privacy policy"
+                                        label={phrase(dictionary, 'agree_terms', language)}
+                                    />
+                                </div>
+                                <NewUserSubmitComponent />
+                                <p className="text-center text-[12px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-              </form>
             </div>
-        </div>
     )
 }

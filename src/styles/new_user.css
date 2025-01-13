@@ -1,0 +1,14 @@
+input {
+    color: black
+}
+
+@media (prefers-color-scheme: dark) {
+    input {
+        color: black;
+    }
+}
+
+.dark input {
+    color: black;
+}
+

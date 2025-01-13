@@ -89,25 +89,21 @@ export default function GenresList() {
                          key={index}>
                         <p>{phrase(dictionary, project.genre, language)}
                             {project.new && (
-                                <span className="absolute md:bottom-5 bottom-2 left-0 text-[10px] text-white bg-pink-500 px-1 py-1">
+                                <span className="absolute md:bottom-5 bottom-2 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">
                                     NEW
                                 </span>
                             )}
 
                             {project.up && (
-                                <span className="absolute md:bottom-5 bottom-2 left-0 text-[10px] text-white bg-purple-500 px-1 py-1">
+                                <span className="absolute md:bottom-5 bottom-2 left-0 text-[10px] text-white bg-[#8A2BE2] px-1 py-1">
                                     UP
                                 </span>
                             )}
-                         
                         </p>
-                       
                         <Image 
                          src={`/thumbnails/${project.title.toLowerCase()}.png`} 
                          alt="thumbnail"
                          width={100} height={100} />
-
-
                      </div>
               })
             }

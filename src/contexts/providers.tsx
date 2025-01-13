@@ -24,10 +24,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else if (systemPrefersDark) {
       toggleTheme('dark')
     }
+
+     // Listen for storage events to sync across tabs
+     const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'theme' && e.newValue) {
+        toggleTheme(e.newValue as Theme)
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const toggleTheme = (newTheme: Theme) => {
-    document.documentElement.className = newTheme
+    // document.documentElement.className = newTheme
+    // localStorage.setItem('theme', newTheme)
+    // setTheme(newTheme)
+    document.documentElement.classList.remove('light', 'dark', 'sepia')
+    document.documentElement.classList.add(newTheme)
     localStorage.setItem('theme', newTheme)
     setTheme(newTheme)
   }

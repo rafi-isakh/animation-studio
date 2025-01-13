@@ -31,11 +31,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
             .sort((a, b) => sortByFn(a, b, sortBy))
 
         setWebnovelsToShow(_webnovelsToShow);
-    }, [version, genre]);
-
-    const text = sortBy === 'views' ? 'popularWebnovels' :
-        sortBy === 'likes' ? 'likedWebnovels' :
-            sortBy === 'date' ? 'latestWebnovels' : '';
+    }, [version, genre, webnovels, sortBy]);
 
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
@@ -45,8 +41,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
 
     return (
         <WebnovelsCardList
-            title={phrase(dictionary, "newReleasesWebnovels", language)}
             //New Releases
+            title={phrase(dictionary, "newReleasesWebnovels", language)}
             subtitle={phrase(dictionary, "more", language)}
             webnovels={webnovelsToShow}
             scrollRef={scrollRef}

@@ -1,6 +1,6 @@
 "use client"
 
-import { GoogleSignIn, KakaoSignIn } from '@/utils/SignIn';
+import { GoogleSignIn, KakaoSignIn, AppleSignIn } from '@/utils/SignIn';
 import { useLanguage } from "@/contexts/LanguageContext"
 import {phrase} from '@/utils/phrases'
 import Image from "next/image"
@@ -29,30 +29,31 @@ const SignInComponent = () => {
             // border: '1px solid #eee'  
             }}
           />
-            <p className="text-center"> {phrase(dictionary, 'login', language)} </p>  <br/>
+            <p className="text-center"> {phrase(dictionary, 'loginOrSignup', language)} </p>  <br/>
             {/* <h1> Login in to Toonyz</h1> */}
             <p className="text-center text-[10px]"> Your Favorite Story Universe, Between Us, Toonyz </p>
 
               <div className="flex flex-col space-y-4 m-4 justify-center mb-14" >
                 <GoogleSignIn></GoogleSignIn>
                 <KakaoSignIn></KakaoSignIn>
+                <AppleSignIn></AppleSignIn>
               </div>
            </div>
 
             <div className="flex flex-row justify-center gap-4 mt-10">
-             <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-pink-600">
+             <p className="text-center text-[10px] font-extrabold text-gray-400 hover:text-[#DB2777]">
               <Link href="/terms">
               {/* 이용약관 : Terms of use */}
               {phrase(dictionary, "terms", language)}
               </Link>
             </p>
-             <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+             <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
               <Link href="/terms/privacy">
               {/* 개인정보 처리방침 : Privacy policy */}
               {phrase(dictionary, "privacy", language)}
               </Link>
             </p>
-              <p className="text-center text-[10px]  text-gray-400 hover:text-pink-600">
+              <p className="text-center text-[10px]  text-gray-400 hover:text-[#DB2777]">
               <Link href="/terms/youth">
               {/* 청소년 보호 정책 : Youth protection policy */}
               {phrase(dictionary, "youth_terms", language)}

@@ -63,8 +63,8 @@ export const Header = () => {
     const languageMenuRef = useRef<HTMLDivElement>(null);
     const { dictionary, language, setLanguage } = useLanguage();
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
-    const [logoWidth, setLogoWidth] = useState(100);
-    const [logoHeight, setLogoHeight] = useState(32);
+    const [logoWidth, setLogoWidth] = useState(150);
+    const [logoHeight, setLogoHeight] = useState(50);
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
         Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
     );
@@ -95,11 +95,11 @@ export const Header = () => {
 
     useEffect(() => {
         if (isDesktop) {
-            setLogoWidth(100);
-            setLogoHeight(24);
+            setLogoWidth(150);
+            setLogoHeight(50);
         } else {
-            setLogoWidth(100);
-            setLogoHeight(24);
+            setLogoWidth(150);
+            setLogoHeight(50);
         }
     }, [isDesktop]);
 
@@ -304,7 +304,7 @@ export const Header = () => {
                             <Link href="/?version=premium" className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                             {/* logo padding on mobile screen */}
                             <Image
-                                src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
+                                src={theme === 'dark' ? '/toonyzLogoStellyDark.png' : '/toonyzLogoStelly.png'}
                                 alt="Toonyz Logo"
                                 width={logoWidth}
                                 height={logoHeight} />
@@ -363,7 +363,7 @@ export const Header = () => {
                                     anchor="top"
                                     open={open}
                                     onClose={toggleDrawer(false)}
-                                    transitionDuration={0}
+                                    transitionDuration={100}
                                     ModalProps={{
                                         keepMounted: true,
                                     }}

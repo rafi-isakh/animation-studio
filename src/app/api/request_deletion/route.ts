@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     });
     const mailOptions = {
         from: process.env.EMAIL_USER!,
-        to: session.user.email!,
+        to: "jongminbaek@stelland.io",
         subject: "Account Deletion Request",
         text: "Account deletion requested: " + session.user.email
     };

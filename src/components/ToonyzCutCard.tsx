@@ -16,7 +16,9 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
     const [openModal, setOpenModal] = useState(false)
     const [openSubmitModal, setOpenSubmitModal] = useState(false)
     const { dictionary, language } = useLanguage();
-    const handleOpenModal = () => {
+
+    const handleOpenModal = (event: React.MouseEvent<HTMLImageElement>) => {
+        event.preventDefault()
         setOpenModal(true)
     }
 
@@ -35,48 +37,41 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
     return (
         <div key={webnovel.id} className='flex flex-col justify-center items-center gap-4 w-full md:max-w-[200px]'>
             <div className='relative group w-[150px] h-[200px]'>
+                <Link href='#'>
                 <Image
+                    onClick={(event) => handleOpenModal(event)}
                     src={imageSrc}
                     alt={webnovel.title}
                     fill
-                    className='object-cover group-hover:opacity-50 transition-opacity duration-300'
+                    className='object-cover rounded-xl group-hover:opacity-50 transition-opacity duration-300'
                 />
-                <div className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-                    <Button
-                        onClick={handleOpenModal}
-                        className='bg-[#070B34] dark:bg-[#070B34] border-2 text-white 
-                                dark:text-white hover:text-[#8A2BE2] 
-                                rounded-md flex items-center justify-center 
-                                gap-2 md:text-[10px] text-[10px] px-4 py-2'
-                    >
-                        View
-                    </Button>
-                </div>
+                </Link>
             </div>
             <div className='flex flex-col items-center gap-1 w-full'>
-                <p className='font-semibold text-sm truncate w-full text-center'>{webnovel.title}</p>
-                <p className='text-gray-600 text-xs truncate w-full text-center'>{webnovel.user.nickname}</p>
-                <p className='text-gray-500 text-xs truncate w-full text-center'>
+                <p className='font-semibold truncate w-full text-center text-base'>{webnovel.title}</p>
+                <p className='text-gray-600 truncate w-full text-center text-sm'>{webnovel.user.nickname}</p>
+                <p className='text-gray-500 truncate w-full text-center text-sm'>
                     {phrase(dictionary, webnovel.genre, language)}
                 </p>
             </div>
             <Button
                 onClick={handleOpenSubmitModal}
                 sx={{
-                    backgroundColor: '#070B34',
-                    border: '2px solid #070B34',
+                    backgroundColor: 'transparent',
+                    border: '2px solid #8A2BE2',
                     color: '#fff',
+
                     '&:hover': {
                         backgroundColor: '#8A2BE2',
                         color: '#fff',
                     }
                 }}
-                className='bg-[#070B34] border-2 text-white
-                           dark:text-white
+                className='bg-transparent border-1 text-[#8A2BE2]
+                           dark:text-[#8A2BE2]
                            hover:text-white
                            rounded-md flex flex-row items-center justify-center
-                           gap-2 md:text-sm text-[10px] w-full mt-2 py-2'
-            >
+                           gap-2 text-sm'
+                >
                 {/* Submit Proposal */}
                 {phrase(dictionary, 'submit_proposal', language)}
             </Button>

@@ -23,84 +23,48 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
     };
 
     return (
-        <>        
-         
-            <div className='flex flex-col items-center gap-2 mt-10'>
-            <TabContext value={tabValue} >
+        <>
+
+            <div className='flex flex-col items-center gap-4 mt-4'>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }} className='dark:text-gray-700'>
-                    <div className="flex flex-row justify-between items-center">
-                        <TabList
-                            onChange={handleChange}
-                            aria-label="lab API tabs"
-                            sx={{
-                                width: '100%',
-                                '& .MuiTab-root': {
-                                    color: 'gray', // Default tab color
-                                    '&.Mui-selected': {
-                                        color: '#8A2BE2', // Color when tab is selected
-                                    },
-                                },
-                                '& .MuiTabs-indicator': {
-                                    backgroundColor: '#8A2BE2', // Indicator color
-                                }
-                            }}
-                            className={`first-line:dark:text-white 
-                                         dark:focus:text-[#8A2BE2] 
-                                         dark:active:text-[#8A2BE2]
-                                       `}
-                             >
-                            <Tab 
-                               label={
-                                <>
-                               All
-                                </>
-                                }
-                                value="1" 
-                                className="dark:text-white
-                                 dark:focus:text-[#8A2BE2]
-                                 dark:active:text-[#8A2BE2]
-                                 md:w-auto sm:w-[10px]
-                                " />
-                        </TabList>
-                        <div className='self-center text-sm md:w-1/3 w-full'>
+                    <div className="flex flex-row justify-end items-center mb-4">
                         <Link href="/toonyzcut/submit">
                             <Button
                                 sx={{
                                     backgroundColor: 'transparent',
                                     border: '2px solid #8A2BE2',
                                     color: '#fff',
-                                    
+
                                     '&:hover': {
                                         backgroundColor: '#8A2BE2',
                                         color: '#fff',
                                     }
                                 }}
                                 className='bg-transparent border-2 text-[#8A2BE2]
-                                           dark:text-[#8A2BE2]
-                                           hover:text-white
-                                           rounded-md flex flex-row items-center justify-center
-                                           gap-2 md:text-sm text-[10px] w-full mt-2 py-2'
-                                >
-                              
+                                                                       dark:text-[#8A2BE2]
+                                                                       hover:text-white
+                                                                       rounded-md flex flex-row items-center justify-center
+                                                                       gap-2 text-sm w-full mt-2 py-2'
+                            >
+                                <div className='flex flex-row items-center justify-center gap-2'>
+
                                     <Share size={16} />
                                     {/* Offer your proposal */}
                                     {phrase(dictionary, 'toonyzcut_offer_proposal', language)}
-                                 </Button>
-                             </Link>
-                        </div>
+                                </div>
+                            </Button>
+                        </Link>
                     </div>
-                </Box>
-
-                <TabPanel value="1" className='md:max-w-screen-lg w-full'>
-                     <div className='grid md:grid-cols-4 grid-cols-1 gap-20'>
-                       {webnovels
-                       .map((webnovel: Webnovel, index: number) => (
-                        <ToonyzCutCard key={index} webnovel={webnovel} />
-                       ))}
-                     </div>
-                </TabPanel>
-            </TabContext>
-            </div>
+                </Box >
+                <div className='md:max-w-screen-lg w-full'>
+                    <div className='grid md:grid-cols-4 grid-cols-1 gap-10'>
+                        {webnovels
+                            .map((webnovel: Webnovel, index: number) => (
+                                <ToonyzCutCard key={index} webnovel={webnovel} />
+                            ))}
+                    </div>
+                </div>
+            </div >
         </>
     )
 }

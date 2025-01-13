@@ -33,7 +33,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                     <p className="font-semibold text-lg text-balck dark:text-black">{webnovel.title}</p>
                     <p className="text-gray-600">{webnovel.user.nickname}</p>
                     <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
-                    <p className="text-sm text-center max-w-[400px] text-balck dark:text-black">{webnovel.description}</p>
+                    <p className="text-sm text-center max-w-[400px] text-balck dark:text-black break-keep">{webnovel.description}</p>
 
                     <div className="flex flex-row gap-2">
                     <Button 

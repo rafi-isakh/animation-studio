@@ -8,7 +8,6 @@ import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
 import TrailerCardComponent from '@/components/TrailerCardComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';

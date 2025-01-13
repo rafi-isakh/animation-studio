@@ -1,7 +1,7 @@
 import WebtoonsCardList from "@/components/WebtoonsCardList";
 import { Webtoon } from "@/components/Types";
 import WebtoonsCarousel from "@/components/WebtoonsCarousel";
-import CircularMenuItemsComponent from "@/components/MenuItemsComponent";
+import MenuItemsComponent from "@/components/MenuItemsComponent";
 import Footer from "@/components/Footer";
 import WebtoonsRecommendationCarousel from "@/components/WebtoonsRecommendationCarousel";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
@@ -52,7 +52,7 @@ const Webtoons = async () => {
                 <WebtoonsCarousel webtoons={webtoons} carouselItems={carouselItems} />
                 <div className="flex flex-col justify-center items-center">
                     {smallGap()}
-                    <CircularMenuItemsComponent />
+                    <MenuItemsComponent />
                     {smallGap()}
                 </div>
                 <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={webtoons} coverArts={webtoonsCoverArts} detail={false} ranking={false}/>

@@ -113,31 +113,25 @@ export default function NewUser() {
                     pulseEffect={true}
                 />
             </div> :
-            <div className='flex flex-col items-center justify-center h-[70vh] mt-10 !p-10'>
-                <div className="flex flex-col items-center justify-center w-[450px] py-20 rounded-xl border border-gray-300">
+            <div className='flex flex-col items-center justify-center h-[70vh] !p-10'>
+                <div className="flex flex-col items-center justify-center w-[360px] py-20 rounded-md">
 
-                    <Image
-                        src="/images/N_logo.svg"
-                        alt="Toonyz Logo"
-                        width={0}
-                        height={0}
-                        sizes="100vh"
-                        style={{
-                            marginTop: '15px',
-                            height: '35px',
-                            width: '35px',
-                            padding: '2px',
-                            justifyContent: 'center',
-                            alignSelf: 'center',
-                            borderRadius: '25%',
-                        }}
-                    />
-                    <h1 className='text-center text-2xl font-bold mb-10'>{phrase(dictionary, 'signup', language)}</h1>
-                    <p className="text-center text-[10px] mb-10"> Your Favorite Story Universe, Between Us, Toonyz </p>
+                    <span className="relative flex h-28 w-28">
+                        <span className="relative inline-flex rounded-full h-28 w-28 border-[#FFE2DC]">
+                            <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className='self-center mx-auto' />
+                        </span>
+                    </span>
+                    <h1 className='text-center text-xl font-bold mb-4'>{phrase(dictionary, 'signup', language)}</h1>
+                    
+                    {/*
+                    <p className="text-center text-[10px] text-gray-400 dark:text-white">
+                        Your Favorite Story Universe, Between Us, Toonyz
+                    </p>
+                    */}
 
                     <form action={createAndUpdateUser}>
                         <div className="flex flex-col w-72">
-                            <div className="flex flex-col space-y-4 items-center justify-center text-black dark:text-white ">
+                            <div className="flex flex-col space-y-4 items-center justify-center text-black dark:text-white">
                                 <NewUserNicknameComponent />
                                 <NewUserBioComponent />
                                 <NewUserCodeComponent />
@@ -145,7 +139,7 @@ export default function NewUser() {
                                     <FormControlLabel
                                         required
                                         sx={{
-                                            '& .MuiFormControlLabel-label': { fontSize: '12px' },
+                                            '& .MuiFormControlLabel-label': { fontSize: '14px' },
                                             // color: '#ec4899', // font color
                                         }}
                                         control={
@@ -162,10 +156,12 @@ export default function NewUser() {
                                     />
                                 </div>
                                 <NewUserSubmitComponent />
-                                <p className="text-center text-[12px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
+                                <p className="text-center text-[14px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
                             </div>
                         </div>
                     </form>
+
+             
                 </div>
             </div>
     )

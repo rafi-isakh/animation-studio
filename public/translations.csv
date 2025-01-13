@@ -301,3 +301,9 @@ TOP_TEN_WEBNOVELS,TOP 10,,TOP 10
 starsTransaction,충전 내역,,Transactions
 apple_signin,애플로 로그인,,Sign In with Apple
 star,별,,Stars
+requestAccountDeletion,계정 삭제 요청,,Request Account Deletion
+requestAccountDeletionDescription,계정 삭제를 요청하려면 다음 버튼을 눌러주세요.,,Request account deletion by clicking the button below.
+requestAccountDeletionButton,계정 삭제 요청하기,,Request Account Deletion
+requestAccountDeletionDeletedInfo,이메일\, 연재글\, 댓글\, 좋아요 기록\, 차단 목록\, 별 사용 내역\, 등 모든 저장된 정보가 삭제됩니다.,,All saved information such as email\, webnovels\, comments\, like history\, block list\, star usage history\, etc. will be deleted.
+requestAccountDeletionSuccess,계정 삭제 요청이 접수되었습니다.,Account deletion request has been submitted.,Account deletion request has been submitted.
+requestAccountDeletionError,계정 삭제 요청에 실패했습니다.,Account deletion request failed.,Account deletion request failed.

@@ -62,7 +62,9 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
 
                                     {/* Title and badge */}
                                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="text-white font-semibold line-clamp-2 text-base">{webnovel.title}</h3>
+                                        <h3 className="text-white font-semibold line-clamp-2 text-base break-keep">
+                                            <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title'/>
+                                        </h3>
                                     </div>
                                 </div>
                             </Link>

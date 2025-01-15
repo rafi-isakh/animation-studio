@@ -45,9 +45,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "picture": fileName as string,
         "provider": session.provider
     }
+    console.log("userData", userData)
 
     let fetchstr = `${process.env.NEXT_PUBLIC_BACKEND}/api/update_user`
-    if (promoCode) {
+    if (promoCode && promoCode !== 'null') {
         fetchstr = `${fetchstr}?promo_code=${promoCode}`
     }
     const response = await fetch(fetchstr, {
@@ -67,6 +68,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
             { status: response.status }
         );
     }
+
+    const data = await response.json();
+    console.log("id", data)
 
     return NextResponse.json(
         { message: "User updated successfully" },

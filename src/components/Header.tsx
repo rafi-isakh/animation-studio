@@ -33,14 +33,9 @@ import { SquarePen,
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Drawer } from '@mui/material';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
-import ApplyCreatorBanner from './ApplyCreatorBanner';
 
 export const Header = () => {
     const router = useRouter();
@@ -63,8 +58,8 @@ export const Header = () => {
     const languageMenuRef = useRef<HTMLDivElement>(null);
     const { dictionary, language, setLanguage } = useLanguage();
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
-    const [logoWidth, setLogoWidth] = useState(150);
-    const [logoHeight, setLogoHeight] = useState(50);
+    const [logoWidth, setLogoWidth] = useState(100);
+    const [logoHeight, setLogoHeight] = useState(24);
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
         Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
     );
@@ -95,11 +90,11 @@ export const Header = () => {
 
     useEffect(() => {
         if (isDesktop) {
-            setLogoWidth(150);
-            setLogoHeight(50);
+            setLogoWidth(100);
+            setLogoHeight(24);
         } else {
-            setLogoWidth(150);
-            setLogoHeight(50);
+            setLogoWidth(100);
+            setLogoHeight(24);
         }
     }, [isDesktop]);
 
@@ -304,7 +299,7 @@ export const Header = () => {
                             <Link href="/?version=premium" className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                             {/* logo padding on mobile screen */}
                             <Image
-                                src={theme === 'dark' ? '/toonyzLogoStellyDark.png' : '/toonyzLogoStelly.png'}
+                                src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
                                 alt="Toonyz Logo"
                                 width={logoWidth}
                                 height={logoHeight} />

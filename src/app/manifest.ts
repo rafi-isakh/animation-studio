@@ -8,9 +8,15 @@ export default function manifest(): MetadataRoute.Manifest {
         "short_name": "Toonyz",
         "id": "toonyz_app",
         "description": "Toonyz is the Global Story Platform where you can read the world's best novels and webtoons in any language you want.",
-        "icons": [{
-            "src": "/icons/128.png",
-            "sizes": "128x128",
+        "icons": [
+        {
+            "src": "/icons/stellyFace192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/stellyFace256.png",
+            "sizes": "256x256",
             "type": "image/png"
         },
         {

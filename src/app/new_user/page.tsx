@@ -89,9 +89,8 @@ export default function NewUser() {
                 setUserExists(true);
                 router.push('/user_loggedin');
             } else if (user_with_same_email_exists) {
-                signOut();
                 return (
-                    <UserWithSameEmailExistsModalComponent />
+                    <UserWithSameEmailExistsModalComponent /> // bug: this modal is not shown
                 )
             }
             setLoading(false);

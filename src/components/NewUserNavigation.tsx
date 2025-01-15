@@ -19,5 +19,5 @@ export function NavigationEvents() {
     prevPathname.current = pathname;
   }, [pathname, searchParams])
  
-  return '...'
+  return null;
 }

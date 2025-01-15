@@ -39,7 +39,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                     </div>
 
                     <div className="flex flex-col justify-center items-center gap-2">
-                        <p className="font-semibold text-lg text-balck dark:text-black break-keep">
+                        <p className="font-semibold text-lg text-balck dark:text-black">
                             <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title'/>
                         </p>
                         <p className="text-gray-600">{webnovel.user.nickname}</p>

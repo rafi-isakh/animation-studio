@@ -33,7 +33,7 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
                                 sx={{
                                     backgroundColor: 'transparent',
                                     border: '2px solid #8A2BE2',
-                                    color: '#fff',
+                                    color: '#8A2BE2',
 
                                     '&:hover': {
                                         backgroundColor: '#8A2BE2',

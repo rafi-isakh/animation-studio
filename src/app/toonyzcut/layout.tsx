@@ -26,8 +26,14 @@ export default function ToonyzCutLayout({ children }: { children: React.ReactNod
                     <div className='flex flex-col items-center gap-2'>
                         <p className='text-[1rem] font-normal w-full text-white'>
                             <DictionaryPhrase phraseVar='toonyzcut_phrase1' />
+                        </p>
+                        <p className='text-[1rem] font-normal w-full text-white'>
                             <DictionaryPhrase phraseVar='toonyzcut_phrase2' />
+                        </p>
+                        <p className='text-[1rem] font-normal w-full text-white'>
                             <DictionaryPhrase phraseVar='toonyzcut_phrase3' />
+                        </p>
+                        <p className='text-[1rem] font-normal w-full text-white'>
                             <DictionaryPhrase phraseVar='toonyzcut_phrase4' />
                         </p>
                         <p className='text-[1rem] font-normal w-full text-white'>

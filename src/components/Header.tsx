@@ -554,6 +554,10 @@ export const Header = () => {
                             <p className={`${isActive('/studio') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} studio mt-1 text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "studio", language)}</p>
                         </Link>
+                        <Link href="/toonyzcut">
+                            <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                {phrase(dictionary, "toonyzCut", language)}</p>
+                        </Link>
                     </div>
                     {/* mobile webnovels, webtoons, studio bottom menu */}
                 </div>

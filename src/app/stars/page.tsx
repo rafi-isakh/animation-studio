@@ -10,6 +10,13 @@ import { Box } from "@mui/material";
 import StarsTransactionComponent from "@/components/StarsTransactionComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+export interface Transaction {
+    stars: number;
+    price: number;
+    date: string;
+    currency: string;
+}
+
 export default function Stars() {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();

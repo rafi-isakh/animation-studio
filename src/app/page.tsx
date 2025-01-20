@@ -8,6 +8,7 @@ import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
+import TrailerCardComponent from '@/components/TrailerCardComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
@@ -71,6 +72,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <div className='px-4 w-full mx-auto'>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
+                {/* {largeGap()}
+                <TrailerCardComponent /> */}
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>

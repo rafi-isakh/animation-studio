@@ -33,14 +33,9 @@ import { SquarePen,
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Drawer } from '@mui/material';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
-import ApplyCreatorBanner from './ApplyCreatorBanner';
 
 export const Header = () => {
     const router = useRouter();
@@ -64,7 +59,7 @@ export const Header = () => {
     const { dictionary, language, setLanguage } = useLanguage();
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
     const [logoWidth, setLogoWidth] = useState(100);
-    const [logoHeight, setLogoHeight] = useState(32);
+    const [logoHeight, setLogoHeight] = useState(24);
     const [highlightLanguage, setHighlightLanguage] = useState<Record<Language, boolean>>(
         Object.fromEntries(langPairList.map(lang => [lang.code, false])) as Record<Language, boolean>
     );
@@ -80,6 +75,8 @@ export const Header = () => {
     useEffect(() => {
         if (pathname == "/") {
             router.push(pathname + "?version=premium")
+            setPathnameLoading(false)
+        } else {
             setPathnameLoading(false)
         }
     }, [])
@@ -321,6 +318,10 @@ export const Header = () => {
                                     <p className={`${isActive('/studio') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "studio", language)}</p>
                                 </Link>
+                                <Link href="/toonyzcut">
+                                    <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                        {phrase(dictionary, "toonyzCut", language)}</p>
+                                </Link>
                             </div>
                         </div>
                         <div className="flex md:order-1">
@@ -357,7 +358,7 @@ export const Header = () => {
                                     anchor="top"
                                     open={open}
                                     onClose={toggleDrawer(false)}
-                                    transitionDuration={0}
+                                    transitionDuration={100}
                                     ModalProps={{
                                         keepMounted: true,
                                     }}
@@ -552,6 +553,10 @@ export const Header = () => {
                         <Link href="/studio">
                             <p className={`${isActive('/studio') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} studio mt-1 text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "studio", language)}</p>
+                        </Link>
+                        <Link href="/toonyzcut">
+                            <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                {phrase(dictionary, "toonyzCut", language)}</p>
                         </Link>
                     </div>
                     {/* mobile webnovels, webtoons, studio bottom menu */}

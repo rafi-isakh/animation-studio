@@ -4,36 +4,45 @@ import { Elements } from "@stripe/react-stripe-js";
 import { useState, useEffect } from "react";
 import CheckoutForm from "@/components/StripeCheckoutForm";
 import CompletePage from "@/components/StripeCompletePage";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSearchParams } from "next/navigation";
+import { useStripeContext } from "@/contexts/StripeContext";
 
 // Make sure to call loadStripe outside of a component’s render to avoid
 // recreating the Stripe object on every render.
 // This is your test publishable API key.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-export default function App() {
+export default function StripePage() {
   const [clientSecret, setClientSecret] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [dpmCheckerLink, setDpmCheckerLink] = useState("");
+  const { language } = useLanguage();
 
+  const { stars, discount } = useStripeContext();
   useEffect(() => {
-    setConfirmed(!!new URLSearchParams(window.location.search).get(
+    const confirmed = !!new URLSearchParams(window.location.search).get(
       "payment_intent_client_secret"
-    ));
+    );
+    setConfirmed(confirmed);
+    console.log(confirmed);
   });
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
-    fetch("/api/stripe_create_payment_intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: [{ id: "xl-tshirt" }] }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setClientSecret(data.clientSecret);
-        // [DEV] For demo purposes only
-        setDpmCheckerLink(data.dpmCheckerLink);
-      });
+    if (!confirmed) {
+      fetch("/api/stripe_create_payment_intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stars, discount }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setClientSecret(data.clientSecret);
+          // [DEV] For demo purposes only
+          setDpmCheckerLink(data.dpmCheckerLink);
+        });
+    }
   }, []);
 
   const appearance = {
@@ -42,10 +51,11 @@ export default function App() {
   const options = {
     clientSecret,
     appearance,
+    locale: language,
   };
 
   return (
-    <div className="App">
+    <div className="md:max-w-screen-lg mt-32 mx-auto flex flex-col items-center justify-center">
       {clientSecret && (
         <Elements options={options as StripeElementsOptions} stripe={stripePromise}>
           {confirmed ? <CompletePage /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PurchaseStarsComponent from "@/components/PurchaseStarsComponent";
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
@@ -9,19 +9,14 @@ import { phrase } from "@/utils/phrases";
 import { Box } from "@mui/material";
 import StarsTransactionComponent from "@/components/StarsTransactionComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
-import StripeCheckoutForm from "@/components/StripeCheckoutForm";
-import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
-import CheckoutForm from "@/components/StripeCheckoutForm";
-import CompletePage from "@/components/StripeCompletePage";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+type Currency = "KRW" | "USD" | "EUR";
 
 export interface Transaction {
     stars: number;
     price: number;
     date: string;
-    currency: string;
+    currency: Currency;
 }
 
 export default function Stars() {
@@ -29,39 +24,6 @@ export default function Stars() {
     const { dictionary, language } = useLanguage();
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
         setTabValue(newValue);
-    };
-
-    const [clientSecret, setClientSecret] = useState("");
-    const [confirmed, setConfirmed] = useState(false);
-    const [dpmCheckerLink, setDpmCheckerLink] = useState("");
-
-    useEffect(() => {
-        setConfirmed(!!new URLSearchParams(window.location.search).get(
-            "payment_intent_client_secret"
-        ));
-    });
-
-    useEffect(() => {
-        // Create PaymentIntent as soon as the page loads
-        fetch("/api/stripe_create_payment_intent", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: [{ id: "xl-tshirt" }] }),
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                setClientSecret(data.clientSecret);
-                // [DEV] For demo purposes only
-                setDpmCheckerLink(data.dpmCheckerLink);
-            });
-    }, []);
-
-    const appearance = {
-        theme: 'stripe',
-    };
-    const options = {
-        clientSecret,
-        appearance,
     };
 
     return (
@@ -101,11 +63,7 @@ export default function Stars() {
                     </div>
                 </Box>
                 <TabPanel value="1">
-                    {clientSecret && (
-                        <Elements options={options as StripeElementsOptions} stripe={stripePromise}>
-                            {confirmed ? <CompletePage /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}
-                        </Elements>
-                    )}                
+                    <PurchaseStarsComponent />
                 </TabPanel>
                 <TabPanel value="2">
                     <StarsTransactionComponent />

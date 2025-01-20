@@ -17,6 +17,7 @@ import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
+import { StripeProvider } from '@/contexts/StripeContext';
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <UserProvider>
                 <DeviceProvider>
                   <SearchProvider>
+                    <StripeProvider>
                     <div className={`font-pretendard pretendard-jp pretendard-std
                     ${notoSansArabic.className} 
                     ${notoSansThai.className} 
@@ -120,6 +122,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     </div> 
                    */}
                     </div>
+                    </StripeProvider>
                   </SearchProvider>
                 </DeviceProvider>
               </UserProvider>

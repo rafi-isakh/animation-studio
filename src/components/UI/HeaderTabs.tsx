@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, HeartHandshake, Clapperboard } from 'lucide-react';
+import { Sparkles, HeartHandshake, Clapperboard, Banana, ShieldHalf, Swords, MessageCircleHeart } from 'lucide-react';
 import Link from 'next/link';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
@@ -8,16 +8,16 @@ const HeaderTabs = ({ language, dictionary, phrase }: { language: string, dictio
 
   const tabs = [
     {
-      id: 'premium',
+      id: 'home',
       icon: <Sparkles size={20} />,
       href: '/?version=premium',
-      label: phrase(dictionary, "premium", language)
+      label: phrase(dictionary, "home", language)
     },
     {
-      id: 'free',
+      id: 'romanceFantasy',
       icon: <HeartHandshake size={20} />,
-      href: '/?version=free',
-      label: phrase(dictionary, "free", language)
+      href: '#',
+      label: phrase(dictionary, "romanceFantasy", language)
     },
     {
       id: 'romance',
@@ -26,10 +26,22 @@ const HeaderTabs = ({ language, dictionary, phrase }: { language: string, dictio
       label: phrase(dictionary, "romance", language)
     },
     {
-      id: 'toonyzcut',
-      icon: <Clapperboard size={20} />,
+      id: 'fantasy',
+      icon: <ShieldHalf size={20} />,
       href: '#',
-      label: phrase(dictionary, "toonyzCut", language)
+      label: phrase(dictionary, "fantasy", language)
+    },
+    {
+      id: 'bl',
+      icon: <Banana size={20} />,
+      href: '#',
+      label: phrase(dictionary, "bl", language)
+    },
+    {
+      id: 'action',
+      icon: <Swords size={20} />,
+      href: '#',
+      label: phrase(dictionary, "action", language)
     }
   ];
 
@@ -38,7 +50,7 @@ const HeaderTabs = ({ language, dictionary, phrase }: { language: string, dictio
   };
 
   return (
-    <div className="mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-4">
+    <div className="mx-auto md:max-w-screen-lg w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-4">
       <div className="flex flex-row gap-4 items-center justify-center md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">
         {tabs.map((tab) => (
           <div

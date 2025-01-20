@@ -540,7 +540,7 @@ export const Header = () => {
                             </ul>
                         </div>
                     </div>
-                    {/* mobile webnovels, webtoons, studio mobile bottom menu */}
+                    {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
                     <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
                         <Link href="/?version=premium">
                             <p className={`${isActive('/') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
@@ -549,10 +549,6 @@ export const Header = () => {
                         <Link href="/webtoons">
                             <p className={`${isActive('/webtoons') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "webtoons", language)}</p>
-                        </Link>
-                        <Link href="/studio">
-                            <p className={`${isActive('/studio') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} studio mt-1 text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                {phrase(dictionary, "studio", language)}</p>
                         </Link>
                         <Link href="/toonyzcut">
                             <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>

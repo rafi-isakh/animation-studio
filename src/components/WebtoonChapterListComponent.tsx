@@ -43,6 +43,7 @@ interface WebtoonChapterListComponentProps {
     coverArt: string;
     webtoons: Webtoon[];
     coverArtUrls: string[];
+    onUpdate?: (updatedContent: Webtoon) => void;
 }
 
 const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = ({
@@ -51,12 +52,19 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
     webtoon,
     slug,
     coverArt,
+    onUpdate,
 }) => {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [isSortedByLatest, setIsSortedByLatest] = useState(true);
     const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY');
     const [currentPageUrl, setCurrentPageUrl] = useState('');
+
+    const handleUpdate = () => {
+        if (onUpdate) {
+            onUpdate(webtoon);
+        }
+    }
 
     useEffect(() => {
         if (window !== undefined) {
@@ -172,43 +180,48 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                 >
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
-                        <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                            <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
-                                <p className="text-sm flex flex-row items-center gap-2">
-                                    <Image
-                                        src="/images/N_logo.svg"
-                                        alt="Toonyz Logo"
-                                        width={0}
-                                        height={0}
-                                        sizes="100vh"
-                                        style={{
-                                            height: '20px',
-                                            width: '20px',
-                                            padding: '2px',
-                                            justifyContent: 'center',
-                                            alignSelf: 'center',
-                                            borderRadius: '25%',
-                                            border: '1px solid #eee',
-                                            backgroundColor: 'white'
-                                        }}
-                                    />
-                                    {/* Binge On – Unlock all & Enjoy! */}
-                                    {phrase(dictionary, "binge_with_bulk_unlock", language)}
-                                    
+                            <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                                <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
+                                    <p className="text-sm flex flex-row items-center gap-2">
+                                        <Image
+                                            src="/images/N_logo.svg"
+                                            alt="Toonyz Logo"
+                                            width={0}
+                                            height={0}
+                                            sizes="100vh"
+                                            style={{
+                                                height: '20px',
+                                                width: '20px',
+                                                padding: '2px',
+                                                justifyContent: 'center',
+                                                alignSelf: 'center',
+                                                borderRadius: '25%',
+                                                border: '1px solid #eee',
+                                                backgroundColor: 'white'
+                                            }}
+                                        />
+                                        {/* Binge On – Unlock all & Enjoy! */}
+                                        {phrase(dictionary, "binge_with_bulk_unlock", language)}
 
-                                </p>
-                                <ChevronRightIcon size={16} className="text-black dark:text-white" />
-                            </Button>
+
+                                    </p>
+                                    <ChevronRightIcon size={16} className="text-black dark:text-white" />
+                                </Button>
                             </Tooltip>
-                            <WebtoonChapterListSubcomponent webtoon={webtoon} slug={slug} coverArt={coverArt} sortToggle={isSortedByLatest} />
-                                <h1 className="text-base font-bold">
-                                    {/* You might like this : recommend webtoons for desktop  */}
-                                    {phrase(dictionary, "youMightLikeThis", language)}
-                                </h1>
-                                <hr />
-                                <div className="flex flex-col w-full">
-                                    <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
-                                </div>
+                            <WebtoonChapterListSubcomponent
+                                webtoon={webtoon}
+                                slug={slug}
+                                coverArt={coverArt}
+                                sortToggle={isSortedByLatest}
+                                onUpdate={handleUpdate} />
+                            <h1 className="text-base font-bold">
+                                {/* You might like this : recommend webtoons for desktop  */}
+                                {phrase(dictionary, "youMightLikeThis", language)}
+                            </h1>
+                            <hr />
+                            <div className="flex flex-col w-full">
+                                <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
+                            </div>
                             {/* Comments list */}
                             {webtoon && <CommentList content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false} />}
                         </div>

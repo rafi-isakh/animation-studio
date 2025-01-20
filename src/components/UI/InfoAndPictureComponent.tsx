@@ -5,7 +5,7 @@ import { Button, useMediaQuery, Modal, Box } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, Share, Copy, ChevronRight, Trash } from "lucide-react"
+import { Heart, Share, Copy, ChevronRight, Trash, PenLine } from "lucide-react"
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { MdStars } from "react-icons/md";

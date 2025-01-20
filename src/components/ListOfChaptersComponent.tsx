@@ -19,10 +19,11 @@ import { getImageUrl } from "@/utils/urls";
 const ListOfChaptersComponent = ({ 
     webnovel, 
     sortToggle, 
-    onUpdate }: { 
+    onUpdate 
+    }: { 
         webnovel: Webnovel | undefined, 
         sortToggle: boolean, 
-        onUpdate: (updatedContent: Webnovel) => void 
+        onUpdate?: (updatedContent: Webnovel) => void 
     }) => {
     const { dictionary, language } = useLanguage();
     const [key, setKey] = useState(0);

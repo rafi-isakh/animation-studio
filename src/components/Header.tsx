@@ -314,10 +314,6 @@ export const Header = () => {
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
                                 </Link>
-                                <Link href="/studio">
-                                    <p className={`${isActive('/studio') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                        {phrase(dictionary, "studio", language)}</p>
-                                </Link>
                                 <Link href="/toonyzcut">
                                     <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "toonyzCut", language)}</p>

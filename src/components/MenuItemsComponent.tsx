@@ -68,16 +68,8 @@ const MenuItemsComponent = () => {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     }
 
-    const circles = ['all', 'publish', 'romance', 'event', 'toonyzCut', 'studio', 'starShop'];
+    const circles = ['publish', 'genre', 'event', 'toonyzCut', 'studio', 'starShop'];
     const circlesIcon = [
-        <Image
-            src={theme === 'dark' ? '/icons/main_all_icon.svg' : '/icons/main_all_icon.svg'}
-            alt="All Logo"
-            width={30}
-            height={30}
-            key="allLogo"
-            className="opacity-100"
-        />,
         <Image
             src={theme === 'dark' ? '/icons/main_publish_icon.svg' : '/icons/main_publish_icon.svg'}
             alt="Publish Logo"
@@ -87,11 +79,11 @@ const MenuItemsComponent = () => {
             className="opacity-100"
         />,
         <Image
-            src={theme === 'dark' ? '/icons/main_romance_icon.svg' : '/icons/main_romance_icon.svg'}
-            alt="Romance Logo"
+            src={theme === 'dark' ? '/icons/main_genre_icon.svg' : '/icons/main_genre_icon.svg'}
+            alt="genre Logo"
             width={30}
             height={30}
-            key="romanceLogo"
+            key="genreLogo"
             className="opacity-100"
         />,
         <Image
@@ -134,7 +126,7 @@ const MenuItemsComponent = () => {
                 return '#'
             case 'publish':
                 return '#'
-            case 'romance':
+            case 'genre':
                 return '#'
             case 'event':
                 return '#'
@@ -155,7 +147,7 @@ const MenuItemsComponent = () => {
     return (
         <div className='w-full h-full md:max-w-screen-lg mx-auto no-scrollbar'>
             <div className="overflow-x-auto overflow-y-hidden no-scrollbar">
-                <div className="flex flex-row md:px-6 px-0 md:justify-between justify-start md:items-center items-start mx-auto gap-1 ">
+                <div className="flex flex-row md:px-6 px-0 md:justify-center justify-center md:items-center items-center mx-auto gap-1 ">
                     {circles.map((circle, index) => (
                         <div
                             key={index}

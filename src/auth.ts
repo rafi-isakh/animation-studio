@@ -9,10 +9,10 @@ import Naver from "next-auth/providers/naver";
 import Apple from "next-auth/providers/apple";
 import Facebook from "next-auth/providers/facebook";
 import jwt from 'jsonwebtoken';
+import { cookies } from "next/headers";
 
 const getAppleToken = async () => {
   const key = `-----BEGIN PRIVATE KEY-----\n${process.env.AUTH_APPLE_SECRET}\n-----END PRIVATE KEY-----\n`;
-
   const appleToken = await new SignJWT({})
     .setAudience("https://appleid.apple.com")
     .setIssuer(process.env.AUTH_APPLE_TEAM_ID!)
@@ -59,7 +59,6 @@ async function refreshAccessToken(token: any) {
     });
 
     let refreshedTokens = await response.json();
-    console.log("refreshedTokens", refreshedTokens)
     if (token.provider === 'apple') {
       refreshedTokens = await getAppleToken();
     }
@@ -84,19 +83,19 @@ async function refreshAccessToken(token: any) {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   cookies: {
+    callbackUrl: {
+      name: "__Secure-next-auth.callback-url",
+      options: {
+        httpOnly: false,
+        sameSite: "none",
+        path: "/",
+        secure: true, 
+      },
+    },
     pkceCodeVerifier: {
       name: "next-auth.pkce.code_verifier",
       options: {
         httpOnly: true,
-        sameSite: "none",
-        path: "/",
-        secure: true,
-      },
-     },
-     callbackUrl: {
-      name: `__Secure-next-auth.callback-url`,
-      options: {
-        httpOnly: false,
         sameSite: "none",
         path: "/",
         secure: true,
@@ -124,15 +123,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           response_mode: "form_post",
           response_type: "code",//do not set to "code id_token" as it will not work
           scope: "name email"
-        },},
-        profile(profile) {
-          return {
-            id: profile.sub,
-            name: "Person Doe",//profile.name.givenName + " " + profile.name.familyName, but apple does not return name...
-            email: profile.email,
-            image: "",
-          }
+        },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: "Person Doe",//profile.name.givenName + " " + profile.name.familyName, but apple does not return name...
+          email: profile.email,
+          image: "",
         }
+      }
     }),
   ],
   callbacks: {

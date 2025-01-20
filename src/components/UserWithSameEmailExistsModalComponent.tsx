@@ -11,15 +11,11 @@ const UserWithSameEmailExistsModalComponent = () => {
     const {language, dictionary} = useLanguage();
     const [openModal, setOpenModal] = useState(true);
     const router = useRouter();
-    const {setIsLoggedIn} = useAuth();
-
-    useEffect(() => {
-        setIsLoggedIn(false);
-    })
+    const { logout} = useAuth();
 
     const confirm = () => {
         setOpenModal(false);
-        router.push('/?version=free')
+        logout(true, '/?version=free');
     }
 
     return (

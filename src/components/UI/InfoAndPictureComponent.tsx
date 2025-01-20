@@ -312,12 +312,14 @@ export default function InfoAndPictureComponent({
                                 </div>
                                 <hr /> */}
                                 <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
-                                    <div className="font-extrabold flex flex-row gap-2 items-center">
+                                    <div className="font-extrabold flex flex-row gap-2 items-center cursor-pointer">
                                         <MdStars className="text-xl text-[#D92979]" /> 
-                                        <p>
-                                            {/* 별 구매하기  */}
-                                            {phrase(dictionary, "buyStars", language)}
-                                        </p>
+                                        <Link href={`/stars`}>
+                                            <p>
+                                                {/* 별 구매하기  */}
+                                                {phrase(dictionary, "buyStars", language)}
+                                            </p>
+                                        </Link>
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </div>

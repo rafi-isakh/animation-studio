@@ -274,11 +274,11 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 </form>
 
                 <div className='mt-10 p-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
-                    <p className=' text-gray-500'> 
+                    <p className=' text-gray-500 pb-2'> 
                         {phrase(dictionary, "comments", language)}{' '}
                         ({allComments.length}) 
                     </p>
-                    <hr className='border-gray-300 mb-4' />
+                    <hr className='border-gray-300 ' />
                     {allComments.length === 0 ? (
                         <div className="text-center text-gray-500 py-8">
                             {phrase(dictionary, "noComments", language) || "No comments yet"}
@@ -289,7 +289,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                 (!comment.parent_id) ? (
                                     <div key={`comment-${comment.id}`} className='flex flex-col py-3'>
                                         <div className="flex flex-row gap-2 justify-between">
-                                            <div className='flex flex-row gap-2 items-center'>
+                                            <div className='flex flex-row gap-2 justify-start items-center'>
                                                 {comment.user.picture ? (
                                                     <Image
                                                         src={getImageUrl(comment.user.picture)}

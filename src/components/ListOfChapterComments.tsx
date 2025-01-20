@@ -27,14 +27,11 @@ export const ListOfChapterComments: FC<ListOfChapterCommentsProps> = ({ content,
     const { isLoggedIn } = useAuth();
 
     useEffect(() => {
-        console.log("content", content)
         if (webnovelOrWebtoon) {
             setOtherTranslationType('chapter' as ElementType);
-            console.log("setting other translation type to chapter")
         }
         else {
             setOtherTranslationType('webtoon_chapter' as ElementType);
-            console.log("setting other translation type to webtoon_chapter")
         }
     }, [content])
 

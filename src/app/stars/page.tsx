@@ -17,6 +17,13 @@ import CompletePage from "@/components/StripeCompletePage";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
+export interface Transaction {
+    stars: number;
+    price: number;
+    date: string;
+    currency: string;
+}
+
 export default function Stars() {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();

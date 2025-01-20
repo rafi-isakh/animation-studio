@@ -3,13 +3,16 @@ import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlic
 import Footer from '@/components/Footer';
 import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import WebnovelsCardListByTrends from '@/components/WebnovelsCardListByTrends';
+import WebnovelsCardListByRank from '@/components/WebnovelsCardListByRank';
 import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import CircularMenuItemsComponent from '@/components/CircularMenuItemsComponent';
+import TrailerCardComponent from '@/components/TrailerCardComponent';
+import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
+import WebnovelsCards from '@/components/WebnovelsCards';
+import WebnovelsByRank from '@/components/WebnovelsByRank';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -48,20 +51,29 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     return (
         <div>
             {showPreloader && <Preloader />}
-            <ApplyCreatorBanner />
-            {/* gap and padding settings  md:gap-[5rem] gap-[3rem] */}
-            <div className='flex flex-col md:justify-start md:items-start px-4 md:px-0'>
-                <CarouselComponentReactSlick items={items} slidesToShow={1} indicator={true} centerPadding={{ desktop: '50px', mobile: '14px' }}  />
+            <ApplyCreatorBanner />  
+            {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}
+            <div className='flex flex-col md:justify-start md:items-start md:px-0'>
+                <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '300px', mobile: '24px' }}  />
                 {smallGap()}
-                <CircularMenuItemsComponent />
-                {smallGap()}
-                <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
-                {largeGap()}
-                <WebnovelsCardListByTrends searchParams={searchParams} webnovels={webnovels} sortBy='views' />
-                {largeGap()}
-                <div className='w-full mx-auto'>
+               <div className='px-4 md:px-0 w-full mx-auto'>
+                    <MenuItemsComponent />
+                    {smallGap()}
+                    <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy="date" />
+                    {smallGap()}
+                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="date" />    
+                    {smallGap()}
+                    <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
+                    {largeGap()}
+                    <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views'/>
+                    {/* <WebnovelsCardListByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' /> */}
+                    {largeGap()}
+                </div>
+                <div className='px-4 w-full mx-auto'>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
+                {/* {largeGap()}
+                <TrailerCardComponent /> */}
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>

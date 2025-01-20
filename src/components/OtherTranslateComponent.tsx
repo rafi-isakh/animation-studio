@@ -15,6 +15,15 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [changeCount, setChangeCount] = useState(0)
     const [loading, setLoading] = useState(true)
     const languageChangedRef = useRef(false);
+    const [skeletonHeight, setSkeletonHeight] = useState<number | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (contentRef.current) {
+            setSkeletonHeight(contentRef.current.offsetHeight);
+        }
+    }, [content, classParams]);
+
     useEffect(() => {
         languageChangedRef.current = true;
         setText("");
@@ -186,12 +195,14 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
 
     return (
         <div style={{ direction: `${isRtl}` as Direction }}>
+            <div ref={contentRef} className={`${classParams}`} style={{ visibility: 'hidden', position: 'absolute', zIndex: -1 }}>
+                {content}
+            </div>
             {
                 loading && showLoading ?
                     (
-                        <Skeleton variant='rectangular' width={100} height={15} />
+                        <Skeleton variant='rectangular' width={100} height={skeletonHeight || 18} />
                     ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
-
             }
         </div>
     );

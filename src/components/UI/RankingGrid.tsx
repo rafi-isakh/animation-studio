@@ -17,7 +17,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_TEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-28 w-fit pl-[120px] ">
+                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-24 w-fit md:pl-[120px] pl-[85px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}

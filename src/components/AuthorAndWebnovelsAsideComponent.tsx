@@ -12,8 +12,8 @@ import Image from "next/image";
 import InfoAndPictureComponent from '@/components/UI/InfoAndPictureComponent';
 
 
-const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname, coverArt }:
-    { webnovels: Webnovel[], nickname: string | null | undefined, coverArt: string }) => {
+const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname, coverArt, onNewChapter, onDelete }:
+    { webnovels: Webnovel[], nickname: string | null | undefined, coverArt: string, onNewChapter?: () => void, onDelete?: () => void }) => {
     const {language, dictionary} = useLanguage();
     const [key, setKey] = useState(0);
     const params = useSearchParams();
@@ -28,7 +28,7 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname, coverArt }:
     }, [params, language])
 
     return (
-        <InfoAndPictureComponent content={webnovels[0]} coverArt={coverArt} isWebtoon={false} />
+        <InfoAndPictureComponent content={webnovels[0]} coverArt={coverArt} isWebtoon={false} onNewChapter={onNewChapter} onDelete={onDelete} />
     )
 }
 

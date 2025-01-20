@@ -12,11 +12,12 @@ import { useModalStyle } from '@/styles/ModalStyles';
 import { MdStars } from "react-icons/md";
 
 const WebtoonChapterListSubcomponent = ({
-  webtoon, slug, coverArt, sortToggle }: {
+  webtoon, slug, coverArt, sortToggle, onUpdate }: {
     webtoon: Webtoon,
     slug: string,
     coverArt: string,
-    sortToggle: boolean
+    sortToggle: boolean,
+    onUpdate: (updatedContent: Webtoon) => void
   }) => {
   const [showMoreChapters, setShowMoreChapters] = useState(false);
   const [showLessChapters, setShowLessChapters] = useState(false);

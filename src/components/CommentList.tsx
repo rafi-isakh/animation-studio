@@ -124,18 +124,21 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                 sortedChapters
                     .filter(chapter => chapter.comments && chapter.comments.length > 0)
                     .map((chapter, index) => (
-                        <div key={chapter.id} className="border rounded-lg p-4 mb-4">
-                            <div className="text-sm font-semibold mb-4 border-b pb-4 flex flex-row justify-between" >
-                                <h3 className="flex flex-row gap-2">
-                                    {/* 댓글 */}
-                                    {phrase(dictionary, "comments", language)}
-                                    <span className="text-gray-500 text-sm">({chapter.comments.length})</span>
-                                </h3>
+                        <div key={chapter.id} className="bg-gray-100 dark:bg-gray-900 first:rounded-t-lg last:rounded-b-lg p-4">
+                            <div className="text-sm font-semibold mb-4 border-b  border-gray-200 dark:border-gray-700 pb-2 flex flex-row justify-between" >
+                                <div className="flex flex-row gap-2 justify-center items-center">
+                                    <p className="text-sm text-gray-500 self-center">
+                                    {/* chapter title */}
+                                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType={otherTranslationType} />
+                                    </p>
+                                    {/* comment count*/}
+                                    <p className="text-sm text-gray-500 self-center justify-center">({chapter.comments.length})</p>
+                                </div>
                             </div>
                             {chapter.comments.map((comment) => (
                                 comment.parent_id === null ? (
                                     <div key={`comment-${comment.id}`} className="mb-4">
-                                        <div className="p-2 border-b border-gray-200">
+                                        <div className="p-2 border-b border-gray-200 dark:border-gray-700">
                                             <div className="flex flex-row items-center justify-between">
                                                 <div className="flex flex-row gap-2">
                                                     {comment.user.picture ? (
@@ -183,7 +186,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                             id={`user-dropdown-${comment.id}`}
                                                             ref={userDropdownRef}
                                                             className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
-                                                                    top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
+                                                                    right-0 top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
                                                                   divide-gray-100 shadow w-32 dark:divide-gray-600`}>
                                                             <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
                                                                 <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
@@ -201,7 +204,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <p className="text-sm text-gray-700 py-5">{comment.content}</p>
-                                                <p className="text-[10px] text-gray-700 py-5"><OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType={otherTranslationType} /></p>
+                                            
                                             </div>
 
                                             <div className="flex flex-row gap-2 items-center">
@@ -236,7 +239,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                         .map(reply => (
                                                             <div
                                                                 key={`reply-${reply.id}`}
-                                                                className="ml-10 p-2 border-l-2 border-gray-300 mb-3 bg-gray-50"
+                                                                className="ml-10 p-2 border-l-2 border-gray-300 mb-3 bg-gray-50 dark:bg-gray-800"
                                                             >
                                                                 <div className="flex flex-row items-center justify-between">
                                                                     <div className="flex flex-row gap-2">
@@ -285,7 +288,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                                                 id={`reply-dropdown-${reply.id}`}
                                                                                 ref={replyDropdownRef}
                                                                                 className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
-                                                                                  top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
+                                                                                  right-0 top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
                                                                                 divide-gray-100 shadow w-32 dark:divide-gray-600`}>
                                                                                 <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
                                                                                     <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">

@@ -36,8 +36,8 @@ import {
     PinterestIcon,
 } from "react-share";
 import { CommentList } from "@/components/CommentList";
-import ListOfChaptersComponent from "../ListOfChaptersComponent";
-import AuthorWorkListComponent from "../AuthorWorkListComponent";
+import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
+import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
 
 interface ContentChapterListComponentProps {
     content: Webtoon | Webnovel;
@@ -46,6 +46,7 @@ interface ContentChapterListComponentProps {
     relatedContent?: (Webtoon | Webnovel)[];
     coverArtUrls?: string[];
     isWebtoon?: boolean;
+    onContentUpdate?: (updatedContent: Webtoon | Webnovel) => void;
 }
 
 const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = ({
@@ -54,15 +55,16 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     coverArt,
     relatedContent = [],
     coverArtUrls = [],
-    isWebtoon = false
+    isWebtoon = false,
+    onContentUpdate
 }) => {
     const [isSortedByLatest, setIsSortedByLatest] = useState(true);
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');
-    const formattedDate = content?.created_at 
-    ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
-    : '';
+    const formattedDate = content?.created_at
+        ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
+        : '';
 
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
         setTabValue(newValue);
@@ -71,6 +73,8 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const handleSortToggle = () => {
         setIsSortedByLatest(prev => !prev);
     };
+
+    const chapterCount = content?.chapters?.length || 0;
 
     return (
         <div className="flex flex-col flex-1 flex-shrink-0 w-full">
@@ -112,7 +116,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                             {phrase(dictionary, "episodes", language)}
                                         </span>
                                         <span className="">
-                                            {content.chapters.length}
+                                            {chapterCount}
                                         </span>
                                     </div>
                                 }
@@ -200,29 +204,41 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 </Button>
                             </Tooltip>
 
-                            {isWebtoon ? (
-                                <WebtoonChapterListSubcomponent
-                                    webtoon={content as Webtoon}
-                                    slug={slug}
-                                    coverArt={coverArt}
-                                    sortToggle={isSortedByLatest}
-                                />
+                            {content && content.chapters ? (
+                                isWebtoon ? (
+                                    <WebtoonChapterListSubcomponent
+                                        webtoon={content as Webtoon}
+                                        slug={slug}
+                                        coverArt={coverArt}
+                                        sortToggle={isSortedByLatest}
+                                        onUpdate={onContentUpdate as (updatedContent: Webtoon) => void}
+                                    />
+                                ) : (
+                                    <ListOfChaptersComponent
+                                        webnovel={content as Webnovel}
+                                        sortToggle={isSortedByLatest}
+                                        onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
+                                    />
+                                )
                             ) : (
-                                <ListOfChaptersComponent webnovel={content as Webnovel} />
+                                <div>No chapters available</div>
                             )}
 
                             {/* author's other work list */}
-                            <h1 className="text-base font-bold">
-                                {phrase(dictionary, "authorWorkList", language)}
-                            </h1>
-                            <hr />
-                            <div className="flex flex-col w-full">
-                                <AuthorWorkListComponent
-                                    webnovels={relatedContent as Webnovel[]}
-                                    nickname={content.user.nickname}
-                                />
-                            </div>
-
+                            {content && content.user && relatedContent && relatedContent.length > 0 && (
+                                <>
+                                    <h1 className="text-base font-bold">
+                                        {phrase(dictionary, "authorWorkList", language)}
+                                    </h1>
+                                    <hr />
+                                    <div className="flex flex-col w-full">
+                                        <AuthorWorkListComponent
+                                            webnovels={relatedContent as Webnovel[]}
+                                            nickname={content.user.nickname}
+                                        />
+                                    </div>
+                                </>
+                            )}
                             {/* Recommendations section * /}
                             {relatedContent.length > 0 && (
                                 <>
@@ -275,82 +291,94 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                         }
                     }}
                 >
-                    <div className="flex flex-col self-start justify-start gap-4 space-y-4">
-                        <p className="text-sm text-black dark:text-white"> {content.description} </p>
-                        <div className="flex flex-col gap-0 space-y-4">
-                            <p className="text-sm text-black dark:text-white font-bold">
-                                {/* 연재 시작 */}
-                                {phrase(dictionary, "created_at", language)}
+                    {content ? (
+                        <div className="flex flex-col self-start justify-start gap-4 space-y-4">
+                            <p className="text-sm text-black dark:text-white">
+                                {content.description || "No description available"}
+                                {/* phrase(dictionary, "noDescription", language) */}
                             </p>
-                            <p className="text-sm capitalize">
-                                <p className="text-sm text-black dark:text-white"> {formattedDate} </p>
-                            </p>
-                            <hr />
-                            <p className="text-sm text-black dark:text-white font-bold">
-                                {/* 지원 언어  */}
-                                {phrase(dictionary, "language", language)}
-                            </p>
+                            <div className="flex flex-col gap-0 space-y-4">
+                                <p className="text-sm text-black dark:text-white font-bold">
+                                    {/* 연재 시작 */}
+                                    {phrase(dictionary, "created_at", language)}
+                                </p>
+                                <p className="text-sm capitalize">
+                                    <p className="text-sm text-black dark:text-white"> {formattedDate} </p>
+                                </p>
+                                <hr />
+                                <p className="text-sm text-black dark:text-white font-bold">
+                                    {/* 지원 언어  */}
+                                    {phrase(dictionary, "language", language)}
+                                </p>
 
-                            <p className="text-sm capitalize">
-                                {content?.language?.toLowerCase()}
-                                {/* language  */}
-                                {/* {phrase(dictionary, 
+                                <p className="text-sm capitalize">
+                                    {content?.language?.toLowerCase()}
+                                    {/* language  */}
+                                    {/* {phrase(dictionary, 
                                     content?.language?.toLowerCase() || "unknown_language", 
                                     language
                                 )} */}
-                            </p>
-                            <hr />
+                                </p>
+                                <hr />
 
-                            <p className="text-sm text-black dark:text-white font-bold">
-                                {/* 조회수 */}
-                                {phrase(dictionary, "views", language)}
-                            </p>
+                                <p className="text-sm text-black dark:text-white font-bold">
+                                    {/* 조회수 */}
+                                    {phrase(dictionary, "views", language)}
+                                </p>
 
-                            <p className="text-sm capitalize">
-                                {content.views}
-                            </p>
-                            <hr />
+                                <p className="text-sm capitalize">
+                                    {content.views}
+                                </p>
+                                <hr />
 
-                            <p className="text-sm text-black dark:text-white font-bold">
-                                {/* 좋아요수 */}
-                                {phrase(dictionary, "likes", language)}
-                            </p>
+                                <p className="text-sm text-black dark:text-white font-bold">
+                                    {/* 좋아요수 */}
+                                    {phrase(dictionary, "likes", language)}
+                                </p>
 
-                            <p className="text-sm capitalize">
-                                {content.upvotes}
-                            </p>
-                            <hr />
-                            <p className="text-sm text-black dark:text-white font-bold">
-                                {/* Share */}
-                                {phrase(dictionary, "share", language)}
-                            </p>
-                            <div className="flex flex-row gap-2">
-                                <FacebookShareButton url={currentPageUrl} title={content.title}>
-                                    <FacebookIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                </FacebookShareButton>
+                                <p className="text-sm capitalize">
+                                    {content.upvotes}
+                                </p>
+                                <hr />
+                                <p className="text-sm text-black dark:text-white font-bold">
+                                    {/* Share */}
+                                    {phrase(dictionary, "share", language)}
+                                </p>
+                                <div className="flex flex-row gap-2">
+                                    <FacebookShareButton url={currentPageUrl} title={content.title}>
+                                        <FacebookIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                    </FacebookShareButton>
 
-                                <TwitterShareButton url={currentPageUrl} title={content.title}>
-                                    <TwitterIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                </TwitterShareButton>
+                                    <TwitterShareButton url={currentPageUrl} title={content.title}>
+                                        <TwitterIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                    </TwitterShareButton>
 
-                                <TumblrShareButton url={currentPageUrl} title={content.title}>
-                                    <TumblrIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                </TumblrShareButton>
+                                    <TumblrShareButton url={currentPageUrl} title={content.title}>
+                                        <TumblrIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                    </TumblrShareButton>
 
-                                <TelegramShareButton url={currentPageUrl} title={content.title}>
-                                    <TelegramIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                </TelegramShareButton>
+                                    <TelegramShareButton url={currentPageUrl} title={content.title}>
+                                        <TelegramIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                    </TelegramShareButton>
 
-                                <WhatsappShareButton url={currentPageUrl} title={content.title}>
-                                    <WhatsappIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                </WhatsappShareButton>
+                                    <WhatsappShareButton url={currentPageUrl} title={content.title}>
+                                        <WhatsappIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                    </WhatsappShareButton>
 
-                                <PinterestShareButton url={currentPageUrl} title={content.title} media={content.cover_art || ""}>
-                                    <PinterestIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                </PinterestShareButton>
+                                    <PinterestShareButton url={currentPageUrl} title={content.title} media={content.cover_art || ""}>
+                                        <PinterestIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                    </PinterestShareButton>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-8">
+                            <p className="text-gray-500 text-sm">
+                                {phrase(dictionary, "contentNotAvailable", language)}
+                            </p>
+                        </div>
+                    )}
                 </TabPanel>
             </TabContext>
         </div>

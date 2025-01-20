@@ -1,5 +1,5 @@
 "use client"
-import { Webnovel } from '@/components/Types'
+import { Webnovel, Webtoon } from '@/components/Types'
 import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
@@ -38,6 +38,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [tabValue, setTabValue] = useState('1');
+    const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
+
+    const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
+        setContent(updatedContent);
+    };
+
     // const [chapterId, setChapterId] = useState(0);
 
     const pathname = usePathname();
@@ -85,16 +91,19 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 console.error("Delete webnovel failed");
                 return;
             }
+              // Filter out the deleted webnovel
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
             setWebnovels(webnovels_after_deletion)
             setDeletedWebnovelId(id);
             setShowDeleteModal(false);
-            const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
-            const first = Math.min(...ids);
-            if (ids.length > 0) {
-                router.push(`/view_webnovels?id=${first.toString()}`)
+
+              // Navigate to appropriate page
+              if (webnovels_after_deletion.length > 0) {
+                const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
+                const first = Math.min(...ids);
+                await router.push(`/view_webnovels?id=${first.toString()}`);
             } else {
-                router.push('/view_webnovels')
+                await router.push('/view_webnovels');
                 router.refresh();
             }
         } catch (error) {
@@ -150,50 +159,27 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                         webnovels={[theWebnovel]}
                                         nickname={nickname}
                                         coverArt={theWebnovel.cover_art || ""}
+                                        onNewChapter={handleNewChapter}
+                                        onDelete={handleDelete}
                                     />
                                 )}
+
                             </Suspense>
 
                             <div className='w-full'>
-                                {/* {isAuthor() &&
-                                    <div className='flex flex-row gap-4 w-full justify-start'>
-                                        <NoCapsButton
-                                            color='gray'
-                                            variant='outlined'
-                                            onClick={handleNewChapter}
-                                            className='px-4 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                        >
-                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
-                                        </NoCapsButton>
-                                        <NoCapsButton
-                                            color='gray'
-                                            variant='outlined'
-                                            onClick={() => setShowDeleteModal(true)}
-                                            className='px-6 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                        >
-                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
-                                        </NoCapsButton>
-                                    </div>
-                                } */}
+
                                 <ContentChapterListComponent
                                     content={theWebnovel as Webnovel}
                                     coverArt={theWebnovel?.cover_art || ""}
                                     isWebtoon={false}
                                     relatedContent={webnovels}
+                                    onContentUpdate={handleContentUpdate}
                                 />
                             </div>
                         </div>
 
                     </div>
-                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={useModalStyle}>
-                            <div className='flex flex-col space-y-4 items-center justify-center'>
-                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                            </div>
-                        </Box>
-                    </Modal>
+                  
                 </ThemeProvider >
             )
         } else {

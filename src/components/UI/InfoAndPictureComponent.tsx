@@ -1,13 +1,14 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
 import { Webtoon, Webnovel } from "@/components/Types";
-import { Button } from "@mui/material";
+import { Button, useMediaQuery, Modal, Box } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, Share, Copy } from "lucide-react"
+import { Heart, Share, Copy, ChevronRight, Trash } from "lucide-react"
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import { MdStars } from "react-icons/md";
 import DictionaryPhrase from "@/components/DictionaryPhrase";
 import {
     FacebookShareButton,
@@ -31,15 +32,25 @@ import { getImageUrl } from "@/utils/urls";
 import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
+import { useModalStyle } from "@/styles/ModalStyles";
 
 
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;
     coverArt: string;
     isWebtoon?: boolean;
+    children?: React.ReactNode;
+    onNewChapter?: () => void; 
+    onDelete?: () => void;     
 }
 
-export default function InfoAndPictureComponent({ content, coverArt, isWebtoon = false }: InfoAndPictureProps) {
+export default function InfoAndPictureComponent({ 
+    content, 
+    coverArt, 
+    isWebtoon = false, 
+    onNewChapter, 
+    onDelete 
+}: InfoAndPictureProps) {
     const { language, dictionary } = useLanguage();
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
     const shareDropdownRef = useRef<HTMLDivElement>(null);
@@ -48,7 +59,8 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
     const nickname = content.user.nickname;
     const author_email = content.user.email_hash;
     const { email } = useUser();
-    
+    const isMediumScreen = useMediaQuery('(min-width:768px)');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -87,7 +99,6 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
         return userEmailHash === authorEmailHash;
     };
 
-
     return (
         <div className="relative md:w-[300px] md:h-screen h-full top-0 bg-gradient-to-b from-transparent to-transparent justify-start self-start rounded-xl mx-auto">
             {/* Blurred background */}
@@ -101,13 +112,13 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
             />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-black/80 rounded-xl" />
-            
+
             {/* Content */}
             <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full md:h-screen rounded-xl">
                 <div className="flex flex-col space-y-2">
-                    <div className="md:px-4 p-2">
+                    <div className="md:px-4 md:p-2">
                         {/* Cover Image */}
-                        <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto pt-1">
+                        <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto md:pt-1 pt-0 ">
                             <Image
                                 src={isWebtoon ? coverArt : getImageUrl(coverArt)}
                                 alt={content.title}
@@ -119,14 +130,14 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
 
                         {/* Content Info */}
                         <div className="flex flex-col items-center py-10">
-                            <OtherTranslateComponent 
-                                content={content.title} 
-                                elementId={content.id.toString()} 
-                                elementType={isWebtoon ? 'webtoon' : 'webnovel'} 
-                                elementSubtype="title" 
-                                classParams="text-2xl font-bold self-center text-center" 
+                            <OtherTranslateComponent
+                                content={content.title}
+                                elementId={content.id.toString()}
+                                elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                elementSubtype="title"
+                                classParams="text-2xl font-bold self-center text-center"
                             />
-                            
+
                             <p className="text-center">
                                 {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
                             </p>
@@ -145,12 +156,12 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                             </ul>
 
                             {/* Description */}
-                            <OtherTranslateComponent 
-                                content={content.description} 
-                                elementId={content.id.toString()} 
-                                elementType={isWebtoon ? 'webtoon' : 'webnovel'} 
-                                elementSubtype="description" 
-                                classParams="text-sm text-gray-800 dark:text-white" 
+                            <OtherTranslateComponent
+                                content={content.description}
+                                elementId={content.id.toString()}
+                                elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                elementSubtype="description"
+                                classParams="text-sm text-gray-800 dark:text-white"
                             />
 
                             {/* Action Buttons */}
@@ -195,7 +206,7 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                                     >
                                         <Share size={20} className="text-gray-500 group-hover:text-white" />
                                     </Link>
-                                    
+
                                     {/* Share Dropdown */}
                                     {isShareDropdownOpen && (
                                         <div
@@ -212,11 +223,11 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                                                         <FacebookIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                                                     </FacebookShareButton>
 
-                                                        <TwitterShareButton url={currentPageUrl} title={content.title}>
+                                                    <TwitterShareButton url={currentPageUrl} title={content.title}>
                                                         <TwitterIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                                                     </TwitterShareButton>
 
-                                                        <TumblrShareButton url={currentPageUrl} title={content.title}>
+                                                    <TumblrShareButton url={currentPageUrl} title={content.title}>
                                                         <TumblrIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                                                     </TumblrShareButton>
 
@@ -233,22 +244,22 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                                                     </PinterestShareButton>
                                                 </div>
 
-                                        
+
                                                 <div className="flex flex-row gap-2 p-4">
                                                     <p className="text-center text-[10px] text-gray-500">{currentPageUrl} </p>
-                                                    <Button 
-                                                    sx={{ 
-                                                        minWidth: '0', // Remove default minimum width
-                                                        padding: '4px', // Minimal padding or '0px' for no padding
-                                                        color: 'white',
-                                                        borderRadius: '5px',
-                                                        transition: 'background-color 0.3s ease-in-out',
-                                                        '&:hover': {
-                                                            color: '#8A2BE2',
-                                                        },
-                                                    }}
-                                                    variant="text" className="text-gray-500">
-                                                       <Copy size={10} />
+                                                    <Button
+                                                        sx={{
+                                                            minWidth: '0', // Remove default minimum width
+                                                            padding: '4px', // Minimal padding or '0px' for no padding
+                                                            color: 'white',
+                                                            borderRadius: '5px',
+                                                            transition: 'background-color 0.3s ease-in-out',
+                                                            '&:hover': {
+                                                                color: '#8A2BE2',
+                                                            },
+                                                        }}
+                                                        variant="text" className="text-gray-500">
+                                                        <Copy size={10} />
                                                     </Button>
                                                 </div>
                                             </div>
@@ -257,17 +268,55 @@ export default function InfoAndPictureComponent({ content, coverArt, isWebtoon =
                                 </div>
                             </div>
 
+                            {/* writing button */}
+                            {isAuthor() &&
+                                <>
+                                    <div className='flex flex-row gap-4 w-full justify-center items-center pb-5'>
+                                        <NoCapsButton
+                                            color='gray'
+                                            variant='outlined'
+                                            onClick={onNewChapter}
+                                            className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                        >
+                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
+                                        </NoCapsButton>
+                                        <NoCapsButton
+                                            color='gray'
+                                            variant='outlined'
+                                            onClick={() => setShowDeleteModal(true)}
+                                            className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                        >
+                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
+                                        </NoCapsButton>
+                                    </div>
+
+                                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                                        <Box sx={useModalStyle}>
+                                            <div className='flex flex-col space-y-4 items-center justify-center'>
+                                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
+                                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                            </div>
+                                        </Box>
+                                    </Modal>
+                                </>
+                            }
+
+
                             {/* Premium Info */}
-                            <div className="flex flex-col gap-2 px-2 pt-5 pb-5 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
-                                <div className="flex flex-row gap-2">
+                            <div className="flex flex-col gap-2 px-2 md:pt-5 md:pb-5 pt-3 pb-3 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
+                                {/* <div className="flex flex-row gap-2">
                                     <p className="text-sm text-gray-500 dark:text-white self-center">
                                         <span className="font-extrabold">대여권</span> 0장
                                     </p>
                                 </div>
-                                <hr />
-                                <p className="text-sm text-gray-500 dark:text-white">
-                                    <span className="font-extrabold">기다리면 무료</span> 0장
-                                </p>
+                                <hr /> */}
+                                <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
+                                    <div className="font-extrabold flex flex-row gap-2 items-center">
+                                        <MdStars className="text-xl text-[#D92979]" />   <p> 별 구매하기 </p>
+                                    </div>
+                                    <ChevronRight size={16} className="text-black dark:text-white" />
+                                </div>
                             </div>
                         </div>
                     </div>

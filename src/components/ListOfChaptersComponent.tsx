@@ -16,7 +16,14 @@ import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 
-const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined }) => {
+const ListOfChaptersComponent = ({ 
+    webnovel, 
+    sortToggle, 
+    onUpdate }: { 
+        webnovel: Webnovel | undefined, 
+        sortToggle: boolean, 
+        onUpdate: (updatedContent: Webnovel) => void 
+    }) => {
     const { dictionary, language } = useLanguage();
     const [key, setKey] = useState(0);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -30,7 +37,7 @@ const ListOfChaptersComponent = ({ webnovel }: { webnovel: Webnovel | undefined 
         setKey(prevKey => prevKey + 1)
     }, [language])
 
-    const sortedChapters = webnovel?.chapters.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
 
     const handleChapterDelete = async (id: number) => {
         try {

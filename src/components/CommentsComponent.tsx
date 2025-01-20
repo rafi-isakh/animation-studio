@@ -249,23 +249,22 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 {/* comments  */}
                 <form onSubmit={handleAddComment}>
                     <div className='flex flex-col'>
-
                         <textarea
                             value={commentContent}
                             rows={6}
-                            className='textarea rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 text-black dark:text-white bg-white dark:bg-black'
+                            className='textarea text-sm rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-black'
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder={phrase(dictionary, "typeYourComment", language)}
 
                         />
-                        <div className='border-gray-300 border border-t-0 flex justify-end rounded-b-lg'>
-                            <span className={`justify-center self-center mr-4 mt-[0px] ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
+                        <div className='border-gray-300 dark:border-gray-700 border border-t-0 flex justify-end rounded-b-lg'>
+                            <span className={`justify-center self-center mr-4 mt-[0px] text-sm ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
                                 commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' :
                                     'text-gray-400'
                                 }`}>
-                                character {commentContent.length}/{MAX_CHARS}
+                                {commentContent.length}/{MAX_CHARS}
                             </span>
-                            <button type="submit" className='group/item text-md text-white rounded-br-lg bg-[#DB2777] px-4 py-3 group-hover/item:bg-[#FFE2DC]'>
+                            <button type="submit" className='group/item text-sm text-white rounded-br-lg bg-[#DB2777] px-4 py-2 group-hover/item:bg-[#FFE2DC]'>
                                 {/* <Send size={20} className="dark:text-white text-white" /> */}
                                 {phrase(dictionary, "commentSubmit", language)}
                             </button>
@@ -274,7 +273,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                     </div>
                 </form>
 
-                <div className='mt-10'>
+                <div className='mt-10 p-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
                     <p className=' text-gray-500'> 
                         {phrase(dictionary, "comments", language)}{' '}
                         ({allComments.length}) 

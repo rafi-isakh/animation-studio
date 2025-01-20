@@ -313,7 +313,11 @@ export default function InfoAndPictureComponent({
                                 <hr /> */}
                                 <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
                                     <div className="font-extrabold flex flex-row gap-2 items-center">
-                                        <MdStars className="text-xl text-[#D92979]" />   <p> 별 구매하기 </p>
+                                        <MdStars className="text-xl text-[#D92979]" /> 
+                                        <p>
+                                            {/* 별 구매하기  */}
+                                            {phrase(dictionary, "buyStars", language)}
+                                        </p>
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </div>

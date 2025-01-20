@@ -203,7 +203,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
-                                                <p className="text-sm text-gray-700 py-5">{comment.content}</p>
+                                                <p className="text-sm text-gray-500 py-5">{comment.content}</p>
                                             
                                             </div>
 

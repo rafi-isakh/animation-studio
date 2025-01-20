@@ -89,7 +89,7 @@ deleteAccountConfirm,정말로 계정을 삭제하시겠습니까?,,Are you sure
 deleteWebnovelConfirm,정말로 소설을 삭제하시겠습니까?,,Are you sure you want to delete the novel?
 stars,별 충전,スター充電,Charge Stars
 curriculum,커리큘럼,,Curriculum
-typeYourComment,댓글을 10자 이상 입력해주세요. 타인을 비방하는 내용은 삼가해주세요.,,Type your comment here please be nice each other.
+typeYourComment,댓글을 입력해주세요. 타인을 비방하는 내용은 삼가해주세요.,,Type your comment here. Please be nice to each other.
 typeYourPrompt,프롬프트를 입력해주세요.,ここにプロンプトを入力してください,Type your prompt here..
 generatingPrompt,생성중..,,Making..
 generatePrompt,생성,,Make
@@ -314,3 +314,4 @@ toonyzcut_phrase_2,글로벌 스토리텔링\, 영상과 스토리의 창조적 
 toonyzcut_phrase_3,크리에이터님들의 소중한 작품이 영상화 될 수 있는 기회를 잡으세요.,,Seize the opportunity for your precious works to become a video.,,,คว้าโอกาสให้ผลงานล้ำค่าของคุณกลายเป็นวิดีโอ
 toonyzcut_phrase_4,스토리와 영상의 완벽한 조화\, 당신의 이야기를 투니즈에서 빛내 보세요.,,A perfect fusion of stories and videos\, let your story shine in Toonyz.,,,การผสมผสานที่ลงตัวระหว่างเรื่องราวและวิดีโอ ให้เรื่องราวของคุณเปล่งประกายใน Toonyz
 commentSubmit,등록,,Submit
+buyStars,별 구매하기,,Buy Stars

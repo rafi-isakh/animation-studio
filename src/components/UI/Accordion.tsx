@@ -4,6 +4,8 @@ import { ChevronDown } from "lucide-react";
 interface AccordionData {
     title: string;
     subtitle: string;
+    title_ko?: string;
+    subtitle_ko?: string;
 }
 
 interface AccordionProps {

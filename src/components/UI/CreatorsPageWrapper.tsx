@@ -9,7 +9,9 @@ import Image from "next/image";
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Billboard from '@/components/UI/Billboard';
+import Accordion from '@/components/UI/Accordion';
 import { getVideoUrl } from '@/utils/urls';
+import Link from 'next/link';
 
 const features = [
   {
@@ -92,6 +94,59 @@ function FadeUp({ children, delay = 0, duration = .5 }: { children: React.ReactN
   );
 }
 
+
+export function Footer() {
+  const { dictionary, language } = useLanguage()
+
+  return (
+    <div className='h-[30vh] bg-white'>
+      <div className='max-w-screen-xl mx-auto flex flex-col items-center justify-center'>
+
+        <span className="text-[12px] text-gray-500 text-center py-5">
+          Your Favorite Story Universe, Between Us, Toonyz
+        </span>
+        <div className='flex flex-col items-center justify-center w-full'>
+          <hr className='w-screen border-t border-gray-300 my-4' />
+          <div className='bg-white px-4 absolute'>
+            <Image
+              src="/images/N_logo.svg"
+              alt="logo"
+              width={20}
+              height={20}
+              quality={100}
+              className="w-20 md:w-[20px] md:h-[20px] self-center md:mt-0 mt-1"
+            />
+          </div>
+        </div>
+
+        <div className='flex flex-col text-[12px] self-center gap-4 pt-4'>
+          <ul className='flex flex-row gap-4 text-gray-500 cursor-pointer'>
+            <li>
+              <Link href='/terms'> {phrase(dictionary, "terms", language)} </Link>
+            </li>
+            <li>
+              <Link href='/terms/privacy'> {phrase(dictionary, "privacy", language)} </Link>
+            </li>
+            <li>
+              <Link href='/terms/youth'> {phrase(dictionary, "youth_terms", language)} </Link>
+            </li>
+            <li>
+              <Link href='/contact'> {phrase(dictionary, "contact", language)} </Link>
+            </li>
+            <li>
+              <Link href='https://stelland.io'> © Stella& Inc. </Link>
+            </li>
+
+          </ul>
+          <p className='self-center text-gray-500'>
+            {language == 'en' ? 'Copyright 2025 ⓒ Toonyz All rights reserved' : 'ⓒ 주식회사 스텔라앤 코리아'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const CreatorsPageWrapper = () => {
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
   const video_file_src = getVideoUrl('toonyz_creators.mp4');
@@ -110,6 +165,11 @@ export const CreatorsPageWrapper = () => {
   );
 
   const borderRadius = useTransform(scrollYProgress, [0, 1], [0, 20]);
+
+  const faqData = [
+    { title: "Q1", subtitle: "A1" },
+    { title: "Q2", subtitle: "A2" },
+  ];
 
   return (
     <>
@@ -146,7 +206,6 @@ export const CreatorsPageWrapper = () => {
 
         <FadeUp delay={0.1}>
           <div className="flex flex-col justify-center items-center">
-
             <h1 className="text-3xl font-bold text-center syne-600 my-10 ">
               Features That Make <br />
               Your Stories Go Further
@@ -172,8 +231,7 @@ export const CreatorsPageWrapper = () => {
           </div>
         </FadeUp>
 
-
-
+        {/* How Toonyz Help Creators Succeed */}
         <FadeUp delay={0.5} duration={0.5}>
           <div className="flex flex-col justify-center items-center">
             <div className="flex flex-col justify-center items-center space-y-4 mb-10">
@@ -211,16 +269,27 @@ export const CreatorsPageWrapper = () => {
           </div>
         </FadeUp>
 
-
+        {/* Video part */}
         <FadeUp delay={0.5} duration={0.8}>
-          <div className="w-full md:h-[500px] h-auto rounded-lg md:overflow-hidden">
-          <Billboard
-            videoSrc={video_file_src}
-            posterSrc="/images/creators_video_poster.png"
-            headerPhrase=""
-            subheaderPhrase=""
-            className="rounded-lg md:h-[500px] h-auto" />
+          <div className="max-w-screen-lg mx-auto flex flex-col justify-center items-center">
+            <div className="flex md:flex-row flex-col justify-between items-center  my-10">
+              <h1 className="text-3xl font-bold md:text-start text-center syne-700">
+                Become a Toonyz story creator
+              </h1>
+              <p className="text-sm md:text-right text-center syne-400 w-2/3">
+                Ready to start your writing journey? <br />
+                Join today and turn your stories into a source of income!
+              </p>
             </div>
+          </div>
+          <div className="w-full md:h-[500px] h-auto rounded-lg md:overflow-hidden">
+            <Billboard
+              videoSrc={video_file_src}
+              posterSrc="/images/creators_video_poster.png"
+              headerPhrase=""
+              subheaderPhrase=""
+              className="rounded-lg md:h-[500px] h-auto" />
+          </div>
         </FadeUp>
 
         {Array.from(Array(4).keys()).map((i) => (
@@ -230,8 +299,24 @@ export const CreatorsPageWrapper = () => {
             </p>
           </FadeUp>
         ))}
-      </div>
 
+
+        {/* FAQ part */}
+        <FadeUp delay={0.6} duration={0.8}>
+          <h1 className="text-3xl font-bold text-center syne-600 my-10">
+            Frequently Asked Questions
+          </h1>
+          <Accordion
+            data={faqData}
+            className="md:max-w-screen-sm w-full mx-auto"
+            titleClassName=""
+            subtitleClassName=""
+          />
+        </FadeUp>
+
+        {/* footer part */}
+        <Footer />
+      </div>
     </>
   );
 };

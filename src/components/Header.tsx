@@ -14,7 +14,6 @@ import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
-import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
 import { getUrlWithParams } from '@/utils/stringUtils';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { SquarePen, 
@@ -314,10 +313,13 @@ export const Header = () => {
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
                                 </Link>
+<<<<<<< HEAD
                                 <Link href="/?version=free">
                                     <p className={`${isActive('/?version=free') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "free", language)}</p>
                                 </Link>
+=======
+>>>>>>> origin
                                 <Link href="/toonyzcut">
                                     <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "toonyzCut", language)}</p>
@@ -486,8 +488,10 @@ export const Header = () => {
                                                         </Link>
                                                     </li>
                                                     <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
-                                                        <Sparkles size={18} className='dark:text-white text-black ' />
-                                                        <ChargeStarsTemporary />
+                                                        <Link href="/stars" onClick={() => handleUserItemClick()} className="flex items-center space-x-2 justify-start">
+                                                            <Sparkles size={18} className='dark:text-white text-black ' />
+                                                            <span>{phrase(dictionary, "stars", language)}</span>
+                                                        </Link>
                                                     </li>
                                                     <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                         <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">

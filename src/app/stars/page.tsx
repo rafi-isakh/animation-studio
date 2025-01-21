@@ -10,11 +10,13 @@ import { Box } from "@mui/material";
 import StarsTransactionComponent from "@/components/StarsTransactionComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+type Currency = "KRW" | "USD" | "EUR";
+
 export interface Transaction {
     stars: number;
     price: number;
     date: string;
-    currency: string;
+    currency: Currency;
 }
 
 export default function Stars() {

@@ -8,6 +8,8 @@ import { Earth, HandHeart, SquarePen } from "lucide-react";
 import Image from "next/image";
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
+import Billboard from '@/components/UI/Billboard';
+import { getVideoUrl } from '@/utils/urls';
 
 const features = [
   {
@@ -92,6 +94,8 @@ function FadeUp({ children, delay = 0, duration = .5 }: { children: React.ReactN
 
 export const CreatorsPageWrapper = () => {
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+  const video_file_src = getVideoUrl('toonyz_creators.mp4');
+  const { dictionary, language } = useLanguage();
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -190,9 +194,9 @@ export const CreatorsPageWrapper = () => {
                         src={item.image}
                         alt={item.title}
                         width={100}
-                        height={100} 
+                        height={100}
                         className="w-full h-full object-fit"
-                        />
+                      />
                     </span>
                     <h2 className="text-2xl font-bold syne-600 md:self-center self-start break-words">
                       {item.title}
@@ -208,7 +212,16 @@ export const CreatorsPageWrapper = () => {
         </FadeUp>
 
 
-
+        <FadeUp delay={0.5} duration={0.8}>
+          <div className="w-full md:h-[500px] h-auto rounded-lg md:overflow-hidden">
+          <Billboard
+            videoSrc={video_file_src}
+            posterSrc="/images/creators_video_poster.png"
+            headerPhrase=""
+            subheaderPhrase=""
+            className="rounded-lg md:h-[500px] h-auto" />
+            </div>
+        </FadeUp>
 
         {Array.from(Array(4).keys()).map((i) => (
           <FadeUp key={i} delay={i * 0.1}>

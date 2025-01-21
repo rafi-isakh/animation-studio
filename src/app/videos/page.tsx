@@ -34,6 +34,7 @@ export default function Videos() {
                  posterSrc="/curriculum/video_heroImage.png"
                  headerPhrase="Billboard_header"
                  subheaderPhrase="Billboard_subheader"
+                 className="h-[56.25vw] mb-10"
                  />
                 <div className="md:max-w-screen-lg max-w-[360px] mx-auto overflow-x-auto">
                     <CurriculumVideoList 

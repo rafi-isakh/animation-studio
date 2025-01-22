@@ -50,7 +50,7 @@ const Billboard = ({ videoSrc, posterSrc, headerPhrase = "", subheaderPhrase = "
           ref={videoRef}
           poster={posterSrc}
           className="w-full h-full object-cover brightness-[60%] transition duration-500"
-          autoPlay={!isMobile}
+          autoPlay={true}
           muted loop
           src={videoSrc}
         />

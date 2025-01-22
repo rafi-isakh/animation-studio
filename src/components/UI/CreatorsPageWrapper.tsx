@@ -16,7 +16,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/all';
 import '@/styles/Creators.css'
 
-
 const features = [
   {
     id: 1,
@@ -112,19 +111,18 @@ function FadeUp({ children, delay = 0, duration = .5 }: { children: React.ReactN
   );
 }
 
-
 export function Footer() {
   const { dictionary, language } = useLanguage()
 
   return (
-    <div className='h-[30vh] bg-white'>
+    <div className='h-[30vh] bg-white dark:bg-black'>
       <div className='w-full mx-auto flex flex-col items-center justify-center'>
         <span className="text-[12px] text-gray-500 text-center py-5">
           Your Favorite Story Universe, Between Us, Toonyz
         </span>
         <div className='flex flex-col items-center justify-center w-full'>
           <hr className='w-screen border-t border-gray-300 my-4' />
-          <div className='bg-white px-4 absolute'>
+          <div className='bg-white dark:bg-black px-4 absolute'>
             <Image
               src="/images/N_logo.svg"
               alt="logo"
@@ -163,7 +161,6 @@ export function Footer() {
     </div>
   )
 }
-
 
 export const BillboardWrapper = ({ children, className }: { children: React.ReactNode, className?: string }) => {
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
@@ -216,7 +213,7 @@ export const CreatorsPageWrapper = () => {
       title: "Q1. Does Toonyz provide copyright protection services?",
       title_ko: "Q1. Toonyz는 저작권 보호 서비스를 제공하나요?",
       subtitle: "Toonyz does not provide copyright protection services. However, we offer a platform where creators can share their stories and earn money. While we facilitate sharing and monetization, we do not guarantee copyright protection.",
-      subtitle_ko: "Toonyz는 저작권 보호 서비스를 제공하지 않습니다. 그러나 작가들이 스토리를 공유하고 수익을 창출할 수 있는 플랫폼을 제공합니다. 창작자님의 작품이 공유 및 수익 창출을 적극적으로 지원하고 도와드립니다."
+      subtitle_ko: "Toonyz 플랫폼 내에 창작자님이 투고하신 글에 대한 저작권 보호를 하고 있습니다. 작가님께서 스토리를 공유하고 수익을 창출할 수 있는 글로벌 플랫폼을 제공합니다. 창작자님의 작품이 공유 및 수익 창출을 적극적으로 지원하고 도와드립니다. Toonyz는 저작권 보호에 대한 법률 자문 서비스는 제공하지 않습니다. "
     },
     {
       title: "Q2. How do I earn money from my story?",
@@ -246,43 +243,44 @@ export const CreatorsPageWrapper = () => {
 
   return (
     <>
-      <motion.div ref={ref} style={{ scale }} className="">
+      <motion.div
+        ref={ref}
+        style={{
+          scale,
+        }} 
+        className="">
         <motion.section
           className="test"
           style={{
-            backgroundColor: "#C7B9FF",
+            // backgroundColor: "#C7B9FF",
+            backgroundImage: `url('/images/creators_hero_image.png')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             width: "100%",
-            height: isMobile ? "400px" : "500px",
+            height: isMobile ? "490px" : "630px",
             minHeight: "262px",
             paddingTop: "0px",
             borderRadius,
           }}
         >
           <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="md:max-w-screen-lg w-full text-white md:text-6xl text-3xl font-bold text-center md:mt-40 mt-20 syne-600">
-              {language == 'en' ?
-                <p>Share Your Story <br />
-                  Inspire Global Audiences</p>
-                : <p className="md:text-5xl font-bold text-start korean md:p-0 px-4">
-                  현실보다 더 특별한 순간의  <br />
-                  주인공이 되어보세요
-                </p>
-              }
+            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-96 mt-60 syne-600">
+
             </div>
-            <div className="md:max-w-screen-lg flex flex-col gap-4 w-full text-white text-md font-bold text-center syne-400">
+            <div className="md:max-w-screen-lg flex flex-col gap-4 w-full text-black text-md font-bold text-center syne-400">
               {language == 'en' ?
                 <p>Join our webnovel community, where your stories <br />
                   come to life and your passion for writing turns into earnings.</p>
-                : <p className="text-md font-bold text-start korean md:p-0 px-4">
+                : <p className="text-lg font-bold text-center korean md:p-0 px-4">
                   투니즈 공식 크리에이터를 모집합니다. <br />
                   글로벌 독자를 이끌 주인공이 되어 보세요.
                 </p>
               }
-              <div className={`flex  ${language == 'en' ? 'self-center' : 'self-start md:p-0 px-4'}`}>
+              {/* <div className={`flex  ${language == 'en' ? 'self-center' : 'self-center md:p-0 px-4'}`}>
                 <Button className={`px-3 py-1 bg-black text-white`}>
                   {language == 'en' ? 'Apply Now' : '더 알아보기'}
                 </Button>
-              </div>
+              </div> */}
             </div>
           </div>
         </motion.section>
@@ -291,10 +289,10 @@ export const CreatorsPageWrapper = () => {
       <div className='w-full mx-auto h-screen space-y-20'>
         <FadeUp delay={0.1}>
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col justify-center items-center">
-            <h1 className="text-3xl font-bold text-center syne-600 my-10 ">
+            <h1 className="text-3xl font-bold text-center syne-600">
               {language == 'en' ? <p> Features That Make <br />
                 Your Stories Go Further</p>
-                : <p className="text-3xl font-bold text-center korean my-10">
+                : <p className="text-2xl font-bold text-center korean my-10 word-break">
                   투니즈는 창작자님의 <br />
                   스토리를 더 멀리 이끌어 드립니다</p>
               }
@@ -307,7 +305,7 @@ export const CreatorsPageWrapper = () => {
                     <span className="rounded-full bg-[#C7B9FF] text-black p-5 flex-grow-0 flex-nowrap w-fit">
                       {feature.icon}
                     </span>
-                    <h2 className="text-2xl font-bold syne-600 md:self-center self-start break-words">
+                    <h2 className="text-2xl font-bold syne-600 md:self-center self-start break-keep">
                       {language == 'en' ? feature.title : feature.title_ko}
                     </h2>
                   </div>
@@ -327,14 +325,14 @@ export const CreatorsPageWrapper = () => {
               <div className="text-3xl font-bold text-center syne-600 ">
                 {language == 'en' ? <>How Toonyz Help <br />
                   Creators Succeed</>
-                  : <p className="text-3xl font-bold text-center korean">
+                  : <p className="text-2xl font-bold text-center korean break-keep">
                     투니즈는 창작자님의 <br />
                     성공을 도와드립니다
                   </p>}
               </div>
               <div className="text-md font-bold text-center syne-400">
                 {language == 'en' ? <>Your Success in 4 Simple Steps</>
-                  : <p className="text-md font-pretendard text-center korean">
+                  : <p className="text-md font-pretendard text-center korean break-keep" >
                     투니즈의 특별한 4가지 프로세스
                   </p>}
               </div>
@@ -352,11 +350,11 @@ export const CreatorsPageWrapper = () => {
                         className="w-full h-full object-fit"
                       />
                     </span>
-                    <h2 className="text-2xl font-bold syne-600 md:self-center self-start break-words">
-                     {index + 1}.  {language == 'en' ? item.title : item.title_ko}
+                    <h2 className="text-2xl font-bold syne-600 md:self-center self-center break-keep ">
+                      {index + 1}.  {language == 'en' ? item.title : item.title_ko}
                     </h2>
                   </div>
-                  <p>
+                  <p className="text-md text-center korean">
                     {language == 'en' ? item.description : item.description_ko}
                   </p>
                 </div>
@@ -370,7 +368,7 @@ export const CreatorsPageWrapper = () => {
 
 
 
-        
+
 
         {/* Video part */}
         <FadeUp delay={0.5} duration={0.8}>

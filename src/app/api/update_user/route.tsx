@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadFile } from '@/utils/s3'
 import { auth } from '@/auth';
 import { UserCreate } from '@/components/Types';
 
@@ -28,7 +27,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
         const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
         fileName = await fileNameResponse.json();
         try {
-            const s3Response = await uploadFile(fileContent, fileName, fileType);
+            await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
+                method: 'POST',
+                body: JSON.stringify({ fileBufferBase64: fileContent.toString('base64'), fileName, fileType }),
+                headers: {
+                    cookie: req.headers.get('cookie') || ''
+                }
+              });
         } catch (error) {
             console.error('Error uploading file to s3:', error);
             return NextResponse.json(
@@ -45,7 +50,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "picture": fileName as string,
         "provider": session.provider
     }
-    console.log("userData", userData)
 
     let fetchstr = `${process.env.NEXT_PUBLIC_BACKEND}/api/update_user`
     if (promoCode && promoCode !== 'null') {
@@ -70,7 +74,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
     }
 
     const data = await response.json();
-    console.log("id", data)
 
     return NextResponse.json(
         { message: "User updated successfully" },

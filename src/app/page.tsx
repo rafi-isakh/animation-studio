@@ -13,6 +13,7 @@ import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
+import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -51,6 +52,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     return (
         <div>
             {showPreloader && <Preloader />}
+            <PromotionModalWrapper />
             <ApplyCreatorBanner />  
             {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}
             <div className='flex flex-col md:justify-start md:items-start md:px-0'>

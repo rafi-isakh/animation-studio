@@ -13,9 +13,10 @@ interface BillboardProps {
   headerPhrase: string;
   subheaderPhrase: string;
   className: string;
+  containerClassName: string;
 }
 
-const Billboard = ({ videoSrc, posterSrc, headerPhrase = "", subheaderPhrase = "", className = "" }: BillboardProps) => {
+const Billboard = ({ videoSrc, posterSrc, headerPhrase = "", subheaderPhrase = "", className = "", containerClassName = "" }: BillboardProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isPlaying, setIsPlaying] = useState(!isMobile);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -43,16 +44,16 @@ const Billboard = ({ videoSrc, posterSrc, headerPhrase = "", subheaderPhrase = "
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${containerClassName}`}>
       <div className="relative w-full h-full">
         <video
           onClick={togglePlay}
           ref={videoRef}
           poster={posterSrc}
-          className="w-full h-full object-cover brightness-[60%] transition duration-500"
           autoPlay={true}
           muted loop
           src={videoSrc}
+          className={`${className} w-full h-full brightness-[60%] transition duration-500`}
         />
         {/* Play/Pause Button */}
         <button

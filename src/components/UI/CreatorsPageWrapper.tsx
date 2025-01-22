@@ -4,7 +4,7 @@ import { useScroll, motion, useSpring, useTransform, useInView } from "framer-mo
 import { Button } from '@mui/material'
 import { useMediaQuery } from 'react-responsive'
 import '@/styles/CustomFonts.css'
-import { Earth, HandHeart, SquarePen } from "lucide-react";
+import { Earth, HandHeart, SquarePen, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -111,11 +111,124 @@ function FadeUp({ children, delay = 0, duration = .5 }: { children: React.ReactN
   );
 }
 
+
+export function ToonyzPlatform() {
+  const { dictionary, language } = useLanguage()
+
+  return (
+    <div className="max-w-screen-lg mx-auto">
+      <div className="flex md:flex-row flex-col justify-between items-center">
+        <div className="flex flex-col order-2 md:order-1 md:w-1/2 w-full">
+          <h1 className="md:text-3xl text-xl font-bold text-center syne-600 md:pt-0 pt-10  break-keep">
+            Toonyz <br /> {language == 'en' ? '#GlobalStoryPlatform' : '글로벌 스토리 플랫폼'}
+          </h1>
+          <div className="text-sm text-center py-4 break-keep">
+            {language == 'en' ?
+              <p>Your story can go the furthest with Toonyz</p>
+              : <p>여러분의 이야기가 세계로 가장 빠르게 <br />
+                나아갈 수 있는 방법, <br />
+                투니즈 크리에이터가 되어 보세요.
+              </p>
+            }
+          </div>
+
+          <div className="text-sm text-center break-keep py-2">
+            {language == 'en' ?
+              <p>● Requirements <br />
+                - No restrictions <br />
+                - Both established and new authors can apply</p>
+              : <p>● 지원 자격 <br />
+                - 제한없음 <br />
+                - 기성작가, 신인작가 누구나</p>}
+          </div>
+          <div className="text-sm text-center break-keep py-2">
+            {language == 'en' ?
+              <p>● Schedule <br />
+                - No restrictions <br />
+                - You can apply anytime</p>
+              : <p>● 일정 <br />
+                - 제한없음 <br />
+                - 언제든지 신청 가능</p>}
+          </div>
+          <div className="text-sm text-center break-keep py-2">
+            {language == 'en' ?
+              <p>● How to Apply <br />
+                - Sign up on the Toonyz homepage <br />
+                - Click the new story button after logging in</p>
+              : <p>● 지원 방법 <br />
+                - 투니즈 홈페이지 가입하기 <br />
+                - 로그인 후 새 작품 쓰기 버튼 클릭 <br />
+              </p>}
+          </div>
+
+          <div className={`flex ${language == 'en' ? 'self-center' : 'self-center'} mt-5`}>
+            <Button className={`px-4 py-1 bg-black text-white flex items-center gap-2`}>
+              <Link href='/signin'>
+                {language == 'en' ? <p className="flex items-center gap-2">Apply Now <ChevronRight size={14} /></p>
+                  : <p className="flex items-center gap-2">지금 가입 하기 <ChevronRight size={14} /></p>}
+              </Link>
+            </Button>
+          </div>
+
+
+        </div>
+        <div className="order-1 md:order-2 relative flex justify-center items-center w-fit overflow-hidden">
+
+          <FadeUp delay={0.9} duration={0.5}>
+            <div className="relative left-0 top-0">
+              <Image
+                id="creators_left_bg"
+                className="creators_left_bg left-0 m-auto w-72 transition-all duration-300 dark:invert"
+                src={'/images/creators_left_bg.svg'}
+                alt="Toonyz"
+                width={300}
+                height={300}
+                priority
+              />
+            </div>
+          </FadeUp>
+
+          <FadeUp delay={0.7} duration={0.5}>
+            <Image
+              className="right-0 m-auto w-72 "
+              src={'/images/creators_mockup.svg'}
+              alt="Toonyz app frame"
+              width={300}
+              height={300}
+              priority
+            />
+          </FadeUp>
+
+          <FadeUp delay={1.1} duration={0.5}>
+            <div className="relative left-0 top-0">
+              <Image
+                id="creators_right_bg"
+                className="creators_right_bg left-0 m-auto w-72 transition-all duration-300 dark:invert"
+                src={'/images/creators_right_bg.svg'}
+                alt="Toonyz"
+                width={300}
+                height={300}
+                priority
+              />
+            </div>
+          </FadeUp>
+
+          {/* <img
+          className="hidden rounded-2xl xl:flex"
+          src={HeroImage}
+          alt="A woman happily using Kobodrop"
+        /> */}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Footer() {
   const { dictionary, language } = useLanguage()
 
   return (
-    <div className='h-[30vh] bg-white dark:bg-black'>
+    <div className='h-[30vh] bg-white dark:bg-black '>
       <div className='w-full mx-auto flex flex-col items-center justify-center'>
         <span className="text-[12px] text-gray-500 text-center py-5">
           Your Favorite Story Universe, Between Us, Toonyz
@@ -135,7 +248,7 @@ export function Footer() {
         </div>
 
         <div className='flex flex-col text-[12px] self-center gap-4 pt-4'>
-          <ul className='flex flex-row gap-4 text-gray-500 cursor-pointer'>
+          <ul className='flex md:flex-row flex-col justify-center items-center gap-4 text-gray-500 cursor-pointer'>
             <li>
               <Link href='/terms'> {phrase(dictionary, "terms", language)} </Link>
             </li>
@@ -153,7 +266,7 @@ export function Footer() {
             </li>
 
           </ul>
-          <p className='self-center text-gray-500'>
+          <p className='self-center text-gray-500 mb-10'>
             {language == 'en' ? 'Copyright 2025 ⓒ Toonyz All rights reserved' : 'ⓒ 주식회사 스텔라앤 코리아'}
           </p>
         </div>
@@ -247,56 +360,75 @@ export const CreatorsPageWrapper = () => {
         ref={ref}
         style={{
           scale,
-        }} 
+        }}
         className="">
         <motion.section
           className="test"
           style={{
             // backgroundColor: "#C7B9FF",
-            backgroundImage: `url('/images/creators_hero_image.png')`,
+            backgroundImage: isMobile
+              ? `url('/images/creators_hero_image_mobile.png')`
+              : `url('/images/creators_hero_image.png')`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundPosition: isMobile ? 'center' : 'center',
             width: "100%",
-            height: isMobile ? "490px" : "630px",
-            minHeight: "262px",
-            paddingTop: "0px",
+            height: isMobile ? "auto" : "630px",
+            minHeight: "395px",
+            marginTop: isMobile ? "30px" : "0px",
             borderRadius,
           }}
         >
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-96 mt-60 syne-600">
-
-            </div>
-            <div className="md:max-w-screen-lg flex flex-col gap-4 w-full text-black text-md font-bold text-center syne-400">
+          <div className="flex flex-col items-center justify-center space-y-1">
+            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-[440px] mt-[260px] syne-600">
               {language == 'en' ?
-                <p>Join our webnovel community, where your stories <br />
-                  come to life and your passion for writing turns into earnings.</p>
-                : <p className="text-lg font-bold text-center korean md:p-0 px-4">
-                  투니즈 공식 크리에이터를 모집합니다. <br />
-                  글로벌 독자를 이끌 주인공이 되어 보세요.
+                <p className="md:text-2xl text-xl text-center md:p-0 -mt-2">
+                  Inspire Global Audiences
+                </p>
+                : <p className="md:text-xl text-sm font-bold text-center korean break-keep md:p-0 nanum-gothic-extrabold">
+                  {/* 투니즈 공식 크리에이터를 모집합니다 <br /> */}
+                  투니즈 창작자님 상시 모집!
                 </p>
               }
-              {/* <div className={`flex  ${language == 'en' ? 'self-center' : 'self-center md:p-0 px-4'}`}>
-                <Button className={`px-3 py-1 bg-black text-white`}>
-                  {language == 'en' ? 'Apply Now' : '더 알아보기'}
+
+            </div>
+            <div className="md:max-w-screen-lg flex flex-col gap-1 w-full text-black text-md font-bold text-center syne-400">
+              {language == 'en' ?
+                <p className="md:text-sm text-[10px] text-center md:p-0 md:py-2 mx-auto">
+                  Join our webnovel community, where your stories <br />
+                  come to life and your passion for writing turns into earnings.</p>
+                : <p className="md:text-sm text-[10px] font-bold text-center korean md:p-0 md:py-2 py-1 mx-auto nanum-gothic">
+                  글로벌 독자를 이끌 주인공이 되어 보세요 <br />
+                  {/* 투니즈 공식 작가님을 상시 모집하고 있습니다. <br /> */}
+                  지금 바로 신청해보세요.
+                </p>
+              }
+              <div className={`flex ${language == 'en' ? 'self-center' : 'self-center'}`}>
+                <Button className={`px-4 py-1 bg-black text-white flex items-center gap-2`}>
+                  <Link href='/signin'>
+                    {language == 'en' ? <p className="flex items-center gap-2">Apply Now <ChevronRight size={14} /></p>
+                      : <p className="flex items-center gap-2">지금 가입 하기 <ChevronRight size={14} /></p>}
+                  </Link>
                 </Button>
-              </div> */}
+              </div>
             </div>
           </div>
         </motion.section>
       </motion.div>
 
-      <div className='w-full mx-auto h-screen space-y-20'>
+      <div className='w-full mx-auto h-screen space-y-60'>
         <FadeUp delay={0.1}>
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col justify-center items-center">
-            <h1 className="text-3xl font-bold text-center syne-600">
-              {language == 'en' ? <p> Features That Make <br />
-                Your Stories Go Further</p>
+            <div className="text-3xl font-bold text-center syne-600">
+              {language == 'en'
+                ? <p className="md:text-2xl text-xl text-center my-10">
+                  Features That Make <br />
+                  Your Stories Go Further
+                </p>
                 : <p className="text-2xl font-bold text-center korean my-10 word-break">
                   투니즈는 창작자님의 <br />
                   스토리를 더 멀리 이끌어 드립니다</p>
               }
-            </h1>
+            </div>
 
             <div className="flex flex-col md:flex-row gap-4">
               {features.map((feature, index) => (
@@ -334,7 +466,8 @@ export const CreatorsPageWrapper = () => {
                 {language == 'en' ? <>Your Success in 4 Simple Steps</>
                   : <p className="text-md font-pretendard text-center korean break-keep" >
                     투니즈의 특별한 4가지 프로세스
-                  </p>}
+                  </p>
+                }
               </div>
             </div>
             <div className="flex flex-col md:flex-row gap-4">
@@ -365,7 +498,9 @@ export const CreatorsPageWrapper = () => {
 
 
         {/* toonyz creators application details */}
-
+        <FadeUp delay={0.7} duration={0.8}>
+          <ToonyzPlatform />
+        </FadeUp>
 
 
 
@@ -387,13 +522,15 @@ export const CreatorsPageWrapper = () => {
             </div>
           </div>
 
-          <BillboardWrapper className='w-full md:h-[600px] h-[300px] rounded-lg overflow-hidden mx-auto'>
+          <BillboardWrapper className='w-full md:h-[680px] h-[300px] rounded-lg overflow-hidden mx-auto'>
             <Billboard
               videoSrc={video_file_src}
               posterSrc="/images/creators_video_poster.png"
               headerPhrase=""
               subheaderPhrase=""
-              className="rounded-lg w-full h-full object-cover" />
+              className="rounded-lg w-full h-full object-cover object-center"
+              containerClassName="w-full h-full"
+            />
           </BillboardWrapper>
 
         </FadeUp>
@@ -411,9 +548,11 @@ export const CreatorsPageWrapper = () => {
           className="bg-amber-50 w-full pb-10"
         >
           <FadeUp delay={0.6} duration={0.8}>
-            <div className="flex flex-col justify-center items-center mt-10">
+            <div className="flex flex-col justify-center items-center mt-10 text-black dark:text-black">
               <h1 className="text-3xl font-bold text-center syne-600">
-                {language == 'en' ? "Frequently Asked Questions" : <p className="text-3xl font-bold text-center font-pretendard my-10">자주 묻는 질문</p>}
+                {language == 'en'
+                  ? <p className="text-3xl text-center font-pretendard my-10">Frequently Asked Questions</p>
+                  : <p className="text-3xl font-bold text-center font-pretendard my-10">자주 묻는 질문</p>}
               </h1>
               <Accordion
                 data={faqData.map(item => ({

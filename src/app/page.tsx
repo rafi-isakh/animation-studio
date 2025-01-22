@@ -13,6 +13,8 @@ import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
+import { useEffect } from 'react';
+import { Webnovel } from '@/components/Types';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -33,8 +35,14 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
-    const items = await getCarouselItems();
-    const webnovels = await getWebnovels();
+    let items = await getCarouselItems();
+    const premiumCarousel = [97, 98]
+    items = items.filter((item: any) => !premiumCarousel.includes(item.id));
+    console.log(items)
+    const premium = [23, 19, 21, 22, 20, 24];
+    let webnovels = await getWebnovels();
+    webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+
 
     const largeGap = () => {
         return (

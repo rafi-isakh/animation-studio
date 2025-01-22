@@ -382,7 +382,7 @@ export const CreatorsPageWrapper = () => {
           }}
         >
           <div className="flex flex-col items-center justify-center space-y-1">
-            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-[480px] mt-[460px] syne-600">
+            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-[480px] sm:mt-[200px] mt-[460px] syne-600">
               {language == 'en' ?
                 <p className="md:text-2xl text-xl text-center md:p-0 -mt-2">
                   Inspire Global Audiences

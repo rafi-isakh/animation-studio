@@ -162,7 +162,16 @@ export function ToonyzPlatform() {
           </div>
 
           <div className={`flex ${language == 'en' ? 'self-center' : 'self-center'} mt-5`}>
-            <Button className={`px-4 py-1 bg-black text-white flex items-center gap-2`}>
+            <Button
+              sx={{
+                backgroundColor: '#000',
+                borderRadius: '10px',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#000',
+                },
+              }}
+              className={`px-4 py-1 bg-black text-white flex items-center gap-2`}>
               <Link href='/signin'>
                 {language == 'en' ? <p className="flex items-center gap-2">Apply Now <ChevronRight size={14} /></p>
                   : <p className="flex items-center gap-2">지금 가입 하기 <ChevronRight size={14} /></p>}
@@ -313,12 +322,6 @@ export const CreatorsPageWrapper = () => {
     isMobile ? [1, 0.9] : [1, 0.5]
   );
 
-  const faqScale = useTransform(
-    smoothScrollYProgress,
-    [0, 0.5, 1],  // Scroll progress points
-    [1, 0.95, 0.9]  // Corresponding scale values
-  );
-
   const borderRadius = useTransform(scrollYProgress, [0, 1], [0, 20]);
 
   const faqData = [
@@ -372,19 +375,19 @@ export const CreatorsPageWrapper = () => {
             backgroundSize: 'cover',
             backgroundPosition: isMobile ? 'center' : 'center',
             width: "100%",
-            height: isMobile ? "auto" : "630px",
-            minHeight: "395px",
+            height: isMobile ? "auto" : "690px",
+            minHeight: "390px",
             marginTop: isMobile ? "30px" : "0px",
             borderRadius,
           }}
         >
           <div className="flex flex-col items-center justify-center space-y-1">
-            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-[440px] mt-[260px] syne-600">
+            <div className="md:max-w-screen-lg w-full text-black md:text-6xl text-3xl font-bold text-center md:mt-[480px] mt-[460px] syne-600">
               {language == 'en' ?
                 <p className="md:text-2xl text-xl text-center md:p-0 -mt-2">
                   Inspire Global Audiences
                 </p>
-                : <p className="md:text-xl text-sm font-bold text-center korean break-keep md:p-0 nanum-gothic-extrabold">
+                : <p className="md:text-2xl text-md font-bold text-center korean break-keep md:p-0 nanum-gothic-extrabold">
                   {/* 투니즈 공식 크리에이터를 모집합니다 <br /> */}
                   투니즈 창작자님 상시 모집!
                 </p>
@@ -396,14 +399,23 @@ export const CreatorsPageWrapper = () => {
                 <p className="md:text-sm text-[10px] text-center md:p-0 md:py-2 mx-auto">
                   Join our webnovel community, where your stories <br />
                   come to life and your passion for writing turns into earnings.</p>
-                : <p className="md:text-sm text-[10px] font-bold text-center korean md:p-0 md:py-2 py-1 mx-auto nanum-gothic">
+                : <p className="md:text-sm text-sm font-bold text-center korean md:p-0 md:py-2 py-1 mx-auto nanum-gothic">
                   글로벌 독자를 이끌 주인공이 되어 보세요 <br />
                   {/* 투니즈 공식 작가님을 상시 모집하고 있습니다. <br /> */}
                   지금 바로 신청해보세요.
                 </p>
               }
               <div className={`flex ${language == 'en' ? 'self-center' : 'self-center'}`}>
-                <Button className={`px-4 py-1 bg-black text-white flex items-center gap-2`}>
+                <Button
+                  sx={{
+                    backgroundColor: '#000',
+                    borderRadius: '10px',
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#000',
+                    },
+                  }}
+                  className={`px-4 py-1 bg-black text-white flex items-center gap-2`}>
                   <Link href='/signin'>
                     {language == 'en' ? <p className="flex items-center gap-2">Apply Now <ChevronRight size={14} /></p>
                       : <p className="flex items-center gap-2">지금 가입 하기 <ChevronRight size={14} /></p>}

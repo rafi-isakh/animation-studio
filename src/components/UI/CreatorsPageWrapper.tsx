@@ -27,11 +27,11 @@ const features = [
   },
   {
     id: 2,
-    icon: <Image src="/icons/creators_share_icon.svg" alt="Transparent Revenue Share" width={40} height={40} className="flex-shrink-0"/>,
+    icon: <Image src="/icons/creators_share_icon.svg" alt="Transparent Revenue Share" width={40} height={40} className="flex-shrink-0" />,
     title: "Transparent Revenue Share",
     title_ko: "공정한 수익 공유",
     description: "We offer a transparent revenue share model, ensuring that you receive a fair share of the profits from your work.",
-    description_ko: "투니즈는 크리에이터님의 소중한 작품을 통해 얻은 수익을 투명하게 공유해 드립니다. 크리에이터님의 수익은 더욱 공정하고 투명하게 페이 됩니다. ",
+    description_ko: "투니즈는 크리에이터님의 소중한 작품을 통해 얻은 수익을 투명하게 공유해 드립니다. 크리에이터님의 수익은 더욱 공정하고 투명하게 지급됩니다. ",
   },
   {
     id: 3,
@@ -39,7 +39,7 @@ const features = [
     title: "Earn Money By Sharing",
     title_ko: "IP 무한 확장",
     description: "Thanks to Toonyz, Creators can monetize their stories, and we can help you reach a global audience and develop your IP",
-    description_ko: "투니즈의 글로벌 플랫폼을 통해 크리에이터님의 작품을 전 세계 주요 시장에 공유해 드리고 웹툰화, 게임화, 상품화가 될 수 있도록 IP 확장과 밸류 체인에 도움을 드립니다.",
+    description_ko: "투니즈의 글로벌 플랫폼을 통해 크리에이터님의 작품을 전 세계 주요 시장에 공유해 드리고 웹툰화, 게임화, 상품화가 될 수 있도록 IP 밸류체인 확장을 도와드립니다."
   },
 ]
 
@@ -173,9 +173,9 @@ export function ToonyzPlatform() {
               }}
               className={`px-4 py-1 flex items-center gap-2`}>
               <Link href='/signin'>
-                {language == 'en' 
-                ? <p className="flex items-center gap-2">Apply Now <ChevronRight size={14} /></p>
-                : <p className="flex items-center gap-2">지금 가입 하기 <ChevronRight size={14} /></p>}
+                {language == 'en'
+                  ? <p className="flex items-center gap-2">Apply Now <ChevronRight size={14} /></p>
+                  : <p className="flex items-center gap-2">지금 가입하기 <ChevronRight size={14} /></p>}
               </Link>
             </Button>
           </div>
@@ -324,8 +324,8 @@ export const CreatorsPageWrapper = () => {
     {
       title: "Q1. Does Toonyz provide copyright protection services?",
       title_ko: "Q1. Toonyz는 저작권 보호 서비스를 제공하나요?",
-      subtitle: "Toonyz does not provide copyright protection services. However, we offer a platform where creators can share their stories and earn money. While we facilitate sharing and monetization, we do not guarantee copyright protection.",
-      subtitle_ko: "Toonyz 플랫폼 내에 크리에이터님의 투고하신 글에 대한 저작권 보호를 하고 있습니다. 작가님께서 스토리를 공유하고 수익을 창출할 수 있는 글로벌 플랫폼을 제공합니다. 크리에이터님의 작품이 공유 및 수익 창출을 적극적으로 지원하고 도와드립니다. 그러나 Toonyz는 저작권 보호에 대한 법률 자문 서비스는 제공하지 않습니다. "
+      subtitle: "Toonyz provides copyright protection services. We offer a platform where creators can share their stories and earn money.",
+      subtitle_ko: "Toonyz 플랫폼 내에 크리에이터님의 투고하신 글에 대한 저작권 보호를 하고 있습니다. 작가님께서 스토리를 공유하고 수익을 창출할 수 있는 글로벌 플랫폼을 제공합니다."
     },
     {
       title: "Q2. How do I earn money from my story?",
@@ -336,8 +336,8 @@ export const CreatorsPageWrapper = () => {
     {
       title: "Q3. How does Toonyz protect my work from plagiarism?",
       title_ko: "Q3. 내 작품을 도용하는 것을 어떻게 방지하나요?",
-      subtitle: "While we cannot guarantee full copyright protection, we strive to safeguard your work from plagiarism. We use AI tools to detect potential plagiarism and provide a platform for you to share your stories and earn revenue.",
-      subtitle_ko: "Toonyz는 완전한 저작권 보호를 보장하지 않지만, 도용을 방지하기 위해 노력합니다. 저희는 AI 도구를 사용하여 잠재적인 도용을 탐지하고 크리에이터님의 작품을 공유하고 수익을 창출할 수 있는 플랫폼을 제공합니다."
+      subtitle: "We strive to safeguard your work from plagiarism. We use AI tools to detect potential plagiarism and provide a platform for you to share your stories and earn revenue.",
+      subtitle_ko: "Toonyz는 도용을 방지하기 위해 노력합니다. 저희는 AI 도구를 사용하여 잠재적인 도용을 탐지하고 크리에이터님의 작품을 공유하고 수익을 창출할 수 있는 플랫폼을 제공합니다."
     },
     {
       title: "Q4. Can I get feedback on my writing?",
@@ -354,7 +354,7 @@ export const CreatorsPageWrapper = () => {
   ];
 
   return (
-    <>
+    <div className="p-4">
       <motion.div
         ref={ref}
         style={{
@@ -391,7 +391,7 @@ export const CreatorsPageWrapper = () => {
             <div className="md:max-w-screen-lg flex flex-col gap-1 w-full text-black text-md font-bold text-center syne-400">
               {language == 'en' ?
                 <p className="md:text-sm text-[10px] text-center md:p-0 md:py-2 mx-auto">
-                  Join our webnovel community, where your stories <br />
+                  Join our webnovel community, where your stories<br />
                   come to life and your passion for writing turns into earnings.</p>
                 : <p className="md:text-sm text-sm font-bold text-center korean md:p-0 md:py-2 py-1 mx-auto nanum-gothic">
                   글로벌 독자를 이끌 주인공이 되어 보세요 <br />
@@ -412,10 +412,10 @@ export const CreatorsPageWrapper = () => {
                   <Link href='/signin'>
                     {language == 'en'
                       ? <p className="flex items-center gap-2">
-                        Apply Now <ChevronRight size={14} />
+                        Register Now <ChevronRight size={14} />
                       </p>
                       : <p className="flex items-center gap-2">
-                        지금 가입 하기 <ChevronRight size={14} />
+                        지금 가입하기 <ChevronRight size={14} />
                       </p>}
                   </Link>
                 </Button>
@@ -428,14 +428,14 @@ export const CreatorsPageWrapper = () => {
       <div className='w-full mx-auto h-screen space-y-60'>
         <FadeUp delay={0.1}>
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col justify-center items-center">
-            <div className="text-3xl font-bold text-center syne-600">
+            <div className="text-4xl font-bold text-center syne-600">
               {language == 'en'
-                ? <p className="md:text-2xl text-xl text-center my-10">
-                  Features That Make <br />
+                ? <p className="text-4xl text-center my-10">
+                  Toonyz Helps<br />
                   Your Stories Go Further
                 </p>
-                : <p className="text-2xl font-bold text-center korean my-10 word-break">
-                  투니즈는 크리에이터님의 <br />
+                : <p className="text-4xl font-bold text-center korean my-10 word-break">
+                  투니즈는 크리에이터님의<br />
                   스토리를 더 멀리 이끌어 드립니다</p>
               }
             </div>
@@ -464,20 +464,13 @@ export const CreatorsPageWrapper = () => {
         <FadeUp delay={0.5} duration={0.5}>
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col justify-center items-center mb-20">
             <div className="flex flex-col justify-center items-center space-y-4 mb-10">
-              <div className="text-3xl font-bold text-center syne-600 ">
-                {language == 'en' ? <>How Toonyz Help <br />
+              <div className="text-4xl font-bold text-center syne-600 ">
+                {language == 'en' ? <>How Toonyz Helps<br />
                   Creators Succeed</>
-                  : <p className="text-2xl font-bold text-center korean break-keep">
-                    투니즈는 크리에이터님의 <br />
+                  : <p className="text-4xl font-bold text-center korean break-keep">
+                    투니즈는 크리에이터님의<br />
                     성공을 도와드립니다
                   </p>}
-              </div>
-              <div className="text-md font-bold text-center syne-400">
-                {language == 'en' ? <>Your Success in 4 Simple Steps</>
-                  : <p className="text-md font-pretendard text-center korean break-keep" >
-                    투니즈의 특별한 4가지 프로세스
-                  </p>
-                }
               </div>
             </div>
             <div className="flex flex-col md:flex-row gap-4">
@@ -521,7 +514,7 @@ export const CreatorsPageWrapper = () => {
               <p className="text-sm md:text-right text-center syne-400 md:w-1/2 pb-5">
                 {language == 'en' ? <> Ready to start your writing journey? <br />
                   Join today and turn your stories into a source of income!</>
-                  : <> 크리에이터님의 스토리를 공유하세요. <br />
+                  : <> 크리에이터님의 스토리를 공유하세요.<br />
                     오늘 가입하고 스토리를 통해 수익을 창출하세요! </>
                 }
               </p>
@@ -574,6 +567,6 @@ export const CreatorsPageWrapper = () => {
         </div>
         <Footer />
       </div>
-    </>
+    </div>
   );
 };

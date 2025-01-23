@@ -119,7 +119,7 @@ export default function PurchaseStarsComponent() {
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 100) * discount_factors[index]).toLocaleString()}원
+                                    {((stars * 10) * discount_factors[index]).toLocaleString()}원
                                     {/* { language === 'ko' &&  <>&#8361;</> } */}
                                 </h1>
                             </div>
@@ -164,7 +164,7 @@ export default function PurchaseStarsComponent() {
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {(stars * 100).toLocaleString()} 원
+                                    {(stars * 10).toLocaleString()} 원
                                     {/* { language === 'ko' &&  <>&#8361;</> } */}
                                 </h1>
                             </div>

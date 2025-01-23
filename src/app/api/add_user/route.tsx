@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { uploadFile } from '@/utils/s3'
 import { UserCreate } from '@/components/Types';
 
 export async function POST(req: NextRequest, res: NextResponse) {

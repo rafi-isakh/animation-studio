@@ -41,7 +41,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const premium = [23, 19, 21, 22, 20, 24];
     items = items.filter((item: any) => !premiumCarousel.includes(item.id));
     let webnovels = await getWebnovels();
-    webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+    // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
         webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     } else if (searchParams.version === 'premium') {

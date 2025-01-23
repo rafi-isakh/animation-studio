@@ -77,6 +77,7 @@ export interface Webnovel {
   version?: string;
   created_at: Date;
   tags: string;
+  premium: boolean;
 }
 
 export interface WebtoonImage {
@@ -99,6 +100,7 @@ export interface Webtoon {
   description: string;
   genre: string;
   tags: string;
+  premium: boolean;
 }
 
 export interface WebtoonChapter {

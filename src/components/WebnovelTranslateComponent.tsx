@@ -53,7 +53,7 @@ const WebnovelTranslateComponent = (
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
             if (data.text) {
-                setText(data.text)
+                setText(await marked(data.text))
             }
 
             // If there's no translation in the DB
@@ -142,8 +142,7 @@ const WebnovelTranslateComponent = (
     const startTranslation = async (textId: string, cvid: string = '', to_continue: number = 0) => {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?source=${sourceLanguage}&target=${language}&webnovel_id=${webnovelId}&chapter_id=${chapterId}`);
         const data = await response.json();
-        console.log(data);
-        setText(data.translation);
+        setText(await marked(data.translation));
     };
 
     type Direction = 'ltr' | 'rtl';
@@ -256,7 +255,7 @@ const WebnovelTranslateComponent = (
                 <>
                     {scrollType === 'vertical' &&
                         <div 
-                            dangerouslySetInnerHTML={{ __html: marked(replaceSmartQuotes(text)) }}
+                            dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
                             onContextMenu={(e) => e.preventDefault()}>
                         </div>

@@ -430,10 +430,9 @@ export const CreatorsPageWrapper = () => {
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col justify-center items-center">
             <div className="text-4xl font-bold text-center syne-600">
               {language == 'en'
-                  Toonyz Helps<br />
-                  Your Stories Go Further
-                </p>
-                : <p className="text-4xl font-bold text-center korean my-10 word-break">
+                ? <>Toonyz Helps<br />
+                  Your Stories Go Further</>
+                : <p className="text-4xl font-bold text-center break-keep my-10 word-break">
                   투니즈는 크리에이터님의<br />
                   스토리를 더 멀리 이끌어 드립니다</p>
               }
@@ -466,7 +465,7 @@ export const CreatorsPageWrapper = () => {
               <div className="text-4xl font-bold text-center syne-600 ">
                 {language == 'en' ? <>How Toonyz Helps<br />
                   Creators Succeed</>
-                  : <p className="text-4xl font-bold text-center korean break-keep">
+                  : <p className="text-4xl font-bold text-center break-keep break-keep">
                     투니즈는 크리에이터님의<br />
                     성공을 도와드립니다
                   </p>}

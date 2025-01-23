@@ -90,34 +90,12 @@ const CarouselComponentReactSlick = ({
         );
     }
 
-    function getHref(index: number) {
-        if (index == 0) {
-            return '/view_webnovels?id=25';
-        } else if (index == 1) {
-            return '/view_webnovels?id=28';
-        } else if (index == 2) {
-            return '/view_webnovels?id=29';
-        } else if (index == 3) {
-            return '/view_webnovels?id=28';
-        } else if (index == 4) {
-            return '/view_webnovels?id=29';
-        }
-        return '#';
+    function getHref(webnovel_id: number) {
+        return `/view_webnovels?id=${webnovel_id}`;
     }
 
     function getGenre(index: number) {
-        if (index == 0) {
-            return ['Romance', 'ongoing', 'up'];
-        } else if (index == 1) {
-            return ['Fantasy', 'ongoing', 'up'];
-        } else if (index == 2) {
-            return ['Fantasy', 'new', 'free'];
-        } else if (index == 3) {
-            return ['Sci-Fi', 'new', 'free'];
-        } else if (index == 4) {
-            return ['Fantasy', 'new', 'up']
-        }
-        return [];
+        return [items[index].webnovel.genre]
     }
 
     function breakKeepOrNot() {
@@ -206,7 +184,7 @@ const CarouselComponentReactSlick = ({
                         <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
                             <div className="relative h-[380px]">
                                 {/*  */}
-                                <Link href={getHref(index)}>
+                                <Link href={getHref(item.webnovel_id)}>
                                     <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px]">
                                         {/* max-w-screen-lg */}
                                         <Image

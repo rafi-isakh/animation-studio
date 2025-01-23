@@ -217,6 +217,9 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
             if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
                 setOpenDropdownId(null);
             }
+            if (replyDropdownRef.current && !replyDropdownRef.current.contains(event.target as Node)) {
+                setOpenReplyDropdownId(null);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -249,33 +252,36 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 {/* comments  */}
                 <form onSubmit={handleAddComment}>
                     <div className='flex flex-col'>
-
                         <textarea
                             value={commentContent}
                             rows={6}
-                            className='textarea rounded-t-xl focus:ring-[#DB2777] w-full resize-none border border-gray-300 text-black dark:text-white bg-white dark:bg-black'
+                            className='textarea text-sm rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-black'
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder={phrase(dictionary, "typeYourComment", language)}
 
                         />
-                        <div className='border-gray-300 border border-t-0 flex justify-end rounded-b-xl'>
-                            <span className={`justify-start self-start mr-4 mt-[9px] ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
+                        <div className='border-gray-300 dark:border-gray-700 border border-t-0 flex justify-end rounded-b-lg'>
+                            <span className={`justify-center self-center mr-4 mt-[0px] text-sm ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
                                 commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' :
                                     'text-gray-400'
                                 }`}>
-                                character {commentContent.length}/{MAX_CHARS}
+                                {commentContent.length}/{MAX_CHARS}
                             </span>
-                            <button type="submit" className='group/item rounded-br-xl bg-[#DB2777] px-4 py-3 group-hover/item:bg-[#FFE2DC]'>
-                                <Send size={20} className="dark:text-white text-white" />
+                            <button type="submit" className='group/item text-sm text-white rounded-br-lg bg-[#DB2777] px-4 py-2 group-hover/item:bg-[#FFE2DC]'>
+                                {/* <Send size={20} className="dark:text-white text-white" /> */}
+                                {phrase(dictionary, "commentSubmit", language)}
                             </button>
                         </div>
 
                     </div>
                 </form>
 
-                <div className='mt-10'>
-                    <p className='uppercase text-gray-300'> comment ({allComments.length}) </p>
-                    <hr className='border-gray-300 mb-4' />
+                <div className='mt-10 p-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
+                    <p className=' text-gray-500 pb-2'> 
+                        {phrase(dictionary, "comments", language)}{' '}
+                        ({allComments.length}) 
+                    </p>
+                    <hr className='border-gray-300 ' />
                     {allComments.length === 0 ? (
                         <div className="text-center text-gray-500 py-8">
                             {phrase(dictionary, "noComments", language) || "No comments yet"}
@@ -286,7 +292,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                 (!comment.parent_id) ? (
                                     <div key={`comment-${comment.id}`} className='flex flex-col py-3'>
                                         <div className="flex flex-row gap-2 justify-between">
-                                            <div className='flex flex-row gap-2 items-center'>
+                                            <div className='flex flex-row gap-2 justify-start items-center'>
                                                 {comment.user.picture ? (
                                                     <Image
                                                         src={getImageUrl(comment.user.picture)}
@@ -309,8 +315,8 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                 )}
 
                                                 <Link href={`/view_profile/${comment.user.id}`}>
-                                                    <div className='flex flex-col font-extrabold mb-2 text-slate-600'>
-                                                        <p> {comment.user.nickname.length > 20
+                                                    <div className='flex flex-col mb-2 text-slate-600'>
+                                                        <p className='font-extrabold'> {comment.user.nickname.length > 20
                                                             ? `${comment.user.nickname.slice(0, 20)}...`
                                                             : comment.user.nickname
                                                         }
@@ -333,7 +339,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                         id={`user-dropdown-${comment.id}`}
                                                         ref={userDropdownRef}
                                                         className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
-                                                                    top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
+                                                                    right-0 top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
                                                                   divide-gray-100 shadow w-32 dark:divide-gray-600`}>
                                                         <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
                                                             <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
@@ -449,7 +455,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                                         id={`reply-dropdown-${reply.id}`}
                                                                         ref={replyDropdownRef}
                                                                         className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
-                                                                            top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
+                                                                            right-0 top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
                                                                           divide-gray-100 shadow w-32 dark:divide-gray-600`}>
                                                                         <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
                                                                             <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">

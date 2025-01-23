@@ -60,16 +60,16 @@ const CoverArtModal = ({
                             {phrase(dictionary, "coverArtRegister", language)}
                         </p>
 
-                        <p className='text-sm text-black font-bold'>
+                        <p className={`text-sm text-black font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
                             {/* Please upload the cover art for your webnovel. */}
                             {phrase(dictionary, "pleaseUploadTheCoverArt", language)}
                         </p>
 
-                        <p className='text-sm text-gray-500 font-bold'>
+                        <p className={`text-sm text-gray-500 font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
                             {/* The cover art must be in a 5:3 aspect ratio. */}
                             {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
                         </p>
-                        <p className='text-sm text-gray-500'>
+                        <p className={`text-sm text-gray-500 ${language == 'ko' ? 'break-keep' : ''}`}>
                             {/*
                         It ideally sized at 1500 x 900 px, but can be smaller than 1000 x 600 px.
                         It must be in PNG, GIF, or JPG format, smaller than 2MB. */}
@@ -84,7 +84,7 @@ const CoverArtModal = ({
                             </p>
                         </div>
 
-                        <p className='text-sm text-gray-500'>
+                        <p className={`text-sm text-gray-500 ${language == 'ko' ? 'break-keep' : ''}`}>
                             {/* Book cover must be safe for all ages.
                             Graphic violence, sexual nudity, and hateful content are strictly prohibited. */}
                             {phrase(dictionary, "bookCoverMustBeSafeForAllAges", language)}

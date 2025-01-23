@@ -66,6 +66,7 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
+        console.log(content.premium)
     }, []);
 
     useEffect(() => {
@@ -143,7 +144,7 @@ export default function InfoAndPictureComponent({
                             </p>
 
                             {/* Genre and Type */}
-                            <ul className="flex flex-row gap-2 justify-center items-center">
+                            <ul className="flex flex-row justify-center items-center">
                                 {content.genre && (
                                     <li className="text-sm text-gray-500 flex items-center">
                                         <DictionaryPhrase phraseVar={content.genre.toLowerCase()} />
@@ -151,7 +152,7 @@ export default function InfoAndPictureComponent({
                                     </li>
                                 )}
                                 <li className="text-sm text-gray-500">
-                                    {phrase(dictionary, "premium", language)}
+                                    {!isWebtoon && content.premium ? phrase(dictionary, "premium", language) : phrase(dictionary, "free", language)}
                                 </li>
                             </ul>
 

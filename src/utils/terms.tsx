@@ -962,3 +962,40 @@ Company Name: Stella& Inc. Representative: Kang Seo-yeon
 Business Registration Number: 221-88-02281 (Check Business Registration Information)
 Address: 6, Teheran-ro 79-gil, Gangnam-gu, Seoul, Republic of Korea
 Email Address/Customer Center: hello@stelland.com`
+
+
+export const terms_purchase_stars_ko = `
+취소 환불 규정
+- 구글, 애플 인앱결제로 결제한 포인트의 결제 취소는 구글플레이 고객센터, 애플 고객지원에 문의하여 진행 가능합니다.
+- 간편결제, 일반결제(신용카드 등)를 통해 충전한 포인트의 전액 결제 취소는 취소를 희망하는 포인트의 사용 이력이 없고, 결제 완료일로부터 7일 안에 취소한 경우에 가능합니다.
+- 결제 취소는 dami@stelland.io를 통해 신청할 수 있으며, 결제사 정책에 따라 카드 승인 취소 또는 대금이 고객님의 계좌로 입금되기까지 영업일 기준으로 최대 5일이 소요될 수 있습니다. 
+- 이용약관에 따라 500원 또는 잔액의 10% 중 큰 금액을 환급 수수료로 제외하고 환불해 드립니다. 단, 잔액이 500원 이하인 경우 환불이 불가합니다.
+- 환불 신청은 이메일 dami@stelland.io로 통해서 진행할 수 있습니다. 
+- 환불 신청 이후 환불 조건을 충족했을 경우, 환불된 금액은 영업일 기준으로 5일 안에 환불 계좌로 입금해드립니다.
+- 환불 신청 이후 포인트를 사용하면 환불이 불가할 수 있습니다. 
+- 환불 시 결제 수단으로만 환불 가능합니다.
+- 미성년자는 포인트를 충전하기 전에 부모 등 법정 대리인의 동의를 받아야 합니다. 법정대리인이 동의하지 않은 경우 미성년자 본인 또는 법정대리인이 이용 계약을 취소할 수 있습니다.
+- 별 결제 후 12개월 이내에 사용하지 않으면 별은 소멸됩니다.
+
+민원 규정
+Stella& Inc. 에서 운영하는 사이트에서 판매되는 모든 상품은 Stella& Inc. 에서 책임지고 있습니다. 
+* 민원 담당자: 플랫폼 운영실 강다미 / 연락처 02-6952-7933
+`
+
+export const terms_purchase_stars_english = `
+Cancellation and Refund Policy
+- For points purchased through Google or Apple in-app payments, cancellations can be processed by contacting Google Play Customer Service or Apple Customer Support.
+- Full refunds for points charged via simple payment or general payment methods (e.g., credit cards) are possible if there's no usage history for the points to be refunded and the cancellation is requested within 7 days of the payment date.
+- Refund requests can be submitted via dami@stelland.io. According to payment provider policies, card approval cancellations or refunds to your account may take up to 5 business days.
+- As per the terms of service, a refund fee of 500 won or 10% of the balance (whichever is greater) will be deducted. Refunds are not possible for balances of 500 won or less.
+- Refund requests can be processed through email at dami@stelland.io.
+- If refund conditions are met, the refunded amount will be deposited into the refund account within 5 business days after the request.
+- Using points after submitting a refund request may result in the refund being denied.
+- Refunds are only possible through the original payment method.
+- Minors must obtain consent from a parent or legal guardian before charging points. If consent is not given, the minor or legal guardian can cancel the service contract.
+- Stars will expire if not used within 12 months after purchase.
+
+Complaint Regulations
+All products sold on the sites operated by Stella& Inc. are the responsibility of Stella& Inc.
+* Complaint Manager: Platform Operation Room Dami Kang / Contact 02-6952-7933
+`

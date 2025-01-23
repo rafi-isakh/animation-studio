@@ -36,14 +36,14 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
     let items = await getCarouselItems();
-    const premiumCarousel = [97, 98]
     const premium = [23, 19, 21, 22, 20, 24];
-    items = items.filter((item: any) => !premiumCarousel.includes(item.id));
     let webnovels = await getWebnovels();
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
+        items = items.filter((item: any) => !premium.includes(item.webnovel_id));
         webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     } else if (searchParams.version === 'premium') {
+        items = items.filter((item: any) => premium.includes(item.webnovel_id));
         webnovels = webnovels.filter((novel: Webnovel) => premium.includes(novel.id));
     }
 

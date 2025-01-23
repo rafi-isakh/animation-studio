@@ -66,7 +66,6 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        console.log(content.premium)
     }, []);
 
     useEffect(() => {

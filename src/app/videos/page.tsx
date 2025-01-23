@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { initialWebtoonContents, initialWebnovelContents } from '@/utils/curriculum';
-import Billboard from '@/components/Billboard';
+import Billboard from '@/components/UI/Billboard';
 import CurriculumVideoList from '@/components/CurriculumVideoList';
 
 export default function Videos() {
@@ -29,7 +29,14 @@ export default function Videos() {
 
     return (
         <div className="flex flex-col items-center justify-center">
-                <Billboard />
+                <Billboard 
+                 videoSrc={webtoonContents[0]?.file_src}
+                 posterSrc="/curriculum/video_heroImage.png"
+                 headerPhrase="Billboard_header"
+                 subheaderPhrase="Billboard_subheader"
+                 className="w-full h-full"
+                 containerClassName="h-[56.25vw] mb-10"
+                 />
                 <div className="md:max-w-screen-lg max-w-[360px] mx-auto overflow-x-auto">
                     <CurriculumVideoList 
                         title={phrase(dictionary, "webtoonCurriculum", language)} 

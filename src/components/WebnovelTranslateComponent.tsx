@@ -4,7 +4,7 @@ import { useReader } from '@/contexts/ReaderContext';
 import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { CircularProgress } from '@mui/material';
+import { Box, Skeleton } from '@mui/material';
 
 interface WordToken {
     word: string;
@@ -330,9 +330,13 @@ const WebnovelTranslateComponent = (
                 </>
             }
             {!text &&
-                <div className='flex justify-center items-center h-full'>
-                    <CircularProgress color='secondary' />
-                </div>
+                <Box sx={{ width: '100%' }}>
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                </Box>
             }
         </div >
     );

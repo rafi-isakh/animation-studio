@@ -9,14 +9,11 @@ import { getUrlWithParams } from '@/utils/stringUtils';
 import Image from 'next/image';
 import { CalendarDays, Gift, Clapperboard, Star } from 'lucide-react';
 import { useTheme } from '@/contexts/providers';
+import dynamic from 'next/dynamic';
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
-import animation_romance_icon_data from '@/assets/main_heart_icon.json';
-import animation_publish_icon_data from '@/assets/main_publish_icon.json';
-import animation_event_icon_data from '@/assets/main_event_icon.json';
-import dynamic from 'next/dynamic';
 
 const MenuItemsComponent = () => {
     const { dictionary, language } = useLanguage();
@@ -71,60 +68,65 @@ const MenuItemsComponent = () => {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     }
 
-    const circles = ['all', 'publish', 'romance', 'event', 'toonyzCut', 'studio'];
+    const circles = ['publish', 'genre', 'event', 'toonyzCut', 'studio', 'starShop'];
     const circlesIcon = [
         <Image
-            src={theme === 'dark' ? '/icons/all_dark.png' : '/icons/all.png'}
-            alt="All Logo"
-            width={80}
-            height={80}
-            key="allLogo"
-            className="opacity-80"
-        />,
-        <LottieLoader
+            src={theme === 'dark' ? '/icons/main_publish_icon.svg' : '/icons/main_publish_icon.svg'}
+            alt="Publish Logo"
+            width={30}
+            height={30}
             key="publishLogo"
-            animationData={animation_publish_icon_data}
-            width="w-22"
-            className="ml-2"
-            centered={false}
+            className="opacity-100"
         />,
-        <LottieLoader
-            key="romanceLogo"
-            animationData={animation_romance_icon_data}
-            width="w-32"
-            className=""
-            centered={false}
+        <Image
+            src={theme === 'dark' ? '/icons/main_genre_icon.svg' : '/icons/main_genre_icon.svg'}
+            alt="genre Logo"
+            width={30}
+            height={30}
+            key="genreLogo"
+            className="opacity-100"
         />,
-        <LottieLoader
+        <Image
+            src={theme === 'dark' ? '/icons/main_event_icon.svg' : '/icons/main_event_icon.svg'}
+            alt="Event Logo"
+            width={30}
+            height={30}
             key="eventLogo"
-            animationData={animation_event_icon_data}
-            width="w-32"
-            className=""
-            centered={false}
+            className="opacity-100"
         />,
         <Image
-            src={theme === 'dark' ? '/icons/toonyzCut.png' : '/icons/toonyzCut.png'}
+            src={theme === 'dark' ? '/icons/main_toonyzcut_icon.svg' : '/icons/main_toonyzcut_icon.svg'}
             alt="Toonyz Cut Logo"
-            width={80}
-            height={80}
+            width={30}
+            height={30}
             key="toonyzCutLogo"
-            className="opacity-70"
+            className="opacity-100"
         />,
         <Image
-            src={theme === 'dark' ? '/icons/original.png' : '/icons/original.png'}
-            alt="Original Logo"
-            width={70}
-            height={70}
-            key="originalLogo"
-            className="opacity-80"
-        />
+            src={theme === 'dark' ? '/icons/main_studio_icon.svg' : '/icons/main_studio_icon.svg'}
+            alt="Studio Logo"
+            width={30}
+            height={30}
+            key="studioLogo"
+            className="opacity-100"
+        />,
+        <Image
+            src={theme === 'dark' ? '/icons/main_starShop.icon.svg' : '/icons/main_starShop.icon.svg'}
+            alt="Star Shop Logo"
+            width={30}
+            height={30}
+            key="starShopLogo"
+            className="opacity-100"
+        />,
     ];
 
     const getCircleUrl = (circle: string) => {
         switch (circle) {
             case 'all':
                 return '#'
-            case 'toonyzOnly':
+            case 'publish':
+                return '#'
+            case 'genre':
                 return '#'
             case 'event':
                 return '#'
@@ -132,6 +134,8 @@ const MenuItemsComponent = () => {
                 return '#'
             case 'studio':
                 return '/studio'
+            case 'starShop':
+                return '/stars'
             default:
                 return '#'
         }
@@ -141,9 +145,9 @@ const MenuItemsComponent = () => {
     }
 
     return (
-        <div className='w-full h-full md:max-w-screen-lg mx-auto'>
-            <div className="overflow-x-auto">
-                <div className="flex flex-row px-6 md:justify-center justify-start items-center mx-auto gap-1">
+        <div className='w-full h-full md:max-w-screen-lg mx-auto no-scrollbar'>
+            <div className="overflow-x-auto overflow-y-hidden no-scrollbar">
+                <div className="flex flex-row md:px-6 px-0 md:justify-center justify-center md:items-center items-center mx-auto gap-1 ">
                     {circles.map((circle, index) => (
                         <div
                             key={index}
@@ -156,18 +160,18 @@ const MenuItemsComponent = () => {
                         >
                             <Link
                                 href={getCircleUrl(circle)}
-                                className={`${highlightCircle(circle) ? "" : "text-gray-500 dark:text-gray-400"} 
+                                className={`${highlightCircle(circle) ? "" : "text-gray-500 dark:text-gray-500"} 
                                     flex flex-col items-center justify-center cursor-pointer w-full
                                 `}
                             >
                                 <div className="circle-icon flex justify-center items-center w-[50px] h-[50px] 
-                                  md:w-[90px] md:h-[90px] bg-gray-200 dark:bg-gray-500 rounded-xl
+                                  md:w-[60px] md:h-[60px] bg-gray-100 dark:bg-gray-500 rounded-xl
                                  hover:bg-opacity-50 hover:text-white text-black dark:text-white
                                  ">
                                     {circlesIcon[index]}
                                 </div>
                                 <h6 className="circle-text flex justify-center tracking-tight keep-all korean
-                                    mt-4 md:text-base text-sm text-center w-full leading-tight
+                                    mt-4 md:text-sm text-sm text-center w-full leading-tight font-pretendard font-bold
                                 ">
                                     {capitalize(phrase(dictionary, circle, language))}
                                 </h6>

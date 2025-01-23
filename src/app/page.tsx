@@ -13,6 +13,8 @@ import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
+import { useEffect } from 'react';
+import { Webnovel } from '@/components/Types';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -33,8 +35,18 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
-    const items = await getCarouselItems();
-    const webnovels = await getWebnovels();
+    let items = await getCarouselItems();
+    const premium = [23, 19, 21, 22, 20, 24];
+    let webnovels = await getWebnovels();
+    // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+    if (searchParams.version === 'free') {
+        items = items.filter((item: any) => !premium.includes(item.webnovel_id));
+        webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+    } else if (searchParams.version === 'premium') {
+        items = items.filter((item: any) => premium.includes(item.webnovel_id));
+        webnovels = webnovels.filter((novel: Webnovel) => premium.includes(novel.id));
+    }
+
 
     const largeGap = () => {
         return (
@@ -59,14 +71,11 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
                     {smallGap()}
-                    <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy="date" />
-                    {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="date" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views'/>
-                    {/* <WebnovelsCardListByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' /> */}
                     {largeGap()}
                 </div>
                 <div className='px-4 w-full mx-auto'>

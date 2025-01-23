@@ -14,7 +14,6 @@ import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
-import ChargeStarsTemporary from '@/components/ChargeStarsTemporary';
 import { getUrlWithParams } from '@/utils/stringUtils';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { SquarePen, 
@@ -29,7 +28,8 @@ import { SquarePen,
         HeartHandshake, 
         Clapperboard,
         Bell,
-        HandHeart } from 'lucide-react';
+        HandHeart, 
+        CodeSquare} from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Drawer } from '@mui/material';
@@ -68,9 +68,38 @@ export const Header = () => {
     const [searchRemember, setSearchRemember] = useState(true);
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
-    const [tabValue, setTabValue] = useState('1');
+    const [activeTab, setActiveTab] = useState('premium');
 
     const isLoggedInAndRegistered = isLoggedIn && email;
+    const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
+    useEffect(() => {
+        if (searchParams.get("version") == "premium") {
+            setActiveTab('premium');
+        } else if (searchParams.get("version") == "free") {
+            setActiveTab('free');
+        } else if (pathname.startsWith("/view_webnovels")) {
+            const id = searchParams.get("id");
+            console.log(id)
+            console.log(premiumWebnovelIds)
+            if (premiumWebnovelIds.includes(parseInt(id!))) {
+                console.log("premium")
+                setActiveTab('premium');
+            } else {
+                setActiveTab('free');
+            }
+        } else if (pathname.startsWith("/chapter_view")) {
+            const id = pathname.split("/")[2];
+            if (premiumWebnovelIds.includes(parseInt(id))) {
+                setActiveTab('premium');
+            } else {
+                setActiveTab('free');
+            }
+        } else if (pathname.startsWith("/webtoons")) {
+            setActiveTab('webtoons');
+        } else if (pathname.startsWith("/toonyzcut")) {
+            setActiveTab('toonyzCut');
+        }
+    }, [pathname, searchParams, premiumWebnovelIds])
 
     useEffect(() => {
         if (pathname == "/") {
@@ -79,7 +108,14 @@ export const Header = () => {
         } else {
             setPathnameLoading(false)
         }
+        const fetchPremiumWebnovelIds = async () => {
+            const response = await fetch('/api/get_premium_webnovel_ids');
+            const data = await response.json();
+            setPremiumWebnovelIds(data.ids);
+        }
+        fetchPremiumWebnovelIds();
     }, [])
+
 
     useEffect(() => {
         for (const lang of langPairList) {
@@ -244,8 +280,10 @@ export const Header = () => {
     }
     // Add this function to determine the active category
     const isActive = (path: string) => {
-        if (path === '/') {
-            return isNovelPath(pathname);
+        if (path === '/?version=premium') {
+            return activeTab === 'premium';
+        } else if (path === '/?version=free') {
+            return activeTab === 'free';
         }
         return pathname.startsWith(path);
     };
@@ -305,17 +343,21 @@ export const Header = () => {
                                 height={logoHeight} />
                             </Link>
                             <div className="flex flex-row gap-4 items-center justify-center font-pretendard md:text-md text-sm">
-                                <Link href="/?version=premium">
-                                    <p className={`${isActive('/') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                <Link href="/?version=premium" >
+                                    <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
                                 <Link href="/webtoons">
-                                    <p className={`${isActive('/webtoons') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777] hover:text-[#DB2777]`}>
+                                    <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777] hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
                                 </Link>
+                                <Link href="/?version=free" >
+                                    <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                        {phrase(dictionary, "free", language)}</p>
+                                </Link>
                                 <Link href="/toonyzcut">
-                                    <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                    <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "toonyzCut", language)}</p>
                                 </Link>
                             </div>
@@ -482,8 +524,10 @@ export const Header = () => {
                                                         </Link>
                                                     </li>
                                                     <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
-                                                        <Sparkles size={18} className='dark:text-white text-black ' />
-                                                        <ChargeStarsTemporary />
+                                                        <Link href="/stars" onClick={() => handleUserItemClick()} className="flex items-center space-x-2 justify-start">
+                                                            <Sparkles size={18} className='dark:text-white text-black ' />
+                                                            <span>{phrase(dictionary, "stars", language)}</span>
+                                                        </Link>
                                                     </li>
                                                     <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                         <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
@@ -539,15 +583,19 @@ export const Header = () => {
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
                     <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
                         <Link href="/?version=premium">
-                            <p className={`${isActive('/') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
+                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
                         <Link href="/webtoons">
-                            <p className={`${isActive('/webtoons') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "webtoons", language)}</p>
                         </Link>
+                        <Link href="/?version=free" >
+                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                {phrase(dictionary, "free", language)}</p>
+                        </Link>
                         <Link href="/toonyzcut">
-                            <p className={`${isActive('/toonyzcut') ? 'text-[#DB2777] font-bold pb-2 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "toonyzCut", language)}</p>
                         </Link>
                     </div>

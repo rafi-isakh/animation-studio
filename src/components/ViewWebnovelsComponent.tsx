@@ -1,5 +1,5 @@
 "use client"
-import { Webnovel } from '@/components/Types'
+import { Webnovel, Webtoon } from '@/components/Types'
 import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
@@ -9,20 +9,16 @@ import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, ThemeProvider, useMediaQuery } from '@mui/material';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
+import { Box, Button, CircularProgress, Modal, Skeleton, ThemeProvider, useMediaQuery } from '@mui/material';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { ListOfChapterComments } from '@/components/ListOfChapterComments';
+import { CommentList } from '@/components/CommentList';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-
+import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -42,6 +38,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [tabValue, setTabValue] = useState('1');
+    const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
+
+    const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
+        setContent(updatedContent);
+    };
+
     // const [chapterId, setChapterId] = useState(0);
 
     const pathname = usePathname();
@@ -89,16 +91,19 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 console.error("Delete webnovel failed");
                 return;
             }
+            // Filter out the deleted webnovel
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
             setWebnovels(webnovels_after_deletion)
             setDeletedWebnovelId(id);
             setShowDeleteModal(false);
-            const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
-            const first = Math.min(...ids);
-            if (ids.length > 0) {
-                router.push(`/view_webnovels?id=${first.toString()}`)
+
+            // Navigate to appropriate page
+            if (webnovels_after_deletion.length > 0) {
+                const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
+                const first = Math.min(...ids);
+                await router.push(`/view_webnovels?id=${first.toString()}`);
             } else {
-                router.push('/view_webnovels')
+                await router.push('/view_webnovels');
                 router.refresh();
             }
         } catch (error) {
@@ -130,7 +135,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         <Link href="/new_webnovel">
                             {phrase(dictionary, "writeYourStory", language)}
                         </Link>
-
                     </Button>
                 </div>
             </div>
@@ -139,102 +143,47 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     else {
         if (webnovelLoading || userWebnovelsLoading) {
             return (
-                <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
-                    <CircularProgress color='secondary' />
-                </div>
+                <Box sx={{ width: 300 }}>
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                </Box>
             )
         } else if (atLeastOneWebnovel) {
             return (
                 <ThemeProvider theme={grayTheme}>
-                    <div className='max-w-screen-lg flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
-
+                    <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
                         {/*--  left-hand side:  Author's other works link */}
-                        <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
+                        <div className="flex md:flex-row flex-col justify-between items-start">
                             <Suspense>
-                                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
+                                {theWebnovel && (
+                                    <AuthorAndWebnovelsAsideComponent
+                                        webnovels={[theWebnovel]}
+                                        nickname={nickname}
+                                        coverArt={theWebnovel.cover_art || ""}
+                                        onNewChapter={handleNewChapter}
+                                        onDelete={handleDelete}
+                                    />
+                                )}
+
                             </Suspense>
-                            <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-[1px]' />
-                        </div>
-                        {/*-- left-hand side:  Author's other works link end */}
 
-                        <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
-                            <div className="">
-                                {
-                                    <div className='flex flex-row justify-between'>
-                                        <div className='flex flex-row justify-center self-center'>
-                                            <ChevronLeft className='self-center' />
-                                            <h1>
-                                                {/* 목록보기 */}
-                                                {phrase(dictionary, "list", language)}
-                                            </h1>
-                                        </div>
+                            <div className='w-full'>
 
-                                        <div>
-                                            {isAuthor() &&
-                                                <div className='flex flex-row gap-4 w-full justify-start'>
-                                                    {/* 
-                                        <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
-                                            {phrase(dictionary, "aieditor", language)}
-                                        </NoCapsButton> 
-                                        */}
-                                                    <NoCapsButton
-                                                        color='gray'
-                                                        variant='outlined'
-                                                        onClick={handleNewChapter}
-                                                        className='px-4 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                                    >
-                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
-                                                    </NoCapsButton>
-                                                    <NoCapsButton
-                                                        color='gray'
-                                                        variant='outlined'
-                                                        onClick={() => setShowDeleteModal(true)}
-                                                        className='px-6 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                                    >
-                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
-                                                    </NoCapsButton>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
+                                <ContentChapterListComponent
+                                    content={theWebnovel as Webnovel}
+                                    coverArt={theWebnovel?.cover_art || ""}
+                                    isWebtoon={false}
+                                    relatedContent={webnovels}
+                                    onContentUpdate={handleContentUpdate}
+                                />
                             </div>
-
-                            <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
-
-                            {/* Webnovel info and details */}
-                            <WebNovelInfoAndPictureComponent webnovel={theWebnovel} />
-
-                            <TabContext value={tabValue} >
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
-                                    <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]">
-                                        {/* Chapters : 연재글 */}
-                                        <Tab label={phrase(dictionary, "chapters", language)} value="1" className="dark:text-white dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
-                                        {/* Comments : 댓글 */}
-                                        <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-[#8A2BE2] dark:active:text-[#8A2BE2]" />
-                                    </TabList>
-                                </Box>
-                                <TabPanel value="1">
-                                    {/* Chapters list */}
-                                    <ListOfChaptersComponent webnovel={theWebnovel} />
-                                </TabPanel>
-                                <TabPanel value="2">
-                                    {/* Comments list */}
-                                    {theWebnovel && <ListOfChapterComments content={theWebnovel} chapter={theWebnovel.chapters[0]} webnovelOrWebtoon={true}/>}
-                                </TabPanel>
-                            </TabContext>
-
                         </div>
+
                     </div>
-                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={useModalStyle}>
-                            <div className='flex flex-col space-y-4 items-center justify-center'>
-                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                            </div>
-                        </Box>
-                    </Modal>
+
                 </ThemeProvider >
             )
         } else {

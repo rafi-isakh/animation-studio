@@ -3,11 +3,9 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Webnovel, User } from '@/components/Types';
 import Link from 'next/link';
-import WebnovelComponent from './WebnovelComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
-import { uploadFile } from '@/utils/s3';
 import { useUser } from '@/contexts/UserContext';
 import { getImageUrl } from '@/utils/urls';
 import Image from 'next/image'

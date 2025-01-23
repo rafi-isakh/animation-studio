@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const words = ["Hello", "Bonjour", "Ciao", "Olà", "やあ", "Hallå", "Guten tag", "你好", "Hallo", "สวัสดี", "مرحبًا", "Xin chào", "안녕하세요."]
 
-const style = {
+const preloaderModalstyle = {
     position: 'fixed' as 'fixed', // Use fixed positioning to cover the entire screen
     top: 0,
     left: 0,
@@ -89,9 +89,9 @@ export default function Preloader() {
         <Modal
             open={showModal}
         >
-            <Box sx={style}>
-                <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col md:justify-center space-y-0 md:space-y-8 items-center'>
-
+            <Box sx={preloaderModalstyle}>
+                <div className='rounded-xl border border-black md:border-black w-[500px] h-screen
+                 bg-black flex flex-col md:justify-center justify-center space-y-4 md:space-y-4 items-center overflow-y-auto'>
                     <Image
                         src="/images/N_logo.svg"
                         alt="Toonyz Logo"
@@ -103,11 +103,11 @@ export default function Preloader() {
                             marginTop: '15px',
                             height: '35px',
                             width: '35px',
-                            padding: '2px',
+                            padding: '5px',
                             justifyContent: 'center',
                             alignSelf: 'center',
                             borderRadius: '25%',
-                            // border: '1px solid #eee'  
+                            border: '1px solid #eee'  
                         }}
                     />
 
@@ -116,17 +116,26 @@ export default function Preloader() {
                     </motion.p>
 
                     <p className='text-white dark:text-white'>
-                        언어를 선택해 주세요.
+                       { language === 'ko' ? '사용하는 언어를 선택해 주세요.' : 'Select your display language'}
                     </p>
 
                     {/*Language menu*/}
                     <li className="py-2 relative list-none">
                         <div ref={languageMenuRef}>
-                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 w-36 rounded-md border border-gray-400 flex items-center justify-start md:justify-between text-white focus:border-[#DB2777] md:px-4 md:py-3 md:border md:hover:border-[#DB2777] md:hover:bg-transparent dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
+                            <button
+                                id="dropdownNavbarLanguageLink"
+                                onClick={toggleLanguageDropdown}
+                                className="px-4 py-3 w-36 rounded-md border border-gray-400 flex items-center justify-start 
+                                            md:justify-between text-white focus:border-[#DB2777] md:px-4 md:py-3 md:border 
+                                            md:hover:border-[#DB2777] md:hover:bg-transparent dark:focus:text-black
+                                             dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
                                 <div className='flex justify-between w-full'>
                                     <div className='flex'>
                                         <i className="fa-solid fa-globe self-center text-white dark:text-white"></i>
                                         <p className='ml-2'>{currentLanguage && currentLanguage}</p>
+                                        {/* <p className='text-white dark:text-white text-sm'>
+                                            언어를 선택해 주세요.
+                                        </p> */}
                                     </div>
                                     {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
                                     <div className='self-center'>

@@ -13,26 +13,26 @@ export const langPairList = [
         code: 'ja',
         name: '日本語'
     },
-    {
-        code: 'zh-CN',
-        name: '中国语（简体）'
-    },
-    {
-        code: 'zh-TW',
-        name: '中國語（繁體）'
-    },
+    // {
+    //     code: 'zh-CN',
+    //     name: '中国语（简体）'
+    // },
+    // {
+    //     code: 'zh-TW',
+    //     name: '中國語（繁體）'
+    // },
     {
         code: 'th',
         name: 'ภาษาไทย'
     },
-    {
-        code: 'fr',
-        name: 'Français'
-    },
-    {
-        code: 'es',
-        name: 'Español'
-    }
+    // {
+    //     code: 'fr',
+    //     name: 'Français'
+    // },
+    // {
+    //     code: 'es',
+    //     name: 'Español'
+    // }
 ]
 
 const phrases = async (): Promise<Dictionary> => {

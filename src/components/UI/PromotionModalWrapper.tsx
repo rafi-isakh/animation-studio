@@ -47,7 +47,7 @@ export default function PromotionModalWrapper() {
                 // Show modal anyway if localStorage fails
                 setShowPromotionModal(true);
             }
-        }, 3000);
+        }, 1000);
 
         return () => clearTimeout(timer);
     }, []);
@@ -74,7 +74,8 @@ const PromotionModal = ({ handleClose, handleClosePermanently }: { handleClose: 
                 outline: 'none',
                 '& :focus': {
                     outline: 'none'
-                }
+                },
+                zIndex: 50,
             }}
             open={showModal}
             onClose={handleClose}

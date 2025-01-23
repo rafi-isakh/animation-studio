@@ -185,7 +185,8 @@ export default function InfoAndPictureComponent({
                                     className="w-full"
                                 >
                                     <Link
-                                        href={isWebtoon ? `/webtoons/${content.id}/001` : `/chapter_view/${content.chapters[content.chapters.length - 1].id}`}
+                                        href={isWebtoon ? `/webtoons/${content.id}/001` : 
+                                            content.chapters.length > 0 ? `/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
                                         {phrase(dictionary, "start_to_read_episode_1", language)}

@@ -37,10 +37,15 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const showPreloader = !didSelectLanguage
     let items = await getCarouselItems();
     const premiumCarousel = [97, 98]
-    items = items.filter((item: any) => !premiumCarousel.includes(item.id));
     const premium = [23, 19, 21, 22, 20, 24];
+    items = items.filter((item: any) => !premiumCarousel.includes(item.id));
     let webnovels = await getWebnovels();
     webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+    if (searchParams.version === 'free') {
+        webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+    } else if (searchParams.version === 'premium') {
+        webnovels = webnovels.filter((novel: Webnovel) => premium.includes(novel.id));
+    }
 
 
     const largeGap = () => {
@@ -65,8 +70,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {smallGap()}
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
-                    {smallGap()}
-                    <WebnovelsList searchParams={searchParams} webnovels={webnovels} sortBy="date" />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="date" />    
                     {smallGap()}

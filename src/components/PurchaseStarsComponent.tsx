@@ -9,8 +9,8 @@ import { useRouter } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
 
 export default function PurchaseStarsComponent() {
-    const starsOptions = [10, 30, 50, 100, 300, 500, 1000]
-    const starsEventOptions = [15, 35, 55, 110]
+    const starsOptions = [100, 300, 500, 1000]
+    const starsEventOptions = [150, 350, 550, 1100]
     const discount_factors = [0.95, 0.9, 0.85, 0.8]
     const { dictionary, language } = useLanguage();
     const { email, nickname } = useUser();

@@ -38,7 +38,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     let items = await getCarouselItems();
     const premiumCarousel = [97, 98]
     items = items.filter((item: any) => !premiumCarousel.includes(item.id));
-    console.log(items)
     const premium = [23, 19, 21, 22, 20, 24];
     let webnovels = await getWebnovels();
     webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));

@@ -101,6 +101,9 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
         }
     }
 
+    const handleUpvoteComment = async (commentId: string) => {
+    }
+
     useEffect(() => {
         const fetchComments = async () => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
@@ -370,7 +373,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
 
                                                 <div className="flex flex-row gap-4 items-center">
                                                     <div className='flex flex-row gap-1 items-center'>
-                                                        <Heart size={16} className='text-gray-600' />
+                                                        <Heart onClick={() => handleUpvoteComment(comment.id.toString())} size={16} className='text-gray-600' />
                                                         {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
                                                         <span className='text-[#DB2777] text-sm'>{comment.upvotes} </span>
                                                     </div>

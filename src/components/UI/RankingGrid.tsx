@@ -17,7 +17,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_TEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-24 w-fit md:pl-[120px] pl-[85px] ">
+                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-16 w-fit md:pl-[120px] pl-[39px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
@@ -26,13 +26,13 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
                             {/* Ranking number */}
-                            <div className="absolute -left-[90px] -top-8 select-none pointer-events-none -z-10">
+                            <div className="absolute md:-left-[90px] md:-top-8 -left-[40px] -bottom-[10px] select-none pointer-events-none -z-10">
                                 <span
-                                    className="text-[15.5rem] font-black leading-none text-white 
+                                    className="md:text-[15.5rem] text-[7rem] font-black leading-none text-white 
                                                 [text-shadow:2px_0_2px_black,_-2px_0_2px_black,_0_2px_2px_black,_0_-2px_2px_black]
                                                 dark:text-gray-700
                                                 dark:[text-shadow:2px_0_2px_gray,_-2px_0_2px_gray,_0_2px_2px_gray,_0_-2px_2px_gray]"
-                                >
+                                    >
                                     {(index + 1).toString()}
                                 </span>
                             </div>

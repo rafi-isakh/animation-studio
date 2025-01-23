@@ -382,7 +382,7 @@ export const CreatorsPageWrapper = () => {
                 <p className="md:text-2xl text-xl text-center md:p-0 -mt-2">
                   Be a Toonyz Creator!
                 </p>
-                : <p className="md:text-2xl text-sm font-bold text-center korean break-keep md:p-0 nanum-gothic-extrabold">
+                : <p className="md:text-2xl text-sm font-bold text-center break-keep break-keep md:p-0 nanum-gothic-extrabold">
                   투니즈 크리에이터 상시 모집!
                 </p>
               }
@@ -393,7 +393,7 @@ export const CreatorsPageWrapper = () => {
                 <p className="md:text-sm text-[10px] text-center md:p-0 md:py-2 mx-auto">
                   Join our webnovel community, where your stories<br />
                   come to life and your passion for writing turns into earnings.</p>
-                : <p className="md:text-sm text-sm font-bold text-center korean md:p-0 md:py-2 py-1 mx-auto nanum-gothic">
+                : <p className="md:text-sm text-sm font-bold text-center break-keep md:p-0 md:py-2 py-1 mx-auto nanum-gothic">
                   글로벌 독자를 이끌 주인공이 되어 보세요 <br />
                   지금 바로 신청해보세요.
                 </p>
@@ -430,7 +430,6 @@ export const CreatorsPageWrapper = () => {
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col justify-center items-center">
             <div className="text-4xl font-bold text-center syne-600">
               {language == 'en'
-                ? <p className="text-4xl text-center my-10">
                   Toonyz Helps<br />
                   Your Stories Go Further
                 </p>
@@ -490,7 +489,7 @@ export const CreatorsPageWrapper = () => {
                       {index + 1}.  {language == 'en' ? item.title : item.title_ko}
                     </h2>
                   </div>
-                  <p className="text-md text-center korean">
+                  <p className="text-md text-center break-keep">
                     {language == 'en' ? item.description : item.description_ko}
                   </p>
                 </div>
@@ -509,7 +508,7 @@ export const CreatorsPageWrapper = () => {
           <div className="md:max-w-screen-lg w-full mx-auto flex flex-col items-center">
             <div className="flex md:flex-row flex-col justify-between items-center w-full gap-4">
               <h1 className="text-3xl font-bold md:text-start text-center syne-700 md:w-1/2">
-                {language == 'en' ? "Become a Toonyz story creator" : <p className="text-3xl font-bold text-start korean">투니즈 크리에이터</p>}
+                {language == 'en' ? "Become a Toonyz story creator" : <p className="text-3xl font-bold text-start break-keep">투니즈 크리에이터</p>}
               </h1>
               <p className="text-sm md:text-right text-center syne-400 md:w-1/2 pb-5">
                 {language == 'en' ? <> Ready to start your writing journey? <br />

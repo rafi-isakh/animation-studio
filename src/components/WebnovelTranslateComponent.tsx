@@ -5,6 +5,7 @@ import { replaceSmartQuotes } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Box, Skeleton } from '@mui/material';
+import { marked } from 'marked';
 
 interface WordToken {
     word: string;
@@ -129,7 +130,7 @@ const WebnovelTranslateComponent = (
 
             if (response.ok) {
                 const data = await response.json();
-                startEventSource(data.text_id);
+                startTranslation(data.text_id);
             } else {
                 console.error('Failed to submit words');
             }
@@ -138,28 +139,11 @@ const WebnovelTranslateComponent = (
         }
     };
 
-    const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
-        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?source=${sourceLanguage}&target=${language}&webnovel_id=${webnovelId}&chapter_id=${chapterId}`);
-
-        eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.ended == 0) {
-                setText(text => text + data.token);
-            } else if (data.ended == 1) {
-                setFinished(true);
-            } else if (data.ended == -1) { // continue case
-                eventSource.close();
-                startEventSource(textId, data.cvid, 1);
-            }
-        };
-
-        eventSource.onerror = (error) => {
-            console.error('EventSource failed:', error);
-            eventSource.close();
-        };
-        return () => {
-            eventSource.close();
-        };
+    const startTranslation = async (textId: string, cvid: string = '', to_continue: number = 0) => {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?source=${sourceLanguage}&target=${language}&webnovel_id=${webnovelId}&chapter_id=${chapterId}`);
+        const data = await response.json();
+        console.log(data);
+        setText(data.translation);
     };
 
     type Direction = 'ltr' | 'rtl';
@@ -272,7 +256,7 @@ const WebnovelTranslateComponent = (
                 <>
                     {scrollType === 'vertical' &&
                         <div 
-                            dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} 
+                            dangerouslySetInnerHTML={{ __html: marked(replaceSmartQuotes(text)) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
                             onContextMenu={(e) => e.preventDefault()}>
                         </div>

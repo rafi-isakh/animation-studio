@@ -67,7 +67,7 @@ export const Header = () => {
     const [searchRemember, setSearchRemember] = useState(true);
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
-    const [tabValue, setTabValue] = useState('1');
+    const [activeTab, setActiveTab] = useState('premium');
 
     const isLoggedInAndRegistered = isLoggedIn && email;
 
@@ -243,8 +243,10 @@ export const Header = () => {
     }
     // Add this function to determine the active category
     const isActive = (path: string) => {
-        if (path === '/') {
-            return isNovelPath(pathname);
+        if (path === '/?version=premium') {
+            return activeTab === 'premium';
+        } else if (path === '/?version=free') {
+            return activeTab === 'free';
         }
         return pathname.startsWith(path);
     };
@@ -295,7 +297,7 @@ export const Header = () => {
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, studio */}
                         <div className='flex flex-row items-center justify-center gap-4 '>
-                            <Link href="/?version=premium" className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
+                            <Link href="/?version=premium" onClick={() => setActiveTab('premium')} className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                             {/* logo padding on mobile screen */}
                             <Image
                                 src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
@@ -304,8 +306,8 @@ export const Header = () => {
                                 height={logoHeight} />
                             </Link>
                             <div className="flex flex-row gap-4 items-center justify-center font-pretendard md:text-md text-sm">
-                                <Link href="/?version=premium">
-                                    <p className={`${isActive('/') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                                <Link href="/?version=premium" onClick={() => setActiveTab('premium')}>
+                                    <p className={`${isActive('/?version=premium') ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
                                 <Link href="/webtoons">
@@ -313,7 +315,7 @@ export const Header = () => {
                                         {phrase(dictionary, "webtoons", language)}
                                     </p>
                                 </Link>
-                                <Link href="/?version=free">
+                                <Link href="/?version=free" onClick={() => setActiveTab('free')}>
                                     <p className={`${isActive('/?version=free') ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "free", language)}</p>
                                 </Link>

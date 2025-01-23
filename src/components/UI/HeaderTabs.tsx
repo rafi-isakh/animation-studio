@@ -38,8 +38,8 @@ const HeaderTabs = ({ language, dictionary, phrase }: { language: string, dictio
   };
 
   return (
-    <div className="mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-4">
-      <div className="flex flex-row gap-4 items-center justify-center md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all">
+    <div className="mx-auto w-full md:mt-[4rem] mt-[5.6rem] z-[99] font-pretendard md:text-md text-sm mb-4 no-scrollbar">
+      <div className="flex flex-row gap-4 items-center justify-center md:p-0 p-2 md:ml-0 ml-2 overflow-x-auto tracking-tight keep-all no-scrollbar">
         {tabs.map((tab) => (
           <div
             key={tab.id}

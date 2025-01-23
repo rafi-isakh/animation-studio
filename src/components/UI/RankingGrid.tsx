@@ -17,7 +17,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_TEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-28 w-fit pl-[120px] ">
+                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-24 w-fit md:pl-[120px] pl-[85px]">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
@@ -36,7 +36,6 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                                     {(index + 1).toString()}
                                 </span>
                             </div>
-
                             {/* Card content */}
                             <Link href={`/view_webnovels?id=${webnovel.id}`}>
                                 <div
@@ -56,10 +55,8 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                                             priority={index < 2}
                                         />
                                     </div>
-
                                     {/* Gradient overlay */}
                                     <div className="w-[150px] absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
-
                                     {/* Title and badge */}
                                     <div className="absolute bottom-0 left-0 right-0 p-4">
                                         <h3 className="text-white font-semibold line-clamp-2 text-base break-keep">
@@ -73,12 +70,5 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                 </div>
             </div>
         </div>
-    );
+    )
 }
-
-
-{/* {item.recentlyAdded && (
-  <span className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded mt-2">
-    Recently Added
-  </span>
-)} */}

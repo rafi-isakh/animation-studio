@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { NextRequest } from "next/server";
 import { Readable } from "stream";
 
 const REGION = process.env.NEXT_PUBLIC_AWS_REGION;
@@ -19,22 +20,27 @@ const s3Client = new S3Client({
   region: REGION
 });
 
-export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType: string) => {
+export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType: string, req: NextRequest) => {
 
-  const params = {
-    Bucket: PICTURES_BUCKET_NAME,
-    Key: fileName,
-    Body: fileBuffer,
-    ContentType: fileType
-  };
+  // const params = {
+  //   Bucket: PICTURES_BUCKET_NAME,
+  //   Key: fileName,
+  //   Body: fileBuffer,
+  //   ContentType: fileType
+  // };
 
-  try {
-    const data = await s3Client.send(new PutObjectCommand(params));
-    return data;
-  } catch (err) {
-    console.error("Error uploading file:", err);
-    throw err;
-  }
+  // try {
+  //   const data = await s3Client.send(new PutObjectCommand(params));
+  //   return data;
+  // } catch (err) {
+  //   console.error("Error uploading file:", err);
+  //   throw err;
+  // }
+  await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
+    method: 'POST',
+    body: JSON.stringify({ fileBufferBase64: fileBuffer.toString('base64'), fileName, fileType }),
+    headers: req.headers
+  });
 };
 
 export const listObjectsInWebtoonsDirectory = async (directoryPrefix: string) => {

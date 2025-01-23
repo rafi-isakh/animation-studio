@@ -30,10 +30,15 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const fileName = await fileNameResponse.json();
 
   try {
+    console.log("fileContent", fileContent);
+    console.log("fileName", fileName);
+    console.log("fileType", fileType);
     await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
       method: 'POST',
       body: JSON.stringify({ fileBufferBase64: fileContent.toString('base64'), fileName, fileType }),
-      headers: req.headers
+      headers: {
+        cookie: req.headers.get('cookie') || ''
+      }
     });
   } catch (error) {
     console.error('Error uploading file to s3:', error);

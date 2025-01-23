@@ -83,15 +83,15 @@ async function refreshAccessToken(token: any) {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   cookies: {
-    callbackUrl: {
-      name: "__Secure-next-auth.callback-url",
-      options: {
-        httpOnly: false,
-        sameSite: "none",
-        path: "/",
-        secure: true, 
-      },
-    },
+    // callbackUrl: {
+    //   name: "__Secure-next-auth.callback-url",
+    //   options: {
+    //     httpOnly: false,
+    //     sameSite: "none",
+    //     path: "/",
+    //     secure: true, 
+    //   },
+    // },
     pkceCodeVerifier: {
       name: "next-auth.pkce.code_verifier",
       options: {

@@ -9,6 +9,8 @@ import { phrase } from "@/utils/phrases";
 import { Box } from "@mui/material";
 import StarsTransactionComponent from "@/components/StarsTransactionComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { replaceSmartQuotes } from '@/utils/font';
+import { terms_purchase_stars_ko, terms_purchase_stars_english } from '@/utils/terms';
 
 type Currency = "KRW" | "USD" | "EUR";
 
@@ -64,6 +66,14 @@ export default function Stars() {
                 </Box>
                 <TabPanel value="1">
                     <PurchaseStarsComponent />
+                    {/* terms of use */}
+                    <div className="md:w-[360px] w-full mx-auto text-[10px] text-left py-2 px-2 text-black dark:text-gray-500">
+                        <div className='w-full whitespace-pre-wrap'>
+                            {replaceSmartQuotes(language === 'ko' 
+                                                ? terms_purchase_stars_ko 
+                                                : terms_purchase_stars_english)}
+                        </div>
+                    </div>
                 </TabPanel>
                 <TabPanel value="2">
                     <StarsTransactionComponent />

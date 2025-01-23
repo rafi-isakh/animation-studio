@@ -94,9 +94,9 @@ const CarouselComponentReactSlick = ({
         if (index == 0) {
             return '/view_webnovels?id=25';
         } else if (index == 1) {
-            return '/view_webnovels?id=19';
+            return '/view_webnovels?id=28';
         } else if (index == 2) {
-            return '/view_webnovels?id=22';
+            return '/view_webnovels?id=29';
         } else if (index == 3) {
             return '/view_webnovels?id=28';
         } else if (index == 4) {

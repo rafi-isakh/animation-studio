@@ -31,9 +31,13 @@ export default async function WebtoonPage({ params }: { params: { slug: string }
     const coverArtUrls = await Promise.all(webtoons.map(async (webtoon: Webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
 
     return (
-        <div key={`webtoon-${params.slug}`} className="w-full min-h-screen md:max-w-screen-lg mx-auto">
-             <WebtoonInfoAndPictureComponent webtoon={webtoon} coverArt={coverArt} />
-             <WebtoonChapterListComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} webtoons={webtoons} coverArtUrls={coverArtUrls} />
+        <div
+            key={`webtoon-${params.slug}`}
+            className="w-full min-h-screen md:max-w-screen-lg mx-auto">
+            <div className="flex md:flex-row flex-col justify-between items-start">
+                <WebtoonInfoAndPictureComponent webtoon={webtoon} coverArt={coverArt} />
+                <WebtoonChapterListComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} webtoons={webtoons} coverArtUrls={coverArtUrls} />
+            </div>
         </div>
     );
 }

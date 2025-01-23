@@ -38,29 +38,12 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     }
 
     return (
-        <>
-        <div className='md:max-w-screen-lg w-full mx-auto flex flex-row justify-end'> 
-            <ul className="font-pretendard flex flex-row text-[12px]">
-                <li>
-                    <Link href='/' className="px-2">
-                        {/* 최신순 */}
-                        {phrase(dictionary, "latest", language)}
-                    </Link>
-                </li>
-                <li className="border-l border-gray-300 dark:border-gray-600">
-                    <Link href='/' className="px-2">
-                        {/* 좋아요순	 */}
-                        {phrase(dictionary, "mostLiked", language)}
-                    </Link>
-                </li>
-                <li className="border-l border-gray-300 dark:border-gray-600">
-                    <Link href='/' className="px-2">
-                        {/* 구독순	 */}
-                        {phrase(dictionary, "mostSubscribed", language)}
-                    </Link>
-                </li>
-            </ul>
-        </div>
+        <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
+            <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+                <span className='text-black dark:text-white'>
+                    {phrase(dictionary, "recommended", language)}
+                </span>
+            </h1>
             <WebnovelsAllCardWrapper
                 title={''}
                 webnovels={webnovelsToShow}
@@ -76,7 +59,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
                     />
                 )}
             />
-        </>
+        </div>
     )
 };
 

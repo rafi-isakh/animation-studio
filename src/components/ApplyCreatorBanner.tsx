@@ -12,11 +12,6 @@ const ApplyCreatorBanner = () => {
     const { isLoggedIn } = useAuth();
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
-    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-        event.preventDefault(); // Prevent the default browser navigation
-        console.log("Link clicked, but it does nothing.");
-    };
-
     const handleCloseBanner = () => {
         setIsBannerVisible(false);
     };
@@ -33,8 +28,7 @@ const ApplyCreatorBanner = () => {
                 <X className="w-4 h-4 text-black" />
             </button>
 
-            <Link onClick={handleClick} href={isLoggedIn ? '#' : '/signin'} className="block h-full">
-
+            <Link href='/creators' className="block h-full cursor-pointer">
                 <div className="flex items-center justify-center h-full">
                     <div className="flex flex-row">
                         <div className="flex flex-col justify-center items-center gap-1 text-sm font-pretendard">
@@ -43,11 +37,11 @@ const ApplyCreatorBanner = () => {
                                 {phrase(dictionary, "applyCreator", language)}
                             </p>
                             <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-md text-sm font-pretendard self-start">
-                                <span className="text-sm">
-                                    {/* 지금 신청하기 */}
-                                    {phrase(dictionary, "applyCreator_button", language)}
-                                </span>
-                                <ArrowRight className="w-4 h-4 text-black" />
+                                    <span className="text-sm">
+                                        {/* 지금 신청하기 */}
+                                        {phrase(dictionary, "applyCreator_button", language)}
+                                    </span>
+                                    <ArrowRight className="w-4 h-4 text-black" />
                             </button>
                         </div>
                         <Image

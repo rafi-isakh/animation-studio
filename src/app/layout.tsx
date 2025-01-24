@@ -80,14 +80,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
         />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-std/dist/web/static/pretendard-std.css"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-jp/dist/web/static/pretendard-jp.css"
-        />
       </head>
       <body className={`antialiased`}>
         <RegisterSW />

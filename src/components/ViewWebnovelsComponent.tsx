@@ -9,7 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, ThemeProvider, useMediaQuery } from '@mui/material';
+import { Box, Button, CircularProgress, Modal, Skeleton, ThemeProvider, useMediaQuery } from '@mui/material';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeft, PenLine, Trash } from 'lucide-react';
@@ -91,14 +91,14 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 console.error("Delete webnovel failed");
                 return;
             }
-              // Filter out the deleted webnovel
+            // Filter out the deleted webnovel
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
             setWebnovels(webnovels_after_deletion)
             setDeletedWebnovelId(id);
             setShowDeleteModal(false);
 
-              // Navigate to appropriate page
-              if (webnovels_after_deletion.length > 0) {
+            // Navigate to appropriate page
+            if (webnovels_after_deletion.length > 0) {
                 const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
                 const first = Math.min(...ids);
                 await router.push(`/view_webnovels?id=${first.toString()}`);
@@ -143,8 +143,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     else {
         if (webnovelLoading || userWebnovelsLoading) {
             return (
-                <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
-                    <CircularProgress color='secondary' />
+                <div className='w-full min-h-screen md:max-w-screen-lg mx-auto flex flex-row justify-center items-center'>
+                    <CircularProgress />
                 </div>
             )
         } else if (atLeastOneWebnovel) {
@@ -179,7 +179,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         </div>
 
                     </div>
-                  
+
                 </ThemeProvider >
             )
         } else {

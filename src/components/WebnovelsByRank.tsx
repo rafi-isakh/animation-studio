@@ -24,6 +24,7 @@ export default function WebnovelsByRank({ searchParams, sortBy, webnovels }: { s
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
+            .slice(0, 7)
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

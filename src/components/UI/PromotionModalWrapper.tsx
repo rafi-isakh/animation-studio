@@ -88,7 +88,7 @@ const PromotionModal = ({ handleClose, handleClosePermanently }: { handleClose: 
                     <Link href='/creators'>
                         <div className="relative w-[250px] h-[350px]">
                             <Image
-                                src="/promotion/new_creators_promotion.png"
+                                src="/promotion/new_creators_promotion.svg"
                                 alt="promotion banner"
                                 width={300}
                                 height={350}

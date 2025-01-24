@@ -203,7 +203,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <ChevronRightIcon size={16} className="text-black dark:text-white" />
                                 </Button>
                             </Tooltip>
-
                             {content && content.chapters ? (
                                 isWebtoon ? (
                                     <WebtoonChapterListSubcomponent

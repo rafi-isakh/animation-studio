@@ -116,7 +116,7 @@ const WebtoonChapterListSubcomponent = ({
                               `Episode ${parseInt(selectedChapter?.directory || '0')} `}
             </p>
             <p>
-              보유한 투니즈 별 0개
+              보유한 투니즈 별
             </p>
 
             <hr className='w-full' />

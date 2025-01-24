@@ -39,9 +39,12 @@ export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType:
   await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
     method: 'POST',
     body: JSON.stringify({ fileBufferBase64: fileBuffer.toString('base64'), fileName, fileType }),
-    headers: req.headers
+    headers: {
+      cookie: req.headers.get('cookie') || ''
+    }
   });
-};
+}
+
 
 export const listObjectsInWebtoonsDirectory = async (directoryPrefix: string) => {
   const params = {

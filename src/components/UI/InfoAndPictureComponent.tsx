@@ -40,16 +40,16 @@ interface InfoAndPictureProps {
     coverArt: string;
     isWebtoon?: boolean;
     children?: React.ReactNode;
-    onNewChapter?: () => void; 
-    onDelete?: () => void;     
+    onNewChapter?: () => void;
+    onDelete?: () => void;
 }
 
-export default function InfoAndPictureComponent({ 
-    content, 
-    coverArt, 
-    isWebtoon = false, 
-    onNewChapter, 
-    onDelete 
+export default function InfoAndPictureComponent({
+    content,
+    coverArt,
+    isWebtoon = false,
+    onNewChapter,
+    onDelete
 }: InfoAndPictureProps) {
     const { language, dictionary } = useLanguage();
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
@@ -66,6 +66,7 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
+        console.log("content", content);
     }, []);
 
     useEffect(() => {
@@ -155,14 +156,16 @@ export default function InfoAndPictureComponent({
                                 </li>
                             </ul>
 
-                            {/* Description */}
-                            <OtherTranslateComponent
-                                content={content.description}
-                                elementId={content.id.toString()}
-                                elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                elementSubtype="description"
-                                classParams="text-sm text-gray-800 dark:text-white"
-                            />
+                            <div className="mt-2">
+                                {/* Description */}
+                                <OtherTranslateComponent
+                                    content={content.description}
+                                    elementId={content.id.toString()}
+                                    elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                    elementSubtype="description"
+                                    classParams="text-sm text-gray-800 dark:text-white"
+                                />
+                            </div>
 
                             {/* Action Buttons */}
                             <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
@@ -182,7 +185,8 @@ export default function InfoAndPictureComponent({
                                     className="w-full"
                                 >
                                     <Link
-                                        href={isWebtoon ? `/webtoons/${content.id}/001` : `/read_webnovel?id=${content.id}&chapter=1`}
+                                        href={isWebtoon ? `/webtoons/${content.id}/001` : 
+                                            content.chapters.length > 0 ? `/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
                                         {phrase(dictionary, "start_to_read_episode_1", language)}
@@ -313,7 +317,7 @@ export default function InfoAndPictureComponent({
                                 <hr /> */}
                                 <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
                                     <div className="font-extrabold flex flex-row gap-2 items-center cursor-pointer">
-                                        <MdStars className="text-xl text-[#D92979]" /> 
+                                        <MdStars className="text-xl text-[#D92979]" />
                                         <Link href={`/stars`}>
                                             <p>
                                                 {/* 별 구매하기  */}

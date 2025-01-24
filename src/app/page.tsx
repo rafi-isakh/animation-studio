@@ -18,18 +18,24 @@ import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
 
 async function getCarouselItems() {
+    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
+    const end = performance.now()
+    console.log('getCarouselItems', end - start)
     return response.json();
 }
 
 async function getWebnovelsMetadata() {
+    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }
+    const end = performance.now()
+    console.log('getWebnovelsMetadata', end - start)
     return response.json();
 }
 
@@ -39,7 +45,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const showPreloader = !didSelectLanguage
     let items = await getCarouselItems();
     let webnovels = await getWebnovelsMetadata();
-    console.log(webnovels.map((novel: Webnovel) => [novel.title, novel.id]));
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
         // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);

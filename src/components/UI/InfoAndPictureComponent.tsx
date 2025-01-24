@@ -101,7 +101,9 @@ export default function InfoAndPictureComponent({
     };
 
     return (
-        <div className="relative md:w-[300px] md:h-screen h-full top-0 bg-gradient-to-b from-transparent to-transparent justify-start self-start rounded-xl mx-auto">
+        <div className="relative md:w-[300px] md:h-screen w-full h-full top-0 
+                        bg-gradient-to-b from-transparent to-transparent 
+                        justify-start self-start rounded-xl mx-auto md:overflow-auto overflow-x-hidden">
             {/* Blurred background */}
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
@@ -117,7 +119,7 @@ export default function InfoAndPictureComponent({
             {/* Content */}
             <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full md:h-screen rounded-xl">
                 <div className="flex flex-col space-y-2">
-                    <div className="md:px-4 md:p-2">
+                    <div className="md:px-4 md:p-2 px-4">
                         {/* Cover Image */}
                         <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto md:pt-1 pt-0 ">
                             <Image
@@ -185,7 +187,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full"
                                 >
                                     <Link
-                                        href={isWebtoon ? `/webtoons/${content.id}/001` : 
+                                        href={isWebtoon ? `/webtoons/${content.id}/001` :
                                             content.chapters.length > 0 ? `/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >

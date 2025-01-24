@@ -81,14 +81,14 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
             <TabContext value={tabValue}>
                 <Box
                     sx={{
-                        borderBottom: 0,
-                        borderColor: 'divider',
+                        borderBottom: 1,
+                        borderColor: 'divider', // gray-700 #374151 //  #6b7280
                         padding: {
                             xs: '20px 10px',  // padding for mobile (<600px)
                             sm: 0          // padding for larger screens
                         }
                     }}
-                    className='dark:text-gray-700'>
+                    className='dark:text-gray-700 dark:border-gray-700'>
                     <div className="flex flex-row justify-between items-center">
                         <TabList
                             onChange={handleChange}

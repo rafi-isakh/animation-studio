@@ -150,7 +150,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         } else if (atLeastOneWebnovel) {
             return (
                 <ThemeProvider theme={grayTheme}>
-                    <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
+                    <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
                         {/*--  left-hand side:  Author's other works link */}
                         <div className="flex md:flex-row flex-col justify-between items-start">
                             <Suspense>
@@ -163,11 +163,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                         onDelete={handleDelete}
                                     />
                                 )}
-
                             </Suspense>
-
                             <div className='w-full'>
-
                                 <ContentChapterListComponent
                                     content={theWebnovel as Webnovel}
                                     coverArt={theWebnovel?.cover_art || ""}
@@ -177,14 +174,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 />
                             </div>
                         </div>
-
                     </div>
-
                 </ThemeProvider >
             )
         } else {
             return (
-                <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
                     {phrase(dictionary, "noWebnovelsFound", language)}
                 </div>
             )

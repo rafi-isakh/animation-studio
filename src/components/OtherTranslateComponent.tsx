@@ -196,7 +196,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 loading && showLoading ?
                     (
                         <Skeleton variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
-                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(markedText).replaceAll("\n", "<br/>") }} />
+                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
             }
         </div>
     );

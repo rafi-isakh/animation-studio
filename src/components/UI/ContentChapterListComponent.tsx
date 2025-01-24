@@ -77,7 +77,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const chapterCount = content?.chapters?.length || 0;
 
     return (
-        <div className="flex flex-col flex-1 flex-shrink-0 w-full">
+        <div className="flex flex-col flex-1">
             <TabContext value={tabValue}>
                 <Box
                     sx={{

@@ -152,7 +152,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 <ThemeProvider theme={grayTheme}>
                     <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
                         {/*--  left-hand side:  Author's other works link */}
-                        <div className="flex md:flex-row flex-col justify-between items-start">
+                        <div className="flex md:flex-row flex-col">
                             <Suspense>
                                 {theWebnovel && (
                                     <AuthorAndWebnovelsAsideComponent
@@ -164,7 +164,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                     />
                                 )}
                             </Suspense>
-                            <div className='w-full'>
+                            <div className='flex-1'>
                                 <ContentChapterListComponent
                                     content={theWebnovel as Webnovel}
                                     coverArt={theWebnovel?.cover_art || ""}

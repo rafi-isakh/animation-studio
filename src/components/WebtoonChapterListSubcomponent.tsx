@@ -92,7 +92,7 @@ const WebtoonChapterListSubcomponent = ({
             </Link>
           ))}
         </div>
-        {showMoreChapters ?
+        {webtoon?.chapters && webtoon?.chapters.length > 8 && (
           <button
             className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
             onClick={() => setShowMoreChapters(!showMoreChapters)}
@@ -101,7 +101,7 @@ const WebtoonChapterListSubcomponent = ({
             {phrase(dictionary, "more", language)}
             <ChevronDownIcon size={16} className="text-black dark:text-white" />
           </button>
-          : <></>}
+        )}
       </div>
       <Modal open={showModal} onClose={() => setShowModal(false)}>
         <Box sx={useModalStyle}>

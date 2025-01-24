@@ -11,7 +11,9 @@ export const filter_by_version = (item: Webnovel, version: string | null | undef
 };
 
 export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
-    if (sortBy === 'views') {
+    if (sortBy === 'recommendation') {
+        return Math.random() - 0.5;
+    } else if (sortBy === 'views') {
         return b.views - a.views;
     } else if (sortBy === 'likes') {
         return b.upvotes - a.upvotes;

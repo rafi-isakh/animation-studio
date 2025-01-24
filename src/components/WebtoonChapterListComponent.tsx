@@ -56,7 +56,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
 }) => {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
-    const [isSortedByLatest, setIsSortedByLatest] = useState(true);
+    const [isSortedByLatest, setIsSortedByLatest] = useState(false);
     const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY');
     const [currentPageUrl, setCurrentPageUrl] = useState('');
 

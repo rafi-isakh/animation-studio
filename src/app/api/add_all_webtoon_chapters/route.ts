@@ -1,3 +1,4 @@
+export const maxDuration = 300;
 import { auth } from "@/auth"
 import { Webtoon } from "@/components/Types";
 import { listObjectsInWebtoonsDirectory } from "@/utils/s3";
@@ -24,31 +25,28 @@ export async function GET(req: NextRequest) {
         console.log("episodes length", episodes.length)
         for (let i = asWebtoon.num_free_chapters; i < episodes.length; i++) {
             const chapter = {
-                    episode_number: i,
-                    directory: i.toString().padStart(3, '0'),
-                    webtoon_title: webtoon.title,
-                    title: "Episode " + i,
-                    free: false
+                episode_number: i,
+                directory: i.toString().padStart(3, '0'),
+                webtoon_title: webtoon.title,
+                title: "Episode " + i,
+                free: false
             }
             chapters.push(chapter)
         }
     }
 
-    for (const chapter of chapters) {
-        console.log("adding chapter", chapter.episode_number)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_chapter_to_webtoon_admin`, {
-            method: 'POST',
-            body: JSON.stringify(chapter),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.accessToken}`,
-                'Provider': session.provider
-            },
-        })
-        const data = await response.json()
-        if (!response.ok) {
-            return NextResponse.json({ message: "Adding a chapter to a webtoon failed" }, { status: 500 })
-        }
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_chapters_to_webtoon_admin`, {
+        method: 'POST',
+        body: JSON.stringify(chapters),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.accessToken}`,
+            'Provider': session.provider
+        },
+    })
+    const data = await response.json()
+    if (!response.ok) {
+        return NextResponse.json({ message: "Adding a chapter to a webtoon failed" }, { status: 500 })
     }
     return NextResponse.json({ message: "Adding all chapters to webtoons success" })
 }

@@ -36,21 +36,20 @@ async function getWebnovels() {
     }
     return response.json();
 }
+
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
     let items = await getCarouselItems();
-    const premium = [23, 19, 21, 22, 20, 24];
     let webnovels = await getWebnovels();
-    console.log(webnovels);
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
-        items = items.filter((item: any) => !premium.includes(item.webnovel_id));
-        webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+        items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
+        webnovels = webnovels.filter((novel: Webnovel) => !novel.premium);
     } else if (searchParams.version === 'premium') {
-        items = items.filter((item: any) => premium.includes(item.webnovel_id));
-        webnovels = webnovels.filter((novel: Webnovel) => premium.includes(novel.id));
+        items = items.filter((item: any) => webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
+        webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
 
 

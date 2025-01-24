@@ -1,4 +1,5 @@
 // app/layout.tsx
+import { Analytics } from "@vercel/analytics/react"
 import '@/styles/globals.css';
 import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       </Suspense>
                       <Margin>
                         {children}
+                        <Analytics />
                         <Suspense>
                           <NavigationEvents />
                         </Suspense>

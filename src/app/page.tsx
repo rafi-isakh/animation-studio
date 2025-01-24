@@ -25,8 +25,8 @@ async function getCarouselItems() {
     return response.json();
 }
 
-async function getWebnovels() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels`,
+async function getWebnovelsMetadata() {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`,
         {
             cache: 'no-store'
         }
@@ -42,7 +42,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
     let items = await getCarouselItems();
-    let webnovels = await getWebnovels();
+    let webnovels = await getWebnovelsMetadata();
     console.log(webnovels.map((novel: Webnovel) => [novel.title, novel.id]));
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {

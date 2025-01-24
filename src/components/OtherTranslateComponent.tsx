@@ -66,6 +66,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 const data = await response.json();
                 if (data.text) {
                     setText(data.text);
+                    setMarkedText(await marked(data.text));
                     setLoading(false)
                     localStorage.setItem(sessionKey, data.text)
                 }

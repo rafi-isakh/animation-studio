@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
 import { Webtoon, Webnovel } from "@/components/Types";
-import { Button, useMediaQuery, Modal, Box } from "@mui/material";
+import { Button, useMediaQuery, Modal, Box, Skeleton } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -57,7 +57,6 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const nickname = content.user.nickname;
     const author_email = content.user.email_hash;
     const { email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
@@ -133,6 +132,8 @@ export default function InfoAndPictureComponent({
                                 width={270}
                                 height={350}
                                 className="object-cover w-full h-full rounded-xl"
+                                placeholder="blur"
+                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                             />
                         </div>
 

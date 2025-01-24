@@ -1,7 +1,7 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useReader } from '@/contexts/ReaderContext';
-import { replaceSmartQuotes } from '@/utils/font';
+import { textPostProcess } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Box, Skeleton } from '@mui/material';
@@ -255,7 +255,7 @@ const WebnovelTranslateComponent = (
                 <>
                     {scrollType === 'vertical' &&
                         <div 
-                            dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }}
+                            dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
                             onContextMenu={(e) => e.preventDefault()}>
                         </div>
@@ -292,7 +292,7 @@ const WebnovelTranslateComponent = (
                                         id='first-half'
                                         className='w-full'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(firstPageWords) }}
+                                        dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords) }}
                                         onContextMenu={(e) => e.preventDefault()}>
                                     </div>
                                 </div>
@@ -303,7 +303,7 @@ const WebnovelTranslateComponent = (
                                         id='second-half'
                                         className='w-full'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(secondPageWords) }}
+                                        dangerouslySetInnerHTML={{ __html: textPostProcess(secondPageWords) }}
                                         onContextMenu={(e) => e.preventDefault()}>
                                     </div>
                                 </div>

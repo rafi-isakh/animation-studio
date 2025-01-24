@@ -78,7 +78,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="date" />    
+                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}

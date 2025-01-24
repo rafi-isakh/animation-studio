@@ -118,17 +118,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         }
     }, [changeCount, finished, initialized.current])
 
-    useEffect(() => {
-        if (initialized.current && finished) {
-            setLoading(false)
-            saveTranslationToDB(true);
-        }
-    }, [finished])
-
-    const saveTranslationToDB = async (done: boolean) => {
-        if (text) {
+    const saveTranslationToDB = async (translation: string, done: boolean) => {
+        if (translation) {
             const data = {
-                "text": text,
+                "text": translation,
                 "language": language,
                 "element_id": elementId,
                 "element_type": elementType,
@@ -181,7 +174,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         const data = await response.json();
         setText(data.translation);
         setMarkedText(await marked(data.translation));
-        saveTranslationToDB(true);
+        saveTranslationToDB(data.translation, true);
         setLoading(false);
     };
 

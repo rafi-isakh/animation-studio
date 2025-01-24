@@ -65,7 +65,7 @@ const ListOfChaptersComponent = ({
                             href={`/chapter_view/${chapter.id}`}
                             key={`chapter-${chapter.id}`}
                             className={`block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 
-                    ${index >= 10 && !showMoreChapters ? 'hidden' : ''}`}
+                    ${index >= 8 && !showMoreChapters ? 'hidden' : ''}`}
                         >
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-3 items-center">
@@ -112,7 +112,7 @@ const ListOfChaptersComponent = ({
                         </Link>
                     ))}
                 </div>
-                {webnovel?.chapters && webnovel?.chapters.length > 10 && (
+                {webnovel?.chapters && webnovel?.chapters.length > 8 && (
                     <button
                         className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
                         onClick={() => setShowMoreChapters(!showMoreChapters)}

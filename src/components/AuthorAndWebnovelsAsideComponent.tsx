@@ -21,8 +21,6 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname, coverArt, onNew
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
 
-    
-
     useEffect(() => {
         setKey(prevKey => prevKey + 1);
     }, [params, language])

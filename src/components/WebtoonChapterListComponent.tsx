@@ -85,7 +85,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
             <TabContext value={tabValue} >
                 <Box
                     sx={{
-                        borderBottom: 0,
+                        borderBottom: 1,
                         borderColor: 'divider',
                         padding: {
                             xs: '20px 10px',  // padding for mobile (<600px)

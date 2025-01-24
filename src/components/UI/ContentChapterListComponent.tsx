@@ -77,7 +77,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const chapterCount = content?.chapters?.length || 0;
 
     return (
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col w-full md:overflow-auto overflow-x-hidden">
             <TabContext value={tabValue}>
                 <Box
                     sx={{
@@ -121,8 +121,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     </div>
                                 }
                                 value="1"
-                                className="dark:text-white dark:focus:text-[#DB2777] dark:active:text-[#DB2777]
-                                 md:w-auto sm:w-[10px]
+                                className="dark:text-white 
+                                 dark:focus:text-[#DB2777]
+                                 dark:active:text-[#DB2777]
                                 "
                             />
                             <Tab label={
@@ -230,7 +231,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                         {phrase(dictionary, "authorWorkList", language)}
                                     </h1>
                                     <hr />
-                                    <div className="flex flex-col w-full">
+                                    <div className="flex flex-col w-full overflow-x-hidden">
                                         <AuthorWorkListComponent
                                             webnovels={relatedContent as Webnovel[]}
                                             nickname={content.user.nickname}

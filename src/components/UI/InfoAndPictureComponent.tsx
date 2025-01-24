@@ -101,9 +101,9 @@ export default function InfoAndPictureComponent({
     };
 
     return (
-        <div className="relative md:w-[300px] md:h-screen w-full h-full top-0 flex-shrink-0
+        <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
                         bg-gradient-to-b from-transparent to-transparent 
-                        justify-start self-start rounded-xl mx-auto md:overflow-auto overflow-x-hidden">
+                        justify-start self-start rounded-xl mx-auto ">
             {/* Blurred background */}
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
@@ -121,7 +121,7 @@ export default function InfoAndPictureComponent({
                 <div className="flex flex-col space-y-2">
                     <div className="md:px-4 md:p-2 px-4">
                         {/* Cover Image */}
-                        <div className="md:w-[270px] md:h-auto w-full self-center rounded-xl mx-auto md:pt-1 pt-0 ">
+                        <div className="md:h-auto w-full rounded-xl mx-auto md:pt-1 pt-0 ">
                             <Image
                                 src={isWebtoon ? coverArt : getImageUrl(coverArt)}
                                 alt={content.title}

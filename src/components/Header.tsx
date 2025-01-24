@@ -522,12 +522,12 @@ export const Header = () => {
                                                             {phrase(dictionary, "myLibrary", language)}
                                                         </Link>
                                                     </li>
-                                                    <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
+                                                    {/* <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
                                                         <Link href="/stars" onClick={() => handleUserItemClick()} className="flex items-center space-x-2 justify-start">
                                                             <Sparkles size={18} className='dark:text-white text-black ' />
                                                             <span>{phrase(dictionary, "stars", language)}</span>
                                                         </Link>
-                                                    </li>
+                                                    </li> */}
                                                     <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                         <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
                                                             <Video size={20} className='dark:text-white text-black' />

@@ -108,16 +108,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         setChangeCount((prevCount) => prevCount + 1);
     }, [text]);
 
-    useEffect(() => {
-        // save every 200 tokens
-        if (changeCount > 200) {
-            if (!finished && initialized.current) {
-                saveTranslationToDB(false);
-            }
-            setChangeCount(0);
-        }
-    }, [changeCount, finished, initialized.current])
-
     const saveTranslationToDB = async (translation: string, done: boolean) => {
         if (translation) {
             const data = {

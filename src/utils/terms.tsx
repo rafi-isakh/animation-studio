@@ -176,12 +176,13 @@ export const terms = `이용약관
 8. '회사'는 서비스의 운영, 전시, 홍보 등을 위하여 '회원'으로부터 별도의 허락을 받아 '회원'의 '게시물'을 서비스 외부에서 사용할 수 있습니다. 이 경우 '회사'는 별도의 동의 없이 제 3 자에게 '회원'의 개인정보를 제공하지 않습니다.
 9. '회사'는 서비스 정책 또는 '회사'가 운영하는 서비스 간 통합 등의 사유로 '게시물'의 게재 위치를 변경•이전할 수 있으며, 이 경우 사전에 공지합니다.
 
-제18조 (프로그램 설치 및 데이터 수집)
+제18조 (프로그램 설치, 데이터 수집 및 권한)
 1. '회사'는 서비스를 제공함에 있어 필요한 경우 '회원'에게 어플리케이션 및 별도의 프로그램을 설치 및 업데이트하도록 안내할 수 있습니다. 다만, '회원'은 원하지 않거나, 기기가 서비스를 지원하지 못하는 경우 그 설치 및 업데이트를 거부할 수 있으나 서비스 이용이 제한될 수 있습니다.
 2. '회사'에서 제공한 프로그램은 서비스를 사용하고 혜택을 누릴 수 있도록 하기 위한 목적으로만 제공되며, 이 프로그램의 어느 부분도 복사, 수정, 배포, 판매, 대여할 수 없습니다. 다만, '회원'이 법률상 근거를 가지거나 '회사'에서 승인을 받은 경우는 해당 사항에 한해 허용될 수 있습니다.
 3. '회사'는 '회원'의 사전 동의를 받아 서비스 이용 기기의 데이터를 수집하고 이용할 수 있습니다. 다만, '회사'는 수집한 정보를 서비스 개선 및 적합한 서비스 제공을 하기 위한 목적으로만 사용할 수 있고, 그 외의 다른 목적으로 사용하지 않습니다.
 4. '회사'는 '회원'의 스마트폰 앱 설치 시 사전 동의를 받아 다음 각호의 기능에 한해 '회원'의 스마트폰에 접근할 수 있습니다.
     ① 전화 : 오디오북 또는 TTS 모드 이용 도중 다른 미디어 앱 사용시 음성 제어를 위해 필요한 권한
+    ② 저장공간 : 전자책을 저장하고 이후 지속적으로 열람할 수 있도록 하기 위해 필요한 권한
 5. '회원'은 서비스를 이용하는 과정에서 ‘회원’이 작성한 텍스트, 이미지, 음성, 동영상, 링크 등의 기타 정보(이하 '게시물')에 대한 저작권을 보유하며 해당 ‘게시물’이 타인의 지적 재산권을 침해하여 발생하는 모든 책임 또한 '회원' 본인에게 귀속됩니다.
 6. ‘회사‘는 게시한 ‘회원‘의 ‘게시물’을 수정, 편집하거나 2차 ‘콘텐츠’를 만들어 이용하는 경우, ‘회원’의 이용허락을 받으며 ‘회원’은 언제든지 작성한 ‘게시물‘을 삭제할 수 있습니다.
 7. ‘회원’이 등록한 ‘게시물’이 “저작권법” 등 관련 법령에 위반되거나, 사생활 침해, 명예훼손 등 타인의 권리를 침해한다고 인정되는 경우 ‘회사’는 해당 ‘게시물’에 대한 접근을 임시적으로 차단하거나 삭제할 수 있습니다.
@@ -194,14 +195,6 @@ export const terms = `이용약관
     ③ 서비스의 향상을 위한 통계분석 등 연구목적으로 활용(‘콘텐츠’ 기획, 사용자 환경 개선 등을 위한 통계자료로서 활용하는 방법 등 포함)
 12. '회사'는 서비스의 운영, 전시, 홍보 등을 위하여 ‘회원’으로부터 별도의 허락을 받아 ‘회원’의 ‘게시물’을 서비스 외부에서 사용할 수 있습니다. 이 경우 ‘회사’는 별도의 동의 없이 제 3 자에게 ‘회원’의 개인정보를 제공하지 않습니다.
 13. '회사'는 서비스 정책 또는 '회사'가 운영하는 서비스 간 통합 등의 사유로 ‘게시물’의 게재 위치를 변경•이전할 수 있으며, 이 경우 사전에 공지합니다.
-
-제18조 (프로그램 설치 및 데이터 수집)
-1. ‘회사’는 서비스를 제공함에 있어 필요한 경우 ‘회원’에게 어플리케이션 및 별도의 프로그램을 설치 및 업데이트하도록 안내할 수 있습니다. 다만, ‘회원’은 원하지 않거나, 기기가 서비스를 지원하지 못하는 경우 그 설치 및 업데이트를 거부할 수 있으나 서비스 이용이 제한될 수 있습니다.
-2. ‘회사’에서 제공한 프로그램은 서비스를 사용하고 혜택을 누릴 수 있도록 하기 위한 목적으로만 제공되며, 이 프로그램의 어느 부분도 복사, 수정, 배포, 판매, 대여할 수 없습니다. 다만, ‘회원’이 법률상 근거를 가지거나 ‘회사’에서 승인을 받은 경우는 해당 사항에 한해 허용될 수 있습니다.
-3. ‘회사’는 ‘회원’의 사전 동의를 받아 서비스 이용 기기의 데이터를 수집하고 이용할 수 있습니다. 다만, ‘회사’는 수집한 정보를 서비스 개선 및 적합한 서비스 제공을 하기 위한 목적으로만 사용할 수 있고, 그 외의 다른 목적으로 사용하지 않습니다.
-4. ‘회사’는 '회원'의 스마트폰 앱 설치 시 사전 동의를 받아 다음 각호의 기능에 한해 ‘회원’의 스마트폰에 접근할 수 있습니다.
-    ① 전화 : 오디오북 또는 TTS 모드 이용 도중 다른 미디어 앱 사용시 음성 제어를 위해 필요한 권한
-    ② 저장공간 : 전자책을 저장하고 이후 지속적으로 열람할 수 있도록 하기 위해 필요한 권한
 
 제19조 (게시물의 관리)
 1. '회원'이 서비스 내에 작성한 '게시물'에 대한 책임 및 권리는 ‘게시물’을 등록한 '회원'에게 있습니다.
@@ -307,290 +300,327 @@ export const terms = `이용약관
 `;
 
 export const terms_english = `
-Chapter 1. General Provisions
+Terms of Service
 
-Article 1. [Purpose]
-• This Terms of Service (hereinafter referred to as the "Terms") aims to define the rights, obligations, responsibilities, and terms of service between "Members" and "the Company" regarding the use of content services (including web, mobile web/app services, and future content development) and related services provided by Stella& Co., Ltd. (hereinafter referred to as "the Company").
+Chapter 1 General Provisions
 
-Article 2. [Definition of Terms]
-• The definitions of the terms used in these Terms are as follows. For terms not defined in these clauses, the definitions provided by relevant laws and regulations and service guidelines shall apply.
-1. Content: As defined in Article 2, Paragraph 1, Clause 1 of the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc.", it refers to data or information expressed in codes, characters, voice, sound, images, or videos used in information and communication networks, and created or processed in paper or electronic form to enhance preservation and utilization.
-2. Company: Refers to Stella& Co., Ltd. in these Terms, an entity engaged in economic activities related to the "content" industry and providing content services (including web, mobile web/app services, etc.) and related services.
-3. Member: Refers to an individual who has entered into a usage agreement with "the Company," receives information announced by "the Company," and can use the services provided by "the Company."
-4. Posting: Refers to information or data such as text, images, voice, videos, and links created by "Members" in the process of using the service.
-5. Paid Service: Refers to services provided by "the Company" that "Members" can use by paying a certain amount to "the Company."
-6. Payment: Refers to the payment of a certain amount to "the Company" or a third party designated by "the Company" through various payment methods to use "Paid Services" provided by "the Company."
-7. Subscription: Refers to a "Paid Service" usage method where usage fees are regularly paid through a pre-registered payment method for monthly/annual usage periods, and the usage period is automatically renewed. Cancellation of the "Subscription" allows continued use of the "Paid Service" for the remaining period of the "Payment," but automatic payment will not be made for the next usage period.
-8. Subscription Rights, Coupons, or Gift Certificates: Refers to usage rights for "the Company's" "Paid Services" and can be issued online or offline.
+Article 1 (Purpose)
+These terms and conditions aim to regulate the conditions of use, rights, obligations, and responsibilities between "members" and "the company" related to Toonies (including web, mobile site, app services, and future developed content, hereinafter referred to as "Toonies") operated by Stella& Co., Ltd. (hereinafter referred to as "the company").
 
-Article 3. [Compliance with Laws and Regulations]
-• In providing "Content" to "Members," "the Company" shall comply with the "Act on Consumer Protection in Electronic Commerce, etc.", the "Act on Fair Labeling and Advertisement, etc.", the "Act on the Regulation of Terms and Conditions," the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc.", the "Copyright Act," the "Personal Information Protection Act," the "Youth Protection Act," the "Content Industry Promotion Act," and the "Content User Protection Guidelines" established by the Minister of Culture, Sports and Tourism, and other relevant laws and regulations.
+Article 2 (Definition of Terms)
+The definitions of terms used in these terms and conditions are as follows. For terms not defined in each item, the definitions shall follow the relevant laws and regulations and service guidelines.
 
-Article 4. [Interpretation of Terms]
-Matters not stipulated in these Terms and the interpretation of these Terms shall be governed by the "Act on Consumer Protection in Electronic Commerce, etc.", the "Act on Fair Labeling and Advertisement, etc.", the "Act on the Regulation of Terms and Conditions," the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc.", the "Copyright Act," the "Personal Information Protection Act," the "Youth Protection Act," the "Content Industry Promotion Act," the "Content User Protection Guidelines" established by the Minister of Culture, Sports and Tourism, other relevant laws and regulations, or established customs.
+1. Content: Information or data expressed in codes, characters, voice, sound, images, or video used in the "information and communications network" as defined in Article 2, Paragraph 1, Item 1 of the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc.", which is produced or processed in paper book form and electronic form to enhance its preservation and use.
+2. Service: Refers to content services (including web, mobile web, and app services) and all related services provided by "the company".
+3. Company: Refers to an entity engaged in economic activities related to the "content" industry that provides content services (including web, mobile web, and app services) and related services, which in these terms refers to Stella& Co., Ltd.
+4. Member: Refers to a person who has entered into a usage contract with "the company", receives information announced by "the company", and can use the services provided by "the company".
+5. Operator: Refers to a person who operates the service according to the service operation rules set by "the company".
+6. Post: Refers to information or materials such as text, images, voice, video, and links created by "members" in the process of using the service.
+7. Paid Service: Refers to "the company's" service that "members" can use by paying a certain amount to "the company".
+8. Payment: Refers to paying a certain amount to "the company" or a third party designated by "the company" through various payment methods to use the "Paid Service" provided by "the company".
+9. Regular Subscription: Refers to a "Paid Service" usage method where usage fees for monthly/yearly usage periods are regularly charged through a pre-registered payment method for "members" to use the "Paid Service", and the usage period is automatically renewed. When canceling a "Regular Subscription", the "Paid Service" can be used normally during the remaining usage period for which payment has been made, and automatic payment will not be made from the next usage period.
+10. Subscription and Coupon (or Gift Certificate): Refers to a usage right for "the company's" "Paid Service" and can be issued online or offline.
+11. Star: Refers to virtual data required for users to use Toonies' content or services.
+12. Point (Mileage): Refers to virtual data that the company can arbitrarily set, provide, or adjust for efficient use of the service.
 
-Article 5. [Effect and Amendment of Terms]
-① "The Company" shall post the contents of these Terms on the service page so that "Members" can easily understand them.
-② "The Company" shall post the contents of these Terms, company name, representative's name, address, email address, business registration number, telecommunications sales registration number, and personal information manager, etc., on the service screen so that "Members" can easily understand them. The Terms may be made available to "Members" through a linked screen.
-③ "The Company" may revise these Terms within the limits that do not violate the "Act on the Regulation of Terms and Conditions," the "Act on Promotion of Information and Communications Network Utilization and Information Protection (hereinafter referred to as the 'Information and Communications Network Act')", the "Content Industry Promotion Act," the "Act on Consumer Protection in Electronic Commerce, etc.", and the "Content User Protection Guidelines" established by the Minister of Culture, Sports and Tourism, and other relevant laws and regulations.
-④ If "the Company" revises the Terms, it shall specify the effective date and reasons for revision and post the revised Terms along with the current Terms in accordance with Paragraph 1 for a period of 7 days before the effective date and for a reasonable period after the effective date. The revised Terms shall take effect on the effective date. However, if a significant change occurs in the user's rights, the contents before and after the change must be disclosed, and if necessary, the user's consent may be obtained again.
-⑤ Even if "the Company" has clearly notified or announced to "Members" in accordance with the preceding paragraph that "if they do not express their objection within the period from the date of notice to the effective date of the revised Terms, it will be deemed as consent," if "Members" do not express their objection, they will be deemed to have consented to the revised Terms. If "Members" do not agree to the revised Terms, they may terminate the usage agreement in accordance with the provisions of these Terms of Service.
-⑥ These Terms shall apply from the date "Members" agree to these Terms until they withdraw from membership. However, some clauses of these Terms may remain effective even after membership withdrawal.
-⑦ "The Company" shall take necessary technical measures to allow "Members" to print and verify the entirety of these Terms.
+Article 3 (Compliance with Laws)
+In providing "content" to "members", "the company" complies with relevant laws such as the "Act on Consumer Protection in Electronic Commerce, etc.", "Act on Fair Labeling and Advertising", "Act on the Regulation of Terms and Conditions", "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc.", "Copyright Act", "Personal Information Protection Act", "Juvenile Protection Act", "Content Industry Promotion Act", and "Content User Protection Guidelines" set by the Minister of Culture, Sports and Tourism.
 
-Article 6. [Notice to Members]
-① If "the Company" needs to inform "Members" of something, it may do so individually through the contact information, such as email address and phone number, disclosed by "Members," or through the app using methods such as pop-up messages and notification messages. However, if individual notification is difficult due to "Members" not providing or changing their contact information, deleting or not using the app, etc., "the Company" may substitute individual notification by posting it on the company's announcements for 7 days or more.
-② In the case of notification to all "Members," "the Company" may substitute individual notification in the preceding paragraph by posting it on "the Company's" announcements for 7 days or more. However, for matters that have a significant impact on the transaction of "Members" themselves, notification shall be made in the same manner as in the preceding paragraph.
+Article 4 (Interpretation of Terms)
+Matters not specified in these terms and the interpretation of these terms shall be governed by the "Act on Consumer Protection in Electronic Commerce, etc.", "Act on Fair Labeling and Advertising", "Act on the Regulation of Terms and Conditions", "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc.", "Copyright Act", "Personal Information Protection Act", "Juvenile Protection Act", "Content Industry Promotion Act", "Content User Protection Guidelines" set by the Minister of Culture, Sports and Tourism, other relevant laws and regulations, or commercial practices.
 
-Article 7. [Obligations of the Company]
-① "The Company" shall not engage in any act that violates laws and regulations or these Terms, and shall make its best efforts to provide continuous and stable services.
-② "The Company" shall establish and operate a security system suitable for the current level of development of internet security technology and the nature of the services provided by "the Company" so that "Members" can safely use the services.
-③ "The Company" may restrict or suspend all or part of the "Content" in the event that normal service provision is impossible due to national emergencies, power outages, service facility failures, or a surge in service usage. However, in such cases, "the Company" shall notify "Members" of the reasons and duration, before or after the event.
-④ "The Company" shall handle opinions or complaints raised by "Members" using the service if they are deemed justified. However, if immediate processing is difficult, "the Company" shall inform "Members" of the reasons and processing schedule. The processing process shall be conveyed to "Members" through methods such as bulletin boards.
-⑤ "The Company" shall compensate for any damages incurred by "Members" due to a violation of "the Company's" obligations stipulated in these Terms.
+Article 5 (Effectiveness and Changes of Terms)
+1. "The company" posts the content of these terms on the service screen so that "members" can easily know them.
+2. "The company" posts the content of these terms, company name, representative's name, address, email address, business registration number, mail-order business report number, and personal information management officer on the service screen so that "members" can easily know them. The terms can be made available to "members" through a linked screen.
+3. "The company" may revise these terms within the scope that does not violate relevant laws such as the "Act on the Regulation of Terms and Conditions", "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." (hereinafter referred to as the "Information and Communications Network Act"), "Content Industry Promotion Act", "Act on Consumer Protection in Electronic Commerce, etc.", and "Content User Protection Guidelines" set by the Minister of Culture, Sports and Tourism.
+4. When "the company" revises the terms, it shall specify the application date and reasons for revision and notify them along with the current terms in the manner specified in Paragraph 1 from 7 days before the application date of the revised terms to a considerable period after the application date, and the revised terms shall take effect on the application date. However, when significant changes to user rights occur, the content before and after the change must be disclosed, and user consent may be obtained again if necessary.
+5. If "the company" clearly notifies or informs "members" that 'if they do not express their intention to refuse from the date of notification to the implementation date of the revised terms, they are deemed to have approved' as stated in the previous paragraph, and "members" do not express their intention to refuse, they are deemed to have agreed to the changed terms. If they do not agree to the changed terms, "members" can terminate the usage contract according to the provisions of these terms of use.
+6. "The company" takes necessary technical measures so that "members" can print the entire terms and confirm them.
+7. In principle, these terms apply from the day "members" agree to these terms until they withdraw their membership. However, some provisions of these terms may remain valid even after membership withdrawal.
 
-Article 8. [Protection and Management of Personal Information]
-① "The Company" may collect the minimum necessary personal information of "Members" to provide services.
-② When "the Company" collects personal information that can identify "Members," it shall obtain the consent of the "Member" in question.
-③ "The Company" may not use the information provided by "Members" in membership applications, etc., and the information collected under Paragraph 1 for purposes other than the intended purpose or provide it to third parties without the consent of "Members," and "the Company" shall bear all responsibility for any violation. However, the following cases are exceptions:
-  1. Cases where it is necessary for compiling statistics, academic research, or market research, and the information is provided in a form that cannot identify specific individuals.
-  2. Cases where it is necessary for settling fees for providing "Content."
-  3. Cases where it is necessary for identity verification to prevent misuse.
-  4. Cases where there are unavoidable reasons necessary due to the provisions of the Terms or laws and regulations.
-④ "Members" may withdraw their consent under Paragraph 2 and Paragraph 3 at any time, but if they withdraw their consent to the collection or provision of information necessary for service provision, service provision may be restricted.
-⑤ "The Company" shall strive to protect the personal information of "Members" in accordance with the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." and other relevant laws and regulations. The relevant laws and regulations and "the Company's" personal information protection policy shall apply to the protection and use of personal information.
-⑥ "The Company" shall not be liable for the disclosure of "Members'" information due to the fault of "Members" without the fault of "the Company."
+Article 6 (Member Notification)
+1. When "the company" has matters to inform "members", it can individually notify through contact information such as email addresses and phone numbers disclosed by "members", or individually notify through pop-up messages, notification messages, etc. via the app. However, if individual notification is difficult due to "members" not providing contact information, changing it, deleting or not using the app, etc., it can be substituted by posting on the company's notice board for 7 days or more.
+2. For notifications to all "members", "the company" can substitute individual notifications mentioned in the previous paragraph by posting on the company's notice board for 7 days or more. However, for matters that have a significant impact on "members'" own transactions, notification shall be made in the same manner as in the previous paragraph.
 
-Chapter 2. Members
+Article 7 (Company's Obligations)
+1. "The company" does not act contrary to laws and these terms and makes the best efforts to provide continuous and stable services.
+2. "The company" operates a security system appropriate to the current level of internet security technology development and the nature of the services provided by "the company" so that "members" can safely use the services.
+3. "The company" may restrict or suspend all or part of the "content" in case of national emergency, power outage, service facility failure, or service use congestion that makes normal service provision impossible. However, in this case, the reason and period shall be notified to "members" before or after the fact.
+4. "The company" must handle opinions or complaints raised by "members" using the service if they are deemed reasonable. However, if immediate handling is difficult, "the company" shall convey the reason and handling schedule to "members". At this time, the handling process shall be conveyed to "members" through methods such as bulletin boards.
+5. "The company" shall compensate for damages incurred by "members" due to violation of "the company's" obligations specified in these terms.
 
-Article 9. [Membership Registration]
-① "Members" can register for membership through Stella& Co., Ltd.'s web/app site using their ID and email address to use "the Company's" services. However, if use is difficult with an ID and email address, the Company may allow separate membership registration methods according to its exceptional policy.
-② Individuals under the age of 14 cannot register for membership.
-③ An "ID" is required during the membership registration process, and "Members" can modify their "ID" during or after registration.
-④ "The Company" shall deem "Members" to have agreed to these Terms if they click the "Agree" button on the membership registration page or start using this service, and a membership registration contract is concluded by accepting such an application after applying for membership registration.
-⑤ Before completing service membership registration, "Members" must understand in advance the situation announced by "the Company" regarding the "Paid Service" and supported devices and ensure accurate transactions without errors.
-⑥ Upon completion of a membership registration application, "the Company" shall promptly accept it after confirming the application contents. However, "the Company" may withhold or refuse acceptance or terminate the usage agreement afterward in the following cases:
-  1. Cases where membership has been previously lost due to these Terms.
-  2. Cases where the name of another person is used.
-  3. Cases where a member under the age of 14 has falsely registered.
-  4. Cases where false information is entered or the information provided by the Company is not entered.
-  5. Cases where approval is impossible due to the fault of the "Member."
-  6. Cases where the application violates relevant laws and regulations or other stipulated provisions.
-  7. Cases where service provision is impossible due to lack of technology and equipment.
-⑦ This service usage agreement is established when "the Company's" acceptance reaches the "Member."
-⑧ After completion of registration, a "My Library" exclusive to "Members" is created.
-⑨ "The Company" may request real-name verification and identity verification through specialized institutions depending on the type of "Member."
-⑩ "The Company" may impose usage restrictions or restrictions by rating to ensure compliance with ratings and ages according to the "Act on the Promotion of Film and Video," the "Youth Protection Act," etc., for "Members."
-⑪ "Members" can view and modify their personal information at any time through the personal information management screen.
-⑫ If the information entered at the time of membership registration has changed, "Members" must modify it through the app or inform "the Company" of the changes through the customer center, etc. "The Company" shall not be responsible for any disadvantages arising from not informing "the Company" of the changes.
+Article 8 (Personal Information Protection)
+1. "The company" may collect the minimum necessary personal information of "members" to provide services.
+2. When "the company" collects personal information that can personally identify "members", it shall obtain the consent of the "members" concerned.
+3. "The company" cannot use the information provided by "members" in applications such as usage applications and information collected pursuant to Paragraph 1 for purposes other than the intended purpose or provide it to third parties without the consent of "members", and "the company" shall be responsible for all liabilities in case of violation. However, the following cases are exceptions:
+    ① When provided in a form that cannot identify specific individuals for statistical compilation, academic research, or market research purposes
+    ② When necessary for fee settlement according to the provision of "content"
+    ③ When necessary for identity verification to prevent impersonation
+    ④ When there are unavoidable reasons required by the provisions of the terms or laws
+4. "Members" can withdraw their consent under Paragraphs 2 and 3 at any time, but if they withdraw their consent to collect or provide information necessary for service provision, the provision of services may be restricted.
+5. "The company" strives to protect "members'" personal information in accordance with the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." and other relevant laws. The protection and use of personal information are subject to relevant laws and "the company's" personal information protection policy.
+6. "The company" is not responsible for the exposure of "members'" information due to "members'" fault without "the company's" fault.
 
-Article 10. [Obligations of Members]
-① "Members" must modify their information through the information change menu if their information has changed. "Members" themselves are responsible for any losses incurred due to failure to do so.
-② Information necessary for login can only be used by "Members" themselves and cannot be shared with others. If a third party is aware that they are using the "Member's" information, they must immediately notify "the Company" and follow "the Company's" instructions.
-③ "Members" must not engage in any acts that infringe on copyrights, such as copying, selling, editing, exhibiting, distributing, or broadcasting all content received from "the Company" without the prior consent of "the Company."
-④ "Members" must comply with relevant laws and regulations, the provisions of these Terms, usage guidelines, service usage instructions, precautions announced regarding the service, and matters notified by "the Company," and must not engage in acts that interfere with "the Company's" business or the following acts:
-  1. Acts of registering false information when applying for membership or changing member information.
-  2. Acts of attempting abnormal registration or interfering with service provision during events, etc.
-  3. Acts of collecting, storing, disclosing, or misusing others' information.
-  4. Acts of providing member information to others without the consent of the Company, allowing others to use the Company's services, and transferring or gifting service usage rights or other contractual statuses to others.
-  5. Acts of using illegal programs that circumvent technical protection measures in violation of the Copyright Act, etc., and using the service through abnormal channels.
-  6. Acts of copying, modifying, distributing, selling, transferring, renting, or allowing others to use part of the service, content, or included software without the consent of the Company, and acts of reverse engineering or attempting to extract source code, copying, disassembling, imitating, or otherwise modifying the service.
-  7. Acts of impersonating "the Company's" operators, employees, or "the Company" or misusing related information.
-  8. Acts of changing or transmitting information posted by "the Company" on the service.
-  9. Acts of infringing on the intellectual property rights of "the Company" and other third parties, such as copyrights, trade secrets, and patents.
-  10. Acts of publicly disclosing or using the provided service in public places for purposes other than private purposes or for profit.
-  11. Acts of distributing false information related to "the Company" or "the Company's" services or using the service abnormally for the purpose of personal financial gain.
-  12. Acts of harassing, threatening, or defaming "the Company," other "Members," and other third parties.
-  13. Acts of publicly disclosing or posting obscene, violent messages, or other information that violates public order and morals.
-  14. Acts of interfering with business through abusive language, verbal abuse, sexual harassment, or repetitive complaints when contacting the customer center.
-  15. Illegal acts that violate current laws and regulations.
-  16. Any other acts that interfere with the sound operation of "the Company's" services.
-⑤ If "Members" engage in the acts prohibited in the preceding paragraph, "the Company" may take appropriate measures, such as service suspension/contract termination, service usage restrictions, and reporting to investigative agencies, depending on the severity of the violation.
-⑥ "Members" may not engage in business/advertising activities, etc., contrary to the purpose and method specified by "the Company" without the prior permission of "the Company," and the use of the service by "Members" must not infringe on "the Company's" property rights, business rights, or business model.
-⑦ To use youth-harmful media, members must be 19 years of age or older (including those who have reached January 1 of the year they turn 19), and must receive adult verification through the authentication method stipulated in the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." and the "Youth Protection Act." If adult verification is not received, use of the service will be restricted.
-⑧ "The Company" shall not be liable for any problems arising from "Members'" violation of the obligations stipulated in this Article.
+Chapter 2 Members
 
-Article 11. [Provision of Information and Posting of Advertisements]
-① "The Company" may post advertisements using information entered by "Members" related to service operation. "Members" agree to the posting of customized advertisements displayed when using the service.
-② "The Company" may provide "Members" with various information deemed necessary during service use through methods such as the homepage, content screen, and announcements, and may provide it via email, etc., if it obtains the prior consent of "Members." However, "Members" may refuse to receive such information at any time by contacting "the Company" via email, etc.
-③ "The Company" shall not be liable for any losses or damages incurred by "Members" participating in, communicating with, or transacting with advertisers' promotional activities posted on the service or through the service.
-④ Except for transaction-related information and responses to customer inquiries in accordance with relevant laws and regulations, "Members" can refuse to receive advertisements at any time through the management menu.
+Article 9 (Member Registration)
+1. "Members" can register for membership through Stella& Co., Ltd.'s web/app site using ID and email address to use "the company's" services. However, if it is difficult to use ID and email address, separate membership registration means may be allowed according to the company's exception policy.
+2. If "members" are under the age of 14, they cannot register for membership.
+3. An "ID" is required during the membership registration process, and "members" can modify their "ID" during or after registration.
+4. "The company" considers that "members" have agreed to these terms if they click the 'Agree' button on the membership registration page or start using this service, and the membership registration contract is concluded when "the company" approves such application after "members" have applied for membership registration.
+5. "Members" must understand in advance the situation announced by "the company" regarding the "Paid Service" and supported devices before completing service membership registration, and ensure accurate transactions without mistakes.
+6. When "members" complete the membership registration application, "the company" shall confirm the application content and approve it without delay. However, "the company" may reserve or reject approval, or terminate the usage contract later in the following cases:
+    ① If membership qualification has been lost previously under these terms
+    ② If using someone else's name
+    ③ If a member under 14 years old falsely applied
+    ④ If false information is entered or information required by the company is not entered
+    ⑤ If approval is impossible due to "members'" fault
+    ⑥ If applying in violation of relevant laws, other regulations, and all matters stipulated
+    ⑦ If service provision is not possible due to lack of technology and equipment
+7. This service usage contract is established at the point when "the company's" approval reaches "members".
+8. After completion of registration, a "My Library" exclusive to "members" is created.
+9. "The company" may request real name verification and personal authentication through specialized institutions depending on the type of "members".
+10. "The company" may restrict usage or impose grade-specific restrictions on "members" to comply with grades and ages according to the "Act on the Promotion of Motion Pictures and Video Products" and "Juvenile Protection Act", etc.
+11. "Members" can view and modify their personal information at any time through the personal information management screen.
+12. If there are changes to the details provided during membership registration, "members" should modify them through the app or inform "the company" of the changes through customer service, etc. "The company" is not responsible for any disadvantages caused by not informing "the company" of the changes.
 
-Article 12. [Membership Withdrawal and Suspension of Membership]
-① "Members" may request membership withdrawal or termination of the usage agreement from "the Company" at any time, and "the Company" shall immediately process the request for membership withdrawal or termination of the usage agreement.
-② When withdrawing from membership, previously purchased or downloaded "Content," created "Postings," and various types of stars cannot be used. Even if "the Company" has guided on preservation methods and deletion, "the Company" shall not be responsible if "Members" do not take personal preservation measures.
-③ "The Company" may terminate membership or suspend membership if "Members" fall under any of the following reasons:
-  1. Cases where false information is registered when applying for membership or using "Content."
-  2. Cases where the electronic commerce order is threatened by interfering with the service use of others or misusing their information.
-  3. Cases where it is confirmed that membership was obtained through unfair means, such as using others' information.
-  4. Cases where prohibited information (computer programs, etc.) is used, transmitted, or posted by "the Company."
-  5. Cases where the copyrights or other intellectual property rights of "the Company" or a third party are infringed.
-  6. Cases where the reputation of "the Company" or a third party is damaged or business is interfered with.
-  7. Cases where acts prohibited by laws and regulations or these Terms or acts against public order and morals are committed in the process of using "the Company's" services.
-  8. Cases where acts of evading or disabling "the Company's" technical protection measures are committed.
-  9. Cases where "the Company's" services are used for purposes other than normal use or in an unfair manner.
-  10. Cases where the service is abnormally misused for the purpose of interfering with "the Company's" business.
-  11. Cases where the provisions of Article 10, Paragraph 4 of these Terms are violated.
-④ After "the Company" restricts/suspends "Member" status, if the same act is repeated twice or more or if the reason is not corrected within 30 days, "the Company" may cause "Member" status to be lost.
-⑤ If "the Company" causes "Member" status to be lost, it shall cancel the "Member" registration. In this case, "the Company" shall notify the "Member," and before canceling the "Member" registration, it shall provide the "Member" with an opportunity to explain for at least 30 days. If the explanation provided by the "Member" is justified, "the Company" shall immediately restore the "Member's" status. However, if no explanation is provided during the explanation period set by "the Company," it shall be deemed as consent to the cancellation of "Member" registration.
-⑥ When withdrawing from membership or terminating the usage agreement, "Members" must directly take necessary measures for payment, exchange, refund, and complaint handling of transactions not yet completed between "the Company" and themselves. Even if "Members" withdraw from membership or terminate the usage agreement, the clauses regarding the responsibility of "Members" arising from transactions before membership withdrawal or termination of the usage agreement shall remain effective.
+Article 10 (Member's Obligations)
+1. If information changes, "members" must modify it through the information change menu. Damages caused by not changing are the responsibility of "members" themselves.
+2. Information necessary for login can only be used by "members" themselves and should not be shared with others. If it is recognized that a third party is using "members'" information, it should be immediately reported to "the company" and follow "the company's" guidance.
+3. "Members" must not engage in any acts that infringe on copyrights, such as reproducing, selling, editing, displaying, distributing, broadcasting, etc., all content received from "the company" without "the company's" prior consent.
+4. "Members" must comply with relevant laws, provisions of these terms, usage guidelines, service usage guides, and precautions announced in relation to services, matters notified by "the company", etc., and must not engage in acts that interfere with "the company's" business and the following acts:
+    ① Registering false content when applying for registration or changing member information
+    ② Attempting abnormal registration or interfering with service provision in the process of participating in events, etc.
+    ③ Collecting, storing, disclosing, or improperly using others' information by impersonation
+    ④ Providing member information to others without the company's consent to allow others to use the company's services, and transferring or donating usage rights or other contractual positions of the service to others
+    ⑤ Using the service through abnormal paths such as using illegal programs that violate the Copyright Act to neutralize technical protection measures
+    ⑥ Copying, modifying, distributing, selling, transferring, lending, or allowing others to use the service, content, or software included therein without the company's consent, and attempting to reverse engineer or extract source code, or reproducing, disassembling, or imitating the service or otherwise transforming it
+    ⑦ Impersonating or misappropriating information related to the company's operators, executives and employees
+    ⑧ Changing or transmitting information posted by the company on the service
+    ⑨ Infringing on intellectual property rights such as copyrights, trade secrets, patent rights, etc. of the company and other third parties
+    ⑩ Publicly disclosing or using for profit purposes the provided services in public places other than private purposes
+    ⑪ Distributing false information or abnormally using services related to the company or the company's services for one's own property interests
+    ⑫ Harassing, threatening, or damaging the reputation of the company, other members, and other third parties
+    ⑬ Disclosing or posting information that is obscene, violent, or otherwise contrary to public order and morals
+    ⑭ Interfering with work through abusive language, verbal abuse, sexual harassment, repetitive complaints when inquiring at the customer center
+    ⑮ Illegal acts that violate current laws
+    ⑯ Any act that interferes with the company's sound service operation
+5. If "members" engage in prohibited acts in the previous paragraph, "the company" may take appropriate measures such as restricting service use including suspension of service use/termination of contract, reporting to investigative agencies, etc., depending on the severity of the violation.
+6. "Members" cannot engage in business/advertising activities, etc. contrary to the usage purpose and method set by "the company" without "the company's" prior permission, and "members'" service use must not infringe on "the company's" property rights, business rights, or business models.
+7. To use media harmful to juveniles, members must be over 19 years old (including those who reach January 1 of the year they turn 19), and must receive adult authentication through authentication means provided by the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." and "Juvenile Protection Act". If adult authentication is not received, the use of the relevant service is restricted.
+8. "The company" is not responsible for any problems arising from "members'" violation of obligations stipulated in this article.
 
-Chapter 3. Services
+Article 11 (Provision of Information and Placement of Advertisements)
+1. "The company" may place advertisements using information entered by "members" in relation to service operation. "Members" agree to the placement of customized advertisements exposed during service use.
+2. "The company" may provide various information deemed necessary during service use to "members" through methods such as homepage, content screen, notices, etc., and may provide it through methods such as email with "members'" prior consent. However, "members" can refuse reception at any time by emailing "the company", etc.
+3. "The company" is not responsible for losses and damages incurred by "members" participating in advertisers' promotional activities or communicating or trading through advertisements poste
 
-Article 13. [Provision and Use of Services]
-① "The Company" shall commence service from the time it accepts a "Member's" application for registration. However, for some services, service will commence from a designated date, and for "Paid Services," service will be provided after payment is completed.
-② "The Company" may provide "Members" with a free usage period for purposes such as service experience.
-③ The service usage time shall be 24 hours a day, 7 days a week (00:00-24:00), unless it is impossible due to "the Company's" business or technical reasons.
-④ "Members" can use the service on up to 5 devices (PCs, tablets, smartphones, etc.) with one account, but cannot use the service by connecting simultaneously. This clause may be changed depending on the circumstances of the Company.
-⑤ The services provided by "the Company" and all content used through these services must be used only for personal and non-commercial purposes. Even for non-commercial purposes, they must not be shared with others without the explicit consent of the Company. "Members" must also not use the service for public performances or for profit.
-⑥ To provide stable services and protect copyrights, "the Company" may restrict the number of book downloads for "Members" without prior notice if abnormal book download frequencies are detected or if the use of illegal programs that disable technical protection measures is detected.
-⑦ "The Company" may modify, change, or discontinue part or all of the service according to "the Company's" business plan and service operation policy, and shall not provide separate compensation to "Members" unless otherwise specified in relevant laws and regulations. However, if it is deemed disadvantageous to "Members," "the Company" shall notify them through phone, email address, and in-app notifications.
-⑧ If "Members" access "the Company's" site through a wired/wireless network or use the services through "the Company's" application installed on a device connected to a wired/wireless network, or if they use "the Company's" services from overseas, separate data communication charges will be incurred according to the telecommunication plan concluded between the "Member" and their telecommunication carrier. Data communication charges are separate from "Paid Services," and "the Company" shall not be responsible for data communication charges.
-⑨ "The Company" may have separate management policies for "Postings," etc., regarding the use of services in addition to these Terms. Through this, the maximum number of days and capacity for which "Postings" or other posted content are retained by the service, the maximum number of connected devices, etc., may be limited. "The Company" shall not be liable for the deletion or failure to store "Postings" or other posted content stored in the service without the fault of "the Company."
-⑩ "The Company" may limit the service provision area to the Republic of Korea under these Terms.
+Article 12 (Membership Withdrawal and Suspension of Membership Qualification)
+1. 'Members' can request membership withdrawal or termination of the usage contract from the 'Company' at any time, and the 'Company' will process the request for membership withdrawal or termination of the usage contract immediately.
+2. Upon membership withdrawal, 'Members' will no longer be able to use previously purchased or downloaded 'Content', written 'Posts', various forms of stars, etc. If 'Members' fail to take measures such as personal preservation despite the 'Company's' guidance on preservation methods and deletion, the 'Company' shall not be held responsible.
 
-Article 14. [Contract Renewal and Regular Payment]
-① If the free usage period of "Content" expires and is converted to a paid service, "the Company" shall notify "Members" in detail on the payment page 7 days in advance and obtain their consent.
-② "The Company" shall obtain "Members'" consent for regular payment when initially applying for a subscription, and shall notify the next payment date on the payment page in advance if it wishes to renew the "Paid Service" contract.
+3. The 'Company' may withdraw membership or suspend membership qualification if 'Members' fall under any of the following reasons:
+    ① Registering false information when applying for membership, 'Content' usage, or making changes
+    ② Interfering with other people's use of the service or threatening the order of electronic commerce by stealing information
+    ③ Confirmation of registration through improper methods such as using others' information
+    ④ Using, transmitting, or posting information (such as computer programs) prohibited by the 'Company'
+    ⑤ Infringing on the copyrights or other intellectual property rights of the 'Company' or third parties
+    ⑥ Damaging the reputation of or interfering with the business of the 'Company' or third parties
+    ⑦ Engaging in actions prohibited by laws or this agreement or contrary to public order and morals while using the 'Company's' services
+    ⑧ Circumventing or neutralizing the 'Company's' technical protection measures
+    ⑨ Using the services provided by the 'Company' for purposes other than normal use or in an unfair manner
+    ⑩ Abnormally abusing the service with the purpose of interfering with the 'Company's' business
+    ⑪ Unauthorized use of the company's services through repeated refunds by abusing the 'Company's' refund policy
+    ⑫ Violating the 'Company's' service policies
+4. If the same action is repeated twice or more or the reason is not corrected within 30 days after the 'Company' has restricted/suspended 'Member' qualification, the 'Company' may revoke 'Member' qualification.
+5. When the 'Company' revokes 'Member' qualification, it cancels the 'Member' registration. In this case, the 'Company' notifies the 'Member' and provides an opportunity for explanation by setting a period of at least 30 days before canceling the 'Member' registration. If the 'Member's' explanation is justified, the 'Company' immediately restores the 'Member's' qualification. However, if no explanation is provided during the explanation period set by the 'Company', it is considered as consent to cancel the 'Member' registration.
+6. 'Members' must directly take necessary measures such as payment of consideration, exchange, refund, and complaint handling for transactions that have not been completed between the 'Company' and themselves until membership withdrawal or termination of the usage contract. Notwithstanding the 'Member's' membership withdrawal or termination of the usage contract, the provisions regarding the 'Member's' responsibility related to transactions prior to membership withdrawal or termination of the usage contract in this agreement shall remain in effect.
 
-Article 15. [Changes, Suspension, and Remedy of Service Use]
-① In the case of a significant defect that makes it difficult to use "Content" normally, remedies for "Members," etc., shall be as follows:
-  1. "The Company" shall resupply the complete "Content."
-  2. If "the Company" fails to resupply the complete "Content" within 24 hours, it shall pay damages within the limit of the amount paid by "Members."
-② In the case of minor defects where normal use of "Content" is possible, remedies for "Members," etc., shall be as follows:
-  1. "The Company" shall resupply the complete "Content."
-  2. If "the Company" fails to resupply the complete "Content" within 24 hours, it shall pay damages equivalent to the amount corresponding to the defect from the amount paid by "Members."
+Chapter 3 Service
 
-Article 16. [Notice of Restrictions on Content Usage Environment and Download/Playback Restrictions]
-① "Members" must download and play content only through the mobile app viewer provided by "the Company," and if they use it through abnormal channels, "the Company" may restrict service use and claim damages for any resulting losses.
-② During the "Paid Service" usage period, "Members" can redownload the allowed "Content" files or extend the playback period for downloaded files.
-③ Playback of "Content" files downloaded for "Paid Service" use is only possible during the "Paid Service" usage period. If the "Paid Service" usage period expires, the usage fee is not paid, or the subscription service is canceled, etc., resulting in the termination of the "Paid Service," the downloaded "Content" files can no longer be played.
+Article 13 (Provision and Use of Service)
 
-Article 17. [Attribution of Rights and Use of Works]
-① "Members" retain the copyright to text, images, voice, videos, links, and other information (hereinafter referred to as "Postings") created by "Members" in the process of using the service, and "Members" themselves are responsible for any infringement of the intellectual property rights of others.
-② If "the Company" modifies, edits, or uses "Members'" posted "Postings" to create secondary "Content," it shall obtain the permission of "Members," and "Members" may delete their created "Postings" at any time.
-③ If "Postings" registered by "Members" are deemed to violate relevant laws and regulations such as the "Copyright Act," or infringe on the rights of others, such as invasion of privacy or defamation, "the Company" may temporarily block access to or delete the "Postings" in question.
-④ "The Company" holds the copyright to all "Content" created and provided by "the Company."
-⑤ "Members" must not commercially use the materials posted on the service, such as arbitrarily processing or selling information obtained by using the service, or allowing third parties to use it.
-⑥ Unless "the Company" grants explicit rights to use the service's brand characteristics through a separate written agreement with "Members," "the Company" shall not grant "Members" the right to use "the Company's" or service's name, trademark, service mark, logo, domain name, and other identifiable brand characteristics.
-⑦ "Members" permit other "Members" to use "Postings" within the service or "the Company" to use "Postings" in the following ways and conditions. Even in this case, "Members" may request deletion, non-disclosure, etc., of the "Postings" at any time.
-  1. Use of all "Postings" for the purpose of providing "Members'" "Postings" within the service to other "Members" or allowing other "Members" to use them.
-  2. Utilization of "Postings" to the extent necessary for service promotion (including methods such as editing and modifying "Postings" for creating promotional materials or using them on the homepage main screen cover, etc.).
-  3. Utilization for research purposes such as statistical analysis for service improvement (including methods such as using them as statistical data for "Content" planning and user environment improvement).
-⑧ "The Company" may use "Members'" "Postings" outside the service for service operation, exhibition, and promotion, etc., with separate permission from "Members." In this case, "the Company" shall not provide "Members'" personal information to third parties without separate consent.
-⑨ "The Company" may change or move the posting location of "Postings" due to service policies or integration of services operated by "the Company," and shall notify "Members" in advance in such cases.
+1. The 'Company' starts the service from the time it accepts the 'Member's' application for membership. However, for some services, the service starts from a designated date, and for 'Paid Services', the service is provided after payment is completed.
+2. The 'Company' may provide a free usage period to 'Members' for purposes such as service experience.
+3. The service usage time is operated 24 hours a day (00:00-24:00) year-round in principle, except when it is impossible due to the 'Company's' business or technical reasons. However, the company may temporarily suspend the service on days or times set by the company for regular system maintenance, expansion, and replacement, and temporary service suspension due to scheduled work is notified in advance through the site.
+4. 'Members' can use the service on up to 5 devices (PC, tablet, smartphone, etc.) with one account, but cannot use the service simultaneously. This provision may be changed according to the company's circumstances.
+5. The services provided by the 'Company' and all content used through this service should only be used for personal, non-commercial purposes, and should not be shared with others even for non-commercial purposes without the explicit consent of the company. Also, 'Members' should not use the service for public performance or profit purposes.
+6. The 'Company' may restrict the number of book downloads for 'Members' without prior notice in case of abnormal situations such as detection of an abnormal number of book downloads or use of illegal programs that neutralize technical protection measures for stable service provision and copyright protection.
+7. The 'Company' may modify, change, or discontinue part or all of the service according to the 'Company's' business plan and service operation policy, and does not provide separate compensation to 'Members' unless there are special provisions in related laws. However, if it is deemed unfavorable to 'Members', this will be notified through phone, email address, in-app notifications, etc.
+8. When 'Members' access the 'Company's' site through wired/wireless networks, use various services through the 'Company's' application installed on devices connected to wired/wireless networks, or use the 'Company's' various services overseas, separate data communication fees are incurred according to the communication rate plan concluded between the relevant telecommunications company and the 'Member'. Data communication fees are separate from 'Paid Services', and the 'Company' is not responsible for data communication fees.
+9. The 'Company' may have separate management policies for 'Posts' in addition to this agreement regarding the use of services. Through this, the maximum number of days and capacity that 'Posts' or other posted content are retained by the service, the maximum number of connected devices, etc. can be limited. The 'Company' is not responsible for deleting or failing to store 'Posts' or other posted content stored in the service without the 'Company's' fault.
+10. The 'Company' may limit the service provision area under this agreement to the Republic of Korea.
 
-Article 18. [Program Installation and Data Collection]
-① If necessary to provide services, "the Company" may guide "Members" to install and update applications and separate programs. However, "Members" may refuse installation and updates if they do not wish to or if their device does not support the service, but service use may be restricted.
-② Programs provided by "the Company" are provided only for the purpose of using the service and enjoying benefits, and no part of this program may be copied, modified, distributed, sold, or rented. However, this may be permitted only if "Members" have a legal basis or receive approval from "the Company."
-③ "The Company" may collect and use data from service-using devices with the prior consent of "Members." However, "the Company" may only use the collected information for service improvement and providing appropriate services and not for any other purpose.
-④ When "Members" install a smartphone app, "the Company" may access the "Member's" smartphone for the following functions with prior consent:
-  1. Phone: Permissions required for voice control when using other media apps while using audiobooks or TTS mode.
-  2. Storage: Permissions required to store e-books and allow continuous viewing.
+Article 14 (Contract Renewal and Regular Payment)
 
-Article 19. [Management of Postings]
-① Responsibility and rights for "Postings" created by "Members" within the service belong to the "Member" who registered the "Posting."
-② "The Company" shall not be responsible for or guarantee the reliability, truthfulness, or accuracy of "Postings" registered by "Members."
-③ If a "Member's" "Posting" includes content that violates relevant laws and regulations such as the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." and the "Copyright Act," the rights holder may suspend or delete the "Posting" in question in accordance with the procedures stipulated in the relevant laws and regulations, and "the Company" may take measures in accordance with the relevant laws.
-④ If "Postings" with the following content are posted on the service, "the Company" may temporarily block access to, delete, or move the "Postings" in question without prior notice:
-  1. Cases of invasion of privacy, defamation, abusive language, or vulgar language that causes discomfort to others.
-  2. Cases of undermining public order and morals and insulting specific groups, organizations, or religions, causing discomfort to others.
-  3. Cases of infringing on the rights of others with unverified or unfounded content.
-  4. Cases of infringing on the copyrights of others.
-  5. Cases where others' personal information is included.
-  6. Cases where advertising/promotional content is included.
-  7. Cases of repeatedly posting the same content.
-  8. Cases of interfering with the smooth provision of services by malicious code, etc.
-  9. Cases where the content is objectively deemed to be related to a crime.
-  10. Cases deemed to violate relevant laws and regulations.
-  11. Other cases deemed to have an unhealthy impact on the smooth use of services by members.
-⑤ "Postings" set to private by "Members" cannot be viewed by others, including "the Company." However, if "the Company" receives a request for information from a court, investigative agency, or other administrative agency, or if required by other laws, "the Company" may allow others with relevant interests, including "the Company," to view the "Postings."
-⑥ If "Members" withdraw from membership or terminate the usage agreement, all "Postings" (including content-related materials) and personal information created by "Members" themselves will be deleted.
-⑦ Notwithstanding Paragraph 6 of this Article, "the Company" shall not be responsible for deleting "Postings" that are re-posted or registered on public bulletin boards by other "Members," comments, reviews, etc., written on other "Members'" content, after "Members" withdraw from membership or terminate the usage agreement, and "Members" must delete such "Postings" in advance.
-⑧ To protect other "Members" and to use them as evidence in response to requests from courts, investigative agencies, or related agencies, "the Company" may retain the "Member's" ID and member information after termination of the membership registration contract in accordance with these Terms and relevant laws and regulations, according to the retention period in "the Company's" personal information handling policy.
+1. When the 'Company' converts from a free usage period to a paid period for 'Content', it notifies in detail on the payment page 7 days in advance and obtains the consent of 'Members'.
+2. When initially applying for a subscription, the 'Company' obtains consent for regular payment from 'Members', and when renewing the 'Paid Service' contract, it notifies the next payment date on the payment page in advance.
 
-Chapter 4. Paid Service Use and Payment
+Article 15 (Changes in Service Use, Suspension, and Remedies)
 
-Article 20. [Paid Services and Members Using Paid Services]
-① "Paid Services" commence from the time "the Company" accepts a "Member's" application for "Paid Service" use (for some services, from the designated date announced in advance after receiving the application). However, if "Paid Services" cannot be commenced due to technical reasons or other circumstances of "the Company," "the Company" shall notify "Members" in advance in accordance with Article 3 (Effect and Amendment of Terms).
-② If "the Company" receives an application for "Paid Service" use from a "Member," it shall notify the "Member" of the contents of the application.
-③ If a "Member" who has received the notification in the preceding paragraph finds inconsistencies, etc., in the statement of intent, they must request correction or modification from "the Company," and "the Company" must process it according to the "Member's" request. However, if "Members" have already paid, the provisions regarding paid payment cancellation, etc., in these Terms shall apply.
-④ "The Company" provides the following "Paid Services," and may add or change the service content depending on "the Company's" circumstances and other conditions:
-  1. Subscription "Paid Service": A service where usage fees are automatically paid monthly/annually through a pre-registered payment method for "Members" to use "Paid Services," and the usage period is automatically renewed.
-⑤ There may be cases where "Members" can no longer download "Content" because the "Content" supply contract between the author of the "Content" registered in "My Library" and "the Company" has ended or changed. However, if such changes occur, "the Company" must promptly provide information on the changed content of the "Content" in question.
-⑥ Depending on whether a contract is concluded between "the Company" and individuals, organizations, or corporations holding copyright rights ("Rights Holders, etc.") and the contents of individual contracts, the use of individual "Paid Services" or "Content" files may be restricted, or the service-available area, "Content" file attributes, etc., may be changed before or after the fact, according to requests from "Rights Holders, etc."
-⑦ If "the Company" receives a request from "Rights Holders, etc.," it may change the types of devices supporting "Paid Services," the number of devices usable per member, and the number of simultaneous users, etc., according to the request.
+1. In case of significant defects that make normal use of 'Content' difficult, remedies for 'Members' are as follows:
+    ① The 'Company' will supply complete 'Content' again.
+    ② If the 'Company' cannot supply complete 'Content' within 24 hours, it will pay compensation within the limit of the amount paid by the 'Member'.
+2. In case of minor defects where normal use of 'Content' is possible, remedies for 'Members' are as follows:
+    ① The 'Company' will supply complete 'Content' again.
+    ② If the 'Company' cannot supply complete 'Content' within 24 hours, it will pay compensation for the amount corresponding to the defective part of the payment made by the 'Member'.
 
-Article 21 [Paid Service Usage Agreement]
-① When a 'member', who has agreed to these terms and conditions, applies to use a 'paid service', and the 'company' approves it (at the point when the 'purchase/payment completion, etc.' of the paid service is displayed to the member procedurally), the 'paid service' usage agreement is established.
-② Before the 'member' pays for the 'paid service', the 'company' provides information through the purchase page so that the 'member' can accurately understand and make transactions without mistakes or errors regarding the following:
-  1. The details of the relevant 'paid service', price, usage period, method of use, conditions and methods for 'subscription cancellation' and termination of 'regular subscription', matters concerning refunds, and matters related to the selection of 'paid services'.
-③ If a reason arises as stipulated in Article 12 [Member Withdrawal and Suspension of Membership] of these terms and conditions, the 'company' may not approve the application to use the 'paid service' or may reserve its approval.
-④ When the 'member' enters all the necessary details when applying to use the 'paid service', the 'member' must enter information that matches the 'member'’s current facts, and the 'member' must accurately provide the 'company' with the selection of the payment method for the 'paid service' that the 'member' wants to use and the payment information necessary for the selected payment method.
-⑤ If the relevant details of the previous paragraph change, the 'member' must notify the 'company' of the changes without delay according to the procedure set by the 'company', and the 'company' must reflect the changes without delay.
-⑥ The 'member' can use the 'paid service' with the payment method designated by the 'company', and the 'member' can use the 'paid service' by using 'subscription tickets', 'coupons' issued through various promotions or events, or gift certificates issued by the 'company' and 'third parties'.
-⑦ Event-based subscription tickets or coupons that the 'member' has received from the 'company' and possesses are not refunded in cash, and they automatically expire if the 'member' terminates their membership agreement or their 'member' status is restricted, and also if 30 days have passed since the date they were provided.
+Article 16 (Notification of Content Usage Environment Restrictions and Download/Playback Limitations)
 
-Article 22 [Special Provisions Regarding Minors' Usage Agreements]
-In principle, payments by a minor 'member' under the age of 19 must be made under the name of a guardian or with the consent of a guardian, and the guardian can cancel a contract of their child (minor) that was concluded without their consent. However, if a minor 'member' deceives the 'company' into believing that the 'member' is an adult by using another adult's resident registration number to use payment information without their consent, etc., the contract cannot be canceled even without the consent of a legal representative.
+1. 'Members' must download and play content only through the mobile app viewer provided by the 'Company'. If used through abnormal channels, the 'Company' may restrict service usage and claim compensation for all damages incurred.
+2. During the 'Paid Service' usage period, 'Members' can re-download allowed 'Content' files or extend the playback period for downloaded files.
+3. 'Members' can only play downloaded 'Content' files during the corresponding 'Paid Service' usage period. If the 'Paid Service' period expires, fees are not paid, or the subscription service is canceled, previously downloaded 'Content' files cannot be played.
 
-Article 23 [Changes to Paid Services]
-① The 'company' can change the price of the 'paid service' it provides as necessary for operational or technical reasons, and the 'company' will notify the 'member' using the 'paid service' in advance according to the method in Article 5 (Effectiveness and Changes of Terms and Conditions).
-② The 'member' can apply to change a 'paid service' that they have already purchased/subscribed to, according to the policies set by the 'company', and they can make an immediate change or a change scheduled for one month later.
-③ If the 'member' selects an immediate change in the previous paragraph, the service will be immediately replaced with the service the 'member' requested to change to. However, the 'company' proportionally distributes the remaining period of the 'member’s' existing purchased/subscribed service and the price of the service requested for change, adjusting the usage period, and applying a new payment cycle.
-④ If the 'member' selects a scheduled change in paragraph 2, the 'member' can use the existing purchased/subscribed service until the expiration date of the usage period of the month the 'member' requested the change, and the change to the requested service will be applied from the day after the expiration date of the usage period.
-⑤ 'Paid services' paid for through Apple and Google IAP (In-App-Purchase) may be sold at different prices, taking into account the fees according to the policies of each of Apple and Google.
-⑥ If the 'company' provides a 'paid service' to a 'member' through an affiliation, the policies of the relevant affiliate will be followed.
+Article 17 (Rights Attribution and Use of Copyrighted Material)
 
-Article 24 [Payment of Fees and Refunds of Overpayments]
-① The 'member' must pay the fee for the 'subscription' according to the payment method presented by the 'company'.
-② If the 'member' has paid an overpayment when paying the fee, the 'company' must refund the full amount of the overpayment using the same method as the payment was made. However, if the 'company' cannot refund the overpayment using the same method, the 'company' must notify the 'member' of this immediately and refund it using a method selected by the 'member'.
-③ If an overpayment occurs due to a reason attributable to the 'member', the 'company' can deduct the costs incurred in refunding the overpayment within a reasonable range and then make the refund.
-④ If the 'company' refuses the 'member'’s request for an overpayment refund, the 'company' must prove that there was no overpayment.
-⑤ The 'company' follows the procedures specified in the following subparagraphs regarding the detailed refund procedure for overpayments and other matters:
-  1. When the 'company' or 'member' becomes aware of the occurrence of an overpayment, they must notify the other party according to the method presented by the company, such as by email or through the service website.
-  2. The 'company' requests the 'member' for information necessary for the refund (member's name, payment proof documents, phone number, refund request account, etc.).
-  3. The 'member' provides the 'company' with the information in subparagraph 2 necessary for the refund.
-  4. The 'company' processes the refund within 14 days from the date the 'member' provided the information (if there is an explicit expression of intent from the 'member', it is offset against the next payment).
+1. 'Members' retain copyright for text, images, audio, video, links, and other information ('Posts') created while using the service. 'Members' are responsible for any intellectual property rights infringement caused by their 'Posts'.
+2. The 'Company' obtains 'Members'' permission to modify, edit, or create derivative 'Content' from 'Posts'. 'Members' can delete their 'Posts' at any time.
+3. The 'Company' may temporarily block or delete 'Posts' that violate laws, infringe on privacy, or defame others.
+4. The 'Company' owns the copyright for all 'Content' it creates and provides.
+5. 'Members' must not commercially use or allow third parties to use information obtained through the service, including processing or selling such information.
+6. The 'Company' does not grant 'Members' rights to use its brand characteristics (company name, trademark, service mark, logo, domain name, etc.) unless explicitly stated in a separate written agreement.
+7. 'Members' allow other 'Members' to use their 'Posts' within the service and permit the 'Company' to use 'Posts' as follows:
+   ① Use of 'Posts' to provide or allow use by other 'Members' within the service
+   ② Use of 'Posts' for service promotion (including editing for promotional materials or use on the homepage main screen)
+   ③ Use for research purposes such as statistical analysis to improve the service (including use as statistical data for content planning and user environment improvement)
+8. The 'Company' may use 'Members'' 'Posts' outside the service for operation, display, or promotion with separate permission. The 'Company' will not provide 'Members'' personal information to third parties without consent.
+9. The 'Company' may change or transfer the location of 'Posts' due to service policy changes or integration of services, with prior notice.
 
-Chapter 5: Supplementary Provisions Regarding Limitation of Liability and Dispute Resolution
+Article 18 (Program Installation, Data Collection, and Permissions)
 
-Article 25 [Compensation for Damages]
-① The 'company' will only compensate for actual damages incurred in the use of the service when the 'content', which is the content of the 'paid service' provided by the 'company', is damaged, impaired, or deleted due to a defect in the service. However, the 'company' is not responsible for any damages incurred by the 'member' without the intent or negligence of the 'company' or its employees.
-② If damages occur to a 'member' using the 'paid service' due to a reason attributable to the 'company' that is not specified in these terms and conditions, the 'company' is liable for compensation in accordance with the provisions of related laws and regulations, such as the "Content User Protection Guidelines," and other commercial customs.
-③ If the 'company' incurs damages due to the 'member' violating these terms and conditions, the 'member' is responsible for compensating the 'company' for those damages.
-④ If the use of the service is restricted or the usage agreement is terminated based on the regulations related to the restriction of use in these terms and conditions due to the 'member'’s negligence, the right to use all 'digital content' held by the 'member' is forfeited, and the 'company' is not obligated to refund the purchase price of the relevant 'digital content'.
+1. The 'Company' may guide 'Members' to install and update applications and separate programs as necessary for providing services. However, 'Members' can refuse installation and updates if unwanted or if their device doesn't support the service, but this may limit service usage.
+2. Programs provided by the 'Company' are solely for using the service and enjoying benefits. No part of these programs may be copied, modified, distributed, sold, or rented. However, 'Members' may be allowed to do so if they have legal grounds or approval from the 'Company'.
+3. The 'Company' can collect and use data from the 'Member's' service usage device with prior consent. However, the 'Company' can only use this information for service improvement and providing appropriate services, and not for any other purpose.
+4. The 'Company' can access 'Members'' smartphones with prior consent for the following functions:
+    ① Phone: Permission needed for voice control when using other media apps during audiobook or TTS mode
+    ② Storage: Permission needed to store e-books and allow continuous access
+5. 'Members' retain copyright for text, images, audio, video, links, and other information ('Posts') created while using the service. 'Members' are also responsible for any intellectual property rights infringement caused by their 'Posts'.
+6. The 'Company' obtains 'Members'' permission to modify, edit, or create secondary 'Content' from 'Posts'. 'Members' can delete their 'Posts' at any time.
+7. If a 'Member's' 'Post' violates related laws such as the "Copyright Act" or infringes on others' rights through privacy invasion or defamation, the 'Company' may temporarily block access to or delete the 'Post'.
+8. The 'Company' owns the copyright for all 'Content' it creates and provides.
+9. 'Members' must not commercially use or allow third parties to use information obtained through the service, including processing or selling such information.
+10. The 'Company' does not grant 'Members' rights to use its brand characteristics (company name, trademark, service mark, logo, domain name, etc.) unless explicitly stated in a separate written agreement.
+11. 'Members' allow other 'Members' to use their 'Posts' within the service and permit the 'Company' to use 'Posts' as follows:
+    ① Use of 'Posts' to provide or allow use by other 'Members' within the service
+    ② Use of 'Posts' for service promotion (including editing for promotional materials or use on the homepage main screen)
+    ③ Use for research purposes such as statistical analysis to improve the service (including use as statistical data for content planning and user environment improvement)
+12. The 'Company' may use 'Members'' 'Posts' outside the service for operation, display, or promotion with separate permission. The 'Company' will not provide 'Members'' personal information to third parties without consent.
+13. The 'Company' may change or transfer the location of 'Posts' due to service policy changes or integration of services, with prior notice.
 
-Article 26 [Limitation of Liability]
-① The 'company' is not liable for service usage disruptions caused by reasons attributable to the 'member', such as failure to comply with the terms and conditions, service usage methods, and usage standards.
-② The 'company' is exempt from liability in cases where the 'members' have engaged in transactions, etc. with each other or with a third party through the service as a medium.
-③ The 'company' can modify, suspend, or change some or all of the services provided free of charge due to the 'company'’s policies or critical operational reasons, and unless otherwise specified in related laws and regulations, the 'company' does not provide separate compensation for this.
-④ The 'company' is not liable for damages incurred by a 'member' or a third party due to the following reasons:
-  1. When the 'paid service' cannot be provided due to a technical defect that is difficult to resolve, such as a natural disaster, war, or suspension of service by a telecommunications carrier, or other force majeure.
-  2. When the 'member' has been negligent in managing their ID or password, etc.
-  3. When service use is impossible due to a public telecommunications line failure that is not within the 'company'’s management area.
-  4. In other cases, due to a disruption of communication services, etc., that are not attributable to the 'company'.
-⑤ The 'company' does not guarantee the reliability, accuracy, etc. of the content of information, data, or facts that a 'member' or a third party has posted or transmitted within the service, and the 'company' is exempt from liability unless there is intentional or gross negligence on the part of the 'company' or its employees.
-⑥ The 'member' is responsible for damages to their computer system or the loss of data or information that they incur by downloading or accessing specific programs or information by using the 'company'’s service based on their own decision.
-⑦ The 'company' is not obligated to intervene in disputes that arise between 'members' or between a 'member' and a third party through the service as a medium. If damages occur due to this, the 'company' is exempt from liability unless there is intentional or gross negligence on the part of the 'company'.
-⑧ The 'company' is not liable for the 'member' not obtaining the desired benefits by using the service, and the 'company' is also exempt from liability for damages, etc., that occur from selecting or using the service.
+Article 19 (Management of Posts)
 
-Article 27 [Jurisdiction]
-① If a dispute arises between the 'company' and a 'member' in relation to service use, the 'company' and the 'member' will sincerely negotiate to resolve the dispute, and if the negotiation does not work out, they can apply for dispute mediation to the Content Dispute Mediation Committee under the "Content Industry Promotion Act".
-② If the dispute is not resolved according to the previous paragraph, both parties can file a lawsuit, and jurisdiction over lawsuits between the 'company' and a 'member' will be based on the 'member'’s address at the time of filing the lawsuit or the location of the 'company'’s headquarters, and if the address or residence is not clear, the court with jurisdiction will be determined in accordance with the Civil Procedure Act.
+1. The responsibility and rights for 'Posts' written by 'Members' within the service belong to the 'Member' who registered the 'Post'.
+2. The 'Company' is not responsible for and does not guarantee the reliability, truthfulness, or accuracy of 'Posts' registered by 'Members'.
+3. If a 'Member's' 'Post' contains content that violates related laws such as the "Act on Promotion of Information and Communications Network Utilization and Information Protection, etc." and the "Copyright Act", rights holders can request the suspension and deletion of the "Post" according to procedures set by relevant laws, and the 'Company' can take measures in accordance with related laws.
+4. The 'Company' may temporarily block access to, delete, or move 'Posts' without prior notice if they contain the following content:
+    ① Content that causes discomfort to others through privacy invasion, defamation, profanity, or vulgar language
+    ② Content that violates public morals or causes discomfort by disparaging specific groups, organizations, or religions
+    ③ Unverified or unfounded content that infringes on others' rights
+    ④ Content that infringes on others' copyrights
+    ⑤ Content that includes others' personal information
+    ⑥ Content that includes advertisements or promotions
+    ⑦ Repeated posting of identical content
+    ⑧ Content that interferes with the 'Company's' smooth service provision, such as malicious code
+    ⑨ Content objectively recognized as being associated with crime
+    ⑩ Content deemed to violate relevant laws
+    ⑪ Other content deemed to have an unhealthy influence on members' smooth service use
+5. 'Posts' set as private by 'Members' cannot be viewed by others, including the 'Company'. However, the 'Company' may allow relevant parties, including the 'Company', to view such 'Posts' if requested by courts, investigative agencies, or other administrative agencies, or as required by law.
+6. When 'Members' withdraw their membership or terminate the usage contract, all 'Posts' (including content-related materials) and personal information created by the 'Member' will be deleted.
+7. Despite Paragraph 6 of this Article, the 'Company' is not responsible for deleting 'Posts' that have been reposted or registered on public bulletin boards by other 'Members' through bookmarking, scrapping, etc., or comments and reviews written on other 'Members'' content, when a 'Member' withdraws or terminates their contract. 'Members' should delete such 'Posts' in advance.
+8. The 'Company' may retain the ID and member information of 'Members' who have violated this agreement and related laws, even after termination of their membership contract, for the retention period specified in the 'Company's' privacy policy and in accordance with relevant laws. This is to protect other 'Members' and to use as evidence upon request from courts, investigative agencies, or related institutions.
 
-Article 28 [Star Payment]
-① Refunds after purchasing stars will be processed using the same payment method that was used for the purchase.
-② Purchased stars cannot be transferred between members.
-③ The period during which purchased stars can be used and canceled/refunded is one year. That is, the usage period and refund period for charged stars are limited to within one year from the time of payment.
+Chapter 4 Paid Service Use and Payment
 
-Article 29 [Payment Cancellation & Refund]
-① A member who has entered into a purchase agreement with the company can request a cancellation and refund of payment as follows:
-  1. After purchasing stars, they can proceed with a cancellation and refund of payment for unused stars.
-  2. Unused stars will be canceled and refunded based on the amount paid at the time of purchase.
-  3. Stars that have already been used cannot be canceled or refunded.
-② If a payment error occurs due to a reason attributable to the company, they can request a cancellation and refund of payment.
-③ If the service is suspended due to a reason attributable to the company, they can request a cancellation and refund of payment.`
+Article 20 (Paid Services and Paid Service Users)
+
+1. The 'Paid Service' begins from the time the 'Company' accepts the 'Member's' application for 'Paid Service' use (for some services, from the designated date announced in advance after receiving the application). However, if the 'Company' cannot start the 'Paid Service' due to technical reasons or other circumstances, it will notify 'Members' in advance according to the method in Article 3 (Effectiveness and Changes of Terms).
+2. When a 'Member' applies for 'Paid Service' use, the 'Company' notifies the 'Member' of the content of the application.
+3. If there are any discrepancies in the intention expressed, the 'Member' who received the notification in the previous paragraph should request correction or modification from the 'Company', and the 'Company' should process it according to the 'Member's' request. However, if the 'Member' has already paid, it follows the provisions regarding paid subscription cancellation in these terms.
+4. The 'Company' provides the following 'Paid Services' and may add or change the service content according to the 'Company's' circumstances and other conditions:
+   ① Regular subscription 'Paid Service': A service where usage fees are automatically charged on a monthly/yearly basis through a pre-registered payment method for 'Members' to use the 'Paid Service', and the usage period is automatically renewed.
+5. There may be cases where 'Members' can no longer download 'Content' registered in 'My Library' due to the termination or change of the 'Content' supply contract between the author of the 'Content' and the 'Company'. However, if such changes occur, the 'Company' must provide information about the changed content of the 'Content' without delay.
+6. The use of individual 'Paid Services' or 'Content' files may be restricted or the content such as service available areas and 'Content' file attributes may be changed before or after, depending on whether a contract is concluded between the 'Company' and individuals, groups, or legal entities holding copyright rights ('Rights Holders, etc.'), the content of individual contracts, and subsequent requests from 'Rights Holders, etc.'.
+7. The 'Company' may change the types of devices supporting 'Paid Services', the number of devices available per member, the number of simultaneous connections, etc., according to requests from 'Rights Holders, etc.' if such requests are made.
+
+Article 21 (Paid Service Usage Contract)
+
+1. The 'Paid Service' usage contract is established when a 'Member' who has agreed to these terms applies for 'Paid Service' use and the 'Company' accepts it (the point at which the 'Purchase/Payment Completed, etc.' indication is procedurally displayed to the member).
+2. Before 'Members' pay for 'Paid Services', the 'Company' provides information through the purchase page so that 'Members' can accurately understand and transact without mistakes or misunderstandings regarding the following matters:
+   ① Content of the 'Paid Service', price, usage period, usage method, conditions and methods for 'Subscription Cancellation' and 'Regular Subscription' termination, refund-related matters, and matters related to the selection of 'Paid Services'
+3. The 'Company' may not accept or may reserve acceptance of 'Paid Service' use applications if reasons stated in Article 12 [Membership Withdrawal and Suspension of Membership Qualification] of these terms occur.
+4. When applying for 'Paid Service' use, 'Members' must provide information that matches their current facts when filling out the necessary details, and must accurately provide the 'Company' with the payment method selection for the 'Paid Service' they wish to use and the payment information required for the selected payment method.
+5. If the relevant matters in the previous paragraph change, 'Members' must notify the changes without delay according to the procedure set by the 'Company', and the 'Company' must reflect the changes without delay.
+6. 'Members' can use 'Paid Services' through payment methods designated by the 'Company', and can use 'Paid Services' using 'Subscription Vouchers', 'Coupons', or gift certificates issued by the 'Company' and 'Third Parties' through various promotions or events.
+7. Event-based subscription vouchers or coupons that 'Members' have received from the 'Company' cannot be redeemed for cash, and they automatically expire if 'Members' terminate their membership contract, have restrictions on their 'Member' qualifications, or 30 days have passed from the date of receipt.
+
+Article 22 (Special Rules for Minor User Contracts)
+In principle, payments by minor 'Members' under 19 years of age should be made under the name of a guardian or with the guardian's consent, and guardians can cancel contracts made by their children (minors) without their consent. However, if minor 'Members' use payment information without consent by using the resident registration number of other adults, etc., or deceive the 'Company' into believing they are adults, the contract cannot be canceled even without the consent of the legal representative.
+
+Article 23 (Changes to Paid Services)
+
+1. The 'Company' may change the value of 'Paid Services' supplied according to operational and technical needs, and notifies 'Members' using 'Paid Services' in advance according to the method in Article 5 (Effectiveness and Changes of Terms).
+2. 'Members' can apply for changes to 'Paid Services' they have already purchased/subscribed to according to the policy set by the 'Company', and can make immediate changes or schedule changes for 1 month.
+3. If 'Members' choose immediate change in the previous paragraph, the service requested by 'Members' is immediately replaced. However, the 'Company' proportionally distributes the remaining period of the service previously purchased/subscribed by 'Members' and the price of the service requested for change, adjusts the usage period, and applies a new billing cycle.
+4. If 'Members' choose scheduled change in paragraph 2, they can use the existing purchased/subscribed service until the expiration date of the usage period of the month they requested the change, and the requested service change is applied from the day after the expiration date.
+5. 'Paid Services' paid through Apple and Google IAP (In-App-Purchase) may be sold at different prices considering fees according to the policies of Apple and Google.
+6. When the 'Company' provides 'Paid Services' to 'Members' through partnerships, it follows the policies of the respective partner companies.
+
+Article 24 (Payment of Fees and Refund of Overpayments)
+
+1. 'Members' must pay for 'Subscriptions' according to the payment methods presented by the 'Company'.
+2. If 'Members' overpay, the 'Company' must refund the entire overpaid amount using the same method as the original payment. However, if refunding through the same method is impossible, the 'Company' must immediately notify the 'Member' and refund using the method chosen by the 'Member'.
+3. If overpayment occurs due to the 'Member's' fault, the 'Company' may deduct reasonable costs incurred in refunding the overpayment.
+4. If the 'Company' refuses a 'Member's' request for an overpayment refund, it must prove that no overpayment occurred.
+5. The 'Company' follows these detailed refund procedures and other matters for overpayments:
+   ① When the 'Company' or 'Member' becomes aware of an overpayment, they notify the other party via email, service homepage, or other company-specified methods
+   ② The 'Company' requests necessary refund information from the 'Member' (name, payment proof, phone number, refund account, etc.)
+   ③ The 'Member' provides the information requested in item ② to the 'Company'
+   ④ The 'Company' processes the refund within 14 days of receiving the 'Member's' information (or offsets it against the next payment if the 'Member' explicitly agrees)
+
+Chapter 5 Supplementary Provisions on Liability Limitation and Dispute Resolution
+
+Article 25 (Compensation for Damages)
+
+1. The 'Company' compensates only for actual damages incurred in service use due to damage, deterioration, or deletion of 'Content' provided as 'Paid Services' caused by service defects. However, the 'Company' is not responsible for any damages incurred by 'Members' without intent or negligence of the 'Company' or its employees.
+2. For damages incurred by 'Paid Service' users due to the 'Company's' fault not specified in this agreement, the 'Company' bears liability according to relevant laws such as the "Content User Protection Guidelines" and other customary practices.
+3. If 'Members' cause damage to the 'Company' by violating this agreement, they are liable for compensating that damage.
+4. If service use is restricted or the usage contract is terminated due to 'Member' negligence based on the usage restriction provisions in this agreement, the 'Member' loses usage rights to all 'Digital Content' they possess, and the 'Company' is not obligated to refund the purchase price of said 'Digital Content'.
+
+Article 26 (Limitation of Liability)
+
+1. The 'Company' is not responsible for service use disruptions caused by 'Members'' failure to comply with the agreement, service usage methods, and standards.
+2. The 'Company' is exempt from liability for transactions between 'Members' or between 'Members' and third parties facilitated through the service.
+3. The 'Company' may modify, suspend, or change part or all of free services due to policy or operational reasons without separate compensation unless otherwise specified by relevant laws.
+4. The 'Company' is not liable for damages incurred by 'Members' or third parties due to the following reasons:
+   ① Inability to provide 'Paid Services' due to force majeure such as natural disasters, war, service suspension by telecommunications providers, or other technical defects difficult to resolve
+   ② 'Members' negligently managing their ID or password
+   ③ Service unavailability due to issues with public communication lines outside the 'Company's' control
+   ④ Other cases where service is disrupted without the 'Company's' fault
+5. The 'Company' does not guarantee the reliability or accuracy of information, materials, or facts posted or transmitted by 'Members' or third parties within the service, and is exempt from liability unless there is intent or gross negligence by the 'Company' or its employees.
+6. 'Members' are responsible for computer system damage or data/information loss resulting from their decision to download or access specific programs or information using the 'Company's' service.
+7. The 'Company' has no obligation to intervene in disputes arising between 'Members' or between 'Members' and third parties through the service. The 'Company' is exempt from liability for resulting damages unless there is intent or gross negligence.
+8. The 'Company' is not responsible if 'Members' fail to achieve their expected benefits from using the service, and is exempt from liability for damages arising from choosing or using the service.
+
+Article 27 (Jurisdiction)
+
+1. In case of a dispute between the 'Company' and the 'Member' regarding the use of the service, the 'Company' and the 'Member' shall sincerely negotiate to resolve the dispute. If an agreement cannot be reached, they may apply for dispute mediation to the Content Dispute Mediation Committee under the "Content Industry Promotion Act".
+2. If the dispute is not resolved according to the preceding paragraph, both parties may file a lawsuit. The jurisdiction for lawsuits between the 'Company' and the 'Member' shall be based on the 'Member's' address or the location of the 'Company's' head office at the time of filing. If the address or residence is unclear, the court of jurisdiction shall be determined according to the Civil Procedure Act.
+
+Article 28 (Star Payment)
+
+1. Refunds after purchasing stars will be processed through the same method used for payment.
+2. Purchased stars cannot be transferred between members.
+3. The period during which purchased stars can be used, canceled, or refunded is one year. In other words, the usage period and refund period for charged stars are limited to within one year from the time of payment.
+
+Article 29 (Payment Cancellation & Refund)
+
+1. Members who have entered into a purchase contract with the company can request cancellation and refund of payments as follows:
+   ① After purchasing stars, cancellation and refund can be processed for unused stars.
+   ② Unused stars are canceled and refunded according to the amount paid at the time of purchase.
+   ③ Stars that have already been used cannot be canceled or refunded.
+2. If a payment error occurs due to the company's fault, cancellation and refund of the payment can be requested.
+3. If the service is suspended due to the company's fault, cancellation and refund of the payment can be requested.
+`
 
 // 청소년 이용약관 youth
 export const terms_youth = `
@@ -839,7 +869,8 @@ Toonyz는 다음과 같은 특성을 지닌 표지 이미지의 사용을 명확
 5. 개인의 초상권을 침해하는 이미지
 6. 사회 공공의 질서를 해치거나 미풍양속을 저해할 수 있는 이미지
 
-외부 출처의 이미지를 사용할 경우, 반드시 작품 소개 섹션에 해당 이미지의 출처를 명확하게 명시해야 합니다. 아울러, Toonyz 플랫폼에 게시된 표지와 이미지는 Google Play Store 및 Apple App Store의 정책에 따라 추가적인 제재를 받을 수 있음을 유의하시기 바랍니다. Toonyz는 이와 관련된 어떠한 법적 문제에 대해서도 책임을 지지 않음을 명확히 밝힙니다.
+외부 출처의 이미지를 사용할 경우, 반드시 작품 소개 섹션에 해당 이미지의 출처를 명확하게 명시해야 합니다. 아울러, 
+Toonyz 플랫폼에 게시된 표지와 이미지는 Google Play Store 및 Apple App Store의 정책에 따라 추가적인 제재를 받을 수 있음을 유의하시기 바랍니다. Toonyz는 이와 관련된 어떠한 법적 문제에 대해서도 책임을 지지 않음을 명확히 밝힙니다.
 
 `
 
@@ -868,126 +899,101 @@ e. Covers that infringe upon the portrait rights of others.
 
 Covers or Images may be subject to sanctions according to the policies of the Android or Apple App Store, regardless of Toonyz's policies. Toonyz is not responsible for any legal disputes or issues arising in connection with covers and illustrations.
 `
+
 export const terms_privacy_english = `
 Privacy Policy
 
-Stella& Inc. (hereinafter referred to as the ‘Company’) strictly complies with domestic personal information protection laws, including the Personal Information Protection Act, from service planning to termination.
+Stella& Co., Ltd. (hereinafter referred to as 'the Company') strictly complies with all domestic personal information protection laws, including the "Personal Information Protection Act," from the planning stage to the termination of its services. This reflects the Company's core value of prioritizing the protection of users' personal information.
 
 1. Significance of the Privacy Policy
-The Company has drafted this Privacy Policy based on the Personal Information Protection Act. However, it has also made efforts to explain the status of user personal information processing within the Company in an easy-to-understand and detailed manner. This incorporates the Plain Language Privacy Policy, which is the principle of drafting a privacy policy using easy terms.
-The Privacy Policy has the following important meanings:
-① The Company transparently provides information on what data it collects, how it uses the collected data, with whom it shares (entrusts or provides) it when necessary, and when and how it destroys data that has fulfilled its purpose of use.
-② As a data subject, the user will be informed of what rights they have regarding their personal information and how they can exercise these rights through which methods and procedures.
-③ If a personal information breach incident occurs, the user will be informed of whom to contact and what help they can receive to prevent additional damage and recover from the damage that has already occurred.
-④ More than anything, it serves as a means to guarantee the user's ‘right to self-determination regarding personal information’ by defining the relationship of rights and obligations between the Company and the user in relation to personal information.
+This privacy policy is based on the Personal Information Protection Act and aims to explain how users can easily understand the current status of their personal information processing. To this end, the Company has adopted a Plain Language Privacy Policy approach, explaining the policy in everyday language instead of complex legal terms.
+
+This privacy policy has the following important meanings:
+1. Enhancing transparency: Detailed and transparent disclosure of the types of personal information collected by the Company, how it is used, whether it is provided to third parties, and retention and destruction procedures.
+2. Rights guidance: Clear guidance on the rights users have regarding their personal information and the specific procedures for exercising these rights.
+3. Damage response: Provides quick response methods and consultation and grievance handling measures to minimize damage in case of personal information breach incidents.
+4. Clarification of rights and obligations: Clearly defines the relationship of rights and obligations between the Company and users to guarantee users' right to self-determination of personal information.
 
 2. Personal Information Collected
-Users can use some of the services provided by the Company without registering as a member. If a user registers as a member to use all of the services provided by the Company, the Company collects the minimum personal information necessary for service use.
-The personal information that the Company collects from users at the time of membership registration is as follows:
-① Email Registration: [Required] ID, email, password
-② Login with SNS Account: [Required] SNS account address [Optional] nickname
-③ Identity Verification: [Required] name, date of birth, gender, mobile phone number, identity verification value (CI/DI)
-The personal information that the Company collects from users during service use is as follows:
-① Users can set a nickname. If they do not enter a nickname in their member information, their ID is automatically entered as their nickname.
-② Additional personal information may be collected only from users of a specific service during the use of individual services within the Company, event participation, and prize applications. If the Company collects additional personal information, it will inform the user of ‘the items of personal information collected, the purpose of collecting and using personal information, and the retention period of personal information’ at the time of collecting the personal information and obtain consent.
-During service use, IP addresses, cookies, service usage records, device information, and location information may be generated and collected. Furthermore, images or voice data may be collected through image and voice search services.
-Specifically, 1) information about the user is automatically generated or the information entered by the user is stored (collected) during the service use process, or 2) the unique information of the user's device is collected by securely converting it so that the original value cannot be confirmed. The information collected in this way may or may not constitute personal information depending on whether it is linked to personal information.
-Users have the right to choose regarding cookies. By setting options in their web browser, they can allow all cookies, check each time a cookie is stored, or refuse to store all cookies. However, if they refuse to store cookies, there may be inconvenience in using some services that require login.
-The Company collects personal information through the following methods:
-① If a user agrees to the collection of personal information and directly enters information during the membership registration and service use process, the Company collects that personal information.
-② During consultation through the customer center, a user's personal information may be collected through web pages, email, fax, or telephone.
-③ Personal information may be collected in writing at offline events, seminars, etc.
-④ Personal information may be provided by external companies or organizations that have partnerships with the Company. In these cases, the partner company provides the information to the Company after obtaining consent for the provision of personal information from the user in accordance with the Personal Information Protection Act.
-⑤ Generated information such as device information may be automatically generated and collected during the use of PC web, mobile web/app.
+The Company collects only the minimum personal information necessary to provide services. Users can use some services without signing up, but membership registration is required to fully use all of the Company's services.
 
-3. Use of Collected Personal Information
-The Company uses personal information only for the following purposes: member management, service development, provision, and improvement, and the establishment of a safe internet usage environment for the Company and all related services.
-① The Company uses personal information for member management, such as verifying the intention to register for membership, identifying users, and verifying the intention to withdraw from membership.
-② In addition to providing existing services (including advertisements) such as content, the Company uses personal information to discover new service elements and improve existing services, such as demographic analysis, analysis of service visits and usage records, forming relationships between users based on personal information and interests, and providing customized services based on acquaintances and interests. The discovery of new service elements and improvement of existing services includes the application of artificial intelligence (AI) technology in information search, communication with other users, content creation, provision, and recommendation, and product shopping.
-③ The Company uses personal information for user protection and service operation, such as taking measures to restrict the use of members who violate laws and the Company's terms of use, preventing and sanctioning actions that interfere with the smooth operation of the service, including fraudulent use, preventing account theft and fraudulent transactions, delivering notices of amendments to the terms, preserving records for dispute resolution, and handling complaints.
-④ The Company uses personal information for purchases, payment of fees, and delivery of goods and services associated with the provision of paid services.
-⑤ The Company uses personal information for marketing and promotional purposes, such as providing event information and participation opportunities, and providing advertising information.
-⑥ The Company uses personal information for analyzing service usage records and access frequency, service usage statistics, providing customized services based on service analysis and statistics, and displaying advertisements.
-⑦ The Company uses personal information to establish a service environment that users can use with confidence in terms of security, privacy, and safety.
-The Company may process collected personal information by pseudonymizing it so that specific individuals cannot be identified for purposes such as statistical analysis, scientific research, and preservation of public records. In this case, the pseudonymized information is stored and managed separately, separated from additional information so that it cannot be re-identified, and necessary technical and managerial protection measures are taken.
+Personal information collected during membership registration:
+Email registration: [Required] ID, email, password
+SNS account login: [Required] SNS account address, [Optional] nickname
+Identity verification: [Required] Name, date of birth, gender, mobile phone number, identity verification value (CI/DI)
 
-4. Provision and Entrustment of Personal Information
-① In principle, the Company does not provide personal information to external parties without the user's consent.
-② The Company does not provide personal information to external parties without the user's prior consent. However, if a user directly consents to the provision of personal information in order to use the services of an external affiliate, if the Company has an obligation to submit personal information under relevant laws, or if an imminent risk to the user's life or safety is identified and it is necessary to resolve this risk, the Company provides personal information only in these cases.
-③ The Company entrusts some of its operations to external parties in order to provide convenient and better services.
-④ The Company entrusts some of the operations necessary for providing services to external companies. The Company regulates and manages/supervises the outsourced companies to ensure that they process personal information safely in accordance with the Personal Information Protection Act. If a user does not use the services related to the operations that the Company entrusts to the contracted companies, the user's personal information will not be provided to the contracted companies.
+Information automatically collected during service use:
+IP address, cookies, service usage records, device information, location information, etc.
+When using search functions utilizing images and voice, the corresponding data may be collected
 
-Contracted Companies and Details of Entrusted Work
-AWS: Storage of member information
-Stripe: Processing and management of payments
-Personal information is retained and used until membership withdrawal or termination of the outsourcing contract.
+3. Purpose of Using Personal Information
+The Company uses the collected personal information for the following purposes:
+1. Member management: Member identification, confirmation of membership withdrawal intention, etc.
+2. Service improvement: Providing customized services and developing new services
+3. Service security: Prevention of fraudulent activities and compliance with legal obligations
+4. Payment processing: Purchase and payment for paid services
+5. Marketing: Providing opportunities to participate in events and promotional information
+Additionally, the Company may use the collected personal information for purposes such as statistical compilation, academic research, and public interest record preservation by pseudonymizing it. In this case, the Company thoroughly implements necessary technical and administrative measures to protect personal information.
 
-5. Destruction of Personal Information
-In principle, the Company destroys a user's personal information without delay upon membership withdrawal or when the purpose of use has been achieved.
-However, if the Company has obtained separate consent from the user regarding the personal information retention period, or if the law imposes an obligation to retain information for a certain period, the Company securely retains the personal information for that period.
-The following are cases where the Company has obtained consent from the user for the personal information retention period at the time of membership registration or service subscription:
-• Prevention of fraudulent registration and use
-1. Email of fraudulent users: Retained for 6 months from the date of withdrawal.
-2. Email of withdrawn users (one-way encryption (hashed) that cannot be decrypted): Retained for 6 months from the date of withdrawal.
-The following are cases where the law, such as the Act on Consumer Protection in Electronic Commerce, etc., the Framework Act on Electronic Documents and Transactions, and the Protection of Communications Secrets Act, stipulates the retention of information for a certain period. During this period, the Company retains personal information in accordance with the provisions of the law, and it never uses this information for any other purpose.
-• Act on Consumer Protection in Electronic Commerce, etc.
-1. Records of contracts or withdrawal of offers: Retained for 5 years.
-2. Records of payment and supply of goods, etc.: Retained for 5 years.
-3. Records of consumer complaints or dispute resolution: Retained for 3 years.
-• Framework Act on Electronic Documents and Transactions
-4. Records on the distribution of electronic documents through certified electronic addresses: Retained for 10 years.
-• Protection of Communications Secrets Act
-5. Login records: Retained for 3 months.
-Personal information for which the purpose of collection and use has been achieved, such as membership withdrawal, service termination, or the expiration of the personal information retention period agreed upon by the user, is destroyed in a way that it cannot be recovered. Even for information for which the law imposes a retention obligation, it is destroyed in a way that it cannot be recovered without delay after the expiration of the corresponding period.
-In the case of electronic files, they are safely deleted using technical methods to prevent recovery and regeneration, and printouts are destroyed by shredding or incineration.
-Personal information for which the purpose of collection and use has been achieved, such as membership withdrawal, service termination, or the expiration of the personal information retention period agreed upon by the user, is destroyed in a way that it cannot be recovered. Even for information for which the law imposes a retention obligation, it is destroyed in a way that it cannot be recovered without delay after the expiration of the corresponding period.
-In the case of electronic files, they are safely deleted using technical methods to prevent recovery and regeneration, and printouts are destroyed by shredding or incineration.
+4. Provision and Outsourcing of Personal Information
+The Company's principle is not to provide personal information to external parties without the user's explicit consent. However, personal information may be provided only when required by law or when the user explicitly consents to use the services of affiliated companies.
+When outsourcing some tasks for service provision, the Company strictly manages and supervises the outsourcing companies to ensure they handle personal information safely.
 
-6. Rights of Users and Legal Representatives and How to Exercise Them
-Users can view, modify, or delete their personal information in their membership information at any time, and they can request access to their personal information.
-Users can request the suspension of personal information processing at any time, and they may refuse the suspension request in cases where there are special provisions in the law.
-Users can withdraw their consent to the collection and use of personal information at any time through methods such as membership withdrawal.
-In the case of children under the age of 14, their legal representatives have the right to view, modify, delete, suspend processing, and withdraw consent to the collection and use of the child's personal information.
-If a user requests a correction of an error in their personal information, the Company does not use or provide the relevant personal information until the correction is completed. In addition, if incorrect personal information has already been provided to a third party, the Company will notify the third party of the results of the correction without delay so that the correction can be made.
-The rights of users and legal representatives can be requested through the ‘Contact Us’ section.
+Current outsourcing companies and outsourced tasks:
+1. AWS: Storage of member information
+2. Stripe: Payment processing and management
 
-7. The Company's Efforts to Protect Personal Information
-The Company is doing its best to protect user personal information and manage it safely.
-The Company establishes and implements an internal management plan for personal information protection.
-The Company establishes an internal management plan for personal information, including matters related to the organization and operation of the personal information protection organization, such as the designation of a personal information protection officer, and checks every year whether the internal management plan is being implemented well.
-The Company implements access control and access right restriction measures for personal information.
-In order to prevent illegal access to personal information, the Company establishes and implements standards for granting, changing, and canceling access rights to the personal information processing system. In addition, the Company manages the number of employees who process personal information to a minimum.
-The Company implements encryption measures to safely store and transmit personal information.
-In addition to passwords, unique identification information, account numbers, and card numbers that are required to be encrypted by law, email addresses and mobile phone numbers are additionally encrypted and stored. In addition, personal information is safely transmitted and received over the network through encrypted communication.
+5. Retention and Destruction of Personal Information
+In accordance with personal information protection principles, the Company promptly destroys the information when the purpose of collecting and using personal information is achieved. However, if personal information needs to be preserved for a certain period according to relevant laws, it is safely stored and then destroyed after that period.
 
-8. Information on the Personal Information Protection Officer and Contact Person
-The Company designates the following Personal Information Protection Officer and contact person to handle inquiries and complaints related to user personal information:
-Personal Information Protection Officer
+Examples of personal information retention periods according to laws:
+1. Contract and withdrawal records: 5 years (Act on Consumer Protection in Electronic Commerce, etc.)
+2. Payment and goods supply records: 5 years
+3. Login records: 3 months (Protection of Communications Secrets Act)
+
+6. User Rights and Exercise Methods
+Users have the following rights regarding their personal information and can exercise them at any time:
+1. Right to access personal information
+2. Right to correct personal information
+3. Right to delete personal information
+4. Right to withdraw consent for personal information collection and use (can be exercised through membership withdrawal)
+For children under 14, legal representatives can exercise these rights on behalf of the child.
+
+7. Company's Efforts for Personal Information Protection
+The Company implements the following technical and administrative measures to safely protect users' personal information:
+1. Personal information access control and authority restriction
+2. Safe storage and transmission of personal information through advanced encryption technology
+3. Regular personal information protection training and establishment and implementation of internal management plans
+
+8. Personal Information Protection Officer and Contact Information
+The Company has designated the following personal information protection officer to promptly and effectively handle inquiries related to users' personal information protection:
+
+Personal Information Protection Officer:
 Name: Kang Seo-yeon
-Affiliation: Stella& Inc.
-Title: CEO
-Email Address: hello@stelland.com
-• 개인정보분쟁조정위원회 (www.kopoci.go.kr / 국번없이 1833-6972)
-• 개인정보침해신고센터 (privacy.kisa.or.kr / 국번없이 118)
-• 대검찰청 사이버수사과 (www.spo.go.kr / 국번없이 1301)
-• 경찰청 사이버수사국 (police.go.kr / 국번없이 182)
-For other cases where reporting or consultation regarding personal information infringement is needed, users can contact the following organizations:
-• Personal Information Dispute Mediation Committee (www.kopoci.go.kr / 1833-6972 without area code)
-• Personal Information Infringement Report Center (privacy.kisa.or.kr / 118 without area code)
-• Supreme Prosecutors' Office Cybercrime Investigation Department (www.spo.go.kr / 1301 without area code)
-• National Police Agency Cyber Bureau (police.go.kr / 182 without area code)
+Affiliation: Stella& Co., Ltd.
+Position: CEO
+Email: hello@stelland.com
 
-9. Obligation to Notify Before Revision
-If there are additions, deletions, or modifications to the content of this Privacy Policy, the Company will provide prior notice through the ‘Announcements’ section at least 7 days before the revision. However, if a significant change to user rights occurs, such as changes to the items of personal information collected or the purpose of use, the Company must disclose the content before and after the change, and may need to obtain user consent again.
-• Announcement Date: October 17, 2024
-• Effective Date: October 17, 2024
+Other personal information reporting and consultation contacts:
+Personal Information Infringement Report Center (privacy.kisa.or.kr / 118 without area code)
+Supreme Prosecutors' Office Cyber Investigation Division (www.spo.go.kr / 1301 without area code)
+National Police Agency Cyber Investigation Bureau (police.go.kr / 182 without area code)
 
-Stella& Inc.
+Changes and Notification of Privacy Policy
+When there are additions, deletions, or modifications to the content of this privacy policy due to changes in laws, policies, or security technologies, we notify the reasons and contents of the changes through the official website's notice board at least 7 days before implementing the changed privacy policy so that users can easily check it.
+However, for significant changes related to the collection, use, and provision of personal information, we notify at least 30 days in advance. Additionally, we may obtain additional consent from users if necessary.
+Announcement date: October 17, 2024
+Effective date: October 17, 2024
 
-Company Name: Stella& Inc. Representative: Kang Seo-yeon
-Business Registration Number: 221-88-02281 (Check Business Registration Information)
+Company Information
+Company name: Stella& Co., Ltd.
+Representative: Kang Seo-yeon
+Business registration number: 221-88-02281 (Business registration information verification)
 Address: 6, Teheran-ro 79-gil, Gangnam-gu, Seoul, Republic of Korea
-Email Address/Customer Center: hello@stelland.com`
+Email: hello@stelland.com
+
+This privacy policy applies to all users using the Company's services and contains the Company's firm commitment to protecting users' personal information. The Company will continue to prioritize the protection of users' personal information and promises to do its best to guarantee users' rights and provide trustworthy services through compliance with relevant laws and continuous improvement of technical protection measures.
+`
 
 
 export const terms_purchase_stars_ko = `

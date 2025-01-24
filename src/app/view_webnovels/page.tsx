@@ -29,7 +29,11 @@ async function getWebnovel(id: string | string[] | undefined) {
 }
 
 async function getUserWebnovels(email_hash: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`,
+        {
+            cache: 'no-store'
+        }
+    );
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;

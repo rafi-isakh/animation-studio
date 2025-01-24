@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ElementType, ElementSubtype, Language } from '@/components/Types';
 import { CircularProgress, Skeleton } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
+import { marked } from 'marked';
 
 const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
     { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
@@ -16,11 +17,13 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [loading, setLoading] = useState(true)
     const languageChangedRef = useRef(false);
     const [skeletonHeight, setSkeletonHeight] = useState<number | null>(null);
+    const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (contentRef.current) {
             setSkeletonHeight(contentRef.current.offsetHeight);
+            setSkeletonWidth(contentRef.current.offsetWidth);
         }
     }, [content, classParams]);
 
@@ -140,8 +143,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
 
     const submitContent = async (translation: string) => {
         if (!translation) translation = "";
-        console.log("submitting content")
-        console.log("original", content)
         const data = {
             "original": content,
             "translation": translation
@@ -157,7 +158,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
 
             if (response.ok) {
                 const data = await response.json();
-                startEventSource(data.text_id);
+                startTranslation(data.text_id);
             } else {
                 console.error('Failed to submit words');
             }
@@ -166,30 +167,11 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         }
     };
 
-    const startEventSource = (textId: string) => {
-        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
-
-        eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.ended == 0) {
-                console.log("languageChangedRef.current", languageChangedRef.current)
-                if (!languageChangedRef.current) {
-                    setText(text => text + data.token);
-                }
-            } else if (data.ended == 1) {
-                setFinished(true);
-            }
-        };
-
-        eventSource.onerror = (error) => {
-            console.error('EventSource failed:', error);
-            eventSource.close();
-        };
-        return () => {
-            eventSource.close();
-        };
+    const startTranslation = async (textId: string) => {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
+        const data = await response.json();
+        setText(await marked(data.translation));
     };
-
 
     type Direction = 'ltr' | 'rtl';
 
@@ -201,7 +183,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             {
                 loading && showLoading ?
                     (
-                        <Skeleton variant='rectangular' width={100} height={skeletonHeight || 18} />
+                        <Skeleton variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
                     ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
             }
         </div>

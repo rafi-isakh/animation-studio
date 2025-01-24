@@ -33,6 +33,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from "@/styles/ModalStyles";
+import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 
 
 interface InfoAndPictureProps {
@@ -99,6 +100,12 @@ export default function InfoAndPictureComponent({
         const authorEmailHash = author_email
         return userEmailHash === authorEmailHash;
     };
+
+    const isJongmin = () => {
+        const userEmailHash = createEmailHash(email);
+        const jongminEmailHash = createEmailHash("jongminbaek@stelland.io")
+        return userEmailHash == jongminEmailHash
+    }
 
     return (
         <div className="relative md:w-[300px] md:h-screen h-full top-0 bg-gradient-to-b from-transparent to-transparent justify-start self-start rounded-xl mx-auto">
@@ -185,7 +192,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full"
                                 >
                                     <Link
-                                        href={isWebtoon ? `/webtoons/${content.id}/001` : 
+                                        href={isWebtoon ? `/webtoons/${content.id}/001` :
                                             content.chapters.length > 0 ? `/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
@@ -272,6 +279,11 @@ export default function InfoAndPictureComponent({
                                 </div>
                             </div>
 
+                            {isJongmin() &&
+                                <div className="pb-5 w-full">
+                                    <TranslateWebnovelAllButton webnovel={content as Webnovel} />
+                                </div>
+                            }
                             {/* writing button */}
                             {isAuthor() &&
                                 <>

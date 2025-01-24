@@ -9,6 +9,9 @@ import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
+import { replaceSmartQuotes } from '@/utils/font';
+import { WebnovelTermsInfo, WebnovelTermsInfo_en} from '@/utils/terms';
+
 import Image from 'next/image'
 import Link from 'next/link';
 import { useModalStyle, useCoverArtModalStyle, useWebnovelSubmitModalStyle } from '@/styles/ModalStyles';
@@ -176,10 +179,11 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                                 <InfoTooltip
                                     title={
                                     <div className='flex flex-col gap-2 space-y-2'>
-                                        <p className='text-sm font-bold'>
+                                        <p className={`text-sm font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
+                                        {/* {replaceSmartQuotes(language === 'ko' ? WebnovelTermsInfo : WebnovelTermsInfo_en)} */}
                                             {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
                                         </p>
-                                        <p className='text-sm'>
+                                        <p className={`text-sm ${language == 'ko' ? 'break-keep' : ''}`}>
                                             {phrase(dictionary, "coverArtSize", language)}
                                         </p>
                                     </div>

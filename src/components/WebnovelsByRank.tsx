@@ -20,12 +20,7 @@ export default function WebnovelsByRank({ searchParams, sortBy, webnovels }: { s
     
 
     useEffect(() => {
-        const _webnovels = webnovels.map(novel => ({
-            ...novel,
-            version: premium.includes(novel.id) ? "premium" : "free",
-        }));
-
-        const _webnovelsToShow = _webnovels
+        const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))

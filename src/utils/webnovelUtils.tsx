@@ -7,7 +7,7 @@ export const filter_by_genre = (item: Webnovel, genre: string | null | undefined
 };
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
-    return version === item.version;
+    return version === (item.premium ? "premium" : "free");
 };
 
 export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {

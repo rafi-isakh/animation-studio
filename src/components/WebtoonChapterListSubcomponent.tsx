@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from "next/link";
 import { Webtoon, WebtoonChapter } from '@/components/Types';
 import '@/styles/Webtoons.module.css';
-import { Button, Modal, Box, dividerClasses } from "@mui/material";
+import { Button, Modal, Box, dividerClasses, Tooltip } from "@mui/material";
 import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -114,24 +114,28 @@ const WebtoonChapterListSubcomponent = ({
 
             <hr className='w-full' />
             <div className="flex flex-row gap-2 ">
-              <Button
-                color='gray'
-                variant='outlined'
-                className='w-32 text-black dark:text-black'
-              >
-                {/* 구매하기 */}
-                {phrase(dictionary, "purchase", language)}
-              </Button>
-              <Link href={`/stars`}>
+              <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
                 <Button
                   color='gray'
                   variant='outlined'
-                  className='w-32 dark:text-white bg-[#DB2777] text-white'
+                  className='w-32 text-black dark:text-black'
                 >
-                  {/* 별 충전 */}
-                  {phrase(dictionary, "stars", language)}
+                  {/* 구매하기 */}
+                  {phrase(dictionary, "purchase", language)}
                 </Button>
-              </Link>
+              </Tooltip>
+              <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                <Link href={`#`}>
+                  <Button
+                    color='gray'
+                    variant='outlined'
+                    className='w-32 dark:text-white bg-[#DB2777] text-white'
+                  >
+                    {/* 별 충전 */}
+                    {phrase(dictionary, "stars", language)}
+                  </Button>
+                </Link>
+              </Tooltip>
             </div>
           </div>
         </Box>

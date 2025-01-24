@@ -42,10 +42,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     console.log(webnovels.map((novel: Webnovel) => [novel.title, novel.id]));
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
-        items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
+        // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
         webnovels = webnovels.filter((novel: Webnovel) => !novel.premium);
     } else if (searchParams.version === 'premium') {
-        items = items.filter((item: any) => webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
+        // items = items.filter((item: any) => webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
         webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
 

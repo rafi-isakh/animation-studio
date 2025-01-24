@@ -473,8 +473,7 @@ export const Header = () => {
                                             onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
                                             className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
                                             <div className='p-2 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
-                                                <Menu size={20} className='dark:text-white text-gray-500 md:block hidden' />
-                                                <User size={20} className='dark:text-white text-gray-500 md:hidden' />
+                                                <User size={20} className='dark:text-white text-gray-500' />
                                             </div>
                                             <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "profile", language)}</p>
                                         </button>
@@ -565,7 +564,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                <li className='md:flex items-center justify-center ml-1 hidden'>
+                                {/* <li className='md:flex items-center justify-center ml-1 hidden'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
                                         color: 'white',
@@ -573,10 +572,9 @@ export const Header = () => {
                                             color: 'white',
                                         }
                                     }} variant="text" className='capitalize rounded-lg'>
-                                          {/* Publish */}
                                           {phrase(dictionary, "publish", language)}
                                     </Button>
-                              </li>
+                              </li> */}
                             </ul>
                         </div>
                     </div>

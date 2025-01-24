@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         episodes = Array.from(new Set(episodes.filter(episode => !isNaN(Number(episode!.split("/")[1]))).map(episode => episode!.split("/")[1])))
         console.log(episodes)
         console.log("episodes length", episodes.length)
-        for (let i = asWebtoon.num_free_chapters; i < episodes.length; i++) {
+        for (let i = asWebtoon.num_free_chapters + 1; i < episodes.length; i++) {
             const chapter = {
                 episode_number: i,
                 directory: i.toString().padStart(3, '0'),

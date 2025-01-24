@@ -27,6 +27,9 @@ export default function UploadWebnovelsAdmin() {
                 type: 'buffer',
             })
             setEpubObj(epubObj);
+            const split = file.name.split(" ")
+            const _chapterTitle = split[split.length - 1].split(".")[0]
+            setChapterTitle(_chapterTitle)
             console.log(epubObj);
         }
     }

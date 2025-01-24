@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@mui/material";
-import { Webnovel } from "@/components/Types";
+import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export async function TranslateWebnovelAllButton({webnovel}: {webnovel: Webnovel}) {
@@ -46,7 +46,8 @@ export async function TranslateWebnovelAllButton({webnovel}: {webnovel: Webnovel
 
 
     async function handleTranslateAll() {
-        for (const chapter of webnovel.chapters) {
+        const sorted = JSON.parse(JSON.stringify(webnovel as unknown as string)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
+        for (const chapter of sorted) {
             const startTime = new Date()
             console.log("Started translation at ", startTime)
             await submitContent(chapter.content, chapter.id)

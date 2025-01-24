@@ -101,6 +101,7 @@ export interface Webtoon {
   genre: string;
   tags: string;
   premium: boolean;
+  num_free_chapters: number;
 }
 
 export interface WebtoonChapter {
@@ -110,7 +111,7 @@ export interface WebtoonChapter {
   webtoon_id: number;
   directory: string;
   created_at: Date;
-  free_premium: boolean;
+  free: boolean;
 }
 
 export interface Dictionary {

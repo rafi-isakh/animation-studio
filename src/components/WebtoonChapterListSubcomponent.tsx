@@ -7,7 +7,7 @@ import { Button, Modal, Box, dividerClasses } from "@mui/material";
 import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { LockOpen, ChevronDownIcon } from 'lucide-react';
+import { LockOpen, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { MdStars } from "react-icons/md";
 
@@ -26,17 +26,10 @@ const WebtoonChapterListSubcomponent = ({
   const { language, dictionary } = useLanguage();
 
   const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
-  useEffect(() => {
-    for (let i = 0; i < 2; i++) {
-      webtoon.chapters[i].free_premium = false;
-    }
-    for (let i = 2; i < webtoon.chapters.length; i++) {
-      webtoon.chapters[i].free_premium = true;
-    }
-  }, [webtoon.chapters]);
+  console.log(webtoon.chapters.map(chapter => chapter.free))
 
   const handleChapterClick = (chapter: WebtoonChapter, e: React.MouseEvent) => {
-    if (chapter.free_premium) {
+    if (chapter.free) {
       return true;
     } else {
       e.preventDefault();
@@ -61,7 +54,7 @@ const WebtoonChapterListSubcomponent = ({
               onClick={(e) => handleChapterClick(chapter, e)}
               className={`cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 
               ${index >= 10 && !showMoreChapters ? 'hidden' : ''}
-              ${!chapter.free_premium ? 'opacity-50' : ''}`}
+              ${!chapter.free ? 'opacity-50' : ''}`}
             >
               <div className="flex flex-row justify-between">
                 <div className="flex flex-row gap-3">
@@ -84,7 +77,7 @@ const WebtoonChapterListSubcomponent = ({
                 <div className="text-sm text-center self-center">
                   <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
                     {/* Free */}
-                    {chapter.free_premium ? phrase(dictionary, "readingForFree", language)
+                    {chapter.free ? phrase(dictionary, "readingForFree", language)
                       : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" /> 30</div>}
                   </div>
                 </div>
@@ -92,16 +85,14 @@ const WebtoonChapterListSubcomponent = ({
             </Link>
           ))}
         </div>
-        {showMoreChapters ?
-          <button
-            className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
-            onClick={() => setShowMoreChapters(!showMoreChapters)}
-          >
-            {/* 더보기 */}
-            {phrase(dictionary, "more", language)}
-            <ChevronDownIcon size={16} className="text-black dark:text-white" />
-          </button>
-          : <></>}
+        <button
+          className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
+          onClick={() => setShowMoreChapters(!showMoreChapters)}
+        >
+          {/* 더보기 */}
+          {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
+          {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
+        </button>
       </div>
       <Modal open={showModal} onClose={() => setShowModal(false)}>
         <Box sx={useModalStyle}>
@@ -112,8 +103,8 @@ const WebtoonChapterListSubcomponent = ({
             </p>
             <p>
               {webtoon.title} {language === 'en' ? `Episode ${parseInt(selectedChapter?.directory || '0')}` :
-                               language === 'ko' ? `${parseInt(selectedChapter?.directory || '0')}화` :
-                              `Episode ${parseInt(selectedChapter?.directory || '0')} `}
+                language === 'ko' ? `${parseInt(selectedChapter?.directory || '0')}화` :
+                  `Episode ${parseInt(selectedChapter?.directory || '0')} `}
             </p>
             <p>
               보유한 투니즈 별 0개
@@ -126,8 +117,8 @@ const WebtoonChapterListSubcomponent = ({
                 variant='outlined'
                 className='w-32 text-black dark:text-black'
               >
-                  {/* 구매하기 */}
-                  {phrase(dictionary, "purchase", language)}
+                {/* 구매하기 */}
+                {phrase(dictionary, "purchase", language)}
               </Button>
               <Link href={`/stars`}>
                 <Button
@@ -137,7 +128,7 @@ const WebtoonChapterListSubcomponent = ({
                 >
                   {/* 별 충전 */}
                   {phrase(dictionary, "stars", language)}
-              </Button>
+                </Button>
               </Link>
             </div>
           </div>

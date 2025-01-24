@@ -28,6 +28,7 @@ export interface User {
   nickname: string;
   bio: string;
   picture: string;
+  stars: number;
 }
 
 export interface UserCreate {

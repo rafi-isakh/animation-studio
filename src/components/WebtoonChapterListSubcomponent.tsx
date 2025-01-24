@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LockOpen, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useModalStyle } from '@/styles/ModalStyles';
 import { MdStars } from "react-icons/md";
+import { useUser } from '@/contexts/UserContext';
 
 const WebtoonChapterListSubcomponent = ({
   webtoon, slug, coverArt, sortToggle, onUpdate }: {
@@ -24,6 +25,7 @@ const WebtoonChapterListSubcomponent = ({
   const [showModal, setShowModal] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<WebtoonChapter | null>(null);
   const { language, dictionary } = useLanguage();
+  const { stars } = useUser();
 
   const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
   console.log(webtoon.chapters.map(chapter => chapter.free))
@@ -107,7 +109,7 @@ const WebtoonChapterListSubcomponent = ({
                   `Episode ${parseInt(selectedChapter?.directory || '0')} `}
             </p>
             <p>
-              보유한 투니즈 별 0개
+              보유한 투니즈 별 {stars}개
             </p>
 
             <hr className='w-full' />

@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
             }
 
             const user: User = data;
+            console.log('user', user)
 
             return NextResponse.json({
                 loggedIn: true,
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
                 bio: user.bio,
                 id: user.id,
                 email: email,
+                stars: user.stars,
             });
         } else {
             return NextResponse.json({
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
                 bio: "",
                 id: "",
                 email: "",
+                stars: 0,
             });
         }
     } catch (error) {

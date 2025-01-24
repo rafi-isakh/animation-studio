@@ -13,7 +13,7 @@ export default function PurchaseStarsComponent() {
     const starsEventOptions = [150, 350, 550, 1100]
     const discount_factors = [0.95, 0.9, 0.85, 0.8]
     const { dictionary, language } = useLanguage();
-    const { email, nickname } = useUser();
+    const { email, nickname, stars } = useUser();
     const router = useRouter();
     const { setStars, setDiscount } = useStripeContext();
 
@@ -33,7 +33,7 @@ export default function PurchaseStarsComponent() {
             pg: "html5_inicis", // PG사 : https://developers.portone.io/docs/ko/tip/pg-2 참고
             pay_method: "card", // 결제수단
             merchant_uid: `mid_${new Date().getTime()}`, // 주문번호
-            amount: ((numStars * 100) * discount), // 결제금액
+            amount: ((numStars * 10) * discount), // 결제금액
             name: `투니즈 별 ${numStars}개`, // 주문명
             buyer_name: nickname, // 구매자 이름
             // buyer_tel: "01012341234", // 구매자 전화번호
@@ -70,8 +70,8 @@ export default function PurchaseStarsComponent() {
                 </h1>
                 <div className="flex flex-col w-full gap-2 pt-5">
                     {/* top padding 5 */}
-                    {language === 'ko' && <p className="text-sm text-gray-500 text-left">현재 보유중인 투니즈 별 <span className="font-bold text-[#DE2B74]">1000</span> 개 </p>}
-                    {language === 'en' && <p className="text-sm text-gray-500 text-left">You have <span className="font-bold text-[#DE2B74]">1000</span> stars </p>}
+                    {language === 'ko' && <p className="text-sm text-gray-500 text-left">현재 보유중인 투니즈 별 <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>}
+                    {language === 'en' && <p className="text-sm text-gray-500 text-left">You have <span className="font-bold text-[#DE2B74]">{stars}</span> stars </p>}
                 </div>
             </div>
 

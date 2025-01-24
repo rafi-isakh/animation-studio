@@ -83,20 +83,25 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             }
             languageChangedRef.current = false;
         }
-        if (defaultLanguage != language) {
-            if (content) {
-                initialized.current = false;
-                handleTranslate();
+        const initiate = async () => {
+            if (defaultLanguage != language) {
+                if (content) {
+                    initialized.current = false;
+                    handleTranslate();
+                } else {
+                    setText("");
+                    setMarkedText("");
+                    setLoading(false);
+                    languageChangedRef.current = false;
+                }
             } else {
-                setText("");
+                setText(content);
+                setMarkedText(await marked(content));
                 setLoading(false);
                 languageChangedRef.current = false;
             }
-        } else {
-            setText(content);
-            setLoading(false);
-            languageChangedRef.current = false;
         }
+        initiate();
     }, [language, elementType, elementId, elementSubtype]);
 
     useEffect(() => {

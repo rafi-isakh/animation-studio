@@ -107,7 +107,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             .then(data => {
                 setChapter(data);
                 setUpvotes(data.upvotes)
-                fetch(`/api/get_webnovel_by_id?id=${data.webnovel_id}`)
+                fetch(`/api/get_webnovel_metadata_by_id?id=${data.webnovel_id}`)
                     .then(response2 => response2.json())
                     .then(data2 => {
                         setWebnovel(data2)

@@ -22,6 +22,14 @@ import ThemeWrapper from '@/components/ThemeWrapper';
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
+import dynamic from 'next/dynamic';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+
+// Import the animation data
+import animationData from '@/assets/stelli_loader.json';
+
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -70,7 +78,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
-
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
@@ -259,7 +266,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         )
     }
     else {
-        return <div></div>
+        return (
+            <div className="loader-container">
+                <LottieLoader width="w-32" animationData={animationData} />
+            </div>
+        )
     }
 }
 

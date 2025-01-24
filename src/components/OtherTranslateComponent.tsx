@@ -19,6 +19,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [skeletonHeight, setSkeletonHeight] = useState<number | null>(null);
     const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
+    const [markedText, setMarkedText] = useState("");
 
     useEffect(() => {
         if (contentRef.current) {
@@ -170,7 +171,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const startTranslation = async (textId: string) => {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
         const data = await response.json();
-        setText(await marked(data.translation));
+        setText(data.translation);
+        setMarkedText(await marked(data.translation));
+        saveTranslationToDB(true);
+        setLoading(false);
     };
 
     type Direction = 'ltr' | 'rtl';
@@ -184,7 +188,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 loading && showLoading ?
                     (
                         <Skeleton variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
-                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
+                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(markedText).replaceAll("\n", "<br/>") }} />
             }
         </div>
     );

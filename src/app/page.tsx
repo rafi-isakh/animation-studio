@@ -26,11 +26,7 @@ async function getCarouselItems() {
 }
 
 async function getWebnovelsMetadata() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`,
-        {
-            cache: 'no-store'
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }

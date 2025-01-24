@@ -50,6 +50,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             const originalAndTargetLangSame = await detectLanguage();
             if (originalAndTargetLangSame) {
                 setText(content);
+                setMarkedText(await marked(content));
                 setLoading(false);
                 return;
             }
@@ -59,6 +60,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {
                 setText(sessionData)
+                setMarkedText(await marked(sessionData));
                 setLoading(false)
             }
             else {

@@ -8,7 +8,7 @@ import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { Button, Modal, Box, dividerClasses } from "@mui/material";
+import { Button, Modal, Box, dividerClasses, Skeleton } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,6 +22,14 @@ import ThemeWrapper from '@/components/ThemeWrapper';
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
+import dynamic from 'next/dynamic';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+
+// Import the animation data
+import animationData from '@/assets/stelli_loader.json';
+
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -70,7 +78,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
-
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
         setKey2(prevKey => prevKey + 1)
@@ -175,7 +182,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     if (webnovel && chapter) {
         return (
-            <ThemeWrapper> 
+            <ThemeWrapper>
                 <div
                     className={`${readerTheme} text-gray-900 dark:text-white`}
                     style={{
@@ -224,20 +231,20 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </div>
                         {/* Title and content */}
-                      
+
                         <div className='flex flex-col space-y-4' >
                             <div key={key} id='translate-div'>
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal'? 'h-[60vh]': ""}`}>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-[60vh]' : ""}`}>
                                     <FloatingMenu >
-                                    <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
+                                        <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
                             </div>
                         </div>
-                      
+
                         {/* Title and content : end */}
                     </div>
                     <div className='md:h-[3rem] h-[2rem]' />
@@ -259,7 +266,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         )
     }
     else {
-        return <div></div>
+        return (
+            <div className="loader-container">
+                <LottieLoader width="w-32" animationData={animationData} />
+            </div>
+        )
     }
 }
 

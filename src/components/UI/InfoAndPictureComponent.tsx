@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
 import { Webtoon, Webnovel } from "@/components/Types";
-import { Button, useMediaQuery, Modal, Box } from "@mui/material";
+import { Button, useMediaQuery, Modal, Box, Skeleton } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -33,6 +33,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from "@/styles/ModalStyles";
+import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 
 
 interface InfoAndPictureProps {
@@ -56,7 +57,6 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const nickname = content.user.nickname;
     const author_email = content.user.email_hash;
     const { email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
@@ -100,6 +100,12 @@ export default function InfoAndPictureComponent({
         return userEmailHash === authorEmailHash;
     };
 
+    const isJongmin = () => {
+        const userEmailHash = createEmailHash(email);
+        const jongminEmailHash = createEmailHash("jongminbaek@stelland.io")
+        return userEmailHash == jongminEmailHash
+    }
+
     return (
         <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
                         bg-gradient-to-b from-transparent to-transparent 
@@ -128,6 +134,8 @@ export default function InfoAndPictureComponent({
                                 width={270}
                                 height={350}
                                 className="object-cover w-full h-full rounded-xl"
+                                placeholder="blur"
+                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                             />
                         </div>
 
@@ -288,6 +296,11 @@ export default function InfoAndPictureComponent({
                                 </div>
                             </div>
 
+                            {isJongmin() &&
+                                <div className="pb-5 w-full">
+                                    <TranslateWebnovelAllButton webnovel={content as Webnovel} />
+                                </div>
+                            }
                             {/* writing button */}
                             {isAuthor() &&
                                 <>

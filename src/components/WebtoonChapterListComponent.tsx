@@ -187,7 +187,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                 >
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
-                            <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                            {/* <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
                                 <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
                                     <p className="text-sm flex flex-row items-center gap-2">
                                         <Image
@@ -207,14 +207,13 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                                 backgroundColor: 'white'
                                             }}
                                         />
-                                        {/* Binge On – Unlock all & Enjoy! */}
-                                        {/* {phrase(dictionary, "binge_with_bulk_unlock", language)} */}
+                                        {phrase(dictionary, "binge_with_bulk_unlock", language)}
 
 
                                     </p>
                                     <ChevronRightIcon size={16} className="text-black dark:text-white" />
                                 </Button>
-                            </Tooltip>
+                            </Tooltip> */}
                             <WebtoonChapterListSubcomponent
                                 webtoon={webtoon}
                                 slug={slug}

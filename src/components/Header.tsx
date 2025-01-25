@@ -579,21 +579,21 @@ export const Header = () => {
                         </div>
                     </div>
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
-                    <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
+                    <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-1">  {/* pb-2 */}
                         <Link href="/?version=premium">
-                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
+                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
                         <Link href="/webtoons">
-                            <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "webtoons", language)}</p>
                         </Link>
                         <Link href="/?version=free" >
-                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
                         <Link href="/toonyzcut">
-                            <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "toonyzCut", language)}</p>
                         </Link>
                     </div>

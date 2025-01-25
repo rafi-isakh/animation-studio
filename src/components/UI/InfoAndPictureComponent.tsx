@@ -139,13 +139,15 @@ export default function InfoAndPictureComponent({
 
                         {/* Content Info */}
                         <div className="flex flex-col items-center py-10">
-                            <OtherTranslateComponent
-                                content={content.title}
-                                elementId={content.id.toString()}
-                                elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                elementSubtype="title"
-                                classParams="text-2xl font-bold self-center text-center"
-                            />
+                            {isWebtoon ? content.title :
+                                <OtherTranslateComponent
+                                    content={content.title}
+                                    elementId={content.id.toString()}
+                                    elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                    elementSubtype="title"
+                                    classParams="text-2xl font-bold self-center text-center"
+                                />
+                            }
 
                             <p className="text-center">
                                 {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
@@ -166,13 +168,15 @@ export default function InfoAndPictureComponent({
 
                             <div className="mt-2">
                                 {/* Description */}
-                                <OtherTranslateComponent
-                                    content={content.description}
-                                    elementId={content.id.toString()}
-                                    elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                    elementSubtype="description"
-                                    classParams="text-sm text-gray-800 dark:text-white"
-                                />
+                                {isWebtoon ? content.description :
+                                    <OtherTranslateComponent
+                                        content={content.description}
+                                        elementId={content.id.toString()}
+                                        elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                        elementSubtype="description"
+                                        classParams="text-sm text-gray-800 dark:text-white"
+                                    />
+                                }
                             </div>
 
                             {/* Action Buttons */}

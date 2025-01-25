@@ -36,6 +36,7 @@ import {
     PinterestIcon,
 } from "react-share";
 import { CommentList } from "@/components/CommentList";
+import { marked } from "marked";
 
 interface WebtoonChapterListComponentProps {
     webtoon: Webtoon;
@@ -59,6 +60,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
     const [isSortedByLatest, setIsSortedByLatest] = useState(false);
     const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY');
     const [currentPageUrl, setCurrentPageUrl] = useState('');
+    const [markedDescription, setMarkedDescription] = useState('');
 
     const handleUpdate = () => {
         if (onUpdate) {
@@ -70,6 +72,11 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
+        const markDescription = async () => {
+            const markedDescription = await marked(webtoon.description);
+            setMarkedDescription(markedDescription);
+        }
+        markDescription();
     }, []);
 
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -201,7 +208,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                             }}
                                         />
                                         {/* Binge On – Unlock all & Enjoy! */}
-                                        {phrase(dictionary, "binge_with_bulk_unlock", language)}
+                                        {/* {phrase(dictionary, "binge_with_bulk_unlock", language)} */}
 
 
                                     </p>
@@ -243,7 +250,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                     }}
                 >
                     <div className="flex flex-col self-start justify-start gap-4 space-y-4">
-                        <p className="text-sm text-black dark:text-white"> {webtoon.description} </p>
+                        <p className="text-sm text-black dark:text-white"> {markedDescription} </p>
                         <div className="flex flex-col gap-0 space-y-4">
                             <p className="text-sm text-black dark:text-white font-bold">
                                 {/* 연재 시작 */}

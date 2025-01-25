@@ -37,6 +37,7 @@ export interface UserCreate {
   bio: string;
   provider: string;
   picture?: string;
+  genres: string;
 }
 
 export interface Comment {

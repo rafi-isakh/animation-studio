@@ -125,17 +125,17 @@ const MenuItemsComponent = () => {
             case 'all':
                 return '#'
             case 'publish':
-                return '#'
+                return '/creators'
             case 'genre':
                 return '#'
             case 'event':
                 return '#'
             case 'toonyzCut':
-                return '#'
+                return '/toonyzcut'
             case 'studio':
                 return '/studio'
             case 'starShop':
-                return '/stars'
+                return '#'
             default:
                 return '#'
         }

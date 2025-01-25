@@ -12,7 +12,7 @@ import UserWithSameEmailExistsModalComponent from '@/components/UserWithSameEmai
 import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
+import { CircularProgress, Checkbox, FormControlLabel, Modal, Box } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import Image from 'next/image';
@@ -22,6 +22,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/stelli_loader.json';
+import { useModalStyle } from '@/styles/ModalStyles';
 
 async function createUser() {
 
@@ -89,6 +90,7 @@ export default function NewUser() {
     const [loading, setLoading] = useState(true);
     const [userExists, setUserExists] = useState(false);
     const { language, dictionary } = useLanguage()
+    const [showSelectAtLeastOneGenre, setShowSelectAtLeastOneGenre] = useState(false);
 
     // Add state for checkbox values
     const [genres, setGenres] = useState({
@@ -113,6 +115,10 @@ export default function NewUser() {
     // Modify the createAndUpdateUser function to include genres
     async function handleSubmit(formData: FormData) {
         // Add genres data to formData
+        if (!Object.values(genres).some(Boolean)) {
+            setShowSelectAtLeastOneGenre(true);
+            return;
+        }
         Object.entries(genres).forEach(([genre, checked]) => {
             formData.append(`genres[${genre}]`, checked.toString());
         });
@@ -322,6 +328,11 @@ export default function NewUser() {
 
              
                 </div>
+                <Modal open={showSelectAtLeastOneGenre} onClose={() => setShowSelectAtLeastOneGenre(false)}>
+                    <Box sx={useModalStyle}>
+                        <p className="text-center text-xl font">{phrase(dictionary, 'selectAtLeastOneGenre', language)}</p>
+                    </Box>
+                </Modal>
             </div>
     )
 }

@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
             }
 
             const user: User = data;
-            console.log('user', user)
 
             return NextResponse.json({
                 loggedIn: true,

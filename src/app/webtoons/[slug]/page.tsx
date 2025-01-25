@@ -35,8 +35,12 @@ export default async function WebtoonPage({ params }: { params: { slug: string }
             key={`webtoon-${params.slug}`}
             className="w-full min-h-screen md:max-w-screen-lg mx-auto">
             <div className="flex md:flex-row flex-col justify-between items-start">
+                <div className="md:w-1/3 w-full flex-grow-0">
                 <WebtoonInfoAndPictureComponent webtoon={webtoon} coverArt={coverArt} />
+                </div>
+                <div className="flex-1 md:w-2/3 w-full">
                 <WebtoonChapterListComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} webtoons={webtoons} coverArtUrls={coverArtUrls} />
+                </div>
             </div>
         </div>
     );

@@ -250,7 +250,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                     }}
                 >
                     <div className="flex flex-col self-start justify-start gap-4 space-y-4">
-                        <p className="text-sm text-black dark:text-white"> {markedDescription} </p>
+                        <p className="text-sm text-black dark:text-white" dangerouslySetInnerHTML={{ __html: markedDescription }} />
                         <div className="flex flex-col gap-0 space-y-4">
                             <p className="text-sm text-black dark:text-white font-bold">
                                 {/* 연재 시작 */}

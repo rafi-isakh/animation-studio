@@ -589,7 +589,7 @@ export const Header = () => {
                                 {phrase(dictionary, "webtoons", language)}</p>
                         </Link>
                         <Link href="/?version=free" >
-                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
                         <Link href="/toonyzcut">

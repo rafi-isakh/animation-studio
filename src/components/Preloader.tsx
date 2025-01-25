@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const words = ["Hello", "Bonjour", "Ciao", "Olà", "やあ", "Hallå", "Guten tag", "你好", "Hallo", "สวัสดี", "مرحبًا", "Xin chào", "안녕하세요."]
 
-const style = {
+const preloaderModalstyle = {
     position: 'fixed' as 'fixed', // Use fixed positioning to cover the entire screen
     top: 0,
     left: 0,
@@ -89,25 +89,21 @@ export default function Preloader() {
         <Modal
             open={showModal}
         >
-            <Box sx={style}>
-                <div className='rounded-xl border border-black md:border-black w-[500px] h-[600px] bg-black flex flex-col md:justify-center space-y-0 md:space-y-8 items-center'>
-
+            <Box sx={preloaderModalstyle}>
+                <div className='rounded-xl border border-black md:border-black w-[500px] h-screen
+                 bg-black flex flex-col md:justify-center justify-center space-y-4 md:space-y-4 items-center overflow-y-auto'>
                     <Image
-                        src="/images/N_logo.svg"
+                        src="/stelli/stelli_6.png"
                         alt="Toonyz Logo"
-                        width={0}
-                        height={0}
+                        width={200}
+                        height={200}
                         sizes="100vh"
                         style={{
                             zIndex: 50,
                             marginTop: '15px',
-                            height: '35px',
-                            width: '35px',
-                            padding: '2px',
                             justifyContent: 'center',
                             alignSelf: 'center',
                             borderRadius: '25%',
-                            // border: '1px solid #eee'  
                         }}
                     />
 
@@ -116,42 +112,36 @@ export default function Preloader() {
                     </motion.p>
 
                     <p className='text-white dark:text-white'>
-                        언어를 선택해 주세요.
+                        {language === 'ko' ? '언어를 선택해 주세요.' : 'Select your language'}
                     </p>
 
-                    {/*Language menu*/}
-                    <li className="py-2 relative list-none">
-                        <div ref={languageMenuRef}>
-                            <button id="dropdownNavbarLanguageLink" onClick={toggleLanguageDropdown} className="px-4 py-3 w-36 rounded-md border border-gray-400 flex items-center justify-start md:justify-between text-white focus:border-[#DB2777] md:px-4 md:py-3 md:border md:hover:border-[#DB2777] md:hover:bg-transparent dark:focus:text-black dark:border-gray-400 dark:hover:bg-gray-400 md:dark:hover:bg-transparent">
-                                <div className='flex justify-between w-full'>
-                                    <div className='flex'>
-                                        <i className="fa-solid fa-globe self-center text-white dark:text-white"></i>
-                                        <p className='ml-2'>{currentLanguage && currentLanguage}</p>
-                                    </div>
-                                    {/* <p className='ml-2 md:hidden'>{phrase(dictionary, "language", language)}</p> */}
-                                    <div className='self-center'>
-                                        <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
-                        {isLanguageDropdownOpen && (
-                            <div id="language-dropdown" ref={languageDropdownRef} className={`${styles.item} mt-2 font-normal bg-black divide-y divide-gray-100 border-gray-400 dark:divide-gray-600`}>
-                                <ul className="py-2 text-sm border rounded-md border-gray-400 w-36 text-gray-100" aria-labelledby="dropdownLargeButton">
-                                    {langPairList.map((langPair, index) => (
-                                        <li id={`li-${langPair.code}`} key={index} className={`hover:text-gray-600 ${highlightLanguage[langPair.code as Language] ? 'text-[#DB2777]' : ''}`}>
-                                            <Link href="#" onClick={() => handleLanguageChange(langPair.code as Language)} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-black">
-                                                {langPair.name}
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </li>
-                    <p className="text-center text-[10px] text-white dark:text-white "> Your Favorite Story Universe, Between Us, Toonyz </p>
+                    <div className="grid grid-cols-2 gap-3">
+                    {langPairList.map((langPair, index) => (
+                        <button
+                            id={`li-${langPair.code}`}
+                            key={index}
+                            className={`px-4 py-1 w-28 rounded-md border border-gray-400
+                            text-white focus:border-[#DB2777] md:px-4 md:py-3 
+                            md:hover:border-[#DB2777] md:hover:bg-transparent
+                            dark:border-gray-400 hover:bg-transparent
+                            hover:text-gray-white flex flex-row items-center justify-center
+                            ${currentLanguage === langPair.code ? 'text-[#DB2777] border-[#DB2777]' : 'text-white dark:text-white'}
+                            `}
+                            >
+                            <Link
+                                href="#"
+                                onClick={() => handleLanguageChange(langPair.code as Language)}
+                                className={`
+                                dark:hover:text-[#DB2777] hover:text-[#DB2777] flex flex-row justify-center items-center
+                                ${currentLanguage === langPair.code ? 'text-[#DB2777]' : 'text-white dark:text-white'}
+                            `}
+                            >
+                                {langPair.name}
+                            </Link>
+                        </button>
+                    ))}
+                    </div>
+                    {/* <p className="text-center text-[10px] text-white dark:text-white "> Your Favorite Story Universe, Between Us, Toonyz </p> */}
                 </div>
 
                 {/* </div> */}

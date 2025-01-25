@@ -87,7 +87,7 @@ yes,예,,Yes
 no,아니오,,No
 deleteAccountConfirm,정말로 계정을 삭제하시겠습니까?,,Are you sure you want to delete your account?
 deleteWebnovelConfirm,정말로 소설을 삭제하시겠습니까?,,Are you sure you want to delete the novel?
-stars,별 충전,スター充電,Charge Stars
+stars,별 충전,スター充電,Stars Shop
 curriculum,커리큘럼,,Curriculum
 typeYourComment,댓글을 입력해주세요. 타인을 비방하는 내용은 삼가해주세요.,,Type your comment here. Please be nice to each other.
 typeYourPrompt,프롬프트를 입력해주세요.,ここにプロンプトを入力してください,Type your prompt here..
@@ -166,10 +166,11 @@ noRecentSearch,최근 검색어가 없습니다.,,No recent search
 noPopularSearch,인기 검색어가 없습니다.,,No popular search
 searchTurnOff,최근 검색어 끄기,,Turn off search history
 searchTurnOn,최근 검색어 켜기,,Turn on search history
-searchPlaceholder,검색어를 입력해주세요. 예) 장르 #태그 및 작가이름,,Search title author or keyword
+searchPlaceholder,작품 제목으로 검색하세요,,Search by title 
 popularWebnovels,인기작 추천,,Popular Webnovels
 newReleasesWebnovels,투니즈 최신작,,New Releases
 more,더 보기,,More
+less,닫기,,Less
 toonyzHot,실시간 베스트,,BEST on Toonyz,
 currentPromotion,진행중인 이벤트,,Current Event
 ranking,투니즈 인기작,Toonyz's Top Series
@@ -295,7 +296,7 @@ mostLiked,좋아요순,,Likes
 mostSubscribed,구독순,,Subscribe
 applyCreator,투니즈의 크리에이터가 되어보세요!,,Join Toonyz as an Author!
 applyCreator_button,지금 신청하기,,Apply Now
-TOP_TEN_WEBNOVELS,TOP 10,,TOP 10
+TOP_SEVEN_WEBNOVELS,TOP 7,,TOP 7
 starsTransaction,충전 내역,,Transactions
 purchase,구매하기,,Purchase,
 binge_with_bulk_unlock,모든 에피소드를 한번에 구매하세요,,Binge – Unlock All & Enjoy!
@@ -314,7 +315,8 @@ toonyzcut_phrase_2,글로벌 스토리텔링\, 영상과 스토리의 창조적 
 toonyzcut_phrase_3,크리에이터님들의 소중한 작품이 영상화 될 수 있는 기회를 잡으세요.,,Seize the opportunity for your precious works to become a video.,,,คว้าโอกาสให้ผลงานล้ำค่าของคุณกลายเป็นวิดีโอ
 toonyzcut_phrase_4,스토리와 영상의 완벽한 조화\, 당신의 이야기를 투니즈에서 빛내 보세요.,,A perfect fusion of stories and videos\, let your story shine in Toonyz.,,,การผสมผสานที่ลงตัวระหว่างเรื่องราวและวิดีโอ ให้เรื่องราวของคุณเปล่งประกายใน Toonyz
 home,전체,,Home
-action,액션/무협,,Action
+action,액션,,Action
+orientalFantasy,무협,,Oriental Fantasy
 commentSubmit,등록,,Submit
 buyStars,별 구매하기,,Buy Stars
 payment_success,결제가 완료되었습니다.,Payment completed.,Payment completed.
@@ -322,4 +324,6 @@ payment_processing,결제가 처리 중입니다.,Payment is processing.,Payment
 payment_failed,결제가 실패했습니다.,Payment failed.,Payment failed.
 payment_error,결제 오류가 발생했습니다.,Payment error.,Payment error.
 back,돌아가기,,Back
+dontShowAgain,다시 보지 않기,,Don't show again,,
 recommended,투니의 추천,,Recommended by Tooni
+selectAtLeastOneGenre,장르를 선택해 주세요,,Please select at least one genre,,

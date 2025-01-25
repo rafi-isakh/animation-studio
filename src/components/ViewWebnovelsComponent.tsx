@@ -143,13 +143,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     else {
         if (webnovelLoading || userWebnovelsLoading) {
             return (
-                <Box sx={{ width: 300 }}>
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                </Box>
+                <div className='w-full min-h-screen md:max-w-screen-lg mx-auto flex flex-row justify-center items-center'>
+                    <CircularProgress />
+                </div>
             )
         } else if (atLeastOneWebnovel) {
             return (
@@ -157,19 +153,13 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                     <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
                         {/*--  left-hand side:  Author's other works link */}
                         <div className="flex md:flex-row flex-col justify-between items-start">
-                            <Suspense>
-                                {theWebnovel && (
-                                    <AuthorAndWebnovelsAsideComponent
-                                        webnovels={[theWebnovel]}
-                                        nickname={nickname}
-                                        coverArt={theWebnovel.cover_art || ""}
-                                        onNewChapter={handleNewChapter}
-                                        onDelete={handleDelete}
-                                    />
-                                )}
-
-                            </Suspense>
-
+                            <AuthorAndWebnovelsAsideComponent
+                                webnovels={[theWebnovel!]}
+                                nickname={nickname}
+                                coverArt={theWebnovel?.cover_art || ""}
+                                onNewChapter={handleNewChapter}
+                                onDelete={handleDelete}
+                            />
                             <div className='w-full'>
 
                                 <ContentChapterListComponent

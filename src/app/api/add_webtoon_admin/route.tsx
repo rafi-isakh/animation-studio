@@ -28,6 +28,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const rootDirectory = formData.get('rootDirectory')
   const author = formData.get('author')
   const email = formData.get('email')
+  const max_episodes = Number(formData.get('max_episodes'))
   const coverArt = "cover_art.jpg"
 
   if (!title || !description || !rootDirectory || !genre) {

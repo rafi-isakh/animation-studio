@@ -24,7 +24,7 @@ const WebnovelPicture = React.memo(({ webnovel, index, ranking, details, up, isO
                         src={imageSrc}
                         alt={webnovel.cover_art}
                         fill
-                        sizes="(max-width: 768px) 100px, 160px"
+                        sizes="100px, 160px"
                         quality={85}
                         className="object-cover transition-transform duration-300 hover:scale-110"
                         placeholder="blur"

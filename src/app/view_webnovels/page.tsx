@@ -16,7 +16,7 @@ async function getWebnovel(id: string | string[] | undefined) {
         return null;
     }
     try {
-        const webnovelResponse = await fetch(`/api/get_webnovel_by_id?id=${id}`);
+        const webnovelResponse = await fetch(`/api/get_webnovel_metadata_by_id?id=${id}`);
         if (!webnovelResponse.ok) {
             console.error("Failed to fetch webnovel")
             return null;
@@ -29,7 +29,11 @@ async function getWebnovel(id: string | string[] | undefined) {
 }
 
 async function getUserWebnovels(email_hash: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`,
+        {
+            cache: 'no-store'
+        }
+    );
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;
@@ -53,9 +57,9 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
                 const userWebnovels = await getUserWebnovels(author_email_hash);
                 setUserWebnovels(userWebnovels);
 
-                await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
             }
             setLoading(false);
+            fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
         }
         fetchData();
     }, [searchParams.id])

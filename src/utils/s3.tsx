@@ -43,6 +43,7 @@ export const uploadFile = async (fileBuffer: Buffer, fileName: string, fileType:
       cookie: req.headers.get('cookie') || ''
     }
   });
+}
 
 
 export const listObjectsInWebtoonsDirectory = async (directoryPrefix: string) => {

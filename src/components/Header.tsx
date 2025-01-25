@@ -473,8 +473,7 @@ export const Header = () => {
                                             onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
                                             className="md:px-0 md:py-0 px-4 py-5 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
                                             <div className='p-2 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
-                                                <Menu size={20} className='dark:text-white text-gray-500 md:block hidden' />
-                                                <User size={20} className='dark:text-white text-gray-500 md:hidden' />
+                                                <User size={20} className='dark:text-white text-gray-500' />
                                             </div>
                                             <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "profile", language)}</p>
                                         </button>
@@ -523,12 +522,12 @@ export const Header = () => {
                                                             {phrase(dictionary, "myLibrary", language)}
                                                         </Link>
                                                     </li>
-                                                    <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
+                                                    {/* <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
                                                         <Link href="/stars" onClick={() => handleUserItemClick()} className="flex items-center space-x-2 justify-start">
                                                             <Sparkles size={18} className='dark:text-white text-black ' />
                                                             <span>{phrase(dictionary, "stars", language)}</span>
                                                         </Link>
-                                                    </li>
+                                                    </li> */}
                                                     <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                         <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
                                                             <Video size={20} className='dark:text-white text-black' />
@@ -565,7 +564,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                <li className='md:flex items-center justify-center ml-1 hidden'>
+                                {/* <li className='md:flex items-center justify-center ml-1 hidden'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
                                         color: 'white',
@@ -573,29 +572,28 @@ export const Header = () => {
                                             color: 'white',
                                         }
                                     }} variant="text" className='capitalize rounded-lg'>
-                                          {/* Publish */}
                                           {phrase(dictionary, "publish", language)}
                                     </Button>
-                              </li>
+                              </li> */}
                             </ul>
                         </div>
                     </div>
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
-                    <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-4">  {/* pb-2 */}
+                    <div id="below-header" className="max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-1">  {/* pb-2 */}
                         <Link href="/?version=premium">
-                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
+                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
                         <Link href="/webtoons">
-                            <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "webtoons", language)}</p>
                         </Link>
                         <Link href="/?version=free" >
-                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
                         <Link href="/toonyzcut">
-                            <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
+                            <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "toonyzCut", language)}</p>
                         </Link>
                     </div>

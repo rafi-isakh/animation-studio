@@ -1,4 +1,5 @@
 // app/layout.tsx
+import { Analytics } from "@vercel/analytics/react"
 import '@/styles/globals.css';
 import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
@@ -80,14 +81,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
         />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-std/dist/web/static/pretendard-std.css"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard-jp/dist/web/static/pretendard-jp.css"
-        />
       </head>
       <body className={`antialiased`}>
         <RegisterSW />
@@ -107,6 +100,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       </Suspense>
                       <Margin>
                         {children}
+                        <Analytics />
                         <Suspense>
                           <NavigationEvents />
                         </Suspense>

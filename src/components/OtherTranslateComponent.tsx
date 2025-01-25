@@ -50,6 +50,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             const originalAndTargetLangSame = await detectLanguage();
             if (originalAndTargetLangSame) {
                 setText(content);
+                setMarkedText(await marked(content));
                 setLoading(false);
                 return;
             }
@@ -59,6 +60,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {
                 setText(sessionData)
+                setMarkedText(await marked(sessionData));
                 setLoading(false)
             }
             else {
@@ -81,47 +83,35 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             }
             languageChangedRef.current = false;
         }
-        if (defaultLanguage != language) {
-            if (content) {
-                initialized.current = false;
-                handleTranslate();
+        const initiate = async () => {
+            if (defaultLanguage != language) {
+                if (content) {
+                    initialized.current = false;
+                    handleTranslate();
+                } else {
+                    setText("");
+                    setMarkedText("");
+                    setLoading(false);
+                    languageChangedRef.current = false;
+                }
             } else {
-                setText("");
+                setText(content);
+                setMarkedText(await marked(content));
                 setLoading(false);
                 languageChangedRef.current = false;
             }
-        } else {
-            setText(content);
-            setLoading(false);
-            languageChangedRef.current = false;
         }
+        initiate();
     }, [language, elementType, elementId, elementSubtype]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);
     }, [text]);
 
-    useEffect(() => {
-        // save every 200 tokens
-        if (changeCount > 200) {
-            if (!finished && initialized.current) {
-                saveTranslationToDB(false);
-            }
-            setChangeCount(0);
-        }
-    }, [changeCount, finished, initialized.current])
-
-    useEffect(() => {
-        if (initialized.current && finished) {
-            setLoading(false)
-            saveTranslationToDB(true);
-        }
-    }, [finished])
-
-    const saveTranslationToDB = async (done: boolean) => {
-        if (text) {
+    const saveTranslationToDB = async (translation: string, done: boolean) => {
+        if (translation) {
             const data = {
-                "text": text,
+                "text": translation,
                 "language": language,
                 "element_id": elementId,
                 "element_type": elementType,
@@ -174,7 +164,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         const data = await response.json();
         setText(data.translation);
         setMarkedText(await marked(data.translation));
-        saveTranslationToDB(true);
+        saveTranslationToDB(data.translation, true);
         setLoading(false);
     };
 
@@ -189,7 +179,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 loading && showLoading ?
                     (
                         <Skeleton variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
-                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(markedText).replaceAll("\n", "<br/>") }} />
+                    ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
             }
         </div>
     );

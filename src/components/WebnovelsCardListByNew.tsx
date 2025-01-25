@@ -8,10 +8,6 @@ import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUt
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 
-export const premium = [23, 19, 21, 22, 20, 24]
-
-export const free = [29, 28, 25]
-
 const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
@@ -21,14 +17,11 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
-        const _webnovels = webnovels.map(novel => ({
-            ...novel,
-            version: premium.includes(novel.id) ? "premium" : "free",
-        }));
-        const _webnovelsToShow = _webnovels
+        const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
+            .slice(0, 6)
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

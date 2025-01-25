@@ -15,6 +15,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const file = formData.get('file') as File;
     const bio = formData.get('bio') as string;
     const nickname = formData.get('nickname') as string;
+    const genres = formData.get('genres') as string;
 
     const email = session.user?.email;
 
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "bio": bio as string,
         "nickname": nickname as string,
         "picture": fileName as string,
+        "genres": genres as string,
         "provider": session.provider
     }
 

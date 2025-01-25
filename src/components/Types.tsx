@@ -8,7 +8,7 @@ export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouse
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
 
-export type SortBy = 'views' | 'likes' | 'date'
+export type SortBy = 'views' | 'likes' | 'date' | 'recommendation'
 
 export interface Chapter {
   id: number;
@@ -28,6 +28,7 @@ export interface User {
   nickname: string;
   bio: string;
   picture: string;
+  stars: number;
 }
 
 export interface UserCreate {
@@ -36,6 +37,7 @@ export interface UserCreate {
   bio: string;
   provider: string;
   picture?: string;
+  genres: string;
 }
 
 export interface Comment {
@@ -101,6 +103,7 @@ export interface Webtoon {
   genre: string;
   tags: string;
   premium: boolean;
+  num_free_chapters: number;
 }
 
 export interface WebtoonChapter {
@@ -110,7 +113,7 @@ export interface WebtoonChapter {
   webtoon_id: number;
   directory: string;
   created_at: Date;
-  free_premium: boolean;
+  free: boolean;
 }
 
 export interface Dictionary {

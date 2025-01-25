@@ -12,7 +12,7 @@ const calculateOrderAmount = (numStars: number, discount: number) => {
     // Replace this constant with a calculation of the order's amount
     // Calculate the order total on the server to prevent
     // people from directly manipulating the amount on the client
-    return numStars * 100 * discount;
+    return numStars * 10 * discount;
 };
 
 export async function POST(request: Request) {

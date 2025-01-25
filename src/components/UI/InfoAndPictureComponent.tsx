@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
 import { Webtoon, Webnovel } from "@/components/Types";
-import { Button, useMediaQuery, Modal, Box, Skeleton } from "@mui/material";
+import { Button, useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -141,13 +141,15 @@ export default function InfoAndPictureComponent({
 
                         {/* Content Info */}
                         <div className="flex flex-col items-center py-10">
-                            <OtherTranslateComponent
-                                content={content.title}
-                                elementId={content.id.toString()}
-                                elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                elementSubtype="title"
-                                classParams="text-2xl font-bold self-center text-center"
-                            />
+                            {isWebtoon ? content.title :
+                                <OtherTranslateComponent
+                                    content={content.title}
+                                    elementId={content.id.toString()}
+                                    elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                    elementSubtype="title"
+                                    classParams="text-2xl font-bold self-center text-center"
+                                />
+                            }
 
                             <p className="text-center">
                                 {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
@@ -182,13 +184,15 @@ export default function InfoAndPictureComponent({
 
                             <div className="mt-2">
                                 {/* Description */}
-                                <OtherTranslateComponent
-                                    content={content.description}
-                                    elementId={content.id.toString()}
-                                    elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                    elementSubtype="description"
-                                    classParams="text-sm text-gray-800 dark:text-white"
-                                />
+                                {isWebtoon ? content.description :
+                                    <OtherTranslateComponent
+                                        content={content.description}
+                                        elementId={content.id.toString()}
+                                        elementType={isWebtoon ? 'webtoon' : 'webnovel'}
+                                        elementSubtype="description"
+                                        classParams="text-sm text-gray-800 dark:text-white"
+                                    />
+                                }
                             </div>
 
                             {/* Action Buttons */}
@@ -347,12 +351,14 @@ export default function InfoAndPictureComponent({
                                 <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
                                     <div className="font-extrabold flex flex-row gap-2 items-center cursor-pointer">
                                         <MdStars className="text-xl text-[#D92979]" />
-                                        <Link href={`/stars`}>
-                                            <p>
-                                                {/* 별 구매하기  */}
-                                                {phrase(dictionary, "buyStars", language)}
-                                            </p>
-                                        </Link>
+                                        <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                                            <Link href={`#`}>
+                                                <p>
+                                                    {/* 별 구매하기  */}
+                                                    {phrase(dictionary, "buyStars", language)}
+                                                </p>
+                                            </Link>
+                                        </Tooltip>
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </div>

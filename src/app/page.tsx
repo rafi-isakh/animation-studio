@@ -18,34 +18,40 @@ import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
 
 async function getCarouselItems() {
+    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
+    const end = performance.now()
+    console.log('getCarouselItems', end - start)
     return response.json();
 }
 
-async function getWebnovels() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels`)
+async function getWebnovelsMetadata() {
+    const start = performance.now()
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }
+    const end = performance.now()
+    console.log('getWebnovelsMetadata', end - start)
     return response.json();
 }
+
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
     let items = await getCarouselItems();
-    const premium = [23, 19, 21, 22, 20, 24];
-    let webnovels = await getWebnovels();
+    let webnovels = await getWebnovelsMetadata();
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
-        items = items.filter((item: any) => !premium.includes(item.webnovel_id));
-        webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
+        // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
+        webnovels = webnovels.filter((novel: Webnovel) => !novel.premium);
     } else if (searchParams.version === 'premium') {
-        items = items.filter((item: any) => premium.includes(item.webnovel_id));
-        webnovels = webnovels.filter((novel: Webnovel) => premium.includes(novel.id));
+        // items = items.filter((item: any) => webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
+        webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
 
 
@@ -73,7 +79,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="date" />    
+                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}

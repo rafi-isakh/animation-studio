@@ -36,6 +36,7 @@ import {
     PinterestIcon,
 } from "react-share";
 import { CommentList } from "@/components/CommentList";
+import { marked } from "marked";
 
 interface WebtoonChapterListComponentProps {
     webtoon: Webtoon;
@@ -56,9 +57,10 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
 }) => {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
-    const [isSortedByLatest, setIsSortedByLatest] = useState(true);
+    const [isSortedByLatest, setIsSortedByLatest] = useState(false);
     const formattedDate = moment(webtoon.created_at).format('MM/DD/YYYY');
     const [currentPageUrl, setCurrentPageUrl] = useState('');
+    const [markedDescription, setMarkedDescription] = useState('');
 
     const handleUpdate = () => {
         if (onUpdate) {
@@ -70,6 +72,11 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
+        const markDescription = async () => {
+            const markedDescription = await marked(webtoon.description);
+            setMarkedDescription(markedDescription);
+        }
+        markDescription();
     }, []);
 
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -180,7 +187,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                 >
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
-                            <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                            {/* <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
                                 <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
                                     <p className="text-sm flex flex-row items-center gap-2">
                                         <Image
@@ -200,14 +207,13 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                                 backgroundColor: 'white'
                                             }}
                                         />
-                                        {/* Binge On – Unlock all & Enjoy! */}
                                         {phrase(dictionary, "binge_with_bulk_unlock", language)}
 
 
                                     </p>
                                     <ChevronRightIcon size={16} className="text-black dark:text-white" />
                                 </Button>
-                            </Tooltip>
+                            </Tooltip> */}
                             <WebtoonChapterListSubcomponent
                                 webtoon={webtoon}
                                 slug={slug}
@@ -243,7 +249,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                     }}
                 >
                     <div className="flex flex-col self-start justify-start gap-4 space-y-4">
-                        <p className="text-sm text-black dark:text-white"> {webtoon.description} </p>
+                        <p className="text-sm text-black dark:text-white" dangerouslySetInnerHTML={{ __html: markedDescription }} />
                         <div className="flex flex-col gap-0 space-y-4">
                             <p className="text-sm text-black dark:text-white font-bold">
                                 {/* 연재 시작 */}

@@ -28,6 +28,7 @@ export default function Stars() {
         setTabValue(newValue);
     };
 
+    return null;
     return (
         <div className="md:max-w-screen-lg w-full mx-auto">
             <TabContext value={tabValue} >

@@ -11,12 +11,14 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import ToonyzCutSubmitModal from "@/components/ToonyzCutSubmitModal"
 import ToonyzCutViewerModal from "@/components/ToonyzCutViewerModal"
 import OtherTranslateComponent from "./OtherTranslateComponent";
+import { useMediaQuery } from "@mui/material";
 
 const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
     const imageSrc = getImageUrl(webnovel?.cover_art)
     const [openModal, setOpenModal] = useState(false)
     const [openSubmitModal, setOpenSubmitModal] = useState(false)
     const { dictionary, language } = useLanguage();
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     const handleOpenModal = (event: React.MouseEvent<HTMLImageElement>) => {
         event.preventDefault()
@@ -36,22 +38,25 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
     }
 
     return (
-        <div key={webnovel.id} className='flex flex-col justify-center items-center gap-4 w-full md:max-w-[200px]'>
-            <div className='relative group w-[150px] h-[200px]'>
+        <div 
+        key={webnovel.id} 
+        className='relative flex flex-col justify-center items-center gap-2 w-full md:max-w-[200px] bg-gray-100 rounded-xl'>
+            <div className='relative group w-full max-h-[200px]'>
                 <Link href='#'>
                 <Image
                     onClick={(event) => handleOpenModal(event)}
                     src={imageSrc}
                     alt={webnovel.title}
-                    fill
-                    className='object-cover rounded-xl group-hover:opacity-50 transition-opacity duration-300'
+                    width={isMobile ? 100 : 200}
+                    height={isMobile ? 150 : 250}
+                    className='object-cover w-full h-full rounded-t-xl group-hover:opacity-50 transition-opacity duration-300'
                 />
                 </Link>
             </div>
             <div className='flex flex-col items-center gap-1 w-full'>
-                <p className='font-semibold truncate w-full text-center text-base'>
+                <div className='font-semibold truncate w-full text-center text-base'>
                     <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
-                </p>
+                </div>
                 <p className='text-gray-600 truncate w-full text-center text-sm'>{webnovel.user.nickname}</p>
                 <p className='text-gray-500 truncate w-full text-center text-sm'>
                     {phrase(dictionary, webnovel.genre, language)}
@@ -63,14 +68,14 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
                     backgroundColor: 'transparent',
                     border: '2px solid #8A2BE2',
                     color: '#8A2BE2',
-
+                    width: '100%',
                     '&:hover': {
                         backgroundColor: '#8A2BE2',
                         color: '#fff',
                     }
                 }}
                 className='bg-transparent border-1 text-[#8A2BE2]
-                           dark:text-[#8A2BE2]
+                           dark:text-[#8A2BE2] w-full
                            rounded-md flex flex-row items-center justify-center
                            gap-2 text-sm'
                 >
@@ -82,6 +87,6 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
             {/* modal for quick viewing */}
             <ToonyzCutViewerModal webnovel={webnovel} open={openModal} onClose={handleCloseModal} />
         </div>
-    )
+    )   
 }
 export default ToonyzCutCard

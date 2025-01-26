@@ -26,28 +26,32 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
         <>
 
             <div className='flex flex-col items-center gap-4 mt-4'>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }} className='dark:text-gray-700'>
-                    <div className="flex flex-row justify-end items-center mb-4">
+                <Box 
+                     sx={{ 
+                     borderBottom: 1,
+                     borderColor: 'divider',
+                     width: '100%' }} 
+                     className='dark:text-gray-700'
+                     >
+                    <div className="flex flex-row justify-end items-center mb-4 md:pr-0 pr-2">
                         <Link href="/toonyzcut/submit">
                             <Button
                                 sx={{
                                     backgroundColor: 'transparent',
-                                    border: '2px solid #8A2BE2',
-                                    color: '#8A2BE2',
+                                    border: '2px solid #eee',
+                                    borderRadius: '25px',
+                                    color: '#DB2777',
 
                                     '&:hover': {
-                                        backgroundColor: '#8A2BE2',
+                                        backgroundColor: '#db2777',
                                         color: '#fff',
                                     }
                                 }}
-                                className='bg-transparent border-2 text-[#8A2BE2]
-                                                                       dark:text-[#8A2BE2]
-                                                                       hover:text-white
-                                                                       rounded-md flex flex-row items-center justify-center
-                                                                       gap-2 text-sm w-full mt-2 py-2'
-                            >
+                                className='bg-transparent border-2
+                                           rounded-md flex flex-row items-center justify-center
+                                           gap-2 text-sm w-full mt-2 py-2'
+                                >
                                 <div className='flex flex-row items-center justify-center gap-2'>
-
                                     <Share size={16} />
                                     {/* Offer your proposal */}
                                     {phrase(dictionary, 'toonyzcut_offer_proposal', language)}
@@ -57,7 +61,10 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
                     </div>
                 </Box >
                 <div className='md:max-w-screen-lg w-full'>
-                    <div className='grid md:grid-cols-4 grid-cols-1 gap-10'>
+                    <div className='grid md:grid-cols-4 grid-cols-2 
+                                  gap-y-12 md:gap-y-12  /* Vertical gaps */
+                                  gap-x-4 md:gap-x-8  /* Horizontal gaps */
+                                  p-2 overflow-hidden'>
                         {webnovels
                             .map((webnovel: Webnovel, index: number) => (
                                 <ToonyzCutCard key={index} webnovel={webnovel} />

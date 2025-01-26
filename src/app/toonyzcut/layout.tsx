@@ -1,7 +1,11 @@
+'use client'
+
 import DictionaryPhrase from '@/components/DictionaryPhrase';
 import Image from 'next/image';
-
+import useMediaQuery from '@mui/material/useMediaQuery';
 export default function ToonyzCutLayout({ children }: { children: React.ReactNode }) {
+    const isMobile = useMediaQuery('(max-width:360px)');
+
     return (
         <div className='md:max-w-screen-lg w-full mx-auto'>
             <div 
@@ -17,25 +21,19 @@ export default function ToonyzCutLayout({ children }: { children: React.ReactNod
                         <Image
                             src='/toonyz_logo_pink.svg' 
                             alt='toonyzLogo' 
-                            width={141} 
-                            height={32} 
+                            width={isMobile ? '143' : '241'} 
+                            height={isMobile ? '32' : '32'} 
                         />
-                        <p className='text-[2.3rem] font-extrabold text-white'>Cut</p>
+                        <p className='md:text-[4.3rem] text-[2.3rem] font-extrabold text-white'>Cut</p>
                     </div>
 
                     <div className='flex flex-col items-center gap-2'>
-                        <p className='text-[1rem] font-normal w-full text-white'>
+                        <div className='text-[1rem] font-normal w-full text-white break-keep'>
                             <DictionaryPhrase phraseVar='toonyzcut_phrase_1' />
-                        </p>
-                        <p className='text-[1rem] font-normal w-full text-white'>
+                        </div>
+                        <div className='text-[1rem] font-normal w-full text-white break-keep'>
                             <DictionaryPhrase phraseVar='toonyzcut_phrase_2' />
-                        </p>
-                        <p className='text-[1rem] font-normal w-full text-white'>
-                            <DictionaryPhrase phraseVar='toonyzcut_phrase_3' />
-                        </p>
-                        <p className='text-[1rem] font-normal w-full text-white'>
-                            <DictionaryPhrase phraseVar='toonyzcut_phrase_4' />
-                        </p>
+                        </div>
                         <p className='text-[1rem] font-normal w-full text-white'>
                             Toonyz Cut Is An Open Call for Innovative Production Proposals
                         </p>

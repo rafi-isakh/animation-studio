@@ -10,9 +10,9 @@ import Link from "next/link"
 import { useLanguage } from "@/contexts/LanguageContext"
 import ToonyzCutSubmitModal from "@/components/ToonyzCutSubmitModal"
 import ToonyzCutViewerModal from "@/components/ToonyzCutViewerModal"
-import OtherTranslateComponent from "./OtherTranslateComponent";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { useMediaQuery } from "@mui/material";
-
+import { Eye } from "lucide-react";
 const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
     const imageSrc = getImageUrl(webnovel?.cover_art)
     const [openModal, setOpenModal] = useState(false)
@@ -42,15 +42,17 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
         key={webnovel.id} 
         className='relative flex flex-col justify-center items-center gap-2 w-full md:max-w-[200px] bg-gray-100 rounded-xl'>
             <div className='relative group w-full max-h-[200px]'>
-                <Link href='#'>
-                <Image
-                    onClick={(event) => handleOpenModal(event)}
-                    src={imageSrc}
-                    alt={webnovel.title}
-                    width={isMobile ? 100 : 200}
-                    height={isMobile ? 150 : 250}
-                    className='object-cover w-full h-full rounded-t-xl group-hover:opacity-50 transition-opacity duration-300'
-                />
+                <Link href='#' onClick={(event) => handleOpenModal(event)}>
+                    <Image
+                        src={imageSrc}
+                        alt={webnovel.title}
+                        width={isMobile ? 100 : 200}
+                        height={isMobile ? 150 : 250}
+                        className='object-cover w-full h-full rounded-t-xl group-hover:opacity-50 transition-opacity duration-300'
+                    />
+                    <div className="absolute top-0 left-0 w-full h-full bg-black text-white dark:text-white opacity-0 group-hover:opacity-50 transition-opacity duration-300 flex flex-row gap-1 items-center justify-center rounded-t-xl">
+                        <Eye size={16} className="text-white" /> View
+                    </div>
                 </Link>
             </div>
             <div className='flex flex-col items-center gap-1 w-full'>

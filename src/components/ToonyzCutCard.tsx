@@ -62,20 +62,21 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
                     {phrase(dictionary, webnovel.genre, language)}
                 </p>
             </div>
+            
             <Button
                 onClick={handleOpenSubmitModal}
                 sx={{
                     backgroundColor: 'transparent',
-                    border: '2px solid #8A2BE2',
-                    color: '#8A2BE2',
+                    border: '2px solid #4b5563',
+                    color: '#4b5563',
                     width: '100%',
                     '&:hover': {
-                        backgroundColor: '#8A2BE2',
+                        backgroundColor: '#db2777',
                         color: '#fff',
                     }
                 }}
-                className='bg-transparent border-1 text-[#8A2BE2]
-                           dark:text-[#8A2BE2] w-full
+                className='bg-transparent border-1 text-gray-600
+                           dark:text-gray-600 w-full
                            rounded-md flex flex-row items-center justify-center
                            gap-2 text-sm'
                 >

@@ -10,23 +10,33 @@ import Link from "next/link"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useToonyzCutSubmitModalStyle } from "@/styles/ModalStyles"
 import OtherTranslateComponent from "./OtherTranslateComponent";
+import { CircleX } from "lucide-react";
 
 const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel, open: boolean, onClose: () => void }) => {
     const imageSrc = getImageUrl(webnovel?.cover_art)
     const [openModal, setOpenModal] = useState(false)
     const [openSubmitModal, setOpenSubmitModal] = useState(false)
     const { dictionary, language } = useLanguage();
-   
+
     const handleSubmit = () => {
         console.log('submit')
     }
 
 
     return (
-        <Modal open={open} onClose={onClose}>
+        <Modal 
+         open={open}
+         onClose={onClose}
+         >
             <Box sx={useToonyzCutSubmitModalStyle}>
-                <div className="flex flex-col gap-4">
-                    <h1 className="text-xl font-bold text-balck dark:text-black">Your Proposal</h1>
+                <div className="flex flex-col gap-4 md:p-2 p-10">
+                    <div className="flex flex-row justify-between">
+                        <h1 className="text-xl font-bold text-balck dark:text-black">Your Proposal</h1>
+                        <CircleX
+                            size={16}
+                            onClick={onClose}
+                            className="cursor-pointer self-center text-gray-400 dark:text-gray-400" />
+                    </div>
                     <div className="relative w-[150px] h-[200px] mx-auto">
                         <Image
                             src={imageSrc}
@@ -40,12 +50,20 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
 
                     <div className="flex flex-col justify-center items-center gap-2">
                         <p className="font-semibold text-lg text-balck dark:text-black">
-                            <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title'/>
+                            <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                         </p>
                         <p className="text-gray-600">{webnovel.user.nickname}</p>
                         <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
-                        <p className="text-sm text-center max-w-[400px] text-balck dark:text-black">
-                            <OtherTranslateComponent content={webnovel.description} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='description'/>
+                        <p className="text-sm text-center max-w-[400px] text-balck dark:text-black line-clamp-3">
+                            <OtherTranslateComponent 
+                                content={webnovel.description.length > 100 
+                                    ? `${webnovel.description.slice(0, 100)}...` 
+                                    : webnovel.description
+                                } 
+                                elementId={webnovel.id.toString()} 
+                                elementType='webnovel' 
+                                elementSubtype='description' 
+                            />
                         </p>
                         <hr className="w-full border-gray-300" />
 

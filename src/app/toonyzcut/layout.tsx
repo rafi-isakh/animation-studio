@@ -21,7 +21,7 @@ export default function ToonyzCutLayout({ children }: { children: React.ReactNod
                         <Image
                             src='/toonyz_logo_pink.svg' 
                             alt='toonyzLogo' 
-                            width={isMobile ? '143' : '241'} 
+                            width={isMobile ? '100' : '183'} 
                             height={isMobile ? '32' : '32'} 
                         />
                         <p className='md:text-[4.3rem] text-[2.3rem] font-extrabold text-white'>Cut</p>

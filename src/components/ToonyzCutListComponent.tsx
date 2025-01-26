@@ -41,7 +41,6 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
                                     border: '2px solid #eee',
                                     borderRadius: '25px',
                                     color: '#DB2777',
-
                                     '&:hover': {
                                         backgroundColor: '#db2777',
                                         color: '#fff',

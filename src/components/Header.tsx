@@ -564,17 +564,17 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                {/* <li className='md:flex items-center justify-center ml-1 hidden'>
+                                <li className='md:flex items-center justify-center ml-1 hidden'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
                                         color: 'white',
                                         '&:hover': {
                                             color: 'white',
                                         }
-                                    }} variant="text" className='capitalize rounded-lg'>
-                                          {phrase(dictionary, "publish", language)}
+                                    }} variant="text" className='capitalize rounded-lg' onClick={() => router.push('/signin')} >
+                                          {phrase(dictionary, "login", language)}
                                     </Button>
-                              </li> */}
+                              </li>
                             </ul>
                         </div>
                     </div>

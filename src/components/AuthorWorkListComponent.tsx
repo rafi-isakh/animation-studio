@@ -25,8 +25,8 @@ const AuthorWorkListComponent = ({ webnovels, nickname }:
     };
 
     return (
-        <div className="overflow-x-auto w-full">
-            <div className="flex flex-row gap-1 min-w-full">
+        <div className="md:w-[670px] w-full">
+            <div className="flex flex-row gap-1 overflow-x-auto">
                 {webnovels?.map((webnovel, index) => (
                     <div key={index} className="flex-shrink-1">
                         <Link

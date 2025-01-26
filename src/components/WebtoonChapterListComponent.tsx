@@ -225,7 +225,8 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 {phrase(dictionary, "youMightLikeThis", language)}
                             </h1>
                             <hr />
-                            <div className="flex flex-col w-full">
+                            <div className="relative flex flex-col w-full overflow-hidden">
+                              
                                 <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
                             </div>
                             {/* Comments list */}

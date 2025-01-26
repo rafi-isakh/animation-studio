@@ -151,7 +151,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             return (
                 // <ThemeProvider theme={grayTheme}>
                     <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
-                        {/*--  left-hand side:  Author's other works link */}
+                        
                         <div className="flex md:flex-row flex-col justify-between items-start">
                             <div className="md:w-1/3 w-full flex-grow-0">
                             <AuthorAndWebnovelsAsideComponent

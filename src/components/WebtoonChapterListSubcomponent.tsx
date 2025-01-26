@@ -93,8 +93,8 @@ const WebtoonChapterListSubcomponent = ({
             onClick={() => setShowMoreChapters(!showMoreChapters)}
           >
             {/* 더보기 */}
-            {phrase(dictionary, "more", language)}
-            <ChevronDownIcon size={16} className="text-black dark:text-white" />
+            {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
+            {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
           </button>
         )}
       </div>

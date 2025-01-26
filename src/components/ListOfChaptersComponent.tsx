@@ -9,7 +9,7 @@ import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableH
 import { useModalStyle } from '@/styles/ModalStyles';
 import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
 import { styled } from '@mui/system';
-import { ChevronDownIcon, Eye, Heart, MessageCircle } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, Eye, Heart, MessageCircle } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
 import { createEmailHash } from "@/utils/cryptography";
 import { useUser } from "@/contexts/UserContext";
@@ -117,8 +117,9 @@ const ListOfChaptersComponent = ({
                         className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
                         onClick={() => setShowMoreChapters(!showMoreChapters)}
                     >
-                        {phrase(dictionary, showMoreChapters ? "less" : "more", language)}
-                        <ChevronDownIcon size={16} />
+                        {/* 더보기 */}
+                        {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
+                        {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
                     </button>
                 )}
             </div>

@@ -21,13 +21,22 @@ const WebtoonChapterListSubcomponent = ({
     onUpdate: (updatedContent: Webtoon) => void
   }) => {
   const [showMoreChapters, setShowMoreChapters] = useState(false);
-  const [showLessChapters, setShowLessChapters] = useState(false);
+  const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
+  const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+
+  const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
+  const displayedChapters = sortedChapters.slice(0, visibleChapters);
+  const hasMoreChapters = sortedChapters.length > visibleChapters;
+
+  const loadMoreChapters = () => {
+    setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters.length));
+  };
+
   const [showModal, setShowModal] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<WebtoonChapter | null>(null);
   const { language, dictionary } = useLanguage();
   const { stars } = useUser();
 
-  const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
   console.log(webtoon.chapters.map(chapter => chapter.free))
 
   const handleChapterClick = (chapter: WebtoonChapter, e: React.MouseEvent) => {
@@ -49,25 +58,26 @@ const WebtoonChapterListSubcomponent = ({
     <>
       <div className="w-full">
         <div className="overflow-y-auto rounded-md">
-          {sortedChapters.map((chapter: WebtoonChapter, index: number) => (
+          {displayedChapters.map((chapter: WebtoonChapter, index: number) => (
             <Link
               href={`/webtoons/${slug}/${chapter.directory}`}
               key={`chapter-${chapter.id}`}
               onClick={(e) => handleChapterClick(chapter, e)}
               className={`cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 
-              ${index >= 10 && !showMoreChapters ? 'hidden' : ''}
+             
               ${!chapter.free ? 'opacity-50' : ''}`}
             >
               <div className="flex flex-row justify-between">
                 <div className="flex flex-row gap-3">
+                <div className="min-w-[50px] max-w-[50px]">
                   <Image
                     src={coverArt}
                     alt={chapter.directory}
-                    className="object-cover "
+                    className="rounded-lg object-cover w-full"
                     width={50}
                     height={50}
                   />
-
+                </div>
                   {/* <p className="text-xl text-center self-center"> {index + 1} </p> */}
                   <p className="text-sm text-center self-center">
                     {language === 'en' ? `Episode ${parseInt(chapter.directory)}` :
@@ -87,14 +97,14 @@ const WebtoonChapterListSubcomponent = ({
             </Link>
           ))}
         </div>
-        {webtoon?.chapters && webtoon?.chapters.length > 8 && (
+        {hasMoreChapters && (
           <button
             className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
-            onClick={() => setShowMoreChapters(!showMoreChapters)}
+            onClick={loadMoreChapters}
           >
             {/* 더보기 */}
-            {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
-            {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
+          {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
+          {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
           </button>
         )}
       </div>

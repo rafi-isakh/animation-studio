@@ -45,7 +45,6 @@ var moment_1 = require("moment");
 var material_1 = require("@mui/material");
 var ModalStyles_1 = require("@/styles/ModalStyles");
 var lucide_react_1 = require("lucide-react");
-var navigation_1 = require("next/navigation");
 var image_1 = require("next/image");
 var urls_1 = require("@/utils/urls");
 var ListOfChaptersComponent = function (_a) {
@@ -55,12 +54,17 @@ var ListOfChaptersComponent = function (_a) {
     var _d = react_1.useState(false), showDeleteModal = _d[0], setShowDeleteModal = _d[1];
     var _e = react_1.useState(null), deleteChapterId = _e[0], setDeleteChapterId = _e[1];
     var _f = react_1.useState(false), showMoreChapters = _f[0], setShowMoreChapters = _f[1];
-    var date = new Date();
-    var router = navigation_1.useRouter();
+    var _g = react_1.useState(10), visibleChapters = _g[0], setVisibleChapters = _g[1]; // Initial number of visible chapters
+    var CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+    var sortedChapters = sortToggle ? webnovel === null || webnovel === void 0 ? void 0 : webnovel.chapters.sort(function (a, b) { return b.id - a.id; }) : webnovel === null || webnovel === void 0 ? void 0 : webnovel.chapters.sort(function (a, b) { return a.id - b.id; });
+    var displayedChapters = (sortedChapters === null || sortedChapters === void 0 ? void 0 : sortedChapters.slice(0, visibleChapters)) || [];
+    var hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
+    var loadMoreChapters = function () {
+        setVisibleChapters(function (prev) { return Math.min(prev + CHAPTERS_PER_PAGE, (sortedChapters === null || sortedChapters === void 0 ? void 0 : sortedChapters.length) || 0); });
+    };
     react_1.useEffect(function () {
         setKey(function (prevKey) { return prevKey + 1; });
     }, [language]);
-    var sortedChapters = sortToggle ? webnovel === null || webnovel === void 0 ? void 0 : webnovel.chapters.sort(function (a, b) { return b.id - a.id; }) : webnovel === null || webnovel === void 0 ? void 0 : webnovel.chapters.sort(function (a, b) { return a.id - b.id; });
     var handleChapterDelete = function (id) { return __awaiter(void 0, void 0, void 0, function () {
         var res, error_1;
         return __generator(this, function (_a) {
@@ -90,10 +94,11 @@ var ListOfChaptersComponent = function (_a) {
     }); };
     return (React.createElement(React.Fragment, null,
         React.createElement("div", { className: "w-full" },
-            React.createElement("div", { className: "overflow-y-auto rounded-md" }, sortedChapters === null || sortedChapters === void 0 ? void 0 : sortedChapters.map(function (chapter, index) { return (React.createElement(link_1["default"], { href: "/chapter_view/" + chapter.id, key: "chapter-" + chapter.id, className: "block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 \n                    " + (index >= 8 && !showMoreChapters ? 'hidden' : '') },
+            React.createElement("div", { className: "overflow-y-auto rounded-md" }, displayedChapters.map(function (chapter, index) { return (React.createElement(link_1["default"], { href: "/chapter_view/" + chapter.id, key: "chapter-" + chapter.id, className: "block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer\n                           " },
                 React.createElement("div", { className: "flex flex-row justify-between items-center" },
                     React.createElement("div", { className: "flex flex-row gap-3 items-center" },
-                        React.createElement(image_1["default"], { src: urls_1.getImageUrl(webnovel === null || webnovel === void 0 ? void 0 : webnovel.cover_art), alt: (webnovel === null || webnovel === void 0 ? void 0 : webnovel.title) || '', width: 50, height: 50, className: "rounded-lg" }),
+                        React.createElement("div", { className: "min-w-[50px] max-w-[50px]" },
+                            React.createElement(image_1["default"], { src: urls_1.getImageUrl(webnovel === null || webnovel === void 0 ? void 0 : webnovel.cover_art), alt: (webnovel === null || webnovel === void 0 ? void 0 : webnovel.title) || '', width: 50, height: 50, className: "rounded-lg object-cover w-full" })),
                         React.createElement("div", { className: "flex flex-col text-sm" },
                             React.createElement("div", { className: "flex flex-row" },
                                 React.createElement(OtherTranslateComponent_1["default"], { content: chapter.title, elementId: chapter.id.toString(), elementType: "chapter", classParams: "text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" })),
@@ -113,7 +118,7 @@ var ListOfChaptersComponent = function (_a) {
                                     chapter.comments.length)))),
                     React.createElement("div", { className: "flex flex-row gap-2 items-center" },
                         React.createElement("div", { className: "text-gray-600 text-[10px] bg-gray-200 rounded-md px-1" }, phrases_1.phrase(dictionary, "readingForFree", language)))))); })),
-            (webnovel === null || webnovel === void 0 ? void 0 : webnovel.chapters) && (webnovel === null || webnovel === void 0 ? void 0 : webnovel.chapters.length) > 8 && (React.createElement("button", { className: "mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center", onClick: function () { return setShowMoreChapters(!showMoreChapters); } },
+            hasMoreChapters && (React.createElement("button", { className: "mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center", onClick: loadMoreChapters },
                 showMoreChapters ? phrases_1.phrase(dictionary, "less", language) : phrases_1.phrase(dictionary, "more", language),
                 showMoreChapters ? React.createElement(lucide_react_1.ChevronUpIcon, { size: 16, className: "text-black dark:text-white" }) : React.createElement(lucide_react_1.ChevronDownIcon, { size: 16, className: "text-black dark:text-white" })))),
         React.createElement(material_1.Modal, { open: showDeleteModal, onClose: function () { return setShowDeleteModal(false); } },

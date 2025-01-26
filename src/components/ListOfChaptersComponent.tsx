@@ -30,15 +30,20 @@ const ListOfChaptersComponent = ({
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const [showMoreChapters, setShowMoreChapters] = useState(false);
+    const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
+    const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
 
-    const date = new Date();
-    const router = useRouter();
+    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
+    const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
+    const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
+
+    const loadMoreChapters = () => {
+        setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
+    };
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language])
-
-    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
 
     const handleChapterDelete = async (id: number) => {
         try {
@@ -60,23 +65,26 @@ const ListOfChaptersComponent = ({
         <>
             <div className="w-full">
                 <div className="overflow-y-auto rounded-md">
-                    {sortedChapters?.map((chapter, index) => (
+                    {displayedChapters.map((chapter, index) => (
                         <Link
                             href={`/chapter_view/${chapter.id}`}
                             key={`chapter-${chapter.id}`}
-                            className={`block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 
-                    ${index >= 8 && !showMoreChapters ? 'hidden' : ''}`}
+                            className={`block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
+                           `}
+                           // ${!chapter.free ? 'opacity-50' : ''} 
                         >
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-3 items-center">
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
+                                    <div className="min-w-[50px] max-w-[50px]">
                                     <Image
                                         src={getImageUrl(webnovel?.cover_art)}
                                         alt={webnovel?.title || ''}
                                         width={50}
                                         height={50}
-                                        className="rounded-lg"
+                                        className="rounded-lg object-cover w-full"
                                     />
+                                    </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row">
                                             <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" />
@@ -105,17 +113,17 @@ const ListOfChaptersComponent = ({
                                         {/* Free */}
                                         {phrase(dictionary, "readingForFree", language)}
                                         {/* {chapter.free_premium ? phrase(dictionary, "readingForFree", language)
-                            : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" /> 30</div>} */}
+                                         : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" /> 30</div>} */}
                                     </div>
                                 </div>
                             </div>
                         </Link>
                     ))}
                 </div>
-                {webnovel?.chapters && webnovel?.chapters.length > 8 && (
+                {hasMoreChapters && (
                     <button
                         className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
-                        onClick={() => setShowMoreChapters(!showMoreChapters)}
+                        onClick={loadMoreChapters}
                     >
                         {/* 더보기 */}
                         {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}

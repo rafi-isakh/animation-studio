@@ -15,12 +15,18 @@ var UserContext_1 = require("@/contexts/UserContext");
 var WebtoonChapterListSubcomponent = function (_a) {
     var webtoon = _a.webtoon, slug = _a.slug, coverArt = _a.coverArt, sortToggle = _a.sortToggle, onUpdate = _a.onUpdate;
     var _b = react_1.useState(false), showMoreChapters = _b[0], setShowMoreChapters = _b[1];
-    var _c = react_1.useState(false), showLessChapters = _c[0], setShowLessChapters = _c[1];
+    var _c = react_1.useState(10), visibleChapters = _c[0], setVisibleChapters = _c[1]; // Initial number of visible chapters
+    var CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+    var sortedChapters = sortToggle ? webtoon.chapters.sort(function (a, b) { return b.id - a.id; }) : webtoon.chapters.sort(function (a, b) { return a.id - b.id; });
+    var displayedChapters = sortedChapters.slice(0, visibleChapters);
+    var hasMoreChapters = sortedChapters.length > visibleChapters;
+    var loadMoreChapters = function () {
+        setVisibleChapters(function (prev) { return Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters.length); });
+    };
     var _d = react_1.useState(false), showModal = _d[0], setShowModal = _d[1];
     var _e = react_1.useState(null), selectedChapter = _e[0], setSelectedChapter = _e[1];
     var _f = LanguageContext_1.useLanguage(), language = _f.language, dictionary = _f.dictionary;
     var stars = UserContext_1.useUser().stars;
-    var sortedChapters = sortToggle ? webtoon.chapters.sort(function (a, b) { return b.id - a.id; }) : webtoon.chapters.sort(function (a, b) { return a.id - b.id; });
     console.log(webtoon.chapters.map(function (chapter) { return chapter.free; }));
     var handleChapterClick = function (chapter, e) {
         if (chapter.free) {
@@ -38,10 +44,11 @@ var WebtoonChapterListSubcomponent = function (_a) {
     };
     return (React.createElement(React.Fragment, null,
         React.createElement("div", { className: "w-full" },
-            React.createElement("div", { className: "overflow-y-auto rounded-md" }, sortedChapters.map(function (chapter, index) { return (React.createElement(link_1["default"], { href: "/webtoons/" + slug + "/" + chapter.directory, key: "chapter-" + chapter.id, onClick: function (e) { return handleChapterClick(chapter, e); }, className: "cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 \n              " + (index >= 10 && !showMoreChapters ? 'hidden' : '') + "\n              " + (!chapter.free ? 'opacity-50' : '') },
+            React.createElement("div", { className: "overflow-y-auto rounded-md" }, displayedChapters.map(function (chapter, index) { return (React.createElement(link_1["default"], { href: "/webtoons/" + slug + "/" + chapter.directory, key: "chapter-" + chapter.id, onClick: function (e) { return handleChapterClick(chapter, e); }, className: "cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 \n             \n              " + (!chapter.free ? 'opacity-50' : '') },
                 React.createElement("div", { className: "flex flex-row justify-between" },
                     React.createElement("div", { className: "flex flex-row gap-3" },
-                        React.createElement(image_1["default"], { src: coverArt, alt: chapter.directory, className: "object-cover ", width: 50, height: 50 }),
+                        React.createElement("div", { className: "min-w-[50px] max-w-[50px]" },
+                            React.createElement(image_1["default"], { src: coverArt, alt: chapter.directory, className: "rounded-lg object-cover w-full", width: 50, height: 50 })),
                         React.createElement("p", { className: "text-sm text-center self-center" }, language === 'en' ? "Episode " + parseInt(chapter.directory) :
                             language === 'ko' ? parseInt(chapter.directory) + "\uD654" :
                                 "Episode " + parseInt(chapter.directory) + " ")),
@@ -51,7 +58,7 @@ var WebtoonChapterListSubcomponent = function (_a) {
                                 " ",
                                 React.createElement(md_1.MdStars, { className: "text-sm text-[#D92979]" }),
                                 " 30")))))); })),
-            (webtoon === null || webtoon === void 0 ? void 0 : webtoon.chapters) && (webtoon === null || webtoon === void 0 ? void 0 : webtoon.chapters.length) > 8 && (React.createElement("button", { className: "mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center", onClick: function () { return setShowMoreChapters(!showMoreChapters); } },
+            hasMoreChapters && (React.createElement("button", { className: "mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center", onClick: loadMoreChapters },
                 showMoreChapters ? phrases_1.phrase(dictionary, "less", language) : phrases_1.phrase(dictionary, "more", language),
                 showMoreChapters ? React.createElement(lucide_react_1.ChevronUpIcon, { size: 16, className: "text-black dark:text-white" }) : React.createElement(lucide_react_1.ChevronDownIcon, { size: 16, className: "text-black dark:text-white" })))),
         React.createElement(material_1.Modal, { open: showModal, onClose: function () { return setShowModal(false); } },

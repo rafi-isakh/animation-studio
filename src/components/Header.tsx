@@ -564,6 +564,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
+                                {!isLoggedInAndRegistered && (
                                 <li className='md:flex items-center justify-center ml-1 hidden'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
@@ -575,6 +576,7 @@ export const Header = () => {
                                           {phrase(dictionary, "login", language)}
                                     </Button>
                               </li>
+                                )}
                             </ul>
                         </div>
                     </div>

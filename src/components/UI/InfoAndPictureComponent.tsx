@@ -124,19 +124,21 @@ export default function InfoAndPictureComponent({
 
             {/* Content */}
             <div className="relative z-10 flex md:flex-row flex-col space-y-1 w-full md:h-screen rounded-xl">
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-2 ">
                     <div className="md:px-4 md:p-2 px-4">
                         {/* Cover Image */}
-                        <div className="md:h-auto w-full rounded-xl mx-auto md:pt-1 pt-0 ">
-                            <Image
-                                src={isWebtoon ? coverArt : getImageUrl(coverArt)}
-                                alt={content.title}
-                                width={270}
-                                height={350}
-                                className="object-cover w-full h-full rounded-xl"
-                                placeholder="blur"
-                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                            />
+                        <div className="md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
+                            <div className="relative w-full h-full min-w-[300px]">
+                                <Image
+                                    src={isWebtoon ? coverArt : getImageUrl(coverArt)}
+                                    alt={content.title}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 300px"
+                                    className="object-cover rounded-xl"
+                                    placeholder="blur"
+                                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                />
+                            </div>
                         </div>
 
                         {/* Content Info */}

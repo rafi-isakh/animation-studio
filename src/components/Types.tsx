@@ -38,6 +38,7 @@ export interface UserCreate {
   provider: string;
   picture?: string;
   genres: string;
+  marketing: string;
 }
 
 export interface Comment {

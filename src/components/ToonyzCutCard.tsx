@@ -20,7 +20,7 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
     const { dictionary, language } = useLanguage();
     const isMobile = useMediaQuery('(max-width: 768px)');
 
-    const handleOpenModal = (event: React.MouseEvent<HTMLImageElement>) => {
+    const handleOpenModal = (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault()
         setOpenModal(true)
     }

@@ -335,6 +335,35 @@ export default function NewUser() {
                                     label={phrase(dictionary, 'agree_terms', language)}
                                     sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
                                 />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            required
+                                            sx={{
+                                                color: '#db2777',
+                                                '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label={phrase(dictionary, 'agree_terms', language)}
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            sx={{
+                                                color: '#db2777',
+                                                '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label={phrase(dictionary, 'agree_terms', language)}
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
                                 <NewUserSubmitComponent />
                             </div>
                         </div>

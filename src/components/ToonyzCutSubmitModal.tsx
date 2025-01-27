@@ -35,7 +35,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                         <CircleX
                             size={16}
                             onClick={onClose}
-                            className="cursor-pointer self-center text-gray-400 dark:text-gray-400" />
+                            className="cursor-pointer self-center text-gray-400 dark:text-gray-400 hover:text-[#db2777] transition-color duration-300" />
                     </div>
                     <div className="relative w-[150px] h-[200px] mx-auto">
                         <Image
@@ -68,7 +68,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                         <hr className="w-full border-gray-300" />
 
                         <p className="text-sm max-w-[400px] font-bold text-balck dark:text-black">
-                            {/* 위 작품에 대해서 어떻게 영상을 진행하고 싶으세요? */}
+                            {/* 위 작품에 대해서 제안을 공유해 주세요 */}
                             {phrase(dictionary, 'toonyzCut_how_to_proceed', language)}
                         </p>
 

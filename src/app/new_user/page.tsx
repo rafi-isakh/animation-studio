@@ -336,7 +336,6 @@ export default function NewUser() {
                                     sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
                                 />
                                 <NewUserSubmitComponent />
-                                <p className="text-center text-[14px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
                             </div>
                         </div>
                     </form>

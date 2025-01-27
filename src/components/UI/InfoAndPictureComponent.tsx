@@ -127,8 +127,8 @@ export default function InfoAndPictureComponent({
                 <div className="flex flex-col space-y-2 ">
                     <div className="md:px-4 md:p-2 px-4">
                         {/* Cover Image */}
-                        <div className="md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
-                            <div className="relative w-full h-full min-w-[300px]">
+                        <div className="min-w-[300px] h-[350px] md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
+                            <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px]">
                                 <Image
                                     src={isWebtoon ? coverArt : getImageUrl(coverArt)}
                                     alt={content.title}

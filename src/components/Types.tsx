@@ -29,6 +29,7 @@ export interface User {
   bio: string;
   picture: string;
   stars: number;
+  marketing: string;
 }
 
 export interface UserCreate {

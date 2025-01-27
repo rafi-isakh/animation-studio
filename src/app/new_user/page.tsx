@@ -320,6 +320,21 @@ export default function NewUser() {
                                         />
                                     </div>
                                 </div>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            required
+                                            sx={{
+                                                color: '#db2777',
+                                                '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label={phrase(dictionary, 'agree_terms', language)}
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
                                 <NewUserSubmitComponent />
                                 <p className="text-center text-[14px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
                             </div>

@@ -43,6 +43,9 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
         className='relative flex flex-col justify-center items-center gap-2 w-full md:max-w-[200px] bg-gray-100 rounded-xl'>
             <div className='relative group w-full max-h-[200px]'>
                 <Link href='#' onClick={(event) => handleOpenModal(event)}>
+                    <span className="absolute top-0 left-0 w-12 h-18 bg-black text-white dark:text-white opacity-100 flex flex-row gap-1 items-center justify-center text-[10px] z-50 rounded-tl-lg">
+                        OPEN
+                    </span>
                     <Image
                         src={imageSrc}
                         alt={webnovel.title}

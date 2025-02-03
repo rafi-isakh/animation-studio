@@ -56,7 +56,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
     webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
-
+    const carouselFilter = [22, 24]
+    items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
     const largeGap = () => {
         return (

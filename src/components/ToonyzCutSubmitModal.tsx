@@ -14,12 +14,30 @@ import { CircleX } from "lucide-react";
 
 const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel, open: boolean, onClose: () => void }) => {
     const imageSrc = getImageUrl(webnovel?.cover_art)
-    const [openModal, setOpenModal] = useState(false)
-    const [openSubmitModal, setOpenSubmitModal] = useState(false)
     const { dictionary, language } = useLanguage();
+    const [companyName, setCompanyName] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [contactNumber, setContactNumber] = useState('');
+    const [country, setCountry] = useState('');
+    const [projectType, setProjectType] = useState('');
+    const [fullDescription, setFullDescription] = useState('');
 
-    const handleSubmit = () => {
-        console.log('submit')
+    const handleSubmit = async () => {
+        const message = `Proposal for ${webnovel.title} by ${webnovel.user.nickname}:\n
+        Company Name: ${companyName}\n
+        Full Name: ${fullName}\n
+        Email: ${email}\n
+        Contact Number: ${contactNumber}\n
+        Country: ${country}\n
+        Project Type: ${projectType}\n
+        Full Description: ${fullDescription}`
+
+        await fetch('/api/send_email', {
+            method: 'POST',
+            body: JSON.stringify({ message: message })
+        });
+        
     }
 
 
@@ -76,6 +94,8 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             <TextField id="outlined-company-name"
                                 label={phrase(dictionary, 'company_name', language)}
                                 variant="outlined"
+                                value={companyName}
+                                onChange={(e) => setCompanyName(e.target.value)}
                                 type="text"
                                 placeholder={phrase(dictionary, 'company_name', language)}
                                 className="border border-gray-300 rounded-md p-2"
@@ -83,6 +103,8 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             <TextField id="outlined-full-name"
                                 label={phrase(dictionary, 'full_name', language)}
                                 variant="outlined"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
                                 type="text"
                                 placeholder={phrase(dictionary, 'full_name', language)}
                                 className="border border-gray-300 rounded-md p-2"
@@ -91,6 +113,8 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 label={phrase(dictionary, 'email_address', language)}
                                 variant="outlined"
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder={phrase(dictionary, 'email_address', language)}
                                 className="border border-gray-300 rounded-md p-2"
                             />
@@ -98,20 +122,17 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 label={phrase(dictionary, 'contact_number', language)}
                                 variant="outlined"
                                 type="text"
+                                value={contactNumber}
+                                onChange={(e) => setContactNumber(e.target.value)}
                                 placeholder={phrase(dictionary, 'contact_number', language)}
-                                className="border border-gray-300 rounded-md p-2"
-                            />
-                            <TextField id="outlined-genre"
-                                label={phrase(dictionary, 'genre', language)}
-                                variant="outlined"
-                                type="text"
-                                placeholder={phrase(dictionary, 'genre', language)}
                                 className="border border-gray-300 rounded-md p-2"
                             />
                             <TextField id="outlined-country"
                                 label={phrase(dictionary, 'country', language)}
                                 variant="outlined"
                                 type="text"
+                                value={country}
+                                onChange={(e) => setCountry(e.target.value)}
                                 placeholder={phrase(dictionary, 'country', language)}
                                 className="border border-gray-300 rounded-md p-2"
                             />
@@ -144,7 +165,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 <FormControlLabel
                                     value="other"
                                     control={<Radio />}
-                                    label="other"
+                                    label="Other"
                                 />
                             </RadioGroup>
 
@@ -160,6 +181,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
 
                         <div className="flex flex-row justify-center items-center gap-2">
                             <Button
+                                onClick={handleSubmit}
                                 sx={{
                                     color: '#070B34',
                                     border: '1px solid #070B34',
@@ -172,10 +194,8 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 }}
                                 variant="outlined"
                                 className="mt-4">
-                                <Link href=''>
                                     {/* Submit */}
                                     {phrase(dictionary, 'submit', language)}
-                                </Link>
                             </Button>
                             <Button
                                 onClick={onClose}

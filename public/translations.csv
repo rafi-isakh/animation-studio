@@ -260,7 +260,7 @@ toonyzcut_submit_genre_label,장르,,Genre
 toonyzcut_submit_cover_label,작품 표지,,Cover Art
 toonyzcut_submit_cover_description,표지 이미지를 등록해 주세요.,,Please upload the cover art for your webnovel.
 toonyzcut_submit_description_label,작품 소개,,Description
-toonyzCut_how_to_proceed,위 작품에 대해서 어떻게 영상을 진행하고 싶으세요?,,How do you want to proceed with this webnovel?
+toonyzCut_how_to_proceed,위 작품에 대해서 제안을 공유해 주세요.,,How do you want to proceed with this webnovel?
 readmore,더 보기,,Read More
 submit_proposal,제안 제출하기,,Submit Proposal
 submit,제출,,Submit
@@ -311,10 +311,8 @@ requestAccountDeletionButton,계정 삭제 요청하기,,Request Account Deletio
 requestAccountDeletionDeletedInfo,이메일\, 연재글\, 댓글\, 좋아요 기록\, 차단 목록\, 별 사용 내역\, 등 모든 저장된 정보가 삭제됩니다.,,All saved information such as email\, webnovels\, comments\, like history\, block list\, star usage history\, etc. will be deleted.
 requestAccountDeletionSuccess,계정 삭제 요청이 접수되었습니다.,Account deletion request has been submitted.,Account deletion request has been submitted.
 requestAccountDeletionError,계정 삭제 요청에 실패했습니다.,Account deletion request failed.,Account deletion request failed.
-toonyzcut_phrase_1,현실을 넘어\, 여러분의 이야기로 크리에이터와 영상 제작사를 연결해 드려요.,,Beyond reality: we connect creators and video production companies with stories.,,,เหนือความจริง: เราเชื่อมต่อผู้สร้างสรรค์และบริษัทผลิตวิดีโอผ่านเรื่องราวของคุณ
-toonyzcut_phrase_2,글로벌 스토리텔링\, 영상과 스토리의 창조적 만남을 이루어 드립니다.,,Global storytelling: bringing a creative fusion of videos and stories.,,,การเล่าเรื่องระดับโลก: สร้างการผสมผสานที่สร้างสรรค์ระหว่างวิดีโอและเรื่องราว
-toonyzcut_phrase_3,크리에이터님들의 소중한 작품이 영상화 될 수 있는 기회를 잡으세요.,,Seize the opportunity for your precious works to become a video.,,,คว้าโอกาสให้ผลงานล้ำค่าของคุณกลายเป็นวิดีโอ
-toonyzcut_phrase_4,스토리와 영상의 완벽한 조화\, 당신의 이야기를 투니즈에서 빛내 보세요.,,A perfect fusion of stories and videos\, let your story shine in Toonyz.,,,การผสมผสานที่ลงตัวระหว่างเรื่องราวและวิดีโอ ให้เรื่องราวของคุณเปล่งประกายใน Toonyz
+toonyzcut_phrase_1,크리에이터님의 소중한 작품이 영상화 될 수 있는 기회를 잡으세요.,,Seize the opportunity for your precious works to become a video.,,,คว้าโอกาสให้ผลงานล้ำค่าของคุณกลายเป็นวิดีโอ
+toonyzcut_phrase_2,투니즈가 글로벌 영상 제작자와의 매칭을 연결해 드립니다.,,Global storytelling: bringing a creative fusion of videos and stories.,,,การเล่าเรื่องระดับโลก: สร้างการผสมผสานที่สร้างสรรค์ระหว่างวิดีโอและเรื่องราว
 home,전체,,Home
 action,액션,,Action
 orientalFantasy,무협,,Oriental Fantasy

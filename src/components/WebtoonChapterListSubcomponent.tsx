@@ -28,7 +28,6 @@ const WebtoonChapterListSubcomponent = ({
   const { stars } = useUser();
 
   const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
-  console.log(webtoon.chapters.map(chapter => chapter.free))
 
   const handleChapterClick = (chapter: WebtoonChapter, e: React.MouseEvent) => {
     if (chapter.free) {

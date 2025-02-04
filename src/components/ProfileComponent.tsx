@@ -41,6 +41,7 @@ import animationData from '@/assets/stelli_loader.json';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
 import ProfileDropdownButton from '@/components/UI/ProfileDropdownButton';
 import SharingModal from '@/components/UI/SharingModal';
+import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
     const [introActive, setIntroActive] = useState<boolean>(true);
@@ -440,8 +441,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </p>
 
                     {novels.length > 0 ? (<div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
-
-                        {/* <div key={index} className=''> */}
                         {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                         <WebnovelsCardList
                             title=""
@@ -460,8 +459,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 />
                             )}
                         />
-                        {/* </div> */}
-
                     </div>) : (<div className='flex flex-col gap-4 justify-center items-center text-center text-sm border-b-1 border-gray-300 w-full uppercase'>
                         {/* 작품이 없습니다 */}
                         <p>{phrase(dictionary, "noNovelsYet", language)} </p>
@@ -489,19 +486,15 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 user={user}
-                onConfirm={() => { setIsModalOpen(false)}}
-                onCancel={() => { setIsModalOpen(false)}}
+                onConfirm={() => { setIsModalOpen(false) }}
+                onCancel={() => { setIsModalOpen(false) }}
             />
-            <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        {/* Delete */}
-                        <p className='text-lg font-bold'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "yes", language)}</Button>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
+            <DeleteAccountModal
+                isOpen={showDeleteAccountModal}
+                onClose={() => setShowDeleteAccountModal(false)}
+                onConfirm={handleDeleteAccount}
+            />
+           
         </div>
     );
 }

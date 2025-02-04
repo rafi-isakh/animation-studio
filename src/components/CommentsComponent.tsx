@@ -16,6 +16,7 @@ import { Flag, Ellipsis, CircleHelp, Trash, Send, Redo2, CornerDownRight, Heart 
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import moment from 'moment';
 import { getImageUrl } from '@/utils/urls';
+import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 
 const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string, webnovelOrWebtoon: boolean }) => {
     const [commentContent, setCommentContent] = useState('');
@@ -277,9 +278,9 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 </form>
 
                 <div className='mt-10 p-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
-                    <p className=' text-gray-500 pb-2'> 
+                    <p className=' text-gray-500 pb-2'>
                         {phrase(dictionary, "comments", language)}{' '}
-                        ({allComments.length}) 
+                        ({allComments.length})
                     </p>
                     <hr className='border-gray-300 ' />
                     {allComments.length === 0 ? (
@@ -329,42 +330,14 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                             </div>
 
                                             <div className="relative flex flex-row gap-2 items-center">
-                                                <button
-                                                    onClick={(e) => toggleUserDropdown(e, comment.id.toString())}
-                                                    className=" bg-transparent text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                                                    <Ellipsis size={20} className="text-gray-600" />
-                                                </button>
-                                                {openDropdownId === comment.id.toString() && (
-                                                    <div
-                                                        id={`user-dropdown-${comment.id}`}
-                                                        ref={userDropdownRef}
-                                                        className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
-                                                                    right-0 top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
-                                                                  divide-gray-100 shadow w-32 dark:divide-gray-600`}>
-                                                        <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
-                                                            <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                                                    <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                                        <Flag size={20} className="dark:text-white text-black" />
-                                                                        {phrase(dictionary, "report", language)}
-                                                                    </Link>
-                                                                </Tooltip>
-                                                            </li>
-                                                            <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                {comment.user.email_hash === createEmailHash(email) &&
-                                                                    <Link
-                                                                        href="#"
-                                                                        onClick={() => handleDeleteComment(comment.id.toString())}
-                                                                        className='flex items-center gap-2 dark:text-white text-black
-                                                                         dark:group-hover/user-dropdown:text-black'>
-                                                                        <Trash size={20} className="dark:text-white text-black" />
-                                                                        {phrase(dictionary, "delete", language)}
-                                                                    </Link>
-                                                                }
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                )}
+                                                <CommentsDropdownButton
+                                                    comment={comment}
+                                                    user={comment.user}
+                                                    email={email}
+                                                    handleDeleteComment={handleDeleteComment}
+                                                    createEmailHash={createEmailHash}
+                                                />
+                                               
                                             </div>
                                         </div>
 
@@ -445,41 +418,14 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                             </div>
 
                                                             <div className="relative flex flex-row gap-2 items-center">
-                                                                <button
-                                                                    onClick={(e) => toggleReplyDropdown(e, reply.id.toString())}
-                                                                    className="bg-transparent text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
-                                                                    <Ellipsis size={20} className="text-gray-600" />
-                                                                </button>
-                                                                {openReplyDropdownId === reply.id.toString() && (
-                                                                    <div
-                                                                        id={`reply-dropdown-${reply.id}`}
-                                                                        ref={replyDropdownRef}
-                                                                        className={`absolute no-underline rounded-md md:border-0 border border-gray-400 
-                                                                            right-0 top-5 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y
-                                                                          divide-gray-100 shadow w-32 dark:divide-gray-600`}>
-                                                                        <ul className="py-2 text-sm text-gray-700 dark:text-black no-underline" aria-labelledby="dropdownLargeButton">
-                                                                            <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                                                                    <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                                                        <Flag size={20} className="dark:text-white text-black" />
-                                                                                        {phrase(dictionary, "report", language)}
-                                                                                    </Link>
-                                                                                </Tooltip>
-                                                                            </li>
-                                                                            <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                                                {reply.user.email_hash === createEmailHash(email) &&
-                                                                                    <Link
-                                                                                        href="#"
-                                                                                        onClick={() => handleDeleteComment(reply.id.toString())}
-                                                                                        className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black'>
-                                                                                        <Trash size={20} className="dark:text-white text-black" />
-                                                                                        {phrase(dictionary, "delete", language)}
-                                                                                    </Link>
-                                                                                }
-                                                                            </li>
-                                                                        </ul>
-                                                                    </div>
-                                                                )}
+                                                                <CommentsDropdownButton
+                                                                    comment={reply}
+                                                                    user={reply.user}
+                                                                    email={email}
+                                                                    handleDeleteComment={handleDeleteComment}
+                                                                    createEmailHash={createEmailHash}
+                                                                />
+                                                            
                                                             </div>
 
                                                         </div>

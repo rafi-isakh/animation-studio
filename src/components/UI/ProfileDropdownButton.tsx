@@ -82,7 +82,10 @@ export default function ProfileDropdownButton({
                 {isProfileOwner && (
                     <MenuItem
                         key="edit"
-                        onClick={onDeleteAccount}
+                        onClick={() => {
+                            onDeleteAccount();
+                            handleClose();
+                        }}
                         className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black"
                     >
                         <UserRoundX size={20} />
@@ -118,7 +121,6 @@ export default function ProfileDropdownButton({
                 user={user}
                 onSubmit={handleSendReportEmail}
             />
-       
         </div>
     );
 }

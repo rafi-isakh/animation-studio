@@ -14,7 +14,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { createEmailHash } from '@/utils/cryptography';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
-
+import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
+import { useRouter } from 'next/navigation';
 
 interface CommentListProps {
     content: Webnovel | Webtoon;
@@ -35,6 +36,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
     const replyDropdownRef = useRef<HTMLDivElement>(null);
     const [showForm, setShowForm] = useState<{ [key: string]: boolean }>({});
     const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+    const router = useRouter();
 
     useEffect(() => {
         console.log("content", content)
@@ -75,7 +77,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const clickedElement = event.target as Node;
-            
+
             // Check if click was outside any open dropdown
             const isOutsideDropdowns = !Object.values(dropdownRefs.current).some(
                 ref => ref && ref.contains(clickedElement)
@@ -93,8 +95,8 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
         };
     }, []);
 
-     // Helper function to store refs
-     const setDropdownRef = useCallback((element: HTMLDivElement | null, id: string) => {
+    // Helper function to store refs
+    const setDropdownRef = useCallback((element: HTMLDivElement | null, id: string) => {
         if (element) {
             dropdownRefs.current[id] = element;
         }
@@ -112,10 +114,36 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
             [commentId]: value
         }));
     };
-    
+
+    const handleDeleteComment = async (commentId: string) => {
+        try {
+            const commentsBackup = JSON.parse(JSON.stringify(allComments));
+            const updatedComments = allComments.filter(comment => comment.id.toString() !== commentId);
+            for (const comment of updatedComments) {
+                const updatedReplies = comment.replies?.filter(reply => reply.id.toString() !== commentId);
+                comment.replies = updatedReplies;
+            }
+
+            setAllComments(updatedComments);
+
+            const response = await fetch(`/api/delete_comment?id=${commentId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                setAllComments(commentsBackup);
+                console.error("Error deleting comment");
+                return;
+            }
+            // router.refresh();
+
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+        }
+    }
 
     return (
-        <div className="">
+        <div>
             {sortedChapters.length === 0 ? (
                 <p className="text-gray-500 text-sm text-center py-8">
                     {phrase(dictionary, "noComments", language)}
@@ -128,8 +156,8 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                             <div className="text-sm font-semibold mb-4 border-b  border-gray-200 dark:border-gray-700 pb-2 flex flex-row justify-between" >
                                 <div className="flex flex-row gap-2 justify-center items-center">
                                     <p className="text-sm text-gray-500 self-center">
-                                    {/* chapter title */}
-                                     <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType={otherTranslationType} />
+                                        {/* chapter title */}
+                                        <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType={otherTranslationType} />
                                     </p>
                                     {/* comment count*/}
                                     <p className="text-sm text-gray-500 self-center justify-center">({chapter.comments.length})</p>
@@ -175,8 +203,15 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="relative flex flex-row gap-2 items-center"  ref={(el) => setDropdownRef(el, `comment-${comment.id}`)}>
-                                                    <button
+                                                <div className="relative flex flex-row gap-2 items-center" ref={(el) => setDropdownRef(el, `comment-${comment.id}`)}>
+                                                    <CommentsDropdownButton
+                                                        comment={comment}
+                                                        user={comment.user}
+                                                        email={email}
+                                                        handleDeleteComment={handleDeleteComment}
+                                                        createEmailHash={createEmailHash}
+                                                    />
+                                                    {/* <button
                                                         onClick={(e) => toggleUserDropdown(e, comment.id.toString())}
                                                         className=" bg-transparent text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
                                                         <Ellipsis size={20} className="text-gray-600" />
@@ -199,12 +234,12 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                                 </li>
                                                             </ul>
                                                         </div>
-                                                    )}
+                                                    )} */}
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <p className="text-sm text-gray-500 py-5">{comment.content}</p>
-                                            
+
                                             </div>
 
                                             <div className="flex flex-row gap-2 items-center">
@@ -278,7 +313,14 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
                                                                         </div>
                                                                     </div>
                                                                     <div className="relative flex flex-row gap-2 items-center" ref={(el) => setDropdownRef(el, `reply-${reply.id}`)}>
-                                                                        <button
+                                                                        <CommentsDropdownButton
+                                                                            comment={reply}
+                                                                            user={reply.user}
+                                                                            email={email}
+                                                                            handleDeleteComment={handleDeleteComment}
+                                                                            createEmailHash={createEmailHash}
+                                                                        />
+                                                                        {/* <button
                                                                             onClick={(e) => toggleReplyDropdown(e, reply.id.toString())}
                                                                             className="bg-transparent text-black rounded-full hover:opacity-80 transition duration-150 ease-in-out">
                                                                             <Ellipsis size={20} className="text-gray-600" />
@@ -302,7 +344,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
 
                                                                                 </ul>
                                                                             </div>
-                                                                        )}
+                                                                        )} */}
                                                                     </div>
                                                                 </div>
                                                                 <p className="text-sm text-gray-700 py-5">{reply.content}</p>

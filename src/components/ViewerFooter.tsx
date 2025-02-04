@@ -13,6 +13,7 @@ import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useReaderTheme } from '@/contexts/ReaderThemeContext';
 import { MessageCircle, Settings, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
+import { useChapter } from '@/contexts/ChapterContext';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -27,6 +28,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const viewSettingsStyle = useViewSettingsStyle();
+    const { setChapter } = useChapter();
     const { fontSize,
         setFontSize,
         fontFamily = 'default',
@@ -37,6 +39,10 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         setScrollType,
         setPage } = useReader();
     const { toggleReaderTheme } = useReaderTheme()
+
+    useEffect(() => {
+        setChapter(chapter);
+    }, [chapter])
 
     useEffect(() => {
         setPage(1);
@@ -136,12 +142,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </div>
                     </Link>
 
-                    <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
+                    {/* <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
                         <p className='hover:text-[#DB2777] relative'>
                             <MessageCircle size={16} />
                             <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{chapter.comments.length}</span>
                         </p>
-                    </Link>
+                    </Link> */}
                     {/* <p onClick={adjustViewSettings} className='hover:text-[#DB2777]'>{phrase(dictionary, "viewSettings", language)}</p> */}
                     <Link href={``} onClick={handleViewSettings}>
                         <p className='hover:text-[#DB2777] relative'>

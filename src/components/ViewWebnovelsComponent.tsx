@@ -1,23 +1,16 @@
 "use client"
 import { Webnovel, Webtoon } from '@/components/Types'
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
-import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
-import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
-import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, Skeleton, ThemeProvider, useMediaQuery } from '@mui/material';
-import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { CommentList } from '@/components/CommentList';
+import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
+import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {

@@ -1,8 +1,11 @@
-import CommentsComponent from "@/components/CommentsComponent";
+"use client"
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import { useChapter } from "@/contexts/ChapterContext";
 
 const Comments = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const chapterId = searchParams.chapter_id;
     const webnovelOrWebtoon = searchParams.webnovel_or_webtoon;
+    const { chapter } = useChapter();
 
     if (typeof chapterId === 'string') {
     } else if (Array.isArray(chapterId)) {
@@ -13,7 +16,7 @@ const Comments = ({ searchParams }: { searchParams: { [key: string]: string | st
 
     if (chapterId) {
         return (
-            <CommentsComponent chapterId={chapterId} webnovelOrWebtoon={webnovelOrWebtoon! == 'true'} />
+            <ChapterCommentsComponent chapter={chapter!} webnovelOrWebtoon={webnovelOrWebtoon! == 'true'} addCommentEnabled={true} />
         )
     }
     else {

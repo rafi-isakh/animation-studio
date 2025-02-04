@@ -12,21 +12,18 @@ import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
 import { createEmailHash } from '@/utils/cryptography';
 import Image from 'next/image';
-import { Flag, Ellipsis, CircleHelp, Trash, Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
-import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import { Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
 import moment from 'moment';
 import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 
-const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string, webnovelOrWebtoon: boolean }) => {
+const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnabled }: { chapter: Chapter, webnovelOrWebtoon: boolean, addCommentEnabled: boolean }) => {
     const [commentContent, setCommentContent] = useState('');
-    const [allComments, setAllComments] = useState<Comment[]>([]);
-    const [chapter, setChapter] = useState<Chapter>();
-    const { email, nickname } = useUser();
+    const [allComments, setAllComments] = useState<Comment[]>(chapter.comments || []);
+    const { email } = useUser();
     const { isLoggedIn } = useAuth();
     const [replyContent, setReplyContent] = useState<string[]>([]);
     const [showForm, setShowForm] = useState<Boolean[]>([]);
-    const [initialFetch, setInitialFetch] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const router = useRouter();
     const { language, dictionary } = useLanguage();
@@ -44,13 +41,14 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
             if (!isLoggedIn) {
                 router.push('/signin')
             } else {
+                console.log("chapter.id", chapter?.id)
                 var newComment = {
                     "id": null,
                     "parent_id": null,
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": chapterId,
+                    "chapter_id": chapter?.id,
                     "replies": [],
                     "webnovel_or_webtoon": webnovelOrWebtoon
                 }
@@ -67,11 +65,11 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                 }
                 let comments_sans_replies;
                 if (webnovelOrWebtoon) {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}`)
+                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapter?.id}`)
                         .then(data => data.json())
                 }
                 else {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webtoon_comments?chapter_id=${chapterId}`)
+                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webtoon_comments?chapter_id=${chapter?.id}`)
                         .then(data => data.json())
                 }
 
@@ -105,36 +103,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
     const handleUpvoteComment = async (commentId: string) => {
     }
 
-    useEffect(() => {
-        const fetchComments = async () => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
-            const data = await response.json();
-            if (Array.isArray(data)) {
-                setAllComments(data);
-                setInitialFetch(true);
-            }
-        }
-        const fetchChapter = async () => {
-            const response = await fetch(`/api/get_chapter_by_id?id=${chapterId}&webnovel_or_webtoon=${webnovelOrWebtoon}`)
-            const data = await response.json();
-            setChapter(data);
-            setChapterTitle(data.title);
-        }
-        fetchComments();
-        fetchChapter();
-
-    }, [chapterId]);
-
-    useEffect(() => {
-        const fetchReplies = async () => {
-            allComments.map((comment, index) => {
-                setAllReplies(index); //fetches in this fn
-            })
-            setLoaded(true);
-        }
-        fetchReplies();
-    }, [initialFetch, repliesKey])
-
     const updateShowForm = (index: number, value: boolean) => {
         setShowForm(prevState => {
             const newState = [...prevState];
@@ -166,7 +134,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": chapterId,
+                    "chapter_id": chapter?.id,
                     "replies": [],
                     "webnovel_or_webtoon": webnovelOrWebtoon
                 }
@@ -183,13 +151,13 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                     console.error("Error adding comment");
                 }
 
-                setAllReplies(index);
+                updateAllReplies(index);
                 updateReplyContent(index, '');
             }
         }
     }
 
-    const setAllReplies = async (parent_index: number) => {
+    const updateAllReplies = async (parent_index: number) => {
         const parent_comment_id = allComments[parent_index].id;
         if (parent_comment_id != -1) {
             const parent_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/${parent_comment_id}/replies`)
@@ -206,11 +174,6 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
             }
         }
     }
-
-    const toggleUserDropdown = (e: React.MouseEvent<HTMLButtonElement>, commentId: string) => {
-        e.stopPropagation();
-        setOpenDropdownId(openDropdownId === commentId ? null : commentId);
-    };
 
     // Add click handler to close dropdown when clicking outside
     useEffect(() => {
@@ -236,46 +199,36 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
 
 
     return (
-        loaded &&
         <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto space-y-4 p-4'>
-            <Button
-                color='gray'
-                variant='text'
-                onClick={() => window.history.back()}
-                // href={`/chapter_view/${chapterId}`} 
-                className='w-full'>
-                <div className="flex flex-row !items-left justify-start flex-1">
-                    <ChevronLeftIcon className="w-6 h-6" />
-                    <OtherTranslateComponent content={chapterTitle} elementId={chapterId} elementType={webnovelOrWebtoon ? 'chapter' : 'webtoon_chapter'} elementSubtype="title" />
-                </div>
-            </Button>
             <div className='flex flex-col'>
                 {/* comments  */}
-                <form onSubmit={handleAddComment}>
-                    <div className='flex flex-col'>
-                        <textarea
-                            value={commentContent}
-                            rows={6}
-                            className='textarea text-sm rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-black'
-                            onChange={(e) => setCommentContent(e.target.value)}
-                            placeholder={phrase(dictionary, "typeYourComment", language)}
+                {addCommentEnabled &&
+                    <form onSubmit={handleAddComment}>
+                        <div className='flex flex-col'>
+                            <textarea
+                                value={commentContent}
+                                rows={6}
+                                className='textarea text-sm rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-black'
+                                onChange={(e) => setCommentContent(e.target.value)}
+                                placeholder={phrase(dictionary, "typeYourComment", language)}
 
-                        />
-                        <div className='border-gray-300 dark:border-gray-700 border border-t-0 flex justify-end rounded-b-lg'>
-                            <span className={`justify-center self-center mr-4 mt-[0px] text-sm ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
-                                commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' :
-                                    'text-gray-400'
-                                }`}>
-                                {commentContent.length}/{MAX_CHARS}
-                            </span>
-                            <button type="submit" className='group/item text-sm text-white rounded-br-lg bg-[#DB2777] px-4 py-2 group-hover/item:bg-[#FFE2DC]'>
-                                {/* <Send size={20} className="dark:text-white text-white" /> */}
-                                {phrase(dictionary, "commentSubmit", language)}
-                            </button>
+                            />
+                            <div className='border-gray-300 dark:border-gray-700 border border-t-0 flex justify-end rounded-b-lg'>
+                                <span className={`justify-center self-center mr-4 mt-[0px] text-sm ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
+                                    commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' :
+                                        'text-gray-400'
+                                    }`}>
+                                    {commentContent.length}/{MAX_CHARS}
+                                </span>
+                                <button type="submit" className='group/item text-sm text-white rounded-br-lg bg-[#DB2777] px-4 py-2 group-hover/item:bg-[#FFE2DC]'>
+                                    {/* <Send size={20} className="dark:text-white text-white" /> */}
+                                    {phrase(dictionary, "commentSubmit", language)}
+                                </button>
+                            </div>
+
                         </div>
-
-                    </div>
-                </form>
+                    </form>
+                }
 
                 <div className='mt-10 p-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
                     <p className=' text-gray-500 pb-2'>
@@ -337,7 +290,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                     handleDeleteComment={handleDeleteComment}
                                                     createEmailHash={createEmailHash}
                                                 />
-                                               
+
                                             </div>
                                         </div>
 
@@ -425,7 +378,7 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                                     handleDeleteComment={handleDeleteComment}
                                                                     createEmailHash={createEmailHash}
                                                                 />
-                                                            
+
                                                             </div>
 
                                                         </div>
@@ -452,30 +405,32 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
                                                     </div >
                                                 )) : <></>}
                                         </div >
-                                        <div>
-                                            {showForm[index] ? (
-                                                <form id={`replyForm.${index}`} onSubmit={handleReply}>
-                                                    <div className='flex flex-row space-x-4 ml-4 '>
-                                                        {/* arrow icon in reply form */}
-                                                        <CornerDownRight size={25} className='text-black dark:text-white' />
-                                                        {/* reply textarea */}
-                                                        <textarea
-                                                            value={replyContent[index]}
-                                                            rows={1}
-                                                            className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-black
+                                        {addCommentEnabled &&
+                                            <div>
+                                                {showForm[index] ? (
+                                                    <form id={`replyForm.${index}`} onSubmit={handleReply}>
+                                                        <div className='flex flex-row space-x-4 ml-4 '>
+                                                            {/* arrow icon in reply form */}
+                                                            <CornerDownRight size={25} className='text-black dark:text-white' />
+                                                            {/* reply textarea */}
+                                                            <textarea
+                                                                value={replyContent[index]}
+                                                                rows={1}
+                                                                className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-black
                                                                         resize-none border border-gray-300 text-black dark:text-white'
-                                                            onChange={(e) => updateReplyContent(index, e.target.value)}
-                                                        />
-                                                        {/* send button */}
-                                                        <button type="submit">
-                                                            <Send size={20} className="dark:text-white text-black" />
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            )
-                                                : <></>
-                                            }
-                                        </div>
+                                                                onChange={(e) => updateReplyContent(index, e.target.value)}
+                                                            />
+                                                            {/* send button */}
+                                                            <button type="submit">
+                                                                <Send size={20} className="dark:text-white text-black" />
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                )
+                                                    : <></>
+                                                }
+                                            </div>
+                                        }
                                     </div >
                                 ) : <></>
                             ))}
@@ -487,4 +442,4 @@ const CommentsComponent = ({ chapterId, webnovelOrWebtoon }: { chapterId: string
     )
 }
 
-export default CommentsComponent;
+export default ChapterCommentsComponent;

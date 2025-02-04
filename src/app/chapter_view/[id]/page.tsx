@@ -29,6 +29,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 
 // Import the animation data
 import animationData from '@/assets/stelli_loader.json';
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
@@ -262,6 +263,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </Modal>
                     {/* delete confirmation modal */}
                 </div>
+                <hr/>
+                <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
             </ThemeWrapper>
         )
     }

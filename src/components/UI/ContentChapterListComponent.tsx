@@ -264,7 +264,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             {content && content.chapters && content.chapters.length > 0 ? (
                                 <CommentList
                                     content={content}
-                                    chapter={content.chapters[0]}
                                     webnovelOrWebtoon={!isWebtoon}
                                 />
                             ) : (

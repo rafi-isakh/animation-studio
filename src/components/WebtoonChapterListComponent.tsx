@@ -92,7 +92,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
             <TabContext value={tabValue} >
                 <Box
                     sx={{
-                        borderBottom: 0,
+                        borderBottom: 1,
                         borderColor: 'divider',
                         padding: {
                             xs: '20px 10px',  // padding for mobile (<600px)
@@ -225,7 +225,8 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 {phrase(dictionary, "youMightLikeThis", language)}
                             </h1>
                             <hr />
-                            <div className="flex flex-col w-full">
+                            <div className="relative flex flex-col w-full overflow-hidden">
+                              
                                 <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
                             </div>
                             {/* Comments list */}

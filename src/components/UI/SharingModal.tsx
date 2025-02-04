@@ -33,9 +33,14 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
     user: User
 }) => {
     const { language, dictionary } = useLanguage();
-    if (!isOpen) return null;
     const [currentPageUrl, setCurrentPageUrl] = useState('')
     const [copied, setCopied] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setCurrentPageUrl(window.location.href);
+        }
+    }, []);
 
     const handleCopyLink = async () => {
         try {
@@ -55,11 +60,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
         }
     };
 
-    useEffect(() => {
-        if (window !== undefined) {
-            setCurrentPageUrl(window.location.href);
-        }
-    }, []);
+    if (!isOpen) return null;
 
     return (
         <Modal
@@ -108,7 +109,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                             <WhatsappIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                         </WhatsappShareButton>
 
-                        <PinterestShareButton url={currentPageUrl} title={user.nickname} media={user.picture || null}>
+                        <PinterestShareButton url={currentPageUrl} title={user.nickname} media={user.picture || ""}>
                             <PinterestIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                         </PinterestShareButton>
                     </div>

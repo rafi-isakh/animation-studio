@@ -9,12 +9,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { useState } from "react";
 import { User } from "@/components/Types";
-
-// const options = [
-//   'None',
-//   'Atria',
-//   'Callisto',
-// ];
+import { Textarea } from "flowbite-react";
+import { useModalStyle } from "@/styles/ModalStyles";
+import Image from 'next/image';
+import ReportModal from "@/components/UI/ReportModal";
 
 const ITEM_HEIGHT = 48;
 
@@ -30,12 +28,27 @@ export default function ProfileDropdownButton({
     const { language, dictionary } = useLanguage();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
+
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
+    const [reportMessage, setReportMessage] = useState('');
+
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    const handleSendReportEmail = async () => {
+        const message = `Reported user: ${user.nickname} - ${user.email}\n\nReport message: ${reportMessage}`;
+        await fetch('/api/send_email', {
+            method: 'POST',
+            body: JSON.stringify({ message: message })
+        });
+        setShowReportModal(false);
+        setShowReportSuccessModal(true);
+    }
 
     return (
         <div>
@@ -79,6 +92,10 @@ export default function ProfileDropdownButton({
                 {!isProfileOwner && (
                     <MenuItem
                         key="report"
+                        onClick={() => {
+                            setShowReportModal(true);
+                            handleClose();
+                        }}
                         className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black"
                     >
                         <Flag size={20} />
@@ -95,6 +112,13 @@ export default function ProfileDropdownButton({
                     </MenuItem>
                 </Tooltip>
             </Menu>
+            <ReportModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                user={user}
+                onSubmit={handleSendReportEmail}
+            />
+       
         </div>
     );
 }

@@ -1,15 +1,65 @@
-import React from 'react';
+'use client'
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Modal, Box } from '@mui/material';
+import { User } from '@/components/Types';
+import { Modal, Box, Button } from '@mui/material';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { phrase } from '@/utils/phrases';
+import {
+    FacebookShareButton,
+    TwitterShareButton,
+    FacebookIcon,
+    TwitterIcon,
+    EmailShareButton,
+    EmailIcon,
+    LinkedinShareButton,
+    LinkedinIcon,
+    TumblrShareButton,
+    TumblrIcon,
+    TelegramShareButton,
+    TelegramIcon,
+    WhatsappShareButton,
+    WhatsappIcon,
+    PinterestShareButton,
+    PinterestIcon,
+} from "react-share";
 
-const StyledModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner }: {
+const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, user }: {
     isOpen: boolean,
     onClose: () => void,
     onConfirm: () => void,
     onCancel: () => void,
-    isProfileOwner: boolean
+    isProfileOwner: boolean,
+    user: User
 }) => {
+    const { language, dictionary } = useLanguage();
     if (!isOpen) return null;
+    const [currentPageUrl, setCurrentPageUrl] = useState('')
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyLink = async () => {
+        try {
+            const currentUrl = window.location.href;
+            await navigator.clipboard.writeText(currentUrl);
+
+            // Show "Copied!" message
+            setCopied(true);
+            // Reset after 2 seconds
+            setTimeout(() => {
+                onConfirm();
+                setCopied(false);
+            }, 2500);
+
+        } catch (err) {
+            console.error('Failed to copy link:', err);
+        }
+    };
+
+    useEffect(() => {
+        if (window !== undefined) {
+            setCurrentPageUrl(window.location.href);
+        }
+    }, []);
 
     return (
         <Modal
@@ -17,9 +67,8 @@ const StyledModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner }: {
             onClose={onClose}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 
-            <div className="flex flex-col items-center justify-center">
-                {/* Cute character */}
-                <div className="relative top-[-1px]">
+            <div className="flex flex-col items-center justify-center w-[350px]">
+                <div className="relative top-[10px]">
                     <div className="w-24 h-24 bg-pink-200 rounded-full flex items-center justify-center">
                         <Image src="/stelli/stelli_7.png" alt="character" width={100} height={100} />
                     </div>
@@ -34,26 +83,63 @@ const StyledModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner }: {
                         <span className="text-[#DE2B74] text-xl">&times;</span>
                     </button>
 
-                    {/* Content */}
-                    <div className="text-center mb-8">
-                        <p className="text-xl mb-2 font-medium">title</p>
-                        {/* <p className="text-gray-600"></p> */}
+                    {/* Content title */}
+                    <div className="text-center">
+                        <p className="text-xl mb-2 font-medium">
+                            {/* Sharing your profile */}
+                            {phrase(dictionary, "shareLink", language)}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-row justify-center items-center gap-2 my-5">
+                        <FacebookShareButton url={currentPageUrl} title={user.nickname}>
+                            <FacebookIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                        </FacebookShareButton>
+
+                        <TwitterShareButton url={currentPageUrl} title={user.nickname}>
+                            <TwitterIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                        </TwitterShareButton>
+
+                        <TelegramShareButton url={currentPageUrl} title={user.nickname}>
+                            <TelegramIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                        </TelegramShareButton>
+
+                        <WhatsappShareButton url={currentPageUrl} title={user.nickname}>
+                            <WhatsappIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                        </WhatsappShareButton>
+
+                        <PinterestShareButton url={currentPageUrl} title={user.nickname} media={user.picture || null}>
+                            <PinterestIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                        </PinterestShareButton>
                     </div>
 
                     {/* Buttons */}
                     <div className="space-y-3">
-                        <button
-                            onClick={onConfirm}
+                        <Button
+                            sx={{
+                                backgroundColor: '#DE2B74',
+                                color: 'white',
+                                '&:hover': {
+                                    backgroundColor: '#DE2B74/80',
+                                },
+                            }}
+                            onClick={handleCopyLink}
                             className="w-full py-2 bg-[#DE2B74] text-white rounded-full hover:bg-[#DE2B74]/80 transition-colors"
                         >
-                            button title
-                        </button>
-                        <button
+                            {/* copy link */}
+                            {copied
+                                ? phrase(dictionary, "copied", language) // Add this to your phrases
+                                : phrase(dictionary, "copyLink", language)
+                            }
+                        </Button>
+                        <Button
+                            variant="outlined"
                             onClick={onCancel}
                             className="w-full py-2 border-2 border-gray-200 text-gray-600 rounded-full hover:bg-gray-50 transition-colors"
                         >
-                            close
-                        </button>
+                            {/* Close */}
+                            {phrase(dictionary, "close", language)}
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -61,4 +147,4 @@ const StyledModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner }: {
     );
 };
 
-export default StyledModal;
+export default SharingModal;

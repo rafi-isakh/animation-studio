@@ -20,7 +20,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
             'provider': session.provider,
             'nickname': postedData.nickname,
             'bio': postedData.bio,
-            'genres': ""
+            'genres': "",
+            "marketing": ""
         }
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user?promo_code=${promoCode}`, {

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const bio = formData.get('bio') as string;
     const nickname = formData.get('nickname') as string;
     const genres = formData.get('genres') as string;
-
+    const marketing = formData.get('marketing') as string;
     const email = session.user?.email;
 
     let fileName = "";
@@ -50,7 +50,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "nickname": nickname as string,
         "picture": fileName as string,
         "genres": genres as string,
-        "provider": session.provider
+        "provider": session.provider,
+        "marketing": marketing as string
     }
 
     let fetchstr = `${process.env.NEXT_PUBLIC_BACKEND}/api/update_user`

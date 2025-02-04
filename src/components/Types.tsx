@@ -29,6 +29,7 @@ export interface User {
   bio: string;
   picture: string;
   stars: number;
+  marketing: string;
 }
 
 export interface UserCreate {
@@ -38,6 +39,7 @@ export interface UserCreate {
   provider: string;
   picture?: string;
   genres: string;
+  marketing: string;
 }
 
 export interface Comment {

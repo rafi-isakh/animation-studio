@@ -30,7 +30,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
     const id = searchParams.id;
     const [refreshKey, setRefreshKey] = useState(0);
-    const { language, dictionary } = useLanguage();
+    const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.user.nickname;
     const author_email = webnovel?.user.email_hash;
     const { email } = useUser();
@@ -43,6 +43,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
         setContent(updatedContent);
     };
+    
+    useEffect(() => {
+    }, [language])
 
     // const [chapterId, setChapterId] = useState(0);
 
@@ -123,6 +126,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         return webnovels.find(w => w.id.toString() == id)
     }
     const theWebnovel = getWebnovel();
+
+    if (language === 'ja' && (id == '19' || id == '20')) {
+        alert("이 웹소설은 아직 일본어로 서비스되지 않습니다.");
+        setLanguage('ko');
+    }
 
     if (id === undefined) {
         return (

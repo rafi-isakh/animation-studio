@@ -51,6 +51,7 @@ async function updateUser(formData: FormData) {
     }
     const bio = formData.get('bio') as string;
     const promoCode = formData.get('promoCode') as string;
+    const marketing = formData.get('marketing') as string;
 
     // Extract genres data from formData and create an object
     const genres: { [key: string]: boolean } = {};
@@ -66,7 +67,7 @@ async function updateUser(formData: FormData) {
     formDataToSend.append('bio', bio);
     formDataToSend.append('promoCode', promoCode);
     formDataToSend.append('genres', JSON.stringify(genres));
-
+    formDataToSend.append('marketing', marketing.toString());
     const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/update_user?promo_code=${promoCode}`, {
         method: 'POST',
         body: formDataToSend,
@@ -91,7 +92,7 @@ export default function NewUser() {
     const [userExists, setUserExists] = useState(false);
     const { language, dictionary } = useLanguage()
     const [showSelectAtLeastOneGenre, setShowSelectAtLeastOneGenre] = useState(false);
-
+    const [marketing, setMarketing] = useState(false);
     // Add state for checkbox values
     const [genres, setGenres] = useState({
         romance: false,
@@ -119,6 +120,11 @@ export default function NewUser() {
             setShowSelectAtLeastOneGenre(true);
             return;
         }
+        if (marketing) {
+            formData.append('marketing', 'true');
+        } else {
+            formData.append('marketing', 'false');
+        }
         Object.entries(genres).forEach(([genre, checked]) => {
             formData.append(`genres[${genre}]`, checked.toString());
         });
@@ -142,6 +148,10 @@ export default function NewUser() {
         }
         fetchData();
     }, [])
+
+    const handleMarketingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMarketing(event.target.checked);
+    }
 
     if (userExists) {
         return null;
@@ -320,8 +330,39 @@ export default function NewUser() {
                                         />
                                     </div>
                                 </div>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            required
+                                            sx={{
+                                                color: '#db2777',
+                                                '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label={phrase(dictionary, 'agree_terms', language)}
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            name="agree_marketing"
+                                            checked={marketing}
+                                            onChange={handleMarketingChange}
+                                            sx={{
+                                                color: '#db2777',
+                                                '&.Mui-checked': {
+                                                    color: '#db2777',
+                                                }
+                                            }}
+                                        />
+                                    }
+                                    label={phrase(dictionary, 'agree_marketing', language)}
+                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                />
                                 <NewUserSubmitComponent />
-                                <p className="text-center text-[14px] mb-10">{phrase(dictionary, 'agree_submit', language)}</p>
                             </div>
                         </div>
                     </form>

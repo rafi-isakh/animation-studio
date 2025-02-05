@@ -212,12 +212,12 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
 
 
     return (
-        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto space-y-4 p-4'>
+        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto py-2'>
             <div className='flex flex-col'>
                 {/* comments  */}
                 {addCommentEnabled &&
                     <form onSubmit={handleAddComment}>
-                        <div className='flex flex-col'>
+                        <div className='flex flex-col mb-5'>
                             <textarea
                                 value={commentContent}
                                 rows={6}
@@ -243,12 +243,15 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                     </form>
                 }
 
-                <div className='mt-10 p-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
-                    <p className=' text-gray-500 pb-2'>
-                        {phrase(dictionary, "comments", language)}{' '}
-                        ({allComments.length})
-                    </p>
-                    <hr className='border-gray-300 ' />
+                <div className='py-1 px-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
+
+                    <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-4 py-4 text-sm gap-1'>
+                        {/* chapter title */} 
+                        <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
+                        <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
+                        <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
+                    </div>
+                    <hr />
                     {allComments.length === 0 ? (
                         <div className="text-center text-gray-500 py-8">
                             {phrase(dictionary, "noComments", language) || "No comments yet"}
@@ -257,7 +260,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                         <div>
                             {allComments.map((comment, index) => (
                                 (!comment.parent_id) ? (
-                                    <div key={`comment-${comment.id}`} className='flex flex-col py-3'>
+                                    <div key={`comment-${comment.id}`} className='flex flex-col py-4 px-4'>
                                         <div className="flex flex-row gap-2 justify-between">
                                             <div className='flex flex-row gap-2 justify-start items-center'>
                                                 {comment.user.picture ? (
@@ -342,7 +345,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                             </div>
                                         </div>
                                         <hr />
-                                        <div className='ml-4 py-3'>
+                                        <div className='ml-4 py-1'>
                                             {/* replies */}
                                             {
                                                 comment.replies ? comment.replies.map((reply) => (
@@ -372,10 +375,12 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                                 )}
                                                                 <div className='flex flex-col mb-2 text-slate-600'>
                                                                     <p className='font-extrabold text-slate-600'>
-                                                                        {reply.user.nickname.length > 20
-                                                                            ? `${reply.user.nickname.slice(0, 20)}...`
-                                                                            : reply.user.nickname
-                                                                        }
+                                                                        <Link href={`/view_profile/${reply.user.id}`}>
+                                                                            {reply.user.nickname.length > 20
+                                                                                ? `${reply.user.nickname.slice(0, 20)}...`
+                                                                                : reply.user.nickname
+                                                                            }
+                                                                        </Link>
                                                                     </p>
                                                                     <p className='text-gray-500 text-[10px]'>
                                                                         {moment(reply.created_at).format('YYYY/MM/DD hh:mm')}

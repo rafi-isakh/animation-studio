@@ -13,14 +13,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { createEmailHash } from '@/utils/cryptography';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
-import ChapterCommentsComponent from "./ChapterCommentsComponent";
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 
 interface CommentListProps {
     content: Webnovel | Webtoon;
     webnovelOrWebtoon: boolean;
+    chapter: Chapter;
 }
-
-export const CommentList: FC<CommentListProps> = ({ content, webnovelOrWebtoon }) => {
+//chapter
+export const CommentList: FC<CommentListProps> = ({ content, webnovelOrWebtoon, chapter }) => {
     const { dictionary, language } = useLanguage();
     const [sortedChapters, setSortedChapters] = useState<Chapter[]>([]);
     // Sort chapters by creation date if needed
@@ -42,17 +43,7 @@ export const CommentList: FC<CommentListProps> = ({ content, webnovelOrWebtoon }
                 sortedChapters
                     .filter(chapter => chapter.comments && chapter.comments.length > 0)
                     .map((chapter, index) => (
-                        <div key={chapter.id}>
-                            <div className="text-sm font-semibold mb-4 border-b  border-gray-200 dark:border-gray-700 pb-2 flex flex-row justify-between" >
-                                <div className="flex flex-row gap-2 justify-center items-center">
-                                    <p className="text-sm text-gray-500 self-center">
-                                        {/* chapter title */}
-                                        <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
-                                    </p>
-                                    {/* comment count*/}
-                                    <p className="text-sm text-gray-500 self-center justify-center">({chapter.comments.length})</p>
-                                </div>
-                            </div>
+                        <div key={chapter.id} className="bg-gray-100 dark:bg-gray-900 p-2 first:rounded-t-lg last:rounded-b-lg ">
                             <ChapterCommentsComponent chapter={chapter as Chapter} webnovelOrWebtoon={webnovelOrWebtoon} addCommentEnabled={false} />
                         </div>
                     ))

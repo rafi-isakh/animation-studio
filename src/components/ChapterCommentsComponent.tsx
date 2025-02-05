@@ -217,7 +217,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
 
 
     return (
-        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto py-2'>
+        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto '>
             <div className='flex flex-col'>
                 {/* comments  */}
                 {addCommentEnabled &&
@@ -248,9 +248,9 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                     </form>
                 }
 
-                <div className='py-1 px-4 rounded-lg bg-gray-100 dark:bg-gray-900'>
+                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-gray-900'>
 
-                    <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-4 py-4 text-sm gap-1'>
+                    <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */} 
                         <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
@@ -325,11 +325,11 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                 />
 
                                                 <div className="flex flex-row gap-4 items-center">
-                                                    <div onClick={() => handleUpvoteComment(comment.id.toString())} className='flex flex-row gap-1 items-center'>
+                                                    <button onClick={() => handleUpvoteComment(comment.id.toString())} className='flex flex-row gap-1 items-center cursor-pointer'>
                                                         <Heart size={16} className='text-gray-600' />
                                                         {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
                                                         <span className='text-[#DB2777] text-sm'>{comment.upvotes} </span>
-                                                    </div>
+                                                    </button>
 
                                                     <Link
                                                         href="#"
@@ -350,14 +350,14 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                             </div>
                                         </div>
                                         <hr />
-                                        <div className='ml-4 py-1'>
+                                        <div className='ml-4'>
                                             {/* replies */}
                                             {
                                                 comment.replies ? comment.replies.map((reply) => (
                                                     <div key={`reply-${reply.id}`}>
                                                         <div className='flex flex-row justify-between'>
 
-                                                            <div className='flex flex-row gap-2 items-center'>
+                                                            <div className='flex flex-row gap-2 items-center pt-1 '>
                                                                 {reply.user.picture ? (
                                                                     <Image
                                                                         src={getImageUrl(reply.user.picture)}
@@ -393,7 +393,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                                 </div>
                                                             </div>
 
-                                                            <div className="relative flex flex-row gap-2 items-center">
+                                                            <div className="relative flex flex-row  items-center">
                                                                 <CommentsDropdownButton
                                                                     comment={reply}
                                                                     user={reply.user}
@@ -406,8 +406,8 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
 
                                                         </div>
 
-                                                        <div className='flex justify-between py-5'>
-                                                            <div className='flex flex-col gap-8'>
+                                                        <div className='flex justify-between'>
+                                                            <div className='flex flex-col gap-8 py-2'>
                                                                 <OtherTranslateComponent
                                                                     key={`translate-reply-${reply.id}`}
                                                                     content={reply.content}
@@ -415,16 +415,16 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                                     elementType='comment'
                                                                 />
 
-                                                                <p className='flex flex-row gap-2 items-center'>
+                                                                <button onClick={() => handleUpvoteComment(reply.id.toString())} className='flex flex-row gap-1 items-center cursor-pointer'>
                                                                     <Heart size={16} className='text-gray-600' />
                                                                     {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
-                                                                    <span className='text-[#DB2777]'>{reply.upvotes} </span>
-                                                                </p>
-                                                            </div >
+                                                                    <span className='text-[#DB2777] text-sm'>{reply.upvotes} </span>
+                                                                </button>
+                                                            </div>
 
                                                         </div >
                                                         {/* each reply has a horizontal line with margin-bottom 2 */}
-                                                        < hr className='mb-2' />
+                                                        <hr className='' />
                                                     </div >
                                                 )) : <></>}
                                         </div >
@@ -432,7 +432,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                             <div>
                                                 {showForm[index] ? (
                                                     <form id={`replyForm.${index}`} onSubmit={handleReply}>
-                                                        <div className='flex flex-row space-x-4 ml-4 '>
+                                                        <div className='flex flex-row space-x-4 ml-4 pt-2'>
                                                             {/* arrow icon in reply form */}
                                                             <CornerDownRight size={25} className='text-black dark:text-white' />
                                                             {/* reply textarea */}

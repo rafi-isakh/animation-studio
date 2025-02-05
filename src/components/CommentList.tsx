@@ -43,7 +43,7 @@ export const CommentList: FC<CommentListProps> = ({ content, webnovelOrWebtoon, 
                 sortedChapters
                     .filter(chapter => chapter.comments && chapter.comments.length > 0)
                     .map((chapter, index) => (
-                        <div key={chapter.id} className="bg-gray-100 dark:bg-gray-900 p-2 first:rounded-t-lg last:rounded-b-lg ">
+                        <div key={chapter.id} className="bg-gray-100 dark:bg-gray-900 px-1 first:rounded-t-lg last:rounded-b-lg ">
                             <ChapterCommentsComponent chapter={chapter as Chapter} webnovelOrWebtoon={webnovelOrWebtoon} addCommentEnabled={false} />
                         </div>
                     ))

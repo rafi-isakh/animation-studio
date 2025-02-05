@@ -23,13 +23,13 @@ import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
 import dynamic from 'next/dynamic';
+import ProgressBar from '@/components/UI/ProgressBar';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 
 // Import the animation data
 import animationData from '@/assets/stelli_loader.json';
-
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -58,6 +58,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setPadding,
         scrollType,
         containerWidth,
+        page,
+        maxPage,
     } = useReader();
 
     const muiTheme = useMuiTheme();
@@ -183,6 +185,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     if (webnovel && chapter) {
         return (
             <ThemeWrapper>
+                <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 <div
                     className={`${readerTheme} text-gray-900 dark:text-white`}
                     style={{
@@ -196,6 +199,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className="flex flex-row space-x-1 items-center">
                                     <ChevronLeftIcon className="w-6 h-6" />
                                     <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                                   
                                 </div>
                             </Button>
 
@@ -237,7 +241,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-[60vh]' : ""}`}>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
                                     <FloatingMenu >
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>

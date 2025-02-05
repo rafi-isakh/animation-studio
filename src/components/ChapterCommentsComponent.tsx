@@ -39,7 +39,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
         for (let i = 0; i < allComments.length; i++) {
             updateAllReplies(i)
         }
-    }, [allComments])
+    }, [])
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();

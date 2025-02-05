@@ -35,6 +35,12 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        for (let i = 0; i < allComments.length; i++) {
+            updateAllReplies(i)
+        }
+    }, [allComments])
+
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
@@ -107,7 +113,6 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
         }
         const data = await response.json();
         const updatedComment = data.comment;
-        console.log('updatedComment', updatedComment)
         setAllComments(prevComments => {
             const updatedComments = prevComments.map(comment =>
                 comment.id.toString() === commentId ? { ...comment, upvotes: updatedComment.upvotes } : comment

@@ -101,6 +101,19 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
     }
 
     const handleUpvoteComment = async (commentId: string) => {
+        const response = await fetch(`/api/upvote_comment?id=${commentId}`);
+        if (!response.ok) {
+            console.error("Error upvoting comment");
+        }
+        const data = await response.json();
+        const updatedComment = data.comment;
+        console.log('updatedComment', updatedComment)
+        setAllComments(prevComments => {
+            const updatedComments = prevComments.map(comment =>
+                comment.id.toString() === commentId ? { ...comment, upvotes: updatedComment.upvotes } : comment
+            );
+            return updatedComments;
+        });
     }
 
     const updateShowForm = (index: number, value: boolean) => {
@@ -304,8 +317,8 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                 />
 
                                                 <div className="flex flex-row gap-4 items-center">
-                                                    <div className='flex flex-row gap-1 items-center'>
-                                                        <Heart onClick={() => handleUpvoteComment(comment.id.toString())} size={16} className='text-gray-600' />
+                                                    <div onClick={() => handleUpvoteComment(comment.id.toString())} className='flex flex-row gap-1 items-center'>
+                                                        <Heart size={16} className='text-gray-600' />
                                                         {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
                                                         <span className='text-[#DB2777] text-sm'>{comment.upvotes} </span>
                                                     </div>

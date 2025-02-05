@@ -13,7 +13,6 @@ import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useReaderTheme } from '@/contexts/ReaderThemeContext';
 import { MessageCircle, Settings, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
-import { useChapter } from '@/contexts/ChapterContext';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -28,7 +27,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const viewSettingsStyle = useViewSettingsStyle();
-    const { setChapter } = useChapter();
     const { fontSize,
         setFontSize,
         fontFamily = 'default',
@@ -39,10 +37,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         setScrollType,
         setPage } = useReader();
     const { toggleReaderTheme } = useReaderTheme()
-
-    useEffect(() => {
-        setChapter(chapter);
-    }, [chapter])
 
     useEffect(() => {
         setPage(1);

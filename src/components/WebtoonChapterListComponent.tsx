@@ -229,7 +229,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
                             </div>
                             {/* Comments list */}
-                            {webtoon && <CommentList content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false} />}
+                            {/* {webtoon && <CommentList content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false} />} */}
                         </div>
 
                     </div>

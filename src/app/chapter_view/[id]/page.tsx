@@ -309,7 +309,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 </div>
                 {/* hr divider */}
-                <div className='flex flex-col items-center justify-center w-full'>
+                <div className='flex flex-col items-center justify-center w-full mb-4'>
                     <hr className='w-screen border-t border-gray-300 my-4' />
                     <div className='bg-white dark:bg-black px-4 absolute'>
                         <Image

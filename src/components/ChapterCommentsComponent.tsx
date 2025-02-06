@@ -16,11 +16,12 @@ import { Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
 import moment from 'moment';
 import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
+import UpvoteButton from '@/components/UI/UpvotedButton';
 
 const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnabled }: { chapter: Chapter, webnovelOrWebtoon: boolean, addCommentEnabled: boolean }) => {
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>(chapter.comments || []);
-    const { email } = useUser();
+    const { email, upvotedComments, setUpvotedComments } = useUser();
     const { isLoggedIn } = useAuth();
     const [replyContent, setReplyContent] = useState<string[]>([]);
     const [showForm, setShowForm] = useState<Boolean[]>([]);
@@ -35,11 +36,12 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
 
+
     useEffect(() => {
         for (let i = 0; i < allComments.length; i++) {
             updateAllReplies(i)
         }
-    }, [allComments])
+    }, [])
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -113,6 +115,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
         }
         const data = await response.json();
         const updatedComment = data.comment;
+    
         setAllComments(prevComments => {
             const updatedComments = prevComments.map(comment =>
                 comment.id.toString() === commentId ? { ...comment, upvotes: updatedComment.upvotes } : comment
@@ -215,9 +218,26 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
         setOpenReplyDropdownId(openReplyDropdownId === replyId ? null : replyId);
     };
 
+    // const UpvoteButton = ({ commentId, upvotes }: { commentId: string, upvotes: number }) => (
+    //     <button
+    //         onClick={() => handleUpvoteComment(commentId)}
+    //         className='flex flex-row gap-1 items-center cursor-pointer'
+    //     >
+    //         {upvotedComments.has(commentId) ? (
+    //             <div className='flex flex-row gap-1 items-center text-md text-gray-500 dark:text-white'>
+    //                 <svg width="16" height="15" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+    //                     <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+    //                 </svg>
+    //             </div>
+    //         ) : (
+    //             <Heart size={16} className='text-gray-600' />
+    //         )}
+    //         <span className='text-[#DB2777] text-sm'>{upvotes}</span>
+    //     </button>
+    // );
 
     return (
-        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto '>
+        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto'>
             <div className='flex flex-col'>
                 {/* comments  */}
                 {addCommentEnabled &&
@@ -251,7 +271,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                 <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-gray-900'>
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
-                        {/* chapter title */} 
+                        {/* chapter title */}
                         <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
                         <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
@@ -325,11 +345,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                 />
 
                                                 <div className="flex flex-row gap-4 items-center">
-                                                    <button onClick={() => handleUpvoteComment(comment.id.toString())} className='flex flex-row gap-1 items-center cursor-pointer'>
-                                                        <Heart size={16} className='text-gray-600' />
-                                                        {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
-                                                        <span className='text-[#DB2777] text-sm'>{comment.upvotes} </span>
-                                                    </button>
+                                                    <UpvoteButton upvotedComments={upvotedComments} setAllComments={setAllComments} commentId={comment.id.toString()} upvotes={comment.upvotes} />
 
                                                     <Link
                                                         href="#"
@@ -415,11 +431,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                                     elementType='comment'
                                                                 />
 
-                                                                <button onClick={() => handleUpvoteComment(reply.id.toString())} className='flex flex-row gap-1 items-center cursor-pointer'>
-                                                                    <Heart size={16} className='text-gray-600' />
-                                                                    {/* <span className='text-gray-600'> {phrase(dictionary, "likes", language)} </span> */}
-                                                                    <span className='text-[#DB2777] text-sm'>{reply.upvotes} </span>
-                                                                </button>
+                                                                <UpvoteButton upvotedComments={upvotedComments} setAllComments={setAllComments} commentId={reply.id.toString()} upvotes={reply.upvotes} />
                                                             </div>
 
                                                         </div >

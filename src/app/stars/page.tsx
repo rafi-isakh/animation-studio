@@ -21,6 +21,12 @@ export interface Transaction {
     currency: Currency;
 }
 
+export interface StarUse {
+    user_id: number;
+    stars: number;
+    date: string;
+}
+
 export default function Stars() {
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();

@@ -1,3 +1,4 @@
+"use client"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Button } from "@mui/material";
@@ -7,6 +8,8 @@ import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
+import { useState } from "react";
+import StripeComponent from "@/components/StripeComponent";
 
 export default function PurchaseStarsComponent() {
     const starsOptions = [100, 300, 500, 1000]
@@ -16,11 +19,12 @@ export default function PurchaseStarsComponent() {
     const { email, nickname, stars } = useUser();
     const router = useRouter();
     const { setStars, setDiscount } = useStripeContext();
+    const [showStripeComponent, setShowStripeComponent] = useState(false);
 
     const onClickPaymentStripe = (numStars: number, discount: number) => {
         setStars(numStars);
         setDiscount(discount);
-        router.push(`/stripe`);
+        setShowStripeComponent(true);
     }
     const onClickPaymentInicis = (numStars: number, discount: number) => {
         if (!window.IMP) return;
@@ -75,101 +79,109 @@ export default function PurchaseStarsComponent() {
                 </div>
             </div>
 
-            <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
+            {showStripeComponent ? 
+            <div className='self-center'>
+                <StripeComponent />
+            </div>
+                :
+                <>
+                    <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
                             from-indigo-500/10 from-10% via-sky-500/10 via-30% to-emerald-500/10 to-90%">
-                <h1 className="text-md font-base py-3 px-2 text-left">
-                    {/* Regular Bundles   */}
-                    {language === 'ko' ? '스페셜 딜' : 'Special Deal for You'}
-                </h1>
-                {starsEventOptions.map((stars, index) => (
-                    <Button
-                        key={index}
-                        onClick={() => onClickPaymentStripe(stars, discount_factors[index])}
-                        variant="text"
-                        sx={{
-                            borderBottom: 1,
-                            '&:last-child': {
-                                borderBottom: 0
-                            },
-                            borderColor: '#9ca3af',
-                            borderRadius: 0,
-                            padding: '15px 10px',
-                            margin: 0,
-                            color: '#9ca3af ',
-                            '&:hover': {
-                                backgroundColor: 'transparent',
-                            }
-                        }}
-                        className="text-xl flex items-center justify-between w-full text-gray-500 ">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex flex-col  ">
+                        <h1 className="text-md font-base py-3 px-2 text-left">
+                            {/* Regular Bundles   */}
+                            {language === 'ko' ? '스페셜 딜' : 'Special Deal for You'}
+                        </h1>
+                        {starsEventOptions.map((stars, index) => (
+                            <Button
+                                key={index}
+                                onClick={() => onClickPaymentStripe(stars, discount_factors[index])}
+                                variant="text"
+                                sx={{
+                                    borderBottom: 1,
+                                    '&:last-child': {
+                                        borderBottom: 0
+                                    },
+                                    borderColor: '#9ca3af',
+                                    borderRadius: 0,
+                                    padding: '15px 10px',
+                                    margin: 0,
+                                    color: '#9ca3af ',
+                                    '&:hover': {
+                                        backgroundColor: 'transparent',
+                                    }
+                                }}
+                                className="text-xl flex items-center justify-between w-full text-gray-500 ">
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex flex-col  ">
 
-                                <div className="flex flex-row items-center justify-center space-x-2">
-                                    <MdStars className="text-xl text-[#D92979]" />
-                                    <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
-                                        {language === 'ko' ? <>별{' '}</> : ''}
-                                        {stars.toLocaleString()}
-                                        {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
-                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
+                                        <div className="flex flex-row items-center justify-center space-x-2">
+                                            <MdStars className="text-xl text-[#D92979]" />
+                                            <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
+                                                {language === 'ko' ? <>별{' '}</> : ''}
+                                                {stars.toLocaleString()}
+                                                {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                                <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
+                                            </div>
+
+                                        </div>
                                     </div>
-
+                                    <div className="flex items-center">
+                                        <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
+                                            {((stars * 10) * discount_factors[index]).toLocaleString()}원
+                                            {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                        </h1>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center">
-                                <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 10) * discount_factors[index]).toLocaleString()}원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
-                                </h1>
-                            </div>
-                        </div>
-                    </Button>
-                ))}
-            </div>
+                            </Button>
+                        ))}
+                    </div>
 
-            <div className="flex flex-col w-full rounded-md p-2 border-gray-400 border">
-                <h1 className="text-md font-base py-3 px-2 text-left">
-                    {/* Regular Bundles   */}
-                    {language === 'ko' ? '일반 번들' : 'Regular Bundles'}
-                </h1>
-                {starsOptions.map((stars, index) => (
-                    <Button
-                        key={index}
-                        onClick={() => onClickPaymentStripe(stars, 1)}
-                        variant="text"
-                        sx={{
-                            borderBottom: 1,
-                            '&:last-child': {
-                                borderBottom: 0
-                            },
-                            borderColor: '#9ca3af',
-                            borderRadius: 0,
-                            padding: '15px 10px',
-                            margin: 0,
-                            color: '#9ca3af ',
-                            '&:hover': {
-                                backgroundColor: '#FFF0EE',
-                            }
-                        }}
-                        className="text-xl flex items-center justify-between w-full text-gray-500 ">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center space-x-2 ">
-                                <MdStars className="text-xl text-[#D92979]" />
-                                <div className="text-xl">
-                                    {language === 'ko' ? <>별{' '}</> : ''}
-                                    {stars.toLocaleString()}
-                                    {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                    <div className="flex flex-col w-full rounded-md p-2 border-gray-400 border">
+                        <h1 className="text-md font-base py-3 px-2 text-left">
+                            {/* Regular Bundles   */}
+                            {language === 'ko' ? '일반 번들' : 'Regular Bundles'}
+                        </h1>
+                        {starsOptions.map((stars, index) => (
+                            <Button
+                                key={index}
+                                onClick={() => onClickPaymentStripe(stars, 1)}
+                                variant="text"
+                                sx={{
+                                    borderBottom: 1,
+                                    '&:last-child': {
+                                        borderBottom: 0
+                                    },
+                                    borderColor: '#9ca3af',
+                                    borderRadius: 0,
+                                    padding: '15px 10px',
+                                    margin: 0,
+                                    color: '#9ca3af ',
+                                    '&:hover': {
+                                        backgroundColor: '#FFF0EE',
+                                    }
+                                }}
+                                className="text-xl flex items-center justify-between w-full text-gray-500 ">
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center space-x-2 ">
+                                        <MdStars className="text-xl text-[#D92979]" />
+                                        <div className="text-xl">
+                                            {language === 'ko' ? <>별{' '}</> : ''}
+                                            {stars.toLocaleString()}
+                                            {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
+                                            {(stars * 10).toLocaleString()} 원
+                                            {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                        </h1>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center">
-                                <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {(stars * 10).toLocaleString()} 원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
-                                </h1>
-                            </div>
-                        </div>
-                    </Button>
-                ))}
-            </div>
+                            </Button>
+                        ))}
+                    </div>
+                </>
+            }
         </div>
     );
 }

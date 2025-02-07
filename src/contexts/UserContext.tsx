@@ -11,6 +11,7 @@ interface UserContextProps {
     bio: string;
     setBio: (bio: string) => void;
     stars: number;
+    purchased_webnovel_chapters: number[];
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -24,6 +25,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [nickname, setNickname] = useState<string>("");
     const [bio, setBio] = useState<string>("");
     const [stars, setStars] = useState<number>(0);
+    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<number[]>([]);
     const pathname = usePathname();
     const { isLoggedIn, loading } = useAuth();
 
@@ -40,6 +42,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setEmail(data.email);
                 setBio(data.bio);
                 setStars(data.stars);
+                setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -54,7 +57,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             email, setEmail,
             nickname, setNickname,
             bio, setBio,
-            stars
+            stars,
+            purchased_webnovel_chapters,
         }}>
             {children}
         </userContext.Provider>

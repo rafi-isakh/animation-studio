@@ -1,6 +1,16 @@
 import { Webnovel, SortBy } from '@/components/Types';
 import moment from 'moment';
 
+export const chapterPrice = (language: string) => {
+    if (language === "ko") {
+        return "10";
+    } else if (language === "en") {
+        return "30";
+    } else if (language === "ja") {
+        return "20";
+    } 
+}
+
 export const filter_by_genre = (item: Webnovel, genre: string | null | undefined) => {
     if (genre === "all" || genre == null) return true;
     return genre === item.genre;

@@ -64,7 +64,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
     const { readerTheme, toggleReaderTheme } = useReaderTheme()
-    const { purchased_webnovel_chapters } = useUser();
+    const { purchased_webnovel_chapters, checking } = useUser();
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
@@ -101,7 +101,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             .then(data => {
                 setChapter(data);
                 // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
-                if (!data.free && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
+                if (!data.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
                     router.push('/');
                 }
                 setUpvotes(data.upvotes)
@@ -112,7 +112,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     })
             }
             )
-    }, []);
+    }, [checking]);
 
     useEffect(() => {
         if (email) {

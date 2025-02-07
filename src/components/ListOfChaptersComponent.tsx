@@ -33,7 +33,7 @@ const ListOfChaptersComponent = ({
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
     const date = new Date();
     const router = useRouter();
-    const { purchased_webnovel_chapters } = useUser();
+    const { purchased_webnovel_chapters, setInvokeCheckUser } = useUser();
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
@@ -87,6 +87,7 @@ const ListOfChaptersComponent = ({
             } else {
                 const data = await response.json();
                 if (data.success) {
+                    setInvokeCheckUser(prev => !prev);
                     router.push(`/chapter_view/${chapter.id}`);
                 } else {
                     alert(data.message);

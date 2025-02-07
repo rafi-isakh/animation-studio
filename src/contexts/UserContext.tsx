@@ -1,6 +1,6 @@
     "use client"
 import { usePathname, useSearchParams } from 'next/navigation';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UserContextProps {
@@ -12,6 +12,8 @@ interface UserContextProps {
     setBio: (bio: string) => void;
     stars: number;
     purchased_webnovel_chapters: number[];
+    setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
+    checking: boolean;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -27,11 +29,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [stars, setStars] = useState<number>(0);
     const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<number[]>([]);
     const pathname = usePathname();
+    const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
+    const [checking, setChecking] = useState<boolean>(false);
     const { isLoggedIn, loading } = useAuth();
 
     useEffect(() => {
         const checkUser = async () => {
             try {
+                setChecking(true);
                 let data: any;
                 const response = await fetch('/api/user_session');
                 data = await response.json();
@@ -43,6 +48,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setBio(data.bio);
                 setStars(data.stars);
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
+                setChecking(false);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -50,7 +56,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         if (isLoggedIn) {
             checkUser();
         }
-    }, [pathname, loading]);
+    }, [pathname, loading, invokeCheckUser]);
 
     return (
         <userContext.Provider value={{
@@ -59,6 +65,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             bio, setBio,
             stars,
             purchased_webnovel_chapters,
+            setInvokeCheckUser,
+            checking
         }}>
             {children}
         </userContext.Provider>

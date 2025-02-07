@@ -1,3 +1,6 @@
+'use client'
+
+import React from "react"
 import { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
@@ -9,28 +12,40 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
 import { Card, useMediaQuery } from "@mui/material"
 import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react"
-import React from "react"
 
 const WebnovelPictureComponent = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
     const imageSrc = getImageUrl(webnovel.cover_art)
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+        <Link href={`/view_webnovels?id=${webnovel.id}`} className="block w-full">
             <div className="group relative flex flex-col items-center w-full">
                 {/* Image Container - Reduced sizes */}
                 <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257]">
-                    {/*   */}
-                    <Image
-                        src={imageSrc}
-                        alt={webnovel.cover_art}
-                        fill
-                        sizes="(max-width: 768px) 100px, 160px"
-                        quality={85}
-                        className="object-cover"
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                    />
+                    {/* hovering effect */}
+                    <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out">
+                        <Image
+                            src={imageSrc}
+                            alt={webnovel.cover_art}
+                            fill
+                            sizes="(max-width: 768px) 100px, 160px"
+                            quality={85}
+                            className="object-cover hover:scale-105 transition-transform duration-300 ease-in-out"
+                            placeholder="blur"
+                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                        />
+                    </div>
+
+                    {/* Overlay for hover effect */}
+                    <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 hover:opacity-50 flex items-center justify-center gap-2">
+                        <p className="text-white text-center text-sm">{phrase(dictionary, "viewnow", language)}</p>
+                        <div className="bg-white rounded-full p-1">
+                            <svg width="10" height="10" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 1L15 10L1 19V1Z" fill="black" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
                     {/* UP Badge */}
                     {up && (<span className="absolute top-0 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">
                         UP

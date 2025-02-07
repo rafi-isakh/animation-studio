@@ -32,10 +32,8 @@ const StarsTransactionComponent = () => {
                     const response = await fetch("/api/get_transactions");
                     const data = await response.json();
                     _transactions = data;
-                    setSkeletonCount(data.length);
                 } catch (error) {
                     console.error("Error fetching transactions:", error);
-                    setSkeletonCount(3);
                 } 
             };
             await fetchTransactions();
@@ -75,6 +73,11 @@ const StarsTransactionComponent = () => {
                             </li>
                         ))
                     ) : (
+                        totalHistory.length === 0 ? (
+                            <li className="flex flex-col w-full gap-1 py-5 text-center">
+                                <p className="text-gray-500">{phrase(dictionary, "noTransactions", language)}</p>
+                            </li>
+                        ) : (
                         totalHistory?.map((element, index) => (
                             <li key={'transaction-' + index}
                                 className="flex flex-col w-full gap-1 py-5 border-b border-gray-200">
@@ -95,7 +98,8 @@ const StarsTransactionComponent = () => {
                                 <p className="text-gray-500">{new Date(element.date).toLocaleDateString()}</p>
                             </li>
                         ))
-                    )}
+                    ))}
+                    
                 </ul>
             </div>
         </div >

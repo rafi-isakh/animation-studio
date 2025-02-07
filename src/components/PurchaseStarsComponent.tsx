@@ -69,6 +69,7 @@ export default function PurchaseStarsComponent() {
         <div className="flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto tall:h-[calc(100vh-16rem)]">
             <div className="flex flex-col w-full items-center justify-center">
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
+                <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1>
                 <h1 className="text-2xl font-extrabold text-center">
                     {phrase(dictionary, "stars", language)}
                 </h1>

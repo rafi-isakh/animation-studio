@@ -25,7 +25,7 @@ const MyReadingListWrapper = ({ library, nickname }: { library: Webnovel[], nick
                             {/* Continue Reading */}
                             {language === "ko" && <span className="text-black dark:text-white">{nickname} 님{' '}</span>}
                             {phrase(dictionary, "continueReading", language)}
-                            {language === "en" && <span className="text-black dark:text-white">{nickname}</span>}
+                            {language === "en" && <span className="text-black dark:text-white">{' '}{nickname}</span>}
                         </h1>
                     </div>
                     : <></>

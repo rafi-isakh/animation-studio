@@ -19,6 +19,7 @@ import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
+import LanguageSetter from "@/components/LanguageSetter";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <Header />
                       </Suspense>
                       <Margin>
+                        <LanguageSetter />
                         {children}
                         <Analytics />
                         <Suspense>

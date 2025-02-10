@@ -111,3 +111,18 @@ export const code_to_lang = (iso_code: string) => {
         return '';
     }
 }
+
+export async function getCountryFromIP() {
+    try {
+        // Using ip-api.com's free endpoint
+        const response = await fetch('http://ip-api.com/json/?fields=countryCode');
+        if (!response.ok) {
+            throw new Error("Failed to fetch country info");
+        }
+        const data = await response.json();
+        return data.countryCode; // Returns two-letter country code (e.g., 'US', 'JP', 'KR')
+    } catch (error) {
+        console.error('Error getting country from IP:', error);
+        return null;
+    }
+}

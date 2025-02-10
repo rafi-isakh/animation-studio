@@ -25,7 +25,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
     return (
-        <div className={`relative md:max-w-screen-lg w-full mx-auto group overflow-hidden ${className}`}>
+        <div className={`relative w-screen mx-auto group overflow-hidden ${className}`}>
             <div>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {title}
@@ -35,7 +35,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                     {/* Desktop layout with fixed 6 cards */}
                     <div 
                         ref={scrollRef}
-                        className="hidden md:grid grid-cols-6 overflow-x-auto no-scrollbar gap-1"
+                        className="hidden md:grid grid-cols-9 overflow-x-auto no-scrollbar gap-1"
                     > 
                         {webnovels.map((item, index) => (
                             <div 

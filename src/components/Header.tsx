@@ -326,10 +326,17 @@ export const Header = () => {
         // setShowIsModal(true);
     }
 
+    const hideInMockup = () => {
+        if (pathname.startsWith('/mockup')) {
+            return "hidden"
+        }
+        return ""
+    }
+
     return (
         <>
             {/* Top font color gray-500 and weight bold */}
-            <nav className="fixed left-0 top-0 right-0 z-50 mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black ">
+            <nav className={`fixed ${hideInMockup()} left-0 top-0 right-0 z-50 mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 <div className="max-w-screen-lg mx-auto">
                     <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
                         {/* md:pb-3 md:pt-3 pt-2 md:px-0 px-3 */}

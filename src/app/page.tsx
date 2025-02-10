@@ -81,7 +81,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '300px', mobile: '24px' }}  />
                 {smallGap()}
                <div className='px-4 md:px-0 w-full mx-auto'>
-                    <MenuItemsComponent />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}

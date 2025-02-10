@@ -40,12 +40,12 @@ async function getWebnovelsMetadata() {
     return response.json();
 }
 
+
+
 const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    const cookieStore = cookies()
-    const didSelectLanguage = cookieStore.get('didSelectLanguage')
-    const showPreloader = !didSelectLanguage
+    
     let items = await getCarouselItems();
     let webnovels = await getWebnovelsMetadata();
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
@@ -74,7 +74,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     return (
         <div>
-            {showPreloader && <Preloader />}
             <PromotionModalWrapper />
             <ApplyCreatorBanner />  
             {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}

@@ -8,7 +8,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon, Comment, Webnovel } from "@/components/Types";
+import { Webtoon, Comment, Webnovel, Chapter } from "@/components/Types";
 import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
@@ -262,9 +262,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
 
                             {/* Comments list */}
                             {content && content.chapters && content.chapters.length > 0 ? (
-                                <CommentList
+                                <CommentList    
                                     content={content}
-                                    chapter={content.chapters[0]}
+                                    chapter={content.chapters[0] as Chapter}
                                     webnovelOrWebtoon={!isWebtoon}
                                 />
                             ) : (

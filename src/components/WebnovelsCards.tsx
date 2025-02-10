@@ -1,7 +1,7 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
 import { useEffect, useState, useRef, useMemo } from 'react';
-import WebnovelPicture from "@/components/WebnovelPicture"
+import WebnovelPictureCardWrapper from "@/components/UI/WebnovelPictureCardWrapper"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -47,7 +47,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
                 renderItem={(item: Webnovel, index: number) => (
-                    <WebnovelPicture
+                    <WebnovelPictureCardWrapper
                         webnovel={item}
                         index={index + 1}
                         ranking={false}

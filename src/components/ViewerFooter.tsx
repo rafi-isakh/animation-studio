@@ -45,6 +45,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
+         // If scrollType is horizontal, always show the footer
+         if (scrollType === 'horizontal') {
+            setIsVisible(true);
+            return; // Exit early, no need to add scroll listener
+        }
+
         const handleScroll = () => {
             if (scrollType === 'vertical') {
                 const currentScrollY = window.scrollY;
@@ -65,14 +71,11 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
         // Add scroll event listener
         window.addEventListener('scroll', handleScroll);
-
-        // Cleanup function to remove the event listener
         return () => {
             window.removeEventListener('scroll', handleScroll);
             clearTimeout(timeoutId); // Clear timeout when component unmounts
         };
-    }, [lastScrollY]); // Dependency array to trigger when lastScrollY changes
-
+    }, [scrollType, lastScrollY]);
 
 
     useEffect(() => {
@@ -124,6 +127,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             <div className={`z-50 fixed w-full justify-center bg-white dark:bg-black text-black
                              dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
+                             ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                              ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
 
                 <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2">

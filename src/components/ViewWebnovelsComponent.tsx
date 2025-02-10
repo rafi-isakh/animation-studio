@@ -150,10 +150,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             )
         } else if (atLeastOneWebnovel) {
             return (
-                <ThemeProvider theme={grayTheme}>
-                    <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
-                        {/*--  left-hand side:  Author's other works link */}
+                // <ThemeProvider theme={grayTheme}>
+                    <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
+                        
                         <div className="flex md:flex-row flex-col justify-between items-start">
+                            <div className="md:w-1/3 w-full flex-grow-0">
                             <AuthorAndWebnovelsAsideComponent
                                 webnovels={[theWebnovel!]}
                                 nickname={nickname}
@@ -161,8 +162,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 onNewChapter={handleNewChapter}
                                 onDelete={handleDelete}
                             />
-                            <div className='w-full'>
-
+                            </div>
+                            <div className='flex-1 md:w-2/3 w-full'>
                                 <ContentChapterListComponent
                                     content={theWebnovel as Webnovel}
                                     coverArt={theWebnovel?.cover_art || ""}
@@ -172,14 +173,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 />
                             </div>
                         </div>
-
                     </div>
-
-                </ThemeProvider >
+                // </ThemeProvider >
             )
         } else {
             return (
-                <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
                     {phrase(dictionary, "noWebnovelsFound", language)}
                 </div>
             )

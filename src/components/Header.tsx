@@ -19,7 +19,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import {
     SquarePen,
     Video,
-    Sparkles,
+    X,
     Book,
     SquareLibrary,
     Search,
@@ -38,6 +38,7 @@ import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
+import { motion, AnimatePresence } from "framer-motion"
 
 export const Header = () => {
     const router = useRouter();
@@ -379,10 +380,10 @@ export const Header = () => {
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
                             {isLoggedInAndRegistered && (
-                            <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
-                                    <Menu size={20} className='dark:text-white text-gray-500' />
-                                </button>
+                                <div ref={hamburgerRef}>
+                                    <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                        <Menu size={20} className='dark:text-white text-gray-500' />
+                                    </button>
                                 </div>
                             )}
                             {!isLoggedInAndRegistered && (
@@ -415,11 +416,12 @@ export const Header = () => {
                                 >
                                     <Search size={20} className='dark:text-white text-gray-500' />
                                 </button>
+                              
                                 <Drawer
                                     anchor="top"
                                     open={open}
                                     onClose={toggleDrawer(false)}
-                                    transitionDuration={100}
+                                    transitionDuration={300}
                                     ModalProps={{
                                         keepMounted: true,
                                     }}
@@ -431,7 +433,9 @@ export const Header = () => {
                                             // backgroundColor: 'black',
                                         }
                                     }}
+
                                 >
+                                    
                                     <Box sx={{ p: 2, }}>
                                         <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} setOpen={setOpen} />
                                     </Box>

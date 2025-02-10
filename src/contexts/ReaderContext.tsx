@@ -23,6 +23,8 @@ const ReaderContext = createContext<{
     setScrollType: (scrollType: "horizontal" | "vertical") => void;
     page: number;
     setPage: Dispatch<SetStateAction<number>>
+    maxPage: number;
+    setMaxPage: Dispatch<SetStateAction<number>>
     setBgColor: (color: string) => void;
 } | undefined>(undefined);
 
@@ -36,6 +38,7 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [padding, setPadding] = useState(10);
   const [scrollType, setScrollType] = useState<"vertical" | "horizontal">('vertical');
   const [page, setPage] = useState(1);
+  const [maxPage, setMaxPage] = useState(0);
   const [containerWidth, setContainerWidth] = useState<number | undefined>(); 
 
   useEffect(() => {
@@ -93,6 +96,8 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     containerWidth,
     setContainerWidth,
     setBgColor,
+    maxPage,
+    setMaxPage,
   };
 
   return <ReaderContext.Provider value={value}>{children}</ReaderContext.Provider>;

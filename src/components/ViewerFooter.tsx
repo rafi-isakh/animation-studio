@@ -136,12 +136,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </div>
                     </Link>
 
-                    <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
+                    {/* <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
                         <p className='hover:text-[#DB2777] relative'>
                             <MessageCircle size={16} />
                             <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{chapter.comments.length}</span>
                         </p>
-                    </Link>
+                    </Link> */}
                     {/* <p onClick={adjustViewSettings} className='hover:text-[#DB2777]'>{phrase(dictionary, "viewSettings", language)}</p> */}
                     <Link href={``} onClick={handleViewSettings}>
                         <p className='hover:text-[#DB2777] relative'>

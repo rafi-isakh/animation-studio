@@ -13,11 +13,11 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
     const { dictionary, language } = useLanguage();
 
     return (
-        <div className="md:w-max-screen-lg w-full mx-auto">
+        <div className="sm:w-max-screen-lg lg:w-[calc(100vw-72px)] w-full mx-auto">
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[120px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
+                <div className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[180px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
@@ -26,7 +26,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
                             {/* Ranking number */}
-                            <div className="absolute md:-left-[90px] md:-top-8 -left-[55px] -bottom-[15px] select-none pointer-events-none -z-10">
+                            <div className="absolute md:-left-[90px] md:-bottom-8 -left-[55px] -bottom-[15px] select-none pointer-events-none -z-10">
                                 <span
                                     className="md:text-[15.5rem] text-[9rem] font-black leading-none text-white 
                                                 [text-shadow:2px_0_2px_black,_-2px_0_2px_black,_0_2px_2px_black,_0_-2px_2px_black]
@@ -44,20 +44,20 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                                                 ${hoveredIndex === index ? 'transform scale-100' : ''}`}
                                 >
                                     {/* Image container - now using full width of the grid column */}
-                                    <div className="relative w-[120px] aspect-[2/3] bg-gray-900 rounded-lg ">
+                                    <div className="relative w-[120px] md:w-[180px] aspect-[2/3] bg-gray-900 rounded-lg ">
                                         <Image
                                             fill
                                             src={getImageUrl(webnovel.cover_art)}
                                             alt={webnovel.title}
                                             className="object-cover w-full rounded-lg "
-                                            sizes="(max-width: 768px) 150px, 150px"
+                                            sizes="(max-width: 768px) 120px, 180px"
                                             placeholder="blur"
                                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                             priority={index < 2}
                                         />
                                     </div>
                                     {/* Gradient overlay */}
-                                    <div className="w-[150px] absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+                                    <div className="w-[120px] md:w-[180px] absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
                                     {/* Title and badge */}
                                     <div className="absolute bottom-0 left-0 right-0 p-4">
                                         <h3 className="text-white font-semibold line-clamp-2 text-base break-keep">

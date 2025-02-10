@@ -10,6 +10,7 @@ import WebnovelsByRank from "@/components/WebnovelsByRank";
 import CarouselComponent from "@/components/CarouselComponent";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 import Footer from "@/components/Footer";
+import Header from '@/components/Header';
 
 async function getCarouselItems() {
   const start = performance.now()
@@ -61,23 +62,21 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 pl-[72px]">
-
-
-        <div className='flex flex-col md:justify-start md:items-start md:px-0'>
+      <div className="hidden md:block"> 
+        {/* no sidebar on mobile */}
+        <Sidebar />
+      </div>
+      <main className="flex-1 md:pl-[72px] md:w-[calc(100vw-72px)] w-full overflow-x-hidden"> {/* pl-[72px] is the left sidebar width */}
+        <div className='flex flex-col md:justify-start md:items-start md:px-1 px-0'>
           <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '0px', mobile: '24px' }} />
           {smallGap()}
-          <div className='px-4 md:px-0 w-full mx-auto'>
+          <div className='px-4 md:px-0 md:w-[calc(100vw-72px)] w-full'>
             <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />
             {smallGap()}
             <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
             {largeGap()}
             <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' />
             {largeGap()}
-          </div>
-          <div className='px-4 w-full mx-auto'>
-
           </div>
           {/* {largeGap()}
                 <TrailerCardComponent /> */}

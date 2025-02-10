@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./page.module.css"
+import { ThemeProvider } from "@/contexts/providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -16,6 +17,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-      <div className={`${inter.className} h-full`}>{children}</div>
+      <div className={`${inter.className} h-full font-pretendard`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </div>
   )
 }

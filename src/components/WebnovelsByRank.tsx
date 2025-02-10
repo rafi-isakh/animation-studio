@@ -30,7 +30,7 @@ export default function WebnovelsByRank({ searchParams, sortBy, webnovels }: { s
     }, [version, genre, webnovels, sortBy]);
 
     return (
-        <div className='w-screen mx-auto h-full no-scrollbar'>
+        <div className='lg:w-[calc(100vw-72px)] w-full mx-auto h-full no-scrollbar'>
             <RankingGrid 
                 webnovels={webnovelsToShow}
             />

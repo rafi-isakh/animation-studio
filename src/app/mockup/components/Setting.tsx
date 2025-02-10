@@ -48,7 +48,7 @@ export default function Setting() {
         setPopoverAnchor(event.currentTarget);
     };
 
-    const handleClose = () => {
+    const handlePopoverClose = () => {
         setPopoverAnchor(null);
     };
 
@@ -97,7 +97,7 @@ export default function Setting() {
                     vertical: 'center',
                     horizontal: 'left',
                 }}
-                onClose={handleClose}
+                onClose={handlePopoverClose}
                 className={`dark:bg-black/50 transition-all duration-300`}
             >
                 <Box
@@ -145,6 +145,7 @@ export default function Setting() {
                             open={openLanguageDialog}
                             onClose={handleCloseLanguageDialog}
                             value={value}
+                            onPopoverClose={handlePopoverClose}
                         />
                     </List>
                 </Box>
@@ -158,10 +159,12 @@ export function LanguageSettingDialogRaw(props: {
     keepMounted: boolean,
     open: boolean,
     onClose: (value?: string) => void,
-    value: string
+    value: string,
+    onPopoverClose: () => void
 }) {
     const radioGroupRef = useRef<HTMLElement>(null);
     const { dictionary, language, setLanguage } = useLanguage();
+    const { theme } = useTheme();
     const [selectedValue, setValue] = useState(props.value);
     const { onClose, value: valueProp, open, ...other } = props;
 
@@ -185,6 +188,7 @@ export function LanguageSettingDialogRaw(props: {
     const handleOk = () => {
         onClose(selectedValue);
         setLanguage(selectedValue as Language);
+        props.onPopoverClose();
     };
 
     return (
@@ -213,7 +217,16 @@ export function LanguageSettingDialogRaw(props: {
                         <FormControlLabel
                             value={langPair.code}
                             key={langPair.code}
-                            control={<Radio />}
+                            control={
+                                <Radio 
+                                    sx={{ 
+                                        color: `${theme === 'dark' ? 'rgb(156 163 175)' : 'rgb(229 231 235)'}`,  // gray-400 in light mode
+                                        '&.Mui-checked': {
+                                            color: `${theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(156 163 175)'}`,  // gray-200 in dark mode
+                                        },
+                                    }}
+                                />
+                            }
                             label={langPair.name}
                             className='dark:text-white'
                         />

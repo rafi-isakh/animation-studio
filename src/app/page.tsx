@@ -19,24 +19,18 @@ import { Webnovel } from '@/components/Types';
 import LanguageSetter from '@/components/LanguageSetter';
 
 async function getCarouselItems() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getCarouselItems', end - start)
     return response.json();
 }
 
 async function getWebnovelsMetadata() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getWebnovelsMetadata', end - start)
     return response.json();
 }
 

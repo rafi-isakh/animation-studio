@@ -1,6 +1,6 @@
 "use client"
 
-import { Chapter, Webnovel } from "@/components/Types"
+import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/UserContext"
@@ -10,7 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button, Modal, Box, dividerClasses, Skeleton } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronLeftIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -22,14 +22,18 @@ import ThemeWrapper from '@/components/ThemeWrapper';
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
+import Image from 'next/image';
+import { getImageUrl } from "@/utils/urls";
+
 import dynamic from 'next/dynamic';
+import ProgressBar from '@/components/UI/ProgressBar';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 
 // Import the animation data
 import animationData from '@/assets/stelli_loader.json';
-
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -58,6 +62,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setPadding,
         scrollType,
         containerWidth,
+        page,
+        maxPage,
     } = useReader();
 
     const muiTheme = useMuiTheme();
@@ -180,9 +186,51 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setScreenWidth(_screenWidth);
     }, [scrollType])
 
+    const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
+        { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
+        const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
+        const nextChapter = currentIndex > -1 && currentIndex < webnovel.chapters.length - 1
+            ? webnovel.chapters[currentIndex + 1]
+            : null;
+
+        if (!nextChapter) {
+            return null;
+        }
+
+        return (
+            <Link href={`/chapter_view/${nextChapter.id}`}>
+                <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3">
+                    <div className="flex flex-row items-center space-x-4">
+                        <Image
+                            src={getImageUrl(webnovel.cover_art)}
+                            alt={webnovel.title}
+                            width={50} height={50}
+                            className="rounded-lg"
+                        />
+                        <div className="flex flex-col">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
+                                {phrase(dictionary, "nextChapterView", language)}
+                            </p>
+                            <OtherTranslateComponent
+                                content={nextChapter.title}
+                                elementId={nextChapter.id.toString()}
+                                elementType='chapter'
+                                elementSubtype="title"
+                                classParams="text-md mt-1 mb-1"
+                            />
+                        </div>
+                    </div>
+                    <ChevronRight size={18} className="" />
+                </div>
+            </Link>
+        );
+    };
+
+
     if (webnovel && chapter) {
         return (
             <ThemeWrapper>
+                <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 <div
                     className={`${readerTheme} text-gray-900 dark:text-white`}
                     style={{
@@ -194,8 +242,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         <div className="flex flex-row max-w-full w-full justify-between">
                             <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>
                                 <div className="flex flex-row space-x-1 items-center">
-                                    <ChevronLeftIcon className="w-6 h-6" />
+                                    <ChevronLeft size={18} className="" />
                                     <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                                   
                                 </div>
                             </Button>
 
@@ -237,7 +286,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-[60vh]' : ""}`}>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
                                     <FloatingMenu >
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
@@ -261,8 +310,24 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </Box>
                     </Modal>
                     {/* delete confirmation modal */}
+                    <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 </div>
-            </ThemeWrapper>
+                {/* hr divider */}
+                <div className='flex flex-col items-center justify-center w-full mb-4'>
+                    <hr className='w-screen border-t border-gray-300 my-4' />
+                    <div className='bg-white dark:bg-black px-4 absolute'>
+                        <Image
+                            src="/images/N_logo.svg"
+                            alt="logo"
+                            width={20}
+                            height={20}
+                            quality={100}
+                            className="w-[20px] h-[20px] self-center md:mt-0 mt-1"
+                        />
+                    </div>
+                </div>
+                <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
+            </ThemeWrapper >
         )
     }
     else {

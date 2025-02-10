@@ -72,8 +72,14 @@ export const Header = () => {
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
+    const [isLoggedInAndRegistered, setIsLoggedInAndRegistered] = useState(true);
 
-    const isLoggedInAndRegistered = isLoggedIn && email;
+    useEffect(() => {
+        if (!loading) {
+            setIsLoggedInAndRegistered(isLoggedIn! && !!email);
+        }
+    }, [isLoggedIn, email, loading]);
+
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
     useEffect(() => {
         if (searchParams.get("version") == "premium") {

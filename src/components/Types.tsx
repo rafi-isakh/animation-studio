@@ -30,6 +30,7 @@ export interface User {
   picture: string;
   stars: number;
   marketing: string;
+  upvoted_comments: string;
 }
 
 export interface UserCreate {

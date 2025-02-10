@@ -11,6 +11,8 @@ interface UserContextProps {
     bio: string;
     setBio: (bio: string) => void;
     stars: number;
+    upvotedComments: string[];
+    setUpvotedComments: (upvotedComments: string[]) => void;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -24,6 +26,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [nickname, setNickname] = useState<string>("");
     const [bio, setBio] = useState<string>("");
     const [stars, setStars] = useState<number>(0);
+    const [upvotedComments, setUpvotedComments] = useState<string[]>([]);
     const pathname = usePathname();
     const { isLoggedIn, loading } = useAuth();
 
@@ -40,6 +43,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setEmail(data.email);
                 setBio(data.bio);
                 setStars(data.stars);
+                setUpvotedComments(data.upvoted_comments);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -54,7 +58,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             email, setEmail,
             nickname, setNickname,
             bio, setBio,
-            stars
+            stars,
+            upvotedComments, setUpvotedComments
         }}>
             {children}
         </userContext.Provider>

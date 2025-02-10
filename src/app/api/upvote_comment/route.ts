@@ -43,8 +43,5 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json({
-        message: "Upvote comment success",
-        data: data
-    });
+    return NextResponse.json({ comment: data });
 }

@@ -10,8 +10,8 @@ import WebnovelsByRank from "@/components/WebnovelsByRank";
 import CarouselComponent from "@/components/CarouselComponent";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 import Footer from "@/components/Footer";
-import Header from '@/components/Header';
-
+// import Header from '@/components/Header';
+import BottomNavigationBar from "./components/BottomNavigation";
 async function getCarouselItems() {
   const start = performance.now()
   const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -65,6 +65,9 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
       <div className="hidden md:block"> 
         {/* no sidebar on mobile */}
         <Sidebar />
+      </div>
+      <div className="block md:hidden">
+        <BottomNavigationBar />
       </div>
       <main className="flex-1 md:pl-[72px] md:w-[calc(100vw-72px)] w-full overflow-x-hidden"> {/* pl-[72px] is the left sidebar width */}
         <div className='flex flex-col md:justify-start md:items-start md:px-1 px-0'>

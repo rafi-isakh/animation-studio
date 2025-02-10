@@ -215,7 +215,7 @@ export function LanguageSettingDialogRaw(props: {
                 >
                     {langPairList.map((langPair) => (
                         <FormControlLabel
-                            value={langPair.code}
+                            value={langPair.name}
                             key={langPair.code}
                             control={
                                 <Radio 

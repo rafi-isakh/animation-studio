@@ -35,6 +35,8 @@ export const langPairList = [
     // }
 ]
 
+
+
 const phrases = async (): Promise<Dictionary> => {
     try {
         const response = await fetch(`/translations.csv`);

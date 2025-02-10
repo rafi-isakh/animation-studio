@@ -67,6 +67,7 @@ export function Sidebar() {
             const Icon = item.icon
             return (
               <Tooltip
+                key={item.name}
                 arrow
                 title={item.name}
                 placement="right"

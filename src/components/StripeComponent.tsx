@@ -13,7 +13,7 @@ import { useStripeContext } from "@/contexts/StripeContext";
 // This is your test publishable API key.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-export default function StripeComponent() {
+export default function StripeComponent({ setShowStripeComponent }: { setShowStripeComponent: (show: boolean) => void }) {
   const [confirmed, setConfirmed] = useState(false);
   const [dpmCheckerLink, setDpmCheckerLink] = useState("");
   const { language } = useLanguage();
@@ -25,6 +25,12 @@ export default function StripeComponent() {
       "payment_intent_client_secret"
     );
     setConfirmed(confirmed);
+    const paymentIntentSecret = new URLSearchParams(window.location.search).get(
+      "payment_intent_client_secret"
+    );
+    if (paymentIntentSecret) {
+      setPaymentIntentSecret(paymentIntentSecret);
+    }
   });
 
   useEffect(() => {
@@ -55,10 +61,9 @@ export default function StripeComponent() {
 
   return (
     <div className="md:max-w-screen-lg mx-auto flex flex-col items-center justify-center">
-      <h1 className="text-2xl font-bold"> 별 {stars}개를 구매하시겠습니까? </h1>
       {paymentIntentSecret && (
         <Elements options={options as StripeElementsOptions} stripe={stripePromise}>
-          {confirmed ? <CompletePage /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}
+          {confirmed ? <CompletePage setShowStripeComponent={setShowStripeComponent} /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}
         </Elements>
       )}
     </div>

@@ -91,7 +91,7 @@ export default function PurchaseStarsComponent() {
 
             {showStripeComponent ? 
             <div className='self-center'>
-                <StripeComponent />
+                <StripeComponent setShowStripeComponent={setShowStripeComponent} />
             </div>
                 :
                 <>

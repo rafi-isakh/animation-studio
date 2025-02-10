@@ -28,7 +28,7 @@ const InfoIcon =
   </svg>;
 
 
-export default function CompletePage() {
+export default function CompletePage({ setShowStripeComponent }: { setShowStripeComponent: (show: boolean) => void }) {
   console.log('CompletePage');
   const stripe = useStripe();
   const { stars, setPaymentIntentSecret } = useStripeContext();
@@ -101,8 +101,7 @@ export default function CompletePage() {
   }, [stripe]);
 
   const handleBackButtonClick = () => {
-    setPaymentIntentSecret("");
-    router.push("/stars");
+    setShowStripeComponent(false);
   }
 
   return (

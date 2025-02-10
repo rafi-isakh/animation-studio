@@ -19,6 +19,8 @@ import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
+import LanguageSetter from "@/components/LanguageSetter";
+import { getCountryFromIP } from "@/utils/phrases";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -72,6 +74,7 @@ const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
   weight: '400'
 })
+const userCountry = await getCountryFromIP();
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
@@ -85,6 +88,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
+          <LanguageSetter userCountry={userCountry} />
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>

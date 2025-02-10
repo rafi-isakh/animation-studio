@@ -74,7 +74,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     return (
         <div>
-            <LanguageSetter />
             <PromotionModalWrapper />
             <ApplyCreatorBanner />  
             {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}

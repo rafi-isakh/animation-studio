@@ -115,12 +115,13 @@ export const code_to_lang = (iso_code: string) => {
 export async function getCountryFromIP() {
     try {
         // Using ip-api.com's free endpoint
-        const response = await fetch('http://ip-api.com/json/?fields=countryCode');
+        const response = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${process.env.IP_GEOLOCATION_API_KEY}`);
         if (!response.ok) {
             throw new Error("Failed to fetch country info");
         }
         const data = await response.json();
-        return data.countryCode; // Returns two-letter country code (e.g., 'US', 'JP', 'KR')
+        console.log('data.country_code2', data.country_code2);
+        return data.country_code2; // Returns two-letter country code (e.g., 'US', 'JP', 'KR')
     } catch (error) {
         console.error('Error getting country from IP:', error);
         return null;

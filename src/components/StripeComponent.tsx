@@ -14,23 +14,22 @@ import { useStripeContext } from "@/contexts/StripeContext";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function StripeComponent() {
-  const [clientSecret, setClientSecret] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [dpmCheckerLink, setDpmCheckerLink] = useState("");
   const { language } = useLanguage();
 
-  const { stars, discount } = useStripeContext();
+  const { stars, discount, paymentIntentSecret, setPaymentIntentSecret } = useStripeContext();
+
   useEffect(() => {
     const confirmed = !!new URLSearchParams(window.location.search).get(
       "payment_intent_client_secret"
     );
     setConfirmed(confirmed);
-    console.log(confirmed);
   });
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
-    if (!confirmed) {
+    if (!confirmed && stars > 0) {
       fetch("/api/stripe_create_payment_intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,25 +37,26 @@ export default function StripeComponent() {
       })
         .then((res) => res.json())
         .then((data) => {
-          setClientSecret(data.clientSecret);
+          setPaymentIntentSecret(data.clientSecret);
           // [DEV] For demo purposes only
           setDpmCheckerLink(data.dpmCheckerLink);
         });
     }
-  }, []);
+  }, [stars, discount]);
 
   const appearance = {
     theme: 'stripe',
   };
   const options = {
-    clientSecret,
+    clientSecret: paymentIntentSecret,
     appearance,
     locale: language,
   };
 
   return (
     <div className="md:max-w-screen-lg mx-auto flex flex-col items-center justify-center">
-      {clientSecret && (
+      <h1 className="text-2xl font-bold"> 별 {stars}개를 구매하시겠습니까? </h1>
+      {paymentIntentSecret && (
         <Elements options={options as StripeElementsOptions} stripe={stripePromise}>
           {confirmed ? <CompletePage /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}
         </Elements>

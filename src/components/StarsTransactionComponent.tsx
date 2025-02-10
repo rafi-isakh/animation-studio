@@ -8,11 +8,9 @@ import { CircularProgress, Skeleton } from "@mui/material";
 
 const StarsTransactionComponent = () => {
     const { dictionary, language } = useLanguage();
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [starUseHistory, setStarUseHistory] = useState<StarUse[]>([]);
     const [totalHistory, setTotalHistory] = useState<(Transaction | StarUse)[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [skeletonCount, setSkeletonCount] = useState(3); // Default count
+    const skeletonCount = 3;
     useEffect(() => {
         const fetchTotalHistory = async () => {
             let _starUseHistory: StarUse[] = [];

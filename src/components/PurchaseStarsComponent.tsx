@@ -6,9 +6,9 @@ import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StripeComponent from "@/components/StripeComponent";
 
 export default function PurchaseStarsComponent() {
@@ -20,6 +20,15 @@ export default function PurchaseStarsComponent() {
     const router = useRouter();
     const { setStars, setDiscount } = useStripeContext();
     const [showStripeComponent, setShowStripeComponent] = useState(false);
+    const searchParams = useSearchParams();
+    // true if reaching the page with this component after completion of payment
+    const complete = searchParams.get('complete');
+
+    useEffect(() => {
+        if (complete) {
+            setShowStripeComponent(true);
+        }
+    }, [complete]);
 
     const onClickPaymentStripe = (numStars: number, discount: number) => {
         setStars(numStars);

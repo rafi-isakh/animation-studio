@@ -5,7 +5,7 @@ import { phrase } from '@/utils/phrases';
 import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
+import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider, Skeleton } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronDownIcon, Eye, Heart, MessageCircle, BadgeCheck } from "lucide-react";
 import Image from "next/image";
@@ -20,12 +20,11 @@ const ListOfChaptersComponent = ({
     sortToggle,
     onUpdate
 }: {
-    webnovel: Webnovel | undefined,
+    webnovel: Webnovel,
     sortToggle: boolean,
-    onUpdate?: (updatedContent: Webnovel) => void
+    onUpdate: (updatedWebnovel: Webnovel) => void
 }) => {
     const { dictionary, language } = useLanguage();
-    const [key, setKey] = useState(0);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const [showMoreChapters, setShowMoreChapters] = useState(false);
@@ -34,11 +33,6 @@ const ListOfChaptersComponent = ({
     const date = new Date();
     const router = useRouter();
     const { purchased_webnovel_chapters, setInvokeCheckUser } = useUser();
-
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1)
-    }, [language])
-
     const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
 
     const handleChapterDelete = async (id: number) => {
@@ -111,8 +105,8 @@ const ListOfChaptersComponent = ({
                                 <div className="flex flex-row gap-3 items-center">
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
                                     <Image
-                                        src={getImageUrl(webnovel?.cover_art)}
-                                        alt={webnovel?.title || ''}
+                                        src={getImageUrl(webnovel.id.toString())}
+                                        alt={webnovel.id.toString()}
                                         width={50}
                                         height={50}
                                         className="rounded-lg"
@@ -146,7 +140,7 @@ const ListOfChaptersComponent = ({
                         </button>
                     ))}
                 </div>
-                {webnovel?.chapters && webnovel?.chapters.length > 10 && (
+                {sortedChapters && sortedChapters.length > 10 && (
                     <button
                         className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
                         onClick={() => setShowMoreChapters(!showMoreChapters)}
@@ -198,8 +192,7 @@ const ListOfChaptersComponent = ({
                 </Box>
             </Modal>
         </>
-    );
+    )
 };
-
 
 export default ListOfChaptersComponent;

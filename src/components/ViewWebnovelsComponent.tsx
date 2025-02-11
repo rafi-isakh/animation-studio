@@ -20,9 +20,9 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
@@ -149,20 +149,14 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         )
     }
     else {
-        if (webnovelLoading || userWebnovelsLoading) {
-            return (
-                <div className='w-full min-h-screen md:max-w-screen-lg mx-auto flex flex-row justify-center items-center'>
-                    <CircularProgress />
-                </div>
-            )
-        } else if (atLeastOneWebnovel) {
+        if (atLeastOneWebnovel) {
             return (
                 <ThemeProvider theme={grayTheme}>
                     <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
                         {/*--  left-hand side:  Author's other works link */}
                         <div className="flex md:flex-row flex-col justify-between items-start">
                             <AuthorAndWebnovelsAsideComponent
-                                webnovels={[theWebnovel!]}
+                                webnovel={webnovel!}
                                 nickname={nickname}
                                 coverArt={theWebnovel?.cover_art || ""}
                                 onNewChapter={handleNewChapter}
@@ -176,6 +170,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                     isWebtoon={false}
                                     relatedContent={webnovels}
                                     onContentUpdate={handleContentUpdate}
+                                    loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
                                 />
                             </div>
                         </div>

@@ -2,11 +2,7 @@ import ViewWebtoonComponent from "@/components/ViewWebtoonComponent";
 import WebtoonViewerFooter from "@/components/WebtoonViewerFooter";
 
 async function getWebtoonById(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`)
     if (!response.ok) {
         throw new Error(`Failed to fetch webtoon with id ${id}`)
     }

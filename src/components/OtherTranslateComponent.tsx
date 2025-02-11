@@ -32,14 +32,24 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         languageChangedRef.current = true;
         setText("");
         setLoading(true);
+        const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
+        const langSessionKey = `${elementType}.${elementId}.${elementSubtype}`;
         const detectLanguage = async () => {
+            const itemLanguageSessionKey = `lang-${langSessionKey}`;
+            const itemLanguage = localStorage.getItem(itemLanguageSessionKey);
+            let langcode;
             let originalAndTargetLangSame = false;
-            const response = await fetch('/api/detect_language', {
-                method: 'POST',
-                body: JSON.stringify({ text: content }),
-            });
-            const data = await response.json();
-            const langcode = data.langcode;
+            if (itemLanguage) {
+                langcode = itemLanguage;
+            } else {
+                const response = await fetch('/api/detect_language', {
+                    method: 'POST',
+                    body: JSON.stringify({ text: content }),
+                });
+                const data = await response.json();
+                langcode = data.langcode;
+                localStorage.setItem(itemLanguageSessionKey, langcode);
+            }
             if (langcode == language) {
                 originalAndTargetLangSame = true;
             }
@@ -55,7 +65,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 return;
             }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
-            const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
             const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {

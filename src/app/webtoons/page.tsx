@@ -8,11 +8,7 @@ import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 import { getSignedUrlForWebtoonImage } from "@/utils/s3";
 
 async function getWebtoonCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`)
     if (!response.ok) {
         throw new Error('Failed to fetch webtoon carousel items')
     }
@@ -20,11 +16,7 @@ async function getWebtoonCarouselItems() {
     return data
 }
 const Webtoons = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`)
     const carouselItems = await getWebtoonCarouselItems()
     const shuffledCarouselItems = carouselItems.sort(() => Math.random() - 0.5)
     const data: Webtoon[] = await response.json()

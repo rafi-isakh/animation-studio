@@ -4,21 +4,13 @@ import WebtoonInfoAndPictureComponent from "@/components/WebtoonInfoAndPictureCo
 import { Webtoon } from "@/components/Types";
 
 async function getWebtoonById(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`)
     const data = await response.json()
     return data;
 }
 
 async function getWebtoons() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`)
     const data = await response.json()
     return data;
 }

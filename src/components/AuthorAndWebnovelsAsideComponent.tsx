@@ -12,11 +12,11 @@ import Image from "next/image";
 import InfoAndPictureComponent from '@/components/UI/InfoAndPictureComponent';
 
 
-const AuthorAndWebnovelsAsideComponent = ({ webnovels, nickname, coverArt, onNewChapter, onDelete }:
-    { webnovels: Webnovel[], nickname: string | null | undefined, coverArt: string, onNewChapter?: () => void, onDelete?: () => void }) => {
+const AuthorAndWebnovelsAsideComponent = ({ webnovel, nickname, coverArt, onNewChapter, onDelete }:
+    { webnovel: Webnovel, nickname: string | null | undefined, coverArt: string, onNewChapter?: () => void, onDelete?: () => void }) => {
 
     return (
-        <InfoAndPictureComponent content={webnovels[0]} coverArt={coverArt} isWebtoon={false} onNewChapter={onNewChapter} onDelete={onDelete} />
+        <InfoAndPictureComponent content={webnovel} coverArt={coverArt} isWebtoon={false} onNewChapter={onNewChapter} onDelete={onDelete} />
     )
 }
 

@@ -29,11 +29,7 @@ async function getWebnovel(id: string | string[] | undefined) {
 }
 
 async function getUserWebnovels(email_hash: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`,
-        {
-            cache: 'no-store'
-        }
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_metadata_by_email_hash?email_hash=${email_hash}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;
@@ -46,19 +42,21 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             const webnovel = await getWebnovel(searchParams.id);
             if (webnovel) {
                 setWebnovel(webnovel);
-                const { email_hash: author_email_hash } = webnovel.user;
-                
+                setLoading(false);
+            }
+            const { email_hash: author_email_hash } = webnovel.user;
+            if (author_email_hash) {
                 const userWebnovels = await getUserWebnovels(author_email_hash);
                 setUserWebnovels(userWebnovels);
-
+                setLoadingUsersOtherWebnovels(false);
             }
-            setLoading(false);
             fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
         }
         fetchData();
@@ -76,7 +74,7 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
                    />
                </div>
            ) : (
-               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
            )
         }
         </>

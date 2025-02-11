@@ -23,6 +23,7 @@ import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
 import dynamic from 'next/dynamic';
+import { useQuery } from '@tanstack/react-query';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
@@ -77,23 +78,26 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
 
+    const { data: upvotedChapters, isLoading, error } = useQuery(
+        ['upvotedChapters', email],
+        async () => {
+            const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
+            return response.json();
+        },
+        {
+            enabled: !!email, // Only run the query if email is available
+        }
+    );
+
+    useEffect(() => {
+        if (upvotedChapters && upvotedChapters.includes(id)) {
+            setLikeToggle(true);
+        }
+    }, [upvotedChapters, id]);
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
-            const data = await response.json();
-            console.log(data);
-            if (data.includes(id)) {
-                setLikeToggle(true);
-            }
-        }
-        if (email) {
-            fetchData();
-        }
-    }, [email])
 
     useEffect(() => {
         fetch(`/api/get_chapter_by_id?id=${id}`)

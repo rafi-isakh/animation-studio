@@ -1,41 +1,30 @@
-import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
-import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import WebnovelsCardListByRank from '@/components/WebnovelsCardListByRank';
 import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import TrailerCardComponent from '@/components/TrailerCardComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
 import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
-import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
 
 async function getCarouselItems() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getCarouselItems', end - start)
     return response.json();
 }
 
 async function getWebnovelsMetadata() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getWebnovelsMetadata', end - start)
     return response.json();
 }
 

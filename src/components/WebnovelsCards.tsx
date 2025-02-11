@@ -36,7 +36,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     }
 
     return (
-        <div className='relative md:max-w-screen-lg  group font-pretendard'>
+        <div className='relative md:max-w-screen-xl group font-pretendard'>
             <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                 <span className='text-black dark:text-white'>
                     {phrase(dictionary, "recommended", language)}

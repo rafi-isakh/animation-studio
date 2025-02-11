@@ -13,7 +13,7 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
     const { dictionary, language } = useLanguage();
 
     return (
-        <div className="md:w-max-screen-lg w-full mx-auto">
+        <div className="md:w-max-screen-xl w-full mx-auto">
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}

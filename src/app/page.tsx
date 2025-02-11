@@ -78,7 +78,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
                 <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} />
                 {smallGap()}
-                <div className='px-2 w-max-screen-lg justify-center items-center w-full mx-auto'>
+                <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />

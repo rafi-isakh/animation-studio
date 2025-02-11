@@ -41,7 +41,7 @@ const PromotionBannerComponent = () => {
 
   const ComponentOne: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => {
     return (
-      <Link href='https://www.instagram.com/stelland_official/'>
+      <Link href='https://www.instagram.com/toonyz_en'>
         <div
           className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 '
           onMouseEnter={() => setIsHovered(true)}

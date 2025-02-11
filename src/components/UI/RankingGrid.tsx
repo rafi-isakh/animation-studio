@@ -1,23 +1,26 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import { scroll } from '@/utils/scroll'
 import { Webnovel } from '@/components/Types';
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link';
-
-export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnovel[], isMobile: boolean }) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
-
+    const scrollRef = useRef<HTMLDivElement>(null);
     return (
         <div className="md:w-max-screen-xl w-full mx-auto">
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
+                <div
+                    ref={scrollRef}
+                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
@@ -70,6 +73,28 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
                     ))}
                 </div>
             </div>
+
+            {!isMobile && (
+                <>
+                    <button
+                        onClick={() => scroll('left', scrollRef)}
+                        className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
+                            duration-300 absolute h-80
+                            left-0 top-[45%] -translate-y-1/2 z-50 p-2 opacity-0 rounded-full"
+                    >
+                        <ChevronLeft className="w-6 h-6 text-gray-700" />
+                    </button>
+                    <button
+                        onClick={() => scroll('right', scrollRef)}
+                        className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
+                            duration-300 absolute h-80
+                            right-0 top-[45%] -translate-y-1/2 z-50 p-2 opacity-0 rounded-full"
+                    >
+                        <ChevronRight className="w-6 h-6 text-gray-700" />
+                    </button>
+                </>
+            )}
+
         </div>
     )
 }

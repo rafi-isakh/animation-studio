@@ -43,7 +43,7 @@ const PromotionBannerComponent = () => {
     return (
       <Link href='https://www.instagram.com/toonyz_en'>
         <div
-          className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 '
+          className='flex flex-row justify-center rounded-xl md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 '
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -79,7 +79,7 @@ const PromotionBannerComponent = () => {
 
     <Link href='/creators' className="cursor-pointer">
       <div
-        className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pt-3 pb-1'
+        className='flex flex-row justify-center rounded-xl md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pt-3 pb-1'
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -90,7 +90,7 @@ const PromotionBannerComponent = () => {
                 {/* 투니즈의 크리에이터가 되어보세요! */}
                 {phrase(dictionary, "applyCreator", language)}
               </p>
-              <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-md text-sm font-pretendard self-start">
+              <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard self-start">
                 <span className="text-sm">
                   {/* 지금 신청하기 */}
                   {phrase(dictionary, "applyCreator_button", language)}
@@ -120,7 +120,7 @@ const PromotionBannerComponent = () => {
 
     return (
       <div
-        className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
+        className='flex flex-row justify-center rounded-xl md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -139,11 +139,11 @@ const PromotionBannerComponent = () => {
 
           <div className='flex flex-row gap-4 justify-center md:p-0 md:pb-1 pb-2'>     {/* items-center */}
 
-            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-md px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
+            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-xl px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
               <i className="fab fa-apple"></i>
               <span className='md:block hidden'> iOS </span> Download
             </button>
-            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-md px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
+            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-xl px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
               <i className="fab fa-android text-[12px]"></i>
               <span className='md:block hidden'> Android </span> Download
             </button>
@@ -169,7 +169,7 @@ const PromotionBannerComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className='dark:text-white self-center max-w-screen-xl mx-auto'>
+    <div className='dark:text-white self-center max-w-screen-xl w-full mx-auto'>
       <SelectedComponent isHovered={isHovered} setIsHovered={setIsHovered} />
     </div>
   );

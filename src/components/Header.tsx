@@ -340,9 +340,8 @@ export const Header = () => {
             <nav className={`md:pl-[72px] left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
-                        {/* md:pb-3 md:pt-3 pt-2 md:px-0 px-3 */}
                         {/* px-3 for the logo's padding on the mobile screen */}
-                        {/* logo, webnovels, studio */}
+                        {/* logo, webnovels, comics, free, Toonyzcut */}
                         <div className='flex flex-row items-center justify-center gap-4 '>
                             <Link href="/?version=premium" className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                                 {/* logo padding on mobile screen */}
@@ -374,7 +373,7 @@ export const Header = () => {
                         </div>
                         <div className="flex md:order-1">
                             {/*Globe icon in mobile screen (md:hidden)*/}
-                            <div ref={searchRef}>
+                            <div ref={searchRef} className="hidden">
                                 <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-100 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
                                     <Globe size={20} className='dark:text-white text-gray-500 ' />
                                 </button>
@@ -606,7 +605,7 @@ export const Header = () => {
                         </div>
                     </div>
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
-                    <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-2">  {/* pb-2 */}
+                    <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-3">
                         <Link href="/?version=premium">
                             <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>

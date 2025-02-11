@@ -10,7 +10,7 @@ import ArchiveIcon from '@mui/icons-material/Archive';
 import { useRef, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { LibraryBig, LayoutGrid, SquarePlus, Bell, Gift, Settings, CircleUserRound } from "lucide-react"
+import { LibraryBig, LayoutGrid, SquarePlus, Bell, Gift, Search, CircleUserRound } from "lucide-react"
 
 export default function BottomNavigationBar() {
     const { theme } = useTheme();
@@ -18,15 +18,15 @@ export default function BottomNavigationBar() {
     const ref = useRef<HTMLDivElement>(null);
 
     return (
-        <Paper 
-            sx={{ 
-                position: 'fixed', 
-                bottom: 0, 
-                left: 0, 
-                right: 0, 
+        <Paper
+            sx={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
                 zIndex: 1000,
                 bgcolor: theme === 'dark' ? 'rgb(31 41 55)' : 'white' // dark:bg-gray-800
-            }} 
+            }}
             elevation={3}
         >
             <BottomNavigation
@@ -53,12 +53,12 @@ export default function BottomNavigationBar() {
                     }
                 }}
             >
-                <BottomNavigationAction label="My" icon={<LibraryBig />} />
+                <BottomNavigationAction label="Search" icon={<Search />} />
                 <BottomNavigationAction label="Feeds" icon={<LayoutGrid />} />
                 <BottomNavigationAction label="Create" icon={<SquarePlus />} />
                 <BottomNavigationAction label="Shop" icon={<Gift />} />
                 <BottomNavigationAction label="Profile" icon={<CircleUserRound />} />
             </BottomNavigation>
-        </Paper>        
+        </Paper>
     );
 }

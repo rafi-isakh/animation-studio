@@ -72,12 +72,14 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     }
 
     return (
-        <div className='flex flex-col'>
-            <div className='flex-1 md:pl-[72px] w-max-screen-lg w-full overflow-x-hidden'> 
-                {/* the side bar width is 72px  md:pl-[72px] */}
+        <div className='md:pl-[72px] pl-0 flex flex-col justify-center items-center min-h-screen w-full'>
+            <div className='flex-1 overflow-x-hidden w-full md:max-w-screen-xl'>
+                {/*    The side bar width is 72px  md:pl-[72px]  */}
+                {/* Side bar/Bottom Navigation are in layout.tsx */}
                 <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} />
                 {smallGap()}
-                <div className='px-2 md:px-2 w-max-screen-lg w-full mx-auto'>
+                <div className='px-2 w-max-screen-lg justify-center items-center w-full mx-auto'>
+                    {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />
                     {smallGap()}
@@ -85,14 +87,12 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                     {largeGap()}
-                </div>
-                <div className='px-2 w-max-screen-lg w-full mx-auto'>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
-                </div>          
-                {largeGap()}
-                <PromotionBannerComponent />
-            <Footer />
+                    {largeGap()}
+                    <PromotionBannerComponent />
+                </div>
             </div>
+            <Footer />
         </div>
     );
 }

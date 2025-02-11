@@ -17,7 +17,6 @@ export default function WebnovelsByRank({ searchParams, sortBy, webnovels }: { s
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const newAndTrendingRef = useRef<HTMLDivElement>(null);
-    
 
     useEffect(() => {
         const _webnovelsToShow = webnovels
@@ -30,10 +29,8 @@ export default function WebnovelsByRank({ searchParams, sortBy, webnovels }: { s
     }, [version, genre, webnovels, sortBy]);
 
     return (
-        <div className='lg:w-[calc(100vw-72px)] w-full mx-auto h-full no-scrollbar'>
-            <RankingGrid 
-                webnovels={webnovelsToShow}
-            />
+        <div className='md:w-max-screen-lg w-full mx-auto h-full no-scrollbar'>
+            <RankingGrid webnovels={webnovelsToShow} />
         </div>
     )
 }

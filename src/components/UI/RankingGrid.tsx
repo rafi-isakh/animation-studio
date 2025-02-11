@@ -13,11 +13,11 @@ export default function RankingGrid({ webnovels }: { webnovels: Webnovel[] }) {
     const { dictionary, language } = useLanguage();
 
     return (
-        <div className="sm:w-max-screen-lg lg:w-[calc(100vw-72px)] w-full mx-auto">
+        <div className="md:w-max-screen-lg w-full mx-auto">
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
             <div className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}
-                <div className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[180px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
+                <div className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}

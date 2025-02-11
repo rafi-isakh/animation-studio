@@ -241,8 +241,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
 
     return (
-        <div className='max-w-screen-lg mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
+        <div className=' md:max-w-screen-xl w-full mx-auto  p-4 flex flex-col my-auto justify-center items-center'>
             {/*Left component :: Profile picture */}
+            {/*    The side bar width is 72px  md:pl-[72px]  */}
 
             <div className='w-full rounded-md flex md:flex-row flex-col gap-6 justify-center items-center order-1 mb-10 md:mb-0 relative'>
 

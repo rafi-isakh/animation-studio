@@ -69,7 +69,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
 
   return (
     <div 
-      className="relative max-w-screen-lg mx-auto overflow-hidden"
+      className="relative max-w-screen-lg w-full mx-auto overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

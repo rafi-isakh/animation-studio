@@ -11,13 +11,13 @@ import { UserProvider } from '@/contexts/UserContext';
 import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
-import {  Noto_Sans_Thai, Noto_Sans_TC, Noto_Sans_Arabic } from 'next/font/google';
+import { Noto_Sans_Thai, Noto_Sans_TC, Noto_Sans_Arabic } from 'next/font/google';
 import RegisterSW from '@/components/RegisterSW';
 import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import { StripeProvider } from '@/contexts/StripeContext';
 import BottomNavigationBar from '@/components/UI/BottomNavigation';
-import { Sidebar} from '@/components/UI/Sidebar';
+import { Sidebar } from '@/components/UI/Sidebar';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -98,7 +98,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <Suspense>
                           <Header />
                         </Suspense>
-                        <div className="hidden md:block">  {/* no sidebar on mobile */}
+                        <div className="hidden md:block z-[99]">  {/* no sidebar on mobile */}
                           <Sidebar />
                         </div>
                         {children}
@@ -116,7 +116,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                        <div className="block md:hidden">
+                        <div className="block md:hidden z-[99]">
                           <BottomNavigationBar />
                         </div>
                       </div>

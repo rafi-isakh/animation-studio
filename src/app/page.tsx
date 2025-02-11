@@ -73,11 +73,11 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     return (
         <div className='flex flex-col'>
-            <div className='flex-1 w-max-screen-lg w-full overflow-x-hidden'> 
+            <div className='flex-1 md:pl-[72px] w-max-screen-lg w-full overflow-x-hidden'> 
                 {/* the side bar width is 72px  md:pl-[72px] */}
                 <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} />
                 {smallGap()}
-                <div className='px-4 md:px-2 w-max-screen-lg w-full mx-auto'>
+                <div className='px-2 md:px-2 w-max-screen-lg w-full mx-auto'>
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />
                     {smallGap()}
@@ -91,8 +91,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 </div>          
                 {largeGap()}
                 <PromotionBannerComponent />
-            </div>
             <Footer />
+            </div>
         </div>
     );
 }

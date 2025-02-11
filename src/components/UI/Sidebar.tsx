@@ -23,7 +23,7 @@ const navigation = [
   { name: "Feeds", href: "#", icon: LayoutGrid },
   { name: "Create", href: "#", icon: SquarePlus },
   { name: "Notifications", href: "#", icon: Bell },
-  { name: "Gift Shop", href: "#", icon: Gift },
+  { name: "Gift Shop", href: "/stars", icon: Gift },
 ]
 
 export function Sidebar() {

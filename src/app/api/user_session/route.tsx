@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
                 id: user.id,
                 email: email,
                 stars: user.stars,
+                picture: user.picture
             });
         } else {
             return NextResponse.json({
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
                 id: "",
                 email: "",
                 stars: 0,
+                picture: ""
             });
         }
     } catch (error) {

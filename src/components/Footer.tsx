@@ -12,8 +12,8 @@ export default function Footer() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <div className='mt-16 text-xs text-gray-500 min-w-screen flex flex-col items-center justify-center mx-auto p-2 border-t'>
-            <div className="flex flex-col md:flex-row w-full md:max-w-screen-lg md:px-4 justify-between items-center mx-auto mt-6">
+        <div className='my-16 p-2 text-xs text-gray-500 w-full flex flex-col items-center justify-center mx-auto border-t'>
+            <div className="flex flex-col md:flex-row w-full md:max-w-screen-xl md:px-4 justify-between items-center mx-auto mt-6">
                 <div>
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}

@@ -268,7 +268,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     else {
         return (
             <div className="loader-container">
-                <LottieLoader width="w-32" animationData={animationData} />
+                <LottieLoader width="w-40" animationData={animationData} />
             </div>
         )
     }

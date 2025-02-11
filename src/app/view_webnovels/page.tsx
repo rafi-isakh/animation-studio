@@ -70,7 +70,7 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
                <div role="status" className={`flex items-center justify-center min-h-screen`}>    
                    <LottieLoader 
                        animationData={animationData}
-                       width="w-32"
+                       width="w-40"
                        centered={true}
                        pulseEffect={true}
                    />

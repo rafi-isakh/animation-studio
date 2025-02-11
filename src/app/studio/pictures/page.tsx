@@ -117,7 +117,7 @@ export default function PicturesStudioPage() {
 
             {isGeneratingPictures &&  <LottieLoader 
                 animationData={animationData}
-                width="w-32" 
+                width="w-40" 
                 className=""
                 />
             }

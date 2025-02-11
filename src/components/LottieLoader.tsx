@@ -16,7 +16,7 @@ interface LottieLoaderProps {
 
 const LottieLoader: React.FC<LottieLoaderProps> = ({ 
   animationData,
-  width = "w-24",
+  width = "w-40",
   pulseEffect = true,
   scaleOnHover = true,
   fadeOnHover = true,

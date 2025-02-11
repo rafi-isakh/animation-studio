@@ -15,7 +15,7 @@ import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Setting from './Setting';
 
 const navigation = [
-  { name: "Search", href: "/", icon: Search },
+  { name: "Search", href: "/search", icon: Search },
   { name: "Explore", href: "#", icon: LibraryBig },
   { name: "Feeds", href: "#", icon: LayoutGrid },
   { name: "Create", href: "#", icon: SquarePlus },

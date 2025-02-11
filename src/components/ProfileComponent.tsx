@@ -232,7 +232,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
     if (loading) {
         return <div className="loader-container">
-            <LottieLoader animationData={animationData} />
+            <LottieLoader width="w-40" animationData={animationData} />
         </div>
     }
 

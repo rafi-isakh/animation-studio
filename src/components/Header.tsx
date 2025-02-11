@@ -326,8 +326,11 @@ export const Header = () => {
         // setShowIsModal(true);
     }
 
-    const hideInMockup = () => {
+    const hideHeaderInPages = () => {
         if (pathname.startsWith('/mockup')) {
+            return "hidden"
+        }
+        if (pathname.startsWith('/search')) {
             return "hidden"
         }
         return ""
@@ -335,7 +338,7 @@ export const Header = () => {
 
     return (
         <>
-            <nav className={`md:pl-[72px] left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
+            <nav className={`${hideHeaderInPages()} md:pl-[72px] left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
                         {/* Top font color gray-500 and weight bold */}

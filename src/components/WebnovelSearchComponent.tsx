@@ -25,8 +25,9 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
     }, [isMediumScreen])
 
     return (
-            <div className=''>
-             <Link href={`/view_webnovels?id=${webnovel.id}`} className="flex flex-row flex-wrap justify-start items-start space-x-4 w-full p-4 text-sm">
+        <>
+            <Link href={`/view_webnovels?id=${webnovel.id}`}
+                  className="flex flex-row flex-wrap justify-start items-start space-x-4 w-full p-4 text-sm">
                 <div className="relative w-[45px] md:w-[75px] h-[60px] md:h-[105px] flex-shrink-0 rounded-sm overflow-hidden">
                     <Image
                         src={imageSrc}
@@ -38,7 +39,7 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
-                 
+
                 </div>
 
                 {ranking && <p className={`text-xl md:text-2xl self-center p-3`}>{index}</p>}
@@ -71,7 +72,7 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
                     </p>
                 </div>
             </Link >
-        </div>
+        </>
     )
 }
 

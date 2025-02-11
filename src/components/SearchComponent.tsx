@@ -101,8 +101,7 @@ export default function SearchComponent({ mode,
                 {
                     mode === "header" &&
                     <>
-                        <div className='flex flex-col items-center justify-center max-w-screen-lg mx-auto'>
-
+                        <div className='flex flex-col items-center justify-center md:max-w-screen-xl w-full mx-auto'>
                             <div className="relative w-full">
                                 <div className="absolute top-2 left-3 flex items-center justify-center pointer-events-none">
                                     <Search size={20} className='dark:text-white text-black' />
@@ -176,7 +175,8 @@ export default function SearchComponent({ mode,
                 {
                     mode === "page" &&
                     <>
-                        <div className="relative w-full md:px-0 px-4">
+                        <div className="relative md:max-w-screen-xl w-full mt-4 md:px-0 px-4">
+                            {/* mt-4 for the margin top of the page */}
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none md:px-0 px-4">
                                 <svg
                                     className="w-4 h-4 text-black dark:text-black"

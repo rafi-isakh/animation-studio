@@ -19,6 +19,8 @@ import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
+import BottomNavigationBar from '@/components/UI/BottomNavigation';
+
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -91,19 +93,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                    <div className={`font-pretendard pretendard-jp pretendard-std
+                      <div className={`font-pretendard pretendard-jp pretendard-std
                     ${notoSansArabic.className} 
                     ${notoSansThai.className} 
                     ${notoSansTC.className}`}>
-                      <Suspense>
-                        <Header />
-                      </Suspense>
+                        <Suspense>
+                          <Header />
+                        </Suspense>
                         {children}
                         <Analytics />
                         <Suspense>
                           <NavigationEvents />
                         </Suspense>
-                      {/* 
+                        {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
@@ -113,7 +115,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                    </div>
+                        <div className="block md:hidden">
+                          <BottomNavigationBar />
+                        </div>
+                      </div>
                     </StripeProvider>
                   </SearchProvider>
                 </DeviceProvider>

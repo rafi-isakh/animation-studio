@@ -69,11 +69,11 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
       <div className="block md:hidden">
         <BottomNavigationBar />
       </div>
-      <main className="flex-1 md:pl-[72px] md:w-[calc(100vw-72px)] w-full overflow-x-hidden"> {/* pl-[72px] is the left sidebar width */}
+      <main className="flex-1 md:pl-[72px] w-max-screen-lg w-full overflow-x-hidden"> {/* pl-[72px] is the left sidebar width */}
         <div className='flex flex-col md:justify-start md:items-start md:px-1 px-0'>
           <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '0px', mobile: '24px' }} />
           {smallGap()}
-          <div className='px-4 md:px-0 md:w-[calc(100vw-72px)] w-full'>
+          <div className='px-4 md:px-0 w-max-screen-lg w-full'>
             <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />
             {smallGap()}
             <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />

@@ -1,5 +1,6 @@
 import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
+import { Sidebar} from '@/components/UI/Sidebar';
 import Footer from '@/components/Footer';
 import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
@@ -72,32 +73,36 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     }
 
     return (
-        <div>
-            {showPreloader && <Preloader />}
-            <PromotionModalWrapper />
-            <ApplyCreatorBanner />  
+        <div className='flex flex-col'>
+            <div className="hidden md:block">
+                {/* no sidebar on mobile */}
+                <Sidebar />
+            </div>
+            {/* {showPreloader && <Preloader />} */}
+            {/* <PromotionModalWrapper />
+            <ApplyCreatorBanner /> */}
             {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}
-            <div className='flex flex-col md:justify-start md:items-start md:px-0'>
-                <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '300px', mobile: '24px' }}  />
+            {/* flex-1 md:pl-[72px] w-max-screen-lg w-full overflow-x-hidden  */}
+            <div className='flex flex-col md:justify-start md:items-start md:px-0 flex-1 md:pl-[72px] w-max-screen-lg w-full overflow-x-hidden'>
+                <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '300px', mobile: '24px' }} />
                 {smallGap()}
-               <div className='px-4 md:px-0 w-full mx-auto'>
+                <div className='px-4 md:px-0 w-full mx-auto'>
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
+                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}
-                    <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views'/>
+                    <WebnovelsByRank searchParams={searchParams} webnovels={webnovels} sortBy='views' />
                     {largeGap()}
                 </div>
                 <div className='px-4 w-full mx-auto'>
                     <CarouselComponent items={items} searchParams={searchParams} webnovels={webnovels} />
                 </div>
-                {/* {largeGap()}
-                <TrailerCardComponent /> */}
+                
                 {largeGap()}
                 <PromotionBannerComponent />
             </div>
-            <Footer/>
+            <Footer />
         </div>
     );
 }

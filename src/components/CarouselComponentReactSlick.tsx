@@ -177,15 +177,15 @@ const CarouselComponentReactSlick = ({
     };
 
     return (
-        <div className={`slider-container items-center lg:w-[calc(100vw-72px)] w-full group`}>
+        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
             <div className='flex flex-col relative '>
                 <Slider {...settings}>
                     {items.map((item, index) => (
                         <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative lg:h-[880px] h-[380px]">
+                            <div className="relative h-[380px]">
                                 {/*  */}
                                 <Link href={getHref(item.webnovel_id)}>
-                                    <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px]">
+                                    <div className="slide-content w-96 h-64 md:max-w-screen-xl md:h-[400px]">
                                         {/* max-w-screen-lg */}
                                         <Image
                                             className="object-cover object-center transition-all duration-300 rounded-xl"

@@ -5,21 +5,19 @@ import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
 import { ThemeProvider } from '@/contexts/providers';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import '@/styles/globals.css';
 import { ReactNode, Suspense, useEffect } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { UserProvider } from '@/contexts/UserContext';
 import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
-import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, Noto_Sans_SC, Noto_Sans_Arabic } from 'next/font/google';
+import {  Noto_Sans_Thai, Noto_Sans_TC, Noto_Sans_Arabic } from 'next/font/google';
 import RegisterSW from '@/components/RegisterSW';
 import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
-import localFont from "next/font/local";
-import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
 import BottomNavigationBar from '@/components/UI/BottomNavigation';
+import { Sidebar} from '@/components/UI/Sidebar';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -100,6 +98,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <Suspense>
                           <Header />
                         </Suspense>
+                        <div className="hidden md:block">  {/* no sidebar on mobile */}
+                          <Sidebar />
+                        </div>
                         {children}
                         <Analytics />
                         <Suspense>

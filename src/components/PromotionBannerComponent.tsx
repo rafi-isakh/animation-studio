@@ -42,7 +42,7 @@ const PromotionBannerComponent = () => {
    return(
     <Link href='https://www.instagram.com/stelland_official/'>
       <div 
-        className='flex flex-row justify-center rounded-md md:max-w-screen-lg sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 '
+        className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 '
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -76,7 +76,7 @@ const PromotionBannerComponent = () => {
 
   const ComponentTwo: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => (    
     <div 
-      className='flex flex-row justify-center rounded-md md:max-w-screen-lg sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
+      className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -110,7 +110,7 @@ const PromotionBannerComponent = () => {
     
     return (    
     <div 
-      className='flex flex-row justify-center rounded-md md:max-w-screen-lg sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
+      className='flex flex-row justify-center rounded-md md:max-w-screen-xl sm:w-[100vw] w-[100vw] bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -159,7 +159,7 @@ const PromotionBannerComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className='dark:text-white self-center max-w-screen-lg mx-auto'>
+    <div className='dark:text-white self-center max-w-screen-xl mx-auto'>
       <SelectedComponent isHovered={isHovered} setIsHovered={setIsHovered} />
     </div>
   );

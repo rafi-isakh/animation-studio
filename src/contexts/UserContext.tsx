@@ -11,6 +11,7 @@ interface UserContextProps {
     bio: string;
     setBio: (bio: string) => void;
     stars: number;
+    picture: string;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -24,6 +25,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [nickname, setNickname] = useState<string>("");
     const [bio, setBio] = useState<string>("");
     const [stars, setStars] = useState<number>(0);
+    const [picture, setPicture] = useState<string>("");
     const pathname = usePathname();
     const { isLoggedIn, loading } = useAuth();
 
@@ -40,6 +42,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setEmail(data.email);
                 setBio(data.bio);
                 setStars(data.stars);
+                setPicture(data.picture);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -54,7 +57,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             email, setEmail,
             nickname, setNickname,
             bio, setBio,
-            stars
+            stars,
+            picture,
         }}>
             {children}
         </userContext.Provider>

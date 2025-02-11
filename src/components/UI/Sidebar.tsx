@@ -12,7 +12,10 @@ import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
-import Setting from './Setting';
+import Setting from '@/components/UI/Setting';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
+import UserProfileButton from '@/components/UI/UserProfileButton';
 
 const navigation = [
   { name: "Search", href: "/search", icon: Search },
@@ -28,6 +31,10 @@ export function Sidebar() {
   const { language, dictionary } = useLanguage();
   const { theme, toggleTheme } = useTheme()
   const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
+  const { isLoggedIn, loading, logout } = useAuth();
+  const { email, nickname } = useUser();
+  const isLoggedInAndRegistered = isLoggedIn && email;
+
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setPopoverAnchor(event.currentTarget);
@@ -101,7 +108,10 @@ export function Sidebar() {
             )
           })}
           {/* Setting btn */}
-          <div className="mt-auto pb-10">
+          <div className="flex flex-col gap-y-4 mt-auto pb-10">
+            {isLoggedInAndRegistered ? <div className='flex justify-center items-center'> 
+                 <UserProfileButton />
+              </div> : <></>}
             <Setting />
           </div>
 

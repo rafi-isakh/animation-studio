@@ -101,7 +101,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         <div className="hidden md:block z-[99]">  {/* no sidebar on mobile */}
                           <Sidebar />
                         </div>
-                        <div className="md:pl-[72px]">  {/* The side bar width is 72px  md:pl-[72px]  */}
+                        <div className="md:pl-[72px] pl-0">  {/* The side bar width is 72px md:pl-[72px] */}
                           {children}
                         </div>
                         <Analytics />

@@ -47,7 +47,7 @@ export function Sidebar() {
      border-gray-200 bg-white dark:bg-[#211F21]">
       {/* 211F21 */}
       <div className="flex h-16 items-center justify-center">
-        <Link href="#">
+        <Link href="/?version=premium">
           <Image
             src='/images/N_logo.svg' alt="N_logo"
             width={30}

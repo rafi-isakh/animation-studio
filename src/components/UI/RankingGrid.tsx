@@ -14,12 +14,11 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
     return (
-        <div className="md:w-max-screen-xl w-full mx-auto">
+        <div className="md:w-max-screen-xl w-full mx-auto group relative">
             <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
-            <div className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
+            <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}
                 <div
-                    ref={scrollRef}
                     className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
                     {webnovels.map((webnovel, index) => (
                         <div
@@ -47,7 +46,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                                                 ${hoveredIndex === index ? 'transform scale-100' : ''}`}
                                 >
                                     {/* Image container - now using full width of the grid column */}
-                                    <div className="relative w-[120px] md:w-[180px] aspect-[2/3] bg-gray-900 rounded-lg ">
+                                    <div className="relative w-[120px] md:w-[160px] aspect-[2/3] bg-gray-900 rounded-lg ">
                                         <Image
                                             fill
                                             src={getImageUrl(webnovel.cover_art)}
@@ -79,16 +78,16 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                     <button
                         onClick={() => scroll('left', scrollRef)}
                         className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
-                            duration-300 absolute h-80
-                            left-0 top-[45%] -translate-y-1/2 z-50 p-2 opacity-0 rounded-full"
+                            duration-300 absolute h-72
+                            left-0 top-[55%] -translate-y-1/2 z-50 p-2 opacity-0 rounded-full"
                     >
                         <ChevronLeft className="w-6 h-6 text-gray-700" />
                     </button>
                     <button
                         onClick={() => scroll('right', scrollRef)}
                         className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
-                            duration-300 absolute h-80
-                            right-0 top-[45%] -translate-y-1/2 z-50 p-2 opacity-0 rounded-full"
+                            duration-300 absolute h-72
+                            right-0 top-[55%] -translate-y-1/2 z-50 p-2 opacity-0 rounded-full"
                     >
                         <ChevronRight className="w-6 h-6 text-gray-700" />
                     </button>

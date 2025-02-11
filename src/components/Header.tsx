@@ -335,11 +335,11 @@ export const Header = () => {
 
     return (
         <>
-            {/* Top font color gray-500 and weight bold */}
-            {/* md:pl-[72px] sidebar width is 72px */}
             <nav className={`md:pl-[72px] left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
+                        {/* Top font color gray-500 and weight bold */}
+                        {/* md:pl-[72px] sidebar width is 72px */}
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, comics, free, Toonyzcut */}
                         <div className='flex flex-row items-center justify-center gap-4 '>
@@ -380,10 +380,10 @@ export const Header = () => {
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
                             {isLoggedInAndRegistered && (
-                            <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
-                                    <Menu size={20} className='dark:text-white text-gray-500' />
-                                </button>
+                                <div ref={hamburgerRef}>
+                                    <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                        <Menu size={20} className='dark:text-white text-gray-500' />
+                                    </button>
                                 </div>
                             )}
                             {!isLoggedInAndRegistered && (

@@ -20,7 +20,7 @@ export default function SearchComponent({ mode,
     setIsMobileMenuOpen?: (isOpen: boolean) => void,
     setOpen?: (isOpen: boolean) => void,
 }) {
-    const {query, setQuery, recentQueries, setRecentQueries, lastIndex, setLastIndex} = useSearch();
+    const { query, setQuery, recentQueries, setRecentQueries, lastIndex, setLastIndex } = useSearch();
     const [searchRemember, setSearchRemember] = useState(true);
     const [triggerSearch, setTriggerSearch] = useState(false);
     const router = useRouter();
@@ -116,8 +116,8 @@ export default function SearchComponent({ mode,
                                     className="w-full p-2 pl-10 text-sm border-0 
                                             text-black border-b-4 border-b-black focus:outline-none focus:ring-0
                                             focus:border-b-[#DB2777]"
-                                        />
-                                    </div>
+                                />
+                            </div>
 
 
                             <div className="flex flex-col w-full py-3">
@@ -137,7 +137,7 @@ export default function SearchComponent({ mode,
                                     <div className='w-full h-[100px]'>
                                         {recentQueries.length > 0 ?
                                             recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
-                                                <div key={index} onClick={() => {setQuery(query); setTriggerSearch(true)}} className='inline-flex gap-2 mt-3'>
+                                                <div key={index} onClick={() => { setQuery(query); setTriggerSearch(true) }} className='inline-flex gap-2 mt-3'>
                                                     <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-white'>
                                                         {query}
                                                     </p>
@@ -178,21 +178,7 @@ export default function SearchComponent({ mode,
                         <div className="relative md:max-w-screen-xl w-full mt-4 md:px-0 px-4">
                             {/* mt-4 for the margin top of the page */}
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none md:px-0 px-4">
-                                <svg
-                                    className="w-4 h-4 text-black dark:text-black"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                                    />
-                                </svg>
+                               <Search size={20} className='dark:text-white text-black' />
                             </div>
                             <input
                                 type="text"
@@ -201,9 +187,12 @@ export default function SearchComponent({ mode,
                                 onChange={handleChange}
                                 placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
                                 className="w-full p-2 pl-10 text-sm border-0 
-                                    text-black border-b-4 border-b-black 
-                                    focus:outline-none focus:ring-0
-                                     focus:border-b-[#DB2777]"
+                                     text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                     focus:ring-0 rounded-lg
+                                     focus:border-[#DB2777]
+                                     focus:outline-2 focus:outline-offset-2
+                                     focus:outline-[#DB2777] active:bg-transparent
+                                     "
                             />
                         </div>
                     </>

@@ -23,9 +23,9 @@ import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Popover from '@mui/material/Popover';
 import { useTheme } from '@/contexts/providers';
 import { Language } from '@/components/Types';
-import { useDevice } from '@/contexts/DeviceContext';
+import Link from 'next/link';
 
-export default function Setting() {
+export default function Setting({isLoggedInAndRegistered}: {isLoggedInAndRegistered: boolean}) {
     const { language, dictionary, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme()
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
@@ -139,6 +139,20 @@ export default function Setting() {
                         >
                             <ListItemText primary="Help center" />
                         </ListItemButton>
+                        {!isLoggedInAndRegistered ? (<Link href="/signin" passHref className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'>
+                            <ListItemButton
+                                color='gray'
+                            >
+                            <ListItemText primary="Login" />
+                        </ListItemButton>
+                        </Link>) : (<Link href="#" passHref className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'>
+                            <ListItemButton
+                                color='gray'
+                            >
+                            <ListItemText primary="Logout" />
+                        </ListItemButton>
+                        </Link>)
+                        }
                         <LanguageSettingDialogRaw
                             id="language-menu"
                             keepMounted

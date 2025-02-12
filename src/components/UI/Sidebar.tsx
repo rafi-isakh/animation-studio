@@ -16,15 +16,7 @@ import Setting from '@/components/UI/Setting';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
 import UserProfileButton from '@/components/UI/UserProfileButton';
-
-const navigation = [
-  { name: "Search", href: "/search", icon: Search },
-  { name: "Explore", href: "#", icon: LibraryBig },
-  { name: "Feeds", href: "#", icon: LayoutGrid },
-  { name: "Create", href: "#", icon: SquarePlus },
-  { name: "Notifications", href: "#", icon: Bell },
-  { name: "Gift Shop", href: "/stars", icon: Gift },
-]
+import NotificationButton from '@/components/UI/NotificationButton';
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -35,6 +27,23 @@ export function Sidebar() {
   const { email, nickname } = useUser();
   const isLoggedInAndRegistered = isLoggedIn && email;
 
+  const navigation = [
+    { name: "Search", href: "/search", icon: Search },
+    { name: "Explore", href: "#", icon: LibraryBig },
+    { name: "Feeds", href: "#", icon: LayoutGrid },
+    { name: "Create", href: "#", icon: SquarePlus },
+    { name: "Gift Shop", href: "/stars", icon: Gift },
+    
+    ...(isLoggedInAndRegistered ? [
+      { 
+          name: "Notifications", 
+          type: "component", 
+          component: NotificationButton, 
+          icon: Bell 
+      }
+    ] : []),
+    // { name: "Notifications", component: <NotificationButton />, icon: Bell },
+  ]
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setPopoverAnchor(event.currentTarget);
@@ -45,8 +54,6 @@ export function Sidebar() {
   };
 
   const open = Boolean(popoverAnchor);
-  const id = open ? 'simple-popover' : undefined;
-
 
   return (
     <div className="flex h-full w-[72px] flex-col z-[99]
@@ -72,6 +79,35 @@ export function Sidebar() {
         <div className="flex flex-col justify-between h-full">
           {navigation.map((item) => {
             const Icon = item.icon
+            if (item.type === 'component') {
+              return (
+                <Tooltip
+                  key={item.name}
+                  arrow
+                  title={item.name}
+                  placement="right"
+                  slotProps={{
+                    popper: {
+                      modifiers: [
+                        {
+                          name: 'offset',
+                          options: {
+                            offset: [0, -14],
+                          },
+                        },
+                      ],
+                      [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]: {
+                        margin: '0px',
+                      },
+                    },
+                  }}
+                >
+                  <div className='flex h-14 rounded-md justify-center items-center w-full'>
+                    <NotificationButton />
+                  </div>
+                </Tooltip>
+              )
+            }
             return (
               <Tooltip
                 key={item.name}
@@ -96,7 +132,7 @@ export function Sidebar() {
                 }}>
                 <Link
                   key={item.name}
-                  href={item.href}
+                  href={item.href ?? ""}
                   className={`flex h-14 items-center justify-center rounded-md
                   hover:bg-gray-50 dark:hover:bg-black/50 
                   ${pathname === item.href ? "bg-gray-50 dark:bg-black/50" : ""}
@@ -109,12 +145,11 @@ export function Sidebar() {
           })}
           {/* Setting btn */}
           <div className="flex flex-col gap-y-4 mt-auto pb-10">
-            {isLoggedInAndRegistered ? <div className='flex justify-center items-center'> 
-                 <UserProfileButton />
-              </div> : <></>}
-            <Setting />
+            {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
+              <UserProfileButton />
+            </div> : <></>}
+            <Setting isLoggedInAndRegistered={isLoggedInAndRegistered}/>
           </div>
-
         </div>
       </nav>
     </div>

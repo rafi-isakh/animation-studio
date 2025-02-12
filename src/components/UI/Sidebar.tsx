@@ -25,7 +25,7 @@ export function Sidebar() {
   const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
   const { isLoggedIn, loading, logout } = useAuth();
   const { email, nickname } = useUser();
-  const isLoggedInAndRegistered = isLoggedIn && email;
+  const isLoggedInAndRegistered = !!(isLoggedIn && email); 
 
   const navigation = [
     { name: "Search", href: "/search", icon: Search },

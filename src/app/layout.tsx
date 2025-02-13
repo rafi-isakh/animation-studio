@@ -74,7 +74,6 @@ const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
   weight: '400'
 })
-const userCountry = await getCountryFromIP();
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
@@ -88,7 +87,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
-          <LanguageSetter userCountry={userCountry} />
+          <LanguageSetter />
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>

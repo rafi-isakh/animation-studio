@@ -28,7 +28,7 @@ export const UpvoteButton = ({
     const [upvoted, setUpvoted] = useState(false);
     
     useEffect(() => {
-        setUpvoted(upvotedComments.includes(commentId));
+        setUpvoted(upvotedComments?.includes(commentId));
     }, [upvotedComments]);
 
     const handleUpvoteComment = async (commentId: string) => {

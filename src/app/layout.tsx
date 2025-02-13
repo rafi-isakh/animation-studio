@@ -25,8 +25,6 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const queryClient = new QueryClient();
-
 export const metadata: Metadata = {
   title: '투니즈 Toonyz',
   description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
@@ -95,7 +93,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                      <QueryClientProvider client={queryClient}>
                       <div className={`font-pretendard pretendard-jp pretendard-std
                     ${notoSansArabic.className} 
                     ${notoSansThai.className} 
@@ -104,7 +101,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                           <Header />
                         </Suspense>
                         <Margin>
-                            {children}
+                          {children}
                           <Analytics />
                           <Suspense>
                             <NavigationEvents />
@@ -121,7 +118,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     </div> 
                    */}
                       </div>
-                      </QueryClientProvider>
                     </StripeProvider>
                   </SearchProvider>
                 </DeviceProvider>

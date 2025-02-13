@@ -9,25 +9,11 @@ import { useSearchParams } from "next/navigation"
 import { ChevronRight } from 'lucide-react';
 import Image from "next/image"
 import { getImageUrl } from "@/utils/urls";
-import { useQuery } from '@tanstack/react-query'
-import { BACKEND_URL } from '../utils/urls'
 
-const AuthorWorkListComponent = ({ authorId }: { authorId: string }) => {
+const AuthorWorkListComponent = ({ webnovels, nickname }: { webnovels: Webnovel[], nickname: string }) => {
     const { language, dictionary } = useLanguage();
     const [key, setKey] = useState(0);
     const params = useSearchParams();
-
-    const { data: works, isLoading, error } = useQuery({
-        queryKey: ['authorWorks', authorId],
-        queryFn: async () => {
-            const response = await fetch(`${BACKEND_URL}/api/authors/${authorId}/works`)
-            if (!response.ok) {
-                throw new Error('Network response was not ok')
-            }
-            return response.json()
-        },
-        enabled: !!authorId
-    })
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1);
@@ -37,13 +23,10 @@ const AuthorWorkListComponent = ({ authorId }: { authorId: string }) => {
         return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
     };
 
-    if (isLoading) return <div>Loading author works...</div>
-    if (error) return <div>Error loading author works</div>
-
     return (
         <div className="flex flex-row md:w-[670px] w-full overflow-x-auto gap-1">
             {/* <p id="nickname" className={`text-2xl mb-5 font-black ${styles.korean}`}>{nickname} {phrase(dictionary, "whoseWebnovels", language)}</p> */}
-            {works?.map((webnovel, index) => (
+            {webnovels?.map((webnovel, index) => (
                 <div key={index} className="flex flex-col space-y-1">
                     <Link
                         key={index}

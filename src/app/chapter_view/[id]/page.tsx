@@ -78,22 +78,19 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
 
-    const { data: upvotedChapters, isLoading, error } = useQuery(
-        ['upvotedChapters', email],
-        async () => {
-            const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
-            return response.json();
-        },
-        {
-            enabled: !!email, // Only run the query if email is available
-        }
-    );
-
     useEffect(() => {
-        if (upvotedChapters && upvotedChapters.includes(id)) {
-            setLikeToggle(true);
+        const fetchData = async () => {
+            const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
+            const data = await response.json();
+            if (data.includes(id)) {
+                setLikeToggle(true);
+            }
         }
-    }, [upvotedChapters, id]);
+        if (email) {
+            fetchData();
+        }
+    }, [email])
+
 
     useEffect(() => {
         window.scrollTo(0, 0);

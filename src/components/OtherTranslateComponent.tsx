@@ -101,6 +101,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 languageChangedRef.current = false;
             }
         }
+        console.log('othertranslatecomponent language', language);
         initiate();
     }, [language, elementType, elementId, elementSubtype]);
 

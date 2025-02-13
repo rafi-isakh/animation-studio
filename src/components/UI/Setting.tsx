@@ -30,7 +30,7 @@ export default function Setting({isLoggedInAndRegistered}: {isLoggedInAndRegiste
     const { theme, toggleTheme } = useTheme()
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
     const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
-    const [value, setValue] = useState('English');
+    const [value, setValue] = useState('한국어');
 
     const handleClickLanguageDialog = () => {
         setOpenLanguageDialog(true);
@@ -201,7 +201,8 @@ export function LanguageSettingDialogRaw(props: {
 
     const handleOk = () => {
         onClose(selectedValue);
-        setLanguage(selectedValue as Language);
+        const langCode = langPairList.find(langPair => langPair.name === selectedValue)?.code;
+        setLanguage(langCode as Language);
         props.onPopoverClose();
     };
 

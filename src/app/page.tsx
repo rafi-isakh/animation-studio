@@ -16,7 +16,7 @@ import WebnovelsByRank from '@/components/WebnovelsByRank';
 import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
 import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
-import LanguageSetter from '@/components/LanguageSetter';
+import MyReadingListComponent from '@/components/MyReadingListComponent';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -76,6 +76,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {smallGap()}
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
+                    {smallGap()}
+                    <MyReadingListComponent />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}

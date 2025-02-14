@@ -35,21 +35,18 @@ export default function PromotionModalWrapper() {
             return; // Don't show modal if user has chosen to not see it again
         }
 
-        const timer = setTimeout(() => {
-            try {
-                // Double check hasSeenModal in case it changed during the timeout
-                const currentHasSeenModal = localStorage.getItem('hasSeenPromotionModal');
-                if (currentHasSeenModal !== 'true') {
-                    setShowPromotionModal(true);
-                }
-            } catch (error) {
-                console.error('Error checking localStorage:', error);
-                // Show modal anyway if localStorage fails
+        try {
+            // Double check hasSeenModal in case it changed during the timeout
+            const currentHasSeenModal = localStorage.getItem('hasSeenPromotionModal');
+            if (currentHasSeenModal !== 'true') {
                 setShowPromotionModal(true);
             }
-        }, 1000);
+        } catch (error) {
+            console.error('Error checking localStorage:', error);
+            // Show modal anyway if localStorage fails
+            setShowPromotionModal(true);
+        }
 
-        return () => clearTimeout(timer);
     }, []);
 
     return showPromotionModal ? (

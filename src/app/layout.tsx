@@ -14,8 +14,10 @@ import Margin from '@/components/Margin';
 import RegisterSW from '@/components/RegisterSW';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import { StripeProvider } from '@/contexts/StripeContext';
+import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
+import WebnovelsDataProvider from "@/components/WebnovelsDataProvider";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -57,7 +59,6 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-
 export default async function RootLayout({ children }: RootLayoutProps) {
   const session = await auth();
   const isLoggedIn = !!session?.user;
@@ -79,18 +80,19 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                      <div className={`font-pretendard pretendard-jp pretendard-std`}>
-                        <Suspense>
-                          <Header isLoggedIn={isLoggedIn} />
-                        </Suspense>
-                        <Margin>
-                          {children}
-                          <Analytics />
+                      <WebnovelsProvider>
+                        <div className={`font-pretendard pretendard-jp pretendard-std`}>
                           <Suspense>
-                            <NavigationEvents />
+                            <Header isLoggedIn={isLoggedIn} />
                           </Suspense>
-                        </Margin>
-                        {/* 
+                          <Margin>
+                            {children}
+                            <Analytics />
+                            <Suspense>
+                              <NavigationEvents />
+                            </Suspense>
+                          </Margin>
+                          {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
@@ -100,7 +102,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                      </div>
+                        </div>
+                      </WebnovelsProvider>
                     </StripeProvider>
                   </SearchProvider>
                 </DeviceProvider>

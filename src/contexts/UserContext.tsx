@@ -15,6 +15,7 @@ interface UserContextProps {
     setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
     checking: boolean;
     upvotedComments: string[];
+    email_hash: string;
     setUpvotedComments: (upvotedComments: string[]) => void;
 }
 
@@ -35,7 +36,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
     const { isLoggedIn, loading } = useAuth();
-
+    const [email_hash, setEmailHash] = useState<string>("");
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -53,6 +54,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
                 setChecking(false);
                 setUpvotedComments(data.upvoted_comments);
+                setEmailHash(data.email_hash);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -71,7 +73,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             purchased_webnovel_chapters,
             setInvokeCheckUser,
             checking,
-            upvotedComments, setUpvotedComments
+            upvotedComments, setUpvotedComments,
+            email_hash
         }}>
             {children}
         </userContext.Provider>

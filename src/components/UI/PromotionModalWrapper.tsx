@@ -62,7 +62,6 @@ export default function PromotionModalWrapper() {
 
 const PromotionModal = ({ handleClose, handleClosePermanently }: { handleClose: () => void, handleClosePermanently: () => void }) => {
     const { dictionary, language } = useLanguage();
-    const [showModal, setShowModal] = useState(true);
 
     return (
         <Modal
@@ -77,7 +76,7 @@ const PromotionModal = ({ handleClose, handleClosePermanently }: { handleClose: 
                 },
                 zIndex: 50,
             }}
-            open={showModal}
+            open={true}
             onClose={handleClose}
             className="flex items-center justify-center"
         >

@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Header from './Header';
 import { Suspense, useEffect, useState } from 'react';
 
-export default function HeaderWrapper() {
+export default function HeaderWrapper({ isLoggedIn }: { isLoggedIn: boolean }) {
     const pathname = usePathname();
     const isChapterView = pathname?.includes('/chapter_view');
     const [isVisible, setIsVisible] = useState(true);
@@ -49,7 +49,7 @@ export default function HeaderWrapper() {
     if (!isChapterView) {
         return (
             <Suspense>
-                <Header />
+                <Header isLoggedIn={isLoggedIn} />
             </Suspense>
         );
     }
@@ -60,7 +60,7 @@ export default function HeaderWrapper() {
             isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}>
             <Suspense>
-                <Header />
+                <Header isLoggedIn={isLoggedIn} />
             </Suspense>
         </div>
     );

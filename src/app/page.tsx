@@ -58,7 +58,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     const allWebnovels = await getWebnovelsMetadata();
     let items = await getCarouselItems();
     let webnovels = JSON.parse(JSON.stringify(allWebnovels));
-    let library = await getLibrary();
+    let library = await getLibrary() || [];
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
         // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);

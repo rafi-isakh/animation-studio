@@ -25,9 +25,9 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
     }, [isMediumScreen])
 
     return (
-        <>
+        <div className="relative w-full flex flex-col justify-center items-center overflow-x-hidden no-scrollbar">
             <Link href={`/view_webnovels?id=${webnovel.id}`}
-                  className="flex flex-row flex-wrap justify-start items-start space-x-4 w-full p-4 text-sm">
+                className="flex flex-row flex-wrap justify-start items-start space-x-4 w-full p-4 text-sm">
                 <div className="relative w-[45px] md:w-[75px] h-[60px] md:h-[105px] flex-shrink-0 rounded-sm overflow-hidden">
                     <Image
                         src={imageSrc}
@@ -72,7 +72,7 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
                     </p>
                 </div>
             </Link >
-        </>
+        </div>
     )
 }
 

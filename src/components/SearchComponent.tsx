@@ -86,7 +86,7 @@ export default function SearchComponent({ mode,
         setSearchRemember(prev => !prev)
     }
     return (
-        <div className="w-full overflow-hidden">
+        <div className="relative w-full overflow-hidden">
             <form onSubmit={handleSearch}>
                 {
                     mode === "mobileHeader" &&
@@ -185,29 +185,32 @@ export default function SearchComponent({ mode,
                 {
                     mode === "page" &&
                     <>
-                        <div className="relative md:max-w-screen-xl w-full my-4 md:px-2 px-4">
+                        <div className="relative md:max-w-screen-xl w-full my-4 md:px-4 px-4 overflow-hidden no-scrollbar">
                             {/* my-4 md:px-2 px-4 for the margin top and padding of the search bar */}
-                            <div className="flex flex-row justify-center items-center">
+                            <div className="flex flex-row justify-center items-center min-h-[80px]">
                                 <div className="self-center mr-5">
                                     <Link href="/">
                                         <MoveLeft size={20} className='dark:text-white text-black' />
                                     </Link>
                                 </div>
-                                <div className="relative flex-1 ">
-                                    <Search size={20} className='dark:text-white text-black absolute left-3 top-4 -translate-y-1/2 pointer-events-none md:px-0 px-4' />
+                                <div className="relative flex-1 h-12">
+                                    <Search 
+                                        size={20} 
+                                        className='dark:text-white text-black absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none md:px-0 px-4' 
+                                    />
                                     <input
                                         type="text"
                                         id="search-navbar"
                                         value={query}
                                         onChange={handleChange}
                                         placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
-                                        className="w-full p-2 pl-10 text-sm border-0 
-                                     text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
-                                     focus:ring-0 rounded-lg
-                                     focus:border-[#DB2777]
-                                     focus:outline-2 focus:outline-offset-2
-                                     focus:outline-[#DB2777] active:bg-transparent
-                                     "
+                                        className="w-full h-full p-2 pl-10 text-sm border-0 
+                                            text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                            focus:ring-0 rounded-lg
+                                            focus:border-[#DB2777]
+                                            focus:outline-2 focus:outline-offset-2
+                                            focus:outline-[#DB2777] active:bg-transparent
+                                        "
                                     />
                                 </div>
                             </div>

@@ -187,33 +187,31 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                 >
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
-                            {/* <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
-                                    <p className="text-sm flex flex-row items-center gap-2">
-                                        <Image
-                                            src="/images/N_logo.svg"
-                                            alt="Toonyz Logo"
-                                            width={0}
-                                            height={0}
-                                            sizes="100vh"
-                                            style={{
-                                                height: '20px',
-                                                width: '20px',
-                                                padding: '2px',
-                                                justifyContent: 'center',
-                                                alignSelf: 'center',
-                                                borderRadius: '25%',
-                                                border: '1px solid #eee',
-                                                backgroundColor: 'white'
-                                            }}
-                                        />
-                                        {phrase(dictionary, "binge_with_bulk_unlock", language)}
+                            <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
+                                <p className="text-sm flex flex-row items-center gap-2">
+                                    <Image
+                                        src="/images/N_logo.svg"
+                                        alt="Toonyz Logo"
+                                        width={0}
+                                        height={0}
+                                        sizes="100vh"
+                                        style={{
+                                            height: '20px',
+                                            width: '20px',
+                                            padding: '2px',
+                                            justifyContent: 'center',
+                                            alignSelf: 'center',
+                                            borderRadius: '25%',
+                                            border: '1px solid #eee',
+                                            backgroundColor: 'white'
+                                        }}
+                                    />
+                                    {phrase(dictionary, "binge_with_bulk_unlock", language)}
 
 
-                                    </p>
-                                    <ChevronRightIcon size={16} className="text-black dark:text-white" />
-                                </Button>
-                            </Tooltip> */}
+                                </p>
+                                <ChevronRightIcon size={16} className="text-black dark:text-white" />
+                            </Button>
                             <WebtoonChapterListSubcomponent
                                 webtoon={webtoon}
                                 slug={slug}
@@ -230,7 +228,7 @@ const WebtoonChapterListComponent: React.FC<WebtoonChapterListComponentProps> = 
                                 <WebtoonRecommendationsComponent webtoons={webtoons} coverArtUrls={coverArtUrls} />
                             </div>
                             {/* Comments list */}
-                            {webtoon && <CommentList content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false} />}
+                            {/* {webtoon && <CommentList content={webtoon} chapter={webtoon.chapters[0]} webnovelOrWebtoon={false} />} */}
                         </div>
 
                     </div>

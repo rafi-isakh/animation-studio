@@ -1,28 +1,21 @@
 "use client"
 import { Webnovel, Webtoon } from '@/components/Types'
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
-import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
-import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
-import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, Skeleton, ThemeProvider, useMediaQuery } from '@mui/material';
-import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { CommentList } from '@/components/CommentList';
+import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
+import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
@@ -149,13 +142,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
         )
     }
     else {
-        if (webnovelLoading || userWebnovelsLoading) {
-            return (
-                <div className='w-full min-h-screen md:max-w-screen-lg mx-auto flex flex-row justify-center items-center'>
-                    <CircularProgress />
-                </div>
-            )
-        } else if (atLeastOneWebnovel) {
+        if (atLeastOneWebnovel) {
             return (
                 // <ThemeProvider theme={grayTheme}>
                     <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
@@ -163,7 +150,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         <div className="flex md:flex-row flex-col justify-between items-start">
                             <div className="md:w-1/3 w-full flex-grow-0">
                             <AuthorAndWebnovelsAsideComponent
-                                webnovels={[theWebnovel!]}
+                                webnovel={webnovel!}
                                 nickname={nickname}
                                 coverArt={theWebnovel?.cover_art || ""}
                                 onNewChapter={handleNewChapter}
@@ -177,6 +164,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                     isWebtoon={false}
                                     relatedContent={webnovels}
                                     onContentUpdate={handleContentUpdate}
+                                    loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
                                 />
                             </div>
                         </div>

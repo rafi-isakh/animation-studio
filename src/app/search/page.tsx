@@ -9,6 +9,7 @@ import SearchComponent from '@/components/SearchComponent';
 import WebnovelsList from '@/components/WebnovelsList';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
+// import WebnovelCard from '@/components/UI/WebnovelCard';
 
 const Search = () => {
   const router = useRouter();
@@ -109,40 +110,53 @@ const Search = () => {
       />
     )
   }
-  
+
 
   return (
-  <div className='w-full md:max-w-screen-lg mx-auto overflow-hidden no-scrollbar'>
-
-    <SearchComponent mode="page" />
-    {loading ? (
-      <div className="flex flex-row gap-2 md:px-2 px-4">
-        <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
-        <div className='flex flex-col items-center justify-center gap-2 w-full'>
-          <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-          <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-          <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+    <div className='w-full md:max-w-screen-lg mx-auto overflow-hidden no-scrollbar'>
+      <SearchComponent mode="page" />
+      {loading ? (
+        <div className="flex flex-row gap-2 md:px-2 px-4">
+          <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
+          <div className='flex flex-col items-center justify-center gap-2 w-full'>
+            <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+            <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+            <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+          </div>
         </div>
-      </div>
-    ) : query ? (
-      // Show search results if there's a query
-      <div ref={contentRef} className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0'>
-        {webnovels.length > 0 ? (
-          webnovels.map((webnovel, index) => (
-            <WebnovelSearchComponent
-              key={index}
-              webnovel={webnovel}
-              ranking={false}
-              index={index}
-              chunkIndex={0}
-            />
-          ))
-        ) : webnovels.length === 0 ? (
-          showNoResults ? (
-            <div className='col-span-2 text-center py-8'>
-              <p>{phrase(dictionary, "noSearchResults", language)}</p>
-            </div>
+      ) : query ? (
+        // Show search results if there's a query
+        <div ref={contentRef} className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0'>
+          {webnovels.length > 0 ? (
+            webnovels.map((webnovel, index) => (
+              <WebnovelSearchComponent
+                key={index}
+                webnovel={webnovel}
+                ranking={false}
+                index={index}
+                chunkIndex={0}
+              />
+            ))
+          ) : webnovels.length === 0 ? (
+            showNoResults ? (
+              <div className='col-span-2 text-center py-8'>
+                <p>{phrase(dictionary, "noSearchResults", language)}</p>
+              </div>
+            ) : (
+              <div className='relativeflex flex-col items-center justify-center gap-2 w-full'>
+
+                <div className="flex flex-row gap-2 md:px-2 px-4">
+                  <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
+                  <div className='flex flex-col items-center justify-center gap-2 w-full'>
+                    <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                    <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                    <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                  </div>
+                </div>
+              </div>
+            )
           ) : (
+            // Show loading skeleton while loading/processing
             <div className="flex flex-row gap-2 md:px-2 px-4">
               <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
               <div className='flex flex-col items-center justify-center gap-2 w-full'>
@@ -151,31 +165,19 @@ const Search = () => {
                 <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
               </div>
             </div>
-          )
-        ) : (
-          // Show loading skeleton while loading/processing
-          <div className="flex flex-row gap-2 md:px-2 px-4">
-            <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
-            <div className='flex flex-col items-center justify-center gap-2 w-full'>
-              <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-              <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-              <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-            </div>
-          </div>
-        )}
-      </div>
-    ) : (
-      // Show default view when no search query is present
-      <div className='space-y-8 md:px-2 px-4'>
-        <WebnovelsList
-          searchParams={searchParamsObject}
-          webnovels={allWebnovels}
-          sortBy={sortBy}
-        />
-
-      </div>
-    )}
-  </div>
+          )}
+        </div>
+      ) : (
+        // Show default view when no search query is present
+        <div className='space-y-8 md:px-2 px-4'>
+          <WebnovelsList
+            searchParams={searchParamsObject}
+            webnovels={allWebnovels}
+            sortBy={sortBy}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 

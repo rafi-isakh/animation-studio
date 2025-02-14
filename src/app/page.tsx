@@ -1,52 +1,62 @@
-import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
-import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import WebnovelsCardListByRank from '@/components/WebnovelsCardListByRank';
 import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import TrailerCardComponent from '@/components/TrailerCardComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
 import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
-import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
+import { auth } from '@/auth';
+import MyReadingListComponent from '@/components/MyReadingListComponent';
 
 async function getCarouselItems() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getCarouselItems', end - start)
     return response.json();
 }
 
 async function getWebnovelsMetadata() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getWebnovelsMetadata', end - start)
     return response.json();
+}
+
+async function getLibrary() {
+    const session = await auth();
+    const email = session?.user?.email;
+    if (!email) {
+        return [];
+    }
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
+        cache: 'no-store',
+        headers: {
+            'Cookie': cookies().toString(),
+        }
+    }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to fetch library", { cause: response.status });
+    }
+    const data = await response.json();
+    return data.library;
 }
 
 const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    const cookieStore = cookies()
-    const didSelectLanguage = cookieStore.get('didSelectLanguage')
-    const showPreloader = !didSelectLanguage
+    
     let items = await getCarouselItems();
     let webnovels = await getWebnovelsMetadata();
+    let library = await getLibrary();
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
         // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
@@ -55,7 +65,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         // items = items.filter((item: any) => webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
         webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
-    //ßwebnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
@@ -72,7 +83,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     }
 
     return (
-        <div className='flex flex-col justify-center items-center min-h-screen w-full'>
+        <div className='flex flex-col justify-center items-center w-full'>
             <div className='flex-1 w-full md:max-w-screen-xl overflow-hidden'>
                 {/*    The side bar width is 72px  md:pl-[72px]  */}
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
@@ -81,7 +92,9 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />
+                    <MyReadingListComponent library={library} />
+                    {smallGap()}
+                    <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />
                     {largeGap()}

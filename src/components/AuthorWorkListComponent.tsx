@@ -13,12 +13,6 @@ import { getImageUrl } from "@/utils/urls";
 const AuthorWorkListComponent = ({ webnovels, nickname }:
     { webnovels: Webnovel[], nickname: string | null | undefined }) => {
     const { language, dictionary } = useLanguage();
-    const [key, setKey] = useState(0);
-    const params = useSearchParams();
-
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1);
-    }, [params, language])
 
     const truncateText = (text: string, maxLength: number) => {
         return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;

@@ -28,9 +28,10 @@ const InfoIcon =
   </svg>;
 
 
-export default function CompletePage() {
+export default function CompletePage({ setShowStripeComponent }: { setShowStripeComponent: (show: boolean) => void }) {
+  console.log('CompletePage');
   const stripe = useStripe();
-  const { stars } = useStripeContext();
+  const { stars, setPaymentIntentSecret } = useStripeContext();
   const { email } = useUser();
 
   const [status, setStatus] = useState("default");
@@ -62,6 +63,10 @@ export default function CompletePage() {
   };
 
   useEffect(() => {
+    console.log("entry")
+  }, []);
+
+  useEffect(() => {
     if (!stripe) {
       return;
     }
@@ -75,6 +80,7 @@ export default function CompletePage() {
     }
 
     stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
+
       if (!paymentIntent) {
         return;
       }
@@ -87,13 +93,16 @@ export default function CompletePage() {
             body: JSON.stringify({ currency: "KRW", email: email, stars: stars, price: paymentIntent.amount, date: new Date().toISOString() }),
           });
           const data = await addTransactionResponse.json();
-          console.log(data);
         }
       }
       addTransaction();
       setIntentId(paymentIntent.id);
     });
   }, [stripe]);
+
+  const handleBackButtonClick = () => {
+    setShowStripeComponent(false);
+  }
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
@@ -117,7 +126,7 @@ export default function CompletePage() {
           </table>
         </div>}
       </div>
-      <Button color='gray' variant="contained" onClick={() => router.push("/stars")}>
+      <Button color='gray' variant="contained" onClick={handleBackButtonClick}>
         {phrase(dictionary, "back", language)}
       </Button>
     </div>

@@ -57,7 +57,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const author_email = content.user.email_hash;
+    const author_email = content?.user?.email_hash;
     const { email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -74,7 +74,7 @@ export default function InfoAndPictureComponent({
             const tagsJSON = JSON.parse(content.tags);
             setTags(tagsJSON);
         }
-    }, [content.tags]);
+    }, [content?.tags]);
 
     const toggleShareDropdown = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
@@ -353,14 +353,12 @@ export default function InfoAndPictureComponent({
                                 <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
                                     <div className="font-extrabold flex flex-row gap-2 items-center cursor-pointer">
                                         <MdStars className="text-xl text-[#D92979]" />
-                                        <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                            <Link href={`#`}>
-                                                <p>
-                                                    {/* 별 구매하기  */}
-                                                    {phrase(dictionary, "buyStars", language)}
-                                                </p>
-                                            </Link>
-                                        </Tooltip>
+                                        <Link href={`/stars`}>
+                                            <p>
+                                                {/* 별 구매하기  */}
+                                                {phrase(dictionary, "buyStars", language)}
+                                            </p>
+                                        </Link>
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </div>

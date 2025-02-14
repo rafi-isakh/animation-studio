@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@mui/material";
+import { Button, Skeleton } from "@mui/material";
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -8,7 +8,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon, Comment, Webnovel } from "@/components/Types";
+import { Webtoon, Comment, Webnovel, Chapter } from "@/components/Types";
 import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
@@ -47,6 +47,7 @@ interface ContentChapterListComponentProps {
     coverArtUrls?: string[];
     isWebtoon?: boolean;
     onContentUpdate?: (updatedContent: Webtoon | Webnovel) => void;
+    loadingUsersOtherWebnovels?: boolean;
 }
 
 const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = ({
@@ -56,7 +57,8 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     relatedContent = [],
     coverArtUrls = [],
     isWebtoon = false,
-    onContentUpdate
+    loadingUsersOtherWebnovels = false,
+    onContentUpdate,
 }) => {
     const [isSortedByLatest, setIsSortedByLatest] = useState(true);
     const [tabValue, setTabValue] = useState('1');
@@ -205,27 +207,21 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 </Button>
                             </Tooltip>
                             {content && content.chapters ? (
-                                isWebtoon ? (
-                                    <WebtoonChapterListSubcomponent
-                                        webtoon={content as Webtoon}
-                                        slug={slug}
-                                        coverArt={coverArt}
-                                        sortToggle={isSortedByLatest}
-                                        onUpdate={onContentUpdate as (updatedContent: Webtoon) => void}
-                                    />
-                                ) : (
-                                    <ListOfChaptersComponent
-                                        webnovel={content as Webnovel}
-                                        sortToggle={isSortedByLatest}
-                                        onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
-                                    />
-                                )
+                                <ListOfChaptersComponent
+                                    webnovel={content as Webnovel}
+                                    sortToggle={isSortedByLatest}
+                                    onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
+                                />
                             ) : (
-                                <div>No chapters available</div>
+                                <div className="flex flex-col w-full gap-2">
+                                    <Skeleton variant="rectangular" height={40} width="85%" />
+                                    <Skeleton variant="rectangular" height={40} width="85%" />
+                                    <Skeleton variant="rectangular" height={40} width="85%" />
+                                </div>
                             )}
 
                             {/* author's other work list */}
-                            {content && content.user && relatedContent && relatedContent.length > 0 && (
+                            {content && content.user && relatedContent && relatedContent.length > 0 ? (
                                 <>
                                     <h1 className="text-base font-bold">
                                         {phrase(dictionary, "authorWorkList", language)}
@@ -238,6 +234,12 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                         />
                                     </div>
                                 </>
+                            ) : (
+                                <div className="flex flex-row gap-2">
+                                    <Skeleton variant="rectangular" height={200} width={150} />
+                                    <Skeleton variant="rectangular" height={200} width={150} />
+                                    <Skeleton variant="rectangular" height={200} width={150} />
+                                </div>
                             )}
                             {/* Recommendations section * /}
                             {relatedContent.length > 0 && (
@@ -262,9 +264,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
 
                             {/* Comments list */}
                             {content && content.chapters && content.chapters.length > 0 ? (
-                                <CommentList
+                                <CommentList    
                                     content={content}
-                                    chapter={content.chapters[0]}
+                                    chapter={content.chapters[0] as Chapter}
                                     webnovelOrWebtoon={!isWebtoon}
                                 />
                             ) : (

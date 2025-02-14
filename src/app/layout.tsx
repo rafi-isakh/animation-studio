@@ -11,14 +11,14 @@ import { UserProvider } from '@/contexts/UserContext';
 import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
-import { Noto_Sans_Thai, Noto_Sans_TC, Noto_Sans_Arabic } from 'next/font/google';
 import RegisterSW from '@/components/RegisterSW';
-import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import { StripeProvider } from '@/contexts/StripeContext';
 import BottomNavigationBar from '@/components/UI/BottomNavigation';
 import { Sidebar } from '@/components/UI/Sidebar';
 
+import LanguageSetter from "@/components/LanguageSetter";
+import { auth } from "@/auth";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -60,20 +60,10 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const notoSansArabic = Noto_Sans_Arabic({
-  subsets: ['arabic'],
-  weight: '400'
-})
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ['thai'],
-  weight: '400'
-})
-const notoSansTC = Noto_Sans_TC({
-  subsets: ['latin'],
-  weight: '400'
-})
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
   return (
     <html lang="en">
       <head>
@@ -85,29 +75,27 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
+          <LanguageSetter />
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                      <div className={`font-pretendard pretendard-jp pretendard-std
-                    ${notoSansArabic.className} 
-                    ${notoSansThai.className} 
-                    ${notoSansTC.className}`}>
-                        <Suspense>
-                          <Header />
-                        </Suspense>
-                        <div className="hidden md:block z-[99]">  {/* no sidebar on mobile */}
-                          <Sidebar />
-                        </div>
-                        <div className="md:pl-[72px] pl-0">  {/* The side bar width is 72px md:pl-[72px] */}
-                          {children}
-                        </div>
-                        <Analytics />
+                      <Analytics />
+                      <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
                         <Suspense>
                           <NavigationEvents />
                         </Suspense>
+                        <Suspense>
+                          <Header isLoggedIn={isLoggedIn} />
+                        </Suspense>
+                        <Margin>
+                          <div className="md:pl-[72px] pl-0">  {/* The side bar width is 72px md:pl-[72px] */}
+                            {children}
+                          </div>
+                          <Analytics />
+                        </Margin>
                         {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
@@ -118,6 +106,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
+                        <div className="hidden md:block z-[99]">  {/* no sidebar on mobile */}
+                          <Sidebar />
+                        </div>
                         <div className="block md:hidden z-[99]">
                           <BottomNavigationBar />
                         </div>

@@ -39,7 +39,9 @@ import BlockButton from '@/components/BlockButton';
 import dynamic from 'next/dynamic';
 import animationData from '@/assets/N_logo_with_heart.json';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
-
+import ProfileDropdownButton from '@/components/UI/ProfileDropdownButton';
+import SharingModal from '@/components/UI/SharingModal';
+import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
 const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
 
     const [introActive, setIntroActive] = useState<boolean>(true);
@@ -60,12 +62,12 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
     const shareDropdownRef = useRef<HTMLDivElement>(null);
-    // const userMenuRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [blockedUsers, setBlockedUsers] = useState<number[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -97,13 +99,10 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             novelsRef.current.style.transform = `translateX(-${introWidth}px)`
         }
     }, [introWidth])
-
-
     // Import the LottieLoader dynamically
     const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
         ssr: false,
     });
-
 
     // implementing utils function
     const isProfileOwner = (): boolean => {
@@ -295,48 +294,20 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                             <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
                         </div>
 
-
-
                         {/* nickname */}
                         <div className='flex flex-col justify-center md:items-start items-center gap-4'>
-                            <p className="flex flex-row justify-start items-start font-boldtext-left">
-                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
+                            <div className="flex flex-row justify-center items-center font-boldtext-left ">
+                                {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 p-1 mr-1">
                                     {phrase(dictionary, "author", language)}
                                 </span>}
-                                {user.nickname}
-                                <Link href="#" onClick={toggleUserDropdown} className='flex flex-row self-center ml-1 hover:text-gray-300'>
-                                    <Ellipsis size={18} />
-                                </Link>
-                            </p>
-                            {isUserDropdownOpen && (
-                                <div id="user-dropdown" ref={userDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 -mt-2 ml-10 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-32 dark:divide-gray-600`}>
-                                    <ul className="py-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                        <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                            {isProfileOwner() &&
-                                                <Link href="#" onClick={() => setShowDeleteAccountModal(true)} className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                    <UserRoundX size={20} />
-                                                    {phrase(dictionary, "deleteAccount", language)}
-                                                    {/* {isProfileOwner() && <Button color='gray' variant='outlined' className='flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black' onClick={() => setShowDeleteAccountModal(true)}>{phrase(dictionary, "deleteAccount", language)}</Button>} */}
-                                                </Link>
-                                            }
-                                        </li>
-                                        {!isProfileOwner() &&
-                                            <li className="px-3 py-2 hover:bg-gray-200  dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                                <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                    <Flag size={20} className="dark:text-white text-black" />
-                                                    {phrase(dictionary, "report", language)}
-                                                </Link>
-                                            </li>
-                                        }
-                                        <li className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 group/user-dropdown transition duration-150 ease-in-out">
-                                            <Link href="#" className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black">
-                                                <CircleHelp size={20} className="dark:text-white text-black" />
-                                                {phrase(dictionary, "help", language)}
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                </div>
-                            )}
+                                <p className="text-base">{user.nickname}</p>
+                                <ProfileDropdownButton
+                                    isProfileOwner={isProfileOwner()}
+                                    onDeleteAccount={() => setShowDeleteAccountModal(true)}
+                                    user={user}
+                                />
+                            </div>
+
                             {/* number of webnovels, chapters, likes */}
                             <div>
                                 <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
@@ -371,21 +342,19 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                     </div>
                                 </div>
                             </div>
-
                             <div className='flex flex-row gap-4 text-gray-600'>
-                                {/* <Button color='gray' variant='outlined' className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'> */}
-                                {/* +Follow */}
-                                {/* <Plus size={10} />
-                                    <span className='text-sm'>{phrase(dictionary, "follow", language)}</span>
-                                </Button> */}
-                                <Button color='gray' variant='outlined' onClick={toggleShareDropdown} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
+                                <Button
+                                    color='gray'
+                                    variant='outlined'
+                                    onClick={() => setIsModalOpen(true)}
+                                    className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
                                     {/* share */}
                                     <ExternalLink size={10} />
                                     <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
                                 <ReportButton user={user} />
                                 {isLoggedIn && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
-                                {isShareDropdownOpen && (
+                                {/* {isShareDropdownOpen && (
                                     <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
                                         <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
                                         <ul className="flex flex-row gap-2 justify-center items-center m-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
@@ -409,7 +378,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                             </li>
                                         </ul>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     </div>
@@ -443,26 +412,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                         </button></> } */}
             </div>
 
-            {/*Right component :: Author bio & view webnovel */}
             <div className='flex flex-col w-full justify-center items-center order-2'>
-                {/* <div>
-                   <p className="flex flex-row  font-bold hover:text-[#DB2777]">
-                    <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
-                      {phrase(dictionary, "author", language)}
-                        </span>
-                       {user.nickname}
-                    </p>
-                </div> 
-                */}
-
-                {/*--  left-hand side:  Author's other works link */}
-                {/* <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
-                    <Suspense>
-                        <AuthorAndWebnovelsAsideComponent webnovels={novels} nickname={user.nickname} />
-                    </Suspense>
-                </div>  */}
-                {/*-- left-hand side:  Author's other works link end */}
-
 
                 <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-6'>
 
@@ -492,8 +442,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     </p>
 
                     {novels.length > 0 ? (<div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
-
-                        {/* <div key={index} className=''> */}
                         {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                         <WebnovelsCardList
                             title=""
@@ -512,8 +460,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 />
                             )}
                         />
-                        {/* </div> */}
-
                     </div>) : (<div className='flex flex-col gap-4 justify-center items-center text-center text-sm border-b-1 border-gray-300 w-full uppercase'>
                         {/* 작품이 없습니다 */}
                         <p>{phrase(dictionary, "noNovelsYet", language)} </p>
@@ -533,23 +479,23 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                        
                     </div> 
                     */}
-
-
-
                 </div>
 
             </div>
-            <Modal open={showDeleteAccountModal} onClose={() => setShowDeleteAccountModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        {/* Delete */}
-                        <p className='text-lg font-bold'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDeleteAccount}>{phrase(dictionary, "yes", language)}</Button>
-                        <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteAccountModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
-
+            <SharingModal
+                isProfileOwner={isProfileOwner()}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                user={user}
+                onConfirm={() => { setIsModalOpen(false) }}
+                onCancel={() => { setIsModalOpen(false) }}
+            />
+            <DeleteAccountModal
+                isOpen={showDeleteAccountModal}
+                onClose={() => setShowDeleteAccountModal(false)}
+                onConfirm={handleDeleteAccount}
+            />
+           
         </div>
     );
 }

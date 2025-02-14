@@ -1,3 +1,4 @@
+"use client"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Button } from "@mui/material";
@@ -5,8 +6,10 @@ import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
+import { useState, useEffect } from "react";
+import StripeComponent from "@/components/StripeComponent";
 
 export default function PurchaseStarsComponent() {
     const starsOptions = [100, 300, 500, 1000]
@@ -16,11 +19,21 @@ export default function PurchaseStarsComponent() {
     const { email, nickname, stars } = useUser();
     const router = useRouter();
     const { setStars, setDiscount } = useStripeContext();
+    const [showStripeComponent, setShowStripeComponent] = useState(false);
+    const searchParams = useSearchParams();
+    // true if reaching the page with this component after completion of payment
+    const complete = searchParams.get('complete');
+
+    useEffect(() => {
+        if (complete) {
+            setShowStripeComponent(true);
+        }
+    }, [complete]);
 
     const onClickPaymentStripe = (numStars: number, discount: number) => {
         setStars(numStars);
         setDiscount(discount);
-        router.push(`/stripe`);
+        setShowStripeComponent(true);
     }
     const onClickPaymentInicis = (numStars: number, discount: number) => {
         if (!window.IMP) return;
@@ -53,7 +66,6 @@ export default function PurchaseStarsComponent() {
                     body: JSON.stringify({ currency: "KRW", email: email, stars: numStars, price: response.paid_amount, date: new Date().toISOString() }),
                 });
                 const data = await addTransactionResponse.json();
-                console.log(data);
                 alert("결제 성공");
             } else {
                 alert(`결제 실패: ${error_msg}`);
@@ -65,6 +77,7 @@ export default function PurchaseStarsComponent() {
         <div className="flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto tall:h-[calc(100vh-16rem)]">
             <div className="flex flex-col w-full items-center justify-center">
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
+                <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1>
                 <h1 className="text-2xl font-extrabold text-center">
                     {phrase(dictionary, "stars", language)}
                 </h1>
@@ -75,101 +88,109 @@ export default function PurchaseStarsComponent() {
                 </div>
             </div>
 
-            <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
+            {showStripeComponent ? 
+            <div className='self-center'>
+                <StripeComponent setShowStripeComponent={setShowStripeComponent} />
+            </div>
+                :
+                <>
+                    <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
                             from-indigo-500/10 from-10% via-sky-500/10 via-30% to-emerald-500/10 to-90%">
-                <h1 className="text-md font-base py-3 px-2 text-left">
-                    {/* Regular Bundles   */}
-                    {language === 'ko' ? '스페셜 딜' : 'Special Deal for You'}
-                </h1>
-                {starsEventOptions.map((stars, index) => (
-                    <Button
-                        key={index}
-                        onClick={() => onClickPaymentStripe(stars, discount_factors[index])}
-                        variant="text"
-                        sx={{
-                            borderBottom: 1,
-                            '&:last-child': {
-                                borderBottom: 0
-                            },
-                            borderColor: '#9ca3af',
-                            borderRadius: 0,
-                            padding: '15px 10px',
-                            margin: 0,
-                            color: '#9ca3af ',
-                            '&:hover': {
-                                backgroundColor: 'transparent',
-                            }
-                        }}
-                        className="text-xl flex items-center justify-between w-full text-gray-500 ">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex flex-col  ">
+                        <h1 className="text-md font-base py-3 px-2 text-left">
+                            {/* Regular Bundles   */}
+                            {language === 'ko' ? '스페셜 딜' : 'Special Deal for You'}
+                        </h1>
+                        {starsEventOptions.map((stars, index) => (
+                            <Button
+                                key={index}
+                                onClick={() => onClickPaymentStripe(stars, discount_factors[index])}
+                                variant="text"
+                                sx={{
+                                    borderBottom: 1,
+                                    '&:last-child': {
+                                        borderBottom: 0
+                                    },
+                                    borderColor: '#9ca3af',
+                                    borderRadius: 0,
+                                    padding: '15px 10px',
+                                    margin: 0,
+                                    color: '#9ca3af ',
+                                    '&:hover': {
+                                        backgroundColor: 'transparent',
+                                    }
+                                }}
+                                className="text-xl flex items-center justify-between w-full text-gray-500 ">
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex flex-col  ">
 
-                                <div className="flex flex-row items-center justify-center space-x-2">
-                                    <MdStars className="text-xl text-[#D92979]" />
-                                    <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
-                                        {language === 'ko' ? <>별{' '}</> : ''}
-                                        {stars.toLocaleString()}
-                                        {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
-                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
+                                        <div className="flex flex-row items-center justify-center space-x-2">
+                                            <MdStars className="text-xl text-[#D92979]" />
+                                            <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
+                                                {language === 'ko' ? <>별{' '}</> : ''}
+                                                {stars.toLocaleString()}
+                                                {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                                <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
+                                            </div>
+
+                                        </div>
                                     </div>
-
+                                    <div className="flex items-center">
+                                        <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
+                                            {((stars * 10) * discount_factors[index]).toLocaleString()}원
+                                            {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                        </h1>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center">
-                                <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 10) * discount_factors[index]).toLocaleString()}원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
-                                </h1>
-                            </div>
-                        </div>
-                    </Button>
-                ))}
-            </div>
+                            </Button>
+                        ))}
+                    </div>
 
-            <div className="flex flex-col w-full rounded-md p-2 border-gray-400 border">
-                <h1 className="text-md font-base py-3 px-2 text-left">
-                    {/* Regular Bundles   */}
-                    {language === 'ko' ? '일반 번들' : 'Regular Bundles'}
-                </h1>
-                {starsOptions.map((stars, index) => (
-                    <Button
-                        key={index}
-                        onClick={() => onClickPaymentStripe(stars, 1)}
-                        variant="text"
-                        sx={{
-                            borderBottom: 1,
-                            '&:last-child': {
-                                borderBottom: 0
-                            },
-                            borderColor: '#9ca3af',
-                            borderRadius: 0,
-                            padding: '15px 10px',
-                            margin: 0,
-                            color: '#9ca3af ',
-                            '&:hover': {
-                                backgroundColor: '#FFF0EE',
-                            }
-                        }}
-                        className="text-xl flex items-center justify-between w-full text-gray-500 ">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center space-x-2 ">
-                                <MdStars className="text-xl text-[#D92979]" />
-                                <div className="text-xl">
-                                    {language === 'ko' ? <>별{' '}</> : ''}
-                                    {stars.toLocaleString()}
-                                    {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                    <div className="flex flex-col w-full rounded-md p-2 border-gray-400 border">
+                        <h1 className="text-md font-base py-3 px-2 text-left">
+                            {/* Regular Bundles   */}
+                            {language === 'ko' ? '일반 번들' : 'Regular Bundles'}
+                        </h1>
+                        {starsOptions.map((stars, index) => (
+                            <Button
+                                key={index}
+                                onClick={() => onClickPaymentStripe(stars, 1)}
+                                variant="text"
+                                sx={{
+                                    borderBottom: 1,
+                                    '&:last-child': {
+                                        borderBottom: 0
+                                    },
+                                    borderColor: '#9ca3af',
+                                    borderRadius: 0,
+                                    padding: '15px 10px',
+                                    margin: 0,
+                                    color: '#9ca3af ',
+                                    '&:hover': {
+                                        backgroundColor: '#FFF0EE',
+                                    }
+                                }}
+                                className="text-xl flex items-center justify-between w-full text-gray-500 ">
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center space-x-2 ">
+                                        <MdStars className="text-xl text-[#D92979]" />
+                                        <div className="text-xl">
+                                            {language === 'ko' ? <>별{' '}</> : ''}
+                                            {stars.toLocaleString()}
+                                            {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
+                                            {(stars * 10).toLocaleString()} 원
+                                            {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                        </h1>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center">
-                                <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {(stars * 10).toLocaleString()} 원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
-                                </h1>
-                            </div>
-                        </div>
-                    </Button>
-                ))}
-            </div>
+                            </Button>
+                        ))}
+                    </div>
+                </>
+            }
         </div>
     );
 }

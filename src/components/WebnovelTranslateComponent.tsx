@@ -42,13 +42,11 @@ const WebnovelTranslateComponent = (
         padding,
         scrollType,
         page = 1,
-        setPage
+        setPage,
+        setMaxPage,
     } = useReader();
 
     useEffect(() => {
-        if (fetchRef.current) return;
-        if (!language) return;
-        fetchRef.current = true;
         const handleTranslate = async () => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
@@ -59,9 +57,9 @@ const WebnovelTranslateComponent = (
             // If there's no translation in the DB
             // initialized.current is bc useEffect runs twice
             // submitContent with ongoing translation
-            if (!data.done && !initialized.current) {
+            if (!data.done) {
+                setText("");
                 submitContent(data.text);
-                initialized.current = true;
             }
         }
         if (sourceLanguage == language) {
@@ -147,9 +145,13 @@ const WebnovelTranslateComponent = (
 
     type Direction = 'ltr' | 'rtl';
 
-    const paragraphStyle = {
+    const paragraphStyle: React.CSSProperties =  {
         margin: `${margin}px`,
         padding: `${padding}px`,
+        height: scrollType === 'horizontal' ? '100vh' : 'auto',
+        overflowY: scrollType === 'horizontal' ? 'hidden' : 'auto',
+        overflowX: scrollType === 'horizontal' ? 'auto' : 'hidden',
+        touchAction: scrollType === 'horizontal' ? 'pan-x' : 'auto',
     };
 
     useEffect(() => {
@@ -162,6 +164,7 @@ const WebnovelTranslateComponent = (
                 const [pageToFirstPageWords, pageToSecondPageWords] = calculateAllPages(text);
                 setFirstPageWords(pageToFirstPageWords[page])
                 setSecondPageWords(pageToSecondPageWords[page])
+                setMaxPage(Object.keys(pageToFirstPageWords).length)
             }, 100);
         }
     }, [fontSize, fontFamily, lineHeight, margin, padding, text, scrollType])
@@ -250,11 +253,14 @@ const WebnovelTranslateComponent = (
     }
 
     return (
-        <div className="relative min-h-screen mb-16" style={paragraphStyle}>
-            {text &&
+        <div
+            style={paragraphStyle}
+            className={`relative mb-16 
+                       ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
+               {text &&
                 <>
                     {scrollType === 'vertical' &&
-                        <div 
+                        <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
                             onContextMenu={(e) => e.preventDefault()}>

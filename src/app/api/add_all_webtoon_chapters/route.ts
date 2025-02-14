@@ -19,21 +19,40 @@ export async function GET(req: NextRequest) {
 
     for (const webtoon of webtoonsData) {
         const asWebtoon = webtoon as Webtoon
+        const deleteResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/delete_webtoon_chapters_admin`, {
+            method: 'POST',
+            body: JSON.stringify({
+                title: webtoon.title
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.accessToken}`,
+                'Provider': session.provider
+            },
+        })
+        if (!deleteResponse.ok) {
+            return NextResponse.json({ message: "Delete webtoon chapters failed" }, { status: 500 })
+        } else {
+            console.log("Delete webtoon chapters success")
+        }
         let episodes = await listObjectsInWebtoonsDirectory(`${asWebtoon.root_directory}`)
         episodes = Array.from(new Set(episodes.filter(episode => !isNaN(Number(episode!.split("/")[1]))).map(episode => episode!.split("/")[1])))
-        console.log(episodes)
+        console.log("webtoon title", webtoon.title)
         console.log("episodes length", episodes.length)
-        for (let i = asWebtoon.num_free_chapters + 1; i < episodes.length; i++) {
+        console.log("episodes", episodes)
+        for (let i = 1; i < episodes.length + 1; i++) {
             const chapter = {
                 episode_number: i,
                 directory: i.toString().padStart(3, '0'),
                 webtoon_title: webtoon.title,
                 title: "Episode " + i,
-                free: false
+                free: i <= asWebtoon.num_free_chapters
             }
             chapters.push(chapter)
         }
     }
+
+
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_chapters_to_webtoon_admin`, {
         method: 'POST',

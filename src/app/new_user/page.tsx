@@ -76,6 +76,7 @@ async function updateUser(formData: FormData) {
 }
 
 async function createAndUpdateUser(formData: FormData) {
+    // legacy code. should integrate these to one call.
     await createUser();
     await updateUser(formData);
 }

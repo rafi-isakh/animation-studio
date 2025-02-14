@@ -56,15 +56,13 @@ export default function WelcomePageComponent() {
 
         <div className='flex flex-col items-center justify-center gap-3 mt-6'>
             <Button sx={{ width: '100%', backgroundColor: '#DB2879', color: 'white' }} size="large" variant="contained">
-                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                    <Link href="#" className='flex items-center justify-center w-full'>
-                        {/* 첫 회원가입 별 구매하고 혜택 받기 &gt; */}
-                        <div className="w-6 flex justify-center">
-                            <StarIcon className="w-5 h-5" />
-                        </div>
-                        <span className='ml-2 '>{phrase(dictionary, 'signedup_first_time_user', language)}</span>
-                    </Link>
-                </Tooltip>
+                <Link href="/stars" className='flex items-center justify-center w-full'>
+                    {/* 첫 회원가입 별 구매하고 혜택 받기 &gt; */}
+                    <div className="w-6 flex justify-center">
+                        <StarIcon className="w-5 h-5" />
+                    </div>
+                    <span className='ml-2 '>{phrase(dictionary, 'signedup_first_time_user', language)}</span>
+                </Link>
             </Button>
 
 

@@ -13,24 +13,29 @@ import { useStripeContext } from "@/contexts/StripeContext";
 // This is your test publishable API key.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-export default function StripePage() {
-  const [clientSecret, setClientSecret] = useState("");
+export default function StripeComponent({ setShowStripeComponent }: { setShowStripeComponent: (show: boolean) => void }) {
   const [confirmed, setConfirmed] = useState(false);
   const [dpmCheckerLink, setDpmCheckerLink] = useState("");
   const { language } = useLanguage();
 
-  const { stars, discount } = useStripeContext();
+  const { stars, discount, paymentIntentSecret, setPaymentIntentSecret } = useStripeContext();
+
   useEffect(() => {
     const confirmed = !!new URLSearchParams(window.location.search).get(
       "payment_intent_client_secret"
     );
     setConfirmed(confirmed);
-    console.log(confirmed);
+    const paymentIntentSecret = new URLSearchParams(window.location.search).get(
+      "payment_intent_client_secret"
+    );
+    if (paymentIntentSecret) {
+      setPaymentIntentSecret(paymentIntentSecret);
+    }
   });
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
-    if (!confirmed) {
+    if (!confirmed && stars > 0) {
       fetch("/api/stripe_create_payment_intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,27 +43,27 @@ export default function StripePage() {
       })
         .then((res) => res.json())
         .then((data) => {
-          setClientSecret(data.clientSecret);
+          setPaymentIntentSecret(data.clientSecret);
           // [DEV] For demo purposes only
           setDpmCheckerLink(data.dpmCheckerLink);
         });
     }
-  }, []);
+  }, [stars, discount]);
 
   const appearance = {
     theme: 'stripe',
   };
   const options = {
-    clientSecret,
+    clientSecret: paymentIntentSecret,
     appearance,
     locale: language,
   };
 
   return (
-    <div className="md:max-w-screen-lg mt-32 mx-auto flex flex-col items-center justify-center">
-      {clientSecret && (
+    <div className="md:max-w-screen-lg mx-auto flex flex-col items-center justify-center">
+      {paymentIntentSecret && (
         <Elements options={options as StripeElementsOptions} stripe={stripePromise}>
-          {confirmed ? <CompletePage /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}
+          {confirmed ? <CompletePage setShowStripeComponent={setShowStripeComponent} /> : <CheckoutForm dpmCheckerLink={dpmCheckerLink} />}
         </Elements>
       )}
     </div>

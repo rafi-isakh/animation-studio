@@ -25,6 +25,7 @@ import {
     Globe,
     Menu,
     User,
+    Sparkles,
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
@@ -32,11 +33,12 @@ import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
+import { motion, AnimatePresence } from "framer-motion"
 
-export const Header = () => {
+export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
     const [pathnameLoading, setPathnameLoading] = useState(true);
-    const { isLoggedIn, loading, logout } = useAuth();
+    const { loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -65,9 +67,8 @@ export const Header = () => {
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
-
-    const isLoggedInAndRegistered = isLoggedIn && email;
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
+
     useEffect(() => {
         if (searchParams.get("version") == "premium") {
             setActiveTab('premium');
@@ -75,8 +76,6 @@ export const Header = () => {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
             const id = searchParams.get("id");
-            console.log(id)
-            console.log(premiumWebnovelIds)
             if (premiumWebnovelIds.includes(parseInt(id!))) {
                 console.log("premium")
                 setActiveTab('premium');
@@ -357,10 +356,10 @@ export const Header = () => {
                                     <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "free", language)}</p>
                                 </Link>
-                                <Link href="/toonyzcut">
+                                {/* <Link href="/toonyzcut">
                                     <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "toonyzCut", language)}</p>
-                                </Link>
+                                </Link> */}
                             </div>
                         </div>
                         <div className="flex md:order-1">
@@ -371,14 +370,15 @@ export const Header = () => {
                                 </button>
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
-                            {isLoggedInAndRegistered && (
+                            {/* {isLoggedInAndRegistered && ( */}
+                            {isLoggedIn && (
                                 <div ref={hamburgerRef}>
                                     <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                         <Menu size={20} className='dark:text-white text-gray-500' />
                                     </button>
                                 </div>
                             )}
-                            {!isLoggedInAndRegistered && (
+                            {!isLoggedIn && (
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
@@ -408,11 +408,12 @@ export const Header = () => {
                                 >
                                     <Search size={20} className='dark:text-white text-gray-500' />
                                 </button>
+                              
                                 <Drawer
                                     anchor="top"
                                     open={open}
                                     onClose={toggleDrawer(false)}
-                                    transitionDuration={100}
+                                    transitionDuration={300}
                                     ModalProps={{
                                         keepMounted: true,
                                     }}
@@ -424,7 +425,9 @@ export const Header = () => {
                                             // backgroundColor: 'black',
                                         }
                                     }}
+
                                 >
+                                    
                                     <Box sx={{ p: 2, }}>
                                         <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} setOpen={setOpen} />
                                     </Box>
@@ -533,12 +536,12 @@ export const Header = () => {
                                                             {phrase(dictionary, "myLibrary", language)}
                                                         </Link>
                                                     </li>
-                                                    {/* <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
+                                                    <li className="px-3 py-2 flex items-center space-x-2 dark:text-white text-black dark:hover:bg-gray-600 dark:hover:text-black">
                                                         <Link href="/stars" onClick={() => handleUserItemClick()} className="flex items-center space-x-2 justify-start">
                                                             <Sparkles size={18} className='dark:text-white text-black ' />
                                                             <span>{phrase(dictionary, "stars", language)}</span>
                                                         </Link>
-                                                    </li> */}
+                                                    </li>
                                                     <li className="px-3 py-2 dark:hover:bg-gray-600">
                                                         <Link href="/videos" onClick={handleVideosClick} className="flex items-center space-x-2 dark:text-white text-black dark:hover:text-black ">
                                                             <Video size={20} className='dark:text-white text-black' />
@@ -576,6 +579,7 @@ export const Header = () => {
                                     </div>
                                 </li>
                                 {/* {!isLoggedInAndRegistered && (
+                                {!isLoggedIn && (
                                     <li className='md:flex items-center justify-center ml-1 hidden'>
                                         <Button sx={{
                                             backgroundColor: '#DB2777',
@@ -605,10 +609,10 @@ export const Header = () => {
                             <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
-                        <Link href="/toonyzcut">
+                        {/* <Link href="/toonyzcut">
                             <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "toonyzCut", language)}</p>
-                        </Link>
+                        </Link> */}
                     </div>
                 </div>
                 <hr className='md:hidden block' />

@@ -38,6 +38,10 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
             const response = await fetch(`/api/get_webnovel_by_id?id=${id}`, {
                 cache: 'no-store',
             });
+            if (!response.ok) {
+                console.error("Failed to fetch webnovel by id", response.status);
+                return undefined;
+            }
             const data = await response.json();
             return data;
         }
@@ -53,6 +57,10 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
                     cache: 'no-store',
                 }
             );
+            if (!response.ok) {
+                console.error("Failed to fetch webnovels metadata by email hash", response.status);
+                return [];
+            }
             const data = await response.json();
             return data;
         }

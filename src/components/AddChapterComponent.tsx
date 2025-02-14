@@ -34,6 +34,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [openModal, setOpenModal] = useState(false);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
+    const { invalidateCache } = useWebnovels();
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -93,6 +94,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                 method: 'POST',
                 body: formData,
             });
+            invalidateCache();
             router.push(`/view_webnovels?id=${webnovelId}`)
             router.refresh();
         }

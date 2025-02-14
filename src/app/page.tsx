@@ -51,6 +51,7 @@ async function getWebnovelsMetadata() {
     throw new Error("Failed to fetch webnovels", { cause: response.status });
   }
   const data = await response.json();
+  console.log("data", data);
   return data;
 }
 

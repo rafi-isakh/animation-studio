@@ -17,6 +17,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
+        console.log("webnovels", webnovels);
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))

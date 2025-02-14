@@ -1,12 +1,7 @@
-"use client"
-
 import { Button } from "@mui/material";
 import { Chapter, Webnovel } from "@/components/Types";
-import { useLanguage } from "@/contexts/LanguageContext";
 
-export async function TranslateWebnovelAllButton({webnovel}: {webnovel: Webnovel}) {
-
-    const {language} = useLanguage();
+export function TranslateWebnovelAllButton({language, webnovel}: {language: string, webnovel: Webnovel}) {
 
     const submitContent = async (content: string, chapterId: number) => {
         try {

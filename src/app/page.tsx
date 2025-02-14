@@ -44,7 +44,9 @@ async function getLibrary() {
 }
 
 async function getWebnovelsMetadata() {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
+  const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`, {
+    cache: 'no-store',
+  })
   if (!response.ok) {
     throw new Error("Failed to fetch webnovels", { cause: response.status });
   }

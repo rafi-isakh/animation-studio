@@ -35,7 +35,9 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (webnovel) {
             return Promise.resolve(webnovel);
         } else {
-            const response = await fetch(`/api/get_webnovel_by_id?id=${id}`);
+            const response = await fetch(`/api/get_webnovel_by_id?id=${id}`, {
+                cache: 'no-store',
+            });
             const data = await response.json();
             return data;
         }
@@ -46,14 +48,20 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (filteredWebnovels.length > 0) {
             return Promise.resolve(filteredWebnovels);
         } else {
-            const response = await fetch(`/api/get_webnovels_metadata_by_email_hash?email_hash=${emailHash}`);
+            const response = await fetch(`/api/get_webnovels_metadata_by_email_hash?email_hash=${emailHash}`,
+                {
+                    cache: 'no-store',
+                }
+            );
             const data = await response.json();
             return data;
         }
     };
 
     const fetchChaptersLikelyNeededWebnovel = async (webnovel: Webnovel) => {
-        const response = await fetch(`/api/get_webnovel_by_id?id=${webnovel.id}`);
+        const response = await fetch(`/api/get_webnovel_by_id?id=${webnovel.id}`, {
+            cache: 'no-store',
+        });
         const data = await response.json();
         setWebnovels([...webnovels.filter((webnovel) => webnovel.id !== data.id), data]);
         setChaptersLikelyNeededWebnovel(webnovel);

@@ -19,18 +19,14 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import {
     SquarePen,
     Video,
-    Sparkles,
     Book,
     SquareLibrary,
     Search,
     Globe,
     Menu,
     User,
-    HeartHandshake,
-    Clapperboard,
+    Sparkles,
     Bell,
-    HandHeart,
-    CodeSquare
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
@@ -38,11 +34,12 @@ import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
+import { motion, AnimatePresence } from "framer-motion"
 
-export const Header = () => {
+export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
     const [pathnameLoading, setPathnameLoading] = useState(true);
-    const { isLoggedIn, loading, logout } = useAuth();
+    const { loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -71,9 +68,8 @@ export const Header = () => {
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
-
-    const isLoggedInAndRegistered = isLoggedIn && email;
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
+
     useEffect(() => {
         if (searchParams.get("version") == "premium") {
             setActiveTab('premium');
@@ -81,8 +77,6 @@ export const Header = () => {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
             const id = searchParams.get("id");
-            console.log(id)
-            console.log(premiumWebnovelIds)
             if (premiumWebnovelIds.includes(parseInt(id!))) {
                 console.log("premium")
                 setActiveTab('premium');
@@ -372,14 +366,14 @@ export const Header = () => {
                                 </button>
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
-                            {isLoggedInAndRegistered && (
-                            <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
-                                    <Menu size={20} className='dark:text-white text-gray-500' />
-                                </button>
+                            {isLoggedIn && (
+                                <div ref={hamburgerRef}>
+                                    <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                        <Menu size={20} className='dark:text-white text-gray-500' />
+                                    </button>
                                 </div>
                             )}
-                            {!isLoggedInAndRegistered && (
+                            {!isLoggedIn && (
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
@@ -409,11 +403,12 @@ export const Header = () => {
                                 >
                                     <Search size={20} className='dark:text-white text-gray-500' />
                                 </button>
+                              
                                 <Drawer
                                     anchor="top"
                                     open={open}
                                     onClose={toggleDrawer(false)}
-                                    transitionDuration={100}
+                                    transitionDuration={300}
                                     ModalProps={{
                                         keepMounted: true,
                                     }}
@@ -425,7 +420,9 @@ export const Header = () => {
                                             // backgroundColor: 'black',
                                         }
                                     }}
+
                                 >
+                                    
                                     <Box sx={{ p: 2, }}>
                                         <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} setOpen={setOpen} />
                                     </Box>
@@ -581,7 +578,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                {!isLoggedInAndRegistered && (
+                                {!isLoggedIn && (
                                     <li className='md:flex items-center justify-center ml-1 hidden'>
                                         <Button sx={{
                                             backgroundColor: '#DB2777',

@@ -5,22 +5,17 @@ import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
 import { ThemeProvider } from '@/contexts/providers';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import '@/styles/globals.css';
-import { ReactNode, Suspense, useEffect } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { UserProvider } from '@/contexts/UserContext';
 import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
-import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, Noto_Sans_SC, Noto_Sans_Arabic } from 'next/font/google';
 import RegisterSW from '@/components/RegisterSW';
-import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
-import localFont from "next/font/local";
-import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
+import LanguageSetter from "@/components/LanguageSetter";
+import { auth } from "@/auth";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -62,20 +57,10 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const notoSansArabic = Noto_Sans_Arabic({
-  subsets: ['arabic'],
-  weight: '400'
-})
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ['thai'],
-  weight: '400'
-})
-const notoSansTC = Noto_Sans_TC({
-  subsets: ['latin'],
-  weight: '400'
-})
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
   return (
     <html lang="en">
       <head>
@@ -87,18 +72,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
+          <LanguageSetter />
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                      <div className={`font-pretendard pretendard-jp pretendard-std
-                    ${notoSansArabic.className} 
-                    ${notoSansThai.className} 
-                    ${notoSansTC.className}`}>
+                      <div className={`font-pretendard pretendard-jp pretendard-std`}>
                         <Suspense>
-                          <Header />
+                          <Header isLoggedIn={isLoggedIn} />
                         </Suspense>
                         <Margin>
                           {children}

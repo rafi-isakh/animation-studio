@@ -396,7 +396,7 @@ export const Header = () => {
                             {/*Search bar in mobile screen (md:hidden)*/}
                             <div className="relative mt-3 md:hidden">
                                 <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                    <Search size={20} className='dark:text-white text-black' />
+                                    <Search size={20} className='dark:text-white text-black z-50' />
                                 </div>
                                 <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
                             </div>

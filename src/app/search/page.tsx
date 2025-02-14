@@ -7,7 +7,6 @@ import { phrase } from '@/utils/phrases';
 import { useRouter } from 'next/navigation'
 import SearchComponent from '@/components/SearchComponent';
 import WebnovelsList from '@/components/WebnovelsList';
-import WebnovelsByRank from '@/components/WebnovelsByRank';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
 
@@ -74,12 +73,12 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
 
 
   const CustomeSkeleton = ({
-    width,
+    width = '100%',
     height,
     variant = 'rounded',
     animation = 'wave'
   }: {
-    width: number,
+    width: number | string,
     height: number,
     variant?: 'text' | 'rectangular' | 'rounded' | 'circular',
     animation?: 'pulse' | 'wave' | false
@@ -105,12 +104,12 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
 
     <SearchComponent mode="page" />
     {loading ? (
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row gap-2 md:px-2 px-4">
         <CustomeSkeleton variant='rounded' animation="wave" width={100} height={90} />
-        <div className='flex flex-col items-center justify-center gap-2'>
-          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
-          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
-          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+        <div className='flex flex-col items-center justify-center gap-2 w-full'>
+          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
         </div>
       </div>
     ) : query ? (
@@ -132,23 +131,23 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
               <p>{phrase(dictionary, "noSearchResults", language)}</p>
             </div>
           ) : (
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-2 md:px-2 px-4">
               <CustomeSkeleton variant='rounded' animation="wave" width={100} height={90} />
-              <div className='flex flex-col items-center justify-center gap-2'>
-                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
-                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
-                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+              <div className='flex flex-col items-center justify-center gap-2 w-full'>
+                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
               </div>
             </div>
           )
         ) : (
           // Show loading skeleton while loading/processing
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 md:px-2 px-4">
             <CustomeSkeleton variant='rounded' animation="wave" width={100} height={90} />
-            <div className='flex flex-col items-center justify-center gap-2'>
-              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
-              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
-              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+            <div className='flex flex-col items-center justify-center gap-2 w-full'>
+              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
             </div>
           </div>
         )}
@@ -161,11 +160,7 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
           webnovels={allWebnovels}
           sortBy={sortBy}
         />
-        <WebnovelsByRank
-          searchParams={searchParams}
-          webnovels={allWebnovels}
-          sortBy={sortBy}
-        />
+
       </div>
     )}
   </div>

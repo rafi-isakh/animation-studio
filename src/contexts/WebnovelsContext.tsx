@@ -7,8 +7,6 @@ interface WebnovelsContextState {
     webnovels: Array<Webnovel>; // Replace 'any' with a more specific type if available
     chaptersLikelyNeededWebnovel: Webnovel | undefined;
     fetchChaptersLikelyNeededWebnovel: (webnovel: Webnovel) => void;
-    setWebnovels: React.Dispatch<React.SetStateAction<Array<Webnovel>>>;
-    addWebnovel: (webnovel: Webnovel) => void; // Replace 'any' with a more specific type if available
     getWebnovelById: (id: string) => Promise<Webnovel | undefined>;
     getWebnovelsMetadataByEmailHash: (emailHash: string) => Promise<Array<Webnovel>>;
     invalidateCache: () => void;
@@ -29,7 +27,6 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
             console.error("Failed to fetch webnovels metadata", response.status);
         }
         const data = await response.json();
-        console.log("data", data);
         setWebnovels(data);
     }
 
@@ -38,13 +35,8 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, []);
 
     const invalidateCache = () => {
-        setWebnovels([]);
         fetchWebnovelsMetadata();
     }
-
-    const addWebnovel = (webnovel: Webnovel) => {
-        setWebnovels((prevWebnovels) => [...prevWebnovels, webnovel]);
-    };
 
     const getWebnovelById = async (id: string) => {
         const webnovel = webnovels.find((webnovel) => webnovel.id.toString() === id);
@@ -92,7 +84,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     return (
-        <WebnovelsContext.Provider value={{ webnovels, setWebnovels, addWebnovel, getWebnovelById, getWebnovelsMetadataByEmailHash, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel, invalidateCache }}>
+        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelsMetadataByEmailHash, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel, invalidateCache }}>
             {children}
         </WebnovelsContext.Provider>
     );

@@ -8,7 +8,7 @@ import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import { useRef, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { LibraryBig, LayoutGrid, SquarePlus, Bell, Gift, Search, CircleUserRound } from "lucide-react"
+import { LibraryBig, LayoutGrid, Gift, Search, CircleUserRound } from "lucide-react"
 import { useRouter } from 'next/navigation';
 
 export default function BottomNavigationBar() {
@@ -20,19 +20,19 @@ export default function BottomNavigationBar() {
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
         switch (newValue) {
-            case 0:
+            case 0: // menu 1
                 router.push('/search');
                 break;
-            case 1:
+            case 1: // menu 2
                 router.push('/#');
                 break;
-            case 2:
+            case 2: // menu 3
                 router.push('/#');
                 break;
-            case 3:
+            case 3: // menu 4
                 router.push('/stars');
                 break;
-            case 4:
+            case 4: // menu 5
                 router.push('#');
                 break;
         }
@@ -46,7 +46,7 @@ export default function BottomNavigationBar() {
                 left: 0,
                 right: 0,
                 zIndex: 1000,
-                bgcolor: theme === 'dark' ? 'rgb(31 41 55)' : 'white' // dark:bg-gray-800
+                bgcolor: theme === 'dark' ? '#211F21' : 'white' // darkmode bg-[#211F21]
             }}
             elevation={3}
         >
@@ -55,7 +55,7 @@ export default function BottomNavigationBar() {
                 value={value}
                 onChange={(event, newValue) => handleNavigation(newValue)}
                 sx={{
-                    bgcolor: theme === 'dark' ? 'rgb(31 41 55)' : 'white',
+                    bgcolor: theme === 'dark' ? '#211F21' : 'white',
                     "& .Mui-selected": {
                         "& .MuiBottomNavigationAction-label": {
                             color: '#DE2B74', // #DE2B74
@@ -73,8 +73,8 @@ export default function BottomNavigationBar() {
                 }}
             >
                 <BottomNavigationAction label="Search" icon={<Search />} />
+                <BottomNavigationAction label="Explore" icon={<LibraryBig />} />
                 <BottomNavigationAction label="Feeds" icon={<LayoutGrid />} />
-                <BottomNavigationAction label="Create" icon={<SquarePlus />} />
                 <BottomNavigationAction label="Shop" icon={<Gift />} />
                 <BottomNavigationAction label="Profile" icon={<CircleUserRound />} />
             </BottomNavigation>

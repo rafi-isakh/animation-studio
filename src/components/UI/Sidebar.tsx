@@ -59,7 +59,7 @@ export function Sidebar() {
     <div className="flex h-full w-[72px] flex-col z-[99]
     fixed left-0 top-0 border-r dark:border-black
      border-gray-200 bg-white dark:bg-[#211F21]">
-      {/* 211F21 */}
+      {/* darkmode bg-[#211F21] */}
       <div className="flex h-16 items-center justify-center">
         <Link href="/?version=premium">
           <Image

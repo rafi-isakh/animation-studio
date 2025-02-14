@@ -21,6 +21,7 @@ async function getUser(id: string) {
 export default function ViewProfile({ params: { id }, }: { params: { id: string } }) {
     const [user, setUser] = useState<User | null>(null);
     const [novels, setNovels] = useState<Webnovel[] | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const { getWebnovelsMetadataByEmailHash } = useWebnovels();
 
     useEffect(() => {
@@ -31,14 +32,13 @@ export default function ViewProfile({ params: { id }, }: { params: { id: string 
                 const novels = await getWebnovelsMetadataByEmailHash(user.email_hash);
                 setNovels(novels);
             }
+            setIsLoading(false);
         }
         fetchUserAndNovels();
     }, [id]);
 
-    if (!user) {
-        return (
-            <EmptyProfileComponent />
-        )
+    if (isLoading) {
+        return null
     }
     if (user && novels) {
         return (

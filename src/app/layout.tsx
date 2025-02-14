@@ -57,10 +57,10 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const session = await auth();
-const isLoggedIn = !!session?.user;
 
 export default async function RootLayout({ children }: RootLayoutProps) {
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
   return (
     <html lang="en">
       <head>

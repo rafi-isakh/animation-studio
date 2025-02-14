@@ -37,8 +37,9 @@ async function getLibrary() {
         return [];
     }
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
+        cache: 'no-store',
         headers: {
-            'Cookie': cookies().toString()
+            'Cookie': cookies().toString(),
         }
     }
     )

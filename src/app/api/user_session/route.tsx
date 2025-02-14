@@ -12,10 +12,7 @@ export async function GET(request: NextRequest) {
             if (!email) {
                 return NextResponse.json({ loggedIn: false, error: 'User email not in session' }, { status: 500 });
             }
-            const start = performance.now();
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_by_email?email=${email}`)
-            const end = performance.now();
-            console.log(`Time taken: ${end - start} milliseconds`);
 
             if (!response.ok) {
                 console.error(`Error fetching user by email: ${email}`, response.statusText);

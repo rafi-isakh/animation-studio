@@ -16,17 +16,32 @@ interface WebnovelsContextState {
 
 // Create the context with a default value
 const WebnovelsContext = createContext<WebnovelsContextState | undefined>(undefined);
-
 // Create a provider component
 export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); // Replace 'any' with a more specific type if available
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
 
-    const invalidateCache = () => {
-        setWebnovels([]);
+    const fetchWebnovelsMetadata = async () => {
+        const response = await fetch(`/api/get_webnovels_metadata`, {
+            cache: 'no-store',
+        });
+        if (!response.ok) {
+            console.error("Failed to fetch webnovels metadata", response.status);
+        }
+        const data = await response.json();
+        setWebnovels(data);
     }
 
-    const addWebnovel = (webnovel: Webnovel) => { 
+    useEffect(() => {
+        fetchWebnovelsMetadata();
+    }, []);
+
+    const invalidateCache = () => {
+        setWebnovels([]);
+        fetchWebnovelsMetadata();
+    }
+
+    const addWebnovel = (webnovel: Webnovel) => {
         setWebnovels((prevWebnovels) => [...prevWebnovels, webnovel]);
     };
 

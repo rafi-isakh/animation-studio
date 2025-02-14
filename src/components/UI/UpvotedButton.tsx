@@ -5,7 +5,6 @@ import { Comment, User } from '@/components/Types';
 const getStoredUpvotes = (user: User) => {
     try {
         const stored = user.upvoted_comments;
-        console.log(stored);
         return stored ? new Set<string>(JSON.parse(stored) as string[]) : new Set<string>();
     } catch (error) {
         console.error('Error parsing upvoted comments:', error);

@@ -22,9 +22,5 @@ export default function LanguageSetter() {
         setLanguageFromCountry();
     }, []);
 
-    useEffect(() => {
-        console.log('language', language);
-    }, [language]);
-
     return null;
 }

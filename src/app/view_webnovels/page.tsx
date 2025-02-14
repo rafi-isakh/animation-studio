@@ -6,82 +6,70 @@ import dynamic from 'next/dynamic';
 import { useAuth } from "@/contexts/AuthContext";
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
-  });
+});
 import animationData from '@/assets/stelli_loader.json';
+import { useWebnovels } from "@/contexts/WebnovelsContext";
+import { useSearchParams } from "next/navigation";
 
-async function getWebnovel(id: string | string[] | undefined) {
-    if (Array.isArray(id)) {
-        throw new Error("there should be just one id")
-    } if (id == undefined) {
-        return null;
-    }
-    try {
-        const webnovelResponse = await fetch(`/api/get_webnovel_metadata_by_id?id=${id}`);
-        if (!webnovelResponse.ok) {
-            console.error("Failed to fetch webnovel")
-            return null;
-        }
-        const data = await webnovelResponse.json();
-        return data;
-    } catch {
-        console.error(`Error fetching webnovel ${id}`)
-    }
-}
-
-async function getUserWebnovels(email_hash: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_metadata_by_email_hash?email_hash=${email_hash}`);
+const getWebnovelWithContentById = async (id: string) => {
+    const response = await fetch(`/api/get_webnovel_by_id?id=${id}`)
     if (!response.ok) {
-        console.error("Failed to fetch webnovels");
-        return null;
+        throw new Error("Failed to fetch webnovel")
     }
     const data = await response.json();
     return data;
-}
+};
 
-const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const ViewWebnovels = () => {
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
+    const { getWebnovelById, getWebnovelsMetadataByEmailHash, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
+    const searchParams = useSearchParams();
+    const searchParamsObject = Object.fromEntries(searchParams.entries());
 
     useEffect(() => {
-        const fetchData = async () => {
-            const webnovel = await getWebnovel(searchParams.id);
+        const setData = async () => {
+            const webnovel = await getWebnovelById(searchParams.get("id")!);
+            let author_email_hash = "";
             if (webnovel) {
                 setWebnovel(webnovel);
                 setLoading(false);
+                author_email_hash = webnovel.user.email_hash;
+                fetchChaptersLikelyNeededWebnovel(webnovel);
             }
-            const { email_hash: author_email_hash } = webnovel.user;
             if (author_email_hash) {
-                const userWebnovels = await getUserWebnovels(author_email_hash);
+                const userWebnovels = await getWebnovelsMetadataByEmailHash(author_email_hash);
                 setUserWebnovels(userWebnovels);
                 setLoadingUsersOtherWebnovels(false);
             }
             setLoading(false);
             if (isLoggedIn) {
-                fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
+                fetch(`/api/add_to_library?webnovel_id=${searchParams.get("id")}`)
             }
         }
-        fetchData();
-    }, [searchParams.id])
+        setData();
+    }, [searchParams])
 
     return (
-        <>
-        {loading? (
-               <div role="status" className={`flex items-center justify-center min-h-screen`}>    
-                   <LottieLoader 
-                       animationData={animationData}
-                       width="w-32"
-                       centered={true}
-                       pulseEffect={true}
-                   />
-               </div>
-           ) : (
-               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
-           )
-        }
-        </>
+        <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
+        // <>
+        //     {loading ? (
+        //         <div role="status" className={`flex items-center justify-center min-h-screen`}>
+        //             <LottieLoader
+        //                 animationData={animationData}
+        //                 width="w-32"
+        //                 centered={true}
+        //                 pulseEffect={true}
+        //             />
+        //         </div>
+        //     ) : (
+        //         <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
+        //     )
+        //     }
+        // </>
     )
 }
 

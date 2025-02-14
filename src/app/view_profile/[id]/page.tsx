@@ -1,7 +1,11 @@
+"use client"
 import EmptyProfileComponent from '@/components/EmptyProfileComponent';
 import ProfileComponent from '@/components/ProfileComponent';
 import { User, Webnovel } from '@/components/Types';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
 async function getUser(id: string) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`);
@@ -14,23 +18,24 @@ async function getUser(id: string) {
     return user;
 }
 
+export default function ViewProfile({ params: { id }, }: { params: { id: string } }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [novels, setNovels] = useState<Webnovel[] | null>(null);
+    const { getWebnovelsMetadataByEmailHash } = useWebnovels();
 
-async function fetchNovels(user: User) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata_by_email_hash?email_hash=${user.email_hash}`);
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
-        return null;
-    }
-    const novels: Webnovel[] = await response.json();
-    return novels;
-}
-export default async function ViewProfile({ params: { id }, }: { params: { id: string } }) {
-    const user = await getUser(id);
-    let novels: Webnovel[] | null = [];
-    if (user) {
-        novels = await fetchNovels(user);
-    } else {
+    useEffect(() => {
+        const fetchUserAndNovels = async () => {
+            const user = await getUser(id);
+            setUser(user);
+            if (user) {
+                const novels = await getWebnovelsMetadataByEmailHash(user.email_hash);
+                setNovels(novels);
+            }
+        }
+        fetchUserAndNovels();
+    }, [id]);
+
+    if (!user) {
         return (
             <EmptyProfileComponent />
         )

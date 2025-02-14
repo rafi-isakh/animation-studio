@@ -106,10 +106,10 @@ const ListOfChaptersComponent = ({
             <div className="w-full">
                 <div className="overflow-y-auto rounded-md">
                     {displayedChapters.map((chapter, index) => (
-                        <Link
-                            href={`/chapter_view/${chapter.id}`}
+                        <button
+                            onClick={() => handleChapterClick(chapter)}
                             key={`chapter-${chapter.id}`}
-                            className={`block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
+                            className={`w-full block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
                            `}
                            // ${!chapter.free ? 'opacity-50' : ''} 
                         >
@@ -156,7 +156,7 @@ const ListOfChaptersComponent = ({
                                     </div>
                                 </div>
                             </div>
-                        </Link>
+                        </button>
                     ))}
                 </div>
                 {hasMoreChapters && (

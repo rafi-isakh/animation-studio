@@ -113,7 +113,6 @@ export const code_to_lang = (iso_code: string) => {
 }
 
 export async function getCountryFromIP() {
-    console.log('getCountryFromIP');
     try {
         // Using ip-api.com's free endpoint
         const response = await fetch(`/api/get_country`);
@@ -121,7 +120,6 @@ export async function getCountryFromIP() {
             throw new Error("Failed to fetch country info");
         }
         const data = await response.json();
-        console.log('data', data);
         return data; // Returns two-letter country code (e.g., 'US', 'JP', 'KR')
     } catch (error) {
         console.error('Error getting country from IP:', error);

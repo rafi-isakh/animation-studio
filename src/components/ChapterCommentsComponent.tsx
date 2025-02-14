@@ -49,7 +49,6 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
             if (!isLoggedIn) {
                 router.push('/signin')
             } else {
-                console.log("chapter.id", chapter?.id)
                 var newComment = {
                     "id": null,
                     "parent_id": null,
@@ -97,7 +96,6 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
             const updatedReplies = comment.replies?.filter(reply => reply.id.toString() !== commentId);
             comment.replies = updatedReplies;
         }
-        console.log(updatedComments)
         setAllComments(updatedComments);
         const response = await fetch(`/api/delete_comment?id=${commentId}`, {
             method: 'DELETE',

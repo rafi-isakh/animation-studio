@@ -8,7 +8,6 @@ import Link from "next/link";
 const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
 
     const { dictionary, language } = useLanguage();
-    console.log(library)
 
     return (
         <div className="md:max-w-screen-lg w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]">

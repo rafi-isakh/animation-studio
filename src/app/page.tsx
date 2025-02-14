@@ -42,17 +42,6 @@ async function getLibrary() {
     return data.library;
 }
 
-async function getWebnovelsMetadata() {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`, {
-    cache: 'no-store',
-  })
-  if (!response.ok) {
-    throw new Error("Failed to fetch webnovels", { cause: response.status });
-  }
-  const data = await response.json();
-  return data;
-}
-
 const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {

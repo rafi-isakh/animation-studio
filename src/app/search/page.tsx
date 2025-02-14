@@ -2,12 +2,14 @@
 import { Webnovel, SortBy } from '@/components/Types';
 import WebnovelSearchComponent from '@/components/WebnovelSearchComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { phrase } from '@/utils/phrases';
 import { useRouter } from 'next/navigation'
 import SearchComponent from '@/components/SearchComponent';
 import WebnovelsList from '@/components/WebnovelsList';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
+import Skeleton from '@mui/material/Skeleton';
+
 
 const Search = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
   const router = useRouter();
@@ -19,6 +21,10 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
   const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortBy>('views');
+  const [skeletonHeight, setSkeletonHeight] = useState<number | null>(null);
+  const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [showNoResults, setShowNoResults] = useState(false);
 
   // Fetch all webnovels on component mount
   useEffect(() => {
@@ -54,20 +60,34 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
       .then(r => setWebnovels(r));
   }, [query]);
 
+  useEffect(() => {
+    if (webnovels.length === 0) {
+      const timer = setTimeout(() => {
+        setShowNoResults(true);
+      }, 3000); // Show skeleton for 3 seconds before showing "no results"
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowNoResults(false);
+    }
+  }, [webnovels]);
 
   return (
     <div className='w-full md:max-w-screen-lg mx-auto'>
 
       <SearchComponent mode="page" />
-
-
       {loading ? (
-        <div className='flex items-center justify-center h-64'>
-          <p>Loading...</p>
+        <div className="flex flex-row gap-2">
+          <Skeleton variant='rounded' animation="wave" width={100} height={90} />
+          <div className='flex flex-col items-center justify-center gap-2'>
+            <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+            <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+            <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+          </div>
         </div>
       ) : query ? (
         // Show search results if there's a query
-        <div className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0'>
+        <div ref={contentRef} className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0'>
           {webnovels.length > 0 ? (
             webnovels.map((webnovel, index) => (
               <WebnovelSearchComponent
@@ -78,16 +98,36 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
                 chunkIndex={0}
               />
             ))
+          ) : webnovels.length === 0 ? (
+            showNoResults ? (
+              <div className='col-span-2 text-center py-8'>
+                <p>{phrase(dictionary, "noSearchResults", language)}</p>
+              </div>
+            ) : (
+              <div className="flex flex-row gap-2">
+                <Skeleton variant='rounded' animation="wave" width={100} height={90} />
+                <div className='flex flex-col items-center justify-center gap-2'>
+                  <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                  <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                  <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                </div>
+              </div>
+            )
           ) : (
-            <div className='col-span-2 text-center py-8'>
-              <p>{phrase(dictionary, "noSearchResults", language)}</p>
+            // Show loading skeleton while loading/processing
+            <div className="flex flex-row gap-2">
+              <Skeleton variant='rounded' animation="wave" width={100} height={90} />
+              <div className='flex flex-col items-center justify-center gap-2'>
+                <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                <Skeleton variant='rounded' animation="wave" width={skeletonWidth || 100} height={skeletonHeight || 18} />
+              </div>
             </div>
           )}
         </div>
       ) : (
         // Show default view when no search query is present
         <div className='space-y-8'>
-          
           <WebnovelsList
             searchParams={searchParams}
             webnovels={allWebnovels}

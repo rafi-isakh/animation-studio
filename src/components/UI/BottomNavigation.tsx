@@ -4,18 +4,39 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import RestoreIcon from '@mui/icons-material/Restore';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ArchiveIcon from '@mui/icons-material/Archive';
+
 import { useRef, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
 import { LibraryBig, LayoutGrid, SquarePlus, Bell, Gift, Search, CircleUserRound } from "lucide-react"
+import { useRouter } from 'next/navigation';
 
 export default function BottomNavigationBar() {
     const { theme } = useTheme();
     const [value, setValue] = useState(0);
     const ref = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+
+    const handleNavigation = (newValue: number) => {
+        setValue(newValue);
+        switch (newValue) {
+            case 0:
+                router.push('/search');
+                break;
+            case 1:
+                router.push('/#');
+                break;
+            case 2:
+                router.push('/#');
+                break;
+            case 3:
+                router.push('/stars');
+                break;
+            case 4:
+                router.push('#');
+                break;
+        }
+    };
 
     return (
         <Paper
@@ -32,9 +53,7 @@ export default function BottomNavigationBar() {
             <BottomNavigation
                 showLabels
                 value={value}
-                onChange={(event, newValue) => {
-                    setValue(newValue);
-                }}
+                onChange={(event, newValue) => handleNavigation(newValue)}
                 sx={{
                     bgcolor: theme === 'dark' ? 'rgb(31 41 55)' : 'white',
                     "& .Mui-selected": {

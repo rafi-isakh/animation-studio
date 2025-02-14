@@ -37,7 +37,7 @@ async function getLibrary() {
     }
     )
     if (!response.ok) {
-        throw new Error("Failed to fetch library", { cause: response.status });
+        console.error("Failed to fetch library", response.status);
     }
     const data = await response.json();
     return data.library;

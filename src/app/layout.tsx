@@ -5,22 +5,17 @@ import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
 import { ThemeProvider } from '@/contexts/providers';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import '@/styles/globals.css';
-import { ReactNode, Suspense, useEffect } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { UserProvider } from '@/contexts/UserContext';
 import Header from '@/components/Header';
 import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
-import { Noto_Sans, Noto_Sans_Thai, Noto_Sans_KR, Noto_Sans_TC, Noto_Sans_JP, Noto_Sans_SC, Noto_Sans_Arabic } from 'next/font/google';
 import RegisterSW from '@/components/RegisterSW';
-import HeaderWrapper from '@/components/HeaderWrapper';
 import { NavigationEvents } from '@/components/NewUserNavigation';
-import localFont from "next/font/local";
-import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
 import LanguageSetter from "@/components/LanguageSetter";
-import { getCountryFromIP } from "@/utils/phrases";
+import { auth } from "@/auth";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -62,7 +57,10 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+const session = await auth();
+const isLoggedIn = !!session?.user;
+
+export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <head>
@@ -81,18 +79,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                    <div className={`font-pretendard pretendard-jp pretendard-std`}>
-                      <Suspense>
-                        <Header />
-                      </Suspense>
-                      <Margin>
-                        {children}
-                        <Analytics />
+                      <div className={`font-pretendard pretendard-jp pretendard-std`}>
                         <Suspense>
-                          <NavigationEvents />
+                          <Header isLoggedIn={isLoggedIn} />
                         </Suspense>
-                      </Margin>
-                      {/* 
+                        <Margin>
+                          {children}
+                          <Analytics />
+                          <Suspense>
+                            <NavigationEvents />
+                          </Suspense>
+                        </Margin>
+                        {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
@@ -102,7 +100,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                    </div>
+                      </div>
                     </StripeProvider>
                   </SearchProvider>
                 </DeviceProvider>

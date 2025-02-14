@@ -66,7 +66,6 @@ export default function PurchaseStarsComponent() {
                     body: JSON.stringify({ currency: "KRW", email: email, stars: numStars, price: response.paid_amount, date: new Date().toISOString() }),
                 });
                 const data = await addTransactionResponse.json();
-                console.log(data);
                 alert("결제 성공");
             } else {
                 alert(`결제 실패: ${error_msg}`);

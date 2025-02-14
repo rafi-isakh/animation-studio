@@ -36,10 +36,10 @@ import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
 import { motion, AnimatePresence } from "framer-motion"
 
-export const Header = () => {
+export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
     const [pathnameLoading, setPathnameLoading] = useState(true);
-    const { isLoggedIn, loading, logout } = useAuth();
+    const { loading, logout } = useAuth();
     const { email, nickname } = useUser();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -68,15 +68,8 @@ export const Header = () => {
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
-    const [isLoggedInAndRegistered, setIsLoggedInAndRegistered] = useState(true);
-
-    useEffect(() => {
-        if (!loading) {
-            setIsLoggedInAndRegistered(isLoggedIn! && !!email);
-        }
-    }, [isLoggedIn, email, loading]);
-
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
+
     useEffect(() => {
         if (searchParams.get("version") == "premium") {
             setActiveTab('premium');
@@ -373,14 +366,14 @@ export const Header = () => {
                                 </button>
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
-                            {isLoggedInAndRegistered && (
+                            {isLoggedIn && (
                                 <div ref={hamburgerRef}>
                                     <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                         <Menu size={20} className='dark:text-white text-gray-500' />
                                     </button>
                                 </div>
                             )}
-                            {!isLoggedInAndRegistered && (
+                            {!isLoggedIn && (
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
@@ -585,7 +578,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                {!isLoggedInAndRegistered && (
+                                {!isLoggedIn && (
                                     <li className='md:flex items-center justify-center ml-1 hidden'>
                                         <Button sx={{
                                             backgroundColor: '#DB2777',

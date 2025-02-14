@@ -7,10 +7,8 @@ import { User } from '@/components/Types';
 export async function GET(request: NextRequest) {
     try {
         const session = await auth();
-        console.log('session', session)
         if (session && session.user) {
             const email = session.user.email
-            console.log("email", email)
             if (!email) {
                 return NextResponse.json({ loggedIn: false, error: 'User email not in session' }, { status: 500 });
             }

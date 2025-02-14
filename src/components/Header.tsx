@@ -19,18 +19,12 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import {
     SquarePen,
     Video,
-    Sparkles,
     Book,
     SquareLibrary,
     Search,
     Globe,
     Menu,
     User,
-    HeartHandshake,
-    Clapperboard,
-    Bell,
-    HandHeart,
-    CodeSquare
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
@@ -359,11 +353,6 @@ export const Header = () => {
                                     <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
-                                <Link href="/webtoons">
-                                    <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777] hover:text-[#DB2777]`}>
-                                        {phrase(dictionary, "webtoons", language)}
-                                    </p>
-                                </Link>
                                 <Link href="/?version=free" >
                                     <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "free", language)}</p>
@@ -429,9 +418,9 @@ export const Header = () => {
                                     }}
                                     PaperProps={{
                                         sx: {
-                                            marginTop: '60px',
+                                            marginTop: '0px',
                                             boxShadow: 'none',
-                                            backgroundColor: theme === 'dark' ? '#1A1A1A' : '#1A1A1A',
+                                            backgroundColor: theme === 'dark' ? '#1A1A1A' : 'white',
                                             // backgroundColor: 'black',
                                         }
                                     }}
@@ -444,11 +433,6 @@ export const Header = () => {
                             <ul className="flex flex-col md:flex-row font-medium mt-4 border border-gray-600 md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0 ">
                                 {/* gap-1 for desktop header icons */}
                                 {/* Language globe icon menu button - Desktop */}
-                                <li className='flex items-center justify-center'>
-                                    <button type="button" className="md:inline-flex hidden items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" >
-                                        <Bell size={20} className='dark:text-white text-gray-500' />
-                                    </button>
-                                </li>
                                 <li className="py-2 relative">
                                     <div ref={languageMenuRef}>
                                         <button
@@ -591,7 +575,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                {!isLoggedInAndRegistered && (
+                                {/* {!isLoggedInAndRegistered && (
                                     <li className='md:flex items-center justify-center ml-1 hidden'>
                                         <Button sx={{
                                             backgroundColor: '#DB2777',
@@ -603,7 +587,7 @@ export const Header = () => {
                                             {phrase(dictionary, "login", language)}
                                         </Button>
                                     </li>
-                                )}
+                                )} */}
                             </ul>
                         </div>
                     </div>

@@ -5,14 +5,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
-import { X, Search } from "lucide-react";
+import { X, Search, MoveLeft } from "lucide-react";
 import { useSearch } from "@/contexts/SearchContext";
-
+import Link from "next/link";
 export default function SearchComponent({ mode,
     recentQueriesFetched,
     lastIndexFetched,
     setIsMobileMenuOpen,
-    setOpen
+    setOpen,
 }: {
     mode: "mobileHeader" | "header" | "page",
     recentQueriesFetched?: string[],
@@ -38,13 +38,13 @@ export default function SearchComponent({ mode,
     }, [query, triggerSearch])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("e.target.value", e.target.value)
+        console.log("query", query)
         setQuery(e.target.value);
     }
 
     const handleSearch = (event?: React.FormEvent<HTMLFormElement>) => {
-        if (event) {
-            event.preventDefault();
-        }
+        event?.preventDefault();
         if (setIsMobileMenuOpen) {
             setIsMobileMenuOpen(false);
         }
@@ -86,7 +86,7 @@ export default function SearchComponent({ mode,
         setSearchRemember(prev => !prev)
     }
     return (
-        <div>
+        <div className="w-full overflow-hidden">
             <form onSubmit={handleSearch}>
                 {
                     mode === "mobileHeader" &&
@@ -101,26 +101,38 @@ export default function SearchComponent({ mode,
                 {
                     mode === "header" &&
                     <>
-                        <div className='flex flex-col items-center justify-center md:max-w-screen-xl w-full mx-auto'>
-                            <div className="relative w-full">
+                        <div className='flex flex-col items-center justify-center md:max-w-screen-xl w-full mx-auto h-80'>
+                            <div className="absolute top-5 md:max-w-screen-xl w-full mx-auto">
                                 <div className="absolute top-2 left-3 flex items-center justify-center pointer-events-none">
                                     <Search size={20} className='dark:text-white text-black' />
                                 </div>
-
                                 <input
                                     type="text"
                                     id="search-navbar"
                                     value={query}
                                     onChange={handleChange}
-                                    placeholder={phrase(dictionary, "searchPlaceholder", language)}
+                                    placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
                                     className="w-full p-2 pl-10 text-sm border-0 
-                                            text-black border-b-4 border-b-black focus:outline-none focus:ring-0
-                                            focus:border-b-[#DB2777]"
+                                     text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                     focus:ring-0 rounded-lg
+                                     focus:border-[#DB2777]
+                                     focus:outline-2 focus:outline-offset-2
+                                     focus:outline-[#DB2777] active:bg-transparent
+                                     "
                                 />
+                                <div className="absolute top-2 right-3 flex items-center justify-center pointer-cursor">
+                                    <Link href="#"
+                                        onClick={() => {
+                                            setQuery('')
+                                            if (setOpen) {
+                                                setOpen(false)
+                                            }
+                                        }}>
+                                        <X size={20} className='dark:text-white text-black ' />
+                                    </Link>
+                                </div>
                             </div>
-
-
-                            <div className="flex flex-col w-full py-3">
+                            <div className="flex flex-col w-full">
                                 <div>
                                     <div className='text-gray-500 text-md flex items-center justify-between'>
 
@@ -133,15 +145,14 @@ export default function SearchComponent({ mode,
                                             </span>
                                         </a>
                                     </div>
-
                                     <div className='w-full h-[100px]'>
                                         {recentQueries.length > 0 ?
                                             recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
                                                 <div key={index} onClick={() => { setQuery(query); setTriggerSearch(true) }} className='inline-flex gap-2 mt-3'>
-                                                    <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-white'>
+                                                    <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-black dark:text-white'>
                                                         {query}
                                                     </p>
-                                                    <p className='relative right-7 top-2 !cursor-pointer text-white'>
+                                                    <p className='relative right-7 top-2 !cursor-pointer text-black dark:text-white'>
                                                         <X onClick={(event) => handleDeleteRecentQuery(event, index)} size={10} />
                                                     </p>
                                                 </div>
@@ -152,7 +163,6 @@ export default function SearchComponent({ mode,
                                             </p>
                                         }
                                     </div>
-
                                 </div>
 
                                 {/* <div className='h-[100px]'>
@@ -175,25 +185,32 @@ export default function SearchComponent({ mode,
                 {
                     mode === "page" &&
                     <>
-                        <div className="relative md:max-w-screen-xl w-full mt-4 md:px-0 px-4">
-                            {/* mt-4 for the margin top of the page */}
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none md:px-0 px-4">
-                               <Search size={20} className='dark:text-white text-black' />
-                            </div>
-                            <input
-                                type="text"
-                                id="search-navbar"
-                                value={query}
-                                onChange={handleChange}
-                                placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
-                                className="w-full p-2 pl-10 text-sm border-0 
+                        <div className="relative md:max-w-screen-xl w-full my-4 md:px-2 px-4">
+                            {/* my-4 md:px-2 px-4 for the margin top and padding of the search bar */}
+                            <div className="flex flex-row justify-center items-center">
+                                <div className="self-center mr-5">
+                                    <Link href="/">
+                                        <MoveLeft size={20} className='dark:text-white text-black' />
+                                    </Link>
+                                </div>
+                                <div className="relative flex-1 ">
+                                    <Search size={20} className='dark:text-white text-black absolute left-3 top-4 -translate-y-1/2 pointer-events-none md:px-0 px-4' />
+                                    <input
+                                        type="text"
+                                        id="search-navbar"
+                                        value={query}
+                                        onChange={handleChange}
+                                        placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                                        className="w-full p-2 pl-10 text-sm border-0 
                                      text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
                                      focus:ring-0 rounded-lg
                                      focus:border-[#DB2777]
                                      focus:outline-2 focus:outline-offset-2
                                      focus:outline-[#DB2777] active:bg-transparent
                                      "
-                            />
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </>
                 }

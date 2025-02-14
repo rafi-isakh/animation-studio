@@ -17,7 +17,7 @@ const MyReadingListWrapper = ({ library, nickname }: { library: Webnovel[], nick
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     return (
-        <div className={`relative md:max-w-screen-lg w-full mx-auto group overflow-hidden`}>
+        <div className={`relative md:max-w-screen-xl w-full mx-auto group overflow-hidden`}>
             <div>
                 {library.length > 0 ?
                     <div className="flex flex-row justify-between">

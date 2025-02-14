@@ -58,7 +58,7 @@ const Billboard = ({ videoSrc, posterSrc, headerPhrase = "", subheaderPhrase = "
         {/* Play/Pause Button */}
         <button
           onClick={togglePlay}
-          className="absolute bottom-4 right-4 bg-white/30 hover:bg-white/50 
+          className="absolute bottom-10 right-4 bg-white/30 hover:bg-white/50 
                    rounded-full p-2 transition-colors duration-200"
           aria-label={isPlaying ? 'Pause video' : 'Play video'}
         >

@@ -408,7 +408,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 >
                                     <Search size={20} className='dark:text-white text-gray-500' />
                                 </button>
-                              
                                 <Drawer
                                     anchor="top"
                                     open={open}
@@ -425,7 +424,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             // backgroundColor: 'black',
                                         }
                                     }}
-
+                                    className="relative w-full"
                                 >
                                     
                                     <Box sx={{ p: 2, }}>
@@ -601,10 +600,10 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
-                        <Link href="/webtoons">
+                        {/* <Link href="/webtoons">
                             <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "webtoons", language)}</p>
-                        </Link>
+                        </Link> */}
                         <Link href="/?version=free" >
                             <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>

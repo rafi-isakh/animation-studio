@@ -47,9 +47,6 @@ const WebnovelTranslateComponent = (
     } = useReader();
 
     useEffect(() => {
-        if (fetchRef.current) return;
-        if (!language) return;
-        fetchRef.current = true;
         const handleTranslate = async () => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
@@ -60,9 +57,9 @@ const WebnovelTranslateComponent = (
             // If there's no translation in the DB
             // initialized.current is bc useEffect runs twice
             // submitContent with ongoing translation
-            if (!data.done && !initialized.current) {
+            if (!data.done) {
+                setText("");
                 submitContent(data.text);
-                initialized.current = true;
             }
         }
         if (sourceLanguage == language) {

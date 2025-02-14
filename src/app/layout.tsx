@@ -15,8 +15,7 @@ import RegisterSW from '@/components/RegisterSW';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import { StripeProvider } from '@/contexts/StripeContext';
 import BottomNavigationBar from '@/components/UI/BottomNavigation';
-import { Sidebar } from '@/components/UI/Sidebar';
-
+import { GlobalSidebar } from '@/components/UI/Sidebar';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
 interface RootLayoutProps {
@@ -106,8 +105,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                        <div className="hidden md:block z-[99]">  {/* no sidebar on mobile */}
-                          <Sidebar />
+                        <div className="hidden md:flex z-[99] justify-center items-center">  {/* no sidebar on mobile */}
+                          <GlobalSidebar />
                         </div>
                         <div className="block md:hidden z-[99]">
                           <BottomNavigationBar />

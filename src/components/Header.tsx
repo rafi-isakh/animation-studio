@@ -339,13 +339,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, comics, free, Toonyzcut */}
                         <div className='flex flex-row items-center justify-center gap-4 '>
-                            <Link href="/?version=premium" className="flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
-                                {/* logo padding on mobile screen */}
+                            <Link href="/?version=premium" className="md:hidden flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                                 <Image
                                     src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
                                     alt="Toonyz Logo"
                                     width={logoWidth}
-                                    height={logoHeight} />
+                                    height={logoHeight}
+                                    className="md:hidden"
+                                    />
                             </Link>
                             <div className="flex flex-row gap-4 items-center justify-center font-pretendard md:text-md text-sm">
                                 <Link href="/?version=premium" >

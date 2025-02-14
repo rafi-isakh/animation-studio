@@ -36,7 +36,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
         setContent(updatedContent);
     };
-    
+
     useEffect(() => {
     }, [language])
 
@@ -145,30 +145,32 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
         if (atLeastOneWebnovel) {
             return (
                 // <ThemeProvider theme={grayTheme}>
-                    <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
-                        
-                        <div className="flex md:flex-row flex-col justify-between items-start">
-                            <div className="md:w-1/3 w-full flex-grow-0">
-                            <AuthorAndWebnovelsAsideComponent
-                                webnovel={webnovel!}
-                                nickname={nickname}
-                                coverArt={theWebnovel?.cover_art || ""}
-                                onNewChapter={handleNewChapter}
-                                onDelete={handleDelete}
-                            />
-                            </div>
-                            <div className='flex-1 md:w-2/3 w-full'>
-                                <ContentChapterListComponent
-                                    content={theWebnovel as Webnovel}
+                <div className='md:max-w-screen-xl mx-auto w-full min-h-screen'>
+
+                    <div className="flex md:flex-row flex-col justify-between items-start">
+                        <div className="md:w-1/3 max-auto w-full flex-grow-0">
+                            <div className="max-w-[360px] mx-auto mt-4">
+                                <AuthorAndWebnovelsAsideComponent
+                                    webnovel={webnovel!}
+                                    nickname={nickname}
                                     coverArt={theWebnovel?.cover_art || ""}
-                                    isWebtoon={false}
-                                    relatedContent={webnovels}
-                                    onContentUpdate={handleContentUpdate}
-                                    loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                                    onNewChapter={handleNewChapter}
+                                    onDelete={handleDelete}
                                 />
                             </div>
                         </div>
+                        <div className='flex-1 md:w-2/3 w-full'>
+                            <ContentChapterListComponent
+                                content={theWebnovel as Webnovel}
+                                coverArt={theWebnovel?.cover_art || ""}
+                                isWebtoon={false}
+                                relatedContent={webnovels}
+                                onContentUpdate={handleContentUpdate}
+                                loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                            />
+                        </div>
                     </div>
+                </div>
                 // </ThemeProvider >
             )
         } else {

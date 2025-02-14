@@ -29,13 +29,13 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     }, [content, classParams]);
 
     useEffect(() => {
+        const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
         languageChangedRef.current = true;
         setText("");
         setLoading(true);
-        const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
-        const langSessionKey = `${elementType}.${elementId}.${elementSubtype}`;
+        const langSessionKey = `lang-${elementType}.${elementId}.${elementSubtype}`;
         const detectLanguage = async () => {
-            const itemLanguageSessionKey = `lang-${langSessionKey}`;
+            const itemLanguageSessionKey = `${langSessionKey}`;
             const itemLanguage = localStorage.getItem(itemLanguageSessionKey);
             let langcode;
             let originalAndTargetLangSame = false;
@@ -53,6 +53,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             if (langcode == language) {
                 originalAndTargetLangSame = true;
             }
+            localStorage.setItem(langSessionKey, langcode);
             return originalAndTargetLangSame;
         }
 

@@ -14,12 +14,10 @@ const MyReadingListComponent = ({ library }: { library: Webnovel[] }) => {
     const { nickname } = useUser();
 
     return (
-        isLoggedIn ? (
+        isLoggedIn && (
             <div className="max-w-screen-lg w-full flex mx-auto justify-center">
                 <MyReadingListWrapper library={library} nickname={nickname} />
             </div>
-        ) : (
-            <></>
         )
     );
 }

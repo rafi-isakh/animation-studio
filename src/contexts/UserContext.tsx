@@ -14,6 +14,8 @@ interface UserContextProps {
     purchased_webnovel_chapters: number[];
     setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
     checking: boolean;
+    upvotedComments: string[];
+    setUpvotedComments: (upvotedComments: string[]) => void;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -28,6 +30,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [bio, setBio] = useState<string>("");
     const [stars, setStars] = useState<number>(0);
     const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<number[]>([]);
+    const [upvotedComments, setUpvotedComments] = useState<string[]>([]);
     const pathname = usePathname();
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
@@ -49,6 +52,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setStars(data.stars);
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
                 setChecking(false);
+                setUpvotedComments(data.upvoted_comments);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -66,7 +70,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             stars,
             purchased_webnovel_chapters,
             setInvokeCheckUser,
-            checking
+            checking,
+            upvotedComments, setUpvotedComments
         }}>
             {children}
         </userContext.Provider>

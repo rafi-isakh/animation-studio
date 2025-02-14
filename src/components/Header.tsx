@@ -19,7 +19,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import {
     SquarePen,
     Video,
-    Sparkles,
+    X,
     Book,
     SquareLibrary,
     Search,
@@ -30,7 +30,8 @@ import {
     Clapperboard,
     Bell,
     HandHeart,
-    CodeSquare
+    CodeSquare,
+    Sparkles
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
@@ -38,6 +39,7 @@ import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import HeaderTabs from '@/components/UI/HeaderTabs';
+import { motion, AnimatePresence } from "framer-motion"
 
 export const Header = () => {
     const router = useRouter();
@@ -71,6 +73,13 @@ export const Header = () => {
     const [recentQueriesBackup, setRecentQueriesBackup] = useState<string[]>([]);
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
+    const [isLoggedInAndRegistered, setIsLoggedInAndRegistered] = useState(true);
+
+    useEffect(() => {
+        if (!loading) {
+            setIsLoggedInAndRegistered(isLoggedIn! && !!email);
+        }
+    }, [isLoggedIn, email, loading]);
 
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
     useEffect(() => {
@@ -405,11 +414,12 @@ export const Header = () => {
                                 >
                                     <Search size={20} className='dark:text-white text-gray-500' />
                                 </button>
+                              
                                 <Drawer
                                     anchor="top"
                                     open={open}
                                     onClose={toggleDrawer(false)}
-                                    transitionDuration={100}
+                                    transitionDuration={300}
                                     ModalProps={{
                                         keepMounted: true,
                                     }}
@@ -421,7 +431,9 @@ export const Header = () => {
                                             // backgroundColor: 'black',
                                         }
                                     }}
+
                                 >
+                                    
                                     <Box sx={{ p: 2, }}>
                                         <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} setOpen={setOpen} />
                                     </Box>

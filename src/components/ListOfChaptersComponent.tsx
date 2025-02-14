@@ -1,25 +1,19 @@
-import { Chapter, Webnovel, Webtoon, WebtoonChapter } from "@/components/Types";
+import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import { phrase } from '@/utils/phrases';
 import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
+import { Button, Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronDownIcon, Eye, Heart, MessageCircle, BadgeCheck } from "lucide-react";
-import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
-import { styled } from '@mui/system';
-import { ChevronDownIcon, ChevronUpIcon, Eye, Heart, MessageCircle } from "lucide-react";
-import { usePathname, useRouter } from 'next/navigation';
-import { createEmailHash } from "@/utils/cryptography";
+import { BadgeCheck, ChevronDownIcon, ChevronUpIcon, Eye, MessageCircle } from "lucide-react";
+import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
-import { useRouter } from "next/navigation";
 import { chapterPrice } from "@/utils/webnovelUtils";
-import { useUser } from "@/contexts/UserContext";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -165,7 +159,7 @@ const ListOfChaptersComponent = ({
                                     </div>
                                 </div>
                             </div>
-                        </button>
+                        </Link>
                     ))}
                 </div>
                 {hasMoreChapters && (

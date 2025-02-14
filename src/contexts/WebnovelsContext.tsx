@@ -29,6 +29,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
             console.error("Failed to fetch webnovels metadata", response.status);
         }
         const data = await response.json();
+        console.log("data", data);
         setWebnovels(data);
     }
 
@@ -86,7 +87,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
             cache: 'no-store',
         });
         const data = await response.json();
-        setWebnovels([...webnovels.filter((webnovel) => webnovel.id !== data.id), data]);
+        setWebnovels([...webnovels.filter((w) => w.id !== Number(data.id)), data]);
         setChaptersLikelyNeededWebnovel(webnovel);
     };
 

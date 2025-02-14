@@ -127,7 +127,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
 
     if (id === undefined) {
         return (
-            <div className='md:max-w-screen-lg w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]'>
+            <div className='md:max-w-screen-xl w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]'>
                 <div className="flex flex-col justify-center items-center space-y-2">
                     <Image src="/stelli/stelli_4.svg" alt="noWebnovelsFound" width={150} height={100} />
                     <p className="text-md font-bold"> {phrase(dictionary, "noWebnovelsFound", language)} </p>

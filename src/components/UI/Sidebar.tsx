@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Search, LibraryBig, LayoutGrid, SquarePlus, Bell, Gift, Settings } from "lucide-react"
+import { Search, LibraryBig, LayoutGrid, SquarePlus, Bell, Gift, ChevronFirst, ChevronLast, MoreVertical } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
 import Popover from '@mui/material/Popover';

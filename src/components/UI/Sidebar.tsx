@@ -219,8 +219,9 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             {/* Setting btn */}
             <div className="flex flex-col gap-y-4 mt-auto pb-10">
               {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
-                <UserProfileButton />
-              </div> : <></>}
+                                            <UserProfileButton expanded={expanded} />
+                                        </div> : <></>
+              }
               <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded}  />
             </div>
           </nav>

@@ -25,12 +25,14 @@ import { useTheme } from '@/contexts/providers';
 import { Language } from '@/components/Types';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 
 export default function Setting({isLoggedInAndRegistered, expanded, }
     : {isLoggedInAndRegistered: boolean, expanded: boolean,  }) {
     const { language, dictionary, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme()
     const { logout } = useAuth();
+    const { email, nickname } = useUser();
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
     const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
     const [value, setValue] = useState('한국어');

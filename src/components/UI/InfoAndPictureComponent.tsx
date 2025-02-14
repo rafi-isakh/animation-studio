@@ -307,7 +307,7 @@ export default function InfoAndPictureComponent({
 
                             {isJongmin() &&
                                 <div className="pb-5 w-full">
-                                    <TranslateWebnovelAllButton webnovel={content as Webnovel} />
+                                    <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
                                 </div>
                             }
                             {/* writing button */}

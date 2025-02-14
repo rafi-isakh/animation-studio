@@ -19,18 +19,14 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import {
     SquarePen,
     Video,
-    X,
     Book,
     SquareLibrary,
     Search,
     Globe,
     Menu,
     User,
-    HeartHandshake,
-    Clapperboard,
+    Sparkles,
     Bell,
-    HandHeart,
-    CodeSquare
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'

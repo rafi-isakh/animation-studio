@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, createContext, useContext, } from 'react'
+import React, { useState, createContext, useContext, useEffect, } from 'react'
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -39,13 +39,22 @@ const SidebarContext = createContext<SidebarContextType>({ expanded: false });
 export function GlobalSidebar() {
   const pathname = usePathname();
 
+  useEffect(() => {
+    console.log(pathname)
+  }, [pathname])
   return (
     <Sidebar>
-      <SidebarItem icon={<Home />} text="Home" active={true} alert={false} href="/" />
+      <SidebarItem
+        icon={<Home />}
+        text="Home"
+        active={pathname === '/'}
+        alert={false}
+        href="/"
+      />
       <SidebarItem
         icon={<Search />}
         text="Search"
-        active={pathname.startsWith('/stars')}
+        active={pathname.startsWith('/search')}
         alert={false}
         href="/search"
       />
@@ -70,8 +79,8 @@ export function SidebarItem({ icon, text, active, alert, href }:
     >
       <li className={`relative flex items-center py-2 px-5 my-1 font-medium 
                     rounded-md cursor-pointer transition-colors group 
-                   ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
-          : "hover:bg-indigo-50 text-gray-400"}`}>
+                     ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
+                    : "bg-transparent hover:bg-gray-50 text-gray-400"}`}>
         {icon}
         <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
         {alert && (
@@ -132,7 +141,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <aside className={`flex h-full w-[72px] flex-col z-[99] transition-all duration-300 ease-in-out
+      <aside className={`flex h-full flex-col z-[99] transition-all duration-300 ease-in-out
                     fixed left-0 top-0 border-r dark:border-black
                     border-gray-200 bg-white dark:bg-[#211F21] ${expanded ? "w-[240px]" : "w-[72px]"}`}>
         {/* darkmode bg-[#211F21] */}

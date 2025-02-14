@@ -221,7 +221,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
               {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
                 <UserProfileButton />
               </div> : <></>}
-              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded} handleSignOut={handleSignOut} />
+              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded}  />
             </div>
           </nav>
         </SidebarContext.Provider>

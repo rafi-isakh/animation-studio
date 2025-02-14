@@ -24,11 +24,13 @@ import Popover from '@mui/material/Popover';
 import { useTheme } from '@/contexts/providers';
 import { Language } from '@/components/Types';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
-export default function Setting({isLoggedInAndRegistered, expanded, handleSignOut}
-    : {isLoggedInAndRegistered: boolean, expanded: boolean, handleSignOut: () => void }) {
+export default function Setting({isLoggedInAndRegistered, expanded, }
+    : {isLoggedInAndRegistered: boolean, expanded: boolean,  }) {
     const { language, dictionary, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme()
+    const { logout } = useAuth();
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
     const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
     const [value, setValue] = useState('한국어');
@@ -52,6 +54,11 @@ export default function Setting({isLoggedInAndRegistered, expanded, handleSignOu
     const handlePopoverClose = () => {
         setPopoverAnchor(null);
     };
+
+    const handleSignOut = async (event: React.FormEvent) => {
+        event.preventDefault();
+        logout(true, '/');
+      };
 
     const open = Boolean(popoverAnchor);
     const id = open ? 'simple-popover' : undefined;

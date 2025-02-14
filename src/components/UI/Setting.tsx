@@ -122,7 +122,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                         <ListItemButton
                             color='gray'
                             onClick={() => toggleTheme(theme == 'dark' ? 'light' : 'dark')}
-                            className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'
+                            className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'
                         >
                             <ListItemText primary={phrase(dictionary, theme === 'dark' ? 'LightMode' : 'DarkMode', language)} />
                         </ListItemButton>
@@ -132,7 +132,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                             aria-controls="language-menu"
                             aria-label="Language"
                             onClick={handleClickLanguageDialog}
-                            className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md dark:text-white'
+                            className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md dark:text-white'
                         >
                             <ListItemText
                                 primary="Language"
@@ -150,17 +150,17 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                         </ListItemButton>
                         <ListItemButton
                             color='gray'
-                            className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'
+                            className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'
                         >
                             <ListItemText primary="Help center" />
                         </ListItemButton>
-                        {!isLoggedInAndRegistered ? (<Link href="/signin" passHref className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'>
+                        {!isLoggedInAndRegistered ? (<Link href="/signin" passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
                             <ListItemButton
                                 color='gray'
                             >
                             <ListItemText primary="Login" />
                         </ListItemButton>
-                        </Link>) : (<Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'>
+                        </Link>) : (<Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
                             <ListItemButton
                                 color='gray'
                             >

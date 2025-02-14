@@ -62,7 +62,7 @@ const NotificationButton = ({ className, expanded, alert }: NotificationButtonPr
                     }
                 }}
                 PaperProps={{
-                    className: "mt-2 dark:bg-black dark:text-white",
+                    className: "dark:bg-black dark:text-white",
                     sx: {
                         zIndex: 1400
                     }
@@ -75,8 +75,9 @@ const NotificationButton = ({ className, expanded, alert }: NotificationButtonPr
                             <X className='text-black dark:text-white' />
                         </IconButton>
                     </div>
-                    <div className="space-y-2">
-                        <div className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                    <hr className='my-2'/>
+                    <div className="space-y-2 text-base">
+                        <div className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                             <p className="text-sm">No new notifications</p>
                         </div>
                     </div>

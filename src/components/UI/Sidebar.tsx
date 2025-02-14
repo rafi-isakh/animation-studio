@@ -194,7 +194,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
                 height={30}
               />}
             </Link>
-            <button onClick={() => setExpanded((curr) => !curr)} className="self-center rounded-lg hover:bg-gray-100 dark:hover:bg-black/50 hover:text-black dark:hover:text-gray-100">
+            <button onClick={() => setExpanded((curr) => !curr)} className="self-center rounded-lg hover:bg-gray-100 dark:hover:bg-[#272727] hover:text-black dark:hover:text-gray-100">
               {expanded ? <ChevronFirst className='' />
                 : <Image
                   src='/images/N_logo.svg'

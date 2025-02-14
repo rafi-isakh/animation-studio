@@ -66,7 +66,6 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        console.log("content", content);
     }, []);
 
     useEffect(() => {
@@ -131,7 +130,7 @@ export default function InfoAndPictureComponent({
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px] rounded-xl">
                                 { coverArt ?
                                     <Image
-                                        src={isWebtoon ? coverArt : coverArt ? getImageUrl(coverArt) : ""}
+                                        src={isWebtoon ? coverArt : getImageUrl(coverArt) }
                                         alt={content.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 300px"

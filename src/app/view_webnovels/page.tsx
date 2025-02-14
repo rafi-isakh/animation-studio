@@ -26,7 +26,7 @@ const ViewWebnovels = () => {
     const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
-    const { webnovels, setWebnovels, getWebnovelById, getWebnovelsMetadataByEmailHash, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
+    const { getWebnovelById, getWebnovelsMetadataByEmailHash, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
     const searchParams = useSearchParams();
     const searchParamsObject = Object.fromEntries(searchParams.entries());
 
@@ -54,21 +54,22 @@ const ViewWebnovels = () => {
     }, [searchParams])
 
     return (
-        <>
-            {loading ? (
-                <div role="status" className={`flex items-center justify-center min-h-screen`}>
-                    <LottieLoader
-                        animationData={animationData}
-                        width="w-32"
-                        centered={true}
-                        pulseEffect={true}
-                    />
-                </div>
-            ) : (
-                <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
-            )
-            }
-        </>
+        <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
+        // <>
+        //     {loading ? (
+        //         <div role="status" className={`flex items-center justify-center min-h-screen`}>
+        //             <LottieLoader
+        //                 animationData={animationData}
+        //                 width="w-32"
+        //                 centered={true}
+        //                 pulseEffect={true}
+        //             />
+        //         </div>
+        //     ) : (
+        //         <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
+        //     )
+        //     }
+        // </>
     )
 }
 

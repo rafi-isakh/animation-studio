@@ -78,7 +78,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         } else if (pathname.startsWith("/view_webnovels")) {
             const id = searchParams.get("id");
             if (premiumWebnovelIds.includes(parseInt(id!))) {
-                console.log("premium")
                 setActiveTab('premium');
             } else {
                 setActiveTab('free');

@@ -21,15 +21,18 @@ async function getUser(id: string) {
 export default function ViewProfile({ params: { id }, }: { params: { id: string } }) {
     const [user, setUser] = useState<User | null>(null);
     const [novels, setNovels] = useState<Webnovel[] | null>(null);
-    const { getWebnovelsByAuthorEmailHash } = useWebnovels();
+    const { getWebnovelsMetadataByEmailHash } = useWebnovels();
 
     useEffect(() => {
-        getUser(id).then(user => {
+        const fetchUserAndNovels = async () => {
+            const user = await getUser(id);
             setUser(user);
             if (user) {
-                setNovels(getWebnovelsByAuthorEmailHash(user.email_hash));
+                const novels = await getWebnovelsMetadataByEmailHash(user.email_hash);
+                setNovels(novels);
             }
-        });
+        }
+        fetchUserAndNovels();
     }, [id]);
 
     if (!user) {

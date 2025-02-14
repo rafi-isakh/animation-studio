@@ -11,6 +11,7 @@ interface WebnovelsContextState {
     addWebnovel: (webnovel: Webnovel) => void; // Replace 'any' with a more specific type if available
     getWebnovelById: (id: string) => Promise<Webnovel | undefined>;
     getWebnovelsMetadataByEmailHash: (emailHash: string) => Promise<Array<Webnovel>>;
+    invalidateCache: () => void;
 }
 
 // Create the context with a default value
@@ -21,7 +22,11 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); // Replace 'any' with a more specific type if available
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
 
-    const addWebnovel = (webnovel: Webnovel) => { // Replace 'any' with a more specific type if available
+    const invalidateCache = () => {
+        setWebnovels([]);
+    }
+
+    const addWebnovel = (webnovel: Webnovel) => { 
         setWebnovels((prevWebnovels) => [...prevWebnovels, webnovel]);
     };
 
@@ -55,7 +60,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     return (
-        <WebnovelsContext.Provider value={{ webnovels, setWebnovels, addWebnovel, getWebnovelById, getWebnovelsMetadataByEmailHash, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel }}>
+        <WebnovelsContext.Provider value={{ webnovels, setWebnovels, addWebnovel, getWebnovelById, getWebnovelsMetadataByEmailHash, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel, invalidateCache }}>
             {children}
         </WebnovelsContext.Provider>
     );

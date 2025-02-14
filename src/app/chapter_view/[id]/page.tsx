@@ -105,9 +105,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     useEffect(() => {
         const fetchChapter = async () => {
-            let chapter;
-            if (chaptersLikelyNeededWebnovel?.chapters.find(chapter => chapter.id == Number(id))) {
-                chapter = chaptersLikelyNeededWebnovel.chapters.find(chapter => chapter.id == Number(id));
+            let chapter = chaptersLikelyNeededWebnovel?.chapters.find(chapter => chapter.id == Number(id));
+            if (chapter?.content) {
                 setChapter(chapter);
             }
             else {

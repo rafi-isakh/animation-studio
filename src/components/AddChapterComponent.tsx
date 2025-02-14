@@ -33,7 +33,15 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const contentRef = useRef<ReactQuill>(null);
     const [openModal, setOpenModal] = useState(false);
     const { getWebnovelById } = useWebnovels();
-    const webnovel = getWebnovelById(webnovelId);
+    const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
+
+    useEffect(() => {
+        const fetchWebnovel = async () => {
+            const webnovel = await getWebnovelById(webnovelId);
+            setWebnovel(webnovel);
+        }
+        fetchWebnovel();
+    }, [webnovelId])
 
     useEffect(() => {
         setCurrText(content.length);

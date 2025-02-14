@@ -72,7 +72,6 @@ export const Header = () => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
 
-    const isLoggedInAndRegistered = isLoggedIn && email;
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
     useEffect(() => {
         if (searchParams.get("version") == "premium") {
@@ -369,19 +368,11 @@ export const Header = () => {
                                 </button>
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
-<<<<<<< Updated upstream
-                            {isLoggedInAndRegistered && (
-                            <div ref={hamburgerRef}>
-                                <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
-                                    <Menu size={20} className='dark:text-white text-gray-500' />
-                                </button>
-=======
                             {isLoggedIn && (
                                 <div ref={hamburgerRef}>
                                     <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                         <Menu size={20} className='dark:text-white text-gray-500' />
                                     </button>
->>>>>>> Stashed changes
                                 </div>
                             )}
                             {!isLoggedIn && (

@@ -19,13 +19,11 @@ import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
+import LanguageSetter from "@/components/LanguageSetter";
+import { getCountryFromIP } from "@/utils/phrases";
 interface RootLayoutProps {
   children: ReactNode;
 }
-
-const queryClient = new QueryClient();
 
 export const metadata: Metadata = {
   title: '투니즈 Toonyz',
@@ -76,19 +74,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
+          <LanguageSetter />
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-<<<<<<< Updated upstream
-                      <QueryClientProvider client={queryClient}>
-                      <div className={`font-pretendard pretendard-jp pretendard-std
-                    ${notoSansArabic.className} 
-                    ${notoSansThai.className} 
-                    ${notoSansTC.className}`}>
-=======
                     <div className={`font-pretendard pretendard-jp pretendard-std`}>
                       <Suspense>
                         <Header />
@@ -96,18 +88,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       <Margin>
                         {children}
                         <Analytics />
->>>>>>> Stashed changes
                         <Suspense>
-                          <Header />
+                          <NavigationEvents />
                         </Suspense>
-                        <Margin>
-                            {children}
-                          <Analytics />
-                          <Suspense>
-                            <NavigationEvents />
-                          </Suspense>
-                        </Margin>
-                        {/* 
+                      </Margin>
+                      {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
@@ -117,8 +102,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                      </div>
-                      </QueryClientProvider>
+                    </div>
                     </StripeProvider>
                   </SearchProvider>
                 </DeviceProvider>

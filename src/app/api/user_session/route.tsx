@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
                 id: user.id,
                 email: email,
                 stars: user.stars,
+                purchased_webnovel_chapters: user.purchased_webnovel_chapters,
                 upvoted_comments: user.upvoted_comments,
             });
         } else {
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
                 id: "",
                 email: "",
                 stars: 0,
+                purchased_webnovel_chapters: "[]",
                 upvoted_comments: "",
             });
         }

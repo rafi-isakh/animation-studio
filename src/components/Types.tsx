@@ -19,6 +19,7 @@ export interface Chapter {
   created_at: string;
   views: number;
   upvotes: number;
+  free: boolean;
 }
 
 export interface User {
@@ -30,6 +31,7 @@ export interface User {
   picture: string;
   stars: number;
   marketing: string;
+  purchased_webnovel_chapters: string;
   upvoted_comments: string;
 }
 

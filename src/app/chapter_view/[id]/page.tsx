@@ -42,8 +42,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
     const { isLoggedIn } = useAuth();
-    const [key, setKey] = useState(0); // for remounting WebnovelTranslateComponent
-    const [key2, setKey2] = useState(0); // for remounting OtherTranslation for webnovel title
     const [deleteModal, setDeleteModal] = useState(false);
     const [isAuthor, setIsAuthor] = useState(false);
     const { dictionary, language } = useLanguage();
@@ -72,7 +70,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
     const { readerTheme, toggleReaderTheme } = useReaderTheme()
-
+    const { purchased_webnovel_chapters, checking } = useUser();
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
@@ -84,10 +82,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1)
-        setKey2(prevKey => prevKey + 1)
-    }, [language])
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -112,6 +106,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             .then(response => response.json())
             .then(data => {
                 setChapter(data);
+                // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
+                if (!data.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
+                    router.push('/');
+                }
                 setUpvotes(data.upvotes)
                 fetch(`/api/get_webnovel_metadata_by_id?id=${data.webnovel_id}`)
                     .then(response2 => response2.json())
@@ -120,7 +118,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     })
             }
             )
-    }, []);
+    }, [checking]);
 
     useEffect(() => {
         if (email) {
@@ -282,7 +280,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         {/* Title and content */}
 
                         <div className='flex flex-col space-y-4' >
-                            <div key={key} id='translate-div'>
+                            <div id='translate-div'>
                                 <div className='flex justify-between'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>

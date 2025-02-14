@@ -1,20 +1,19 @@
-import { Chapter, Webnovel, Webtoon, WebtoonChapter } from "@/components/Types";
+import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import { phrase } from '@/utils/phrases';
 import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
+import { Button, Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
-import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
-import { styled } from '@mui/system';
-import { ChevronDownIcon, ChevronUpIcon, Eye, Heart, MessageCircle } from "lucide-react";
-import { usePathname, useRouter } from 'next/navigation';
-import { createEmailHash } from "@/utils/cryptography";
+import { BadgeCheck, ChevronDownIcon, ChevronUpIcon, Eye, MessageCircle } from "lucide-react";
+import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
+import { MdStars } from "react-icons/md";
+import { chapterPrice } from "@/utils/webnovelUtils";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -30,6 +29,11 @@ const ListOfChaptersComponent = ({
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const [showMoreChapters, setShowMoreChapters] = useState(false);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
+    const date = new Date();
+    const router = useRouter();
+    const { purchased_webnovel_chapters, setInvokeCheckUser } = useUser();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
     const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
 
@@ -61,6 +65,45 @@ const ListOfChaptersComponent = ({
         }
     }
 
+    const handleChapterClick = (chapter: Chapter) => {
+        if (chapter.free) {
+            router.push(`/chapter_view/${chapter.id}`);
+        } else {
+            if (purchased_webnovel_chapters.includes(chapter.id)) {
+                router.push(`/chapter_view/${chapter.id}`);
+                return;
+            }
+            setChapterToPurchase(chapter);
+            setShowPurchaseModal(true);
+        }
+    }
+
+    const handleChapterPurchase = async (chapter: Chapter) => {
+        if (!chapter) return;
+        else {
+            setShowPurchaseModal(false);
+            const response = await fetch(`/api/purchase_chapter`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    chapter_id: chapter.id,
+                    price: chapterPrice(language)
+                })
+            });
+            if (!response.ok) {
+                console.error('Failed to purchase chapter');
+                alert("Failed to purchase chapter");
+            } else {
+                const data = await response.json();
+                if (data.success) {
+                    setInvokeCheckUser(prev => !prev);
+                    router.push(`/chapter_view/${chapter.id}`);
+                } else {
+                    alert(data.message);
+                }
+            }
+        }
+    }
+
     return (
         <>
             <div className="w-full">
@@ -89,7 +132,7 @@ const ListOfChaptersComponent = ({
                                         <div className="flex flex-row">
                                             <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" />
                                         </div>
-                                        <p className="text-[11px] text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
+                                        <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                                 <Eye size={11} /> {chapter.views}
@@ -110,10 +153,9 @@ const ListOfChaptersComponent = ({
                                 </div>
                                 <div className="flex flex-row gap-2 items-center">
                                     <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
-                                        {/* Free */}
-                                        {phrase(dictionary, "readingForFree", language)}
-                                        {/* {chapter.free_premium ? phrase(dictionary, "readingForFree", language)
-                                         : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" /> 30</div>} */}
+                                        {chapter.free ? phrase(dictionary, "readingForFree", language)
+                                            : purchased_webnovel_chapters?.includes(chapter.id) ? <BadgeCheck size={11} />
+                                                : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{chapterPrice(language)}</div>}
                                     </div>
                                 </div>
                             </div>
@@ -149,6 +191,25 @@ const ListOfChaptersComponent = ({
                             onClick={() => setShowDeleteModal(false)}
                         >
                             {phrase(dictionary, "no", language)}
+                        </Button>
+                    </div>
+                </Box>
+            </Modal>
+            <Modal open={showPurchaseModal} onClose={() => setShowPurchaseModal(false)}>
+                <Box sx={useModalStyle}>
+                    <div className="flex flex-col space-y-4 items-center justify-center">
+                        <p className="text-lg font-bold">
+                            {phrase(dictionary, "purchaseChapter", language)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}
+                        </p>
+                        <Button
+                            variant="outlined"
+                            color="gray"
+                            onClick={() => handleChapterPurchase(chapterToPurchase!)}
+                        >
+                            {phrase(dictionary, "purchase", language)}
                         </Button>
                     </div>
                 </Box>

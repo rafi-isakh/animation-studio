@@ -13,7 +13,6 @@ import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
 import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';
-import WebnovelsDataProvider from '@/components/WebnovelsDataProvider';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)

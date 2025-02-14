@@ -17,7 +17,6 @@ import { StripeProvider } from '@/contexts/StripeContext';
 import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
-import WebnovelsDataProvider from "@/components/WebnovelsDataProvider";
 interface RootLayoutProps {
   children: ReactNode;
 }

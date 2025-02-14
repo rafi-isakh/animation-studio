@@ -1,23 +1,16 @@
 "use client"
 import { Webnovel, Webtoon } from '@/components/Types'
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
-import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
-import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
-import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, Skeleton, ThemeProvider, useMediaQuery } from '@mui/material';
-import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { CommentList } from '@/components/CommentList';
+import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
+import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
@@ -157,10 +150,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
             )
         } else if (atLeastOneWebnovel) {
             return (
-                <ThemeProvider theme={grayTheme}>
-                    <div className='w-full min-h-screen md:max-w-screen-lg mx-auto'>
-                        {/*--  left-hand side:  Author's other works link */}
+                // <ThemeProvider theme={grayTheme}>
+                    <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
+                        
                         <div className="flex md:flex-row flex-col justify-between items-start">
+                            <div className="md:w-1/3 w-full flex-grow-0">
                             <AuthorAndWebnovelsAsideComponent
                                 webnovels={[theWebnovel!]}
                                 nickname={nickname}
@@ -168,8 +162,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 onNewChapter={handleNewChapter}
                                 onDelete={handleDelete}
                             />
-                            <div className='w-full'>
-
+                            </div>
+                            <div className='flex-1 md:w-2/3 w-full'>
                                 <ContentChapterListComponent
                                     content={theWebnovel as Webnovel}
                                     coverArt={theWebnovel?.cover_art || ""}
@@ -179,14 +173,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                                 />
                             </div>
                         </div>
-
                     </div>
-
-                </ThemeProvider >
+                // </ThemeProvider >
             )
         } else {
             return (
-                <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
                     {phrase(dictionary, "noWebnovelsFound", language)}
                 </div>
             )

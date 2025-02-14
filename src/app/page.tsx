@@ -16,35 +16,30 @@ import WebnovelsByRank from '@/components/WebnovelsByRank';
 import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
 import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
+import MyReadingListComponent from '@/components/MyReadingListComponent';
 
 async function getCarouselItems() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getCarouselItems', end - start)
     return response.json();
 }
 
 async function getWebnovelsMetadata() {
-    const start = performance.now()
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata`)
     if (!response.ok) {
         throw new Error("Failed to fetch webnovels", { cause: response.status });
     }
-    const end = performance.now()
-    console.log('getWebnovelsMetadata', end - start)
     return response.json();
 }
+
+
 
 const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    const cookieStore = cookies()
-    const didSelectLanguage = cookieStore.get('didSelectLanguage')
-    const showPreloader = !didSelectLanguage
+    
     let items = await getCarouselItems();
     let webnovels = await getWebnovelsMetadata();
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
@@ -56,7 +51,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
     webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
-    const carouselFilter = [22, 24]
+    const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
     const largeGap = () => {
@@ -73,7 +68,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
 
     return (
         <div>
-            {showPreloader && <Preloader />}
             <PromotionModalWrapper />
             <ApplyCreatorBanner />  
             {/* gap and padding settings md:gap-[5rem] gap-[3rem] */}
@@ -82,6 +76,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {smallGap()}
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
+                    {smallGap()}
+                    <MyReadingListComponent />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}

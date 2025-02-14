@@ -260,7 +260,7 @@ toonyzcut_submit_genre_label,장르,,Genre
 toonyzcut_submit_cover_label,작품 표지,,Cover Art
 toonyzcut_submit_cover_description,표지 이미지를 등록해 주세요.,,Please upload the cover art for your webnovel.
 toonyzcut_submit_description_label,작품 소개,,Description
-toonyzCut_how_to_proceed,위 작품에 대해서 어떻게 영상을 진행하고 싶으세요?,,How do you want to proceed with this webnovel?
+toonyzCut_how_to_proceed,위 작품에 대해서 제안을 공유해 주세요.,,How do you want to proceed with this webnovel?
 readmore,더 보기,,Read More
 submit_proposal,제안 제출하기,,Submit Proposal
 submit,제출,,Submit
@@ -270,7 +270,7 @@ email_address,이메일 주소,,Email Address
 contact_number,연락처,,Contact Number
 country,국가,,Country
 toonyzCut_which_type_of_project,어떤 프로젝트를 개발하고 싶으세요?,,Which Type of Project Would You Like to Develop?
-full_description,작품에 대한 자세한 설명을 적어주세요,,Please enter a detailed description of your webnovel.
+full_description,프로젝트 대한 자세한 설명을 적어주세요,,Please enter a detailed description of your project.
 reply,답글,,Reply
 preparing,준비중입니다,,Preparing..
 confirm,확인,,Confirm
@@ -311,10 +311,8 @@ requestAccountDeletionButton,계정 삭제 요청하기,,Request Account Deletio
 requestAccountDeletionDeletedInfo,이메일\, 연재글\, 댓글\, 좋아요 기록\, 차단 목록\, 별 사용 내역\, 등 모든 저장된 정보가 삭제됩니다.,,All saved information such as email\, webnovels\, comments\, like history\, block list\, star usage history\, etc. will be deleted.
 requestAccountDeletionSuccess,계정 삭제 요청이 접수되었습니다.,Account deletion request has been submitted.,Account deletion request has been submitted.
 requestAccountDeletionError,계정 삭제 요청에 실패했습니다.,Account deletion request failed.,Account deletion request failed.
-toonyzcut_phrase_1,현실을 넘어\, 여러분의 이야기로 크리에이터와 영상 제작사를 연결해 드려요.,,Beyond reality: we connect creators and video production companies with stories.,,,เหนือความจริง: เราเชื่อมต่อผู้สร้างสรรค์และบริษัทผลิตวิดีโอผ่านเรื่องราวของคุณ
-toonyzcut_phrase_2,글로벌 스토리텔링\, 영상과 스토리의 창조적 만남을 이루어 드립니다.,,Global storytelling: bringing a creative fusion of videos and stories.,,,การเล่าเรื่องระดับโลก: สร้างการผสมผสานที่สร้างสรรค์ระหว่างวิดีโอและเรื่องราว
-toonyzcut_phrase_3,크리에이터님들의 소중한 작품이 영상화 될 수 있는 기회를 잡으세요.,,Seize the opportunity for your precious works to become a video.,,,คว้าโอกาสให้ผลงานล้ำค่าของคุณกลายเป็นวิดีโอ
-toonyzcut_phrase_4,스토리와 영상의 완벽한 조화\, 당신의 이야기를 투니즈에서 빛내 보세요.,,A perfect fusion of stories and videos\, let your story shine in Toonyz.,,,การผสมผสานที่ลงตัวระหว่างเรื่องราวและวิดีโอ ให้เรื่องราวของคุณเปล่งประกายใน Toonyz
+toonyzcut_phrase_1,크리에이터님의 소중한 작품이 영상화 될 수 있는 기회를 잡으세요.,,Seize the opportunity for your precious works to become a video.,,,คว้าโอกาสให้ผลงานล้ำค่าของคุณกลายเป็นวิดีโอ
+toonyzcut_phrase_2,투니즈가 글로벌 영상 제작자와의 매칭을 연결해 드립니다.,,Global storytelling: bringing a creative fusion of videos and stories.,,,การเล่าเรื่องระดับโลก: สร้างการผสมผสานที่สร้างสรรค์ระหว่างวิดีโอและเรื่องราว
 home,전체,,Home
 action,액션,,Action
 orientalFantasy,무협,,Oriental Fantasy
@@ -326,8 +324,15 @@ payment_failed,결제가 실패했습니다.,Payment failed.,Payment failed.
 payment_error,결제 오류가 발생했습니다.,Payment error.,Payment error.
 back,돌아가기,,Back
 dontShowAgain,다시 보지 않기,,Don't show again,,
-recommended,투니의 추천,,Recommended by Tooni
+recommended,투니즈 추천작,,Recommended works
 selectAtLeastOneGenre,장르를 선택해 주세요,,Please select at least one genre,,
 purchaseChapter,구매하기,,Purchase Chapter
 wouldYouLikeToPurchaseChapter,구매하시겠습니까?,,Would you like to purchase this chapter?
 noTransactions,충전 내역이 없습니다.,,No transactions
+continueReading,이 읽던 작품이에요,,Continue Reading for,,
+searchResult,검색 결과,,Search results for,,
+shareLink,공유하기,,Share,
+copyLink,링크 복사,,Copy link,,
+copied,복사 완료,,Copied,,
+nextChapterView,다음 화 보기,,Next Chapter,,
+viewnow,보러 가기,,View

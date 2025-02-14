@@ -8,7 +8,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon, Comment, Webnovel } from "@/components/Types";
+import { Webtoon, Comment, Webnovel, Chapter } from "@/components/Types";
 import Link from "next/link";
 import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
@@ -77,18 +77,18 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const chapterCount = content?.chapters?.length || 0;
 
     return (
-        <div className="flex flex-col flex-1 flex-shrink-0 w-full">
+        <div className="flex flex-col w-full md:overflow-auto overflow-x-hidden">
             <TabContext value={tabValue}>
                 <Box
                     sx={{
-                        borderBottom: 0,
-                        borderColor: 'divider',
+                        borderBottom: 1,
+                        borderColor: 'divider', // gray-700 #374151 //  #6b7280
                         padding: {
                             xs: '20px 10px',  // padding for mobile (<600px)
                             sm: 0          // padding for larger screens
                         }
                     }}
-                    className='dark:text-gray-700'>
+                    className='dark:text-gray-700 dark:border-gray-700'>
                     <div className="flex flex-row justify-between items-center">
                         <TabList
                             onChange={handleChange}
@@ -121,8 +121,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     </div>
                                 }
                                 value="1"
-                                className="dark:text-white dark:focus:text-[#DB2777] dark:active:text-[#DB2777]
-                                 md:w-auto sm:w-[10px]
+                                className="dark:text-white 
+                                 dark:focus:text-[#DB2777]
+                                 dark:active:text-[#DB2777]
                                 "
                             />
                             <Tab label={
@@ -203,7 +204,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <ChevronRightIcon size={16} className="text-black dark:text-white" />
                                 </Button>
                             </Tooltip>
-
                             {content && content.chapters ? (
                                 isWebtoon ? (
                                     <WebtoonChapterListSubcomponent
@@ -231,7 +231,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                         {phrase(dictionary, "authorWorkList", language)}
                                     </h1>
                                     <hr />
-                                    <div className="flex flex-col w-full">
+                                    <div className="relative flex flex-col w-full overflow-hidden">
                                         <AuthorWorkListComponent
                                             webnovels={relatedContent as Webnovel[]}
                                             nickname={content.user.nickname}
@@ -262,9 +262,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
 
                             {/* Comments list */}
                             {content && content.chapters && content.chapters.length > 0 ? (
-                                <CommentList
+                                <CommentList    
                                     content={content}
-                                    chapter={content.chapters[0]}
+                                    chapter={content.chapters[0] as Chapter}
                                     webnovelOrWebtoon={!isWebtoon}
                                 />
                             ) : (

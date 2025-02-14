@@ -8,6 +8,12 @@ import moment from 'moment';
 import { Button, Modal, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { ChevronDownIcon, Eye, Heart, MessageCircle, BadgeCheck } from "lucide-react";
+import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
+import { styled } from '@mui/system';
+import { ChevronDownIcon, ChevronUpIcon, Eye, Heart, MessageCircle } from "lucide-react";
+import { usePathname, useRouter } from 'next/navigation';
+import { createEmailHash } from "@/utils/cryptography";
+import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
@@ -34,12 +40,20 @@ const ListOfChaptersComponent = ({
     const date = new Date();
     const router = useRouter();
     const { purchased_webnovel_chapters, setInvokeCheckUser } = useUser();
+    const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
+    const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+
+    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
+    const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
+    const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
+
+    const loadMoreChapters = () => {
+        setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
+    };
 
     useEffect(() => {
         setKey(prevKey => prevKey + 1)
     }, [language])
-
-    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
 
     const handleChapterDelete = async (id: number) => {
         try {
@@ -100,23 +114,26 @@ const ListOfChaptersComponent = ({
         <>
             <div className="w-full">
                 <div className="overflow-y-auto rounded-md">
-                    {sortedChapters?.map((chapter, index) => (
-                        <button
-                            onClick={() => handleChapterClick(chapter)}
+                    {displayedChapters.map((chapter, index) => (
+                        <Link
+                            href={`/chapter_view/${chapter.id}`}
                             key={`chapter-${chapter.id}`}
-                            className={`w-full block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 
-                    ${index >= 10 && !showMoreChapters ? 'hidden' : ''}`}
+                            className={`block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
+                           `}
+                           // ${!chapter.free ? 'opacity-50' : ''} 
                         >
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-3 items-center">
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
+                                    <div className="min-w-[50px] max-w-[50px]">
                                     <Image
                                         src={getImageUrl(webnovel?.cover_art)}
                                         alt={webnovel?.title || ''}
                                         width={50}
                                         height={50}
-                                        className="rounded-lg"
+                                        className="rounded-lg object-cover w-full"
                                     />
+                                    </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row">
                                             <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" />
@@ -127,7 +144,12 @@ const ListOfChaptersComponent = ({
                                                 <Eye size={11} /> {chapter.views}
                                             </div>
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                <Heart size={11} /> {chapter.upvotes}
+                                                {/* <Heart size={11} /> */}
+                                                {/* heart icon */}
+                                                <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                                </svg>
+                                                {chapter.upvotes}
                                             </div>
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                                 <MessageCircle size={11} /> {chapter.comments.length}
@@ -146,13 +168,14 @@ const ListOfChaptersComponent = ({
                         </button>
                     ))}
                 </div>
-                {webnovel?.chapters && webnovel?.chapters.length > 10 && (
+                {hasMoreChapters && (
                     <button
                         className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
-                        onClick={() => setShowMoreChapters(!showMoreChapters)}
+                        onClick={loadMoreChapters}
                     >
-                        {phrase(dictionary, showMoreChapters ? "less" : "more", language)}
-                        <ChevronDownIcon size={16} />
+                        {/* 더보기 */}
+                        {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
+                        {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
                     </button>
                 )}
             </div>

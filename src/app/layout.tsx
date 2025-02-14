@@ -19,6 +19,8 @@ import { NavigationEvents } from '@/components/NewUserNavigation';
 import localFont from "next/font/local";
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import { StripeProvider } from '@/contexts/StripeContext';
+import LanguageSetter from "@/components/LanguageSetter";
+import { getCountryFromIP } from "@/utils/phrases";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -85,6 +87,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased`}>
         <RegisterSW />
         <LanguageProvider>
+          <LanguageSetter />
           <ThemeProvider>
             <AuthProvider>
               <UserProvider>

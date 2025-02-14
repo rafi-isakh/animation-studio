@@ -7,7 +7,7 @@ export default function ChapterViewLayout({ children }: { children: React.ReactN
         <ThemeProvider>
             <ReaderThemeProvider>
                 <ReaderProvider>
-                    {children}
+                        {children}
                 </ReaderProvider>
             </ReaderThemeProvider>
         </ThemeProvider>

@@ -45,6 +45,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
+         // If scrollType is horizontal, always show the footer
+         if (scrollType === 'horizontal') {
+            setIsVisible(true);
+            return; // Exit early, no need to add scroll listener
+        }
+
         const handleScroll = () => {
             if (scrollType === 'vertical') {
                 const currentScrollY = window.scrollY;
@@ -65,14 +71,11 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
         // Add scroll event listener
         window.addEventListener('scroll', handleScroll);
-
-        // Cleanup function to remove the event listener
         return () => {
             window.removeEventListener('scroll', handleScroll);
             clearTimeout(timeoutId); // Clear timeout when component unmounts
         };
-    }, [lastScrollY]); // Dependency array to trigger when lastScrollY changes
-
+    }, [scrollType, lastScrollY]);
 
 
     useEffect(() => {
@@ -124,6 +127,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
             <div className={`z-50 fixed w-full justify-center bg-white dark:bg-black text-black
                              dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
+                             ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                              ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
 
                 <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2">
@@ -136,12 +140,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </div>
                     </Link>
 
-                    <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
+                    {/* <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
                         <p className='hover:text-[#DB2777] relative'>
                             <MessageCircle size={16} />
                             <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{chapter.comments.length}</span>
                         </p>
-                    </Link>
+                    </Link> */}
                     {/* <p onClick={adjustViewSettings} className='hover:text-[#DB2777]'>{phrase(dictionary, "viewSettings", language)}</p> */}
                     <Link href={``} onClick={handleViewSettings}>
                         <p className='hover:text-[#DB2777] relative'>

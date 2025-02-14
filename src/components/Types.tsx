@@ -32,6 +32,7 @@ export interface User {
   stars: number;
   marketing: string;
   purchased_webnovel_chapters: string;
+  upvoted_comments: string;
 }
 
 export interface UserCreate {

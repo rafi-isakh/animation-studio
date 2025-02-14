@@ -1,7 +1,7 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
 import { useEffect, useState, useRef, useMemo } from 'react';
-import WebnovelPicture from "@/components/WebnovelPicture"
+import WebnovelPictureCardWrapper from "@/components/UI/WebnovelPictureCardWrapper"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -37,7 +37,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
 
     return (
         <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
-            <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+            <h1 className="flex flex-row justify-between text-xl font-extrabold">
                 <span className='text-black dark:text-white'>
                     {phrase(dictionary, "recommended", language)}
                 </span>
@@ -47,7 +47,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
                 renderItem={(item: Webnovel, index: number) => (
-                    <WebnovelPicture
+                    <WebnovelPictureCardWrapper
                         webnovel={item}
                         index={index + 1}
                         ranking={false}

@@ -28,7 +28,7 @@ const WebnovelPictureComponent = React.memo(
                     {/* Image Container - Reduced sizes */}
                     <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] ">
                         {/* Image with hover effect */}
-                        <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105 z-50">
+                        <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
                             <Image
                                 src={imageSrc || "/placeholder.svg"}
                                 alt={webnovel.cover_art}

@@ -1,18 +1,8 @@
 'use client'
-import { Webnovel, Comment as CommentType, Chapter, Webtoon, WebtoonChapter } from "@/components/Types";
+import { Webnovel, Chapter, Webtoon } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
-import moment from 'moment';
-import { FC, useCallback, useEffect, useRef, useState } from "react";
-import { ElementType } from "@/components/Types";
-import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { useUser } from "@/contexts/UserContext";
-import { Heart, Redo2 } from "lucide-react";
-import { getImageUrl } from "@/utils/urls";
-import Image from "next/image";
-import Link from "next/link";
-import { createEmailHash } from '@/utils/cryptography';
-import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
+import { FC, useEffect, useState } from "react";
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 
 interface CommentListProps {
@@ -30,7 +20,6 @@ export const CommentList: FC<CommentListProps> = ({ content, webnovelOrWebtoon, 
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         );
         setSortedChapters(_sortedChapters as Chapter[]);
-        console.log('sortedChapters', _sortedChapters)
     }, [content])
 
     return (

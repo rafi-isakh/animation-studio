@@ -5,9 +5,11 @@ import { phrase } from '@/utils/phrases';
 import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
+import { ChevronDownIcon, Eye, Heart, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
+import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
+import { styled } from '@mui/system';
 import { Button, Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
-import { BadgeCheck, ChevronDownIcon, ChevronUpIcon, Eye, MessageCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
@@ -25,7 +27,6 @@ const ListOfChaptersComponent = ({
     onUpdate?: (updatedContent: Webnovel) => void
 }) => {
     const { dictionary, language } = useLanguage();
-    const [key, setKey] = useState(0);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const [showMoreChapters, setShowMoreChapters] = useState(false);
@@ -44,10 +45,6 @@ const ListOfChaptersComponent = ({
     const loadMoreChapters = () => {
         setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
     };
-
-    useEffect(() => {
-        setKey(prevKey => prevKey + 1)
-    }, [language])
 
     const handleChapterDelete = async (id: number) => {
         try {
@@ -122,7 +119,7 @@ const ListOfChaptersComponent = ({
                                     <div className="min-w-[50px] max-w-[50px]">
                                     <Image
                                         src={getImageUrl(webnovel?.cover_art)}
-                                        alt={webnovel?.title || ''}
+                                        alt={webnovel?.title || ""}
                                         width={50}
                                         height={50}
                                         className="rounded-lg object-cover w-full"
@@ -215,8 +212,7 @@ const ListOfChaptersComponent = ({
                 </Box>
             </Modal>
         </>
-    );
+    )
 };
-
 
 export default ListOfChaptersComponent;

@@ -71,6 +71,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const webnovelViewRef = useRef<HTMLDivElement>(null);
     const { readerTheme, toggleReaderTheme } = useReaderTheme()
     const { purchased_webnovel_chapters, checking } = useUser();
+    const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
@@ -84,14 +85,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     };
 
     useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [pathname]);
-
-    useEffect(() => {
         const fetchData = async () => {
             const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
             const data = await response.json();
-            console.log(data);
             if (data.includes(id)) {
                 setLikeToggle(true);
             }
@@ -100,6 +96,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             fetchData();
         }
     }, [email])
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
 
     useEffect(() => {
         fetch(`/api/get_chapter_by_id?id=${id}`)

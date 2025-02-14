@@ -8,35 +8,16 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import MyReadingListWrapper from '@/components/UI/MyReadingListWrapper';
 
-const MyReadingListComponent = () => {
+const MyReadingListComponent = ({ library }: { library: Webnovel[] }) => {
     const { dictionary, language } = useLanguage();
-    const { isLoggedIn } = useAuth();
-    const [library, setLibrary] = useState<Webnovel[]>([]);
-    const { email, nickname } = useUser();
-
-    useEffect(() => {
-        const fetchLibrary = async () => {
-            const response = await fetch(`/api/get_library?email=${email}`);
-            if (!response.ok) {
-                return;
-            }
-            const data = await response.json();
-            setLibrary(data.library);
-        }
-
-        if (email && isLoggedIn) {
-            fetchLibrary();
-        }
-    }, [email, isLoggedIn]);
-
+    const { isLoggedIn, email } = useAuth();
+    const { nickname } = useUser();
 
     return (
-        isLoggedIn ? (
+        isLoggedIn && (
             <div className="max-w-screen-lg w-full flex mx-auto justify-center">
                 <MyReadingListWrapper library={library} nickname={nickname} />
             </div>
-        ) : (
-            <></>
         )
     );
 }

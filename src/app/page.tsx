@@ -1,21 +1,17 @@
-import WebnovelsList from '@/components/WebnovelsList'
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
-import BookmarkButton from '@/components/BookmarkButton';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import WebnovelsCardListByRank from '@/components/WebnovelsCardListByRank';
 import CarouselComponent from '@/components/CarouselComponent';
 import Preloader from '@/components/Preloader';
 import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import TrailerCardComponent from '@/components/TrailerCardComponent';
 import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
 import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
-import { useEffect } from 'react';
 import { Webnovel } from '@/components/Types';
+import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';
 
 async function getCarouselItems() {
@@ -34,7 +30,24 @@ async function getWebnovelsMetadata() {
     return response.json();
 }
 
-
+async function getLibrary() {
+    const session = await auth();
+    const email = session?.user?.email;
+    if (!email) {
+        return [];
+    }
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
+        headers: {
+            'Cookie': cookies().toString()
+        }
+    }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to fetch library", { cause: response.status });
+    }
+    const data = await response.json();
+    return data.library;
+}
 
 const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 
@@ -42,6 +55,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     
     let items = await getCarouselItems();
     let webnovels = await getWebnovelsMetadata();
+    let library = await getLibrary();
+    console.log("library", library)
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
         // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
@@ -51,6 +66,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
     webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
@@ -77,7 +93,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
                     {smallGap()}
-                    <MyReadingListComponent />
+                    <MyReadingListComponent library={library} />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}

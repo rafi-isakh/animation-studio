@@ -84,8 +84,6 @@ export const Header = () => {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
             const id = searchParams.get("id");
-            console.log(id)
-            console.log(premiumWebnovelIds)
             if (premiumWebnovelIds.includes(parseInt(id!))) {
                 console.log("premium")
                 setActiveTab('premium');

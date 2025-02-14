@@ -33,21 +33,27 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         languageChangedRef.current = true;
         setText("");
         setLoading(true);
+        const langSessionKey = `lang-${elementType}.${elementId}.${elementSubtype}`;
         const detectLanguage = async () => {
-            if (localStorage.getItem(sessionKey + "-langcode")) {
-                return localStorage.getItem(sessionKey + "-langcode") == language;
-            }
+            const itemLanguageSessionKey = `${langSessionKey}`;
+            const itemLanguage = localStorage.getItem(itemLanguageSessionKey);
+            let langcode;
             let originalAndTargetLangSame = false;
-            const response = await fetch('/api/detect_language', {
-                method: 'POST',
-                body: JSON.stringify({ text: content }),
-            });
-            const data = await response.json();
-            const langcode = data.langcode;
+            if (itemLanguage) {
+                langcode = itemLanguage;
+            } else {
+                const response = await fetch('/api/detect_language', {
+                    method: 'POST',
+                    body: JSON.stringify({ text: content }),
+                });
+                const data = await response.json();
+                langcode = data.langcode;
+                localStorage.setItem(itemLanguageSessionKey, langcode);
+            }
             if (langcode == language) {
                 originalAndTargetLangSame = true;
             }
-            localStorage.setItem(sessionKey + "-langcode", langcode);
+            localStorage.setItem(langSessionKey, langcode);
             return originalAndTargetLangSame;
         }
 

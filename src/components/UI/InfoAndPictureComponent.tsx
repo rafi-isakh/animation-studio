@@ -57,7 +57,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const author_email = content.user.email_hash;
+    const author_email = content?.user?.email_hash;
     const { email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -74,7 +74,7 @@ export default function InfoAndPictureComponent({
             const tagsJSON = JSON.parse(content.tags);
             setTags(tagsJSON);
         }
-    }, [content.tags]);
+    }, [content?.tags]);
 
     const toggleShareDropdown = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();

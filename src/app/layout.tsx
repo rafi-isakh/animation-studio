@@ -62,19 +62,6 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const notoSansArabic = Noto_Sans_Arabic({
-  subsets: ['arabic'],
-  weight: '400'
-})
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ['thai'],
-  weight: '400'
-})
-const notoSansTC = Noto_Sans_TC({
-  subsets: ['latin'],
-  weight: '400'
-})
-
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
@@ -94,10 +81,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <DeviceProvider>
                   <SearchProvider>
                     <StripeProvider>
-                    <div className={`font-pretendard pretendard-jp pretendard-std
-                    ${notoSansArabic.className} 
-                    ${notoSansThai.className} 
-                    ${notoSansTC.className}`}>
+                    <div className={`font-pretendard pretendard-jp pretendard-std`}>
                       <Suspense>
                         <Header />
                       </Suspense>

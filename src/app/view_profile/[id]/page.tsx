@@ -4,11 +4,7 @@ import { User, Webnovel } from '@/components/Types';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
 
 async function getUser(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`,
-        {
-            cache: 'no-store'
-        }
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`);
     if (!response.ok) {
         const errorData = await response.json();
         console.error(errorData);
@@ -20,7 +16,7 @@ async function getUser(id: string) {
 
 
 async function fetchNovels(user: User) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_by_email_hash?email_hash=${user.email_hash}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata_by_email_hash?email_hash=${user.email_hash}`);
     if (!response.ok) {
         const errorData = await response.json();
         console.error(errorData);

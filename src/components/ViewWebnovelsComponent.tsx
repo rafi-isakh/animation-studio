@@ -12,7 +12,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
-
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
     webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean
@@ -32,6 +32,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [tabValue, setTabValue] = useState('1');
     const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
+    const { invalidateCache } = useWebnovels();
 
     const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
         setContent(updatedContent);
@@ -87,6 +88,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                 console.error("Delete webnovel failed");
                 return;
             }
+            invalidateCache();
             // Filter out the deleted webnovel
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
             setWebnovels(webnovels_after_deletion)

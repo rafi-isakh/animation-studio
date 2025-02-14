@@ -11,6 +11,11 @@ import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
 import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
 import { Webnovel } from '@/components/Types';
+<<<<<<< Updated upstream
+=======
+import MyReadingListComponent from '@/components/MyReadingListComponent';
+import { auth } from '@/auth';
+>>>>>>> Stashed changes
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -28,14 +33,41 @@ async function getWebnovelsMetadata() {
     return response.json();
 }
 
+<<<<<<< Updated upstream
 const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const cookieStore = cookies()
     const didSelectLanguage = cookieStore.get('didSelectLanguage')
     const showPreloader = !didSelectLanguage
+=======
+async function getLibrary() {
+    const session = await auth();
+    const email = session?.user?.email;
+    if (!email) {
+        return [];
+    }
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
+        headers: {
+            'Cookie': cookies().toString()
+        }
+    }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to fetch library", { cause: response.status });
+    }
+    const data = await response.json();
+    return data.library;
+}
+
+const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
+
+export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+>>>>>>> Stashed changes
     let items = await getCarouselItems();
     let webnovels = await getWebnovelsMetadata();
+    let library = await getLibrary();
+    console.log("library", library)
     // webnovels = webnovels.filter((novel: Webnovel) => !premium.includes(novel.id));
     if (searchParams.version === 'free') {
         // items = items.filter((item: any) => !webnovels.find((novel: Webnovel) => novel.id === item.webnovel_id).premium);
@@ -45,7 +77,12 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
         webnovels = webnovels.filter((novel: Webnovel) => novel.premium);
     }
     webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+<<<<<<< Updated upstream
     const carouselFilter = [22, 24]
+=======
+    library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    const carouselFilter = [22, 24, 19]
+>>>>>>> Stashed changes
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
     const largeGap = () => {
@@ -72,6 +109,11 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                <div className='px-4 md:px-0 w-full mx-auto'>
                     <MenuItemsComponent />
                     {smallGap()}
+<<<<<<< Updated upstream
+=======
+                    <MyReadingListComponent library={library} />
+                    {smallGap()}
+>>>>>>> Stashed changes
                     <WebnovelsCards searchParams={searchParams} webnovels={webnovels} sortBy="recommendation" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} webnovels={webnovels} sortBy='date' />

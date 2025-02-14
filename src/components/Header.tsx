@@ -81,10 +81,7 @@ export const Header = () => {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
             const id = searchParams.get("id");
-            console.log(id)
-            console.log(premiumWebnovelIds)
             if (premiumWebnovelIds.includes(parseInt(id!))) {
-                console.log("premium")
                 setActiveTab('premium');
             } else {
                 setActiveTab('free');
@@ -372,14 +369,22 @@ export const Header = () => {
                                 </button>
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
+<<<<<<< Updated upstream
                             {isLoggedInAndRegistered && (
                             <div ref={hamburgerRef}>
                                 <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
                                     <Menu size={20} className='dark:text-white text-gray-500' />
                                 </button>
+=======
+                            {isLoggedIn && (
+                                <div ref={hamburgerRef}>
+                                    <button id="mobile-hamburger" onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-xl text-black md:hidden hover:bg-gray-100 focus:outline-none dark:text-black dark:hover:bg-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+                                        <Menu size={20} className='dark:text-white text-gray-500' />
+                                    </button>
+>>>>>>> Stashed changes
                                 </div>
                             )}
-                            {!isLoggedInAndRegistered && (
+                            {!isLoggedIn && (
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button sx={{
                                         backgroundColor: '#DB2777',
@@ -581,7 +586,7 @@ export const Header = () => {
                                         </ul>
                                     </div>
                                 </li>
-                                {!isLoggedInAndRegistered && (
+                                {!isLoggedIn && (
                                     <li className='md:flex items-center justify-center ml-1 hidden'>
                                         <Button sx={{
                                             backgroundColor: '#DB2777',

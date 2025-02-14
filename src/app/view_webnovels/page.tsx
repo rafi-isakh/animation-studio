@@ -3,7 +3,7 @@ import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
-
+import { useAuth } from "@/contexts/AuthContext";
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
@@ -42,7 +42,11 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
     const [loading, setLoading] = useState(true);
+<<<<<<< Updated upstream
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
+=======
+    const { isLoggedIn } = useAuth();
+>>>>>>> Stashed changes
 
     useEffect(() => {
         const fetchData = async () => {
@@ -57,7 +61,14 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
                 setUserWebnovels(userWebnovels);
                 setLoadingUsersOtherWebnovels(false);
             }
+<<<<<<< Updated upstream
             fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
+=======
+            setLoading(false);
+            if (isLoggedIn) {
+                fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
+            }
+>>>>>>> Stashed changes
         }
         fetchData();
     }, [searchParams.id])

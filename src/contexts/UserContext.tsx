@@ -39,10 +39,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setChecking(true);
                 let data: any;
                 const response = await fetch('/api/user_session');
-                data = await response.json();
-                if (!data.email) {
-                    throw new Error("email should be present in response from /api/user_session")
+                if (!response.ok) {
+                    throw new Error(response.statusText)
                 }
+                data = await response.json();
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);

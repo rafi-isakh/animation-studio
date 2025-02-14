@@ -37,6 +37,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
     const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
     useEffect(() => {
+<<<<<<< Updated upstream
         console.log("content", content)
         if (webnovelOrWebtoon) {
 
@@ -113,6 +114,13 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter, webnovelOr
         }));
     };
     
+=======
+        const _sortedChapters = [...(content?.chapters || [])].sort((a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+        setSortedChapters(_sortedChapters as Chapter[]);
+    }, [content])
+>>>>>>> Stashed changes
 
     return (
         <div className="">

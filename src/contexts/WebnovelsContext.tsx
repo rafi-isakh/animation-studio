@@ -1,6 +1,6 @@
 "use client"
 import { Chapter, Webnovel } from '@/components/Types';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Define the shape of the context state
 interface WebnovelsContextState {
@@ -9,8 +9,8 @@ interface WebnovelsContextState {
     fetchChaptersLikelyNeededWebnovel: (webnovel: Webnovel) => void;
     setWebnovels: React.Dispatch<React.SetStateAction<Array<Webnovel>>>;
     addWebnovel: (webnovel: Webnovel) => void; // Replace 'any' with a more specific type if available
-    getWebnovelById: (id: string) => Webnovel | undefined;
-    getWebnovelsByAuthorEmailHash: (emailHash: string) => Array<Webnovel>;
+    getWebnovelById: (id: string) => Promise<Webnovel | undefined>;
+    getWebnovelsMetadataByEmailHash: (emailHash: string) => Promise<Array<Webnovel>>;
 }
 
 // Create the context with a default value
@@ -25,23 +25,37 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         setWebnovels((prevWebnovels) => [...prevWebnovels, webnovel]);
     };
 
-    const getWebnovelById = (id: string) => {
-        return webnovels.find((webnovel) => webnovel.id.toString() === id);
+    const getWebnovelById = async (id: string) => {
+        const webnovel = webnovels.find((webnovel) => webnovel.id.toString() === id);
+        if (webnovel) {
+            return Promise.resolve(webnovel);
+        } else {
+            const response = await fetch(`/api/get_webnovel_by_id?id=${id}`);
+            const data = await response.json();
+            return data;
+        }
     };
 
-    const getWebnovelsByAuthorEmailHash = (emailHash: string) => {
-        return webnovels.filter((webnovel) => webnovel.user.email_hash === emailHash);
+    const getWebnovelsMetadataByEmailHash = async (emailHash: string) => {
+        const filteredWebnovels = webnovels.filter((webnovel) => webnovel.user.email_hash === emailHash);
+        if (filteredWebnovels.length > 0) {
+            return Promise.resolve(filteredWebnovels);
+        } else {
+            const response = await fetch(`/api/get_webnovels_metadata_by_email_hash?email_hash=${emailHash}`);
+            const data = await response.json();
+            return data;
+        }
     };
 
     const fetchChaptersLikelyNeededWebnovel = async (webnovel: Webnovel) => {
-        setChaptersLikelyNeededWebnovel(webnovel);
         const response = await fetch(`/api/get_webnovel_by_id?id=${webnovel.id}`);
         const data = await response.json();
         setWebnovels([...webnovels.filter((webnovel) => webnovel.id !== data.id), data]);
+        setChaptersLikelyNeededWebnovel(webnovel);
     };
 
     return (
-        <WebnovelsContext.Provider value={{ webnovels, setWebnovels, addWebnovel, getWebnovelById, getWebnovelsByAuthorEmailHash, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel }}>
+        <WebnovelsContext.Provider value={{ webnovels, setWebnovels, addWebnovel, getWebnovelById, getWebnovelsMetadataByEmailHash, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel }}>
             {children}
         </WebnovelsContext.Provider>
     );

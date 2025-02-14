@@ -107,14 +107,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         const fetchChapter = async () => {
             let chapter;
             if (chaptersLikelyNeededWebnovel?.chapters.find(chapter => chapter.id == Number(id))) {
-                console.log("chaptersLikelyNeededWebnovel", chaptersLikelyNeededWebnovel)
                 chapter = chaptersLikelyNeededWebnovel.chapters.find(chapter => chapter.id == Number(id));
                 setChapter(chapter);
             }
             else {
                 const response = await fetch(`/api/get_chapter_by_id?id=${id}`)
                 chapter = await response.json();
-                console.log("chapter", chapter)
                 setChapter(chapter);
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
@@ -122,7 +120,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 router.push('/');
             }
             setUpvotes(chapter?.upvotes || 0)
-            const webnovel = getWebnovelById(chapter?.webnovel_id.toString() || '');
+            const webnovel = await getWebnovelById(chapter?.webnovel_id.toString() || '');
             setWebnovel(webnovel);
         }
         fetchChapter();

@@ -5,9 +5,11 @@ import { Button, IconButton, Popover } from '@mui/material';
 
 interface NotificationButtonProps {
     className?: string;
+    expanded: boolean;
+    alert: boolean;
 }
 
-const NotificationButton = ({ className }: NotificationButtonProps) => {
+const NotificationButton = ({ className, expanded, alert }: NotificationButtonProps) => {
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -23,16 +25,24 @@ const NotificationButton = ({ className }: NotificationButtonProps) => {
 
     return (
         <>
-            <button
+            <Button
+                variant='text'
+                color='gray'
                 ref={buttonRef}
                 onClick={handleClick}
-                className={`flex h-14 items-center justify-center rounded-md
-                hover:bg-gray-50 dark:hover:bg-black/50 w-full
-                ${open ? "bg-gray-50 dark:bg-black/50" : ""}
-                ${className}`}
+                className={`relative flex flex-row py-2 px-6 my-1 w-full text-gray-400
+                            items-center rounded-md font-medium capitalize text-base
+                           hover:bg-gray-50 dark:hover:bg-black/50
+                            ${open ? "bg-gray-50 dark:bg-black/50" : ""}
+                            ${className}`}
             >
-                <Bell className="h-6 w-6 text-gray-400" />
-            </button>
+                <Bell className="text-gray-400" />
+                <span className={`overflow-hidden transition-all text-left ${expanded ? "w-52 ml-3" : "w-0"}`}>Notifications</span>
+                {alert && (
+                    <div className={`absolute right-5 w-2 h-2 rounded bg-[#DE2B74] ${expanded ? "" : "top-2 right-5"}`}>
+                    </div>
+                )}
+            </Button>
             <Popover
                 open={open}
                 anchorEl={anchorEl}
@@ -59,12 +69,12 @@ const NotificationButton = ({ className }: NotificationButtonProps) => {
                 }}
             >
                 <div className="w-80 h-screen p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
-                   <div className="flex flex-row justify-between items-center">
-                    <h3 className="text-lg font-semibold mb-2">Notifications</h3>
-                    <IconButton onClick={handleClose} aria-label="close"  className='p-0'>
-                        <X className='text-black dark:text-white'/>
-                    </IconButton>
-                   </div>
+                    <div className="flex flex-row justify-between items-center">
+                        <h3 className="text-lg font-semibold mb-2">Notifications</h3>
+                        <IconButton onClick={handleClose} aria-label="close" className='p-0'>
+                            <X className='text-black dark:text-white' />
+                        </IconButton>
+                    </div>
                     <div className="space-y-2">
                         <div className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                             <p className="text-sm">No new notifications</p>

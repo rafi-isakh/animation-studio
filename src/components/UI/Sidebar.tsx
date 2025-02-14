@@ -31,9 +31,13 @@ import NotificationButton from '@/components/UI/NotificationButton';
 
 interface SidebarContextType {
   expanded: boolean;
+  isLoggedInAndRegistered: boolean;
 }
 
-const SidebarContext = createContext<SidebarContextType>({ expanded: false });
+const SidebarContext = createContext<SidebarContextType>({
+  expanded: false,
+  isLoggedInAndRegistered: false
+});
 
 
 export function GlobalSidebar() {
@@ -50,6 +54,15 @@ export function GlobalSidebar() {
         active={pathname === '/'}
         alert={false}
         href="/"
+        type="link"
+      />
+      <SidebarItem
+        icon={<LibraryBig />}
+        text="Explore"
+        active={pathname.startsWith('/explore')}
+        alert={false}
+        href="#"
+        type="link"
       />
       <SidebarItem
         icon={<Search />}
@@ -57,6 +70,23 @@ export function GlobalSidebar() {
         active={pathname.startsWith('/search')}
         alert={false}
         href="/search"
+        type="link"
+      />
+      <SidebarItem
+        icon={<LayoutGrid />}
+        text="Feeds"
+        active={pathname.startsWith('/feeds')}
+        alert={false}
+        href="#"
+        type="link"
+      />
+      <SidebarItem
+        icon={<SquarePlus />}
+        text="Create"
+        active={pathname.startsWith('/dashboard')}
+        alert={false}
+        href="#"
+        type="link"
       />
       <SidebarItem
         icon={<Gift />}
@@ -64,42 +94,68 @@ export function GlobalSidebar() {
         active={pathname.startsWith('/stars')} // This will match /library and its subpaths
         alert={false}
         href="/stars"
+        type="link"
+      />
+      <SidebarItem
+        type="component"
+        alert={true}
+        icon={<Bell />}
+        text="Notifications"
+        active={pathname.startsWith('#')}
+        href="#"
       />
     </Sidebar>
   )
 }
 
-export function SidebarItem({ icon, text, active, alert, href }:
-  { icon: React.ReactNode, text: string, active: boolean, alert: boolean, href: string }) {
-  const { expanded } = useContext(SidebarContext)
-  return (
-    <Link
-      key={text}
-      href={href ?? ""}
-    >
-      <li className={`relative flex items-center py-2 px-5 my-1 font-medium 
-                    rounded-md cursor-pointer transition-colors group 
+export function SidebarItem({ icon, text, active, alert, href, type }:
+  {
+    icon: React.ReactNode,
+    text: string,
+    active: boolean,
+    alert: boolean,
+    href: string,
+    type: string
+  }) {
+  const { expanded, isLoggedInAndRegistered } = useContext(SidebarContext)
+  if (type === "link") {
+    return (
+      <Link
+        key={text}
+        href={href ?? ""}
+      >
+        <li className={`relative flex items-center py-2 px-6 my-1 font-medium 
+                      rounded-md cursor-pointer transition-colors group 
                      ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
-                    : "bg-transparent hover:bg-gray-50 text-gray-400"}`}>
-        {icon}
-        <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
-        {alert && (
-          <div className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${expanded ? "" : "top-2"}`}>
-          </div>
-        )}
+            : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
+          {icon}
+          <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
+          {alert && (
+            <div className={`absolute right-2 w-2 h-2 rounded bg-[#DE2B74] ${expanded ? "" : "top-2"}`}>
+            </div>
+          )}
 
-        {!expanded && (
-          <div className={`absolute left-full rounded-md px-2 py-1 ml-6
-                       bg-pink-200 text-indigo-800 
+          {!expanded && (
+            // Tooltip
+            <div className={`absolute left-full rounded-md px-2 py-1 ml-6
+                       bg-[#707070] text-white 
                         text-sm invisible opacity-20 
                         -translate-x-3 transition-all group-hover:visible 
                         group-hover:opacity-100 group-hover:translate-x-0`}>
-            {text}
-          </div>
-        )}
+              {text}
+            </div>
+          )}
+        </li>
+      </Link>
+    )
+  }
+  if (type === "component") {
+    return isLoggedInAndRegistered ? (
+      <li className="relative flex rounded-md items-center w-full">
+        <NotificationButton expanded={expanded} alert={alert} />
       </li>
-    </Link>
-  )
+    ) : null;
+  }
 }
 
 export function Sidebar({ children }: { children: React.ReactNode }) {
@@ -112,37 +168,19 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   const isLoggedInAndRegistered = !!(isLoggedIn && email);
   const [expanded, setExpanded] = useState(false)
 
-  const navigation = [
-    { name: "Search", href: "/search", icon: Search },
-    { name: "Explore", href: "#", icon: LibraryBig },
-    { name: "Feeds", href: "#", icon: LayoutGrid },
-    { name: "Create", href: "#", icon: SquarePlus },
-    { name: "Gift Shop", href: "/stars", icon: Gift },
 
-    ...(isLoggedInAndRegistered ? [
-      {
-        name: "Notifications",
-        type: "component",
-        component: NotificationButton,
-        icon: Bell
-      }
-    ] : []),
-  ]
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setPopoverAnchor(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setPopoverAnchor(null);
+  const handleSignOut = async (event: React.FormEvent) => {
+    event.preventDefault();
+    logout(true, '/');
   };
 
   const open = Boolean(popoverAnchor);
 
+
   return (
     <>
       <aside className={`flex h-full flex-col z-[99] transition-all duration-300 ease-in-out
-                    fixed left-0 top-0 border-r dark:border-black
+                     fixed left-0 top-0 border-r dark:border-black text-base
                     border-gray-200 bg-white dark:bg-[#211F21] ${expanded ? "w-[240px]" : "w-[72px]"}`}>
         {/* darkmode bg-[#211F21] */}
         <div className="flex h-16 items-center justify-center">
@@ -156,103 +194,35 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
                 height={30}
               />}
             </Link>
-            <button onClick={() => setExpanded((curr) => !curr)} className="self-center rounded-lg hover:bg-gray-100">
-              {expanded ? <ChevronFirst /> : <Image
-                src='/images/N_logo.svg'
-                alt="N_logo"
-                className={`overflow-hidden transition-all duration-300 ease-in-out `} //${expanded ? "hidden" : "inline-flex"}
-                width={30}
-                height={30}
-                style={{
-                  backgroundColor: `${theme === 'dark' ? 'white' : 'white'}`,
-                  borderColor: `${theme === 'dark' ? 'white' : '#e5e7eb'}`,
-                  border: `1px solid ${theme === 'dark' ? 'white' : '#e5e7eb'}`,
-                  borderRadius: "20%",
-                  padding: "5px",
-                }} />}
+            <button onClick={() => setExpanded((curr) => !curr)} className="self-center rounded-lg hover:bg-gray-100 dark:hover:bg-black/50 hover:text-black dark:hover:text-gray-100">
+              {expanded ? <ChevronFirst className='' />
+                : <Image
+                  src='/images/N_logo.svg'
+                  alt="N_logo"
+                  className={`overflow-hidden transition-all duration-300 ease-in-out `} //${expanded ? "hidden" : "inline-flex"}
+                  width={30}
+                  height={30}
+                  style={{
+                    backgroundColor: `${theme === 'dark' ? 'white' : 'white'}`,
+                    borderColor: `${theme === 'dark' ? 'white' : '#e5e7eb'}`,
+                    border: `1px solid ${theme === 'dark' ? 'white' : '#e5e7eb'}`,
+                    borderRadius: "20%",
+                    padding: "5px",
+                  }} />
+              }
             </button>
           </div>
         </div>
-        <SidebarContext.Provider value={{ expanded }}>
+        <SidebarContext.Provider value={{ expanded, isLoggedInAndRegistered: isLoggedInAndRegistered ?? false }}>
           <nav className="flex flex-1 flex-col gap-y-4 pt-4">
             {children}
-
-            <div className="flex flex-col justify-between h-full">
-              {navigation.map((item) => {
-                const Icon = item.icon
-                if (item.type === 'component') {
-                  return (
-                    <Tooltip
-                      key={item.name}
-                      arrow
-                      title={item.name}
-                      placement="right"
-                      slotProps={{
-                        popper: {
-                          modifiers: [
-                            {
-                              name: 'offset',
-                              options: {
-                                offset: [0, -14],
-                              },
-                            },
-                          ],
-                          [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]: {
-                            margin: '0px',
-                          },
-                        },
-                      }}
-                    >
-                      <div className='flex h-14 rounded-md justify-center items-center w-full'>
-                        <NotificationButton />
-                      </div>
-                    </Tooltip>
-                  )
-                }
-                return (
-                  <Tooltip
-                    key={item.name}
-                    arrow
-                    title={item.name}
-                    placement="right"
-                    slotProps={{
-                      popper: {
-                        modifiers: [
-                          {
-                            name: 'offset',
-                            options: {
-                              offset: [0, -14],
-                            },
-                          },
-                        ],
-                        [`&.${tooltipClasses.popper}[data-popper-placement*="right"] .${tooltipClasses.tooltip}`]:
-                        {
-                          margin: '0px',
-                        },
-                      },
-                    }}>
-                    <Link
-                      key={item.name}
-                      href={item.href ?? ""}
-                      className={`flex h-14 items-center justify-center rounded-md
-                  hover:bg-gray-50 dark:hover:bg-black/50 
-                  ${pathname === item.href ? "bg-gray-50 dark:bg-black/50" : ""}
-                  `}
-                    >
-                      <Icon className={"h-6 w-6 text-gray-400"} />
-                    </Link>
-                  </Tooltip>
-                )
-              })}
-              {/* Setting btn */}
-              <div className="flex flex-col gap-y-4 mt-auto pb-10">
-                {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
-                  <UserProfileButton />
-                </div> : <></>}
-                <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} />
-              </div>
+            {/* Setting btn */}
+            <div className="flex flex-col gap-y-4 mt-auto pb-10">
+              {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
+                <UserProfileButton />
+              </div> : <></>}
+              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded} handleSignOut={handleSignOut} />
             </div>
-
           </nav>
         </SidebarContext.Provider>
       </aside>

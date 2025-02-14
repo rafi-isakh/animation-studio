@@ -25,7 +25,8 @@ import { useTheme } from '@/contexts/providers';
 import { Language } from '@/components/Types';
 import Link from 'next/link';
 
-export default function Setting({isLoggedInAndRegistered}: {isLoggedInAndRegistered: boolean}) {
+export default function Setting({isLoggedInAndRegistered, expanded, handleSignOut}
+    : {isLoggedInAndRegistered: boolean, expanded: boolean, handleSignOut: () => void }) {
     const { language, dictionary, setLanguage } = useLanguage();
     const { theme, toggleTheme } = useTheme()
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
@@ -79,10 +80,15 @@ export default function Setting({isLoggedInAndRegistered}: {isLoggedInAndRegiste
                 }}>
                 <Button
                     variant='text'
+                    color='gray'
                     aria-describedby={id}
                     onClick={handleClick}
-                    className={`group flex h-14 w-full items-center justify-center group-hover:bg-gray-50 dark:group-hover:bg-gray-900`} >
+                    className={`flex flex-row py-2 px-6 my-1 w-full items-center
+                                 capitalize font-medium text-gray-400 text-base
+                                 hover:bg-gray-50 dark:hover:bg-black/50
+                                 `} >
                     <Settings className="h-6 w-6 text-gray-400 " />
+                    <span className={`overflow-hidden transition-all text-left ${expanded ? "w-52 ml-3" : "w-0"}`}>Setting</span>
                 </Button>
             </Tooltip>
             <Popover
@@ -145,7 +151,7 @@ export default function Setting({isLoggedInAndRegistered}: {isLoggedInAndRegiste
                             >
                             <ListItemText primary="Login" />
                         </ListItemButton>
-                        </Link>) : (<Link href="#" passHref className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'>
+                        </Link>) : (<Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-gray-900 self-start text-left rounded-md'>
                             <ListItemButton
                                 color='gray'
                             >

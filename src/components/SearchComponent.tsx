@@ -38,8 +38,6 @@ export default function SearchComponent({ mode,
     }, [query, triggerSearch])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log("e.target.value", e.target.value)
-        console.log("query", query)
         setQuery(e.target.value);
     }
 

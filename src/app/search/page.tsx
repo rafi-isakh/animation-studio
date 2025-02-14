@@ -4,17 +4,19 @@ import WebnovelSearchComponent from '@/components/WebnovelSearchComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect, useRef } from 'react';
 import { phrase } from '@/utils/phrases';
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import SearchComponent from '@/components/SearchComponent';
 import WebnovelsList from '@/components/WebnovelsList';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
 
-const Search = ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const Search = () => {
   const router = useRouter();
   const { dictionary, language } = useLanguage();
-  const query = searchParams.query;
-  const remember = searchParams.remember;
+  const searchParams = useSearchParams();
+  const query = searchParams.get('query');
+  const remember = searchParams.get('remember');
+  const searchParamsObject = Object.fromEntries(searchParams.entries());
   const { theme } = useTheme();
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
   const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
@@ -24,7 +26,6 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
   const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [showNoResults, setShowNoResults] = useState(false);
-
   // Fetch all webnovels on component mount
   useEffect(() => {
     const fetchAllWebnovels = async () => {
@@ -54,25 +55,36 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
   }
 
   useEffect(() => {
-    fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
-      .then(r => r.json())
-      .then(r => setWebnovels(r));
-  }, [query]);
+    console.log('loading', loading)
+  }, [loading])
 
   useEffect(() => {
-    if (webnovels.length === 0) {
-      const timer = setTimeout(() => {
-        setShowNoResults(true);
-      }, 3000); // Show skeleton for 3 seconds before showing "no results"
-
-      return () => clearTimeout(timer);
-    } else {
-      setShowNoResults(false);
+    setLoading(true);
+    const asyncSearch = async () => {
+      if (query) {
+        const response = await fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
+        const data = await response.json();
+        setWebnovels(data);
+      }
+      setLoading(false);
     }
-  }, [webnovels]);
+    asyncSearch();
+  }, [query]);
+
+  // useEffect(() => {
+  //   if (webnovels.length === 0) {
+  //     const timer = setTimeout(() => {
+  //       setShowNoResults(true);
+  //     }, 3000); // Show skeleton for 3 seconds before showing "no results"
+
+  //     return () => clearTimeout(timer);
+  //   } else {
+  //     setShowNoResults(false);
+  //   }
+  // }, [webnovels]);
 
 
-  const CustomeSkeleton = ({
+  const CustomSkeleton = ({
     width = '100%',
     height,
     variant = 'rounded',
@@ -105,11 +117,11 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
     <SearchComponent mode="page" />
     {loading ? (
       <div className="flex flex-row gap-2 md:px-2 px-4">
-        <CustomeSkeleton variant='rounded' animation="wave" width={100} height={90} />
+        <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
         <div className='flex flex-col items-center justify-center gap-2 w-full'>
-          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-          <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+          <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+          <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+          <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
         </div>
       </div>
     ) : query ? (
@@ -132,22 +144,22 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
             </div>
           ) : (
             <div className="flex flex-row gap-2 md:px-2 px-4">
-              <CustomeSkeleton variant='rounded' animation="wave" width={100} height={90} />
+              <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
               <div className='flex flex-col items-center justify-center gap-2 w-full'>
-                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+                <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
               </div>
             </div>
           )
         ) : (
           // Show loading skeleton while loading/processing
           <div className="flex flex-row gap-2 md:px-2 px-4">
-            <CustomeSkeleton variant='rounded' animation="wave" width={100} height={90} />
+            <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
             <div className='flex flex-col items-center justify-center gap-2 w-full'>
-              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-              <CustomeSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+              <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+              <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
+              <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
             </div>
           </div>
         )}
@@ -156,7 +168,7 @@ const Search = ({ searchParams }: { searchParams: { [key: string]: string | stri
       // Show default view when no search query is present
       <div className='space-y-8 md:px-2 px-4'>
         <WebnovelsList
-          searchParams={searchParams}
+          searchParams={searchParamsObject}
           webnovels={allWebnovels}
           sortBy={sortBy}
         />

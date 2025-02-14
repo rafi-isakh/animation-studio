@@ -88,7 +88,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         const fetchData = async () => {
             const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
             const data = await response.json();
-            console.log(data);
             if (data.includes(id)) {
                 setLikeToggle(true);
             }
@@ -97,12 +96,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             fetchData();
         }
     }, [email])
-
-    useEffect(() => {
-        if (upvotedChapters && upvotedChapters.includes(id)) {
-            setLikeToggle(true);
-        }
-    }, [upvotedChapters, id]);
 
     useEffect(() => {
         window.scrollTo(0, 0);

@@ -83,7 +83,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     }
 
     return (
-        <div className='flex flex-col justify-center items-center w-full'>
+        <div className='relative flex flex-col justify-center items-center w-full'>
             <div className='flex-1 w-full md:max-w-screen-xl overflow-hidden'>
                 {/*    The side bar width is 72px  md:pl-[72px]  */}
                 {/* Side bar/Bottom Navigation are in layout.tsx */}

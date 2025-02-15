@@ -384,7 +384,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button
                                         variant="text"
-                                        onClick={() => router.push('/signin')}
+                                        onClick={() => router.push('/pre-launch')}
                                         sx={{
                                             backgroundColor: '#DB2777',
                                             color: 'white',

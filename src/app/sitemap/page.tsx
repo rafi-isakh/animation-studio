@@ -41,10 +41,10 @@ export default function Sitemap() {
 
           {/* Webnovels Section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Webnovels</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Webnovels & Community</h2>
             <ul className="space-y-2">
               <li>
-                <Link href="/#" className="text-gray-500 hover:underline">
+                <Link href="/?version=premium" className="text-gray-500 hover:underline">
                   Read Webnovels
                 </Link>
               </li>
@@ -59,11 +59,15 @@ export default function Sitemap() {
                 </Link>
               </li>
               <li>
+                <Link href="/?version=free" className="text-gray-500 hover:underline">
+                  Community
+                </Link>
+              </li>
+              <li>
                 <Link href="/financing" className="text-gray-500 hover:underline">
                   Feeds
                 </Link>
               </li>
-              
             </ul>
           </div>
 

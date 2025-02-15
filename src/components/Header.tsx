@@ -337,7 +337,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     return (
         <>
-            <nav className={`${hideHeaderInPages()} md:pl-[72px] left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
+            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
+                {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
                         {/* Top font color gray-500 and weight bold */}
@@ -480,8 +481,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     <div
                                         id="user-dropdown"
                                         ref={userDropdownRef}
-                                        className={`${styles.rightmostItem} absolute rounded-md md:border-0 border border-gray-500 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
-                                        transition-[opacity,transform] duration-200 ease-out
+                                        className={`${styles.rightmostItem} absolute rounded-md md:border-0 border border-gray-500 mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
+                                        transition-[opacity,transform] duration-200 ease-out z-[99]
                                         ${isUserDropdownOpen
                                                 ? 'opacity-100 translate-y-0 visible'
                                                 : 'opacity-0 -translate-y-4 invisible'}`}
@@ -579,8 +580,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     <div
                                         id="language-dropdown"
                                         ref={languageDropdownRef}
-                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-500 mt-2 z-10 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
-                                        transform transition-all duration-300 ease-in-out origin-top
+                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-500 mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
+                                        transform transition-all duration-300 ease-in-out origin-top z-[99]
                                         ${isLanguageDropdownOpen
                                                 ? 'opacity-100 translate-y-0 scale-100'
                                                 : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'}`}

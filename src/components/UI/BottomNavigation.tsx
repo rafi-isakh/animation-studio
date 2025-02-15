@@ -21,10 +21,10 @@ export default function BottomNavigationBar() {
         setValue(newValue);
         switch (newValue) {
             case 0: // menu 1
-                router.push('/search');
+                router.push('#');
                 break;
             case 1: // menu 2
-                router.push('/#');
+                router.push('/search');
                 break;
             case 2: // menu 3
                 router.push('/#');
@@ -72,8 +72,8 @@ export default function BottomNavigationBar() {
                     }
                 }}
             >
-                <BottomNavigationAction label="Search" icon={<Search />} />
                 <BottomNavigationAction label="Explore" icon={<LibraryBig />} />
+                <BottomNavigationAction label="Search" icon={<Search/>} />
                 <BottomNavigationAction label="Feeds" icon={<LayoutGrid />} />
                 <BottomNavigationAction label="Shop" icon={<Gift />} />
                 <BottomNavigationAction label="Profile" icon={<CircleUserRound />} />

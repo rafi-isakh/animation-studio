@@ -75,9 +75,12 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     }
                 }}
             >
-                <div className="w-80 h-screen p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
+                <div className="w-80 h-80 p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
                     <div className="flex flex-row justify-between items-center">
-                        <h3 className="text-lg font-semibold mb-2 self-center text-center">{getTimeBasedGreeting()},  {nickname}</h3>
+                        <h3 className="text-lg font-semibold mb-2 self-center text-center">
+                             {getTimeBasedGreeting()}, 
+                             {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
+                        </h3>
                         <IconButton onClick={handleClose} aria-label="close" className='p-0 self-center'>
                             <X className='text-black dark:text-white' />
                         </IconButton>

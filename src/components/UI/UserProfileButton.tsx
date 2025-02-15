@@ -48,7 +48,9 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     </div>
                     : <User size={20} className='text-gray-400' />
                 }
-                <span className={`overflow-hidden transition-all text-left ${expanded ? "w-40 ml-3" : "w-0"}`}>{nickname}</span>
+                <span className={`overflow-hidden transition-all text-left ${expanded ? "w-40 ml-3" : "w-0"}`}>
+                    {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
+                </span>
             </Link>
             <Popover
                 open={open}

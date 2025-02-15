@@ -24,9 +24,22 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import { useModalStyle } from '@/styles/ModalStyles';
 
+
+const nouns = [
+    'Star', 'Moon', 'Sun', 'Cloud', 'River', 
+    'Mountain', 'Forest', 'Ocean', 'Sky', 'Flower',
+    'Tree', 'Bird', 'Fish', 'Butterfly', 'Dragon',
+    'Phoenix', 'Tiger', 'Lion', 'Wolf', 'Fox'
+];
+
+const randomNickname = () => {
+    const randomIndex = Math.floor(Math.random() * nouns.length);
+    return nouns[randomIndex] + Math.floor(Math.random() * 1000);
+};
+
 async function createUser() {
 
-    let nickname = "Anonymous";
+    let nickname = randomNickname();
     let bio = "";
 
     const data = {
@@ -47,7 +60,7 @@ async function updateUser(formData: FormData) {
     // TODO: add option to upload picture at user registration
     let nickname = formData.get('nickname') as string;
     if (!nickname) {
-        nickname = "Anonymous";
+        nickname = randomNickname();
     }
     const bio = formData.get('bio') as string;
     const promoCode = formData.get('promoCode') as string;
@@ -168,7 +181,7 @@ export default function NewUser() {
                     pulseEffect={true}
                 />
             </div> :
-            <div className='flex flex-col items-center h-[70vh] !p-10'>
+            <div className='relative w-full flex flex-col items-center !p-10'>
                 <div className="flex flex-col items-center justify-center w-[360px] py-4 rounded-md">
 
                     <span className="relative flex h-28 w-28">
@@ -186,7 +199,7 @@ export default function NewUser() {
 
                     <form action={handleSubmit}>
                         <div className="flex flex-col w-72">
-                            <div className="flex flex-col space-y-4 items-center justify-center text-black dark:text-white">
+                            <div className="flex flex-col space-y-4 items-center justify-center">
                                 <NewUserNicknameComponent />
                                 <NewUserBioComponent />
                                 <NewUserCodeComponent />

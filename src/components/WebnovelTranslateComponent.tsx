@@ -53,10 +53,6 @@ const WebnovelTranslateComponent = (
             if (data.text) {
                 setText(await marked(data.text))
             }
-
-            // If there's no translation in the DB
-            // initialized.current is bc useEffect runs twice
-            // submitContent with ongoing translation
             if (!data.done) {
                 setText("");
                 submitContent(data.text);

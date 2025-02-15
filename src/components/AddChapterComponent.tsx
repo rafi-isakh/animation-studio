@@ -17,8 +17,9 @@ import 'react-quill/dist/quill.snow.css';
 import '@/styles/quill-custom.css'; // Add this import
 import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import Link from 'next/link';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnovelId: string, webnovels: Webnovel[], novelLanguage: string }) => {
+const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const { email, nickname } = useUser();
@@ -31,6 +32,17 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
     const titleRef = useRef<ReactQuill>(null);
     const contentRef = useRef<ReactQuill>(null);
     const [openModal, setOpenModal] = useState(false);
+    const { getWebnovelById } = useWebnovels();
+    const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
+    const { invalidateCache } = useWebnovels();
+
+    useEffect(() => {
+        const fetchWebnovel = async () => {
+            const webnovel = await getWebnovelById(webnovelId);
+            setWebnovel(webnovel);
+        }
+        fetchWebnovel();
+    }, [webnovelId])
 
     useEffect(() => {
         setCurrText(content.length);
@@ -68,7 +80,6 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
         // Get plain text from content editor
         const contentEditor = contentRef.current?.getEditor();
         const contentText = contentEditor?.getText().trim() || "";
-        console.log(contentText);
 
         formData.append('title', titleText);
         formData.append('content', contentText);
@@ -83,6 +94,7 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
                 method: 'POST',
                 body: formData,
             });
+            invalidateCache();
             router.push(`/view_webnovels?id=${webnovelId}`)
             router.refresh();
         }
@@ -96,8 +108,6 @@ const AddChapterComponent = ({ webnovelId, webnovels, novelLanguage }: { webnove
     const replaceSmartQuotes = (str: string) => {
         return str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
     };
-
-    const webnovel = webnovels.find((novel) => novel.id === Number(webnovelId));
 
     return (
         <div className='md:w-[720px] p-6 mb-10 flex flex-col justify-center mx-auto border-gray-300 border rounded-xl'>

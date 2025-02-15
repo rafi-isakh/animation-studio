@@ -36,7 +36,7 @@ async function NewChapter({ searchParams }: { searchParams: { [key: string]: str
 
     if (id) {
         return (
-            <AddChapterComponent webnovelId={id} webnovels={await getWebnovels()} novelLanguage={novelLanguage} />
+            <AddChapterComponent webnovelId={id} />
         );
     }
     else {

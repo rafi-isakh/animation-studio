@@ -55,7 +55,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const searchRef = useRef<HTMLDivElement>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
     const languageMenuRef = useRef<HTMLDivElement>(null);
-    const { dictionary, language, setLanguage } = useLanguage();
+    const { dictionary, language, setLanguageOverride } = useLanguage();
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
     const [logoWidth, setLogoWidth] = useState(100);
     const [logoHeight, setLogoHeight] = useState(24);
@@ -78,7 +78,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         } else if (pathname.startsWith("/view_webnovels")) {
             const id = searchParams.get("id");
             if (premiumWebnovelIds.includes(parseInt(id!))) {
-                console.log("premium")
                 setActiveTab('premium');
             } else {
                 setActiveTab('free');
@@ -198,7 +197,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
         event.preventDefault();
-        setLanguage(language);
+        setLanguageOverride(language);
         setIsLanguageDropdownOpen(false);
         if (device === 'mobile') {
             handleMobileMenuClick();

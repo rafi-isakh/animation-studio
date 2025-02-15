@@ -44,7 +44,6 @@ export default function Videos() {
                         language={language}
                         imageType={'webtoon'}
                         onVideoClick={(video) => {
-                            console.log('Video clicked:', video);
                         }}  
                     />
                  </div>
@@ -55,7 +54,6 @@ export default function Videos() {
                         language={language}
                         imageType={'webnovel'}
                         onVideoClick={(video) => {
-                            console.log('Video clicked:', video);
                         }}  
                     />
                  </div>

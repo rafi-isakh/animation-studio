@@ -7,14 +7,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
+const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const { webnovels } = useWebnovels();
 
     useEffect(() => {
         const _webnovelsToShow = webnovels

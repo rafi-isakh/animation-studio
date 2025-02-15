@@ -13,7 +13,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ page, maxPage, scrollType }) 
     useEffect(() => {
         if (scrollType === 'horizontal') {
             // Handle horizontal pagination
-            console.log(page, maxPage);
             if (page && maxPage) {
                 setScrollPercent(Math.floor((page / maxPage) * 100));
             }

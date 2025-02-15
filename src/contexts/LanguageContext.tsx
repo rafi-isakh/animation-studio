@@ -9,6 +9,8 @@ interface LanguageContextType {
   setLanguage: (language: Language) => void;
   dictionary: Dictionary;
   isRtl: string;
+  setLanguageOverride: (language: Language) => void;
+  clearLanguageOverride: () => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -37,8 +39,17 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     localStorage.setItem('language', language);
   }, [language]);
 
+  const setLanguageOverride = (language: Language) => {
+    setLanguage(language);
+    localStorage.setItem('language-override', language);
+  }
+
+  const clearLanguageOverride = () => {
+    localStorage.removeItem('language-override');
+  }
+
 return (
-  <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl }}>
+  <LanguageContext.Provider value={{ language, setLanguage, dictionary, isRtl, setLanguageOverride, clearLanguageOverride }}>
     {children}
   </LanguageContext.Provider>
 );

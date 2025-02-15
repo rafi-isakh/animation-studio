@@ -1,6 +1,25 @@
+'use client'
 import Link from "next/link"
+import Accordion from "@/components/UI/Accordion"
+import { useLanguage } from "@/contexts/LanguageContext"
+
+const readByGenreData = [
+  {
+    title: "Read By Genres",
+    subtitles: [
+      "Fantasy",
+      "Romance",
+      "Action",
+      "Mystery",
+      "Sci-Fi",
+      "Horror",
+      "Comedy"
+    ]
+  },  
+]
 
 export default function Sitemap() {
+  const { dictionary, language } = useLanguage()
   return (
     <div className="w-full min-h-screen bg-white dark:bg-black">
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -49,9 +68,20 @@ export default function Sitemap() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  ReadBy Genres
-                </Link>
+              <Accordion
+                data={readByGenreData.map(genre => ({
+                  title: genre.title,
+                  subtitle: genre.subtitles.map((sub, index) => (
+                    <span key={index}>
+                      {sub}
+                      {index < genre.subtitles.length - 1 && <br />}
+                    </span>
+                  ))
+                }))}
+                className="md:max-w-screen-sm w-full mx-auto"
+                titleClassName="!p-0 !text-gray-500"
+                subtitleClassName=""
+              />
               </li>
               <li>
                 <Link href="/retailers" className="text-gray-500 hover:underline">

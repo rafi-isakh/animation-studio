@@ -159,7 +159,7 @@ export default function NewUser() {
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col w-72">
                         {step === 1 && (
-                            <div className="flex flex-col space-y-4 items-center">
+                            <div className="flex flex-col space-y-3 items-center">
                                 <NewUserNicknameComponent
                                     value={formData.nickname}
                                     onChange={handleInputChange}

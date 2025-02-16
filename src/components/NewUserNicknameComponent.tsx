@@ -3,12 +3,16 @@
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases';
-import { FormControl, useFormControlContext } from '@mui/base/FormControl';
+import FormControl from '@mui/material/FormControl';
+import { useFormControlContext } from '@mui/base/FormControl';
 import { Input, inputClasses } from '@mui/base/Input';
 import { useTheme } from "@/contexts/providers";
 import { alpha, styled } from '@mui/material/styles';
 import clsx from 'clsx';
-import { Box } from "@mui/material";
+import TextField from '@mui/material/TextField';
+import FormHelperText from '@mui/material/FormHelperText';
+
+
 const NewUserNicknameComponent = ({
     value,
     onChange,
@@ -21,53 +25,26 @@ const NewUserNicknameComponent = ({
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
 
-    const StyledInput = styled(Input)(
-        ({ theme }) => `
-        .${inputClasses.input} {
-          width: 100%;
-          font-size: 1rem;
-          font-weight: 400;
-          line-height: 1.5;
-          padding: 8px 12px;
-          border-radius: 8px;
-          transition: all 0.2s ease-in-out;
-          color: ${isDarkMode ? '#fff' : '#000'};
-          background: ${isDarkMode ? '#1A2027' : '#F3F6F9'};
-          border: 2px solid ${isDarkMode ? '#2D3843' : '#E0E3E7'};
-      
-          &:hover {
-            border-color: ${isDarkMode ? '#DE2B74' : '#DE2B74'};
-          }
-      
-          &:focus {
-            outline: 0;
-            border-color: ${isDarkMode ? '#DE2B74' : '#DE2B74'};
-            box-shadow: ${alpha('#DE2B74', 0.25)} 0 0 0 0.2rem;
-          }
-        }
-      `,
-    );
-
     const Label = styled(
         ({ children, className }: { children?: React.ReactNode; className?: string }) => {
             const formControlContext = useFormControlContext();
             const [dirty, setDirty] = useState(false);
 
             useEffect(() => {
-                if (formControlContext?.filled) {
+                if (formControlContext?.value) {
                     setDirty(true);
                 }
             }, [formControlContext]);
 
-            if (formControlContext === undefined) {
+            if (!formControlContext) {
                 return <p>{children}</p>;
             }
 
-            const { error, required, filled } = formControlContext;
-            const showRequiredError = dirty && required && !filled;
+            const { required, value } = formControlContext;
+            const showRequiredError = dirty && required && !value;
 
             return (
-                <p className={clsx(className, error || showRequiredError ? 'invalid' : '')}>
+                <p className={clsx(className || showRequiredError ? 'invalid' : '')}>
                     {children}
                     {required ? <span className="text-red-500"> *</span> : ''}
                 </p>
@@ -76,7 +53,6 @@ const NewUserNicknameComponent = ({
     )`
         font-family: 'Pretendard', sans-serif;
         font-size: 0.875rem;
-        margin-bottom: 4px;
         color: ${isDarkMode ? '#fff' : '#000'};
       
         &.invalid {
@@ -84,50 +60,68 @@ const NewUserNicknameComponent = ({
         }
       `;
 
-    const HelperText = styled((props: {}) => {
-        const formControlContext = useFormControlContext();
-        const [dirty, setDirty] = React.useState(false);
-        const [value, setValue] = React.useState('');
-
-        React.useEffect(() => {
-            if (formControlContext?.filled) {
-                setDirty(true);
-                setValue(formControlContext.value?.toString() || '');
-            }
-        }, [formControlContext]);
-
-        if (formControlContext === undefined) {
-            return null;
-        }
-
-        const { required, filled } = formControlContext;
-        const showRequiredError = dirty && required && !filled;
-        const showLengthError = value.length > 25;
-
-        return (
-            <>
-                {showRequiredError && <p {...props}>This field is required.</p>}
-                {showLengthError && <p {...props}>Nickname cannot exceed 25 characters.</p>}
-            </>
-        );
-
-
-    })`
-        font-family: 'Pretendard', sans-serif;
-        color: red;
-        font-size: 0.875rem;
-      `;
-
     return (
-        <FormControl defaultValue="" className="md:max-w-screen-md w-full">
+        <FormControl required variant="standard" className="md:max-w-screen-md w-full">
             <Label>{phrase(dictionary, "nickname", language)}</Label>
-            <StyledInput
+            <TextField
                 value={value}
+                onChange={onChange}
                 name="nickname"
                 placeholder="Write your Nickname here"
+                slotProps={{
+                    input: {
+                        sx: {
+                            width: '100%',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            color: isDarkMode ? 'white' : 'black',
+                            backgroundColor: isDarkMode ? '#1A2027' : '#F3F6F9',
+                            border: '1px solid',
+                            borderColor: isDarkMode ? '#2D3843' : '#E0E3E7',
+                            fontSize: '1rem',
+                            padding: '8px 12px',
+                            boxShadow: 'none',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                borderColor: '#DE2B74',
+                            },
+                            '&:focus': {
+                                boxShadow: `${alpha('#DE2B74', 0.25)} 0 0 0 0.2rem`,
+                                borderColor: '#DE2B74',
+                            },
+                        },
+                    },
+                }}
+                sx={{
+                    '& .MuiOutlinedInput-root': {
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#DE2B74',
+                            boxShadow: `${alpha('#DE2B74', 0.25)} 0 0 0 0.2rem`,
+                        },
+                        '& .MuiInputBase-input': {
+                            width: '100%',
+                            borderRadius: '0px',
+                            position: 'relative',
+                            color: isDarkMode ? 'white' : 'black',
+                            backgroundColor: 'transparent',
+                            border: '0px',
+                            borderColor: 'transparent',
+                            fontSize: '1rem',
+                            padding: '0',
+                            transition: 'all 0.3s ease',
+                            '&:focus': {
+                                boxShadow: 'none',
+                                border: '0px',
+                                borderColor: 'transparent',
+                            },
+                        }
+                    }
+                }}
             />
-            <HelperText />
-        </FormControl >
+            <FormHelperText error={value.length > 20}>
+                {value.length > 20 ? "Nickname cannot exceed 20 characters." : ""}
+            </FormHelperText>
+        </FormControl>
     )
 }
 

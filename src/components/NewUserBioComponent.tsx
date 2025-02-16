@@ -102,7 +102,7 @@ const NewUserBioComponent = ({
                         }
                     }}
                 />
-                <Box sx={{ textAlign: 'right', mt: 1, fontSize: '0.8rem' }}>
+                <Box sx={{ textAlign: 'right', mt: 0, fontSize: '0.875rem' }}>
                     {content.length}/{maxText}
                 </Box>
             </FormControl>

@@ -3,13 +3,20 @@
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases';
-import '@/styles/new_user.css'
 import { FormControl, useFormControlContext } from '@mui/base/FormControl';
 import { Input, inputClasses } from '@mui/base/Input';
 import { useTheme } from "@/contexts/providers";
-import { styled } from '@mui/system';
+import { alpha, styled } from '@mui/material/styles';
 import clsx from 'clsx';
-const NewUserNicknameComponent = () => {
+import { Box } from "@mui/material";
+const NewUserNicknameComponent = ({
+    value,
+    onChange,
+}:
+    {
+        value: string,
+        onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+    }) => {
     const { dictionary, language } = useLanguage();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
@@ -18,15 +25,15 @@ const NewUserNicknameComponent = () => {
         ({ theme }) => `
         .${inputClasses.input} {
           width: 100%;
-          font-size: 0.875rem;
+          font-size: 1rem;
           font-weight: 400;
           line-height: 1.5;
           padding: 8px 12px;
           border-radius: 8px;
+          transition: all 0.2s ease-in-out;
           color: ${isDarkMode ? '#fff' : '#000'};
-          background: ${isDarkMode ? '#000' : '#fff'};
-          border: 1px solid ${isDarkMode ? '#fff' : '#000'};
-          box-shadow: 0 2px 2px ${isDarkMode ? '#211F21' : '#eee'};
+          background: ${isDarkMode ? '#1A2027' : '#F3F6F9'};
+          border: 2px solid ${isDarkMode ? '#2D3843' : '#E0E3E7'};
       
           &:hover {
             border-color: ${isDarkMode ? '#DE2B74' : '#DE2B74'};
@@ -35,7 +42,7 @@ const NewUserNicknameComponent = () => {
           &:focus {
             outline: 0;
             border-color: ${isDarkMode ? '#DE2B74' : '#DE2B74'};
-            box-shadow: 0;
+            box-shadow: ${alpha('#DE2B74', 0.25)} 0 0 0 0.2rem;
           }
         }
       `,
@@ -62,7 +69,7 @@ const NewUserNicknameComponent = () => {
             return (
                 <p className={clsx(className, error || showRequiredError ? 'invalid' : '')}>
                     {children}
-                    {required ? ' *' : ''}
+                    {required ? <span className="text-red-500"> *</span> : ''}
                 </p>
             );
         },
@@ -112,9 +119,13 @@ const NewUserNicknameComponent = () => {
       `;
 
     return (
-        <FormControl defaultValue="" required>
+        <FormControl defaultValue="" className="md:max-w-screen-md w-full">
             <Label>{phrase(dictionary, "nickname", language)}</Label>
-            <StyledInput name="nickname" placeholder="Write your Nickname here" />
+            <StyledInput
+                value={value}
+                name="nickname"
+                placeholder="Write your Nickname here"
+            />
             <HelperText />
         </FormControl >
     )

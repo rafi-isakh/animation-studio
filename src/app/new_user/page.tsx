@@ -3,7 +3,6 @@
 import { auth } from '@/auth';
 import { UserCreate } from '@/components/Types';
 import { redirect } from 'next/navigation'
-import '@/styles/globals.css'
 import NewUserNicknameComponent from '@/components/NewUserNicknameComponent';
 import NewUserSubmitComponent from '@/components/NewUserSubmitComponent';
 import NewUserBioComponent from '@/components/NewUserBioComponent';
@@ -24,370 +23,270 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import { useModalStyle } from '@/styles/ModalStyles';
 
-
-const nouns = [
-    'Star', 'Moon', 'Sun', 'Cloud', 'River', 
-    'Mountain', 'Forest', 'Ocean', 'Sky', 'Flower',
-    'Tree', 'Bird', 'Fish', 'Butterfly', 'Dragon',
-    'Phoenix', 'Tiger', 'Lion', 'Wolf', 'Fox'
-];
-
-const randomNickname = () => {
-    const randomIndex = Math.floor(Math.random() * nouns.length);
-    return nouns[randomIndex] + Math.floor(Math.random() * 1000);
-};
-
-async function createUser() {
-
-    let nickname = randomNickname();
-    let bio = "";
-
-    const data = {
-        'nickname': nickname,
-        'bio': bio,
-    }
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/add_user`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    });
-}
-
-async function updateUser(formData: FormData) {
-    // TODO: add option to upload picture at user registration
-    let nickname = formData.get('nickname') as string;
-    if (!nickname) {
-        nickname = randomNickname();
-    }
-    const bio = formData.get('bio') as string;
-    const promoCode = formData.get('promoCode') as string;
-    const marketing = formData.get('marketing') as string;
-
-    // Extract genres data from formData and create an object
-    const genres: { [key: string]: boolean } = {};
-    for (const [key, value] of formData.entries()) {
-        if (key.startsWith('genres[')) {
-            const genreName = key.match(/\[(.*?)\]/)?.[1] || '';
-            genres[genreName] = value === 'true';
-        }
-    }
-
-    const formDataToSend = new FormData();
-    formDataToSend.append('nickname', nickname);
-    formDataToSend.append('bio', bio);
-    formDataToSend.append('promoCode', promoCode);
-    formDataToSend.append('genres', JSON.stringify(genres));
-    formDataToSend.append('marketing', marketing.toString());
-    const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/update_user?promo_code=${promoCode}`, {
-        method: 'POST',
-        body: formDataToSend,
-    });
-    redirect('/welcome');
-}
-
-async function createAndUpdateUser(formData: FormData) {
-    // legacy code. should integrate these to one call.
-    await createUser();
-    await updateUser(formData);
-}
-
-async function isUserInDB() {
-    const res = await fetch(`/api/check_user`);
-    const data = await res.json();
-    return data;
-}
+const nouns = ["Star", "Moon", "Sun", "Cloud", "River", "Mountain", "Forest", "Ocean", "Sky", "Flower"];
+const randomNickname = () => nouns[Math.floor(Math.random() * nouns.length)] + Math.floor(Math.random() * 1000);
 
 export default function NewUser() {
     const router = useRouter();
+    const { language, dictionary } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [userExists, setUserExists] = useState(false);
-    const { language, dictionary } = useLanguage()
+    const [userWithSameEmailExists, setUserWithSameEmailExists] = useState(false);
     const [showSelectAtLeastOneGenre, setShowSelectAtLeastOneGenre] = useState(false);
-    const [marketing, setMarketing] = useState(false);
-    // Add state for checkbox values
-    const [genres, setGenres] = useState({
-        romance: false,
-        fantasy: false,
-        action: false,
-        orientalFantasy: false,
-        bl: false,
-        gl: false,
-        romanceFantasy: false,
-        sf: false
+    const [formData, setFormData] = useState({
+        nickname: "",
+        bio: "",
+        promoCode: "",
+        genres: {
+            romance: false,
+            fantasy: false,
+            action: false,
+            orientalFantasy: false,
+            bl: false,
+            gl: false,
+            romanceFantasy: false,
+            sf: false,
+        },
+        marketing: false,
     });
+    const [step, setStep] = useState(1);
 
-    // Handler for checkbox changes
-    const handleGenreChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setGenres({
-            ...genres,
-            [event.target.name]: event.target.checked
+    useEffect(() => {
+        const checkUser = async () => {
+            try {
+                const res = await fetch("/api/check_user");
+                const data = await res.json();
+                if (data.user_exists) {
+                    setUserExists(true);
+                    router.push("/user_loggedin");
+                } else if (data.user_with_same_email_exists) {
+                    setUserWithSameEmailExists(true);
+                }
+            } catch (error) {
+                console.error("Error checking user:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkUser();
+    }, [router]);
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({
+            ...formData,
+            [event.target.name]: event.target.value
         });
+    }
+
+    const handleGenreChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = event.target;
+        setFormData((prev) => ({
+            ...prev,
+            genres: { ...prev.genres, [name]: checked },
+        }));
     };
 
-    // Modify the createAndUpdateUser function to include genres
-    async function handleSubmit(formData: FormData) {
-        // Add genres data to formData
-        if (!Object.values(genres).some(Boolean)) {
+    const handleMarketingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData((prev) => ({ ...prev, marketing: event.target.checked }));
+    };
+
+    const handleNextStep = () => {
+        if (step < 3) setStep(step + 1);
+    };
+
+    const handlePrevStep = () => {
+        if (step > 1) setStep(step - 1);
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const selectedGenres = Object.values(formData.genres).some(Boolean);
+        // Ensure at least one genre is selected
+        if (!selectedGenres) {
             setShowSelectAtLeastOneGenre(true);
             return;
         }
-        if (marketing) {
-            formData.append('marketing', 'true');
-        } else {
-            formData.append('marketing', 'false');
+
+        try {
+            const userData = {
+                nickname: formData.nickname || randomNickname(),
+                bio: formData.bio,
+                promoCode: formData.promoCode,
+                genres: formData.genres,
+                marketing: formData.marketing,
+            };
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/add_user`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(userData),
+            });
+
+            if (!res.ok) throw new Error("Failed to create user");
+
+            router.push("/welcome");
+        } catch (error) {
+            console.error("Error creating user:", error);
         }
-        Object.entries(genres).forEach(([genre, checked]) => {
-            formData.append(`genres[${genre}]`, checked.toString());
-        });
-        await createAndUpdateUser(formData);
+    };
+
+    if (loading) {
+        return (
+            <div role="status" className="flex items-center justify-center min-h-screen">
+                <LottieLoader animationData={animationData} width="w-40" centered={true} pulseEffect={true} />
+            </div>
+        );
     }
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            const data = await isUserInDB();
-            const { user_exists, user_with_same_email_exists } = data;
-            if (user_exists) {
-                setUserExists(true);
-                router.push('/user_loggedin');
-            } else if (user_with_same_email_exists) {
-                return (
-                    <UserWithSameEmailExistsModalComponent /> // bug: this modal is not shown
-                )
-            }
-            setLoading(false);
-        }
-        fetchData();
-    }, [])
-
-    const handleMarketingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setMarketing(event.target.checked);
-    }
-
-    if (userExists) {
-        return null;
-    }
+    if (userExists) return null;
 
     return (
-        loading ?
-            <div role="status" className={`flex items-center justify-center min-h-screen`}>
-                <LottieLoader
-                    animationData={animationData}
-                    width="w-40"
-                    centered={true}
-                    pulseEffect={true}
-                />
-            </div> :
-            <div className='relative w-full flex flex-col items-center !p-10'>
-                <div className="flex flex-col items-center justify-center w-[360px] py-4 rounded-md">
+        <div className="relative w-full flex flex-col items-center p-10">
+            {userWithSameEmailExists && <UserWithSameEmailExistsModalComponent />}
 
-                    <span className="relative flex h-28 w-28">
-                        <span className="relative inline-flex rounded-full h-28 w-28 border-[#FFE2DC]">
-                            <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className='self-center mx-auto' />
-                        </span>
-                    </span>
-                    <h1 className='text-center text-xl font-bold mb-4'>{phrase(dictionary, 'signup', language)}</h1>
-                    
-                    {/*
-                    <p className="text-center text-[10px] text-gray-400 dark:text-white">
-                        Your Favorite Story Universe, Between Us, Toonyz
-                    </p>
-                    */}
+            <div className="flex flex-col items-center justify-center md:w-max-screen-md w-full py-4">
+                {(step === 1 || step === 3) && (
+                    <>
+                        <div className="relative flex h-28 w-28">
+                            <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className="self-center mx-auto" />
+                        </div>
+                        <h1 className="text-center text-xl font-bold mb-4">
+                            {phrase(dictionary, "signup", language)}
+                        </h1>
+                    </>
+                )}
+                <form onSubmit={handleSubmit}>
+                    <div className="flex flex-col w-72">
+                        {step === 1 && (
+                            <div className="flex flex-col space-y-4 items-center">
+                                <NewUserNicknameComponent
+                                    value={formData.nickname}
+                                    onChange={handleInputChange}
+                                />
+                                <NewUserBioComponent
+                                    value={formData.bio}
+                                    onChange={handleInputChange}
+                                />
+                                <NewUserCodeComponent
+                                    value={formData.promoCode}
+                                    onChange={handleInputChange}
+                                />
+                                <button type="button" onClick={handleNextStep} className="w-full bg-pink-600 text-white py-2 rounded-md">
+                                    {phrase(dictionary, "next", language)}
+                                </button>
+                            </div>
+                        )}
 
-                    <form action={handleSubmit}>
-                        <div className="flex flex-col w-72">
-                            <div className="flex flex-col space-y-4 items-center justify-center">
-                                <NewUserNicknameComponent />
-                                <NewUserBioComponent />
-                                <NewUserCodeComponent />
-                                <div className="flex flex-col gap-2">
-                                    <p className="text-sm font-medium">선호하는 장르를 선택해주세요</p>
-                                    <div className="grid grid-cols-2 gap-2">
+                        {step === 2 && (
+                            <div className=" flex flex-col space-y-4 items-center">
+                                <Image
+                                    src="/icons/explore_icon.svg"
+                                    alt="Explore icon"
+                                    width={50}
+                                    height={50}
+                                    className="self-start"
+                                />
+                                <p className="relative md:text-4xl text-xl font-extrabold">
+                                    Choose topics
+                                    that interest you
+                                </p>
+                                <p className="text-sm font-medium">{phrase(dictionary, "selectFavoriteGenres", language)}</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {Object.entries(formData.genres).map(([genre, checked]) => (
                                         <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="romance"
-                                                    checked={genres.romance}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
+                                            key={genre}
+                                            control={<Checkbox
+                                                name={genre}
+                                                checked={checked}
+                                                onChange={handleGenreChange}
+                                                sx={{
+                                                    color: "#db2777",
+                                                    "&.Mui-checked": {
+                                                        color: "#db2777",
+                                                    },
+                                                }}
+                                            />
                                             }
-                                            label={phrase(dictionary, "romance", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                            label={phrase(dictionary, genre, language)}
+                                            sx={{ "& .MuiFormControlLabel-label": { fontSize: "14px" } }}
                                         />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="fantasy"
-                                                    checked={genres.fantasy}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label={phrase(dictionary, "fantasy", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="action"
-                                                    checked={genres.action}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label={phrase(dictionary, "action", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="orientalFantasy"
-                                                    checked={genres.orientalFantasy}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label={phrase(dictionary, "orientalFantasy", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="bl"
-                                                    checked={genres.bl}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label={phrase(dictionary, "bl", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="gl"
-                                                    checked={genres.gl}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label="GL"
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="romanceFantasy"
-                                                    checked={genres.romanceFantasy}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label={phrase(dictionary, "romanceFantasy", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    name="sf"
-                                                    checked={genres.sf}
-                                                    onChange={handleGenreChange}
-                                                    sx={{
-                                                        color: '#db2777',
-                                                        '&.Mui-checked': {
-                                                            color: '#db2777',
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            label={phrase(dictionary, "sf", language)}
-                                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
-                                        />
-                                    </div>
+                                    ))}
                                 </div>
+                                <div className="w-full flex flex-col space-y-4 justify-center items-center">
+                                    <button
+                                        type="button" onClick={handleNextStep}
+                                        className="w-full bg-pink-600 text-white py-2 px-4 rounded-md"
+                                    >
+                                        {phrase(dictionary, "next", language)}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handlePrevStep}
+                                        className="w-full bg-gray-300 text-black py-2 px-4 rounded-md"
+                                    >
+                                        {phrase(dictionary, "back", language)}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <div className="flex flex-col space-y-4 items-center">
                                 <FormControlLabel
                                     control={
                                         <Checkbox
                                             required
                                             sx={{
-                                                color: '#db2777',
-                                                '&.Mui-checked': {
-                                                    color: '#db2777',
-                                                }
+                                                color: "#db2777",
+                                                "&.Mui-checked": {
+                                                    color: "#db2777",
+                                                },
                                             }}
                                         />
                                     }
-                                    label={phrase(dictionary, 'agree_terms', language)}
-                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                    label={phrase(dictionary, "agree_terms", language)}
+                                    sx={{ "& .MuiFormControlLabel-label": { fontSize: "14px" } }}
                                 />
                                 <FormControlLabel
                                     control={
                                         <Checkbox
-                                            name="agree_marketing"
-                                            checked={marketing}
-                                            onChange={handleMarketingChange}
+                                            required
                                             sx={{
-                                                color: '#db2777',
-                                                '&.Mui-checked': {
-                                                    color: '#db2777',
-                                                }
+                                                color: "#db2777",
+                                                "&.Mui-checked": {
+                                                    color: "#db2777",
+                                                },
                                             }}
+                                            checked={formData.marketing}
+                                            onChange={handleMarketingChange}
                                         />
                                     }
-                                    label={phrase(dictionary, 'agree_marketing', language)}
-                                    sx={{ '& .MuiFormControlLabel-label': { fontSize: '14px' } }}
+                                    label={phrase(dictionary, "agree_marketing", language)}
+                                    sx={{ "& .MuiFormControlLabel-label": { fontSize: "14px" } }}
                                 />
-                                <NewUserSubmitComponent />
-                            </div>
-                        </div>
-                    </form>
 
-             
-                </div>
-                <Modal open={showSelectAtLeastOneGenre} onClose={() => setShowSelectAtLeastOneGenre(false)}>
-                    <Box sx={useModalStyle}>
-                        <p className="text-center text-xl font">{phrase(dictionary, 'selectAtLeastOneGenre', language)}</p>
-                    </Box>
-                </Modal>
+                                <div className="flex flex-col space-y-4 items-center">
+                                    <button
+                                        type="button"
+                                        onClick={handlePrevStep}
+                                        className="w-full bg-gray-300 text-black py-2 px-4 rounded-md"
+                                    >
+                                        {phrase(dictionary, "back", language)}
+                                    </button>
+                                    <NewUserSubmitComponent />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </form>
             </div>
-    )
+
+            <Modal open={showSelectAtLeastOneGenre} onClose={() => setShowSelectAtLeastOneGenre(false)}>
+                <Box sx={useModalStyle}>
+                    <p className="text-center text-xl">{phrase(dictionary, "selectAtLeastOneGenre", language)}</p>
+                </Box>
+            </Modal>
+        </div>
+    );
 }

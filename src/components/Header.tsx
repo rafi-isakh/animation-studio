@@ -379,7 +379,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div>
                             {/*hamburger menu in mobile screen (md:hidden)*/}
                             <div className="inline-flex">
-
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button
                                         variant="text"
@@ -398,21 +397,21 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </div>
 
                             </div>
-                            {isLoggedIn && (
+                            {/* Top navi menu button persist in mobile screen */}
                                 <div ref={hamburgerRef}>
                                     <button 
                                     id="mobile-hamburger" 
                                     onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} 
                                     type="button" 
-                                    className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm 
-                                               rounded-xl text-black md:hidden hover:bg-gray-100 
-                                               focus:outline-none dark:text-black dark:hover:bg-gray-600" 
+                                    className="inline-flex items-center p-2 w-10 h-10 
+                                               justify-center text-sm 
+                                               rounded-xl text-black md:hidden
+                                               focus:outline-none dark:text-black " 
                                     aria-controls="navbar-dropdown" 
                                     aria-expanded="false">
                                         <Menu size={20} className='dark:text-white text-gray-500' />
                                     </button>
                                 </div>
-                            )}
                         </div>
                         <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
                             {/*Search bar in mobile screen (md:hidden)*/}

@@ -38,13 +38,7 @@ interface PictureGeneratorProps {
       setError(null);
       
       try {
-        const response = await fetch('/api/onoma/anima/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ prompt: savedPrompt }),
-        });
+        const response = await fetch(`/api/generate_pictures?text=${savedPrompt}&n=4`)
   
         if (!response.ok) {
           switch (response.status) {

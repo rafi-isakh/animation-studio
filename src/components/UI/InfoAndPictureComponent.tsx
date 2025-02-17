@@ -66,7 +66,6 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        console.log("content", content);
     }, []);
 
     useEffect(() => {
@@ -128,16 +127,20 @@ export default function InfoAndPictureComponent({
                     <div className="md:px-4 md:p-2 px-4">
                         {/* Cover Image */}
                         <div className="min-w-[300px] h-[350px] md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
-                            <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px]">
-                                <Image
-                                    src={isWebtoon ? coverArt : getImageUrl(coverArt)}
-                                    alt={content.title}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 300px"
-                                    className="object-cover rounded-xl"
-                                    placeholder="blur"
-                                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                />
+                            <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px] rounded-xl">
+                                { coverArt ?
+                                    <Image
+                                        src={isWebtoon ? coverArt : getImageUrl(coverArt) }
+                                        alt={content.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 300px"
+                                        className="object-cover rounded-xl"
+                                        placeholder="blur"
+                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    />
+                                    :
+                                    <Skeleton variant="rectangular" width="100%" height="100%" />
+                                }
                             </div>
                         </div>
 

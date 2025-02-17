@@ -34,6 +34,7 @@ import '@/styles/AddWebnovelComponent.css';
 import TermsOfServiceModal from '@/components/TermsOfServiceModal';
 import CoverArtModal from '@/components/CoverArtModal';
 import CoverArtPreview from './CoverArtPreview';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
 const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [title, setTitle] = useState('');
@@ -52,8 +53,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [showCoverArtModal, setShowCoverArtModal] = useState(false);
     const [showTermsOfServiceModal, setShowTermsOfServiceModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    
+    const { invalidateCache } = useWebnovels();
 
     useEffect(() => {
         setCurrText(description.length);
@@ -107,6 +107,7 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                 throw new Error("Add webnovel failed");
             }
             const data = await res.json();
+            invalidateCache();
             router.push(`/view_webnovels?id=${data["id"]}`);
         } catch (error) {
             // Handle error

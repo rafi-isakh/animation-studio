@@ -33,7 +33,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 // Import the animation data
 import animationData from '@/assets/stelli_loader.json';
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
-
+import { useWebnovels } from "@/contexts/WebnovelsContext";
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -50,6 +50,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
+    const { getWebnovelById } = useWebnovels();
     const { fontSize,
         fontFamily = 'default',
         lineHeight,
@@ -71,6 +72,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const { readerTheme, toggleReaderTheme } = useReaderTheme()
     const { purchased_webnovel_chapters, checking } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
+    const { chaptersLikelyNeededWebnovel } = useWebnovels();
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
@@ -102,22 +104,25 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [pathname]);
 
     useEffect(() => {
-        fetch(`/api/get_chapter_by_id?id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                setChapter(data);
-                // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
-                if (!data.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
-                    router.push('/');
-                }
-                setUpvotes(data.upvotes)
-                fetch(`/api/get_webnovel_metadata_by_id?id=${data.webnovel_id}`)
-                    .then(response2 => response2.json())
-                    .then(data2 => {
-                        setWebnovel(data2)
-                    })
+        const fetchChapter = async () => {
+            let chapter = chaptersLikelyNeededWebnovel?.chapters.find(chapter => chapter.id == Number(id));
+            if (chapter?.content) {
+                setChapter(chapter);
             }
-            )
+            else {
+                const response = await fetch(`/api/get_chapter_by_id?id=${id}`)
+                chapter = await response.json();
+                setChapter(chapter);
+            }
+            // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
+            if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
+                router.push('/');
+            }
+            setUpvotes(chapter?.upvotes || 0)
+            const webnovel = await getWebnovelById(chapter?.webnovel_id.toString() || '');
+            setWebnovel(webnovel);
+        }
+        fetchChapter();
     }, [checking]);
 
     useEffect(() => {
@@ -238,11 +243,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto z-10`}>
                         {/* Back to novel and like button */}
                         <div className="flex flex-row max-w-full w-full justify-between">
-                            <Button color='gray' variant='text' href={`/view_webnovels?id=${webnovel.id}`}>
+                            <Button color='gray' variant='text' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
                                 <div className="flex flex-row space-x-1 items-center">
                                     <ChevronLeft size={18} className="" />
                                     <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
-                                   
+
                                 </div>
                             </Button>
 

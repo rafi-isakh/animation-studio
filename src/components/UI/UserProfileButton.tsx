@@ -41,7 +41,7 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
 
     return (
         <>
-            <Link href="/my_profile" onClick={handleClick as any} className="relative flex flex-row py-2 px-6 my-1 text-gray-400">
+            <Link href="#" onClick={handleClick as any} className="relative flex flex-row py-2 px-6 my-1 text-gray-400">
                 {picture ?
                     <div className='relative w-8 h-8 rounded-full overflow-hidden shadow-md'>
                         <Image src={getImageUrl(picture)} alt={nickname} width={15} height={15} sizes='100vw' quality={80} className='rounded-full object-center object-cover w-full h-full' />
@@ -80,8 +80,10 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                 <div className="w-80 h-80 p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
                     <div className="flex flex-row justify-between items-center">
                         <h3 className="text-lg font-semibold mb-2 self-center text-center">
-                             {getTimeBasedGreeting()}, 
-                             {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
+                            <Link href="/my_profile">
+                                {getTimeBasedGreeting()},{' '}
+                                {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
+                            </Link>
                         </h3>
                         <IconButton onClick={handleClose} aria-label="close" className='p-0 self-center'>
                             <X className='text-black dark:text-white' />

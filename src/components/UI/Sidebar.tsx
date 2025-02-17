@@ -61,7 +61,7 @@ export function GlobalSidebar() {
         text="Explore"
         active={pathname.startsWith('/explore')}
         alert={false}
-        href="#"
+        href="/explore"
         type="link"
       />
       <SidebarItem
@@ -168,14 +168,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   const isLoggedInAndRegistered = !!(isLoggedIn && email);
   const [expanded, setExpanded] = useState(false)
 
-
-  const handleSignOut = async (event: React.FormEvent) => {
-    event.preventDefault();
-    logout(true, '/');
-  };
-
   const open = Boolean(popoverAnchor);
-
 
   return (
     <>

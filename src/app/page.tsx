@@ -2,14 +2,10 @@ import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlic
 import Footer from '@/components/Footer';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
 import CarouselComponent from '@/components/CarouselComponent';
-import Preloader from '@/components/Preloader';
-import ApplyCreatorBanner from '@/components/ApplyCreatorBanner';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
-import MenuItemsComponent from '@/components/MenuItemsComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
-import PromotionModalWrapper from '@/components/UI/PromotionModalWrapper';
 import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';

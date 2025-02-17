@@ -45,8 +45,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
-         // If scrollType is horizontal, always show the footer
-         if (scrollType === 'horizontal') {
+        // If scrollType is horizontal, always show the footer
+        if (scrollType === 'horizontal') {
             setIsVisible(true);
             return; // Exit early, no need to add scroll listener
         }
@@ -123,8 +123,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     return (
-        <>
-            <div className={`z-50 fixed w-full justify-center bg-white dark:bg-black text-black
+        <div className="fixed w-full bottom-0 left-0 z-50">
+            <div className={`w-full justify-center bg-white dark:bg-black text-black
                              dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
                              ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
@@ -156,14 +156,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </p>
                     </Link>
                     {/* view next and prev btn */}
-                    <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px]'>
+                    <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px] z-[99]'>
                         <div className='group hover:text-[#DB2777] flex flex-row'>
                             {phrase(dictionary, "nextChapter", language)}
                             <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4' />
                         </div>
                     </Link>
-                </div>
-            </div>
+                </div >
+            </div >
             <Modal open={showIsLastChapterModal} onClose={() => setShowIsLastChapterModal(false)}>
                 <Box sx={useModalStyle}>
                     <div className='flex flex-col space-y-4'>
@@ -300,38 +300,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 </Link>
                             </div>
                         </div>
-                        {/*   <p className='text-sm flex justify-between'> 
-                       
-                            {phrase(dictionary, "paragraphSpacing", language)}     {/* 문단 여백 
-                           <div className='flex flex-row gap-2'>  
-                             <Link 
-                                href='' 
-                                onClick={() => {
-                                    setMargin(margin + 1)
-                                    setPadding(padding + 1)
-                                    setContainerWidth(containerWidth * 1.1); 
-                                }} 
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                             <i className="fas fa-plus"></i>
-                             </Link>
-                             {Math.round(margin)}
-                             <Link 
-                                href='' 
-                                onClick={() => {
-                                    setMargin(margin - 1)
-                                    setPadding(padding - 1)
-                                    setContainerWidth(containerWidth * 0.9); 
-                                }} 
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                             <i className="fas fa-minus"></i>
-                             </Link>
-                           </div>
-                        </p> */}
+
 
                     </div>
                 </Box>
             </Modal>
-        </>
+        </div >
     );
 };
 

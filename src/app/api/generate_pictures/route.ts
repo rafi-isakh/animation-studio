@@ -8,8 +8,12 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const text = searchParams.get('text');
+    let text = searchParams.get('text');
     const n = parseInt(searchParams.get('n') || '1');
+    if (!text) {
+        return NextResponse.json({ error: 'Text is required' }, { status: 400 });
+    }
+    text += ' [Korean webtoon style]'
     
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/generate_pictures?text=${text}&n=${n}`)
     const data = await response.json()

@@ -24,7 +24,7 @@ export default function GeneratedPicture({ index, image }: { index: number, imag
             }),
             fetch('/api/create_toonyz_post', {
                 method: 'POST',
-                body: JSON.stringify({ title, content, fileName, type: "image", tags }),
+                body: JSON.stringify({ title, content, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}` }),
             }),
         ]);
         if (!uploadResponse.ok) {

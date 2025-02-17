@@ -2,13 +2,13 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-    const { title, content, fileName, type, tags } = await request.json();
+    const { title, content, fileName, type, tags, link } = await request.json();
     const session = await auth();
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let bodyToSend = { title, content, tags, image: "", video: "" }
+    let bodyToSend = { title, content, tags, image: "", video: "", link }
 
     if (type === "image") {
         bodyToSend.image = fileName;
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         bodyToSend.video = fileName;
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/create_toonyz_post`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/create_toonyz_post`, {
         method: 'POST',
         body: JSON.stringify(bodyToSend),
         headers: {

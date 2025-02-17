@@ -11,9 +11,19 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import WebnovelPictureCardWrapper from '@/components/UI/WebnovelPictureCardWrapper';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
-import GenresList from '@/components/GenresList';
+import {
+        GenresTabs,
+        AllGenres,
+        RomanceGenres,
+        FantasyGenres,
+        SciFiGenres,
+        BLGenres,
+        DramaGenres,
+        RomanceFantasyGenres,
+        LoveComedyGenres
+} from '@/components/UI/GenresTabs';
 
-const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => { //{ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }
+const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
@@ -47,45 +57,99 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => { //{ searchParams }: { 
         fetchAllWebnovels();
     }, []);
 
+    const getCarouselItems = (webnovels: Webnovel[]) => {
 
-    // useEffect(() => {
-    //     console.log("webnovels cardlist by new before filter", webnovels);
-    //     const _webnovelsToShow = webnovels
-    //         .filter(item => filter_by_genre(item, genre))
-    //         .filter(item => filter_by_version(item, version))
-    //         .sort((a, b) => sortByFn(a, b, sortBy))
-    //         .slice(0, 27)
+    }
 
-    //     setWebnovelsToShow(_webnovelsToShow);
-    //     console.log("webnovels cardlist by new", _webnovelsToShow);
-    // }, [version, genre, webnovels, sortBy]);
-
-    // if (typeof genre === 'string') {
-    // } else if (Array.isArray(genre)) {
-    //     throw new Error("there should be only one genre param")
-    // } else {
-    // }
+    const tabsConfig = [
+        {
+            label: "All Genres",
+            genre: "allGenres",
+            Component: () => (
+                <AllGenres>
+                    {/* <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} /> */}
+                    <WebnovelsAllCardWrapper
+                        title={''}
+                        webnovels={allWebnovels}
+                        scrollRef={scrollRef}
+                        renderItem={(item: Webnovel, index: number) => (
+                            <WebnovelPictureCardWrapper
+                                webnovel={item}
+                                index={index + 1}
+                                ranking={false}
+                                details={false}
+                                up={false}
+                                isOriginal={false}
+                            />
+                        )}
+                    />
+                </AllGenres>
+            ),
+            color: "#F9B294"
+        },
+        {
+            label: "Romance",
+            genre: "romance",
+            Component: () => (
+                <RomanceGenres sortBy={sortBy} webnovels={allWebnovels} />
+            ),
+            color: "#F2727F"
+        },
+        {
+            label: "Fantasy",
+            genre: "fantasy",
+            Component: () => (
+                <FantasyGenres sortBy={sortBy} webnovels={allWebnovels} />
+            ),
+            color: "#F89E8D"
+        },
+        {
+            label: "Sci-Fi",
+            genre: "sf",
+            Component: () => (
+                <SciFiGenres sortBy={sortBy} webnovels={allWebnovels} />
+            ),
+            color: "#F78A86"
+        },
+        {
+            label: "BL",
+            genre: "bl",
+            Component: () => (
+                <BLGenres sortBy={sortBy} webnovels={allWebnovels} />
+            ),
+            color: "#F2727F"
+        },
+        {
+            label: "Drama",
+            genre: "drama",
+            Component: () => (
+                <DramaGenres sortBy={sortBy} webnovels={allWebnovels} />
+            ),
+            color: "#0C34F0"
+        },
+        {
+            label: "Romance Fantasy",
+            genre: "romanceFantasy",
+            Component: () => (
+                <RomanceFantasyGenres sortBy={sortBy} webnovels={allWebnovels}/>
+            ),
+            color: "#F0BA18"
+        },
+        {
+            label: "Love Comedy",
+            genre: "loveComedy",
+            Component: () => (
+                <LoveComedyGenres sortBy={sortBy} webnovels={allWebnovels}/>
+            ),
+            color: "#F0183C"
+        },
+    ];
 
     return (
         <div className='relative md:max-w-screen-xl w-full mx-auto font-pretendard'>
-            <div className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                <GenresList />
+            <div className='relative w-full mx-auto'>
+                <GenresTabs tabs={tabsConfig} type="tabs" orientation="horizontal" />
             </div>
-            <WebnovelsAllCardWrapper
-                title={''}
-                webnovels={allWebnovels}
-                scrollRef={scrollRef}
-                renderItem={(item: Webnovel, index: number) => (
-                    <WebnovelPictureCardWrapper
-                        webnovel={item}
-                        index={index + 1}
-                        ranking={false}
-                        details={false}
-                        up={false}
-                        isOriginal={false}
-                    />
-                )}
-            />
         </div>
     )
 };

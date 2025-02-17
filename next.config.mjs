@@ -11,6 +11,7 @@ const nextConfig = {
                 loader: 'lottie-loader',
             },
         });
+        config.resolve.fallback = { fs: false, net: false, tls: false, child_process: false };
         return config;
     },
     images: {
@@ -26,7 +27,12 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_WEBTOONS_S3,
+                hostname: process.env.NEXT_PUBLIC_WEBTOONS_S3 || 'localhost',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'picsum.photos',
                 pathname: '/**',
             },
         ],
@@ -43,14 +49,14 @@ const nextConfig = {
 };
 
 const pwaConfig = withPWA({
-  dest: 'public',
-  disable: false,
-  experimental: {
-    appDir: true, // Ensures the App Router is enabled
-  },
+    dest: 'public',
+    disable: false,
+    experimental: {
+        appDir: true, // Ensures the App Router is enabled
+    },
 });
 
 export default {
-  ...pwaConfig,
-  ...nextConfig,
+    ...pwaConfig,
+    ...nextConfig,
 };

@@ -8,6 +8,5 @@ export async function GET() {
     }
     const data = await response.json()
     const end = performance.now();
-    console.log(`get_carousel_items took ${end - start} milliseconds`)
     return NextResponse.json(data);
 }

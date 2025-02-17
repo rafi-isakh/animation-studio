@@ -4,21 +4,13 @@ import WebtoonInfoAndPictureComponent from "@/components/WebtoonInfoAndPictureCo
 import { Webtoon } from "@/components/Types";
 
 async function getWebtoonById(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_by_id?id=${id}`)
     const data = await response.json()
     return data;
 }
 
 async function getWebtoons() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`)
     const data = await response.json()
     return data;
 }
@@ -31,9 +23,17 @@ export default async function WebtoonPage({ params }: { params: { slug: string }
     const coverArtUrls = await Promise.all(webtoons.map(async (webtoon: Webtoon) => await getSignedUrlForWebtoonImage(webtoon.root_directory + "/" + webtoon.cover_art)))
 
     return (
-        <div key={`webtoon-${params.slug}`} className="w-full min-h-screen md:max-w-screen-lg mx-auto">
-             <WebtoonInfoAndPictureComponent webtoon={webtoon} coverArt={coverArt} />
-             <WebtoonChapterListComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} webtoons={webtoons} coverArtUrls={coverArtUrls} />
+        <div
+            key={`webtoon-${params.slug}`}
+            className="w-full min-h-screen md:max-w-screen-lg mx-auto">
+            <div className="flex md:flex-row flex-col justify-between items-start">
+                <div className="md:w-1/3 w-full flex-grow-0">
+                <WebtoonInfoAndPictureComponent webtoon={webtoon} coverArt={coverArt} />
+                </div>
+                <div className="flex-1 md:w-2/3 w-full">
+                <WebtoonChapterListComponent webtoon={webtoon} slug={params.slug} coverArt={coverArt} webtoons={webtoons} coverArtUrls={coverArtUrls} />
+                </div>
+            </div>
         </div>
     );
 }

@@ -92,8 +92,8 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
                              ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto">
                     <Link href={prevChapterLink} onClick={handlePrevChapter}>
-                        <p className='group hover:text-pink-600'>
-                            <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-pink-600 mr-4"></i>
+                        <p className='group hover:text-[#DB2777]'>
+                            <i className="fas fa-angle-left  text-gray-500 self-center group-hover:text-[#DB2777] mr-4"></i>
                             {<DictionaryPhrase phraseVar="prevChapter" />}
                         </p>
                     </Link>
@@ -105,9 +105,9 @@ export default function WebtoonViewerFooter({ webtoon, episode }: { webtoon: Web
                         </p>
                     </Link>
                     <Link href={nextChapterLink} onClick={handleNextChapter}>
-                        <p className='group hover:text-pink-600'>
+                        <p className='group hover:text-[#DB2777]'>
                             {<DictionaryPhrase phraseVar="nextChapter" />}
-                            <i className="fas fa-angle-right  text-gray-500 self-center group-hover:text-pink-600 ml-4"></i>
+                            <i className="fas fa-angle-right  text-gray-500 self-center group-hover:text-[#DB2777] ml-4"></i>
                         </p>
                     </Link>
                 </div>

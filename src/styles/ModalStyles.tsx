@@ -1,20 +1,103 @@
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-
-const useModalStyle = () => {
+const useToonyzCutSubmitModalStyle = () => {
     const theme = useTheme();
+    const isMobile = useMediaQuery('(max-width:360px)');
     
     return {
         position: 'absolute',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 400,
+        width: isMobile ? '95%' : 500, 
+        maxHeight: isMobile ? '100%' : '100%', // Limit height on mobile
+        overflowY: isMobile ? 'auto' : 'auto', // Enable scrolling on mobile if needed
         bgcolor: 'background.paper',
         border: '1px solid #e5e5e5',
         borderRadius: '12px',
-        p: 4,
+        p: isMobile ? 2 : 4,  // Smaller padding on mobile
+        color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.secondary,
+    };
+};
+
+const useToonyzCutViewerModalStyle = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery('(max-width:360px)');
+    
+    return {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: isMobile ? '95%' : 500, 
+        maxHeight: isMobile ? '100%' : '100%', 
+        overflowY: isMobile ? 'auto' : 'auto', 
+        bgcolor: 'background.paper',
+        border: '1px solid #e5e5e5',
+        borderRadius: '12px',
+        p: isMobile ? 2 : 4,  // Smaller padding on mobile
+        color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.secondary,
+    };
+};
+
+const useCoverArtModalStyle = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery('(max-width:360px)');
+    
+    return {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: isMobile ? '95%' : 600, 
+        maxHeight: isMobile ? '90vh' : 'auto', // Limit height on mobile
+        overflowY: isMobile ? 'auto' : 'visible', // Enable scrolling on mobile if needed
+        bgcolor: 'background.paper',
+        border: '1px solid #e5e5e5',
+        borderRadius: '12px',
+        p: isMobile ? 2 : 4,  // Smaller padding on mobile
+        color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.secondary,
+    };
+};
+
+const useWebnovelSubmitModalStyle = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery('(max-width:360px)');
+    
+    return {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: isMobile ? '95%' : 800, 
+        maxHeight: isMobile ? '90vh' : 'auto', // Limit height on mobile
+        overflowY: isMobile ? 'auto' : 'visible', // Enable scrolling on mobile if needed
+        bgcolor: 'background.paper',
+        border: '1px solid #e5e5e5',
+        borderRadius: '12px',
+        p: isMobile ? 2 : 4,  // Smaller padding on mobile
+        color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.secondary,
+    };
+};
+
+
+
+
+const useModalStyle = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery('(max-width:360px)');
+
+    return {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: isMobile ? '95%' : 400,
+        bgcolor: 'background.paper',
+        border: '1px solid #e5e5e5',
+        borderRadius: '12px',
+        p: isMobile ? 2 : 4,
         color: theme.palette.mode === 'dark' ? theme.palette.text.primary : theme.palette.text.secondary,
     };
 };
@@ -60,4 +143,4 @@ const useViewSettingsStyle = () => {
   };
 
 
-  export { useModalStyle, useViewSettingsStyle } 
+  export { useModalStyle, useViewSettingsStyle, useWebnovelSubmitModalStyle, useCoverArtModalStyle, useToonyzCutSubmitModalStyle, useToonyzCutViewerModalStyle } 

@@ -62,7 +62,7 @@ const CurriculumCard: React.FC<CurriculumCardProps> = ({ data }) => {
                         {/* Top Section - ID */}
 
                         <div className="absolute top-0 left-0 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-800 opacity-90 rounded-md"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#8A2BE2]/50 to-[#8A2BE2] opacity-90 rounded-md"></div>
                             <p className="relative text-xl md:text-3xl font-bold text-white">
                             {(Number(data.id) + 1).toString().padStart(2, '0')}
                             </p>

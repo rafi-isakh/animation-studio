@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-    const start = performance.now();
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`) 
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels`,
+        {
+            cache: 'no-store'
+        }
+    ) 
     if (!response.ok) {
         return NextResponse.json({ error: "Failed to fetch webnovels" }, { status: response.status });
     }
     const data = await response.json();
-    const end = performance.now();
-    console.log(`get_webnovels took ${end - start} milliseconds`)
     return NextResponse.json(data);
 }

@@ -3,11 +3,11 @@ import { Webnovel } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
-
+import { useAuth } from "@/contexts/AuthContext";
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
-import animationData from '@/assets/N_logo_loader.json'
+import animationData from '@/assets/stelli_loader.json';
 
 async function getWebnovel(id: string | string[] | undefined) {
     if (Array.isArray(id)) {
@@ -16,7 +16,7 @@ async function getWebnovel(id: string | string[] | undefined) {
         return null;
     }
     try {
-        const webnovelResponse = await fetch(`/api/get_webnovel_by_id?id=${id}`);
+        const webnovelResponse = await fetch(`/api/get_webnovel_metadata_by_id?id=${id}`);
         if (!webnovelResponse.ok) {
             console.error("Failed to fetch webnovel")
             return null;
@@ -29,7 +29,7 @@ async function getWebnovel(id: string | string[] | undefined) {
 }
 
 async function getUserWebnovels(email_hash: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email_hash?email_hash=${email_hash}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_metadata_by_email_hash?email_hash=${email_hash}`);
     if (!response.ok) {
         console.error("Failed to fetch webnovels");
         return null;
@@ -42,20 +42,26 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
+    const { isLoggedIn } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
             const webnovel = await getWebnovel(searchParams.id);
             if (webnovel) {
                 setWebnovel(webnovel);
-                const { email_hash: author_email_hash } = webnovel.user;
-                
+                setLoading(false);
+            }
+            const { email_hash: author_email_hash } = webnovel.user;
+            if (author_email_hash) {
                 const userWebnovels = await getUserWebnovels(author_email_hash);
                 setUserWebnovels(userWebnovels);
-
-                await fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
+                setLoadingUsersOtherWebnovels(false);
             }
             setLoading(false);
+            if (isLoggedIn) {
+                fetch(`/api/add_to_library?webnovel_id=${searchParams.id}`)
+            }
         }
         fetchData();
     }, [searchParams.id])
@@ -72,7 +78,7 @@ const ViewWebnovels = ({ searchParams }: { searchParams: { [key: string]: string
                    />
                </div>
            ) : (
-               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} />
+               <ViewWebnovelsComponent searchParams={searchParams} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
            )
         }
         </>

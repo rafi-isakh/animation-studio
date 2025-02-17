@@ -1,36 +1,21 @@
 "use client"
-import { Webnovel } from '@/components/Types'
-import { Suspense, useEffect, useState } from 'react';
+import { Webnovel, Webtoon } from '@/components/Types'
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
-import WebNovelInfoAndPictureComponent from '@/components/WebnovelInfoAndPictureComponent';
-import ListOfChaptersComponent from '@/components/ListOfChaptersComponent';
 import { useUser } from '@/contexts/UserContext';
-import '@/styles/globals.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, CircularProgress, Modal, ThemeProvider, useMediaQuery } from '@mui/material';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronLeft, PenLine, Trash } from 'lucide-react';
-import { ListOfChapterComments } from '@/components/ListOfChapterComments';
+import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
+import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import ContentChapterListComponent from './UI/ContentChapterListComponent';
 
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
-    ssr: false,
-});
-import animationData from '@/assets/N_logo_loader.json'
-
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
@@ -38,7 +23,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
     const id = searchParams.id;
     const [refreshKey, setRefreshKey] = useState(0);
-    const { language, dictionary } = useLanguage();
+    const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.user.nickname;
     const author_email = webnovel?.user.email_hash;
     const { email } = useUser();
@@ -46,6 +31,15 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [tabValue, setTabValue] = useState('1');
+    const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
+
+    const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
+        setContent(updatedContent);
+    };
+    
+    useEffect(() => {
+    }, [language])
+
     // const [chapterId, setChapterId] = useState(0);
 
     const pathname = usePathname();
@@ -93,16 +87,19 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                 console.error("Delete webnovel failed");
                 return;
             }
+            // Filter out the deleted webnovel
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
             setWebnovels(webnovels_after_deletion)
             setDeletedWebnovelId(id);
             setShowDeleteModal(false);
-            const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
-            const first = Math.min(...ids);
-            if (ids.length > 0) {
-                router.push(`/view_webnovels?id=${first.toString()}`)
+
+            // Navigate to appropriate page
+            if (webnovels_after_deletion.length > 0) {
+                const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
+                const first = Math.min(...ids);
+                await router.push(`/view_webnovels?id=${first.toString()}`);
             } else {
-                router.push('/view_webnovels')
+                await router.push('/view_webnovels');
                 router.refresh();
             }
         } catch (error) {
@@ -123,6 +120,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
     }
     const theWebnovel = getWebnovel();
 
+    if (language === 'ja' && (id == '19' || id == '20')) {
+        alert("이 웹소설은 아직 일본어로 서비스되지 않습니다.");
+        setLanguage('ko');
+    }
+
     if (id === undefined) {
         return (
             <div className='md:max-w-screen-lg w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]'>
@@ -134,116 +136,44 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels }: {
                         <Link href="/new_webnovel">
                             {phrase(dictionary, "writeYourStory", language)}
                         </Link>
-
                     </Button>
                 </div>
             </div>
         )
     }
     else {
-        if (webnovelLoading || userWebnovelsLoading) {
+        if (atLeastOneWebnovel) {
             return (
-                <div role="status" className={`w-16 absolute top-1/2 left-1/2 -translate-y-8 -translate-x-8`}>
-                    <CircularProgress color='secondary' />
-                </div>
-            )
-        } else if (atLeastOneWebnovel) {
-            return (
-                <ThemeProvider theme={grayTheme}>
-                    <div className='max-w-screen-lg flex md:flex-row md:space-x-4 flex-col justify-center mx-auto'>
-
-                        {/*--  left-hand side:  Author's other works link */}
-                        <div className='w-full md:w-1/4 p-4 border-r md:block hidden'>
-                            <Suspense>
-                                <AuthorAndWebnovelsAsideComponent webnovels={webnovels} nickname={nickname} />
-                            </Suspense>
-                            <hr className='block md:hidden mt-4 mb-4 bg-[#142448] h-[1px]' />
-                        </div>
-                        {/*-- left-hand side:  Author's other works link end */}
-
-                        <div className='w-full md:w-3/4 flex flex-col space-y-4 p-4'>
-                            <div className="">
-                                {
-                                    <div className='flex flex-row justify-between'>
-                                        <div className='flex flex-row justify-center self-center'>
-                                            <ChevronLeft className='self-center' />
-                                            <h1>
-                                                {/* 목록보기 */}
-                                                {phrase(dictionary, "list", language)}
-                                            </h1>
-                                        </div>
-
-                                        <div>
-                                            {isAuthor() &&
-                                                <div className='flex flex-row gap-4 w-full justify-start'>
-                                                    {/* 
-                                        <NoCapsButton color='wb' variant='outlined' onClick={handleAIEditor}>
-                                            {phrase(dictionary, "aieditor", language)}
-                                        </NoCapsButton> 
-                                        */}
-                                                    <NoCapsButton
-                                                        color='gray'
-                                                        variant='outlined'
-                                                        onClick={handleNewChapter}
-                                                        className='px-4 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                                    >
-                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
-                                                    </NoCapsButton>
-                                                    <NoCapsButton
-                                                        color='gray'
-                                                        variant='outlined'
-                                                        onClick={() => setShowDeleteModal(true)}
-                                                        className='px-6 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                                    >
-                                                        {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
-                                                    </NoCapsButton>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
+                // <ThemeProvider theme={grayTheme}>
+                    <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
+                        
+                        <div className="flex md:flex-row flex-col justify-between items-start">
+                            <div className="md:w-1/3 w-full flex-grow-0">
+                            <AuthorAndWebnovelsAsideComponent
+                                webnovel={webnovel!}
+                                nickname={nickname}
+                                coverArt={theWebnovel?.cover_art || ""}
+                                onNewChapter={handleNewChapter}
+                                onDelete={handleDelete}
+                            />
                             </div>
-
-                            <hr className='mt-4 mb-10 bg-[#142448] h-[1px]' />
-
-                            {/* Webnovel info and details */}
-                            <WebNovelInfoAndPictureComponent webnovel={theWebnovel} />
-
-                            <TabContext value={tabValue} >
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className='dark:text-gray-700'>
-                                    <TabList onChange={handleChange} aria-label="lab API tabs example" textColor="secondary" indicatorColor="secondary" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500">
-                                        {/* Chapters : 연재글 */}
-                                        <Tab label={phrase(dictionary, "chapters", language)} value="1" className="dark:text-white dark:focus:text-purple-500 dark:active:text-purple-500" />
-                                        {/* Comments : 댓글 */}
-                                        <Tab label={phrase(dictionary, "comments", language)} value="2" className="dark:text-white  dark:focus:text-purple-500 dark:active:text-purple-500" />
-                                    </TabList>
-                                </Box>
-                                <TabPanel value="1">
-                                    {/* Chapters list */}
-                                    <ListOfChaptersComponent webnovel={theWebnovel} />
-                                </TabPanel>
-                                <TabPanel value="2">
-                                    {/* Comments list */}
-                                    {theWebnovel && <ListOfChapterComments content={theWebnovel} chapter={theWebnovel.chapters[0]} webnovelOrWebtoon={true}/>}
-                                </TabPanel>
-                            </TabContext>
-
+                            <div className='flex-1 md:w-2/3 w-full'>
+                                <ContentChapterListComponent
+                                    content={theWebnovel as Webnovel}
+                                    coverArt={theWebnovel?.cover_art || ""}
+                                    isWebtoon={false}
+                                    relatedContent={webnovels}
+                                    onContentUpdate={handleContentUpdate}
+                                    loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={useModalStyle}>
-                            <div className='flex flex-col space-y-4 items-center justify-center'>
-                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={handleDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                            </div>
-                        </Box>
-                    </Modal>
-                </ThemeProvider >
+                // </ThemeProvider >
             )
         } else {
             return (
-                <div className='max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
+                <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
                     {phrase(dictionary, "noWebnovelsFound", language)}
                 </div>
             )

@@ -4,10 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { getImageUrl } from "@/utils/urls"
 import Link from "next/link"
 import OtherTranslateComponent from "./OtherTranslateComponent"
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { phrase, code_to_lang } from "@/utils/phrases"
-import Comments from "@/app/comments/page"
-import CommentsComponent from "./CommentsComponent"
 import { replaceSmartQuotes } from "@/utils/font"
 import { useSearchParams } from "next/navigation"
 import moment from "moment"
@@ -65,8 +63,8 @@ const WebNovelInfoAndPictureComponent = ({ webnovel }: { webnovel: Webnovel | un
                 {/* Right side : Author profile part */}
                 <>
                 <Link href={`/view_profile/${webnovel.user.id}`}>
-                    <p className="text-sm font-bold hover:text-pink-600">
-                        <span className="text-[10px] self-center rounded-xl text-white bg-purple-500 px-2 py-1 mr-1">
+                    <p className="text-sm font-bold hover:text-[#DB2777]">
+                        <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 py-1 mr-1">
                             {phrase(dictionary, "author", language)}
                         </span>
                         {webnovel.user.nickname}

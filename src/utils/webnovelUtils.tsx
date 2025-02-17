@@ -1,17 +1,29 @@
 import { Webnovel, SortBy } from '@/components/Types';
 import moment from 'moment';
 
+export const chapterPrice = (language: string) => {
+    if (language === "ko") {
+        return "10";
+    } else if (language === "en") {
+        return "30";
+    } else if (language === "ja") {
+        return "20";
+    } 
+}
+
 export const filter_by_genre = (item: Webnovel, genre: string | null | undefined) => {
     if (genre === "all" || genre == null) return true;
     return genre === item.genre;
 };
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
-    return version === item.version;
+    return version === (item.premium ? "premium" : "free");
 };
 
 export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
-    if (sortBy === 'views') {
+    if (sortBy === 'recommendation') {
+        return Math.random() - 0.5;
+    } else if (sortBy === 'views') {
         return b.views - a.views;
     } else if (sortBy === 'likes') {
         return b.upvotes - a.upvotes;

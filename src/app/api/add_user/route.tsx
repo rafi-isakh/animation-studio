@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { uploadFile } from '@/utils/s3'
 import { UserCreate } from '@/components/Types';
 
 export async function POST(req: NextRequest, res: NextResponse) {
@@ -21,6 +20,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
             'provider': session.provider,
             'nickname': postedData.nickname,
             'bio': postedData.bio,
+            'genres': "",
+            "marketing": ""
         }
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_user?promo_code=${promoCode}`, {

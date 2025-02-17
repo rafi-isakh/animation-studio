@@ -8,6 +8,7 @@ import Link from "next/link";
 const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
 
     const { dictionary, language } = useLanguage();
+    console.log(library)
 
     return (
         <div className="md:max-w-screen-lg w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]">
@@ -29,7 +30,7 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
                 </div>
             }
             <div className="flex flex-wrap space-x-4">
-                {library.map((item, index) => (
+                {library && library.map((item, index) => (
                     <WebnovelComponent key={index} webnovel={item} index={index} ranking={false} chunkIndex={0} />
                 ))}
             </div>

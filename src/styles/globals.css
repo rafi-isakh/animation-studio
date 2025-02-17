@@ -44,11 +44,11 @@
 }
 
 .button-style {
-    @apply text-black bg-white border border-black hover:text-pink-600 font-medium text-sm px-5 py-2.5
+    @apply text-black bg-white border border-black hover:text-[#DB2777] font-medium text-sm px-5 py-2.5
 }
 
 .button-style-no-p {
-    @apply text-black bg-white border border-black hover:text-pink-600 font-medium text-sm
+    @apply text-black bg-white border border-black hover:text-[#DB2777] font-medium text-sm
 }
 
 /* Define your dark mode styles */
@@ -61,22 +61,11 @@
   --background: #000;
 }
 
-.light {
-  --foreground: #000;
-  --background: #fff;
-}
-
-.sepia {
-  --foreground: #000;
-  --background: #f1e7d0;
-}
-
-
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: "Pretendard", "Pretendard JP", "Pretendard Std", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
-
 
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700;800&display=swap');
 

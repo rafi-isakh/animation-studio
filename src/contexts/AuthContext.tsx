@@ -9,6 +9,8 @@ interface AuthContextProps {
     loading: boolean | null;
     login: (provider: string, redirect: boolean, callbackUrl: string) => void;
     logout: (redirect: boolean, callbackUrl: string) => void;
+    email: string | null;
+    setEmail: (email: string | null) => void;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -19,6 +21,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+    const [email, setEmail] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [invokeAuthCheck, setInvokeAuthCheck] = useState(false);
     const pathname = usePathname();
@@ -30,6 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const response = await fetch('/api/auth_session');
                 const data = await response.json();
                 setIsLoggedIn(data.loggedIn);
+                setEmail(data.email);
             } catch (error) {
                 console.error('Error checking auth:', error);
             } finally {
@@ -41,17 +45,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
     async function login(provider: string, redirect: boolean, callbackUrl: string) {
-        await signIn(provider, { redirect: redirect, callbackUrl: callbackUrl });
+        await signIn(provider, { redirect: redirect, redirect_uri: callbackUrl, callbackUrl: callbackUrl, redirectTo: callbackUrl });
+        setIsLoggedIn(true);
         setInvokeAuthCheck(!invokeAuthCheck);
     }
 
     async function logout(redirect: boolean, callbackUrl: string) {
         await signOut({ redirect: redirect, callbackUrl: callbackUrl });
+        setIsLoggedIn(false);
+        setEmail(null);
         setInvokeAuthCheck(!invokeAuthCheck);
     }
 
     return (
-        <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading, login, logout }}>
+        <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading, login, logout, email, setEmail }}>
             {children}
         </authContext.Provider>
     );

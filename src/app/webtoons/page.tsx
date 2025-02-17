@@ -1,18 +1,14 @@
 import WebtoonsCardList from "@/components/WebtoonsCardList";
 import { Webtoon } from "@/components/Types";
 import WebtoonsCarousel from "@/components/WebtoonsCarousel";
-import CircularMenuItemsComponent from "@/components/CircularMenuItemsComponent";
+import MenuItemsComponent from "@/components/MenuItemsComponent";
 import Footer from "@/components/Footer";
 import WebtoonsRecommendationCarousel from "@/components/WebtoonsRecommendationCarousel";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 import { getSignedUrlForWebtoonImage } from "@/utils/s3";
 
 async function getWebtoonCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoon_carousel_items`)
     if (!response.ok) {
         throw new Error('Failed to fetch webtoon carousel items')
     }
@@ -20,11 +16,7 @@ async function getWebtoonCarouselItems() {
     return data
 }
 const Webtoons = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`,
-        {
-            cache: "no-store"
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_webtoons`)
     const carouselItems = await getWebtoonCarouselItems()
     const shuffledCarouselItems = carouselItems.sort(() => Math.random() - 0.5)
     const data: Webtoon[] = await response.json()
@@ -52,7 +44,7 @@ const Webtoons = async () => {
                 <WebtoonsCarousel webtoons={webtoons} carouselItems={carouselItems} />
                 <div className="flex flex-col justify-center items-center">
                     {smallGap()}
-                    <CircularMenuItemsComponent />
+                    <MenuItemsComponent />
                     {smallGap()}
                 </div>
                 <WebtoonsCardList titleVar="newReleasesWebnovels" webtoons={webtoons} coverArts={webtoonsCoverArts} detail={false} ranking={false}/>

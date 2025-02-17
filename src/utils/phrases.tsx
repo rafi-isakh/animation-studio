@@ -13,26 +13,26 @@ export const langPairList = [
         code: 'ja',
         name: '日本語'
     },
-    {
-        code: 'zh-CN',
-        name: '中国语（简体）'
-    },
-    {
-        code: 'zh-TW',
-        name: '中國語（繁體）'
-    },
+    // {
+    //     code: 'zh-CN',
+    //     name: '中国语（简体）'
+    // },
+    // {
+    //     code: 'zh-TW',
+    //     name: '中國語（繁體）'
+    // },
     {
         code: 'th',
         name: 'ภาษาไทย'
     },
-    {
-        code: 'fr',
-        name: 'Français'
-    },
-    {
-        code: 'es',
-        name: 'Español'
-    }
+    // {
+    //     code: 'fr',
+    //     name: 'Français'
+    // },
+    // {
+    //     code: 'es',
+    //     name: 'Español'
+    // }
 ]
 
 const phrases = async (): Promise<Dictionary> => {
@@ -42,10 +42,10 @@ const phrases = async (): Promise<Dictionary> => {
         const dictionary: Dictionary = {};
         
         const rows = csvText.split('\n');
-        const languageCodes = rows[0].split(',');
+        const languageCodes = rows[0].split(",");
         
         for (let i = 1; i < rows.length; i++) {
-            const row = rows[i].split(',');
+            const row = rows[i].split(/(?<!\\),/); // split by comma, except for escaped commas
             if (row.length === 0) continue;
             
             const tsx = row[0];
@@ -53,7 +53,7 @@ const phrases = async (): Promise<Dictionary> => {
             
             for (let j = 1; j < row.length; j++) {
                 const languageCode = languageCodes[j];
-                entry[languageCode] = row[j];
+                entry[languageCode] = row[j].replace(/\\,/g, ','); // replace escaped commas with actual commas
             }
             
             dictionary[tsx] = entry;
@@ -109,5 +109,22 @@ export const code_to_lang = (iso_code: string) => {
         return 'spanish';
     } else {
         return '';
+    }
+}
+
+export async function getCountryFromIP() {
+    console.log('getCountryFromIP');
+    try {
+        // Using ip-api.com's free endpoint
+        const response = await fetch(`/api/get_country`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch country info");
+        }
+        const data = await response.json();
+        console.log('data', data);
+        return data; // Returns two-letter country code (e.g., 'US', 'JP', 'KR')
+    } catch (error) {
+        console.error('Error getting country from IP:', error);
+        return null;
     }
 }

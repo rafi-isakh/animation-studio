@@ -20,6 +20,7 @@ export default function NewWebtoon() {
             <Input type="text" name="description" placeholder="Description" />
             <Input type="text" name="rootDirectory" placeholder="Root Directory" />
             <Input type="text" name="genre" placeholder="Genre" />
+            <Input type="number" name="max_episodes" placeholder="Max Episodes" />
             <Input type="text" name="language" placeholder="Language" defaultValue="korean" />
             <Input type="text" name="author" placeholder="Author" />
             <Input type="text" name="email" placeholder="Email" />

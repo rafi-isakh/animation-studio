@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadFile } from '@/utils/s3'
 import { auth } from '@/auth';
 import { UserCreate } from '@/components/Types';
 
@@ -7,16 +6,17 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const session = await auth();
     const promoCode = req.nextUrl.searchParams.get('promo_code');
     if (!session) {
-        return NextResponse.json({
-            "message": "Unauthorized",
-            "status": 401
-        });
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
     }
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const bio = formData.get('bio') as string;
     const nickname = formData.get('nickname') as string;
-
+    const genres = formData.get('genres') as string;
+    const marketing = formData.get('marketing') as string;
     const email = session.user?.email;
 
     let fileName = "";
@@ -28,13 +28,19 @@ export async function POST(req: NextRequest, res: NextResponse) {
         const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
         fileName = await fileNameResponse.json();
         try {
-            const s3Response = await uploadFile(fileContent, fileName, fileType);
+            await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
+                method: 'POST',
+                body: JSON.stringify({ fileBufferBase64: fileContent.toString('base64'), fileName, fileType }),
+                headers: {
+                    cookie: req.headers.get('cookie') || ''
+                }
+              });
         } catch (error) {
             console.error('Error uploading file to s3:', error);
-            return NextResponse.json({
-                message: "Failed to upload to s3",
-                status: 500
-            });
+            return NextResponse.json(
+                { error: "Failed to upload file to S3" },
+                { status: 500 }
+            );
         }
     }
 
@@ -43,11 +49,13 @@ export async function POST(req: NextRequest, res: NextResponse) {
         "bio": bio as string,
         "nickname": nickname as string,
         "picture": fileName as string,
-        "provider": session.provider
+        "genres": genres as string,
+        "provider": session.provider,
+        "marketing": marketing as string
     }
 
     let fetchstr = `${process.env.NEXT_PUBLIC_BACKEND}/api/update_user`
-    if (promoCode) {
+    if (promoCode && promoCode !== 'null') {
         fetchstr = `${fetchstr}?promo_code=${promoCode}`
     }
     const response = await fetch(fetchstr, {
@@ -61,16 +69,18 @@ export async function POST(req: NextRequest, res: NextResponse) {
     });
 
     if (!response.ok) {
-        console.error("Error updating user", response.status)
-        return NextResponse.json({
-            message: "Failed to update user",
-            status: 500
-        });
+        console.error("Error updating user", response.status);
+        return NextResponse.json(
+            { error: "Failed to update user" },
+            { status: response.status }
+        );
     }
 
-    return NextResponse.json({
-        message: "Success!!",
-        status: 200,
-    });
+    const data = await response.json();
+
+    return NextResponse.json(
+        { message: "User updated successfully" },
+        { status: 200 }
+    );
 }
 

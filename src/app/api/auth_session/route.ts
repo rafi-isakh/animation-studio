@@ -6,10 +6,12 @@ export async function GET(request: NextRequest) {
     if (session && session.user) {
         return NextResponse.json({
             loggedIn: true,
+            email: session.user.email
         });
     } else {
         return NextResponse.json({
             loggedIn: false,
+            email: ""
         });
     }
 }

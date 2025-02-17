@@ -1,66 +1,152 @@
 'use client'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from "next/link";
 import { Webtoon, WebtoonChapter } from '@/components/Types';
 import '@/styles/Webtoons.module.css';
+import { Button, Modal, Box, dividerClasses, Tooltip } from "@mui/material";
 import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { LockOpen } from 'lucide-react';
+import { LockOpen, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { useModalStyle } from '@/styles/ModalStyles';
+import { MdStars } from "react-icons/md";
+import { useUser } from '@/contexts/UserContext';
 
-
-const WebtoonChapterListSubcomponent = ({ webtoon, slug, coverArt, sortToggle }: { webtoon: Webtoon, slug: string, coverArt: string, sortToggle: boolean }) => {
+const WebtoonChapterListSubcomponent = ({
+  webtoon, slug, coverArt, sortToggle, onUpdate }: {
+    webtoon: Webtoon,
+    slug: string,
+    coverArt: string,
+    sortToggle: boolean,
+    onUpdate: (updatedContent: Webtoon) => void
+  }) => {
   const [showMoreChapters, setShowMoreChapters] = useState(false);
-  const { language, dictionary } = useLanguage();
+  const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
+  const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
 
   const sortedChapters = sortToggle ? webtoon.chapters.sort((a, b) => b.id - a.id) : webtoon.chapters.sort((a, b) => a.id - b.id);
+  const displayedChapters = sortedChapters.slice(0, visibleChapters);
+  const hasMoreChapters = sortedChapters.length > visibleChapters;
+
+  const loadMoreChapters = () => {
+    setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters.length));
+  };
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedChapter, setSelectedChapter] = useState<WebtoonChapter | null>(null);
+  const { language, dictionary } = useLanguage();
+  const { stars } = useUser();
+
+  const handleChapterClick = (chapter: WebtoonChapter, e: React.MouseEvent) => {
+    if (chapter.free) {
+      return true;
+    } else {
+      e.preventDefault();
+      setSelectedChapter(chapter);
+      onOpenPurchaseModal();
+      return false;
+    }
+  };
+
+  const onOpenPurchaseModal = () => {
+    setShowModal(true);
+  };
 
   return (
-    <div className="w-full">
-      <div className="overflow-y-auto border border-gray-300 rounded-md p-2">
-        {sortedChapters.map((chapter: WebtoonChapter, index: number) => (
-          <Link
-            href={`/webtoons/${slug}/${chapter.directory}`}
-            key={`chapter-${chapter.id}`}
-            className={`cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 ${index >= 10 && !showMoreChapters ? 'hidden' : ''
-              }`}
+    <>
+      <div className="w-full">
+        <div className="overflow-y-auto rounded-md">
+          {displayedChapters.map((chapter: WebtoonChapter, index: number) => (
+            <Link
+              href={`/webtoons/${slug}/${chapter.directory}`}
+              key={`chapter-${chapter.id}`}
+              onClick={(e) => handleChapterClick(chapter, e)}
+              className={`cursor-pointer block py-2 border-b border-gray-200 last:border-b-0 
+             
+              ${!chapter.free ? 'opacity-50' : ''}`}
+            >
+              <div className="flex flex-row justify-between">
+                <div className="flex flex-row gap-3">
+                <div className="min-w-[50px] max-w-[50px]">
+                  <Image
+                    src={coverArt}
+                    alt={chapter.directory}
+                    className="rounded-lg object-cover w-full"
+                    width={50}
+                    height={50}
+                  />
+                </div>
+                  {/* <p className="text-xl text-center self-center"> {index + 1} </p> */}
+                  <p className="text-sm text-center self-center">
+                    {language === 'en' ? `Episode ${parseInt(chapter.directory)}` :
+                      language === 'ko' ? `${parseInt(chapter.directory)}화` :
+                        `Episode ${parseInt(chapter.directory)} `}
+                  </p>
+                </div>
+
+                <div className="text-sm text-center self-center">
+                  <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
+                    {/* Free */}
+                    {chapter.free ? phrase(dictionary, "readingForFree", language)
+                      : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" /> 30</div>}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        {hasMoreChapters && (
+          <button
+            className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
+            onClick={loadMoreChapters}
           >
-            <div className="flex flex-row justify-between gap-3 p-3">
-              <div className="flex flex-row gap-3">
-                <Image
-                  src={coverArt}
-                  alt={chapter.directory}
-                  className="object-cover "
-                  width={50}
-                  height={50}
-                />
-
-                <p className="text-xl text-center self-center"> {index + 1} </p>
-                <p className="text-sm text-center self-center">
-                  {language === 'en' ? `Episode ${parseInt(chapter.directory)}` :
-                    language === 'ko' ? `${parseInt(chapter.directory)}화` :
-                      `Episode ${parseInt(chapter.directory)} `}
-                </p>
-              </div>
-
-              <div className="text-sm text-center self-center">
-                {/* <LockOpen size={16} className="text-gray-200" /> */}
-                <span className="text-gray-600 text-[10px]">
-                  {/* Free */}
-                  {phrase(dictionary, "readingForFree", language)}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
+            {/* 더보기 */}
+          {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
+          {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
+          </button>
+        )}
       </div>
-      {/* <button
-        className="mt-4 px-4 py-2 bg-whit text-black rounded"
-        onClick={toggleChapters}
-      >
-        {showMoreChapters ? 'Show Less' : 'Read More'}
-      </button> */}
-    </div>
+      <Modal open={showModal} onClose={() => setShowModal(false)}>
+        <Box sx={useModalStyle}>
+          <div className='flex flex-col space-y-4 items-center justify-cente'>
+            <p className='text-lg font-bold text-black dark:text-black'>
+              {/* 구매하기 */}
+              {phrase(dictionary, "purchase", language)}
+            </p>
+            <p>
+              {webtoon.title} {language === 'en' ? `Episode ${parseInt(selectedChapter?.directory || '0')}` :
+                language === 'ko' ? `${parseInt(selectedChapter?.directory || '0')}화` :
+                  `Episode ${parseInt(selectedChapter?.directory || '0')} `}
+            </p>
+            <p>
+              보유한 투니즈 별 {stars}개
+            </p>
+
+            <hr className='w-full' />
+            <div className="flex flex-row gap-2 ">
+              <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                <Button
+                >
+                  {phrase(dictionary, "purchase", language)}
+                </Button>
+              </Tooltip>
+              <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                <Link href={`#`}>
+                  <Button
+                    color='gray'
+                    variant='outlined'
+                    className='w-32 dark:text-white bg-[#DB2777] text-white'
+                  >
+                    {/* 별 충전 */}
+                    {phrase(dictionary, "stars", language)}
+                  </Button>
+                </Link>
+              </Tooltip>
+            </div>
+          </div>
+        </Box>
+      </Modal>
+    </>
   );
 };
 

@@ -15,6 +15,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        pretendard: ['var(--font-pretendard)'],
+        'pretendard-jp': ['var(--font-pretendard-jp)'], 
+        'pretendard-std': ['var(--font-pretendard-std)'], // Latin optimized
         'sans': ['Arial', 'sans-serif'],
         'gowun-batang': ['Gowun Batang', 'serif'],
         'nanum-gothic': ['Nanum Gothic', 'sans-serif'],

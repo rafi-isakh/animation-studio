@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
                 bio: user.bio,
                 id: user.id,
                 email: email,
+                stars: user.stars,
+                purchased_webnovel_chapters: user.purchased_webnovel_chapters,
+                upvoted_comments: user.upvoted_comments,
             });
         } else {
             return NextResponse.json({
@@ -42,6 +45,9 @@ export async function GET(request: NextRequest) {
                 bio: "",
                 id: "",
                 email: "",
+                stars: 0,
+                purchased_webnovel_chapters: "[]",
+                upvoted_comments: "",
             });
         }
     } catch (error) {

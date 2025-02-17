@@ -1,10 +1,11 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useReader } from '@/contexts/ReaderContext';
-import { replaceSmartQuotes } from '@/utils/font';
+import { textPostProcess } from '@/utils/font';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { CircularProgress } from '@mui/material';
+import { Box, Skeleton } from '@mui/material';
+import { marked } from 'marked';
 
 interface WordToken {
     word: string;
@@ -41,7 +42,8 @@ const WebnovelTranslateComponent = (
         padding,
         scrollType,
         page = 1,
-        setPage
+        setPage,
+        setMaxPage,
     } = useReader();
 
     useEffect(() => {
@@ -52,7 +54,7 @@ const WebnovelTranslateComponent = (
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
             if (data.text) {
-                setText(data.text)
+                setText(await marked(data.text))
             }
 
             // If there's no translation in the DB
@@ -129,7 +131,7 @@ const WebnovelTranslateComponent = (
 
             if (response.ok) {
                 const data = await response.json();
-                startEventSource(data.text_id);
+                startTranslation(data.text_id);
             } else {
                 console.error('Failed to submit words');
             }
@@ -138,35 +140,21 @@ const WebnovelTranslateComponent = (
         }
     };
 
-    const startEventSource = (textId: string, cvid: string = '', to_continue: number = 0) => {
-        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?source=${sourceLanguage}&target=${language}&webnovel_id=${webnovelId}&chapter_id=${chapterId}`);
-
-        eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.ended == 0) {
-                setText(text => text + data.token);
-            } else if (data.ended == 1) {
-                setFinished(true);
-            } else if (data.ended == -1) { // continue case
-                eventSource.close();
-                startEventSource(textId, data.cvid, 1);
-            }
-        };
-
-        eventSource.onerror = (error) => {
-            console.error('EventSource failed:', error);
-            eventSource.close();
-        };
-        return () => {
-            eventSource.close();
-        };
+    const startTranslation = async (textId: string, cvid: string = '', to_continue: number = 0) => {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?source=${sourceLanguage}&target=${language}&webnovel_id=${webnovelId}&chapter_id=${chapterId}`);
+        const data = await response.json();
+        setText(await marked(data.translation));
     };
 
     type Direction = 'ltr' | 'rtl';
 
-    const paragraphStyle = {
+    const paragraphStyle: React.CSSProperties =  {
         margin: `${margin}px`,
         padding: `${padding}px`,
+        height: scrollType === 'horizontal' ? '100vh' : 'auto',
+        overflowY: scrollType === 'horizontal' ? 'hidden' : 'auto',
+        overflowX: scrollType === 'horizontal' ? 'auto' : 'hidden',
+        touchAction: scrollType === 'horizontal' ? 'pan-x' : 'auto',
     };
 
     useEffect(() => {
@@ -179,6 +167,7 @@ const WebnovelTranslateComponent = (
                 const [pageToFirstPageWords, pageToSecondPageWords] = calculateAllPages(text);
                 setFirstPageWords(pageToFirstPageWords[page])
                 setSecondPageWords(pageToSecondPageWords[page])
+                setMaxPage(Object.keys(pageToFirstPageWords).length)
             }, 100);
         }
     }, [fontSize, fontFamily, lineHeight, margin, padding, text, scrollType])
@@ -267,12 +256,15 @@ const WebnovelTranslateComponent = (
     }
 
     return (
-        <div className="relative min-h-screen mb-16" style={paragraphStyle}>
-            {text &&
+        <div
+            style={paragraphStyle}
+            className={`relative mb-16 
+                       ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
+               {text &&
                 <>
                     {scrollType === 'vertical' &&
-                        <div 
-                            dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text) }} 
+                        <div
+                            dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
                             onContextMenu={(e) => e.preventDefault()}>
                         </div>
@@ -309,7 +301,7 @@ const WebnovelTranslateComponent = (
                                         id='first-half'
                                         className='w-full'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(firstPageWords) }}
+                                        dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords) }}
                                         onContextMenu={(e) => e.preventDefault()}>
                                     </div>
                                 </div>
@@ -320,7 +312,7 @@ const WebnovelTranslateComponent = (
                                         id='second-half'
                                         className='w-full'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
-                                        dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(secondPageWords) }}
+                                        dangerouslySetInnerHTML={{ __html: textPostProcess(secondPageWords) }}
                                         onContextMenu={(e) => e.preventDefault()}>
                                     </div>
                                 </div>
@@ -330,9 +322,33 @@ const WebnovelTranslateComponent = (
                 </>
             }
             {!text &&
-                <div className='flex justify-center items-center h-full'>
-                    <CircularProgress color='secondary' />
-                </div>
+                <Box sx={{ width: '100%' }}>
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                    <Skeleton />
+                </Box>
             }
         </div >
     );

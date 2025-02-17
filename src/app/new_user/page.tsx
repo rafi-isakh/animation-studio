@@ -1,14 +1,10 @@
 "use client"
 
-import { auth } from '@/auth';
-import { UserCreate } from '@/components/Types';
-import { redirect } from 'next/navigation'
 import NewUserNicknameComponent from '@/components/NewUserNicknameComponent';
 import NewUserSubmitComponent from '@/components/NewUserSubmitComponent';
 import NewUserBioComponent from '@/components/NewUserBioComponent';
 import NewUserCodeComponent from '@/components/NewUserCodeComponent';
 import UserWithSameEmailExistsModalComponent from '@/components/UserWithSameEmailExistsModalComponent';
-import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CircularProgress, Checkbox, FormControlLabel, Modal, Box } from '@mui/material';
@@ -33,7 +29,7 @@ export default function NewUser() {
     const [userExists, setUserExists] = useState(false);
     const [userWithSameEmailExists, setUserWithSameEmailExists] = useState(false);
     const [showSelectAtLeastOneGenre, setShowSelectAtLeastOneGenre] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formDataState, setFormDataState] = useState({ // should probably use FormData object instead
         nickname: "",
         bio: "",
         promoCode: "",
@@ -71,23 +67,77 @@ export default function NewUser() {
         checkUser();
     }, [router]);
 
+    async function updateUser(formData: FormData) {
+        // TODO: add option to upload picture at user registration
+        let nickname = formData.get('nickname') as string;
+        if (!nickname) {
+            nickname = randomNickname();
+        }
+        const bio = formData.get('bio') as string;
+        const promoCode = formData.get('promoCode') as string;
+        const marketing = formData.get('marketing') as string;
+
+        // Extract genres data from formData and create an object
+        // const genres: { [key: string]: boolean } = {};
+        const genres = formDataState.genres;
+        for (const [key, value] of formData.entries()) {
+            console.log(formData.entries());
+            console.log('key', key);
+            console.log('value', value);
+            if (key.startsWith('genres[')) {
+                const genreName = key.match(/\[(.*?)\]/)?.[1] || '';
+                genres[genreName as keyof typeof genres] = value === 'true';
+            }
+        }
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('nickname', nickname);
+        formDataToSend.append('bio', bio);
+        formDataToSend.append('promoCode', promoCode);
+        formDataToSend.append('genres', JSON.stringify(genres));
+        if (marketing) {
+            formDataToSend.append('marketing', 'true');
+        } else {
+            formDataToSend.append('marketing', 'false');
+        }
+
+        Object.entries(formDataState.genres).forEach(([genre, checked]) => {
+            formDataToSend.append('genres', genre);
+        });
+
+        const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/update_user?promo_code=${promoCode}`, {
+            method: 'POST',
+            body: formDataToSend,
+        });
+        console.log(res);
+        router.push('/welcome');
+    }
+
+
+    async function isUserInDB() {
+        const res = await fetch(`/api/check_user`);
+        const data = await res.json();
+        return data;
+    }
+
+
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
+        setFormDataState({
+            ...formDataState,
             [event.target.name]: event.target.value
         });
     }
 
     const handleGenreChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, checked } = event.target;
-        setFormData((prev) => ({
+        setFormDataState((prev) => ({
             ...prev,
             genres: { ...prev.genres, [name]: checked },
         }));
     };
 
     const handleMarketingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData((prev) => ({ ...prev, marketing: event.target.checked }));
+        setFormDataState((prev) => ({ ...prev, marketing: event.target.checked }));
     };
 
     const handleNextStep = () => {
@@ -100,8 +150,8 @@ export default function NewUser() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        const selectedGenres = Object.values(formData.genres).some(Boolean);
+        const formData2 = new FormData(e.target as HTMLFormElement); //no genres
+        const selectedGenres = Object.values(formDataState.genres).some(Boolean);
         // Ensure at least one genre is selected
         if (!selectedGenres) {
             setShowSelectAtLeastOneGenre(true);
@@ -110,13 +160,11 @@ export default function NewUser() {
 
         try {
             const userData = {
-                nickname: formData.nickname || randomNickname(),
-                bio: formData.bio,
-                promoCode: formData.promoCode,
-                genres: formData.genres,
-                marketing: formData.marketing,
+                nickname: formDataState.nickname || randomNickname(),
+                bio: formDataState.bio,
             };
 
+            console.log(userData);
             const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/add_user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -124,6 +172,7 @@ export default function NewUser() {
             });
 
             if (!res.ok) throw new Error("Failed to create user");
+            await updateUser(formData2);
 
             router.push("/welcome");
         } catch (error) {
@@ -158,78 +207,77 @@ export default function NewUser() {
                 )}
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col w-72">
-                        {step === 1 && (
-                            <div className="flex flex-col space-y-3 items-center">
+                        {/* {step === 1 && ( */}
+                            <div className={`flex flex-col space-y-3 items-center ${step === 1 ? 'block' : 'hidden'}`}>
                                 <NewUserNicknameComponent
-                                    value={formData.nickname}
+                                    value={formDataState.nickname}
                                     onChange={handleInputChange}
                                 />
                                 <NewUserBioComponent
-                                    value={formData.bio}
+                                    value={formDataState.bio}
                                     onChange={handleInputChange}
                                 />
                                 <NewUserCodeComponent
-                                    value={formData.promoCode}
+                                    value={formDataState.promoCode}
                                     onChange={handleInputChange}
                                 />
                                 <button type="button" onClick={handleNextStep} className="w-full bg-pink-600 text-white py-2 rounded-md">
                                     {phrase(dictionary, "next", language)}
                                 </button>
                             </div>
-                        )}
+                        {/* )} */}
 
-                        {step === 2 && (
-                            <div className=" flex flex-col space-y-4 items-center">
-                                <Image
-                                    src="/icons/explore_icon.svg"
-                                    alt="Explore icon"
-                                    width={50}
-                                    height={50}
-                                    className="self-start"
-                                />
-                                <p className="relative md:text-4xl text-xl font-extrabold">
-                                    Choose topics
-                                    that interest you
-                                </p>
-                                <p className="text-sm font-medium">{phrase(dictionary, "selectFavoriteGenres", language)}</p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {Object.entries(formData.genres).map(([genre, checked]) => (
-                                        <FormControlLabel
-                                            key={genre}
-                                            control={<Checkbox
-                                                name={genre}
-                                                checked={checked}
-                                                onChange={handleGenreChange}
-                                                sx={{
+                        {/* step === 2  */}
+                        <div className={`flex flex-col space-y-4 items-center ${step === 2 ? 'block' : 'hidden'}`}>
+                            <Image
+                                src="/icons/explore_icon.svg"
+                                alt="Explore icon"
+                                width={50}
+                                height={50}
+                                className="self-start"
+                            />
+                            <p className="relative md:text-4xl text-xl font-extrabold">
+                                Choose topics
+                                that interest you
+                            </p>
+                            <p className="text-sm font-medium">{phrase(dictionary, "selectFavoriteGenres", language)}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(formDataState.genres).map(([genre, checked]) => (
+                                    <FormControlLabel
+                                        key={genre}
+                                        control={<Checkbox
+                                            name={genre}
+                                            checked={checked}
+                                            onChange={handleGenreChange}
+                                            sx={{
+                                                color: "#db2777",
+                                                "&.Mui-checked": {
                                                     color: "#db2777",
-                                                    "&.Mui-checked": {
-                                                        color: "#db2777",
-                                                    },
-                                                }}
-                                            />
-                                            }
-                                            label={phrase(dictionary, genre, language)}
-                                            sx={{ "& .MuiFormControlLabel-label": { fontSize: "14px" } }}
+                                                },
+                                            }}
                                         />
-                                    ))}
-                                </div>
-                                <div className="w-full flex flex-col space-y-4 justify-center items-center">
-                                    <button
-                                        type="button" onClick={handleNextStep}
-                                        className="w-full bg-pink-600 text-white py-2 px-4 rounded-md"
-                                    >
-                                        {phrase(dictionary, "next", language)}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handlePrevStep}
-                                        className="w-full bg-gray-300 text-black py-2 px-4 rounded-md"
-                                    >
-                                        {phrase(dictionary, "back", language)}
-                                    </button>
-                                </div>
+                                        }
+                                        label={phrase(dictionary, genre, language)}
+                                        sx={{ "& .MuiFormControlLabel-label": { fontSize: "14px" } }}
+                                    />
+                                ))}
                             </div>
-                        )}
+                            <div className="w-full flex flex-col space-y-4 justify-center items-center">
+                                <button
+                                    type="button" onClick={handleNextStep}
+                                    className="w-full bg-pink-600 text-white py-2 px-4 rounded-md"
+                                >
+                                    {phrase(dictionary, "next", language)}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handlePrevStep}
+                                    className="w-full bg-gray-300 text-black py-2 px-4 rounded-md"
+                                >
+                                    {phrase(dictionary, "back", language)}
+                                </button>
+                            </div>
+                        </div>
 
                         {step === 3 && (
                             <div className="flex flex-col space-y-4 items-center">
@@ -251,14 +299,14 @@ export default function NewUser() {
                                 <FormControlLabel
                                     control={
                                         <Checkbox
-                                            required
+                                            name='marketing'
                                             sx={{
                                                 color: "#db2777",
                                                 "&.Mui-checked": {
                                                     color: "#db2777",
                                                 },
                                             }}
-                                            checked={formData.marketing}
+                                            checked={formDataState.marketing}
                                             onChange={handleMarketingChange}
                                         />
                                     }

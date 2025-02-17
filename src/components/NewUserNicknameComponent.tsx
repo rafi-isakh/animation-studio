@@ -61,7 +61,7 @@ const NewUserNicknameComponent = ({
       `;
 
     return (
-        <FormControl required variant="standard" className="md:max-w-screen-md w-full">
+        <FormControl variant="standard" className="md:max-w-screen-md w-full">
             <Label>{phrase(dictionary, "nickname", language)}</Label>
             <TextField
                 value={value}

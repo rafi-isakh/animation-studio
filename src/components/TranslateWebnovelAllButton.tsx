@@ -1,12 +1,17 @@
-"use client"
-
 import { Button } from "@mui/material";
 import { Chapter, Webnovel } from "@/components/Types";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useWebnovels } from "@/contexts/WebnovelsContext";
+import { useEffect, useState } from "react";
+export function TranslateWebnovelAllButton({language, webnovel}: {language: string, webnovel: Webnovel}) {
 
-export async function TranslateWebnovelAllButton({webnovel}: {webnovel: Webnovel}) {
+    const { getWebnovelById } = useWebnovels();
+    const [webnovelWithContent, setWebnovelWithContent] = useState<Webnovel | null>(null);
 
-    const {language} = useLanguage();
+    useEffect(() => {
+        getWebnovelById(webnovel.id.toString()).then((webnovel) => {
+            setWebnovelWithContent(webnovel!);
+        });
+    }, [webnovel.id]);
 
     const submitContent = async (content: string, chapterId: number) => {
         try {
@@ -46,11 +51,13 @@ export async function TranslateWebnovelAllButton({webnovel}: {webnovel: Webnovel
 
 
     async function handleTranslateAll() {
-        const sorted = JSON.parse(JSON.stringify(webnovel as unknown as string)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
+        const sorted = JSON.parse(JSON.stringify(webnovelWithContent as unknown as string)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
         for (const chapter of sorted) {
             const startTime = new Date()
             console.log("Started translation at ", startTime)
-            await submitContent(chapter.content, chapter.id)
+            if (chapter.content) {
+                await submitContent(chapter.content, chapter.id)
+            }
             const endTime = new Date()
             console.log("Ended translation at ", endTime)
             console.log("Time taken: ", (endTime.getTime() - startTime.getTime()) / 1000, " seconds")

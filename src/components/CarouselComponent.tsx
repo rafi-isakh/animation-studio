@@ -14,11 +14,11 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Box } from "@mui/material";
 import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const CarouselComponent = ({ searchParams, webnovels, items }: { 
+const CarouselComponent = ({ searchParams, items }: { 
   searchParams: { [key: string]: string | string[] | undefined }, 
   items: SlickCarouselItem[], 
-  webnovels: Webnovel[] 
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -27,6 +27,7 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
   const totalSlides = Math.ceil(items.length / 3); // For larger screens
   const totalMobileSlides = items.length; 
   const [tabValue, setTabValue] = useState('1');
+  const { webnovels } = useWebnovels();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

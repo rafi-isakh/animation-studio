@@ -6,17 +6,19 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useWebnovels } from "@/contexts/WebnovelsContext";
 
 export const premium = [23, 19, 21, 22, 20, 24];
 export const free = [29, 28, 25];
 
-export default function WebnovelsByRank({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) {
+export default function WebnovelsByRank({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const newAndTrendingRef = useRef<HTMLDivElement>(null);
+    const { webnovels } = useWebnovels();
     
 
     useEffect(() => {

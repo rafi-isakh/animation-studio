@@ -2,14 +2,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
-import { Brush, WandSparkles } from 'lucide-react';
-import { Box, Button, Modal, Skeleton, Typography, Drawer } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import { Box, Button, Modal, Skeleton, Typography, Drawer, SwipeableDrawer, Link, Alert } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import Collapse from '@mui/material/Collapse';
+import CloseIcon from '@mui/icons-material/Close';
+import Tab from '@mui/material/Tab';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import TabContext from '@mui/lab/TabContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import dynamic from 'next/dynamic';
-import animationData from '@/assets/MagicStick.json';
+import animationData from '@/assets/shinny.json';
+import { X, ArrowRight } from 'lucide-react';
+import { Language } from '@/components/Types';
+import { useReaderTheme } from '@/contexts/ReaderThemeContext'
+
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
@@ -23,27 +32,45 @@ type Position = {
     window?: () => Window;
 };
 
- const StyledBox = styled('div')(({ theme }) => ({
-    backgroundColor: '#fff',
-    ...theme.applyStyles('dark', {
-      backgroundColor: grey[800],
-    }),
-  }));
-  
   const Puller = styled('div')(({ theme }) => ({
     width: 30,
     height: 6,
-    backgroundColor: grey[300],
+    backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',  // gray-600 #4b5563 
     borderRadius: 3,
     position: 'absolute',
     top: 8,
     left: 'calc(50% - 15px)',
-    ...theme.applyStyles('dark', {
-      backgroundColor: grey[900],
-    }),
+    zIndex: 5,
   }));
 
-const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window }> = ({ children, window }) => {
+const StyledBox = styled('div')(() => ({
+    position: 'relative',
+    height: '100%',
+    overflow: 'auto',
+}));
+
+
+export function TransitionAlerts({ dictionary, language }: { dictionary: any; language: Language }) {
+    const [open, setOpen] = useState(true);
+  
+    return (
+      <Box sx={{ width: '100%', mb: 2 }}>
+        <Collapse in={true}>
+          <Alert
+          variant="outlined"
+          sx={{ borderColor: '#eeeee4'}}
+          severity="info"
+          >
+             {phrase(dictionary, "toonyzStudioPlay", language)}
+          </Alert>
+        </Collapse>
+      </Box>
+    );
+  }
+
+
+
+const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; }> = ({ children, window }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
@@ -59,6 +86,10 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
     const [showError, setShowError] = useState(false);
     const [prompt, setPrompt] = useState("");
     const [pictures, setPictures] = useState([]);
+    const [value, setValue] = React.useState('1');
+    const drawerRef = useRef<HTMLDivElement>(null);
+    const { readerTheme } = useReaderTheme(); 
+
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -74,30 +105,54 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
                 setPosition({
                     x: rect.left - containerRect.left + (rect.width / 2) - (30 / 2),
                     y: rect.top - containerRect.top - 30,
-                    // y: rect.top - window.scrollY - 30,
                     width: rect.width,
                     height: rect.height,
                 })
                 setSelectedText(text)
 
-                // Clear any existing timeout
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
 
-                // Set a new timeout to clear the selection after 3 seconds
                 timeoutRef.current = setTimeout(() => {
-                    setSelection(undefined);
-                    setPosition(undefined);
-                    setSelectedText('');
-                    setShowMessage(false);
+                    handleClose();
                 }, 8000);
             }
         }
 
-        document.addEventListener('selectionchange', handleSelectionChange)
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                handleClose();
+                setOpen(false);
+            }
+        };
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                containerRef.current && 
+                !containerRef.current.contains(event.target as Node) && 
+                drawerRef.current &&
+                !drawerRef.current.contains(event.target as Node)
+            ) {
+                // Close floating menu only and clear timeout
+                setSelection(undefined);
+                setPosition(undefined);
+                setSelectedText('');
+                setShowMessage(false);
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+            }
+        };
+
+        document.addEventListener('selectionchange', handleSelectionChange);
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('mousedown', handleClickOutside);
+
         return () => {
-            document.removeEventListener('selectionchange', handleSelectionChange)
+            document.removeEventListener('selectionchange', handleSelectionChange);
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('mousedown', handleClickOutside);
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
@@ -109,11 +164,9 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
       return text.slice(0, maxLength) + '...';
     };
 
-
     const handleOpenModal = () => {
       setShowIsModal(true);
   }
-
 
     const toggleDrawer = (newOpen: boolean) => () => {
       setOpen(newOpen);
@@ -124,121 +177,149 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window 
     const handlePicturesGenerated = (newPictures: string[]) => {
         setOpen(true); 
     };
-        
+
+    const handleDrawerClose = () => {
+        setOpen(false);
+    };
+
+      const handleClose = () => {
+        setSelection(undefined);
+        setPosition(undefined);
+        setSelectedText('');
+        setShowMessage(false);
+        // setOpen(false);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+    }
+
     // This is used only for the example
     const container = window !== undefined ? () => window().document.body : undefined;
 
+    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+        setValue(newValue);
+    };
 
     return (
-        <div className='relative' ref={containerRef}>
+        <div className='relative' ref={containerRef} >
             {selection && position && (
                 <div
-                    className="absolute z-50 w-30"
+                    className="absolute z-10 w-30"
                     style={{
                         top: `${position.y}px`,
                         left: `${position.x}px`,
                     }}
                 >
                 <button 
-                    className="rounded-full border-1  border-purple-300 bg-purple-300"
-                    onClick={() => setShowMessage(!showMessage)}
+                    className="rounded-full bg-[#FFF0EC] -mt-10"
+                    onClick={toggleDrawer(true)} 
                   >
-                    {/* <Brush 
-                      size={16} 
-                      className="transition-colors duration-300 " // Changed this line
-                    /> */}
-                   {/* <WandSparkles className='text-pink-300' /> */}
-                   <LottieLoader 
+                    <LottieLoader 
                         animationData={animationData} 
                         centered={false} 
-                        width="w-[40px]" 
-                        className="text-pink-300"
+                        width="w-[50px]" 
+                        className=""
                         />
-                   {/* <i className="fas fa-magic text-[1.2rem]" ></i> */}
 
                   </button>
-                    {showMessage && selectedText && (
-                        <div className="flex flex-row gap-2 mt-3 rounded-md pl-4 py-3 bg-black text-white shadow-lg max-w-xs duration-300 animate-fade-in"> 
-                            <div className="flex flex-col">
-                                <p className="text-sm">
-                                    {truncateText(selectedText, 100)}
-                                </p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                    {/* Ceate magic with Toonyz Studio Play? */}
-                                    {phrase(dictionary, "toonyzStudioPlay", language)}
-                                </p>
-                            </div>
-                            <button 
-                                className="transition-colors shadow-lg self-center"
-                            >
-                                <Button onClick={toggleDrawer(true)}>
-                                    {/* Open */}
-                                  {/* <WandSparkles 
-                                   size={16} 
-                                   className="text-white-600 hover:text-pink-300 duration-300"
-                                   onClick={handleOpenModal}
-                                /> */} <LottieLoader 
-                                            animationData={animationData} 
-                                            centered={false} 
-                                            width="w-[40px]" 
-                                            className="text-pink-300"
-                                            />
-                                </Button>
-                            </button>
-                        </div>
-                    )}
+                  <button 
+                    onClick={handleClose}
+                    className="absolute -top-8 -right-0" 
+                    >
+                        <X size={16} className='text-white dark:text-white bg-black rounded-full p-1' />
+                    </button>
                 </div>
             )}
             {children}
-       
-                 <>
+                 <div ref={drawerRef}>
                     <Global
                         styles={{
-                        '.MuiDrawer-root > .MuiPaper-root': {
-                            zIndex: 30,
+                            '.MuiDrawer-root > .MuiPaper-root': {
+                            zIndex: 1,
                             height: `calc(50% - ${drawerBleeding}px)`,
-                            // overflow: 'visible',
                         },
                         }}
                     />
-                      <Drawer
+                      <SwipeableDrawer
                         container={container}
                         anchor="bottom"
                         open={open}
-                        onClose={toggleDrawer(false)}
-                        // swipeAreaWidth={drawerBleeding}
-                        // disableSwipeToOpen={false}
+                        onOpen={toggleDrawer(true)}
+                        onClose={handleDrawerClose}
+                        swipeAreaWidth={drawerBleeding}
+                        disableSwipeToOpen={false}
                         ModalProps={{
-                        keepMounted: true,
+                            keepMounted: true,
                         }}
-                        // sx={{ zIndex: 20 }} 
+                        sx={{
+                            '& .MuiDrawer-paper': {
+                                backgroundColor: readerTheme === 'dark' ? 'black' : '#fff',
+                                height: {
+                                    xs: '70%',    // Mobile height
+                                    sm: '70%',    // Tablet height
+                                    md: '50%'     // Desktop height
+                                },
+                                overflow: 'visible',
+                                borderTopLeftRadius: 16,
+                                borderTopRightRadius: 16,
+                            },
+                        }}
                         >
-                        <StyledBox
-                            sx={{
-                                position: 'absolute',
-                                top: -drawerBleeding,
-                                borderTopLeftRadius: 20,
-                                borderTopRightRadius: 20,
-                                visibility: 'visible',
-                                right: 0,
-                                left: 0,
-                                height: '400px',
+                       {/* Puller */}
+                        <Puller />
+                       {/* Content */}
+                       <StyledBox
+                         sx={{
+                            backgroundColor: readerTheme === 'dark' ? 'black' : '#fff',
+                            color: readerTheme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
+                        }}
+                       >
+                
+                        <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5'>
+                        <TabContext value={value}>
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <TabList 
+                                onChange={handleChange} 
+                                aria-label="Toonyz Studio"
+                                sx={{
+                                borderColor: '#D62A79',
+                                color: '#D62A79',
+                                '& .MuiTabs-indicator': {
+                                    color: '#D62A79',
+                                    backgroundColor: '#D62A79',
+                                },
+                                '& .Mui-selected': {  // Styles for active tab
+                                    color: '#D62A79 !important',
+                                },
+                                '& .MuiTab-root': {  // Styles for all tabs
+                                    color: 'grey',
+                                    '&:hover': {
+                                        color: '#D62A79',
+                                        opacity: 0.7,
+                                    }
+                                }
                             }}
                             >
+                                <Tab label="Image Studio" value="1" />
+                                {/* <Tab label="Storyboard" value="2" /> */}
+                            </TabList>
+                        
+                            <TabPanel value="1">
+                            <TransitionAlerts dictionary={dictionary} language={language} />
+                                <PictureGenerator
+                                    prompt={selectedText}
+                                    onComplete={handlePicturesGenerated}
+                                />
+
+                            </TabPanel>
+                            </Box>
+                        </TabContext>
+
+                         </div>
+
                         </StyledBox>
-
-                        <Puller />
-                        <StyledBox sx={{ px: 2, pb: 2, height: '2%', }} />
-
-                        <p className='text-center z-50 mt-10'>
-                        </p>
-                        <PictureGenerator
-                            // selectedText={selectedText}
-                            prompt={selectedText}
-                            onComplete={handlePicturesGenerated}
-                        />
-                    </Drawer>
-                    </>
+                       </SwipeableDrawer>
+                    </div>
         </div>
     );
 };

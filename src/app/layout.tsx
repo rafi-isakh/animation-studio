@@ -17,7 +17,6 @@ import { StripeProvider } from '@/contexts/StripeContext';
 import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
-import WebnovelsDataProvider from "@/components/WebnovelsDataProvider";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -72,15 +71,15 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className={`antialiased`}>
         <RegisterSW />
-        <LanguageProvider>
-          <LanguageSetter />
-          <ThemeProvider>
-            <AuthProvider>
-              <UserProvider>
-                <DeviceProvider>
-                  <SearchProvider>
-                    <StripeProvider>
-                      <WebnovelsProvider>
+        <WebnovelsProvider>
+          <LanguageProvider>
+            <LanguageSetter />
+            <ThemeProvider>
+              <AuthProvider>
+                <UserProvider>
+                  <DeviceProvider>
+                    <SearchProvider>
+                      <StripeProvider>
                         <div className={`font-pretendard pretendard-jp pretendard-std`}>
                           <Suspense>
                             <Header isLoggedIn={isLoggedIn} />
@@ -103,14 +102,14 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     </div> 
                    */}
                         </div>
-                      </WebnovelsProvider>
-                    </StripeProvider>
-                  </SearchProvider>
-                </DeviceProvider>
-              </UserProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </LanguageProvider>
+                      </StripeProvider>
+                    </SearchProvider>
+                  </DeviceProvider>
+                </UserProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </LanguageProvider>
+        </WebnovelsProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
         <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>

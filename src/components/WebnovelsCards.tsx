@@ -9,17 +9,20 @@ import Link from 'next/link';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
 import { filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { filter_by_genre } from '@/utils/webnovelUtils';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
+const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const { webnovels } = useWebnovels();
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
+        console.log("webnovels cardlist by new before filter", webnovels);
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
@@ -27,6 +30,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, webnovels }: { searchPar
             .slice(0, 12)
 
         setWebnovelsToShow(_webnovelsToShow);
+        console.log("webnovels cardlist by new", _webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);
 
     if (typeof genre === 'string') {

@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases"
 import { uploadFile } from "@/utils/s3";
 
-export default function GeneratedPicture({ index, image }: { index: number, image: string }) {
+export default function GeneratedPicture({ index, image, webnovel_id, chapter_id }: { index: number, image: string, webnovel_id: string, chapter_id: string }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const { language, dictionary } = useLanguage();
     const [title, setTitle] = useState('');
@@ -24,7 +24,7 @@ export default function GeneratedPicture({ index, image }: { index: number, imag
             }),
             fetch('/api/create_toonyz_post', {
                 method: 'POST',
-                body: JSON.stringify({ title, content, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}` }),
+                body: JSON.stringify({ title, content, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id }),
             }),
         ]);
         if (!uploadResponse.ok) {

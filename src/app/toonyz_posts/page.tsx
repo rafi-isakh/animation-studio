@@ -20,6 +20,8 @@ export default function ToonyzPosts() {
                         <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} />
                         <h2 className="text-2xl font-bold">{post.title}</h2>
                         <p className="text-sm text-gray-500">{post.content}</p>
+                        <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
+                        <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
                     </div>
                 </div>
             ))}

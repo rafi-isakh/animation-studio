@@ -172,10 +172,11 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <aside className={`flex h-full flex-col z-[99] transition-all duration-300 ease-in-out
+      <aside className={`flex h-full flex-col md:z-[1300] transition-all duration-300 ease-in-out
                      fixed left-0 top-0 border-r dark:border-black text-base
                     border-gray-200 bg-white dark:bg-[#211F21] ${expanded ? "w-[240px]" : "w-[72px]"}`}>
-        {/* darkmode bg-[#211F21] */}
+        {/* side bar z-[1300] because chapter_view/viewer_footer.tsx z-index is 1250 */}
+        {/* darkmode color bg-[#211F21] */}
         <div className="flex h-16 items-center justify-center">
           <div className={`flex flex-row items-center justify-between ${expanded ? "gap-10" : "gap-0"}`}>
             <Link href="/?version=premium">

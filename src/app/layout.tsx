@@ -105,14 +105,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                          <div className="hidden md:flex z-[99] justify-center items-center">  {/* no sidebar on mobile */}
+                          <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
                             <GlobalSidebar />
                           </div>
                           <div className="block md:hidden z-[99]">
                             <BottomNavigationBar />
                           </div>
                         </div>
-
                       </StripeProvider>
                     </SearchProvider>
                   </DeviceProvider>

@@ -299,7 +299,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
                         {/* Title and content : end */}
                     </div>
-                    <div className="relative z-50">
+                    <div className="relative">
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />

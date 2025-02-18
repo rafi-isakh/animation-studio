@@ -18,6 +18,7 @@ import animationData from '@/assets/shinny.json';
 import { X, ArrowRight } from 'lucide-react';
 import { Language } from '@/components/Types';
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
+import { useTheme } from '@/contexts/providers'
 
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
@@ -89,7 +90,8 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
     const [value, setValue] = React.useState('1');
     const drawerRef = useRef<HTMLDivElement>(null);
     const { readerTheme } = useReaderTheme(); 
-
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -253,7 +255,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                         }}
                         sx={{
                             '& .MuiDrawer-paper': {
-                                backgroundColor: readerTheme === 'dark' ? 'black' : '#fff',
+                                backgroundColor: (readerTheme && isDark) ? 'black' : '#fff',
                                 height: {
                                     xs: '70%',    // Mobile height
                                     sm: '70%',    // Tablet height
@@ -274,8 +276,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                             color: readerTheme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
                         }}
                        >
-                
-                        <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5'>
+                        <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5 select-none'>
                         <TabContext value={value}>
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <TabList 

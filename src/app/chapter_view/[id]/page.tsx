@@ -290,7 +290,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu >
+                                    <FloatingMenu webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>

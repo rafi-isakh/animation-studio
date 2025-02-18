@@ -2,13 +2,14 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-    const { title, content, fileName, type, tags, link } = await request.json();
+    const { title, content, fileName, type, tags, link, webnovel_id, chapter_id } = await request.json();
     const session = await auth();
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let bodyToSend = { title, content, tags, image: "", video: "", link }
+    let bodyToSend = { title, content, tags, image: "", video: "", link, webnovel_id: parseInt(webnovel_id), chapter_id: parseInt(chapter_id) }
+    console.log(bodyToSend);
 
     if (type === "image") {
         bodyToSend.image = fileName;
@@ -16,6 +17,7 @@ export async function POST(request: NextRequest) {
         bodyToSend.video = fileName;
     }
 
+    console.log(JSON.stringify(bodyToSend));
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/create_toonyz_post`, {
         method: 'POST',
         body: JSON.stringify(bodyToSend),

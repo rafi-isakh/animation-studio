@@ -71,7 +71,7 @@ export function TransitionAlerts({ dictionary, language }: { dictionary: any; la
 
 
 
-const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; }> = ({ children, window }) => {
+const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string }> = ({ children, window, webnovel_id, chapter_id }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
@@ -310,6 +310,8 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                                 <PictureGenerator
                                     prompt={selectedText}
                                     onComplete={handlePicturesGenerated}
+                                    webnovel_id={webnovel_id}
+                                    chapter_id={chapter_id}
                                 />
 
                             </TabPanel>

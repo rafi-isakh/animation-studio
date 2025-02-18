@@ -47,7 +47,7 @@ export default function PicturesStudioPage() {
          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-auto mb-16">
              {pictures.length > 0 ? (
                     pictures.map((image, index) => (
-                        <GeneratedPicture key={index} index={index} image={image} />
+                        <GeneratedPicture key={index} index={index} image={image} webnovel_id = "0" chapter_id = "0"/> // this file shouldn't exist
                     ))
                 ) : (
                     <div className="col-span-full flex justify-center items-center h-full p-2">

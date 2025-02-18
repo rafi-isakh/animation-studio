@@ -39,6 +39,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         fetchWebnovelsMetadata();
     }
 
+    // todo: clearly delineate between webnovel metadata and webnovel with content
     const getWebnovelById = async (id: string) => {
         const webnovel = webnovels.find((webnovel) => webnovel.id.toString() === id);
         if (webnovel) {

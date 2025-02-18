@@ -23,7 +23,7 @@ import {
         LoveComedyGenres
 } from '@/components/UI/GenresTabs';
 
-const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
+const ExplorePage = () => {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
@@ -34,7 +34,6 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const { webnovels } = useWebnovels();
-    // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
         const fetchAllWebnovels = async () => {
@@ -58,7 +57,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
     }, []);
 
     const getCarouselItems = (webnovels: Webnovel[]) => {
-
+        //
     }
 
     const tabsConfig = [
@@ -91,7 +90,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "Romance",
             genre: "romance",
             Component: () => (
-                <RomanceGenres sortBy={sortBy} webnovels={allWebnovels} />
+                <RomanceGenres webnovels={allWebnovels} />
             ),
             color: "#F2727F"
         },
@@ -99,7 +98,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "Fantasy",
             genre: "fantasy",
             Component: () => (
-                <FantasyGenres sortBy={sortBy} webnovels={allWebnovels} />
+                <FantasyGenres webnovels={allWebnovels} />
             ),
             color: "#F89E8D"
         },
@@ -107,7 +106,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "Sci-Fi",
             genre: "sf",
             Component: () => (
-                <SciFiGenres sortBy={sortBy} webnovels={allWebnovels} />
+                <SciFiGenres webnovels={allWebnovels} />
             ),
             color: "#F78A86"
         },
@@ -115,7 +114,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "BL",
             genre: "bl",
             Component: () => (
-                <BLGenres sortBy={sortBy} webnovels={allWebnovels} />
+                <BLGenres webnovels={allWebnovels} />
             ),
             color: "#F2727F"
         },
@@ -123,7 +122,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "Drama",
             genre: "drama",
             Component: () => (
-                <DramaGenres sortBy={sortBy} webnovels={allWebnovels} />
+                <DramaGenres webnovels={allWebnovels} />
             ),
             color: "#0C34F0"
         },
@@ -131,7 +130,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "Romance Fantasy",
             genre: "romanceFantasy",
             Component: () => (
-                <RomanceFantasyGenres sortBy={sortBy} webnovels={allWebnovels}/>
+                <RomanceFantasyGenres webnovels={allWebnovels}/>
             ),
             color: "#F0BA18"
         },
@@ -139,7 +138,7 @@ const ExplorePage = ({ sortBy }: { sortBy: SortBy }) => {
             label: "Love Comedy",
             genre: "loveComedy",
             Component: () => (
-                <LoveComedyGenres sortBy={sortBy} webnovels={allWebnovels}/>
+                <LoveComedyGenres webnovels={allWebnovels}/>
             ),
             color: "#F0183C"
         },

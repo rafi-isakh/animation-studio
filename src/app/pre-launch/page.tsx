@@ -1,5 +1,5 @@
 import CountdownTimer from "@/components/UI/preLaunch/CountdownTimer"
-import EmailSignup from "@/components/UI/preLaunch/EmailSignup"
+// import EmailSignup from "@/components/UI/preLaunch/EmailSignup"
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
         </h1>
         <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">
           Get ready for something amazing! 
-          We're working hard to bring you the best experience possible.
+          We&apos;re working hard to bring you the best experience possible.
         </p>
         <CountdownTimer targetDate="2025-04-31T23:59:59" />
         {/* <EmailSignup /> */}

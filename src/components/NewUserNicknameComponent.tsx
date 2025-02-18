@@ -5,18 +5,16 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases';
 import FormControl from '@mui/material/FormControl';
 import { useFormControlContext } from '@mui/base/FormControl';
-import { Input, inputClasses } from '@mui/base/Input';
 import { useTheme } from "@/contexts/providers";
 import { alpha, styled } from '@mui/material/styles';
 import clsx from 'clsx';
 import TextField from '@mui/material/TextField';
 import FormHelperText from '@mui/material/FormHelperText';
 
-
 const NewUserNicknameComponent = ({
     value,
     onChange,
-}:
+  }:
     {
         value: string,
         onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
@@ -25,37 +23,37 @@ const NewUserNicknameComponent = ({
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
 
-    const Label = styled(
-        ({ children, className }: { children?: React.ReactNode; className?: string }) => {
-            const formControlContext = useFormControlContext();
-            const [dirty, setDirty] = useState(false);
-
-            useEffect(() => {
-                if (formControlContext?.value) {
-                    setDirty(true);
-                }
-            }, [formControlContext]);
-
-            if (!formControlContext) {
-                return <p>{children}</p>;
-            }
-
-            const { required, value } = formControlContext;
-            const showRequiredError = dirty && required && !value;
-
-            return (
-                <p className={clsx(className || showRequiredError ? 'invalid' : '')}>
-                    {children}
-                    {required ? <span className="text-red-500"> *</span> : ''}
-                </p>
-            );
-        },
-    )`
-        font-family: 'Pretendard', sans-serif;
-        font-size: 0.875rem;
-        color: ${isDarkMode ? '#fff' : '#000'};
-      
-        &.invalid {
+    const CustomLabel = ({ children, className }: { children?: React.ReactNode; className?: string }) => {
+        const formControlContext = useFormControlContext();
+        const [dirty, setDirty] = useState(false);
+  
+        useEffect(() => {
+          if (formControlContext?.filled) {
+            setDirty(true);
+          }
+        }, [formControlContext]);
+  
+        if (formControlContext === undefined) {
+          return <p>{children}</p>;
+        }
+  
+        const { error, required, filled } = formControlContext;
+        const showRequiredError = dirty && required && !filled;
+  
+        return (
+          <p className={clsx(className, error || showRequiredError ? 'invalid' : '')}>
+            {children}
+            {required ? <span className="text-red-500"> *</span> : ''}
+          </p>
+        );
+      }
+  
+      const Label = styled(CustomLabel)`
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.875rem;
+      color: ${isDarkMode ? '#fff' : '#000'};
+  
+      &.invalid {
           color: red;
         }
       `;

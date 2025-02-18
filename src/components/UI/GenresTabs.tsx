@@ -131,7 +131,7 @@ export const AllGenres = ({ children }: { children: React.ReactNode }) => {
 }
 
 
-export const RomanceGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const RomanceGenres = ({ webnovels }: { webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -139,6 +139,7 @@ export const RomanceGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels
@@ -177,7 +178,7 @@ export const RomanceGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels
   )
 };
 
-export const FantasyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const FantasyGenres = ({  webnovels }: {  webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -185,6 +186,7 @@ export const FantasyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels
@@ -224,7 +226,7 @@ export const FantasyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels
 };
 
 
-export const SciFiGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const SciFiGenres = ({ webnovels }: {  webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -232,6 +234,7 @@ export const SciFiGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: 
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels
@@ -271,7 +274,7 @@ export const SciFiGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: 
 };
 
 
-export const BLGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const BLGenres = ({ webnovels }: {  webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -279,6 +282,7 @@ export const BLGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Web
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels
@@ -318,7 +322,7 @@ export const BLGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Web
 };
 
 
-export const DramaGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const DramaGenres = ({  webnovels }: {  webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -326,6 +330,7 @@ export const DramaGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: 
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels
@@ -365,7 +370,7 @@ export const DramaGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: 
 };
 
 
-export const RomanceFantasyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const RomanceFantasyGenres = ({ webnovels }: { webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -373,6 +378,7 @@ export const RomanceFantasyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, we
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels
@@ -411,7 +417,7 @@ export const RomanceFantasyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, we
   )
 };
 
-export const LoveComedyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnovels: Webnovel[] }) => {
+export const LoveComedyGenres = ({ webnovels }: { webnovels: Webnovel[] }) => {
   const { theme } = useTheme();
   const { dictionary, language } = useLanguage();
   const router = useRouter();
@@ -419,6 +425,7 @@ export const LoveComedyGenres = ({ sortBy, webnovels }: { sortBy: SortBy, webnov
   const currentGenre = searchParams.get('genre');
   const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortBy>('views');
 
   useEffect(() => {
     const _webnovelsToShow = webnovels

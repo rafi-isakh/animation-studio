@@ -1,3 +1,5 @@
+export const maxDuration = 300; // This function can run for a maximum of 300 seconds
+
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 

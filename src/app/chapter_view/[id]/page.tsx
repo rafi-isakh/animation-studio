@@ -2,7 +2,7 @@
 
 import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
@@ -18,7 +18,6 @@ import { useReader } from '@/contexts/ReaderContext';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
-import ThemeWrapper from '@/components/ThemeWrapper';
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
@@ -77,14 +76,15 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                  fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -232,15 +232,15 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     if (webnovel && chapter) {
         return (
-            <ThemeWrapper>
+            <div>
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 <div
-                    className={`${readerTheme} text-gray-900 dark:text-white`}
+                    className={`${readerTheme} relative`}
                     style={{
                         ...readerStyle,
                     }}
                 >
-                    <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto `}>
+                    <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto z-10`}>
                         {/* Back to novel and like button */}
                         <div className="flex flex-row max-w-full w-full justify-between">
                             <Button color='gray' variant='text' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
@@ -299,8 +299,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
                         {/* Title and content : end */}
                     </div>
-                    <div className='md:h-[3rem] h-[2rem]' />
-                    <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                    <div className="relative z-50">
+                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                    </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
@@ -330,7 +331,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </div>
                 </div>
                 <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
-            </ThemeWrapper >
+            </div>
         )
     }
     else {

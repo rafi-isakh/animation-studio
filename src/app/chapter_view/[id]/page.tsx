@@ -299,7 +299,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
                         {/* Title and content : end */}
                     </div>
-                    <div className="relative">
+                    <div className="relative ">
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
@@ -331,6 +331,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </div>
                 </div>
                 <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
+                <div className="md:h-[10vh] h-[10vh]"></div>
             </div>
         )
     }

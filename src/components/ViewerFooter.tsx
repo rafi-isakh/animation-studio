@@ -123,18 +123,19 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     return (
-        <div className="fixed w-full md:bottom-0 bottom-[3.5rem] left-0 md:z-[1250] z-[99] select-none">
-            <div className={`w-full justify-center bg-white dark:bg-black text-black
-                             dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
+        <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-[3.5rem] md:bottom-0 left-1/2 -translate-x-1/2 md:z-[1250] z-[99] select-none">
+            <div className={`w-full justify-center bg-white dark:bg-[#211F21] text-black
+                             dark:text-white rounded-t-lg
+                             bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
                              ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                              ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
 
-                <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2 z-[1150]">
+                <div className="max-w-md text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2 z-[1150]">
                 {/* className='md:mr-0 mr-[15px]' */}
                     <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
                         <div className='group hover:text-[#DB2777] flex flex-row'>
-                            <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4' />
+                            <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
 
                             {phrase(dictionary, "prevChapter", language)}
                         </div>

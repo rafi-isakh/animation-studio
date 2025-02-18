@@ -77,7 +77,7 @@ export function GlobalSidebar() {
         text="Feeds"
         active={pathname.startsWith('/feeds')}
         alert={false}
-        href="#"
+        href="/feeds"
         type="link"
       />
       <SidebarItem

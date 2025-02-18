@@ -161,4 +161,5 @@ export interface ToonyzPost {
   chapter_id: string;
   created_at: Date;
   views: number;
+  quote?: string;
 }

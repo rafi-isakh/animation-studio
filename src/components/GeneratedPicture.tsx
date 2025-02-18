@@ -6,7 +6,19 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases"
 import { uploadFile } from "@/utils/s3";
 
-export default function GeneratedPicture({ index, image, webnovel_id, chapter_id }: { index: number, image: string, webnovel_id: string, chapter_id: string }) {
+export default function GeneratedPicture({ 
+    index, 
+    image, 
+    webnovel_id, 
+    chapter_id, 
+    quote 
+  }:
+    { index: number, 
+      image: string, 
+      webnovel_id: string, 
+      chapter_id: string, 
+      quote: string 
+    }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const { language, dictionary } = useLanguage();
     const [title, setTitle] = useState('');
@@ -24,7 +36,7 @@ export default function GeneratedPicture({ index, image, webnovel_id, chapter_id
             }),
             fetch('/api/create_toonyz_post', {
                 method: 'POST',
-                body: JSON.stringify({ title, content, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id }),
+                body: JSON.stringify({ title, content, quote, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id }),
             }),
         ]);
         if (!uploadResponse.ok) {
@@ -46,7 +58,7 @@ export default function GeneratedPicture({ index, image, webnovel_id, chapter_id
     return (
         <>
             <div
-                className="w-80 h-80 relative"
+                className="relative w-80 h-80 select-none"
             >
                 <Image
                     src={`data:image/png;base64,${image}`}
@@ -59,13 +71,28 @@ export default function GeneratedPicture({ index, image, webnovel_id, chapter_id
             </div>
             <Modal open={showShareAsPostModal} onClose={() => setShowShareAsPostModal(false)}>
                 <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
+                    <div className="flex flex-col space-y-4 items-center justify-center select-none">
                         <h2>{phrase(dictionary, "ShareAsPostImage", language)}</h2>
                         <TextField
                             label={phrase(dictionary, "title", language)}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                         />
+                        <h2>{phrase(dictionary, "quote", language)}</h2>
+                        <Button
+                            value={quote}
+                            disabled
+                            variant="text"
+                            className="w-full select-none"
+                            sx={{
+                                '&.Mui-disabled': {
+                                    color: 'black',
+                                    opacity: 1,
+                                },
+                            }}
+                        >
+                            {quote}
+                        </Button>
                         <TextField
                             label={phrase(dictionary, "content", language)}
                             value={content}

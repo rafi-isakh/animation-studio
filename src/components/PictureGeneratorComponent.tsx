@@ -106,7 +106,7 @@ interface PictureGeneratorProps {
   }));
 
     return (
-      <div className="z-50">
+      <div className="z-50 select-none">
 
             {/* picture generator */}
   
@@ -230,10 +230,10 @@ interface PictureGeneratorProps {
         
 
           {pictures.length > 0 && (
-            <div className="flex md:flex-row flex-col gap-4 mt-6">
+            <div className="flex md:flex-row flex-col gap-4 mt-6 select-none">
               {pictures.map((picture, index) => (
                 <div key={index} className="flex-shrink flex-wrap">
-                  <GeneratedPicture index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} />
+                  <GeneratedPicture index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} quote={savedPrompt}/>
                 </div>
               ))}
             </div>

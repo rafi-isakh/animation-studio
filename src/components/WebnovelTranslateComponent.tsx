@@ -251,7 +251,7 @@ const WebnovelTranslateComponent = (
     return (
         <div
             style={paragraphStyle}
-            className={`relative mb-16 
+            className={`relative mb-16 text-base/7
                        ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
                {text &&
                 <>

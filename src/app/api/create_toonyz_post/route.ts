@@ -2,13 +2,14 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-    const { title, content, fileName, type, tags, link, webnovel_id, chapter_id } = await request.json();
+    const { title, content, quote, fileName, type, tags, link, webnovel_id, chapter_id } = await request.json();
     const session = await auth();
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let bodyToSend = { title, content, tags, image: "", video: "", link, webnovel_id: parseInt(webnovel_id), chapter_id: parseInt(chapter_id) }
+    let bodyToSend = { title, content, quote, tags, image: "", video: "", link, webnovel_id: parseInt(webnovel_id), chapter_id: parseInt(chapter_id) }
+    console.log(quote);
     console.log(bodyToSend);
 
     if (type === "image") {

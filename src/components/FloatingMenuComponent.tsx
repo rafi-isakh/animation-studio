@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
-import { Box, Button, Modal, Skeleton, Typography, Drawer, SwipeableDrawer, Link, Alert } from '@mui/material';
+import { Box, Button, Modal, Skeleton, Typography, SwipeableDrawer, Link, Alert } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
@@ -15,7 +15,7 @@ import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import dynamic from 'next/dynamic';
 import animationData from '@/assets/shinny.json';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Home, WandSparkles, Compass, Clapperboard, Image } from 'lucide-react';
 import { Language } from '@/components/Types';
 import { useReaderTheme } from '@/contexts/ReaderThemeContext'
 import { useTheme } from '@/contexts/providers'
@@ -23,17 +23,17 @@ import { useTheme } from '@/contexts/providers'
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
-  });
+});
 
 type Position = {
     x: number;
     y: number;
     width: number;
-    height: number; 
+    height: number;
     window?: () => Window;
 };
 
-  const Puller = styled('div')(({ theme }) => ({
+const Puller = styled('div')(({ theme }) => ({
     width: 30,
     height: 6,
     backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',  // gray-600 #4b5563 
@@ -42,7 +42,7 @@ type Position = {
     top: 8,
     left: 'calc(50% - 15px)',
     zIndex: 5,
-  }));
+}));
 
 const StyledBox = styled('div')(() => ({
     position: 'relative',
@@ -53,22 +53,65 @@ const StyledBox = styled('div')(() => ({
 
 export function TransitionAlerts({ dictionary, language }: { dictionary: any; language: Language }) {
     const [open, setOpen] = useState(true);
-  
-    return (
-      <Box sx={{ width: '100%', mb: 2 }}>
-        <Collapse in={true}>
-          <Alert
-          variant="outlined"
-          sx={{ borderColor: '#eeeee4'}}
-          severity="info"
-          >
-             {phrase(dictionary, "toonyzStudioPlay", language)}
-          </Alert>
-        </Collapse>
-      </Box>
-    );
-  }
 
+    return (
+        <Box sx={{ width: '100%', mb: 2 }}>
+            <Collapse in={true}>
+                <Alert
+                    variant="outlined"
+                    sx={{ borderColor: '#eeeee4' }}
+                    severity="info"
+                >
+                    {phrase(dictionary, "toonyzStudioPlay", language)}
+                </Alert>
+            </Collapse>
+        </Box>
+    );
+}
+
+
+
+
+interface FloatingMenuNavItem {
+    icon: React.ReactNode;
+    label: string;
+    href: string;
+}
+
+const FloatingMenuNavItems: FloatingMenuNavItem[] = [
+    // <WandSparkles />
+    { icon: <WandSparkles size={18} />, label: 'Home', href: '/' },
+    // { icon: <Image size={18} />, label: 'Explore', href: '/explore' },
+    { icon: <Clapperboard size={18} />, label: 'Search', href: '/search' },
+];
+
+
+
+const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
+
+    return (
+        <div className="relative max-w-[200px] mx-auto">
+            {/* Style 1: Hover with background */}
+            <div className="px-2 bg-white shadow-lg rounded-2xl mb-5">
+                <div className="flex">
+                    {FloatingMenuNavItems.map((item) => (
+                        <div key={item.label} className="flex-auto hover:w-full group">
+                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto px-2 py-2 group-hover:w-full text-[#DE2B74]">
+                                <span className="flex flex-row px-1 py-1 group-hover:bg-indigo-100 rounded-full group-hover:flex-grow">
+                                    {item.icon}
+                                    {/* <span className="hidden group-hover:inline-flex justify-center items-center ml-3 pb-1 text-[10px] no-underline">
+                                        {item.label}
+                                    </span> */}
+                                </span>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+    );
+};
 
 
 const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string }> = ({ children, window, webnovel_id, chapter_id }) => {
@@ -89,7 +132,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
     const [pictures, setPictures] = useState([]);
     const [value, setValue] = React.useState('1');
     const drawerRef = useRef<HTMLDivElement>(null);
-    const { readerTheme } = useReaderTheme(); 
+    const { readerTheme } = useReaderTheme();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
@@ -131,8 +174,8 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
 
         const handleClickOutside = (event: MouseEvent) => {
             if (
-                containerRef.current && 
-                !containerRef.current.contains(event.target as Node) && 
+                containerRef.current &&
+                !containerRef.current.contains(event.target as Node) &&
                 drawerRef.current &&
                 !drawerRef.current.contains(event.target as Node)
             ) {
@@ -162,29 +205,31 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
     }, []);
 
     const truncateText = (text: string, maxLength: number): string => {
-      if (text.length <= maxLength) return text;
-      return text.slice(0, maxLength) + '...';
+        if (text.length <= maxLength) return text;
+        return text.slice(0, maxLength) + '...';
     };
 
     const handleOpenModal = () => {
-      setShowIsModal(true);
-  }
+        setShowIsModal(true);
+    }
 
-    const toggleDrawer = (newOpen: boolean) => () => {
-      setOpen(newOpen);
-      setShowIsModal(true);
+    const toggleDrawer = (newOpen: boolean) => (event?: React.MouseEvent | React.KeyboardEvent) => {
+        if (event) {
+            event.preventDefault();
+        }
+        setOpen(newOpen);
+        setShowIsModal(true);
     };
 
-
     const handlePicturesGenerated = (newPictures: string[]) => {
-        setOpen(true); 
+        setOpen(true);
     };
 
     const handleDrawerClose = () => {
         setOpen(false);
     };
 
-      const handleClose = () => {
+    const handleClose = () => {
         setSelection(undefined);
         setPosition(undefined);
         setSelectedText('');
@@ -211,119 +256,123 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                         top: `${position.y}px`,
                         left: `${position.x}px`,
                     }}
-                >
-                <button 
-                    className="rounded-full bg-[#FFF0EC] -mt-10"
-                    onClick={toggleDrawer(true)} 
-                  >
-                    <LottieLoader 
-                        animationData={animationData} 
-                        centered={false} 
-                        width="w-[50px]" 
-                        className=""
-                        />
-
-                  </button>
-                  <button 
                     onClick={handleClose}
-                    className="absolute -top-8 -right-0" 
-                    >
-                        <X size={16} className='text-white dark:text-white bg-black rounded-full p-1' />
-                    </button>
+                >
+                    <style jsx global>{`
+                        ::selection {
+                            background-color: ${readerTheme === 'dark' || theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'};
+                            text-decoration: underline;
+                            text-decoration-color: #DE2B74;
+                            text-decoration-thickness: 2px;
+                            text-decoration-style: solid;
+                        }
+                        `}</style>
+                    <FloatingMenuNav toggleDrawer={toggleDrawer} />
                 </div>
             )}
             {children}
-                 <div ref={drawerRef}>
-                    <Global
-                        styles={{
-                            '.MuiDrawer-root > .MuiPaper-root': {
+            <div ref={drawerRef}>
+                <Global
+                    styles={{
+                        '.MuiDrawer-root > .MuiPaper-root': {
                             zIndex: 1,
                             height: `calc(50% - ${drawerBleeding}px)`,
                         },
-                        }}
-                    />
-                      <SwipeableDrawer
-                        container={container}
-                        anchor="bottom"
-                        open={open}
-                        onOpen={toggleDrawer(true)}
-                        onClose={handleDrawerClose}
-                        swipeAreaWidth={drawerBleeding}
-                        disableSwipeToOpen={false}
-                        ModalProps={{
-                            keepMounted: true,
-                        }}
-                        sx={{
-                            '& .MuiDrawer-paper': {
-                                backgroundColor: (readerTheme && isDark) ? 'black' : '#fff',
-                                height: {
-                                    xs: '70%',    // Mobile height
-                                    sm: '70%',    // Tablet height
-                                    md: '50%'     // Desktop height
-                                },
-                                overflow: 'visible',
-                                borderTopLeftRadius: 16,
-                                borderTopRightRadius: 16,
+                    }}
+                />
+                <SwipeableDrawer
+                    container={container}
+                    anchor="bottom"
+                    open={open}
+                    onOpen={toggleDrawer(true)}
+                    onClose={handleDrawerClose}
+                    swipeAreaWidth={drawerBleeding}
+                    disableSwipeToOpen={false}
+                    ModalProps={{
+                        keepMounted: true,
+                    }}
+                    sx={{
+                        '& .MuiDrawer-paper': {
+                            backgroundColor: readerTheme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
+                            height: {
+                                xs: '70%',    // Mobile height
+                                sm: '70%',    // Tablet height
+                                md: '50%'     // Desktop height
                             },
+                            width: {
+                                xs: '100%',   // Full width on mobile
+                                sm: '80%',    // 80% width on tablet
+                                md: '50%'     // 60% width on desktop
+                            },
+                            margin: 'auto',   // Center the drawer
+                            overflow: 'hidden',
+                            border: '0px',
+                            borderTopLeftRadius: '15px',
+                            borderTopRightRadius: '15px',
+                            boxShadow: 'none'
+                        },
+                    }}
+                >
+                    {/* Puller */}
+                    <Puller />
+                    {/* Content */}
+                    <StyledBox
+                        sx={{
+                            backgroundColor: readerTheme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
+                            color: readerTheme === 'dark' || theme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
+                            borderTopLeftRadius: '5px',
+                            borderTopRightRadius: '5px',
+                            boxShadow: 'none'
                         }}
-                        >
-                       {/* Puller */}
-                        <Puller />
-                       {/* Content */}
-                       <StyledBox
-                         sx={{
-                            backgroundColor: readerTheme === 'dark' ? 'black' : '#fff',
-                            color: readerTheme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
-                        }}
-                       >
+                    >
                         <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5 select-none'>
-                        <TabContext value={value}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <TabList 
-                                onChange={handleChange} 
-                                aria-label="Toonyz Studio"
-                                sx={{
-                                borderColor: '#D62A79',
-                                color: '#D62A79',
-                                '& .MuiTabs-indicator': {
-                                    color: '#D62A79',
-                                    backgroundColor: '#D62A79',
-                                },
-                                '& .Mui-selected': {  // Styles for active tab
-                                    color: '#D62A79 !important',
-                                },
-                                '& .MuiTab-root': {  // Styles for all tabs
-                                    color: 'grey',
-                                    '&:hover': {
-                                        color: '#D62A79',
-                                        opacity: 0.7,
-                                    }
-                                }
-                            }}
-                            >
-                                <Tab label="Image Studio" value="1" />
-                                {/* <Tab label="Storyboard" value="2" /> */}
-                            </TabList>
-                        
-                            <TabPanel value="1">
-                            <TransitionAlerts dictionary={dictionary} language={language} />
-                                <PictureGenerator
-                                    prompt={selectedText}
-                                    onComplete={handlePicturesGenerated}
-                                    webnovel_id={webnovel_id}
-                                    chapter_id={chapter_id}
-                                />
+                            <TabContext value={value}>
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                    <TabList
+                                        onChange={handleChange}
+                                        aria-label="Toonyz Studio"
+                                        sx={{
+                                            borderColor: '#D62A79',
+                                            color: '#D62A79',
+                                            '& .MuiTabs-indicator': {
+                                                color: '#D62A79',
+                                                backgroundColor: '#D62A79',
+                                            },
+                                            '& .Mui-selected': {  // Styles for active tab
+                                                color: '#D62A79 !important',
+                                            },
+                                            '& .MuiTab-root': {  // Styles for all tabs
+                                                color: 'grey',
+                                                '&:hover': {
+                                                    color: '#D62A79',
+                                                    opacity: 0.7,
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <Tab label="Image Studio" value="1" />
+                                        {/* <Tab label="Storyboard" value="2" /> */}
+                                    </TabList>
 
-                            </TabPanel>
-                            </Box>
-                        </TabContext>
+                                    <TabPanel value="1">
+                                        <TransitionAlerts dictionary={dictionary} language={language} />
+                                        <PictureGenerator
+                                            prompt={selectedText}
+                                            onComplete={handlePicturesGenerated}
+                                            webnovel_id={webnovel_id}
+                                            chapter_id={chapter_id}
+                                        />
 
-                         </div>
+                                    </TabPanel>
+                                </Box>
+                            </TabContext>
 
-                        </StyledBox>
-                       </SwipeableDrawer>
-                    </div>
-        </div>
+                        </div>
+
+                    </StyledBox>
+                </SwipeableDrawer>
+            </div>
+        </div >
     );
 };
 

@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { Pin } from "@/components/UI/Pin";
+
 
 export default function ToonyzPosts() {
     const [posts, setPosts] = useState([]);
@@ -13,18 +13,14 @@ export default function ToonyzPosts() {
     }, []);
 
     return (
-        <div className="max-w-screen-lg mx-auto w-full flex flex-col gap-4">
-            {posts.map((post: any) => (
-                <div key={post.id} className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} />
-                        <h2 className="text-2xl font-bold">{post.title}</h2>
-                        <p className="text-sm text-gray-500">{post.content}</p>
-                        <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
-                        <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
-                    </div>
+        <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
+            <main className="container p-4 mx-auto">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                    {posts.map((post: any) => (
+                        <Pin key={post.id} post={post} />
+                    ))}
                 </div>
-            ))}
+            </main>
         </div>
     )
 }

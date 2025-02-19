@@ -168,7 +168,7 @@ const Search = () => {
           )}
         </div>
       ) : (
-        // Show default view when no search query is present
+        // Show default view 
         <div className='space-y-8 md:px-2 px-4'>
           <WebnovelsList
             searchParams={searchParamsObject}

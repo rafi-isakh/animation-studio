@@ -1,6 +1,7 @@
 "use client"
-import { SetStateAction, Dispatch, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Webnovel } from "@/components/Types";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,17 +9,26 @@ import { useUser } from "@/contexts/UserContext";
 import { X, Search, MoveLeft } from "lucide-react";
 import { useSearch } from "@/contexts/SearchContext";
 import Link from "next/link";
-export default function SearchComponent({ mode,
+import { Drawer, Box } from "@mui/material";
+import { useTheme } from '@/contexts/providers'
+import WebnovelsList from "@/components/WebnovelsList";
+import dynamic from 'next/dynamic';
+
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+import animationData from '@/assets/dots_loader.json';
+
+export default function SearchComponent({
+    mode,
     recentQueriesFetched,
     lastIndexFetched,
     setIsMobileMenuOpen,
-    setOpen,
 }: {
     mode: "mobileHeader" | "header" | "page",
     recentQueriesFetched?: string[],
     lastIndexFetched?: number,
     setIsMobileMenuOpen?: (isOpen: boolean) => void,
-    setOpen?: (isOpen: boolean) => void,
 }) {
     const { query, setQuery, recentQueries, setRecentQueries, lastIndex, setLastIndex } = useSearch();
     const [searchRemember, setSearchRemember] = useState(true);
@@ -29,6 +39,34 @@ export default function SearchComponent({ mode,
     const { isLoggedIn } = useAuth();
     const [deletingQuery, setDeletingQuery] = useState(false);
     const queriesToShow = 6;
+    const { theme } = useTheme();
+    const inputRef = useRef<HTMLInputElement>(null)
+    const [open, setOpen] = useState(false);
+    const searchParams = useSearchParams();
+    const searchParamsObject = Object.fromEntries(searchParams.entries());
+    const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAllWebnovels = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('/api/get_webnovels_metadata');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch webnovels');
+                }
+                const data = await response.json();
+                setAllWebnovels(data);
+            } catch (error) {
+                console.error('Error fetching webnovels:', error);
+                setAllWebnovels([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAllWebnovels();
+    }, []);
 
     useEffect(() => {
         if (triggerSearch) {
@@ -83,6 +121,50 @@ export default function SearchComponent({ mode,
     const toggleSearchRemember = () => {
         setSearchRemember(prev => !prev)
     }
+
+    const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+        if (event.type === 'keydown' && ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')) {
+            return;
+        }
+        setOpen(open);
+    };
+
+    const renderSearchInput = () => (
+        <div className="relative max-w-screen-xl flex-1 h-12 mx-auto">
+            <Search
+                size={20}
+                className="dark:text-white text-black absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-50"
+            />
+            <input
+                ref={inputRef}
+                type="text"
+                id="search-navbar"
+                value={query}
+                onChange={handleChange}
+                placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                className="w-full h-full p-2 pl-10 text-sm border-0 
+                        text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                        focus:ring-0 rounded-xl
+                        focus:border-[#DB2777]
+                        focus:outline-2 focus:outline-offset-2
+                        focus:outline-[#DB2777]
+                    "
+            />
+            <div className="absolute top-3 right-3 flex items-center justify-center pointer-cursor">
+                <Link href="#"
+                    onClick={() => {
+                        setQuery('')
+                        if (setOpen) {
+                            setOpen(false)
+                        }
+                    }}>
+                    <X size={25} className='dark:text-white text-white bg-[#211F21] dark:bg-black rounded-full p-1 font-extrabold' />
+                </Link>
+            </div>
+        </div>
+    )
+
+
     return (
         <div className="relative w-full overflow-hidden">
             <form onSubmit={handleSearch}>
@@ -111,84 +193,109 @@ export default function SearchComponent({ mode,
                 {
                     mode === "header" &&
                     <>
-                        <div className='flex flex-col items-center justify-center md:max-w-screen-xl w-full mx-auto h-80'>
-                            <div className="absolute top-5 md:max-w-screen-xl w-full mx-auto">
-                                <div className="absolute top-2 left-3 flex items-center justify-center pointer-events-none">
-                                    <Search size={20} className='dark:text-white text-black' />
-                                </div>
-                                <input
-                                    type="text"
-                                    id="search-navbar"
-                                    value={query}
-                                    onChange={handleChange}
-                                    placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
-                                    className="w-full p-2 pl-10 text-sm border-0 
-                                     text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
-                                     focus:ring-0 rounded-lg
-                                     focus:border-[#DB2777]
-                                     focus:outline-2 focus:outline-offset-2
-                                     focus:outline-[#DB2777] active:bg-transparent
-                                     "
-                                />
-                                <div className="absolute top-2 right-3 flex items-center justify-center pointer-cursor">
-                                    <Link href="#"
-                                        onClick={() => {
-                                            setQuery('')
-                                            if (setOpen) {
-                                                setOpen(false)
-                                            }
-                                        }}>
-                                        <X size={20} className='dark:text-white text-black ' />
-                                    </Link>
-                                </div>
-                            </div>
-                            <div className="flex flex-col w-full">
-                                <div>
-                                    <div className='text-gray-500 text-md flex items-center justify-between'>
-
-                                        <p className='text-gray-500 text-md pt-3'> {phrase(dictionary, "recentSearch", language)} </p>
-                                        <a href="#">
-                                            <span className='text-gray-300 text-[10px] text-right self-end' onClick={() => toggleSearchRemember()}>
-
-                                                {searchRemember ? phrase(dictionary, "searchTurnOff", language)
-                                                    : phrase(dictionary, "searchTurnOn", language)}
-                                            </span>
-                                        </a>
+                        <div className='relative flex flex-col items-center justify-center w-full mx-auto'>
+                            <div className="w-full mx-auto h-12">
+                                <div className="flex flex-row items-center justify-center p-1">
+                                    <div className="absolute top-3 left-4 flex items-center justify-center pointer-events-none">
+                                        <Search size={20} className='dark:text-white text-black' />
                                     </div>
-                                    <div className='w-full h-[100px]'>
-                                        {recentQueries.length > 0 ?
-                                            recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
-                                                <div key={index} onClick={() => { setQuery(query); setTriggerSearch(true) }} className='inline-flex gap-2 mt-3'>
-                                                    <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-black dark:text-white'>
-                                                        {query}
-                                                    </p>
-                                                    <p className='relative right-7 top-2 !cursor-pointer text-black dark:text-white'>
-                                                        <X onClick={(event) => handleDeleteRecentQuery(event, index)} size={10} />
-                                                    </p>
-                                                </div>
-                                            )) :
-                                            <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
+                                    <input
+                                        onClick={toggleDrawer(true)}
+                                        type="text"
+                                        id="search-navbar"
+                                        value={query}
+                                        onChange={handleChange}
+                                        placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                                        className="w-full h-full p-2 pl-10 text-sm border-0 
+                                                    text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                                    focus:ring-0 rounded-xl 
+                                                    focus:border-[#DB2777]
+                                                    focus:outline-2 focus:outline-offset-2
+                                                    focus:outline-[#DB2777] active:bg-transparent
+                                                    "
+                                    />
+                                </div>
+                                <Drawer
+                                    anchor="top"
+                                    open={open}
+                                    onClose={toggleDrawer(false)}
+                                    transitionDuration={0}
+                                    ModalProps={{
+                                        keepMounted: true,
 
-                                                {phrase(dictionary, "noRecentSearch", language)}
-                                            </p>
+                                    }}
+                                    PaperProps={{
+                                        sx: {
+                                            boxShadow: 'none',
+                                            borderBottomLeftRadius: '15px',
+                                            borderBottomRightRadius: '15px',
+                                            backgroundColor: theme === 'dark' ? '#1A1A1A' : 'white',
+                                            height: {
+                                                md: '60%'     // Desktop height
+                                            },
+                                            width: {
+                                                md: '60%'     // 60% width on desktop
+                                            },
+                                            margin: 'auto',   // Center the drawer
                                         }
-                                    </div>
-                                </div>
+                                    }}
+                                    className="relative w-full"
+                                >
+                                    <Box sx={{ p: 1, mt: 1 }}>
+                                        <form onSubmit={handleSearch}>
+                                            {renderSearchInput()}
+                                        </form>
+                                        <div className="flex flex-col md:max-w-screen-xl w-full mx-auto">
+                                            <div>
+                                                <div className='text-gray-500 text-md flex items-center justify-between'>
 
-                                {/* <div className='h-[100px]'>
-                                    <p className='text-gray-500 text-md'>
+                                                    <p className='text-gray-500 text-md pt-3'> {phrase(dictionary, "recentSearch", language)} </p>
+                                                    <a href="#">
+                                                        <span className='text-gray-300 text-[10px] text-right self-end' onClick={() => toggleSearchRemember()}>
+                                                            {searchRemember ? phrase(dictionary, "searchTurnOff", language)
+                                                                : phrase(dictionary, "searchTurnOn", language)}
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                                <div className='w-full h-[100px]'>
+                                                    {recentQueries.length > 0 ?
+                                                        recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
+                                                            <div key={index} onClick={() => { setQuery(query); setTriggerSearch(true) }} className='inline-flex gap-2 mt-3'>
+                                                                <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-black dark:text-white'>
+                                                                    {query}
+                                                                </p>
+                                                                <p className='relative right-7 top-2 !cursor-pointer text-black dark:text-white'>
+                                                                    <X onClick={(event) => handleDeleteRecentQuery(event, index)} size={10} />
+                                                                </p>
+                                                            </div>
+                                                        )) :
+                                                        <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
 
-                                        {phrase(dictionary, "genresAndKeyword", language)}
-                                    </p>
-
-                                    <p className='text-gray-500 text-sm mt-5 mb-3 text-center'>
-                                        <KeywordsComponent />
-                                    </p>
-
-                                </div> */}
-
+                                                            {phrase(dictionary, "noRecentSearch", language)}
+                                                        </p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* webnovel list here */}
+                                        {loading ? (
+                                            <div className="flex justify-center items-center">
+                                               <LottieLoader width="w-40" animationData={animationData} centered={false}/>
+                                            </div>
+                                        ) : (
+                                            <div className='flex md:max-w-screen-xl w-full mx-auto'>
+                                                {allWebnovels && (
+                                                    <WebnovelsList
+                                                        webnovels={allWebnovels}
+                                                        searchParams={searchParamsObject}
+                                                        sortBy='views'
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
+                                    </Box>
+                                </Drawer>
                             </div>
-
                         </div>
                     </>
                 }

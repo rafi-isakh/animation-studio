@@ -65,14 +65,6 @@ export function GlobalSidebar() {
         type="link"
       />
       <SidebarItem
-        icon={<Search />}
-        text="Search"
-        active={pathname.startsWith('/search')}
-        alert={false}
-        href="/search"
-        type="link"
-      />
-      <SidebarItem
         icon={<LayoutGrid />}
         text="Feeds"
         active={pathname.startsWith('/feeds')}

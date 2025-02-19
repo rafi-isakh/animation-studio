@@ -40,7 +40,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const searchParams = useSearchParams();
     const [belowHeaderToggle, setBelowHeaderToggle] = useState(true);
     const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
-
     // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
@@ -347,7 +346,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
-                    <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
+                    <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto ">
+
                         {/* header font and icon colour gray-500 */}
                         {/* md:pl-[72px] sidebar width is 72px */}
                         {/* px-3 for the logo's padding on the mobile screen */}
@@ -375,6 +375,10 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div>
                         </div>
                         <div className="flex gap-x-2 mt-2 md:order-1">
+                            {/* Search bar in desktop screen */}
+                            <div className="relative hidden md:inline-flex w-[400px] mr-3">
+                                <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
+                            </div>
                             {/* Globe icon (md:hidden) */}
                             {/* <div ref={searchRef} className="hidden">
                                 <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-100 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
@@ -421,38 +425,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                         </div>
                         <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
                             <div className="relative md:hidden">
-                                {/* Search bar in mobile screen (md:hidden)*/}
+                                {/* Search bar in mobile screen (md:hidden) */}
                                 <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
-                            </div>
-                            {/* Search bar in desktop screen */}
-                            <div className="relative hidden md:inline-flex mr-3">
-                                <button
-                                    onClick={toggleDrawer(true)}
-                                    className="flex items-center cursor-pointer"
-                                >
-                                    <Search size={20} className='dark:text-white text-gray-500' />
-                                </button>
-                                <Drawer
-                                    anchor="top"
-                                    open={open}
-                                    onClose={toggleDrawer(false)}
-                                    transitionDuration={300}
-                                    ModalProps={{
-                                        keepMounted: true,
-                                    }}
-                                    PaperProps={{
-                                        sx: {
-                                            marginTop: '0px',
-                                            boxShadow: 'none',
-                                            backgroundColor: theme === 'dark' ? '#1A1A1A' : 'white',
-                                        }
-                                    }}
-                                    className="relative w-full"
-                                >
-                                    <Box sx={{ p: 2, }}>
-                                        <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} setOpen={setOpen} />
-                                    </Box>
-                                </Drawer>
                             </div>
 
                             <ul className="flex justify-center items-center">
@@ -489,7 +463,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 <li className='relative'>
                                     <div>
                                         <button
-                                           onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleLibraryClick(event)}
+                                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleLibraryClick(event)}
                                             className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
                                                        flex flex-col items-center justify-center gap-0
                                                        text-gray-500

@@ -108,7 +108,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }
 
     return (
-        <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
+        <div className='relative w-full  mx-auto group font-pretendard'>
             <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                 <span className='text-black dark:text-white'>
                     {phrase(dictionary, "toonyzHot", language)}

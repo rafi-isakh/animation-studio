@@ -93,8 +93,13 @@ export default function SearchComponent({ mode,
                         id="search-navbar"
                         value={query}
                         onChange={handleChange}
-                        className="block w-full p-2 ps-10 text-sm dark:text-white text-black border border-black rounded-md dark:bg-black focus:ring-[#DB2777] focus:border-[#DB2777] dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#DB2777] dark:focus:border-[#DB2777] z-50"
-                    />
+                        className="block w-full p-2 ps-10 text-sm dark:text-white z-50
+                                  border-gray-300 dark:border-[#2F2F2F]        
+                                 text-black border  dark:bg-black
+                                 rounded-md  focus:border-[#DB2777]
+                                 dark:placeholder-gray-400 dark:focus:border-[#DB2777]
+                                "
+                              />
                 }
                 {
                     mode === "header" &&
@@ -192,9 +197,9 @@ export default function SearchComponent({ mode,
                                     </Link>
                                 </div>
                                 <div className="relative flex-1 h-12">
-                                    <Search 
-                                        size={20} 
-                                        className='dark:text-white text-black absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-50' 
+                                    <Search
+                                        size={20}
+                                        className='dark:text-white text-black absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-50'
                                     />
                                     <input
                                         type="text"

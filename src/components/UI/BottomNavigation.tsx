@@ -4,11 +4,12 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-
+import { useLanguage } from "@/contexts/LanguageContext"
+import { phrase } from "@/utils/phrases"
 import { useRef, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { LibraryBig, LayoutGrid, Gift, Search, CircleUserRound } from "lucide-react"
+import { Home, LibraryBig, LayoutGrid, Gift, Search, CircleUserRound, Star } from "lucide-react"
 import { useRouter } from 'next/navigation';
 
 export default function BottomNavigationBar() {
@@ -16,6 +17,7 @@ export default function BottomNavigationBar() {
     const [value, setValue] = useState(0);
     const ref = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const { dictionary, language } = useLanguage();
 
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
@@ -72,11 +74,11 @@ export default function BottomNavigationBar() {
                     }
                 }}
             >
-                <BottomNavigationAction label="Explore" icon={<LibraryBig />} />
-                <BottomNavigationAction label="Search" icon={<Search/>} />
-                <BottomNavigationAction label="Feeds" icon={<LayoutGrid />} />
-                <BottomNavigationAction label="Shop" icon={<Gift />} />
-                <BottomNavigationAction label="Profile" icon={<CircleUserRound />} />
+                <BottomNavigationAction label={phrase(dictionary, "home", language)} icon={<Home />} />
+                <BottomNavigationAction label={phrase(dictionary, "features", language)} icon={<Star />} />
+                <BottomNavigationAction label={phrase(dictionary, "feeds", language)} icon={<LayoutGrid />} />
+                <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
+                <BottomNavigationAction label={phrase(dictionary, "shop", language)} icon={<Gift />} />
             </BottomNavigation>
         </Paper>
     );

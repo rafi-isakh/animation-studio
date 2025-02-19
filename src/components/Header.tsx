@@ -340,10 +340,10 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto md:pb-0 md:pt-1 pt-1 md:px-0 px-3">
-                        {/* Top font color gray-500 and weight bold */}
+                        {/* header font and icon colour gray-500 */}
                         {/* md:pl-[72px] sidebar width is 72px */}
                         {/* px-3 for the logo's padding on the mobile screen */}
-                        {/* logo, webnovels, free,  */}
+                        {/* logo, webnovels, community,  */}
                         <div className='flex flex-row items-center justify-center gap-4 '>
                             <Link href="/?version=premium"
                                 className="md:hidden flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
@@ -362,16 +362,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </Link>
                                 <Link href="/?version=free" >
                                     <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                        {phrase(dictionary, "free", language)}</p>
+                                        {phrase(dictionary, "free", language)}</p>  {/* community */}
                                 </Link>
-                                {/* <Link href="/toonyzcut">
-                                    <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold' : ''} hidden md:block studio mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                        {phrase(dictionary, "toonyzCut", language)}</p>
-                                </Link> */}
                             </div>
                         </div>
                         <div className="flex gap-x-2 mt-2 md:order-1">
-                            {/*Globe icon in mobile screen (md:hidden)*/}
+                            {/* Globe icon in mobile menu (md:hidden) */}
                             <div ref={searchRef} className="hidden">
                                 <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-100 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
                                     <Globe size={20} className='dark:text-white text-gray-500 ' />
@@ -452,7 +448,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     </Box>
                                 </Drawer>
                             </div>
-                            <ul className="flex flex-col md:flex-row font-medium mt-4 border border-gray-600 md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0 ">
+                            <ul className="flex flex-col md:flex-row font-medium mt-4 border border-gray-300 dark:border-[#2F2F2F] md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0">
+                                {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-1 for desktop header icons */}
                                 {/* Language globe icon menu button - Desktop */}
                                 <li className="relative hidden md:inline-flex mx-2">
@@ -469,7 +466,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             id="dropdownNavbarUserLink"
                                             onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
                                             className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
-                                            <div className='p-1 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100
+                                            <div className='p-1 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100 text-gray-500
                                                              dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
                                                 <User size={20} className='dark:text-white text-gray-500' />
                                             </div>
@@ -479,7 +476,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     <div
                                         id="user-dropdown"
                                         ref={userDropdownRef}
-                                        className={`${styles.rightmostItem} absolute rounded-md md:border-0 border border-gray-500 mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
+                                        className={`${styles.rightmostItem} absolute rounded-md md:border-0 shadow-sm mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100  w-full md:w-44 dark:divide-gray-600
                                         transition-[opacity,transform] duration-200 ease-out z-[99]
                                         ${isUserDropdownOpen
                                                 ? 'opacity-100 translate-y-0 visible'
@@ -578,7 +575,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     <div
                                         id="language-dropdown"
                                         ref={languageDropdownRef}
-                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-500 mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
+                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-300 dark:border-[#2F2F2F] mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
                                         transform transition-all duration-300 ease-in-out origin-top z-[99]
                                         ${isLanguageDropdownOpen
                                                 ? 'opacity-100 translate-y-0 scale-100'

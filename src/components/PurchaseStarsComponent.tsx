@@ -10,8 +10,6 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
 import StripeComponent from "@/components/StripeComponent";
-// import { SnackbarProvider, VariantType, useSnackbar } from 'notistack';
-
 
 export default function PurchaseStarsComponent() {
     const starsOptions = [100, 300, 500, 1000]

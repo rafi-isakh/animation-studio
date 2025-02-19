@@ -83,9 +83,9 @@ export function GlobalSidebar() {
       <SidebarItem
         icon={<SquarePlus />}
         text="Create"
-        active={pathname.startsWith('/dashboard')}
+        active={pathname.startsWith('/new_webnovel')}
         alert={false}
-        href="#"
+        href="/new_webnovel"
         type="link"
       />
       <SidebarItem
@@ -126,8 +126,8 @@ export function SidebarItem({ icon, text, active, alert, href, type }:
       >
         <li className={`relative flex items-center py-2 px-6 my-1 font-medium 
                       rounded-md cursor-pointer transition-colors group 
-                     ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
-            : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
+                      ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
+                      : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
           {icon}
           <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
           {alert && (

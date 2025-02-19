@@ -80,16 +80,16 @@ export const GenresTabs = ({
               id={`btn-${index}`}
               sx={{
                 border: 'none',
-                borderRadius: '100%',
+                borderRadius: '30px',
                 backgroundColor: theme === 'dark' ? '#211F21' : '#eee',
                 color: theme === 'dark' ? '#fff' : '#000',
                 '--hover-color': tab.color
               } as React.CSSProperties}
               className={`${selected === index ? 'nav-link active' : 'nav-link'}     
-                flex flex-row justify-between items-center rounded-full px-2 py-1 
+                flex flex-row justify-between items-center px-2 py-1 
                 ${theme === 'dark' ? 'bg-[#211F21]' : 'bg-[#eee]'}
                 transition-colors duration-300 gap-x-2 border-0
-                hover:bg-[var(--hover-color)] w-full
+                hover:bg-[var(--hover-color)] w-full rounded-full
                 `}
               variant="outlined"
               role="tab"

@@ -17,7 +17,7 @@ export default function GeneratedPicture({
       image: string, 
       webnovel_id: string, 
       chapter_id: string, 
-      quote: string 
+      quote?: string 
     }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const { language, dictionary } = useLanguage();

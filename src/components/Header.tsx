@@ -224,10 +224,11 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (belowHeaderToggle) {
             belowHeader?.classList.add('hidden')
             aboveHeader?.classList.add('pb-4')
-        } else {
-            belowHeader?.classList.remove('hidden')
-            aboveHeader?.classList.remove('pb-4')
-        }
+        } 
+        // else {
+        //     belowHeader?.classList.remove('hidden')
+        //     aboveHeader?.classList.remove('pb-4')
+        // }
         setBelowHeaderToggle(!belowHeaderToggle);
     }
 
@@ -258,13 +259,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         router.push('/signin');
     }
 
-    const toggleUserDropdown = () => {
-        setIsUserDropdownOpen(!isUserDropdownOpen);
-        setIsLanguageDropdownOpen(false);
-    }
+    // const toggleUserDropdown = () => {
+    //     setIsUserDropdownOpen(!isUserDropdownOpen);
+    //     setIsLanguageDropdownOpen(false);
+    // }
     const toggleLanguageDropdown = () => {
         setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
         setIsUserDropdownOpen(false);
+        
     }
 
     const isNovelPath = (pathname: string) => {
@@ -316,7 +318,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     const toggleDrawer = (newOpen: boolean) => () => {
         setOpen(newOpen);
-        // setShowIsModal(true);
     }
 
     const hideHeaderInPages = () => {
@@ -333,6 +334,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         event.preventDefault();
         router.push('/sitemap')
     }
+
+    const handleProfileClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        router.push('/my_profile')
+        setIsLanguageDropdownOpen(false);
+        setIsMobileMenuOpen(false);
+    }
+
 
     return (
         <>
@@ -367,13 +376,15 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div>
                         </div>
                         <div className="flex gap-x-2 mt-2 md:order-1">
-                            {/* Globe icon in mobile menu (md:hidden) */}
-                            <div ref={searchRef} className="hidden">
+                            {/* Globe icon (md:hidden) */}
+                            {/* <div ref={searchRef} className="hidden">
                                 <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-100 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
                                     <Globe size={20} className='dark:text-white text-gray-500 ' />
                                 </button>
-                            </div>
-                            {/*hamburger menu in mobile screen (md:hidden)*/}
+                            </div> 
+                            */}
+
+                            {/* app download button for mobile screen */}
                             <div className="inline-flex">
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button
@@ -387,27 +398,27 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             }
                                         }}
                                         className='capitalize rounded-lg'
-                                         >
+                                    >
                                         {phrase(dictionary, "download", language)}
                                     </Button>
                                 </div>
 
                             </div>
                             {/* Top navi menu button persist in mobile screen */}
-                                <div ref={hamburgerRef}>
-                                    <button 
-                                    id="mobile-hamburger" 
-                                    onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()} 
-                                    type="button" 
+                            <div ref={hamburgerRef}>
+                                <button
+                                    id="mobile-hamburger"
+                                    onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()}
+                                    type="button"
                                     className="inline-flex items-center p-2 w-10 h-10 
                                                justify-center text-sm 
                                                rounded-xl text-black md:hidden
-                                               focus:outline-none dark:text-black " 
-                                    aria-controls="navbar-dropdown" 
+                                               focus:outline-none dark:text-black "
+                                    aria-controls="navbar-dropdown"
                                     aria-expanded="false">
-                                        <Menu size={20} className='dark:text-white text-gray-500' />
-                                    </button>
-                                </div>
+                                    <Menu size={20} className='dark:text-white text-gray-500' />
+                                </button>
+                            </div>
                         </div>
                         <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
                             {/*Search bar in mobile screen (md:hidden)*/}
@@ -438,7 +449,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             marginTop: '0px',
                                             boxShadow: 'none',
                                             backgroundColor: theme === 'dark' ? '#1A1A1A' : 'white',
-                                            // backgroundColor: 'black',
                                         }
                                     }}
                                     className="relative w-full"
@@ -448,29 +458,35 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     </Box>
                                 </Drawer>
                             </div>
-                            <ul className="flex flex-col md:flex-row font-medium mt-4 border border-gray-300 dark:border-[#2F2F2F] md:gap-1 rtl:space-x-reverse md:mt-0 md:border-0">
+
+                            <ul className="flex">
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-1 for desktop header icons */}
                                 {/* Language globe icon menu button - Desktop */}
                                 <li className="relative hidden md:inline-flex mx-2">
+                                   {/* Site map icon */}
                                     <button onClick={handleSitemapClick}>
-                                        {/* site map icon */}
                                         <Grip size={20} className='dark:text-white text-gray-500' />
                                     </button>
                                 </li>
-                                {/*User menu button - Desktop*/}
                                 <li className="relative">
-
+                                    {/* User menu button currently showing in mobile screen */}
                                     <div ref={userMenuRef}>
                                         <button
                                             id="dropdownNavbarUserLink"
-                                            onClick={isLoggedIn ? () => toggleUserDropdown() : () => router.push('/signin')}
-                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
-                                            <div className='p-1 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100 text-gray-500
-                                                             dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
+                                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleProfileClick(event)}
+                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
+                                                       flex flex-col items-center justify-center gap-0
+                                                       text-gray-500">
+
+                                            <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
+                                                         hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
+                                                           dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <User size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "profile", language)}</p>
+                                            <p className='md:hidden text-sm text-center'>
+                                                {phrase(dictionary, "profile", language)}
+                                            </p>
                                         </button>
                                     </div>
                                     <div
@@ -564,23 +580,31 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         <button
                                             id="dropdownNavbarLanguageLink"
                                             onClick={toggleLanguageDropdown}
-                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 md:w-auto flex items-center justify-start md:justify-between w-full text-[#142448] hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#DB2777] dark:text-white md:dark:hover:text-[#DB2777] dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-600 md:dark:hover:bg-transparent transition duration-150 ease-in-out">
-                                            <div className='p-1 rounded-xl md:hover:bg-gray-100 hover:bg-gray-100
-                                                             dark:hover:bg-gray-600 transition duration-150 ease-in-out'>
+                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
+                                                       flex flex-col items-center justify-center gap-0
+                                                       text-gray-500
+                                            ">
+                                            <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
+                                                          hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
+                                                           dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <Globe size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='ml-2 md:hidden self-center'>{phrase(dictionary, "language", language)}</p>
+                                            <p className='md:hidden text-sm text-center'>
+                                                {phrase(dictionary, "language", language)}
+                                            </p>
                                         </button>
                                     </div>
                                     <div
                                         id="language-dropdown"
                                         ref={languageDropdownRef}
-                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-300 dark:border-[#2F2F2F] mt-2 font-normal bg-white dark:bg-black dark:text-white divide-y divide-gray-100 shadow w-full md:w-44 dark:divide-gray-600
-                                        transform transition-all duration-300 ease-in-out origin-top z-[99]
-                                        ${isLanguageDropdownOpen
-                                                ? 'opacity-100 translate-y-0 scale-100'
-                                                : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'}`}
-                                    >
+                                        className={`${styles.item} absolute rounded-md md:border-0 border border-gray-300
+                                                     dark:border-[#2F2F2F] mt-2 font-normal bg-white dark:bg-black
+                                                      dark:text-white divide-y divide-gray-100 shadow w-full min-w-28
+                                                      dark:divide-gray-600 transform transition-all duration-300 ease-in-out origin-top z-[99]
+                                                       ${isLanguageDropdownOpen
+                                                        ? 'opacity-100 translate-y-0 scale-100'
+                                                        : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'}`}
+                                         >
                                         <ul className="py-2 text-sm text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
                                             {langPairList.map((langPair, index) => (
                                                 <li
@@ -623,21 +647,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
-                        {/* <Link href="/webtoons">
-                            <p className={`${activeTab === 'webtoons' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                {phrase(dictionary, "webtoons", language)}</p>
-                        </Link> */}
                         <Link href="/?version=free" >
                             <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
-                        {/* <Link href="/toonyzcut">
-                            <p className={`${activeTab === 'toonyzCut' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                {phrase(dictionary, "toonyzCut", language)}</p>
-                        </Link> */}
                     </div>
                 </div>
-                <hr className='md:hidden block' />
+                <hr className='md:hidden block border-gray-300 dark:border-[#2F2F2F]' />
             </nav>
         </>
     )

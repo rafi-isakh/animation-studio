@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation'
 import { Webnovel } from '@/components//Types';
 import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
@@ -51,6 +52,8 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
     const [showTermsOfServiceModal, setShowTermsOfServiceModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { invalidateCache } = useWebnovels();
+    const { isLoggedIn } = useAuth();
+    const isLoggedInAndRegistered = !!(isLoggedIn && email);
 
     useEffect(() => {
         setCurrText(description.length);
@@ -158,6 +161,18 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
 
 
     return (
+        <>
+        {!isLoggedInAndRegistered ? (
+            <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
+                <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
+                <Link 
+                    href="/login" 
+                    className='px-4 py-2 bg-pink-200 hover:bg-[#DB2777] hover:text-white rounded-md transition-all duration-300 dark:bg-gray-800 dark:hover:bg-gray-700'
+                >
+                    {phrase(dictionary, "login", language)}
+                </Link>
+            </div>
+        ) : (
         <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
             <div className='flex flex-col md:border md:border-gray-300 md:dark:border-[#2F2F2F] rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
                 {/* Mui dark theme color code : divider [#2F2F2F] */}
@@ -396,9 +411,11 @@ const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
                         />
                     </div>
                 </form>
+              </div>
+             <div className='h-[10vh]' />
             </div>
-            <div className='h-[10vh]' />
-        </div>
+        )}
+        </>
     )
 }
 

@@ -35,7 +35,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
     const { email, nickname } = useUser();
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
     const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
-    const [value, setValue] = useState('한국어');
+    const [value, setValue] = useState('English');
 
     const handleClickLanguageDialog = () => {
         setOpenLanguageDialog(true);
@@ -97,7 +97,9 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                                  hover:bg-gray-50 dark:hover:bg-black/50
                                  `} >
                     <Settings className="h-6 w-6 text-gray-400 " />
-                    <span className={`overflow-hidden transition-all text-left ${expanded ? "w-52 ml-3" : "w-0"}`}>Setting</span>
+                    <span className={`overflow-hidden transition-all text-left ${expanded ? "w-52 ml-3" : "w-0"}`}>
+                        {phrase(dictionary, 'setting', language)}
+                    </span>
                 </Button>
             </Tooltip>
             <Popover
@@ -148,23 +150,23 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                                 }}
                             />
                         </ListItemButton>
-                        <ListItemButton
+                        {/* <ListItemButton
                             color='gray'
                             className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'
                         >
-                            <ListItemText primary="Help center" />
-                        </ListItemButton>
+                            <ListItemText primary={phrase(dictionary, 'helpCenter', language)} />
+                        </ListItemButton> */}
                         {!isLoggedInAndRegistered ? (<Link href="/signin" passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
                             <ListItemButton
                                 color='gray'
                             >
-                            <ListItemText primary="Login" />
+                            <ListItemText primary={phrase(dictionary, 'login', language)} />
                         </ListItemButton>
                         </Link>) : (<Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
                             <ListItemButton
                                 color='gray'
                             >
-                            <ListItemText primary="Logout" />
+                            <ListItemText primary={phrase(dictionary, 'logout', language)} />
                         </ListItemButton>
                         </Link>)
                         }
@@ -233,7 +235,7 @@ export function LanguageSettingDialogRaw(props: {
                 className: "bg-white dark:bg-black dark:text-white" // or any dark color you prefer
             }}
         >
-            <DialogTitle>Language</DialogTitle>
+            <DialogTitle>{phrase(dictionary, 'language', language)}</DialogTitle>
             <DialogContent dividers>
                 <RadioGroup
                     ref={radioGroupRef}

@@ -6,23 +6,16 @@ import { usePathname } from "next/navigation"
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import {
-  Search,
   LibraryBig,
   LayoutGrid,
   SquarePlus,
   Bell,
   Gift,
   ChevronFirst,
-  ChevronLast,
-  MoreVertical,
   Home
 } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
-import Popover from '@mui/material/Popover';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Setting from '@/components/UI/Setting';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';

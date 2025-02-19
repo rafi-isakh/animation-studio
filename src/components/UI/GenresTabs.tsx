@@ -61,19 +61,21 @@ export const GenresTabs = ({
     <div
       className={
         orientation === 'vertical'
-          ? `${className}`
-          : className
+          ? `${className} w-full`
+          : `${className} w-full`
       }
     >
       <ul
-        className={` flex gap-2 
-          ${orientation === 'vertical' ? 'flex-col' : 'flex-row'}
+        className={`no-scrollbar mt-3 flex gap-2 min-w-0
+          ${orientation === 'vertical' 
+            ? 'flex-col' 
+            : 'flex-row flex-nowrap overflow-x-auto whitespace-nowrap'}
           `}
         role="tablist"
         aria-orientation={orientation}
-      >
+        >
         {tabs.map((tab, index) => (
-          <Link href="#" className="nav-item" role="presentation" key={tab.label}>
+          <Link href="#" className="nav-item flex-shrink-0" role="presentation" key={tab.label}>
             <Button
               id={`btn-${index}`}
               sx={{
@@ -84,7 +86,7 @@ export const GenresTabs = ({
                 flex flex-row justify-between items-center rounded-full px-2 py-1 
                 ${theme === 'dark' ? 'bg-[#211F21]' : 'bg-[#eee]'}
                 transition-colors duration-300 gap-x-2
-                hover:bg-[var(--hover-color)]
+                hover:bg-[var(--hover-color)] w-full
                 `}
               variant="text"
               role="tab"

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 
 type MobileMenuContextType = {
     isMobileMenuOpen: boolean;
@@ -14,7 +14,7 @@ interface MobileMenuProviderProps {
 }
 
 export const MobileMenuProvider: React.FC<MobileMenuProviderProps> = ({ children }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <MobileMenuContext.Provider value={{ isMobileMenuOpen, setIsMobileMenuOpen }}>

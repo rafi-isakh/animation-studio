@@ -29,6 +29,7 @@ import { useTheme } from '@/contexts/providers'
 import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
+import { useMobileMenu } from '@/contexts/MobileMenuContext';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -38,7 +39,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [belowHeaderToggle, setBelowHeaderToggle] = useState(true);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
+    
+    // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
     const device = useDevice();
@@ -455,7 +458,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </Drawer>
                             </div>
 
-                            <ul className="flex">
+                            <ul className="flex justify-center items-center">
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-1 for desktop header icons */}
                                 {/* Language globe icon menu button - Desktop */}

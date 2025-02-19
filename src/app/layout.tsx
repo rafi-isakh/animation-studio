@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react"
 import '@/styles/globals.css';
 import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
+import { MobileMenuProvider } from '@/contexts/MobileMenuContext';
 import { ThemeProvider } from '@/contexts/providers';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ReactNode, Suspense, useEffect } from 'react';
@@ -80,22 +81,23 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               <AuthProvider>
                 <UserProvider>
                   <DeviceProvider>
-                    <SearchProvider>
-                      <StripeProvider>
-                        <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
-                          <Suspense>
-                            <NavigationEvents />
-                          </Suspense>
-                          <Suspense>
-                            <Header isLoggedIn={isLoggedIn} />
-                          </Suspense>
-                          <Margin>
-                            <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
-                              {children}
-                            </div>
-                            <Analytics />
-                          </Margin>
-                          {/* 
+                    <MobileMenuProvider>
+                      <SearchProvider>
+                        <StripeProvider>
+                          <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
+                            <Suspense>
+                              <NavigationEvents />
+                            </Suspense>
+                            <Suspense>
+                              <Header isLoggedIn={isLoggedIn} />
+                            </Suspense>
+                            <Margin>
+                              <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                {children}
+                              </div>
+                              <Analytics />
+                            </Margin>
+                            {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
@@ -105,15 +107,16 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                          <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
-                            <GlobalSidebar />
+                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
+                              <GlobalSidebar />
+                            </div>
+                            <div className="block md:hidden z-[99]">
+                              <BottomNavigationBar />
+                            </div>
                           </div>
-                          <div className="block md:hidden z-[99]">
-                            <BottomNavigationBar />
-                          </div>
-                        </div>
-                      </StripeProvider>
-                    </SearchProvider>
+                        </StripeProvider>
+                      </SearchProvider>
+                    </MobileMenuProvider>
                   </DeviceProvider>
                 </UserProvider>
               </AuthProvider>

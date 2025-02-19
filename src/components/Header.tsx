@@ -253,14 +253,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         router.push('/signin');
     }
 
-    // const toggleUserDropdown = () => {
-    //     setIsUserDropdownOpen(!isUserDropdownOpen);
-    //     setIsLanguageDropdownOpen(false);
-    // }
     const toggleLanguageDropdown = () => {
         setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
         setIsUserDropdownOpen(false);
-
     }
 
     const isNovelPath = (pathname: string) => {

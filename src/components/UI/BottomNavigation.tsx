@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
 import { Home, LibraryBig, LayoutGrid, Gift, Search, CircleUserRound, Star } from "lucide-react"
 import { useRouter } from 'next/navigation';
+import { useMobileMenu } from '@/contexts/MobileMenuContext';
 
 export default function BottomNavigationBar() {
     const { theme } = useTheme();
@@ -18,24 +19,30 @@ export default function BottomNavigationBar() {
     const ref = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const { dictionary, language } = useLanguage();
+    const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
 
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
         switch (newValue) {
             case 0: // menu 1
-                router.push('#');
+                router.push('/');
+                setIsMobileMenuOpen(false);
                 break;
             case 1: // menu 2
-                router.push('/search');
+                router.push('/explore');
+                setIsMobileMenuOpen(false);
                 break;
             case 2: // menu 3
-                router.push('/#');
+                router.push('/feeds');
+                setIsMobileMenuOpen(false);
                 break;
             case 3: // menu 4
-                router.push('/stars');
+                router.push('/search');
+                setIsMobileMenuOpen(false);
                 break;
             case 4: // menu 5
-                router.push('#');
+                router.push('/stars');
+                setIsMobileMenuOpen(false);
                 break;
         }
     };

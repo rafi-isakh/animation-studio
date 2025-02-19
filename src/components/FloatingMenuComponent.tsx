@@ -210,6 +210,8 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
     };
 
     const handleOpenModal = () => {
+        // open drawer 
+        setOpen(true);
         setShowIsModal(true);
     }
 
@@ -284,7 +286,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                     container={container}
                     anchor="bottom"
                     open={open}
-                    onOpen={toggleDrawer(true)}
+                    onOpen={handleOpenModal}
                     onClose={handleDrawerClose}
                     swipeAreaWidth={drawerBleeding}
                     disableSwipeToOpen={false}

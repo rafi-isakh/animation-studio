@@ -88,18 +88,25 @@ export default function SearchComponent({ mode,
             <form onSubmit={handleSearch}>
                 {
                     mode === "mobileHeader" &&
-                    <input
-                        type="text"
-                        id="search-navbar"
-                        value={query}
-                        onChange={handleChange}
-                        className="block w-full p-2 ps-10 text-sm dark:text-white z-50
-                                  border-gray-300 dark:border-[#2F2F2F]        
-                                 text-black border  dark:bg-black
-                                 rounded-md  focus:border-[#DB2777]
-                                 dark:placeholder-gray-400 dark:focus:border-[#DB2777]
-                                "
-                              />
+                    <div className="relative m-3 mt-5 h-12">
+                        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <Search size={20} className='dark:text-white text-gray-500 z-50' />
+                        </div>
+                        <input
+                            type="text"
+                            id="search-navbar"
+                            value={query}
+                            onChange={handleChange}
+                            placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                            className="w-full h-full p-2 pl-10 text-sm border-0 
+                                text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                focus:ring-0 rounded-lg
+                                focus:border-[#DB2777]
+                                focus:outline-2 focus:outline-offset-2
+                                focus:outline-[#DB2777]
+                            "
+                        />
+                    </div>
                 }
                 {
                     mode === "header" &&
@@ -212,7 +219,7 @@ export default function SearchComponent({ mode,
                                             focus:ring-0 rounded-lg
                                             focus:border-[#DB2777]
                                             focus:outline-2 focus:outline-offset-2
-                                            focus:outline-[#DB2777] active:bg-transparent
+                                            focus:outline-[#DB2777]
                                         "
                                     />
                                 </div>

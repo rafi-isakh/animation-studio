@@ -40,7 +40,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const searchParams = useSearchParams();
     const [belowHeaderToggle, setBelowHeaderToggle] = useState(true);
     const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
-    
+
     // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
@@ -420,10 +420,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div>
                         </div>
                         <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
-                            <div className="relative mt-3 md:hidden">
-                                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                    <Search size={20} className='dark:text-white text-black z-50' />
-                                </div>
+                            <div className="relative md:hidden">
                                 {/* Search bar in mobile screen (md:hidden)*/}
                                 <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
                             </div>

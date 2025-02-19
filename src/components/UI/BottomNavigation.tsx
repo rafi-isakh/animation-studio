@@ -25,7 +25,7 @@ export default function BottomNavigationBar() {
         setValue(newValue);
         switch (newValue) {
             case 0: // menu 1
-                router.push('/');
+                router.push('/?version=premium');
                 setIsMobileMenuOpen(false);
                 break;
             case 1: // menu 2

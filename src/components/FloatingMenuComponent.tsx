@@ -79,7 +79,6 @@ interface FloatingMenuNavItem {
 }
 
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    // <WandSparkles />
     { icon: <WandSparkles size={18} />, label: 'Home', href: '/' },
     // { icon: <Image size={18} />, label: 'Explore', href: '/explore' },
     { icon: <Clapperboard size={18} />, label: 'Search', href: '/search' },
@@ -134,7 +133,6 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
     const drawerRef = useRef<HTMLDivElement>(null);
     const { readerTheme } = useReaderTheme();
     const { theme } = useTheme();
-    const isDark = theme === 'dark';
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -260,9 +258,16 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                     }}
                     onClick={handleClose}
                 >
+                {/* 
+                ${readerTheme === 'light' && theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
+                ${readerTheme === 'dark' && theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'dark:bg-[#211F21] bg-[#211F21]'} 
+                ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
+               background-color: ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
+                */}
                     <style jsx global>{`
                         ::selection {
-                            background-color: ${readerTheme === 'dark' || theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'};
+                             @apply ${readerTheme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
+                             @apply ${readerTheme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
                             text-decoration: underline;
                             text-decoration-color: #DE2B74;
                             text-decoration-thickness: 2px;

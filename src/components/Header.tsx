@@ -15,7 +15,6 @@ import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import { getUrlWithParams } from '@/utils/stringUtils';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import {
     Sun,
     Search,
@@ -24,14 +23,12 @@ import {
     Menu,
     User,
     MoonStar,
+    Book,
 } from 'lucide-react';
-// import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/providers'
 import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
-import HeaderTabs from '@/components/UI/HeaderTabs';
-import { motion, AnimatePresence } from "framer-motion"
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -339,6 +336,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         setIsMobileMenuOpen(false);
     }
 
+    const handleLibraryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        router.push('/library')
+        setIsLanguageDropdownOpen(false);
+        setIsMobileMenuOpen(false);
+    }
+
 
     return (
         <>
@@ -487,6 +491,25 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </button>
                                     </div>
                                 </li>
+                                <li className='relative'>
+                                    <div>
+                                        <button
+                                           onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleLibraryClick(event)}
+                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
+                                                       flex flex-col items-center justify-center gap-0
+                                                       text-gray-500
+                                            ">
+                                            <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
+                                                          hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
+                                                           dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
+                                                <Book size={20} className='dark:text-white text-gray-500' />
+                                            </div>
+                                            <p className='md:hidden text-sm text-center'>
+                                                {phrase(dictionary, "library", language)}
+                                            </p>
+                                        </button>
+                                    </div>
+                                </li>
                                 <li className="relative">
                                     <div ref={languageMenuRef}>
                                         <button
@@ -547,7 +570,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
                                                           hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
-                                           {theme === 'dark' ? <Sun size={20} className='dark:text-white text-gray-500' /> : <MoonStar size={20} className='dark:text-white text-gray-500' />}
+                                                {theme === 'dark' ? <Sun size={20} className='dark:text-white text-gray-500' /> : <MoonStar size={20} className='dark:text-white text-gray-500' />}
                                             </div>
                                             <p className='md:hidden text-sm text-center'>
                                                 {phrase(dictionary, "mode", language)}
@@ -555,6 +578,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </button>
                                     </div>
                                 </li>
+
                                 {/* 
                                 {!isLoggedIn && (
                                     <li className='md:flex items-center justify-center ml-1 hidden'>

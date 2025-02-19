@@ -251,10 +251,10 @@ const WebnovelTranslateComponent = (
     return (
         <div
             style={paragraphStyle}
-            className={`relative mb-16 text-base/7
+            className={`relative mb-16 text-base/8
                        ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
-               {text &&
-                <>
+                    {text &&
+                     <>
                     {scrollType === 'vertical' &&
                         <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
@@ -311,8 +311,8 @@ const WebnovelTranslateComponent = (
                                 </div>
                             </div>
                         </div>
-                    }
-                </>
+                        }
+                     </>
             }
             {!text &&
                 <Box sx={{ width: '100%' }}>

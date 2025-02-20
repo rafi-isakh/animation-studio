@@ -274,6 +274,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <p className="text-gray-500 text-sm">
                                         {phrase(dictionary, "noComments", language)}
                                     </p>
+                                    <div className="h-[10vh]" />
                                 </div>
                             )}
                         </div>

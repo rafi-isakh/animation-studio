@@ -35,7 +35,7 @@ export default function Stars() {
     };
 
     return (
-        <div className="md:max-w-screen-lg w-full mx-auto">
+        <div className="relative md:max-w-screen-lg w-full mx-auto">
             <TabContext value={tabValue} >
                 <Box sx={{ borderBottom: 0, borderColor: 'divider' }} className='dark:text-gray-700'>
                     <div className="flex flex-row justify-center items-center">

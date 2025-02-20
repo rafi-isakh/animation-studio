@@ -12,9 +12,11 @@ import { ChevronRight, CircleHelp, Settings, Loader2 } from 'lucide-react';
 interface PictureGeneratorProps {
     prompt: string;
     onComplete: (pictures: string[]) => void;
+    webnovel_id: string;
+    chapter_id: string;
   }
   
-  const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete }) => {
+  const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id }) => {
     const [pictures, setPictures] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -104,7 +106,7 @@ interface PictureGeneratorProps {
   }));
 
     return (
-      <div className="z-50">
+      <div className="z-50 select-none">
 
             {/* picture generator */}
   
@@ -228,10 +230,10 @@ interface PictureGeneratorProps {
         
 
           {pictures.length > 0 && (
-            <div className="flex md:flex-row flex-col gap-4 mt-6">
+            <div className="flex md:flex-row flex-col gap-4 mt-6 select-none">
               {pictures.map((picture, index) => (
                 <div key={index} className="flex-shrink flex-wrap">
-                  <GeneratedPicture index={index} image={picture} />
+                  <GeneratedPicture index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} quote={savedPrompt}/>
                 </div>
               ))}
             </div>

@@ -25,7 +25,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
     return (
-        <div className={`relative md:max-w-screen-lg w-full mx-auto group overflow-hidden ${className}`}>
+        <div className={`relative w-full group ${className} `}>
             <div>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {title}
@@ -35,12 +35,12 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                     {/* Desktop layout with fixed 6 cards */}
                     <div 
                         ref={scrollRef}
-                        className="hidden md:grid grid-cols-6 overflow-x-auto no-scrollbar gap-1"
+                        className="hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1"
                     > 
                         {webnovels.map((item, index) => (
                             <div 
                                 key={item.id || index} 
-                                className="w-full"
+                                className="flex-shrink-0 w-[160px]"
                             >
                                 {renderItem(item, index)}
                             </div>
@@ -60,13 +60,17 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                         <>
                         <button
                             onClick={() => scroll('left', scrollRef)}
-                            className="group-hover:opacity-80 transition-opacity duration-300 absolute left-0 top-[45%] -translate-y-1/2 z-10 bg-transparent rounded-full p-2 opacity-0"
+                            className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
+                            duration-300 absolute h-20
+                            left-0 top-[40%] -translate-y-1/2 z-50 p-1 opacity-0 rounded-sm"
                         >
                             <ChevronLeft className="w-6 h-6 text-gray-700" />
                         </button>
                         <button
                             onClick={() => scroll('right', scrollRef)}
-                            className="group-hover:opacity-80 transition-opacity duration-300 absolute right-0 top-[45%] -translate-y-1/2 z-10 bg-transparent rounded-full p-2 opacity-0"
+                            className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
+                            duration-300 absolute h-20
+                            right-0 top-[40%] -translate-y-1/2 z-50 p-1 opacity-0 rounded-sm"
                         >
                             <ChevronRight className="w-6 h-6 text-gray-700" />
                         </button>

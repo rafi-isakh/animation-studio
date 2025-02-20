@@ -15,7 +15,7 @@ const MyReadingListComponent = ({ library }: { library: Webnovel[] }) => {
 
     return (
         isLoggedIn && (
-            <div className="max-w-screen-lg w-full flex mx-auto justify-center">
+            <div className="md:max-w-screen-xl w-full flex mx-auto justify-center">
                 <MyReadingListWrapper library={library} nickname={nickname} />
             </div>
         )

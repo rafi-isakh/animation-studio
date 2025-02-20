@@ -1,74 +1,113 @@
 "use client"
 
-import { useLanguage } from "@/contexts/LanguageContext"
-import { phrase } from '@/utils/phrases';
-import { useEffect, useState } from "react";
-import '@/styles/new_user.css'
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useState } from "react";
+import { phrase } from "@/utils/phrases";
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import { alpha, styled } from '@mui/material/styles';
 import { useTheme } from "@/contexts/providers";
 
-const NewUserBioComponent = () => {
+const NewUserBioComponent = ({ 
+    value, 
+    onChange,
+}: { 
+    value: string, 
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+}) => {
     const { dictionary, language } = useLanguage();
     const maxText = 500;
-    const [currText, setCurrText] = useState(0);
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const [content, setContent] = useState('');
-    const { theme, isDarkMode } = useTheme();
 
-    useEffect(() => {
-        setCurrText(content.length);
-    }, [content])
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        if (newValue.length <= maxText) {
+            setContent(newValue);
+            onChange(e);
+        }
+    };
 
-    const trim = (text: string) => {
-        text = text.substring(0, maxText)
-        return text
-    }
-    
+    const StyledLabel = styled(FormLabel)(({ theme }) => ({
+        color: isDarkMode ? 'white' : 'black',
+        fontFamily: ['Pretendard'].join(','),
+        fontSize: '0.875rem',
+    }));
+
     return (
-        <div className='w-full text-black dark:text-white focus:outline-none'>
-            <Box
-                sx={{
-                    color: isDarkMode ? 'white' : 'black',
-                    '& .MuiTextField-root': { m: 0 },
-                }}
-            >
+        <Box sx={{
+            width: '100%',
+        }}>
+            <FormControl fullWidth variant="standard">
+                <StyledLabel>Bio</StyledLabel>
                 <TextField
-                    label={phrase(dictionary, "intro", language)}
-                    id="outlined-multiline-static"
-                    name="bio"
-                    rows={10}
-                    value={content}
-                    multiline
-                    onChange={(e) => setContent(trim(e.target.value))}
-                    className='input w-full text-black dark:text-white'
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                                borderColor: isDarkMode ? 'gray' : 'rgba(0, 0, 0, 0.23)',
+                    slotProps={{
+                        input: {
+                            sx: {
+                                width: '100%',
+                                borderRadius: '8px',
+                                position: 'relative',
+                                color: isDarkMode ? 'white' : 'black',
+                                backgroundColor: isDarkMode ? '#1A2027' : '#F3F6F9',
+                                border: '1px solid',
+                                borderColor: isDarkMode ? '#2D3843' : '#E0E3E7',
+                                fontSize: '1rem',
+                                padding: '8px 12px',
+                                boxShadow: 'none',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    borderColor: '#DE2B74',
+                                },
+                                '&:focus': {
+                                    boxShadow: `${alpha('#DE2B74', 0.25)} 0 0 0 0.2rem`,
+                                    borderColor: '#DE2B74',
+                                },
                             },
-                            '&:hover fieldset': {
-                                borderColor: isDarkMode ? 'white' : 'rgba(0, 0, 0, 0.87)',
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: isDarkMode ? 'white' : 'primary.main',
-                            },
-                        },
-                        '& .MuiInputLabel-root': {
-                            color: isDarkMode ? 'gray' : 'rgba(0, 0, 0, 0.6)',
-                            '&.Mui-focused': {
-                                color: isDarkMode ? 'white' : 'primary.main',
-                            }
-                        },
-                        '& .MuiOutlinedInput-input': {
-                            color: isDarkMode ? 'white' : 'black',
                         },
                     }}
+                    onChange={handleChange}
+                    value={content}
+                    id="outlined-multiline-static"
+                    name="bio"
+                    placeholder={phrase(dictionary, "intro", language)}
+                    rows={4}
+                    multiline
+                    defaultValue={value}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#DE2B74',
+                                boxShadow: `${alpha('#DE2B74', 0.25)} 0 0 0 0.2rem`,
+                            },
+                            '& .MuiInputBase-input': {
+                                width: '100%',
+                                borderRadius: '8px',
+                                position: 'relative',
+                                color: isDarkMode ? 'white' : 'black',
+                                backgroundColor: 'transparent',
+                                border: '0px',
+                                borderColor: 'transparent',
+                                fontSize: '1rem',
+                                padding: '0',
+                                transition: 'all 0.3s ease',
+                                '&:focus': {
+                                    boxShadow: 'none',
+                                    border: '0px',
+                                    borderColor: 'transparent',
+                                },
+                            }
+                        }
+                    }}
                 />
-            </Box>
-        </div>
-
-    )
-}
+                <Box sx={{ textAlign: 'right', mt: 0, fontSize: '0.875rem' }}>
+                    {content.length}/{maxText}
+                </Box>
+            </FormControl>
+        </Box>
+    );
+};
 
 export default NewUserBioComponent;
-

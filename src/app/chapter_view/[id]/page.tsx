@@ -31,7 +31,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 
 // Import the animation data
-import animationData from '@/assets/stelli_loader.json';
+import animationData from '@/assets/N_logo_with_heart.json';
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
@@ -290,7 +290,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu >
+                                    <FloatingMenu webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
@@ -299,7 +299,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
                         {/* Title and content : end */}
                     </div>
-                    <div className="relative z-50">
+                    <div className="relative ">
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
@@ -331,13 +331,14 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </div>
                 </div>
                 <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
+                <div className="md:h-[10vh] h-[10vh]"></div>
             </div>
         )
     }
     else {
         return (
             <div className="loader-container">
-                <LottieLoader width="w-32" animationData={animationData} />
+                <LottieLoader width="w-40" animationData={animationData} />
             </div>
         )
     }

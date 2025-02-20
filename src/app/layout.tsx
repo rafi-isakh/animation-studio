@@ -3,9 +3,10 @@ import { Analytics } from "@vercel/analytics/react"
 import '@/styles/globals.css';
 import { Metadata } from 'next'
 import { DeviceProvider } from '@/contexts/DeviceContext';
+import { MobileMenuProvider } from '@/contexts/MobileMenuContext';
 import { ThemeProvider } from '@/contexts/providers';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, useEffect } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { UserProvider } from '@/contexts/UserContext';
 import Header from '@/components/Header';
@@ -14,6 +15,8 @@ import Margin from '@/components/Margin';
 import RegisterSW from '@/components/RegisterSW';
 import { NavigationEvents } from '@/components/NewUserNavigation';
 import { StripeProvider } from '@/contexts/StripeContext';
+import BottomNavigationBar from '@/components/UI/BottomNavigation';
+import { GlobalSidebar } from '@/components/UI/Sidebar';
 import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
@@ -62,7 +65,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const session = await auth();
   const isLoggedIn = !!session?.user;
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -78,20 +81,23 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               <AuthProvider>
                 <UserProvider>
                   <DeviceProvider>
-                    <SearchProvider>
-                      <StripeProvider>
-                        <div className={`font-pretendard pretendard-jp pretendard-std`}>
-                          <Suspense>
-                            <Header isLoggedIn={isLoggedIn} />
-                          </Suspense>
-                          <Margin>
-                            {children}
-                            <Analytics />
+                    <MobileMenuProvider>
+                      <SearchProvider>
+                        <StripeProvider>
+                          <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
                             <Suspense>
                               <NavigationEvents />
                             </Suspense>
-                          </Margin>
-                          {/* 
+                            <Suspense>
+                              <Header isLoggedIn={isLoggedIn} />
+                            </Suspense>
+                            <Margin>
+                              <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                {children}
+                              </div>
+                              <Analytics />
+                            </Margin>
+                            {/* 
                     <div className={`children min-h-screen`}>  
                      // Header bottom margin :: pt-28 md:pt-24 mb-4
                   <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
@@ -101,9 +107,16 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       {children}
                     </div> 
                    */}
-                        </div>
-                      </StripeProvider>
-                    </SearchProvider>
+                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
+                              <GlobalSidebar />
+                            </div>
+                            <div className="block md:hidden z-[99]">
+                              <BottomNavigationBar />
+                            </div>
+                          </div>
+                        </StripeProvider>
+                      </SearchProvider>
+                    </MobileMenuProvider>
                   </DeviceProvider>
                 </UserProvider>
               </AuthProvider>

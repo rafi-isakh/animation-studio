@@ -1,20 +1,9 @@
-#__next {
+.stripeContainer {
+    -webkit-font-smoothing: antialiased;
     align-self: center;
 }
 
-.App {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-content: center;
-    height: 100vh;
-    width: 100vw;
-}
-
-form {
+.stripeForm {
     width: 30vw;
     min-width: 500px;
     align-self: center;
@@ -40,7 +29,7 @@ form {
 
 /* Buttons and links */
 
-.stripe-button {
+.stripeButton {
     background: #0055DE;
     font-family: Arial, sans-serif;
     color: #ffffff;
@@ -56,11 +45,11 @@ form {
     width: 100%;
 }
 
-button:hover {
+.stripeButton:hover {
     filter: contrast(115%);
 }
 
-button:disabled {
+.stripeButton:disabled {
     opacity: 0.5;
     cursor: default;
 }
@@ -139,7 +128,6 @@ button:disabled {
 
 
 /* Payment status page */
-
 #payment-status {
     display: flex;
     justify-content: center;
@@ -166,13 +154,14 @@ button:disabled {
     border-radius: 50%;
 }
 
-h2 {
+/* h2 {
     margin: 0;
     color: #30313D;
     text-align: center;
 }
+*/
 
-a {
+.stripeLink {
     text-decoration: none;
     font-size: 16px;
     font-weight: 600;
@@ -180,7 +169,7 @@ a {
     display: block;
 }
 
-a:hover {
+.stripeLink:hover {
     filter: contrast(120%);
 }
 
@@ -189,24 +178,24 @@ a:hover {
     width: 100%;
 }
 
-table {
+.stripeTable {
     width: 100%;
     font-size: 14px;
     border-collapse: collapse;
 }
 
-table tbody tr:first-child td {
+.stripeTable tbody tr:first-child td {
     border-top: 1px solid #E6E6E6;
     /* Top border */
     padding-top: 10px;
 }
 
-table tbody tr:last-child td {
+.stripeTable tbody tr:last-child td {
     border-bottom: 1px solid #E6E6E6;
     /* Bottom border */
 }
 
-td {
+.stripeTableCell {
     padding-bottom: 10px;
 }
 
@@ -254,7 +243,8 @@ td {
 }
 
 @media only screen and (max-width: 600px) {
-    form,
+    .stripeForm,
+    .statusContainer,
     #payment-status,
     #dpm-annotation {
         width: 80vw;

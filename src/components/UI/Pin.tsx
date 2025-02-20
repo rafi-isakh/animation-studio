@@ -1,6 +1,6 @@
 import Image from "next/image"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
-import { Heart, MessageCircle, Share, Share2 } from "lucide-react"
+import { Heart, MessageCircle, Share, Share2, Film } from "lucide-react"
 import { IconButton } from "@mui/material"
 import Link from "next/link"
 import { useWebnovels } from "@/contexts/WebnovelsContext"
@@ -20,42 +20,45 @@ export function Pin({ post }: PinProps) {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-    const handleMouseEnter = () => {
-        if (videoRef.current) {
-            videoRef.current.play();
-        }
-    };
+  const handleMouseEnter = () => {
+    if (videoRef.current) {
+      videoRef.current.play();
+    }
+  };
 
-    const handleMouseLeave = () => {
-        if (videoRef.current) {
-            videoRef.current.pause();
-            videoRef.current.currentTime = 0;
-        }
-    };
+  const handleMouseLeave = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
 
   return (
-    <Link href={`/toonyz_posts/${post.id}`} className="relative group" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <Link href={`/toonyz_posts/${post.id}`} className="relative group shadow-sm" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <div className="mb-4 break-inside-avoid">
         <div className="relative group overflow-hidden rounded-xl" style={{ paddingBottom: `${aspectRatio * 100}%` }}>
           <div className="absolute inset-0">
-          {
-                    post.image?
-                    <Image
-                        src={getImageUrl(post.image) || "/placeholder.svg"}
-                        alt={post.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 300px"
-                        className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
-                    />
-                    :
-                    <video
-                        ref={videoRef}
-                        src={getImageUrl(post.video)}
-                        muted
-                        loop
-                        className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
-                    />
-                }
+            {
+              post.image ?
+                <Image
+                  src={getImageUrl(post.image) || "/placeholder.svg"}
+                  alt={post.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 300px"
+                  className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                />
+                :
+                <div className="relative w-full h-full">
+                  <video
+                    ref={videoRef}
+                    src={getImageUrl(post.video)}
+                    muted
+                    loop
+                    className="w-full h-full object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                  />
+                  <Film size={20} className="absolute top-2 left-2 text-white z-50" />
+                </div>
+            }
           </div>
 
           <div className="absolute inset-0 flex flex-col justify-end
@@ -74,7 +77,9 @@ export function Pin({ post }: PinProps) {
 
 
             {post.quote && (
-              <p className="absolute left-1/2 top-[40%] -translate-x-1/2 text-sm font-extrabold text-white text-center max-w-[80%]">
+              <p
+                style={{ paddingBottom: `${aspectRatio * 100}%` }}
+                className="absolute left-1/2 top-[20%] -translate-x-1/2 text-sm font-extrabold text-white text-center max-w-[80%]">
                 {truncateText(post.quote)}
               </p>
             )}

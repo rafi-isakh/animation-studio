@@ -324,7 +324,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                     <StyledBox
                         sx={{
                             backgroundColor: theme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
-                            color: theme === 'dark' || theme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
+                            color: theme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
                             borderTopLeftRadius: '5px',
                             borderTopRightRadius: '5px',
                             boxShadow: 'none'

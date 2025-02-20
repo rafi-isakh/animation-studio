@@ -30,6 +30,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const [mobileGrid, setMobileGrid] = useState('');
     const chunkedItems = _.chunk(webnovels, 3);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const slider = useRef<Slider | null>(null);
 
     const settings = {
         dots: false,
@@ -104,17 +105,34 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     if (typeof genre === 'string') {
     } else if (Array.isArray(genre)) {
         throw new Error("there should be only one genre param")
-    } else {
     }
 
+    function scroll(e: any) {
+        if (!slider.current) return;
+
+        e.wheelDelta > 0 ? (
+            slider.current.slickNext()
+        ) : (
+            slider.current.slickPrev()
+        );
+    };
+
+    useEffect(() => {
+        window.addEventListener("wheel", scroll, true);
+
+        return () => {
+            window.removeEventListener("wheel", scroll, true);
+        };
+    }, []);
+
     return (
-        <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
+        <div className='relative w-full  mx-auto group font-pretendard'>
             <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                 <span className='text-black dark:text-white'>
                     {phrase(dictionary, "toonyzHot", language)}
                 </span>
             </h1>
-            <Slider {...settings} className="custom-slider">
+            <Slider {...settings} ref={slider} className="custom-slider">
                 {chunkedItems.map((chunk, chunkIndex) => (
                     <div
                         key={chunkIndex}

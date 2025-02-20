@@ -5,7 +5,7 @@ import { Chapter, Webnovel } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, Modal, ThemeProvider } from '@mui/material';
+import { Box, Button, Modal } from '@mui/material';
 import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
@@ -36,7 +36,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         scrollType,
         setScrollType,
         setPage } = useReader();
-    const { toggleReaderTheme } = useReaderTheme()
+    const { toggleReaderTheme, readerTheme } = useReaderTheme()
+    const { theme } = useTheme();
 
     useEffect(() => {
         setPage(1);
@@ -123,32 +124,34 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     return (
-        <div className="fixed w-full bottom-0 left-0 z-50">
-            <div className={`w-full justify-center bg-white dark:bg-black text-black
-                             dark:text-white border-t bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
+        <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-[3.5rem] md:bottom-0 left-1/2 -translate-x-1/2 md:z-[1250] z-[99] select-none">
+            <div className={`w-full justify-center  rounded-t-lg
+                            ${readerTheme === 'light' && theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
+                            ${readerTheme === 'dark' && theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
+                             text-black  dark:text-white 
+                             bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
                              ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                              ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
 
-                <div className="max-w-lg text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2">
-
-                    <Link href={prevChapterLink} onClick={handlePrevChapter}>
+                <div className={`"max-w-md text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2 z-[1150]`}>
+                {/* className='md:mr-0 mr-[15px]' */}
+                    <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
                         <div className='group hover:text-[#DB2777] flex flex-row'>
-                            <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4' />
+                            <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
 
                             {phrase(dictionary, "prevChapter", language)}
                         </div>
                     </Link>
-
-                    {/* <Link href={`/comments?chapter_id=${chapterId.toString()}&webnovel_or_webtoon=true`}>
-                        <p className='hover:text-[#DB2777] relative'>
-                            <MessageCircle size={16} />
-                            <span className='absolute -top-[1px] -right-1 text-[9px] bg-[#DB2777] text-white rounded-full px-1'>{chapter.comments.length}</span>
-                        </p>
-                    </Link> */}
-                    {/* <p onClick={adjustViewSettings} className='hover:text-[#DB2777]'>{phrase(dictionary, "viewSettings", language)}</p> */}
-                    <Link href={``} onClick={handleViewSettings}>
-                        <p className='hover:text-[#DB2777] relative'>
+                    <Link 
+                        href={``}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleViewSettings();
+                        }}
+                        className='z-[1250]'
+                         >
+                        <p className='hover:text-[#DB2777] relative' >
                             <Settings size={16} />
                             <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
                                 <Languages size={10} />
@@ -156,7 +159,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         </p>
                     </Link>
                     {/* view next and prev btn */}
-                    <Link href={nextChapterLink} onClick={handleNextChapter} className='md:mr-0 mr-[15px] z-[99]'>
+                    <Link href={nextChapterLink} onClick={handleNextChapter} > 
                         <div className='group hover:text-[#DB2777] flex flex-row'>
                             {phrase(dictionary, "nextChapter", language)}
                             <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4' />

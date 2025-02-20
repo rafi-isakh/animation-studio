@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
                 email: email,
                 email_hash: user.email_hash,
                 stars: user.stars,
+                picture: user.picture,
                 purchased_webnovel_chapters: user.purchased_webnovel_chapters,
                 upvoted_comments: user.upvoted_comments,
             });
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
                 email: "",
                 email_hash: "",
                 stars: 0,
+                picture: "",
                 purchased_webnovel_chapters: "[]",
                 upvoted_comments: "",
             });

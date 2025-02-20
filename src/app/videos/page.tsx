@@ -28,7 +28,7 @@ export default function Videos() {
     }));
 
     return (
-        <div className="flex flex-col items-center justify-center">
+        <div className="relative flex flex-col items-center justify-center">
                 <Billboard 
                  videoSrc={webtoonContents[0]?.file_src}
                  posterSrc="/curriculum/video_heroImage.png"

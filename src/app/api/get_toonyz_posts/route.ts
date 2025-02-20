@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_posts`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_posts`, {
+        cache: 'no-store'
+    })
+    if (!response.ok) {
+        return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
+    }
     const data = await response.json();
     return NextResponse.json(data);
 }

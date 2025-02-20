@@ -146,3 +146,20 @@ export interface CurriculumContent {
   file_src_jp: string; 
   video: JSX.Element;
 }
+
+export interface ToonyzPost {
+  id: number;
+  user: User;
+  title: string;
+  content: string;
+  image?: string;
+  video?: string;
+  upvotes: number;
+  comments: Comment[];
+  tags: string;
+  webnovel_id: string;
+  chapter_id: string;
+  created_at: Date;
+  views: number;
+  quote?: string;
+}

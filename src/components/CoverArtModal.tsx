@@ -3,35 +3,35 @@ import { useCoverArtModalStyle } from '@/styles/ModalStyles';
 import { phrase } from '@/utils/phrases';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Info } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SetStateAction, Dispatch, useState } from 'react';
 import CoverArtPreview from './CoverArtPreview';
 
-const CoverArtModal = ({ 
-    showCoverArtModal, 
-    setShowCoverArtModal, 
-    handleUploadFile, 
-    handleFileChange, 
-    coverArt, 
-    setCoverArtFile, 
-    handleCoverArtUploadModal 
+const CoverArtModal = ({
+    showCoverArtModal,
+    setShowCoverArtModal,
+    handleUploadFile,
+    handleFileChange,
+    coverArt,
+    setCoverArtFile,
+    handleCoverArtUploadModal
 }
-    : { 
-        showCoverArtModal: boolean, 
-        setShowCoverArtModal: (show: boolean) => void, 
-        handleUploadFile: () => void, 
-        handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void, 
-        coverArt: File | null, 
-        setCoverArtFile: (file: File) => void, 
-        handleCoverArtUploadModal: (e: React.MouseEvent) => void 
+    : {
+        showCoverArtModal: boolean,
+        setShowCoverArtModal: (show: boolean) => void,
+        handleUploadFile: () => void,
+        handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+        coverArt: File | null,
+        setCoverArtFile: (file: File) => void,
+        handleCoverArtUploadModal: (e: React.MouseEvent) => void
     }) => {
     const { dictionary, language } = useLanguage();
     const [coverArtOptions] = useState(Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         src: `https://picsum.photos/id/${500 + i + 1}/300/500`,
-        value: i < 4 ? 'small' : 'big' 
+        value: i < 4 ? 'small' : 'big'
     })));
 
     const handleConfirm = () => {
@@ -46,20 +46,36 @@ const CoverArtModal = ({
     return (
         <Modal open={showCoverArtModal} onClose={() => setShowCoverArtModal(false)}>
             <Box sx={useCoverArtModalStyle}>
-                <div className='flex flex-row space-x-4 justify-center'>
+                <div className='flex flex-row justify-between items-center my-2'>
+                    <p className='text-lg font-bold text-black dark:text-black'>
+                        {/* Cover Art Register */}
+                        {phrase(dictionary, "coverArtRegister", language)}
+                    </p>
+                    <X size={24} className='text-black hover:text-[#DB2777] cursor-pointer' onClick={handleClose} />
+                </div>
+                <div className='flex md:flex-row flex-col md:space-x-4 justify-center'>
                     <div className='flex flex-col space-y-4'>
                         <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
-                        <Button variant='outlined' onClick={handleUploadFile}>
+                        <Button
+                            variant='outlined'
+                            onClick={handleUploadFile}
+                            sx={{
+                                backgroundColor: '#DB2777',
+                                color: 'white',
+                                width: '200px',
+                                border: 'none',
+                                borderStyle: 'solid',
+                                borderRadius: '4px',
+                                padding: '4px 8px',
+                                fontSize: '12px',
+                            }}
+                            className="border-0"
+                            >
                             {/* Upload Cover Art */}
                             {phrase(dictionary, "upload", language)}
                         </Button>
                     </div>
-                    <div className='flex flex-col space-y-4'>
-                        <p className='text-lg font-bold text-black dark:text-black'>
-                            {/* Cover Art Register */}
-                            {phrase(dictionary, "coverArtRegister", language)}
-                        </p>
-
+                    <div className='flex flex-col md:py-0 py-2 md:space-y-4 space-y-2'>
                         <p className={`text-sm text-black font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
                             {/* Please upload the cover art for your webnovel. */}
                             {phrase(dictionary, "pleaseUploadTheCoverArt", language)}

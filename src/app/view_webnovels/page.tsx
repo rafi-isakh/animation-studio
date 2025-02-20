@@ -6,8 +6,8 @@ import dynamic from 'next/dynamic';
 import { useAuth } from "@/contexts/AuthContext";
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
-});
-import animationData from '@/assets/stelli_loader.json';
+  });
+import animationData from '@/assets/N_logo_with_heart.json';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useSearchParams } from "next/navigation";
 
@@ -54,22 +54,21 @@ const ViewWebnovels = () => {
     }, [searchParams])
 
     return (
-        <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
-        // <>
-        //     {loading ? (
-        //         <div role="status" className={`flex items-center justify-center min-h-screen`}>
-        //             <LottieLoader
-        //                 animationData={animationData}
-        //                 width="w-32"
-        //                 centered={true}
-        //                 pulseEffect={true}
-        //             />
-        //         </div>
-        //     ) : (
-        //         <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
-        //     )
-        //     }
-        // </>
+        <>
+        {loading? (
+               <div role="status" className={`flex items-center justify-center min-h-screen`}>    
+                   <LottieLoader 
+                       animationData={animationData}
+                       width="w-40"
+                       centered={true}
+                       pulseEffect={true}
+                   />
+               </div>
+           ) : (
+            <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
+           )
+        }
+        </>
     )
 }
 

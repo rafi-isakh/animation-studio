@@ -1,14 +1,14 @@
 "use client"
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Button } from "@mui/material";
+import { Alert, AlertTitle, Button, Snackbar, SnackbarCloseReason } from "@mui/material";
 import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
 import { useRouter, useSearchParams } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
-import { useState, useEffect } from "react";
 import StripeComponent from "@/components/StripeComponent";
 
 export default function PurchaseStarsComponent() {
@@ -23,6 +23,18 @@ export default function PurchaseStarsComponent() {
     const searchParams = useSearchParams();
     // true if reaching the page with this component after completion of payment
     const complete = searchParams.get('complete');
+    // const { enqueueSnackbar } = useSnackbar();
+    const [isOpen, setIsOpen] = useState(true);
+
+    const handleCloseSnackbar = (
+        event?: React.SyntheticEvent | Event,
+        reason?: SnackbarCloseReason,
+    ) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setIsOpen(false);
+    };
 
     useEffect(() => {
         if (complete) {
@@ -74,10 +86,23 @@ export default function PurchaseStarsComponent() {
     }
 
     return (
-        <div className="flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto tall:h-[calc(100vh-16rem)]">
+        <div className="relative flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto">
+            {/*  tall:h-[calc(100vh-16rem)]  */}
             <div className="flex flex-col w-full items-center justify-center">
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    open={isOpen}
+                    autoHideDuration={5000}
+                    onClose={handleCloseSnackbar}
+                    key="error"
+                >
+                    <Alert severity="error" onClose={() => setIsOpen(false)}>
+                        <AlertTitle>이용에 불편을 드려 죄송합니다. 별 구입 서비스를 사용하실 수 없습니다.</AlertTitle>
+                    </Alert>
+                </Snackbar>
+
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
-                <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1>
+                {/* <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1> */}
                 <h1 className="text-2xl font-extrabold text-center">
                     {phrase(dictionary, "stars", language)}
                 </h1>
@@ -88,10 +113,10 @@ export default function PurchaseStarsComponent() {
                 </div>
             </div>
 
-            {showStripeComponent ? 
-            <div className='self-center'>
-                <StripeComponent setShowStripeComponent={setShowStripeComponent} />
-            </div>
+            {showStripeComponent ?
+                <div className='self-center'>
+                    <StripeComponent setShowStripeComponent={setShowStripeComponent} />
+                </div>
                 :
                 <>
                     <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r

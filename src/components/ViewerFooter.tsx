@@ -11,7 +11,6 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useReaderTheme } from '@/contexts/ReaderThemeContext';
 import { MessageCircle, Settings, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
@@ -27,6 +26,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const viewSettingsStyle = useViewSettingsStyle();
+    const { toggleTheme } = useTheme();
     const { fontSize,
         setFontSize,
         fontFamily = 'default',
@@ -36,7 +36,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         scrollType,
         setScrollType,
         setPage } = useReader();
-    const { toggleReaderTheme, readerTheme } = useReaderTheme()
     const { theme } = useTheme();
 
     useEffect(() => {
@@ -126,8 +125,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     return (
         <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-[3.5rem] md:bottom-0 left-1/2 -translate-x-1/2 md:z-[1250] z-[99] select-none">
             <div className={`w-full justify-center  rounded-t-lg
-                            ${readerTheme === 'light' && theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                            ${readerTheme === 'dark' && theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
+                            ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
+                            ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
                              text-black  dark:text-white 
                              bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                              transition-transform duration-300 
@@ -217,13 +216,13 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                             <div className='flex flex-row gap-2'>
                                 <Link
                                     href=''
-                                    onClick={() => toggleReaderTheme('light')}
+                                    onClick={() => toggleTheme('light')}
                                     className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>
                                 <Link
                                     href=''
-                                    onClick={() => toggleReaderTheme('dark')}
+                                    onClick={() => toggleTheme('dark')}
                                     className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
                                     Aa
                                 </Link>

@@ -12,12 +12,27 @@ import Link from "next/link";
 import { Drawer, Box } from "@mui/material";
 import { useTheme } from '@/contexts/providers'
 import WebnovelsList from "@/components/WebnovelsList";
-import dynamic from 'next/dynamic';
+import CircularProgress, {
+    circularProgressClasses,
+    CircularProgressProps,
+} from '@mui/material/CircularProgress';
 
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
-    ssr: false,
-});
-import animationData from '@/assets/dots_loader.json';
+
+function GradientCircularProgress() {
+    return (
+        <>
+            <svg width={0} height={0}>
+                <defs>
+                    <linearGradient id="my_gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#e01cd5" />
+                        <stop offset="100%" stopColor="#1CB5E0" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <CircularProgress sx={{ 'svg circle': { stroke: 'url(#my_gradient)' } }} />
+        </>
+    );
+}
 
 export default function SearchComponent({
     mode,
@@ -239,7 +254,7 @@ export default function SearchComponent({
                                             margin: 'auto',   // Center the drawer
                                         }
                                     }}
-                                    className="relative w-full"
+                                    className="relative w-full no-scrollbar"
                                 >
                                     <Box sx={{ p: 1, mt: 1 }}>
                                         <form onSubmit={handleSearch}>
@@ -280,10 +295,12 @@ export default function SearchComponent({
                                         {/* webnovel list here */}
                                         {loading ? (
                                             <div className="flex justify-center items-center">
-                                               <LottieLoader width="w-40" animationData={animationData} centered={false}/>
+                                                <GradientCircularProgress />
                                             </div>
                                         ) : (
-                                            <div className='flex md:max-w-screen-xl w-full mx-auto'>
+                                            <div
+                                                onClick={toggleDrawer(false)}
+                                                className='flex md:max-w-screen-xl w-full mx-auto'>
                                                 {allWebnovels && (
                                                     <WebnovelsList
                                                         webnovels={allWebnovels}

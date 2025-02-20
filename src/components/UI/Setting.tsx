@@ -94,10 +94,10 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                     onClick={handleClick}
                     className={`flex flex-row py-2 px-6 my-1 w-full items-center
                                  capitalize font-medium text-gray-400 text-base
-                                 hover:bg-gray-50 dark:hover:bg-black/50
+                                 hover:bg-gray-50 dark:hover:bg-black/50 
                                  `} >
                     <Settings className="h-6 w-6 text-gray-400 " />
-                    <span className={`overflow-hidden transition-all text-left ${expanded ? "w-52 ml-3" : "w-0"}`}>
+                    <span className={`overflow-hidden transition-all text-left capitalize ${expanded ? "w-52 ml-3" : "w-0"}`}>
                         {phrase(dictionary, 'setting', language)}
                     </span>
                 </Button>

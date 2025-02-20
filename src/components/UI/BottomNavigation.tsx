@@ -54,7 +54,7 @@ export default function BottomNavigationBar() {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                zIndex: 1000,
+                zIndex: 2100,
                 bgcolor: theme === 'dark' ? '#211F21' : 'white' // darkmode bg-[#211F21]
             }}
             elevation={3}

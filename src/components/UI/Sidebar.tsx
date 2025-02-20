@@ -46,7 +46,7 @@ export function GlobalSidebar() {
         text="Home"
         active={pathname === '/'}
         alert={false}
-        href="/"
+        href="/?version=premium"
         type="link"
       />
       <SidebarItem

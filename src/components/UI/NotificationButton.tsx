@@ -37,7 +37,7 @@ const NotificationButton = ({ className, expanded, alert }: NotificationButtonPr
                             ${className}`}
             >
                 <Bell className="text-gray-400" />
-                <span className={`overflow-hidden transition-all text-left ${expanded ? "w-52 ml-3" : "w-0"}`}>Notifications</span>
+                <span className={`overflow-hidden transition-all text-left capitalize text-gray-400 ${expanded ? "w-52 ml-3" : "w-0"}`}>Notifications</span>
                 {alert && (
                     <div className={`absolute right-5 w-2 h-2 rounded bg-[#DE2B74] ${expanded ? "" : "top-2 right-5"}`}>
                     </div>

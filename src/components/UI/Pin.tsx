@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { getImageUrl } from "@/utils/urls"
+import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import { Heart, MessageCircle, Share, Share2 } from "lucide-react"
 import { IconButton } from "@mui/material"
 import Link from "next/link"
@@ -22,14 +22,25 @@ export function Pin({ post }: PinProps) {
       <div className="mb-4 break-inside-avoid">
         <div className="relative group overflow-hidden rounded-xl" style={{ paddingBottom: `${aspectRatio * 100}%` }}>
           <div className="absolute inset-0">
-            <Image
-              src={getImageUrl(post.image) || "/placeholder.svg"}
-              alt={post.title}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-transform duration-200 group-hover:scale-110"
-              priority={true}
-            />
+          {
+                    post.image?
+                    <Image
+                        src={getImageUrl(post.image) || "/placeholder.svg"}
+                        alt={post.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 300px"
+                        className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                    />
+                    :
+                    <video
+                        src={getImageUrl(post.video)}
+                        autoPlay
+                        muted
+                        loop
+                        className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                    />
+                    
+                }
           </div>
 
           <div className="absolute inset-0 flex flex-col justify-end

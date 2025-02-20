@@ -9,7 +9,8 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronRight, CircleHelp, Settings, Loader2 } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
-
+import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
+import { ImageOrVideo } from './Types';
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
@@ -24,7 +25,8 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [savedPrompt, setSavedPrompt] = useState<string>(initialPrompt);
   const { dictionary, language } = useLanguage();
   const [showAlert, setShowAlert] = useState(false);
-
+  const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
+  const [videoFileName, setVideoFileName] = useState<string | null>(null);
   useEffect(() => {
     if (initialPrompt) {
       setSavedPrompt(initialPrompt);
@@ -89,6 +91,11 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     if (!response.ok) {
       throw new Error('Failed to make slideshow');
     }
+    const data = await response.json();
+    console.log(data);
+    setVideoFileName(data.fileName);
+    alert("Video created successfully");
+    setShowShareAsPostModal(true);
   }
 
 
@@ -252,7 +259,16 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
           ))}
         </div>
       )}
-
+      <ShareAsToonyzPostModal
+        imageOrVideo={'video' as ImageOrVideo}
+        showShareAsPostModal={showShareAsPostModal}
+        setShowShareAsPostModal={setShowShareAsPostModal}
+        index={0}
+        videoFileName={videoFileName!}
+        webnovel_id={webnovel_id}
+        chapter_id={chapter_id}
+        quote={savedPrompt}
+      />
     </div>
   );
 };

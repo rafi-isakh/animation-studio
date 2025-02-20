@@ -4,17 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 
-async function getUser(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`);
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
-        return null;
-    }
-    const user: User = await response.json();
-    return user;
-}
-
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_toonyz_post_by_id?id=${id}`);
@@ -28,12 +17,6 @@ async function getPost(id: string) {
 }
 
 const ToonyzPostPage = async ({ params }: { params: { id: string } }) => {
-    console.log(params);
-    // const user = await getUser(params.id);
-    // if (!user) {
-    //     return <div>User not found</div>
-    // }
-
     const post = await getPost(params.id);
     if (!post) {
         return <div>Post not found</div>
@@ -41,8 +24,7 @@ const ToonyzPostPage = async ({ params }: { params: { id: string } }) => {
 
     return (
         <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-            <h1>Toonyz Post Page</h1>
-            <p>{params.id}</p>
+            <p>No.{params.id}</p>
             <Link href={`/view_profile/${post.user.id}`}>
                 {post.user.picture ? (
                     <Image
@@ -65,6 +47,25 @@ const ToonyzPostPage = async ({ params }: { params: { id: string } }) => {
                     </div>
                 )}
             </Link>
+
+            <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
+            <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
+
+
+            <p className="text-2xl font-bold">{post.title}</p>
+
+            {post.content && (<p className="dark:text-white whitespace-pre-wrap mb-2">{post.content}</p>)}
+
+            {post.quote && (
+                <p className="text-white whitespace-pre-wrap mb-2">
+                    {post.quote}
+                </p>
+            )}
+
+
+
+
+
         </div>
     )
 }

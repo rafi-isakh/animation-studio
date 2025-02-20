@@ -11,8 +11,8 @@ interface Post {
 }
 
 function getRandomDimensions() {
-    const widths = [300, 400, 500]
-    const heights = [300, 400, 500, 600, 700]
+    const widths = [900, 1000, 1200]
+    const heights = [1000, 1200, 1400, 1600]  
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],

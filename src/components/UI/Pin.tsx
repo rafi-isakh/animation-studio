@@ -3,6 +3,7 @@ import { getImageUrl } from "@/utils/urls"
 import { Heart, MessageCircle, Share, Share2 } from "lucide-react"
 import { IconButton } from "@mui/material"
 import Link from "next/link"
+import { useWebnovels } from "@/contexts/WebnovelsContext"
 
 interface PinProps {
   post: any
@@ -10,9 +11,8 @@ interface PinProps {
 
 export function Pin({ post }: PinProps) {
   const aspectRatio = post.height / post.width
-
-
-  const truncateText = (text: string, maxLength: number = 10) => {
+  const { getWebnovelById } = useWebnovels()
+  const truncateText = (text: string, maxLength: number = 15) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + '...';
   };
@@ -46,7 +46,14 @@ export function Pin({ post }: PinProps) {
               </IconButton>
             </div>
 
-            <div className="absolute left-1/2 bottom-[8.5rem] -translate-x-1/2">
+
+            {post.quote && (
+              <p className="absolute left-1/2 top-[40%] -translate-x-1/2 text-sm font-extrabold text-white text-center max-w-[80%]">
+                {truncateText(post.quote)}
+              </p>
+            )}
+
+            <div className="absolute left-1/2 bottom-[7.5rem] -translate-x-1/2">
               {post.user.picture ? (
                 <Image
                   src={getImageUrl(post.user.picture)}
@@ -76,9 +83,9 @@ export function Pin({ post }: PinProps) {
               </h3>
               <div className="flex flex-col items-center justify-between text-white">
 
-                <p className="text-sm text-gray-500">User ID: {post.user.nickname}</p>
-                <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
-                <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
+                <p className="text-sm text-gray-500">{post.user.nickname}</p>
+                <p className="text-sm text-gray-500">{getWebnovelById(post.webnovel_id).then(webnovel => webnovel?.title)}</p>
+
 
                 <div className="flex flex-row space-x-2 text-gray-500">
                   <div className="flex items-center space-x-2">

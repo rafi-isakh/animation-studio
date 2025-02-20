@@ -5,8 +5,8 @@ import { Pin } from "@/components/UI/Pin"
 import Masonry from "react-masonry-css"
 
 function getRandomDimensions() {
-    const widths = [600, 400, 500, 700]
-    const heights = [600, 700, 800]
+    const widths = [900, 1000, 1200]
+    const heights = [1000, 1200, 1400, 1600]  
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],

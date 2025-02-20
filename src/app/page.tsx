@@ -9,6 +9,7 @@ import WebnovelsByRank from '@/components/WebnovelsByRank';
 import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';
+import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -38,7 +39,6 @@ async function getLibrary() {
     return data.library;
 }
 
-const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
     let library = await getLibrary() || [];

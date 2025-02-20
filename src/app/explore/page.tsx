@@ -1,14 +1,8 @@
 "use client"
 
-import { Webnovel, SortBy } from '@/components/Types'
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation'
-import WebnovelsCards from '@/components/WebnovelsCards';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { phrase } from '@/utils/phrases';
-import useMediaQuery from '@mui/material/useMediaQuery';
+import { Webnovel } from '@/components/Types'
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import { filter_by_genre, filter_by_version, sortByFn } from '@/utils/webnovelUtils';
+import {  temporarilyUnpublished } from '@/utils/webnovelUtils';
 import WebnovelPictureCardWrapper from '@/components/UI/WebnovelPictureCardWrapper';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
 import {
@@ -22,43 +16,12 @@ import {
         RomanceFantasyGenres,
         LoveComedyGenres
 } from '@/components/UI/GenresTabs';
+import { useRef } from 'react';
 
 const ExplorePage = () => {
-    const searchParams = useSearchParams();
-    const [loading, setLoading] = useState(true);
-    const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
-    const genre = searchParams.get('genre') || undefined;
-    const version = searchParams.get('version') || undefined;
-    const { dictionary, language } = useLanguage();
-    const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
-    const isMobile = useMediaQuery('(max-width: 768px)');
-    const { webnovels } = useWebnovels();
-
-    useEffect(() => {
-        const fetchAllWebnovels = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch('/api/get_webnovels_metadata');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch webnovels');
-                }
-                const data = await response.json();
-                setAllWebnovels(data);
-            } catch (error) {
-                console.error('Error fetching webnovels:', error);
-                setAllWebnovels([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAllWebnovels();
-    }, []);
-
-    const getCarouselItems = (webnovels: Webnovel[]) => {
-        //
-    }
+    let { webnovels } = useWebnovels();
+    webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
 
     const tabsConfig = [
         {
@@ -69,7 +32,7 @@ const ExplorePage = () => {
                     {/* <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} /> */}
                     <WebnovelsAllCardWrapper
                         title={''}
-                        webnovels={allWebnovels}
+                        webnovels={webnovels}
                         scrollRef={scrollRef}
                         renderItem={(item: Webnovel, index: number) => (
                             <WebnovelPictureCardWrapper
@@ -90,7 +53,7 @@ const ExplorePage = () => {
             label: "Romance",
             genre: "romance",
             Component: () => (
-                <RomanceGenres webnovels={allWebnovels} />
+                <RomanceGenres webnovels={webnovels} />
             ),
             color: "#F2727F"
         },
@@ -98,7 +61,7 @@ const ExplorePage = () => {
             label: "Fantasy",
             genre: "fantasy",
             Component: () => (
-                <FantasyGenres webnovels={allWebnovels} />
+                <FantasyGenres webnovels={webnovels} />
             ),
             color: "#F89E8D"
         },
@@ -106,7 +69,7 @@ const ExplorePage = () => {
             label: "Sci-Fi",
             genre: "sf",
             Component: () => (
-                <SciFiGenres webnovels={allWebnovels} />
+                <SciFiGenres webnovels={webnovels} />
             ),
             color: "#F78A86"
         },
@@ -114,7 +77,7 @@ const ExplorePage = () => {
             label: "BL",
             genre: "bl",
             Component: () => (
-                <BLGenres webnovels={allWebnovels} />
+                <BLGenres webnovels={webnovels} />
             ),
             color: "#F2727F"
         },
@@ -122,7 +85,7 @@ const ExplorePage = () => {
             label: "Drama",
             genre: "drama",
             Component: () => (
-                <DramaGenres webnovels={allWebnovels} />
+                <DramaGenres webnovels={webnovels} />
             ),
             color: "#0C34F0"
         },
@@ -130,7 +93,7 @@ const ExplorePage = () => {
             label: "Romance Fantasy",
             genre: "romanceFantasy",
             Component: () => (
-                <RomanceFantasyGenres webnovels={allWebnovels}/>
+                <RomanceFantasyGenres webnovels={webnovels}/>
             ),
             color: "#F0BA18"
         },
@@ -138,7 +101,7 @@ const ExplorePage = () => {
             label: "Love Comedy",
             genre: "loveComedy",
             Component: () => (
-                <LoveComedyGenres webnovels={allWebnovels}/>
+                <LoveComedyGenres webnovels={webnovels}/>
             ),
             color: "#F0183C"
         },

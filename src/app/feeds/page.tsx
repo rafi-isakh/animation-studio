@@ -5,8 +5,8 @@ import { Pin } from "@/components/UI/Pin"
 import Masonry from "react-masonry-css"
 
 function getRandomDimensions() {
-    const widths = [300, 400, 500]
-    const heights = [300, 400, 500, 600, 700]
+    const widths = [600, 400, 500, 700]
+    const heights = [500, 600, 700, 800]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
@@ -40,7 +40,7 @@ export default function ToonyzPosts() {
         1280: 4,
         1024: 3,
         768: 2,
-        640: 1,
+        640: 2,
     }
 
 

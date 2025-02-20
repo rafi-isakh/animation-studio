@@ -35,7 +35,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
     const { email, nickname } = useUser();
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
     const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
-    const [value, setValue] = useState('English');
+    const [value, setValue] = useState(langPairList.find(langPair => langPair.code === language)?.name || 'English');
 
     const handleClickLanguageDialog = () => {
         setOpenLanguageDialog(true);
@@ -137,7 +137,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                             className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md dark:text-white'
                         >
                             <ListItemText
-                                primary="Language"
+                                primary={phrase(dictionary, 'language', language)}
                                 secondary={value}
                                 sx={{
                                     '& .MuiListItemText-secondary': {

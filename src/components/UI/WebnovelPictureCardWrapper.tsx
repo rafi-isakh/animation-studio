@@ -20,16 +20,6 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
             <div className="relative aspect-[180/257] overflow-hidden rounded-xl">
                 {/* Image Container */}
                 <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-110">
-                    {
-                        index === 1 ? (
-                    <video 
-                        src={'/test.mp4'}
-                        autoPlay
-                        muted
-                        loop={false}
-                        className="object-cover"
-                    />
-                    ) : (
                     <Image
                         src={imageSrc}
                         alt={webnovel.cover_art}
@@ -40,8 +30,6 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
-                    )}
-
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-10 transition-opacity duration-300 ease-in-out hover:bg-opacity-50">
 

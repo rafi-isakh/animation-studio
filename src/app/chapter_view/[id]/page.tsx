@@ -20,7 +20,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
-import { useReaderTheme } from '@/contexts/ReaderThemeContext'
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
 
@@ -69,7 +68,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { readerTheme, toggleReaderTheme } = useReaderTheme()
     const { purchased_webnovel_chapters, checking } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
     const { chaptersLikelyNeededWebnovel } = useWebnovels();
@@ -235,7 +233,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             <div>
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 <div
-                    className={`${readerTheme} relative`}
+                    className={`${theme} relative`}
                     style={{
                         ...readerStyle,
                     }}

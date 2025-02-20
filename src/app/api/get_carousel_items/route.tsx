@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     const start = performance.now();
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
+        cache: 'no-store',
+    })
     if (!response.ok) {
         return NextResponse.json({ error: "Failed to fetch carousel items" }, { status: response.status });
     }

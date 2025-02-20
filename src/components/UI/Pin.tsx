@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { Heart, MessageCircle, Share } from "lucide-react"
+import { useRef } from "react";
 
 interface PinProps {
     post: any
@@ -18,8 +19,23 @@ interface PinProps {
 */}
 
 export function Pin({ post }: PinProps) {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const handleMouseEnter = () => {
+        if (videoRef.current) {
+            videoRef.current.play();
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+        }
+    };
+
     return (
-        <div className="relative group">
+        <div className="relative group" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <div className="relative w-full overflow-hidden rounded-xl aspect-[3/4]">
                 {
                     post.image?
@@ -32,13 +48,12 @@ export function Pin({ post }: PinProps) {
                     />
                     :
                     <video
+                        ref={videoRef}
                         src={getImageUrl(post.video)}
-                        autoPlay
                         muted
                         loop
                         className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
                     />
-                    
                 }
             </div>
 

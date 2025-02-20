@@ -4,6 +4,7 @@ import { Heart, MessageCircle, Share, Share2 } from "lucide-react"
 import { IconButton } from "@mui/material"
 import Link from "next/link"
 import { useWebnovels } from "@/contexts/WebnovelsContext"
+import { useRef } from "react";
 
 interface PinProps {
   post: any
@@ -17,8 +18,23 @@ export function Pin({ post }: PinProps) {
     return text.slice(0, maxLength) + '...';
   };
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+    const handleMouseEnter = () => {
+        if (videoRef.current) {
+            videoRef.current.play();
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+        }
+    };
+
   return (
-    <Link href={`/toonyz_posts/${post.id}`}>
+    <Link href={`/toonyz_posts/${post.id}`} className="relative group" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <div className="mb-4 break-inside-avoid">
         <div className="relative group overflow-hidden rounded-xl" style={{ paddingBottom: `${aspectRatio * 100}%` }}>
           <div className="absolute inset-0">
@@ -33,13 +49,12 @@ export function Pin({ post }: PinProps) {
                     />
                     :
                     <video
+                        ref={videoRef}
                         src={getImageUrl(post.video)}
-                        autoPlay
                         muted
                         loop
                         className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
                     />
-                    
                 }
           </div>
 

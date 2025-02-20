@@ -1,69 +1,115 @@
-import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
-import { Heart, MessageCircle, Share } from "lucide-react"
+import Image from "next/image"
+import { getImageUrl } from "@/utils/urls"
+import { Heart, MessageCircle, Share, Share2 } from "lucide-react"
+import { IconButton } from "@mui/material"
+import Link from "next/link"
 
 interface PinProps {
-    post: any
+  post: any
 }
 
-{/* {posts.map((post: any) => (
-                <div key={post.id} className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Image src={getImageUrl(post.image)} alt={post.title} width={100} height={100} />
-                        <h2 className="text-2xl font-bold">{post.title}</h2>
-                        <p className="text-sm text-gray-500">{post.content}</p>
-                    </div>
-                </div>
-            ))} 
-*/}
-
 export function Pin({ post }: PinProps) {
-    return (
-        <div className="relative group">
-            <div className="relative w-full overflow-hidden rounded-xl aspect-[3/4]">
-                <Image
-                    src={getImageUrl(post.image) || "/placeholder.svg"}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
-                />
-            </div>
+  const aspectRatio = post.height / post.width
 
-                {/* {post.content} */}
 
-                {post.quote && (
+  const truncateText = (text: string, maxLength: number = 10) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  };
+
+  return (
+    <div className="mb-4 break-inside-avoid">
+      <div className="relative group overflow-hidden rounded-xl" style={{ paddingBottom: `${aspectRatio * 100}%` }}>
+        <div className="absolute inset-0">
+          <Image
+            src={getImageUrl(post.image) || "/placeholder.svg"}
+            alt={post.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-200 group-hover:scale-110"
+            priority={true} 
+          />
+        </div>
+
+        <div className="absolute inset-0 flex flex-col justify-end
+                        opacity-0 group-hover:opacity-100
+                        transition-opacity duration-200
+                        bg-gradient-to-t from-black/60 to-transparent ">
+
+          <div className="absolute right-0 top-0">
+            <IconButton
+              aria-label="share"
+            // className="bg-[#DE2B74]"
+            >
+              <Share2 size={20} className="text-white z-10" />
+            </IconButton>
+          </div>
+
+          <div className="absolute left-1/2 bottom-[8.5rem] -translate-x-1/2">
+            {post.user.picture ? (
+              <Image
+                src={getImageUrl(post.user.picture)}
+                alt={post.user.nickname || 'User'}
+                width={30}
+                height={30}
+                className='rounded-full'
+              />
+            ) : (
+              <div className="bg-gray-400 rounded-full w-8 h-8 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-gray-100 rounded-full"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                </svg>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-b-xl p-4">
+            <Link href={`/toonyz_posts/${post.id}`}>
+              <h3 className="mb-2 text-lg font-semibold text-black line-clamp-2">
+                {truncateText(post.title)}
+              </h3>
+              <div className="flex flex-col items-center justify-between text-white">
+
+                <p className="text-sm text-gray-500">User ID: {post.user.nickname}</p>
+                <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
+                <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
+
+                <div className="flex flex-row space-x-2 text-gray-500">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="w-5 h-5" />
+                    <span>{post.upvotes}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <MessageCircle className="w-5 h-5" />
+                    <span>{post.comments.length}</span>
+                  </div>
+                </div>
+
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+
+
+{/* {post.content} */ }
+{/* {post.quote && (
                     <p className="text-white whitespace-pre-wrap mb-2">
                         {post.quote}
                     </p>
-                )}
+                )} */}
 
-            {/* 
+{/* 
                 <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
                 <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
             */}
-            <div className="absolute rounded-xl inset-0 flex flex-col justify-end p-4 transition-opacity duration-200 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100">
-                <h3 className="mb-2 text-lg font-semibold text-white">
-                    {post.title.length > 25 ? `${post.title.slice(0, 25)}...` : post.title}
-                </h3>
-
-                <div className="flex items-center justify-between text-white">
-                    <div className="flex flex-row space-x-2">
-                        <div className="flex items-center space-x-2">
-                            <Heart className="w-5 h-5" />
-                            <span>{post.upvotes}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <MessageCircle className="w-5 h-5" />
-                            <span>{post.comments}</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Share className="w-5 h-5" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-

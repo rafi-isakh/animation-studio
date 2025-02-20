@@ -12,7 +12,11 @@ import MyReadingListComponent from '@/components/MyReadingListComponent';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`,
+        {
+            cache: 'no-store',
+        }
+    )
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }

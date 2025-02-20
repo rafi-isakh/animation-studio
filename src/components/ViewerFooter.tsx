@@ -26,7 +26,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const viewSettingsStyle = useViewSettingsStyle();
-    const { toggleTheme } = useTheme();
+    const { toggleTheme, theme } = useTheme();
     const { fontSize,
         setFontSize,
         fontFamily = 'default',
@@ -36,7 +36,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         scrollType,
         setScrollType,
         setPage } = useReader();
-    const { theme } = useTheme();
 
     useEffect(() => {
         setPage(1);

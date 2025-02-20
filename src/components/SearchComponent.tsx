@@ -12,10 +12,7 @@ import Link from "next/link";
 import { Drawer, Box } from "@mui/material";
 import { useTheme } from '@/contexts/providers'
 import WebnovelsList from "@/components/WebnovelsList";
-import CircularProgress, {
-    circularProgressClasses,
-    CircularProgressProps,
-} from '@mui/material/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 function GradientCircularProgress() {

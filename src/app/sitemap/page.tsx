@@ -15,7 +15,7 @@ const readByGenreData = [
       "Horror",
       "Comedy"
     ]
-  },  
+  },
 ]
 
 export default function Sitemap() {
@@ -28,31 +28,31 @@ export default function Sitemap() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
           {/* About Section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About Company</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About Toonyz</h2>
             <ul className="space-y-2">
               <li>
-                <Link href="/leadership" className="text-gray-500 hover:underline">
-                  Leadership
+                <Link href="/creators" className="text-gray-500 hover:underline">
+                  Be a Toonyz Creators
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-500 hover:underline">
-                  Career Opportunities
+                <Link href="/terms/privacy" className="text-gray-500 hover:underline">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-gray-500 hover:underline">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms/youth" className="text-gray-500 hover:underline">
+                  Youth Protection Policy
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-gray-500 hover:underline">
                   Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal" className="text-gray-500 hover:underline">
-                  Legal
-                </Link>
-              </li>
-              <li>
-                <Link href="/investors" className="text-gray-500 hover:underline">
-                  Terms of Service
                 </Link>
               </li>
             </ul>
@@ -68,23 +68,23 @@ export default function Sitemap() {
                 </Link>
               </li>
               <li>
-              <Accordion
-                data={readByGenreData.map(genre => ({
-                  title: genre.title,
-                  subtitle: genre.subtitles.map((sub, index) => (
-                    <span key={index}>
-                      {sub}
-                      {index < genre.subtitles.length - 1 && <br />}
-                    </span>
-                  ))
-                }))}
-                className="md:max-w-screen-sm w-full mx-auto"
-                titleClassName="!p-0 !text-gray-500"
-                subtitleClassName=""
-              />
+                <Accordion
+                  data={readByGenreData.map(genre => ({
+                    title: genre.title,
+                    subtitle: genre.subtitles.map((sub, index) => (
+                      <span key={index}>
+                        {sub}
+                        {index < genre.subtitles.length - 1 && <br />}
+                      </span>
+                    ))
+                  }))}
+                  className="md:max-w-screen-sm w-full mx-auto"
+                  titleClassName="!p-0 !text-gray-500"
+                  subtitleClassName=""
+                />
               </li>
               <li>
-                <Link href="/retailers" className="text-gray-500 hover:underline">
+                <Link href="/search" className="text-gray-500 hover:underline">
                   Find a Webnovel
                 </Link>
               </li>
@@ -94,7 +94,7 @@ export default function Sitemap() {
                 </Link>
               </li>
               <li>
-                <Link href="/financing" className="text-gray-500 hover:underline">
+                <Link href="/feeds" className="text-gray-500 hover:underline">
                   Feeds
                 </Link>
               </li>
@@ -106,18 +106,18 @@ export default function Sitemap() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h2>
             <ul className="space-y-2">
               <li>
-                <Link href="/account" className="text-gray-500 hover:underline">
+                <Link href="/my_profile" className="text-gray-500 hover:underline">
                   Manage Your Account
                 </Link>
               </li>
               <li>
-                <Link href="/account/orders" className="text-gray-500 hover:underline">
-                  Manage Your Wallet
+                <Link href="/my_profile" className="text-gray-500 hover:underline">
+                  Your Profile
                 </Link>
               </li>
               <li>
-                <Link href="/profile" className="text-gray-500 hover:underline">
-                  Your Profile
+                <Link href="/stars" className="text-gray-500 hover:underline">
+                  Stars Shop
                 </Link>
               </li>
             </ul>
@@ -150,27 +150,22 @@ export default function Sitemap() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Services</h2>
             <ul className="space-y-2">
               <li>
-                <Link href="/today" className="text-gray-500 hover:underline">
+                <Link href="/toonyzcut" className="text-gray-500 hover:underline">
                   Toonyz Cut
                 </Link>
               </li>
               <li>
-                <Link href="/reservations" className="text-gray-500 hover:underline">
+                <Link href="/toonyz_posts" className="text-gray-500 hover:underline">
                   Toonyz Post
                 </Link>
               </li>
               <li>
-                <Link href="/workshops" className="text-gray-500 hover:underline">
+                <Link href="#" className="text-gray-500 hover:underline">
                   Toonyz Echo
                 </Link>
               </li>
               <li>
-                <Link href="/genius-bar" className="text-gray-500 hover:underline">
-                  Toonyz Storia
-                </Link>
-              </li>
-              <li>
-                <Link href="/genius-bar" className="text-gray-500 hover:underline">
+                <Link href="/studio/novel" className="text-gray-500 hover:underline">
                   Writing Assistant
                 </Link>
               </li>
@@ -178,7 +173,7 @@ export default function Sitemap() {
           </div>
 
           {/* Values Section */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Values</h2>
             <ul className="space-y-2">
               <li>
@@ -201,8 +196,8 @@ export default function Sitemap() {
                   Accessibility
                 </Link>
               </li>
-            </ul>
-          </div>
+            </ul> 
+          </div> */}
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { CornerDownRight, Minus, Plus } from "lucide-react";
 import { Transaction, StarUse } from "@/app/stars/page";
+import CustomSkeleton from "@/components/UI/CustomSkeleton";
 import { CircularProgress, Skeleton } from "@mui/material";
 import { useTheme } from "@/contexts/providers";
 
@@ -64,12 +65,12 @@ const StarsTransactionComponent = () => {
                                 key={`skeleton-${index}`}
                                 className="flex flex-col w-full gap-2 py-5 border-b border-gray-200 animate-pulse">
                                 <div className="flex flex-row items-center gap-2">
-                                    <Skeleton variant="rounded"  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} className="w-4 h-4 bg-gray-200 rounded-full" />
-                                    <Skeleton variant="rounded"  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} className="h-4 bg-gray-200 rounded w-10" />
-                                    <Skeleton variant="rounded"  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} className="h-4 bg-gray-200 rounded w-10" />
+                                    <CustomSkeleton width={30} height={20} animation="wave" variant="rounded" className="bg-gray-200 rounded-full" />
+                                    <CustomSkeleton width={40} height={20} animation="wave" variant="rounded" className="bg-gray-200 rounded" />
+                                    <CustomSkeleton width={60} height={20} animation="wave" variant="rounded" className="bg-gray-200 rounded" />
                                 </div>
-                                <Skeleton variant="rounded"  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} className="h-4 bg-gray-200 rounded w-28" />
-                                <Skeleton variant="rounded"  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} className="h-4 bg-gray-200 rounded w-28" />
+                                <CustomSkeleton width={100} height={20} animation="wave" variant="rounded" className="bg-gray-200 rounded" />
+                                {/* <CustomSkeleton width={70} height={20} animation="wave" variant="rounded" className="bg-gray-200 rounded" /> */}
                             </li>
                         ))
                     ) : (

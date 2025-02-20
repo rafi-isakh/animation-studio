@@ -97,7 +97,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                                  hover:bg-gray-50 dark:hover:bg-black/50 
                                  `} >
                     <Settings className="h-6 w-6 text-gray-400 " />
-                    <span className={`overflow-hidden transition-all text-left capitalize ${expanded ? "w-52 ml-3" : "w-0"}`}>
+                    <span className={`overflow-hidden transition-all text-left capitalize text-gray-400 ${expanded ? "w-52 ml-3" : "w-0"}`}>
                         {phrase(dictionary, 'setting', language)}
                     </span>
                 </Button>

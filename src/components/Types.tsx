@@ -2,6 +2,8 @@ export interface WebnovelIdProps {
     webnovelId: number;
 }
 
+export type ImageOrVideo = 'image' | 'video'
+
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
 export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter'

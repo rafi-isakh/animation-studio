@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from "lucide-react"
-
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 interface PaddingConfig {
     desktop?: string;
     mobile?: string;
@@ -37,6 +37,7 @@ const CarouselComponentReactSlick = ({
     const [nextIndex, setNextIndex] = useState(1);
     const isMediumScreen = useMediaQuery('(min-width:768px)')
     const { language, dictionary } = useLanguage();
+    const {webnovels } = useWebnovels();
 
     const getCenterPadding = (padding?: string | PaddingConfig) => {
         if (typeof window === 'undefined') return '0px';
@@ -95,7 +96,7 @@ const CarouselComponentReactSlick = ({
     }
 
     function getGenre(index: number) {
-        return [items[index].webnovel.genre]
+        return [webnovels.find((novel: Webnovel) => novel.id == items[index].webnovel_id)?.genre || '']
     }
 
     function breakKeepOrNot() {

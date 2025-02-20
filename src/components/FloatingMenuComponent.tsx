@@ -88,7 +88,7 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
 const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
 
     return (
-        <div className="relative max-w-[200px] mx-auto">
+        <div className="relative max-w-[200px] mx-auto z-150">
             {/* Style 1: Hover with background */}
             <div className="px-2 bg-white shadow-lg rounded-2xl mb-5">
                 <div className="flex">

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { Heart, MessageCircle, Share } from "lucide-react"
 
 interface PinProps {
@@ -21,22 +21,34 @@ export function Pin({ post }: PinProps) {
     return (
         <div className="relative group">
             <div className="relative w-full overflow-hidden rounded-xl aspect-[3/4]">
-                <Image
-                    src={getImageUrl(post.image) || "/placeholder.svg"}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
-                />
+                {
+                    post.image?
+                    <Image
+                        src={getImageUrl(post.image) || "/placeholder.svg"}
+                        alt={post.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 300px"
+                        className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                    />
+                    :
+                    <video
+                        src={getImageUrl(post.video)}
+                        autoPlay
+                        muted
+                        loop
+                        className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                    />
+                    
+                }
             </div>
 
-                {/* {post.content} */}
+            {/* {post.content} */}
 
-                {post.quote && (
-                    <p className="text-white whitespace-pre-wrap mb-2">
-                        {post.quote}
-                    </p>
-                )}
+            {post.quote && (
+                <p className="text-white whitespace-pre-wrap mb-2">
+                    {post.quote}
+                </p>
+            )}
 
             {/* 
                 <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>

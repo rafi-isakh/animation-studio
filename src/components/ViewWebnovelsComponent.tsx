@@ -142,9 +142,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     else {
         if (atLeastOneWebnovel) {
             return (
-                // <ThemeProvider theme={grayTheme}>
                 <div className='md:max-w-screen-xl mx-auto w-full min-h-screen'>
-
                     <div className="flex md:flex-row flex-col justify-between items-start">
                         <div className="md:w-1/3 max-auto w-full flex-grow-0">
                             <div className="md:max-w-[360px] w-full  mx-auto mt-4">
@@ -169,12 +167,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                         </div>
                     </div>
                 </div>
-                // </ThemeProvider >
             )
         } else {
             return (
                 <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
-                    {phrase(dictionary, "noWebnovelsFound", language)}
+                    <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
                 </div>
             )
         }

@@ -4,13 +4,15 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { CornerDownRight, Minus, Plus } from "lucide-react";
 import { Transaction, StarUse } from "@/app/stars/page";
-import { Skeleton } from "@mui/material";
 import CustomSkeleton from "@/components/UI/CustomSkeleton";
+import { CircularProgress, Skeleton } from "@mui/material";
+import { useTheme } from "@/contexts/providers";
 
 const StarsTransactionComponent = () => {
     const { dictionary, language } = useLanguage();
     const [totalHistory, setTotalHistory] = useState<(Transaction | StarUse)[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { theme } = useTheme();
     const skeletonCount = 3;
     useEffect(() => {
         const fetchTotalHistory = async () => {

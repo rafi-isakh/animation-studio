@@ -12,7 +12,7 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [theme, setTheme] = useState<Theme>('dark' as Theme)
   const isDarkMode = theme === 'dark' // New state derived from theme
 
   useEffect(() => {
@@ -24,6 +24,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else if (systemPrefersDark) {
       toggleTheme('dark')
     }
+    toggleTheme(theme)
 
      // Listen for storage events to sync across tabs
      const handleStorageChange = (e: StorageEvent) => {
@@ -39,8 +40,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // document.documentElement.className = newTheme
     // localStorage.setItem('theme', newTheme)
     // setTheme(newTheme)
-    document.documentElement.classList.remove('light', 'dark', 'sepia')
-    document.documentElement.classList.add(newTheme)
+    document.body.classList.remove('light', 'dark', 'sepia')
+    document.body.classList.add(newTheme)
     localStorage.setItem('theme', newTheme)
     setTheme(newTheme)
   }

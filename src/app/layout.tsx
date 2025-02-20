@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
         />
       </head>
-      <body className={`antialiased`}>
+      <body className={`antialiased dark`}>
         <RegisterSW />
         <WebnovelsProvider>
           <LanguageProvider>

@@ -9,8 +9,8 @@ export default function LanguageSetter() {
 
     useEffect(() => {
         const setLanguageFromCountry = async () => {
-            if (localStorage.getItem('language-override')) {
-                setLanguage(localStorage.getItem('language-override')! as Language);
+            if (localStorage.getItem('language_override')) {
+                setLanguage(localStorage.getItem('language_override')! as Language);
                 return;
             }
             const userCountry = await getCountryFromIP();

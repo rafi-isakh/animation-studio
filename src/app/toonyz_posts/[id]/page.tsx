@@ -17,7 +17,7 @@ async function getUser(id: string) {
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
-    const response = await fetch(`/api/get_toonyz_post_by_id?id=${id}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_toonyz_post_by_id?id=${id}`);
     if (!response.ok) {
         const errorData = await response.json();
         console.error(errorData);

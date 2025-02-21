@@ -84,19 +84,22 @@ export function Pin({ post }: PinProps) {
               </p>
             )}
 
-            <div className="absolute left-1/2 bottom-[7.5rem] -translate-x-1/2">
+            <div className="absolute left-1/2 bottom-[7.5rem] -translate-x-1/2 z-50">
               {post.user.picture ? (
-                <Image
-                  src={getImageUrl(post.user.picture)}
-                  alt={post.user.nickname || 'User'}
-                  width={30}
-                  height={30}
-                  className='rounded-full'
-                />
+                <div className="dark:bg-[#211F21] bg-white rounded-full w-8 h-8 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={getImageUrl(post.user.picture)}
+                      alt={post.user.nickname || 'User'}
+                      fill
+                      className='object-cover'
+                    />
+                  </div>
+                </div>
               ) : (
-                <div className="bg-gray-400 rounded-full w-8 h-8 flex items-center justify-center">
+                <div className="bg-white dark:bg-[#211F21] rounded-full w-8 h-8 flex items-center justify-center">
                   <svg
-                    className="w-8 h-8 text-gray-100 rounded-full"
+                    className="w-8 h-8 text-gray-500 dark:text-gray-200 rounded-full"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
@@ -107,9 +110,9 @@ export function Pin({ post }: PinProps) {
               )}
             </div>
 
-            <div className="bg-white rounded-b-xl p-4">
+            <div className="bg-white dark:bg-[#211F21] rounded-b-xl p-4 z-30">
 
-              <h3 className="mb-2 text-lg font-semibold text-black line-clamp-2">
+              <h3 className="mb-2 text-lg font-semibold text-black dark:text-white line-clamp-2">
                 {truncateText(post.title)}
               </h3>
               <div className="flex flex-col items-center justify-between text-white">

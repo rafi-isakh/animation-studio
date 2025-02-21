@@ -61,21 +61,3 @@ export default function ToonyzPosts() {
         </div>
     )
 }
-
-
-// <style>{`
-//     .my-masonry-grid {
-//         display: flex;
-//         margin-left: -30px;  /* gutter size offset */
-//         width: auto;
-//     }
-//     .my-masonry-grid_column {
-//         padding-left: 30px; /* gutter size */
-//         background-clip: padding-box;
-//     }
-
-//     /* Optional: Add vertical gap between items */
-//     .my-masonry-grid_column > div {
-//         margin-bottom: 16px; /* Adjust this value to control vertical spacing */
-//     }
-//   `}</style>

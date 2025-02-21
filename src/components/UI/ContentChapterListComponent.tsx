@@ -227,7 +227,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                         {phrase(dictionary, "authorWorkList", language)}
                                     </h1>
                                     <hr />
-                                    <div className="relative flex flex-col w-full overflow-hidden">
+                                    <div className="relative flex flex-col w-full overflow-hidden no-scrollbar">
                                         <AuthorWorkListComponent
                                             webnovels={relatedContent as Webnovel[]}
                                             nickname={content.user.nickname}
@@ -274,6 +274,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <p className="text-gray-500 text-sm">
                                         {phrase(dictionary, "noComments", language)}
                                     </p>
+                                    <div className="h-[10vh]" />
                                 </div>
                             )}
                         </div>

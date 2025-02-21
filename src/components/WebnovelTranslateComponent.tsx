@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Box, Skeleton } from '@mui/material';
 import { marked } from 'marked';
+import { useTheme } from '@/contexts/providers';
 
 interface WordToken {
     word: string;
@@ -35,6 +36,7 @@ const WebnovelTranslateComponent = (
     const [secondPageWords, setSecondPageWords] = useState("")
     const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
+    const { theme } = useTheme();
     const { fontSize,
         fontFamily = 'default',
         lineHeight,
@@ -251,10 +253,10 @@ const WebnovelTranslateComponent = (
     return (
         <div
             style={paragraphStyle}
-            className={`relative mb-16 
+            className={`relative mb-16
                        ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
-               {text &&
-                <>
+                    {text &&
+                     <>
                     {scrollType === 'vertical' &&
                         <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
@@ -311,36 +313,27 @@ const WebnovelTranslateComponent = (
                                 </div>
                             </div>
                         </div>
-                    }
-                </>
+                        }
+                     </>
             }
             {!text &&
                 <Box sx={{ width: '100%' }}>
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
-                    <Skeleton />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
                 </Box>
             }
         </div >

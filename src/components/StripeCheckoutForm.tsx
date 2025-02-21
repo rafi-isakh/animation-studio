@@ -5,12 +5,11 @@ import {
     useElements
 } from "@stripe/react-stripe-js";
 import { StripePaymentElementOptions } from "@stripe/stripe-js";
-import "@/styles/stripe.css";
+import styles from "@/styles/stripe.module.css";
 
 export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: string }) {
     const stripe = useStripe();
     const elements = useElements();
-
 
     const [message, setMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -53,11 +52,10 @@ export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: strin
     };
 
     return (
-        <>
-            <form id="payment-form" onSubmit={handleSubmit}>
-
+        <div className={`${styles.stripeContainer} space-y-4`}>
+            <form id="payment-form" onSubmit={handleSubmit} className={styles.stripeForm}>
                 <PaymentElement id="payment-element" options={paymentElementOptions as StripePaymentElementOptions} />
-                <button className="stripe-button" disabled={isLoading || !stripe || !elements} id="submit">
+                <button className={styles.stripeButton} disabled={isLoading || !stripe || !elements} id="submit">
                     <span id="button-text">
                         {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
                     </span>
@@ -65,6 +63,6 @@ export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: strin
                 {/* Show any error or success messages */}
                 {message && <div id="payment-message">{message}</div>}
             </form>
-        </>
+        </div>
     );
 }

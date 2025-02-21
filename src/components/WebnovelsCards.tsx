@@ -27,7 +27,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
-            .slice(0, 12)
+            .slice(0, 27)
 
         setWebnovelsToShow(_webnovelsToShow);
         console.log("webnovels cardlist by new", _webnovelsToShow);
@@ -40,8 +40,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     }
 
     return (
-        <div className='relative w-full md:max-w-screen-lg mx-auto group font-pretendard'>
-            <h1 className="flex flex-row justify-between text-xl font-extrabold">
+        <div className='relative md:max-w-screen-xl group font-pretendard'>
+            <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                 <span className='text-black dark:text-white'>
                     {phrase(dictionary, "recommended", language)}
                 </span>

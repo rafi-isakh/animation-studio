@@ -38,7 +38,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
         setContent(updatedContent);
     };
-    
+
     useEffect(() => {
     }, [language])
 
@@ -125,7 +125,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
 
     if (id === undefined) {
         return (
-            <div className='md:max-w-screen-lg w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]'>
+            <div className='md:max-w-screen-xl w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]'>
                 <div className="flex flex-col justify-center items-center space-y-2">
                     <Image src="/stelli/stelli_4.svg" alt="noWebnovelsFound" width={150} height={100} />
                     <p className="text-md font-bold"> {phrase(dictionary, "noWebnovelsFound", language)} </p>
@@ -142,37 +142,36 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     else {
         if (atLeastOneWebnovel) {
             return (
-                // <ThemeProvider theme={grayTheme}>
-                    <div className='md:max-w-screen-lg mx-auto w-full min-h-screen'>
-                        
-                        <div className="flex md:flex-row flex-col justify-between items-start">
-                            <div className="md:w-1/3 w-full flex-grow-0">
-                            <AuthorAndWebnovelsAsideComponent
-                                webnovel={webnovel!}
-                                nickname={nickname}
-                                coverArt={webnovel?.cover_art || ""}
-                                onNewChapter={handleNewChapter}
-                                onDelete={handleDelete}
-                            />
-                            </div>
-                            <div className='flex-1 md:w-2/3 w-full'>
-                                <ContentChapterListComponent
-                                    content={webnovel as Webnovel}
+                <div className='md:max-w-screen-xl mx-auto w-full min-h-screen'>
+                    <div className="flex md:flex-row flex-col justify-between items-start">
+                        <div className="md:w-1/3 max-auto w-full flex-grow-0">
+                            <div className="md:max-w-[360px] w-full  mx-auto mt-4">
+                                <AuthorAndWebnovelsAsideComponent
+                                    webnovel={webnovel!}
+                                    nickname={nickname}
                                     coverArt={webnovel?.cover_art || ""}
-                                    isWebtoon={false}
-                                    relatedContent={webnovels}
-                                    onContentUpdate={handleContentUpdate}
-                                    loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                                    onNewChapter={handleNewChapter}
+                                    onDelete={handleDelete}
                                 />
                             </div>
                         </div>
+                        <div className='flex-1 md:w-2/3 w-full'>
+                            <ContentChapterListComponent
+                                content={webnovel as Webnovel}
+                                coverArt={webnovel?.cover_art || ""}
+                                isWebtoon={false}
+                                relatedContent={webnovels}
+                                onContentUpdate={handleContentUpdate}
+                                loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                            />
+                        </div>
                     </div>
-                // </ThemeProvider >
+                </div>
             )
         } else {
             return (
                 <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
-                    {phrase(dictionary, "noWebnovelsFound", language)}
+                    <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
                 </div>
             )
         }

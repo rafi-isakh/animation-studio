@@ -21,7 +21,8 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
     const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
 
     return (
-        <div className={`relative md:max-w-screen-lg w-full mx-auto group overflow-hidden ${className}`}>
+        <div className={`relative  w-full mx-auto group overflow-hidden ${className}`}>
+            {/* <div className={`relative md:max-w-screen-lg w-full mx-auto group overflow-hidden ${className}`}> */}
             <div>
                 <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
                     {title}

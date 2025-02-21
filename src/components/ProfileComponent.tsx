@@ -37,7 +37,7 @@ import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
 import ReportButton from '@/components/ReportButton';
 import BlockButton from '@/components/BlockButton';
 import dynamic from 'next/dynamic';
-import animationData from '@/assets/stelli_loader.json';
+import animationData from '@/assets/N_logo_with_heart.json';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
 import ProfileDropdownButton from '@/components/UI/ProfileDropdownButton';
 import SharingModal from '@/components/UI/SharingModal';
@@ -231,7 +231,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
     if (loading) {
         return <div className="loader-container">
-            <LottieLoader animationData={animationData} />
+            <LottieLoader width="w-40" animationData={animationData} />
         </div>
     }
 
@@ -240,8 +240,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     }
 
     return (
-        <div className='max-w-screen-lg mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
+        <div className=' md:max-w-screen-xl w-full mx-auto  p-4 flex flex-col my-auto justify-center items-center'>
             {/*Left component :: Profile picture */}
+            {/*    The side bar width is 72px  md:pl-[72px]  */}
 
             <div className='w-full rounded-md flex md:flex-row flex-col gap-6 justify-center items-center order-1 mb-10 md:mb-0 relative'>
 

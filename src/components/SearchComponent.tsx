@@ -1,26 +1,48 @@
 "use client"
-import { SetStateAction, Dispatch, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Webnovel } from "@/components/Types";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
-import { X, Search } from "lucide-react";
+import { X, Search, MoveLeft } from "lucide-react";
 import { useSearch } from "@/contexts/SearchContext";
+import Link from "next/link";
+import { Drawer, Box } from "@mui/material";
+import { useTheme } from '@/contexts/providers'
+import WebnovelsList from "@/components/WebnovelsList";
+import CircularProgress from '@mui/material/CircularProgress';
 
-export default function SearchComponent({ mode,
+
+function GradientCircularProgress() {
+    return (
+        <>
+            <svg width={0} height={0}>
+                <defs>
+                    <linearGradient id="my_gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#e01cd5" />
+                        <stop offset="100%" stopColor="#1CB5E0" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <CircularProgress sx={{ 'svg circle': { stroke: 'url(#my_gradient)' } }} />
+        </>
+    );
+}
+
+export default function SearchComponent({
+    mode,
     recentQueriesFetched,
     lastIndexFetched,
     setIsMobileMenuOpen,
-    setOpen
 }: {
     mode: "mobileHeader" | "header" | "page",
     recentQueriesFetched?: string[],
     lastIndexFetched?: number,
     setIsMobileMenuOpen?: (isOpen: boolean) => void,
-    setOpen?: (isOpen: boolean) => void,
 }) {
-    const {query, setQuery, recentQueries, setRecentQueries, lastIndex, setLastIndex} = useSearch();
+    const { query, setQuery, recentQueries, setRecentQueries, lastIndex, setLastIndex } = useSearch();
     const [searchRemember, setSearchRemember] = useState(true);
     const [triggerSearch, setTriggerSearch] = useState(false);
     const router = useRouter();
@@ -29,6 +51,34 @@ export default function SearchComponent({ mode,
     const { isLoggedIn } = useAuth();
     const [deletingQuery, setDeletingQuery] = useState(false);
     const queriesToShow = 6;
+    const { theme } = useTheme();
+    const inputRef = useRef<HTMLInputElement>(null)
+    const [open, setOpen] = useState(false);
+    const searchParams = useSearchParams();
+    const searchParamsObject = Object.fromEntries(searchParams.entries());
+    const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAllWebnovels = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('/api/get_webnovels_metadata');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch webnovels');
+                }
+                const data = await response.json();
+                setAllWebnovels(data);
+            } catch (error) {
+                console.error('Error fetching webnovels:', error);
+                setAllWebnovels([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAllWebnovels();
+    }, []);
 
     useEffect(() => {
         if (triggerSearch) {
@@ -42,9 +92,7 @@ export default function SearchComponent({ mode,
     }
 
     const handleSearch = (event?: React.FormEvent<HTMLFormElement>) => {
-        if (event) {
-            event.preventDefault();
-        }
+        event?.preventDefault();
         if (setIsMobileMenuOpen) {
             setIsMobileMenuOpen(false);
         }
@@ -85,126 +133,218 @@ export default function SearchComponent({ mode,
     const toggleSearchRemember = () => {
         setSearchRemember(prev => !prev)
     }
+
+    const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+        if (event.type === 'keydown' && ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')) {
+            return;
+        }
+        setOpen(open);
+    };
+
+    const renderSearchInput = () => (
+        <div className="relative max-w-screen-xl flex-1 h-12 mx-auto">
+            <Search
+                size={20}
+                className="dark:text-white text-black absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-50"
+            />
+            <input
+                ref={inputRef}
+                type="text"
+                id="search-navbar"
+                value={query}
+                onChange={handleChange}
+                placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                className="w-full h-full p-2 pl-10 text-sm border-0 
+                        text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                        focus:ring-0 rounded-xl
+                        focus:border-[#DB2777]
+                        focus:outline-2 focus:outline-offset-2
+                        focus:outline-[#DB2777]
+                    "
+            />
+            <div className="absolute top-3 right-3 flex items-center justify-center pointer-cursor">
+                <Link href="#"
+                    onClick={() => {
+                        setQuery('')
+                        if (setOpen) {
+                            setOpen(false)
+                        }
+                    }}>
+                    <X size={25} className='dark:text-white text-white bg-[#211F21] dark:bg-black rounded-full p-1 font-extrabold' />
+                </Link>
+            </div>
+        </div>
+    )
+
+
     return (
-        <div>
+        <div className="relative w-full overflow-hidden">
             <form onSubmit={handleSearch}>
                 {
                     mode === "mobileHeader" &&
-                    <input
-                        type="text"
-                        id="search-navbar"
-                        value={query}
-                        onChange={handleChange}
-                        className="block w-full p-2 ps-10 text-sm text-black border border-black rounded-md dark:bg-black dark:text-white focus:ring-[#DB2777] focus:border-[#DB2777] dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#DB2777] dark:focus:border-[#DB2777]"
-                    />
+                    <div className="relative m-3 mt-5 h-12">
+                        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <Search size={20} className='dark:text-white text-gray-500 z-50' />
+                        </div>
+                        <input
+                            type="text"
+                            id="search-navbar"
+                            value={query}
+                            onChange={handleChange}
+                            placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                            className="w-full h-full p-2 pl-10 text-sm border-0 
+                                text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                focus:ring-0 rounded-lg
+                                focus:border-[#DB2777]
+                                focus:outline-2 focus:outline-offset-2
+                                focus:outline-[#DB2777]
+                            "
+                        />
+                    </div>
                 }
                 {
                     mode === "header" &&
                     <>
-                        <div className='flex flex-col items-center justify-center max-w-screen-lg mx-auto'>
-
-                            <div className="relative w-full">
-                                <div className="absolute top-2 left-3 flex items-center justify-center pointer-events-none">
-                                    <Search size={20} className='dark:text-white text-black' />
+                        <div className='relative flex flex-col items-center justify-center w-full mx-auto'>
+                            <div className="w-full mx-auto h-12">
+                                <div className="flex flex-row items-center justify-center p-1">
+                                    <div className="absolute top-3 left-4 flex items-center justify-center pointer-events-none">
+                                        <Search size={20} className='dark:text-white text-black' />
+                                    </div>
+                                    <input
+                                        onClick={toggleDrawer(true)}
+                                        type="text"
+                                        id="search-navbar"
+                                        value={query}
+                                        onChange={handleChange}
+                                        placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                                        className="w-full h-full p-2 pl-10 text-sm border-0 
+                                                    text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                                    focus:ring-0 rounded-xl 
+                                                    focus:border-[#DB2777]
+                                                    focus:outline-2 focus:outline-offset-2
+                                                    focus:outline-[#DB2777] active:bg-transparent
+                                                    "
+                                    />
                                 </div>
+                                <Drawer
+                                    anchor="top"
+                                    open={open}
+                                    onClose={toggleDrawer(false)}
+                                    transitionDuration={0}
+                                    ModalProps={{
+                                        keepMounted: true,
 
-                                <input
-                                    type="text"
-                                    id="search-navbar"
-                                    value={query}
-                                    onChange={handleChange}
-                                    placeholder={phrase(dictionary, "searchPlaceholder", language)}
-                                    className="w-full p-2 pl-10 text-sm border-0 
-                                            text-black border-b-4 border-b-black focus:outline-none focus:ring-0
-                                            focus:border-b-[#DB2777]"
-                                        />
-                                    </div>
-
-
-                            <div className="flex flex-col w-full py-3">
-                                <div>
-                                    <div className='text-gray-500 text-md flex items-center justify-between'>
-
-                                        <p className='text-gray-500 text-md pt-3'> {phrase(dictionary, "recentSearch", language)} </p>
-                                        <a href="#">
-                                            <span className='text-gray-300 text-[10px] text-right self-end' onClick={() => toggleSearchRemember()}>
-
-                                                {searchRemember ? phrase(dictionary, "searchTurnOff", language)
-                                                    : phrase(dictionary, "searchTurnOn", language)}
-                                            </span>
-                                        </a>
-                                    </div>
-
-                                    <div className='w-full h-[100px]'>
-                                        {recentQueries.length > 0 ?
-                                            recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
-                                                <div key={index} onClick={() => {setQuery(query); setTriggerSearch(true)}} className='inline-flex gap-2 mt-3'>
-                                                    <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-white'>
-                                                        {query}
-                                                    </p>
-                                                    <p className='relative right-7 top-2 !cursor-pointer text-white'>
-                                                        <X onClick={(event) => handleDeleteRecentQuery(event, index)} size={10} />
-                                                    </p>
-                                                </div>
-                                            )) :
-                                            <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
-
-                                                {phrase(dictionary, "noRecentSearch", language)}
-                                            </p>
+                                    }}
+                                    PaperProps={{
+                                        sx: {
+                                            boxShadow: 'none',
+                                            borderBottomLeftRadius: '15px',
+                                            borderBottomRightRadius: '15px',
+                                            backgroundColor: theme === 'dark' ? '#1A1A1A' : 'white',
+                                            height: {
+                                                md: '60%'     // Desktop height
+                                            },
+                                            width: {
+                                                md: '60%'     // 60% width on desktop
+                                            },
+                                            margin: 'auto',   // Center the drawer
                                         }
-                                    </div>
+                                    }}
+                                    className="relative w-full no-scrollbar"
+                                >
+                                    <Box sx={{ p: 1, mt: 1 }}>
+                                        <form onSubmit={handleSearch}>
+                                            {renderSearchInput()}
+                                        </form>
+                                        <div className="flex flex-col md:max-w-screen-xl w-full mx-auto">
+                                            <div>
+                                                <div className='text-gray-500 text-md flex items-center justify-between'>
 
-                                </div>
+                                                    <p className='text-gray-500 text-md pt-3'> {phrase(dictionary, "recentSearch", language)} </p>
+                                                    <a href="#">
+                                                        <span className='text-gray-300 text-[10px] text-right self-end' onClick={() => toggleSearchRemember()}>
+                                                            {searchRemember ? phrase(dictionary, "searchTurnOff", language)
+                                                                : phrase(dictionary, "searchTurnOn", language)}
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                                <div className='w-full h-[100px]'>
+                                                    {recentQueries.length > 0 ?
+                                                        recentQueries.slice(0, queriesToShow).map((query: string, index: number) => (
+                                                            <div key={index} onClick={() => { setQuery(query); setTriggerSearch(true) }} className='inline-flex gap-2 mt-3'>
+                                                                <p className='border border-gray-400 rounded-xl px-6 !cursor-pointer text-black dark:text-white'>
+                                                                    {query}
+                                                                </p>
+                                                                <p className='relative right-7 top-2 !cursor-pointer text-black dark:text-white'>
+                                                                    <X onClick={(event) => handleDeleteRecentQuery(event, index)} size={10} />
+                                                                </p>
+                                                            </div>
+                                                        )) :
+                                                        <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
 
-                                {/* <div className='h-[100px]'>
-                                    <p className='text-gray-500 text-md'>
-
-                                        {phrase(dictionary, "genresAndKeyword", language)}
-                                    </p>
-
-                                    <p className='text-gray-500 text-sm mt-5 mb-3 text-center'>
-                                        <KeywordsComponent />
-                                    </p>
-
-                                </div> */}
-
+                                                            {phrase(dictionary, "noRecentSearch", language)}
+                                                        </p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* webnovel list here */}
+                                        {loading ? (
+                                            <div className="flex justify-center items-center">
+                                                <GradientCircularProgress />
+                                            </div>
+                                        ) : (
+                                            <div
+                                                onClick={toggleDrawer(false)}
+                                                className='flex md:max-w-screen-xl w-full mx-auto'>
+                                                {allWebnovels && (
+                                                    <WebnovelsList
+                                                        webnovels={allWebnovels}
+                                                        searchParams={searchParamsObject}
+                                                        sortBy='views'
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
+                                    </Box>
+                                </Drawer>
                             </div>
-
                         </div>
                     </>
                 }
                 {
                     mode === "page" &&
                     <>
-                        <div className="relative w-full md:px-0 px-4">
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none md:px-0 px-4">
-                                <svg
-                                    className="w-4 h-4 text-black dark:text-black"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                        <div className="relative md:max-w-screen-xl w-full my-4 md:px-4 px-4 overflow-hidden no-scrollbar">
+                            {/* my-4 md:px-2 px-4 for the margin top and padding of the search bar */}
+                            <div className="flex flex-row justify-center items-center min-h-[80px]">
+                                <div className="self-center mr-5">
+                                    <Link href="/">
+                                        <MoveLeft size={20} className='dark:text-white text-black' />
+                                    </Link>
+                                </div>
+                                <div className="relative flex-1 h-12">
+                                    <Search
+                                        size={20}
+                                        className='dark:text-white text-black absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-50'
                                     />
-                                </svg>
+                                    <input
+                                        type="text"
+                                        id="search-navbar"
+                                        value={query}
+                                        onChange={handleChange}
+                                        placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
+                                        className="w-full h-full p-2 pl-10 text-sm border-0 
+                                            text-black bg-gray-200 dark:bg-[#211F21] dark:text-white
+                                            focus:ring-0 rounded-lg
+                                            focus:border-[#DB2777]
+                                            focus:outline-2 focus:outline-offset-2
+                                            focus:outline-[#DB2777]
+                                        "
+                                    />
+                                </div>
                             </div>
-                            <input
-                                type="text"
-                                id="search-navbar"
-                                value={query}
-                                onChange={handleChange}
-                                placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
-                                className="w-full p-2 pl-10 text-sm border-0 
-                                    text-black border-b-4 border-b-black 
-                                    focus:outline-none focus:ring-0
-                                     focus:border-b-[#DB2777]"
-                            />
                         </div>
                     </>
                 }

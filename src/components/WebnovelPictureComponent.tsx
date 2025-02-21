@@ -118,4 +118,3 @@ const WebnovelPictureComponent = React.memo(
 
 WebnovelPictureComponent.displayName = "WebnovelPictureComponent"
 export default WebnovelPictureComponent
-

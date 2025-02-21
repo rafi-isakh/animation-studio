@@ -16,8 +16,8 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
     const imageSrc = getImageUrl(webnovel.cover_art)
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`} className="block w-full">
-            <div className="relative w-full aspect-[180/257] overflow-hidden rounded-xl">
+        <Link href={`/view_webnovels?id=${webnovel.id}`} className="relative w-full">
+            <div className="relative aspect-[180/257] overflow-hidden rounded-xl">
                 {/* Image Container */}
                 <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-110">
                     <Image
@@ -30,7 +30,6 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                     />
-
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-10 transition-opacity duration-300 ease-in-out hover:bg-opacity-50">
 

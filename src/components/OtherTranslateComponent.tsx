@@ -5,7 +5,7 @@ import { ElementType, ElementSubtype, Language } from '@/components/Types';
 import { CircularProgress, Skeleton } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 import { marked } from 'marked';
-
+import { useTheme } from '@/contexts/providers';
 const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
     { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
     const [text, setText] = useState(incomingText);
@@ -20,6 +20,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
     const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [markedText, setMarkedText] = useState("");
+    const { theme } = useTheme();
 
     useEffect(() => {
         if (contentRef.current) {
@@ -112,7 +113,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             }
         }
         initiate();
-    }, [language, elementType, elementId, elementSubtype]);
+    }, [language]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);
@@ -188,7 +189,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             {
                 loading && showLoading ?
                     (
-                        <Skeleton variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                        <Skeleton  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
                     ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
             }
         </div>

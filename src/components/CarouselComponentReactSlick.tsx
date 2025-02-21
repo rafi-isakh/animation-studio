@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from "lucide-react"
-
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 interface PaddingConfig {
     desktop?: string;
     mobile?: string;
@@ -37,6 +37,7 @@ const CarouselComponentReactSlick = ({
     const [nextIndex, setNextIndex] = useState(1);
     const isMediumScreen = useMediaQuery('(min-width:768px)')
     const { language, dictionary } = useLanguage();
+    const {webnovels } = useWebnovels();
 
     const getCenterPadding = (padding?: string | PaddingConfig) => {
         if (typeof window === 'undefined') return '0px';
@@ -95,7 +96,7 @@ const CarouselComponentReactSlick = ({
     }
 
     function getGenre(index: number) {
-        return [items[index].webnovel.genre]
+        return [webnovels.find((novel: Webnovel) => novel.id == items[index].webnovel_id)?.genre || '']
     }
 
     function breakKeepOrNot() {
@@ -177,7 +178,7 @@ const CarouselComponentReactSlick = ({
     };
 
     return (
-        <div className={`slider-container max-w-screen-lg items-center mx-auto w-full group`}>
+        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
             <div className='flex flex-col relative '>
                 <Slider {...settings}>
                     {items.map((item, index) => (
@@ -185,7 +186,7 @@ const CarouselComponentReactSlick = ({
                             <div className="relative h-[380px]">
                                 {/*  */}
                                 <Link href={getHref(item.webnovel_id)}>
-                                    <div className="slide-content w-96 h-64 md:max-w-screen-lg md:h-[400px]">
+                                    <div className="slide-content w-96 h-64 md:max-w-screen-xl md:h-[400px]">
                                         {/* max-w-screen-lg */}
                                         <Image
                                             className="object-cover object-center transition-all duration-300 rounded-xl"

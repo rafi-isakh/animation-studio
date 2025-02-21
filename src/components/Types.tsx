@@ -2,6 +2,8 @@ export interface WebnovelIdProps {
     webnovelId: number;
 }
 
+export type ImageOrVideo = 'image' | 'video'
+
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
 export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter'
@@ -145,4 +147,21 @@ export interface CurriculumContent {
   file_src_en: string;
   file_src_jp: string; 
   video: JSX.Element;
+}
+
+export interface ToonyzPost {
+  id: number;
+  user: User;
+  title: string;
+  content: string;
+  image?: string;
+  video?: string;
+  upvotes: number;
+  comments: Comment[];
+  tags: string;
+  webnovel_id: string;
+  chapter_id: string;
+  created_at: Date;
+  views: number;
+  quote?: string;
 }

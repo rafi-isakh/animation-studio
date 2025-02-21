@@ -14,7 +14,7 @@ import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
   });
-import animationData from '@/assets/stelli_loader.json';
+import animationData from '@/assets/N_logo_with_heart.json';
 
 export default function PicturesStudioPage() {
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -84,7 +84,14 @@ export default function PicturesStudioPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-auto mb-16">
                     {pictures.length > 0 ? (
                         pictures.map((image, index) => (
-                            <GeneratedPicture key={index} index={index} image={image} />
+                            <GeneratedPicture 
+                                key={index} 
+                                index={index} 
+                                image={image} 
+                                webnovel_id="0" 
+                                chapter_id="0"
+                                quote={prompt}
+                            />
                         ))
                     ) : (
                         <div className="col-span-full flex justify-center items-center h-full p-2">
@@ -117,7 +124,7 @@ export default function PicturesStudioPage() {
 
             {isGeneratingPictures &&  <LottieLoader 
                 animationData={animationData}
-                width="w-32" 
+                width="w-40" 
                 className=""
                 />
             }

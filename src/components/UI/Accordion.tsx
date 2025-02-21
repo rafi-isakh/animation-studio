@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 
 interface AccordionData {
     title: string;
-    subtitle: string;
+    subtitle: string | JSX.Element | JSX.Element[]; // Updated to allow array of elements
     title_ko?: string;
     subtitle_ko?: string;
 }
@@ -24,7 +24,7 @@ const AccordionItem = ({
     subtitleClassName
 }: {
     title: string;
-    subtitle: string;
+    subtitle: string | JSX.Element | JSX.Element[];
     isOpen: boolean;
     onClick: () => void;
     titleClassName?: string;
@@ -32,12 +32,12 @@ const AccordionItem = ({
 }) => {
     const contentHeight = useRef<HTMLDivElement>(null);
     return (
-        <div className="overflow-hidden border-b border-gray-200">
+        <div className="overflow-hidden border-b border-gray-200 last:border-b-0">
             <button
                 className={`flex flex-row justify-between items-center w-full px-4 py-2 ${isOpen ? "active" : ""} ${titleClassName}`}
                 onClick={onClick}
             >
-                <div className="flex-1 text-left py-2">
+                <div className="flex-1 text-left">
                     <p className="question-content">
                         {title}
                     </p>
@@ -56,7 +56,7 @@ const AccordionItem = ({
                         : { height: "0px" }
                 }
             >
-                <p className="answer-content px-4 py-4">{subtitle}</p>
+                <p className="answer-content px-4 py-4 whitespace-pre-line">{subtitle}</p>
             </div>
         </div>
     );

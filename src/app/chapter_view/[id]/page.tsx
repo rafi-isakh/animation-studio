@@ -20,7 +20,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
 import { useTheme, Theme } from '@/contexts/providers'
-import { useReaderTheme } from '@/contexts/ReaderThemeContext'
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
 
@@ -31,7 +30,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 
 // Import the animation data
-import animationData from '@/assets/stelli_loader.json';
+import animationData from '@/assets/N_logo_with_heart.json';
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
@@ -69,7 +68,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { readerTheme, toggleReaderTheme } = useReaderTheme()
     const { purchased_webnovel_chapters, checking } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
     const { chaptersLikelyNeededWebnovel } = useWebnovels();
@@ -235,7 +233,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             <div>
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 <div
-                    className={`${readerTheme} relative`}
+                    className={`${theme} relative`}
                     style={{
                         ...readerStyle,
                     }}
@@ -290,7 +288,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu >
+                                    <FloatingMenu webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
@@ -299,7 +297,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
                         {/* Title and content : end */}
                     </div>
-                    <div className="relative z-50">
+                    <div className="relative ">
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
@@ -331,13 +329,14 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     </div>
                 </div>
                 <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
+                <div className="md:h-[10vh] h-[10vh]"></div>
             </div>
         )
     }
     else {
         return (
             <div className="loader-container">
-                <LottieLoader width="w-32" animationData={animationData} />
+                <LottieLoader width="w-40" animationData={animationData} />
             </div>
         )
     }

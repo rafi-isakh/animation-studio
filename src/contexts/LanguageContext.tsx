@@ -41,11 +41,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const setLanguageOverride = (language: Language) => {
     setLanguage(language);
-    localStorage.setItem('language-override', language);
+    localStorage.setItem('language_override', language);
   }
 
   const clearLanguageOverride = () => {
-    localStorage.removeItem('language-override');
+    localStorage.removeItem('language_override');
   }
 
 return (

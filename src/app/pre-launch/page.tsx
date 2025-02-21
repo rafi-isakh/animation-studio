@@ -14,7 +14,7 @@ export default function Home() {
           Get ready for something amazing! 
           We&apos;re working hard to bring you the best experience possible.
         </p>
-        <CountdownTimer targetDate="2025-04-31T23:59:59" />
+        <CountdownTimer targetDate="2025-04-30T23:59:59" />
         {/* <EmailSignup /> */}
       </div>
     </main>

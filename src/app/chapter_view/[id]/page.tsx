@@ -8,9 +8,10 @@ import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { Button, Modal, Box, dividerClasses, Skeleton } from "@mui/material";
+import { Button } from "@/components/shadcnUI/Button";
+import { Modal, Box, dividerClasses, Skeleton } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronRight, ChevronLeft } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Trash2 } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -74,8 +75,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                  fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
@@ -230,7 +231,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     if (webnovel && chapter) {
         return (
-            <div>
+            <div className="relative">
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 <div
                     className={`${theme} relative`}
@@ -238,14 +239,20 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         ...readerStyle,
                     }}
                 >
-                    <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto z-10`}>
-                        {/* Back to novel and like button */}
-                        <div className="flex flex-row max-w-full w-full justify-between">
-                            <Button color='gray' variant='text' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
-                                <div className="flex flex-row space-x-1 items-center">
-                                    <ChevronLeft size={18} className="" />
-                                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
 
+                        {/* Top bar: Back to novel and like button */}
+                        <div
+                            className="flex flex-row w-full mx-auto justify-between select-none sticky top-0 bg-background z-50 border-b"
+                            style={{
+                                backdropFilter: 'blur(10px)', // Optional: for glass effect
+                                WebkitBackdropFilter: 'blur(10px)', // For Safari
+                            }}
+                        >
+                            <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
+                                <div className="flex flex-row space-x-1 items-center">
+                                    <ChevronLeft size={18} />
+                                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
                                 </div>
                             </Button>
 
@@ -262,42 +269,41 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     }
                                     <p className='ml-2 w-6 self-center' style={{ fontSize: '16px' }}>{upvotes}</p>
                                 </Link>
+                                {/* Delete button */}
                                 {isAuthor && <Button
                                     color='gray'
-                                    variant='text'
+                                    variant='ghost'
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowDeleteModal(true);
                                         setDeleteChapterId(chapter.id);
                                         //    handleChapterDelete(Number(id))
                                     }}>
-                                    <i className="fas fa-ellipsis-v self-center mr-3 text-gray-400"></i> <span className="text-sm self-center">
-                                        {/* Delete */}
+                                    <Trash2 size={18} className="mr-2 text-gray-500" />
+                                    <span className="text-sm self-center">
                                         {phrase(dictionary, "delete", language)}
                                     </span>
                                 </Button>
                                 }
-
                             </div>
                         </div>
                         {/* Title and content */}
-
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
-                                <div className='flex justify-between'>
+                                <div className='flex justify-between px-4'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
+                                <div ref={webnovelViewRef} id="translated" >
+                                    {/* className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}  */}
                                     <FloatingMenu webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
                             </div>
                         </div>
-
                         {/* Title and content : end */}
                     </div>
-                    <div className="relative ">
+                    <div className="relative">
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
@@ -306,8 +312,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         <Box sx={useModalStyle}>
                             <div className='flex flex-col space-y-4 items-center justify-cente'>
                                 <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32 text-black dark:text-black' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32 text-black dark:text-black' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-black' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
+                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-black' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                             </div>
                         </Box>
                     </Modal>

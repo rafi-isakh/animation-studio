@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
-import { Box, Button, Modal, Skeleton, Typography, SwipeableDrawer, Link, Alert } from '@mui/material';
+import { Box, Modal, Skeleton, Typography, SwipeableDrawer, Link, Alert } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import CloseIcon from '@mui/icons-material/Close';
@@ -68,9 +68,6 @@ export function TransitionAlerts({ dictionary, language }: { dictionary: any; la
     );
 }
 
-
-
-
 interface FloatingMenuNavItem {
     icon: React.ReactNode;
     label: string;
@@ -88,9 +85,15 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
 const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
 
     return (
-        <div className="relative max-w-[200px] mx-auto z-150">
-            {/* Style 1: Hover with background */}
-            <div className="px-2 bg-white shadow-lg rounded-2xl mb-5">
+        <div className="relative max-w-[250px] mx-auto z-150">
+            {/* Bubble with arrow */}
+            <div className="px-2 bg-white shadow-lg rounded-2xl mb-5 relative">
+                {/* Arrow */}
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0 h-0 
+                    border-l-[10px] border-l-transparent
+                    border-b-[10px] border-b-white
+                    border-r-[10px] border-r-transparent">
+                </div>
                 <div className="flex">
                     {FloatingMenuNavItems.map((item) => (
                         <div key={item.label} className="flex-auto hover:w-full group">
@@ -251,17 +254,12 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                 <div
                     className="absolute z-10 w-30"
                     style={{
-                        top: `${position.y}px`,
-                        left: `${position.x}px`,
+                        top: `${position.y + position.height + 30}px`,
+                        left: `${position.x - 30}px`,
                     }}
                     onClick={handleClose}
                 >
-                {/* 
-                ${readerTheme === 'light' && theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                ${readerTheme === 'dark' && theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'dark:bg-[#211F21] bg-[#211F21]'} 
-                ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
-               background-color: ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
-                */}
+            
                     <style jsx global>{`
                         ::selection {
                              @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}

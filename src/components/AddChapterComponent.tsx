@@ -35,6 +35,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const { invalidateCache } = useWebnovels();
+    const clicked = useRef(false);
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -72,11 +73,11 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
         const formData = new FormData();
-        
+
         // Get plain text from title editor
         const titleEditor = titleRef.current?.getEditor();
         const titleText = titleEditor?.getText().trim() || "";
-        
+
         // Get plain text from content editor
         const contentEditor = contentRef.current?.getEditor();
         const contentText = contentEditor?.getText().trim() || "";
@@ -90,13 +91,19 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
 
         formData.append('webnovel_id', webnovelId);
         if (!maxExceeded) {
-            const res = await fetch('/api/add_chapter', {
-                method: 'POST',
-                body: formData,
-            });
-            invalidateCache();
-            router.push(`/view_webnovels?id=${webnovelId}`)
-            router.refresh();
+            let resPromise;
+            if (!clicked.current) {
+                resPromise = fetch('/api/add_chapter', {
+                    method: 'POST',
+                    body: formData,
+                });
+                clicked.current = true;
+            }
+            Promise.resolve(resPromise).then(() => {
+                invalidateCache();
+                router.push(`/view_webnovels?id=${webnovelId}`)
+                router.refresh();
+            })
         }
     };
 
@@ -115,29 +122,29 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                 <div className='flex flex-row justify-between'>
                     <h1 className='text-2xl font-bold mb-10'>{phrase(dictionary, "addChapter", language)}</h1>
                     <div>
-                        <Button color="gray" className='text-sm text-gray-400 px-0 py-0' onClick={() => setOpenModal(true)}> 
+                        <Button color="gray" className='text-sm text-gray-400 px-0 py-0' onClick={() => setOpenModal(true)}>
                             {/* 임시 저장글  */}
                             {phrase(dictionary, "draft", language)}
                         </Button>
                     </div>
                 </div>
-                    <ThemeProvider theme={grayTheme}>
-                        <div className="mr-4 flex flex-col space-y-4 w-full">
+                <ThemeProvider theme={grayTheme}>
+                    <div className="mr-4 flex flex-col space-y-4 w-full">
                         <div className='flex flex-col space-y-4 items-start'>
                             <p className='text-2xl font-bold'> {webnovel?.title} </p>
                             {/* <p className='text-sm'> {webnovel?.description} </p> */}
                             <p className='text-sm'>
-                                 {/* 총 .. 화 : total */}
-                                 {phrase(dictionary, "total", language)}
-                                 {' '}{webnovel?.chapters.length} 
-                                 {language == 'ko' ? <>{' '}화</> : <></>}
-                                 </p>
+                                {/* 총 .. 화 : total */}
+                                {phrase(dictionary, "total", language)}
+                                {' '}{webnovel?.chapters.length}
+                                {language == 'ko' ? <>{' '}화</> : <></>}
+                            </p>
                         </div>
-                            <hr />
+                        <hr />
                         <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
                             <ReactQuill ref={titleRef} theme="bubble" value={title} onChange={setTitle} className="title-editor" />
                         </div>
-                       
+
                         <div className="flex flex-col space-y-4">
                             <div className="flex flex-row justify-between">
                                 <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
@@ -149,17 +156,17 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
 
                             <div className='flex flex-row justify-end gap-4 items-end'>
                                 <Button
-                                 type="submit" 
-                                 variant="outlined" 
-                                 color="gray"
-                                 className='whitespace-nowrap hover:border-black hover:bg-black hover:text-white mb-10'
-                                 >{phrase(dictionary, "save", language)}</Button>
+                                    type="submit"
+                                    variant="outlined"
+                                    color="gray"
+                                    className='whitespace-nowrap hover:border-black hover:bg-black hover:text-white mb-10'
+                                >{phrase(dictionary, "save", language)}</Button>
                                 <Button
-                                 type="submit" 
-                                 variant="outlined" 
-                                 color="gray"
-                                 className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white mb-10'
-                                 >{phrase(dictionary, "publish", language)}</Button>
+                                    type="submit"
+                                    variant="outlined"
+                                    color="gray"
+                                    className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white mb-10'
+                                >{phrase(dictionary, "publish", language)}</Button>
                                 {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}
                             </div>
                         </div>
@@ -172,28 +179,28 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                 <Box sx={useModalStyle}>
                     <Typography className="text-center">
                         <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-                           임시 저장글
+                            임시 저장글
 
 
                         </h3>
                     </Typography>
-                     <hr/>
-                         
-                       <p className='text-center mb-28 mt-28'>   임시 저장글이 없습니다...       </p>          
+                    <hr />
+
+                    <p className='text-center mb-28 mt-28'>   임시 저장글이 없습니다...       </p>
 
 
-                       
-                           <div className="flex justify-center">
-                            <Button 
+
+                    <div className="flex justify-center">
+                        <Button
                             className=' hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white'
-                            color='gray' 
-                            variant='outlined' 
+                            color='gray'
+                            variant='outlined'
                             onClick={() => setOpenModal(false)}>
-                                {phrase(dictionary, "ok", language)}
-                            </Button>             
-                           </div>       
+                            {phrase(dictionary, "ok", language)}
+                        </Button>
+                    </div>
                 </Box>
-              </Modal>
+            </Modal>
         </div>
     )
 }

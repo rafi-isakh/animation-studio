@@ -34,7 +34,6 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
-import StickyHeader from "./header";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();

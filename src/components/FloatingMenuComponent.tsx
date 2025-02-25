@@ -3,9 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
 import { Box, Modal, Skeleton, Typography, SwipeableDrawer, Link, Alert } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
-import CloseIcon from '@mui/icons-material/Close';
 import Tab from '@mui/material/Tab';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
@@ -14,15 +12,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import dynamic from 'next/dynamic';
-import animationData from '@/assets/shinny.json';
-import { X, ArrowRight, Home, WandSparkles, Compass, Clapperboard, Image } from 'lucide-react';
+import { X, ArrowRight, Home, WandSparkles, Compass, Clapperboard, Image, Share2, Sparkles } from 'lucide-react';
 import { Language } from '@/components/Types';
 import { useTheme } from '@/contexts/providers'
+import BlobButton from '@/components/UI/BlobButton';
 
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
+import animationData from '@/assets/shinny.json';
 
 type Position = {
     x: number;
@@ -72,12 +71,14 @@ interface FloatingMenuNavItem {
     icon: React.ReactNode;
     label: string;
     href: string;
+    color: string;
 }
 
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    { icon: <WandSparkles size={18} />, label: 'Home', href: '/' },
-    // { icon: <Image size={18} />, label: 'Explore', href: '/explore' },
-    { icon: <Clapperboard size={18} />, label: 'Search', href: '/search' },
+    { icon: <LottieLoader animationData={animationData} className='w-30 h-30' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black' },
+    { icon: <Image size={30} />, label: 'Explore', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10' },
+    { icon: <Clapperboard size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-green-500/10' },
+    { icon: <Share2 size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10' },
 ];
 
 
@@ -85,24 +86,19 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
 const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
 
     return (
-        <div className="relative max-w-[250px] mx-auto z-150">
-            {/* Bubble with arrow */}
-            <div className="px-2 bg-white shadow-lg rounded-2xl mb-5 relative">
-                {/* Arrow */}
-                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0 h-0 
-                    border-l-[10px] border-l-transparent
-                    border-b-[10px] border-b-white
-                    border-r-[10px] border-r-transparent">
-                </div>
+
+        // <BlobButton text={<div> button</div>} />
+        <div className="relative mx-auto z-150">
+           
+            <div className="rounded-full dark:bg-black/50 backdrop-blur-sm relative">
+              
                 <div className="flex">
                     {FloatingMenuNavItems.map((item) => (
-                        <div key={item.label} className="flex-auto hover:w-full group">
-                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto px-2 py-2 group-hover:w-full text-[#DE2B74]">
-                                <span className="flex flex-row px-1 py-1 group-hover:bg-indigo-100 rounded-full group-hover:flex-grow">
+                        <div key={item.label} className="flex-auto hover:w-full group rounded-full">
+                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto p-1 ">
+                                <span className={`${item.color} backdrop-blur-md flex flex-row px-5 py-5 rounded-full group-hover:text-[#DE2B74] text-black dark:text-white`}>
                                     {item.icon}
-                                    {/* <span className="hidden group-hover:inline-flex justify-center items-center ml-3 pb-1 text-[10px] no-underline">
-                                        {item.label}
-                                    </span> */}
+                                
                                 </span>
                             </Link>
                         </div>

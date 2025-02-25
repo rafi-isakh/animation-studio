@@ -34,6 +34,8 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
+import StickyHeader from "./header";
+
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -51,6 +53,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
+    const [isSticky, setIsSticky] = useState(false);
     const { fontSize,
         fontFamily = 'default',
         lineHeight,
@@ -188,6 +191,26 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setScreenWidth(_screenWidth);
     }, [scrollType])
 
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTrigger = 100;
+
+            if (window.scrollY > scrollTrigger) {
+                setIsSticky(true);
+            } else {
+                setIsSticky(false);
+            }
+        };
+
+        // Add scroll event listener
+        window.addEventListener('scroll', handleScroll);
+
+        // Clean up the event listener on component unmount
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
         const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
@@ -231,8 +254,55 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     if (webnovel && chapter) {
         return (
-            <div className="relative">
+            <div className="">
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
+                {/* Top bar: Back to novel and like button */}
+                <header
+                    className={`
+                        w-full transition-transform duration-300 ease-in bg-white dark:bg-black py-2
+                        ${isSticky ? 'fixed top-0 z-10' : 'relative'}
+                    `}
+                >
+                    <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
+                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
+                            <div className="flex flex-row space-x-1 items-center">
+                                <ChevronLeft size={18} />
+                                <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                            </div>
+                        </Button>
+
+                        <div className="flex flex-row items-center">
+                            <Link
+                                href='#'
+                                className="text-center flex flex-row items-center "
+                            >
+                                {
+                                    likeToggle ?
+                                        <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center" style={{ fontSize: '16px' }}></i>
+                                        :
+                                        <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center" style={{ fontSize: '16px' }}></i>
+                                }
+                                <p className='ml-2 w-6 self-center' style={{ fontSize: '16px' }}>{upvotes}</p>
+                            </Link>
+                            {/* Delete button */}
+                            {isAuthor && <Button
+                                color='gray'
+                                variant='ghost'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowDeleteModal(true);
+                                    setDeleteChapterId(chapter.id);
+                                    //    handleChapterDelete(Number(id))
+                                }}>
+                                <Trash2 size={18} className="mr-2 text-gray-500" />
+                                <span className="text-sm self-center">
+                                    {phrase(dictionary, "delete", language)}
+                                </span>
+                            </Button>
+                            }
+                        </div>
+                    </div>
+                </header>
                 <div
                     className={`${theme} relative`}
                     style={{
@@ -240,53 +310,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     }}
                 >
                     <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
-
-                        {/* Top bar: Back to novel and like button */}
-                        <div
-                            className="flex flex-row w-full mx-auto justify-between select-none sticky top-0 bg-background z-50 border-b"
-                            style={{
-                                backdropFilter: 'blur(10px)', // Optional: for glass effect
-                                WebkitBackdropFilter: 'blur(10px)', // For Safari
-                            }}
-                        >
-                            <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
-                                <div className="flex flex-row space-x-1 items-center">
-                                    <ChevronLeft size={18} />
-                                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
-                                </div>
-                            </Button>
-
-                            <div className="flex flex-row items-center">
-                                <Link
-                                    href=''
-                                    className="text-center flex flex-row items-center "
-                                >
-                                    {
-                                        likeToggle ?
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center" style={{ fontSize: '16px' }}></i>
-                                            :
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center" style={{ fontSize: '16px' }}></i>
-                                    }
-                                    <p className='ml-2 w-6 self-center' style={{ fontSize: '16px' }}>{upvotes}</p>
-                                </Link>
-                                {/* Delete button */}
-                                {isAuthor && <Button
-                                    color='gray'
-                                    variant='ghost'
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowDeleteModal(true);
-                                        setDeleteChapterId(chapter.id);
-                                        //    handleChapterDelete(Number(id))
-                                    }}>
-                                    <Trash2 size={18} className="mr-2 text-gray-500" />
-                                    <span className="text-sm self-center">
-                                        {phrase(dictionary, "delete", language)}
-                                    </span>
-                                </Button>
-                                }
-                            </div>
-                        </div>
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
@@ -336,7 +359,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 </div>
                 <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
-            </div>
+            </div >
         )
     }
     else {

@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useRef } from 'react';
-import { Chapter, Comment } from '@/components/Types'
+import { Chapter, Comment, ToonyzPost } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
@@ -18,7 +18,10 @@ import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 import UpvoteButton from '@/components/UI/UpvotedButton';
 
-const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnabled }: { chapter: Chapter, webnovelOrWebtoon: boolean, addCommentEnabled: boolean }) => {
+const ChapterCommentsComponent = ({ 
+    chapter, 
+    webnovelOrWebtoon, 
+    addCommentEnabled }: { chapter: Chapter, webnovelOrWebtoon: boolean, addCommentEnabled: boolean }) => {
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>(chapter.comments || []);
     const { email, upvotedComments, setUpvotedComments } = useUser();

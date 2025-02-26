@@ -8,6 +8,7 @@ import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucid
 import { IconButton } from "@mui/material";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { CommentList } from "@/components/CommentList";
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
@@ -240,7 +241,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                     <hr className="w-full border-gray-500" />
 
-                    <CommentList content={webnovel} chapter={webnovel.chapters[0]} webnovelOrWebtoon={false} />
+                    <ChapterCommentsComponent chapter={post.chapter} webnovelOrWebtoon={false} addCommentEnabled={true} />
                 </div>
 
             </div>

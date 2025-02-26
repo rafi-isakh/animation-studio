@@ -7,8 +7,18 @@ import { getImageUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
 import { IconButton } from "@mui/material";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import { CommentList } from "@/components/CommentList";
-import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import ToonyzPostCommentWrapper from "@/components/ToonyzPostCommentWrapper";
+import Masonry from 'react-masonry-css';
+import { Pin } from "@/components/UI/Pin";
+
+const breakpointColumnsObj = {
+    default: 5,
+    1280: 4,
+    1024: 3,
+    768: 2,
+    640: 1,
+}
+
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
@@ -31,10 +41,19 @@ const getWebnovelWithContentById = async (id: string) => {
     return data;
 };
 
+function getRandomDimensions() {
+    const widths = [900, 1000, 1200]
+    const heights = [1000, 1200, 1400, 1600]  
+    return {
+        width: widths[Math.floor(Math.random() * widths.length)],
+        height: heights[Math.floor(Math.random() * heights.length)],
+    }
+}
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     // const post = await getPost(params.id);
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
+    const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
     const { getWebnovelById, } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const [showQuote, setShowQuote] = useState(false);
@@ -47,7 +66,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             }
         };
         fetchWebnovel();
-    }, [post?.webnovel_id, getWebnovelById]);
+    }, [post?.webnovel_id]);
 
 
     useEffect(() => {
@@ -62,6 +81,19 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
         fetchPost();
     }, [params.id]);
 
+    useEffect(() => {
+        fetch('/api/get_toonyz_posts')
+        .then(res => res.json())
+        .then(data => {
+            // Add random dimensions to each post
+            const postsWithDimensions = data.map((post: ToonyzPost) => ({
+                ...post,
+                ...getRandomDimensions()
+            }));
+            setAllPosts(postsWithDimensions);
+        });
+    }, []);
+
     const truncateText = (text: string, maxLength: number = 15) => {
         if (text.length <= maxLength) return text;
         return text.slice(0, maxLength) + '...';
@@ -69,8 +101,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
 
     if (!post) {
-        return <div>Post not found</div>
+        return <></>
     }
+
     return (
         <div className="flex flex-col mx-auto w-full min-h-screen">
             {/* header */}
@@ -116,8 +149,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Description Container */}
-            <div className="flex flex-col gap-4 p-5 bg-white dark:bg-[#211F21] sticky bottom-0 z-50">
-                <div className="md:max-w-screen-xl mx-auto w-full flex flex-col items-center gap-y-4">
+            <div className="w-full flex flex-col gap-4 p-5 bg-white dark:bg-[#211F21] sticky bottom-0 z-50">
+                <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5">
                     <div className="relative -top-[3.5rem] flex justify-center ">
                         <Link href={`/view_profile/${post.user.id}`}>
                             {post.user.picture ? (
@@ -186,7 +219,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     {/* quote toggle */}
                     <div className="flex flex-col self-start">
                         <button
-                            onClick={() => setShowQuote(!showQuote)}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowQuote(!showQuote)
+                            }}
                             className="text-sm text-gray-500 flex items-center gap-1"
                         >
                             <span className="transform transition-transform duration-200" style={{
@@ -241,9 +277,20 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                     <hr className="w-full border-gray-500" />
 
-                    <ChapterCommentsComponent chapter={post.chapter} webnovelOrWebtoon={false} addCommentEnabled={true} />
+                    <ToonyzPostCommentWrapper post={post} />
                 </div>
 
+                <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+                    <Masonry
+                        breakpointCols={breakpointColumnsObj}
+                        className="my-masonry-grid flex w-auto -ml-4 gap-5"
+                        columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
+                    >
+                        {allPosts?.map((post: any) => (
+                            <Pin key={post.id} post={post} />
+                        ))}
+                    </Masonry>
+                </div>
             </div>
         </div>
     )

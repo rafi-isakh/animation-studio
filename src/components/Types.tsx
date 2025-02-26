@@ -56,6 +56,7 @@ export interface Comment {
   chapter_id: string;
   replies: Comment[];
   created_at: Date;
+  post_id: number;
 }
 
 export interface SlickCarouselItem {

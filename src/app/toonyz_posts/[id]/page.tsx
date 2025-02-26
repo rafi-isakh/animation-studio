@@ -10,6 +10,7 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import ToonyzPostCommentWrapper from "@/components/ToonyzPostCommentWrapper";
 import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 
 const breakpointColumnsObj = {
     default: 5,
@@ -32,15 +33,6 @@ async function getPost(id: string) {
     return post;
 }
 
-const getWebnovelWithContentById = async (id: string) => {
-    const response = await fetch(`/api/get_webnovel_by_id?id=${id}`)
-    if (!response.ok) {
-        throw new Error("Failed to fetch webnovel")
-    }
-    const data = await response.json();
-    return data;
-};
-
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
     const heights = [1000, 1200, 1400, 1600]  
@@ -54,14 +46,15 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     // const post = await getPost(params.id);
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
-    const { getWebnovelById, } = useWebnovels();
+    const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const [showQuote, setShowQuote] = useState(false);
 
     useEffect(() => {
         const fetchWebnovel = async () => {
             if (post?.webnovel_id) {
-                const novel = await getWebnovelWithContentById(post.webnovel_id);
+                console.log("fetching webnovel", post.webnovel_id);
+                const novel = await getWebnovelById(post.webnovel_id);
                 setWebnovel(novel);
             }
         };
@@ -277,7 +270,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                     <hr className="w-full border-gray-500" />
 
-                    <ToonyzPostCommentWrapper post={post} />
+                    <ChapterCommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
 
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">

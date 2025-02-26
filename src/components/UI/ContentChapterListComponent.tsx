@@ -267,7 +267,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 <CommentList    
                                     content={content}
                                     chapter={content.chapters[0] as Chapter}
-                                    webnovelOrWebtoon={!isWebtoon}
                                 />
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-8">

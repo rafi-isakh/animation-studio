@@ -328,7 +328,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         />
                     </div>
                 </div>
-                <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
+                <ChapterCommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
             </div>
         )

@@ -19,11 +19,11 @@ import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 import UpvoteButton from '@/components/UI/UpvotedButton';
 
 const ChapterCommentsComponent = ({ 
-    chapter, 
-    webnovelOrWebtoon, 
-    addCommentEnabled }: { chapter: Chapter, webnovelOrWebtoon: boolean, addCommentEnabled: boolean }) => {
+    contentToAttachTo, 
+    webnovelOrPost, 
+    addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
     const [commentContent, setCommentContent] = useState('');
-    const [allComments, setAllComments] = useState<Comment[]>(chapter.comments || []);
+    const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);
     const { email, upvotedComments, setUpvotedComments } = useUser();
     const { isLoggedIn } = useAuth();
     const [replyContent, setReplyContent] = useState<string[]>([]);
@@ -58,9 +58,9 @@ const ChapterCommentsComponent = ({
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": chapter?.id,
+                    "chapter_id": contentToAttachTo.id,
                     "replies": [],
-                    "webnovel_or_webtoon": webnovelOrWebtoon
+                    "webnovel_or_post": webnovelOrPost
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -74,12 +74,12 @@ const ChapterCommentsComponent = ({
                     console.error("Error adding comment");
                 }
                 let comments_sans_replies;
-                if (webnovelOrWebtoon) {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapter?.id}`)
+                if (!webnovelOrPost) {
+                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
                 else {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webtoon_comments?chapter_id=${chapter?.id}`)
+                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_post_comments?chapter_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
 
@@ -156,9 +156,9 @@ const ChapterCommentsComponent = ({
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": chapter?.id,
+                    "chapter_id": contentToAttachTo.id,
                     "replies": [],
-                    "webnovel_or_webtoon": webnovelOrWebtoon
+                    "webnovel_or_post": webnovelOrPost
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -273,7 +273,7 @@ const ChapterCommentsComponent = ({
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}
-                        <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
+                        <OtherTranslateComponent content={contentToAttachTo.title} elementId={contentToAttachTo.id.toString()} elementType="chapter" />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
                         <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
                     </div>

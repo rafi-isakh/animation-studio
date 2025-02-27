@@ -113,7 +113,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             }
         }
         initiate();
-    }, [language]);
+    }, [language, content]);
 
     useEffect(() => {
         setChangeCount((prevCount) => prevCount + 1);

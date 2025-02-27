@@ -84,29 +84,23 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
     { icon: <Share2 size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10', type: 'normal' },
 ];
 
-
-
 const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
-
     return (
-       
         <div className="relative mx-auto z-150">
             <style jsx global>{`
                 .lucide {
-                        stroke-width: 1px;
-                    }
-                `}
-            </style>
+                    stroke-width: 1px;
+                }
+            `}</style>
             <div className="rounded-full dark:bg-black/50 backdrop-blur-sm relative">
-
-                <div className="flex">
+                <div className="flex justify-evenly">
                     {FloatingMenuNavItems.map((item) => (
-                        <div key={item.label} className="flex-auto hover:w-full group rounded-full">
-                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto p-1 ">
+                        <div key={item.label} className="flex-1 w-full group">
+                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto p-1">
                                 <span 
                                     className={`${item.color} backdrop-blur-md flex flex-row rounded-full
                                     group-hover:text-[#DE2B74] text-black dark:text-white 
-                                    ${item.type === 'normal' ? 'p-5' : ''}
+                                    ${item.type === 'normal' ? 'p-4' : ''}
                                     ${item.type === 'lottie' ? 'w-16 h-16 p-0 overflow-hidden' : ''}
                                     ${item.type === 'blob' ? 'inline-flex items-center justify-center overflow-hidden' : ''}`}>
                                     {item.icon}
@@ -117,7 +111,6 @@ const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void
                 </div>
             </div>
         </div>
-
     );
 };
 

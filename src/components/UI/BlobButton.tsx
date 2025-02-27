@@ -9,8 +9,7 @@ const BlobButton: React.FC<{ text: React.ReactNode }> = ({ text }) => {
       </span>
       <span className={styles.blob}></span>
       <span className={styles.blob}></span>
-      <span className={styles.blob}></span>
-      <span className={styles.blob}></span>
+
     </button>
   );
 };

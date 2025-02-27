@@ -72,12 +72,16 @@ interface FloatingMenuNavItem {
     label: string;
     href: string;
     color: string;
+    isLottie?: boolean;
+    isBlobButton?: boolean;
 }
 
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    { icon: <LottieLoader animationData={animationData} className='w-30 h-30' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black' },
-    { icon: <Image size={30} />, label: 'Explore', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10' },
-    { icon: <Clapperboard size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-green-500/10' },
+    // { icon: <LottieLoader animationData={animationData} className='object-cover' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black', isLottie: true },
+    // { icon: <BlobButton text={<Sparkles size={30} />}/>, label: 'Explore', href: '#', color: '', isBlobButton: true },
+    { icon: <Sparkles size={30} />, label: 'Explore', href: '#', color: 'px-5 py-5 bg-black/10 dark:bg-black  hover:bg-blue-500/10' },
+    { icon: <Image size={30} />, label: 'Explore', href: '#', color: 'px-5 py-5 bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10' },
+    { icon: <Clapperboard size={30} />, label: 'Search', href: '#', color: 'px-5 py-5bg-gray-200/20 dark:bg-gray-500/10 hover:bg-green-500/10' },
     { icon: <Share2 size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10' },
 ];
 
@@ -86,19 +90,24 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
 const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
 
     return (
-
-        // <BlobButton text={<div> button</div>} />
+       
         <div className="relative mx-auto z-150">
-           
+            <style jsx global>{`
+                .lucide {
+                        stroke-width: 1px;
+                    }
+                `}
+            </style>
             <div className="rounded-full dark:bg-black/50 backdrop-blur-sm relative">
-              
+
                 <div className="flex">
                     {FloatingMenuNavItems.map((item) => (
                         <div key={item.label} className="flex-auto hover:w-full group rounded-full">
                             <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto p-1 ">
-                                <span className={`${item.color} backdrop-blur-md flex flex-row px-5 py-5 rounded-full group-hover:text-[#DE2B74] text-black dark:text-white`}>
+                                <span className={`${item.color} backdrop-blur-md flex flex-row  rounded-full group-hover:text-[#DE2B74] text-black dark:text-white 
+                                    ${item.isLottie ? 'w-16 h-16 p-0 overflow-hidden' : ''}
+                                    ${item.isBlobButton ? 'p-0 overflow-hidden' : ''}`}>
                                     {item.icon}
-                                
                                 </span>
                             </Link>
                         </div>
@@ -255,7 +264,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                     }}
                     onClick={handleClose}
                 >
-            
+
                     <style jsx global>{`
                         ::selection {
                              @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}

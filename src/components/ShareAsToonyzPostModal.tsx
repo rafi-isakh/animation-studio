@@ -46,7 +46,7 @@ export default function ShareAsToonyzPostModal({
             const [uploadResponse, createResponse] = await Promise.all([
                 fetch('/api/upload_picture_to_s3', {
                     method: 'POST',
-                    body: JSON.stringify({ fileBufferBase64, fileName, fileType }),
+                    body: JSON.stringify({ fileBufferBase64, fileName, fileType, bucketName: "toonyzbucket" }),
                 }),
                 fetch('/api/create_toonyz_post', {
                     method: 'POST',

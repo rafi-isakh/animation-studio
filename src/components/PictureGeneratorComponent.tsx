@@ -94,7 +94,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
       method: 'POST',
       // make just one picture to a video as test.
-      body: JSON.stringify({ fileBufferBase64: pictures[0], fileName: `${uuid}.png`, fileType: "image/png" }),
+      body: JSON.stringify({ fileBufferBase64: pictures[0], fileName: `${uuid}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
     });
     if (!uploadResponse.ok) {
       throw new Error('Failed to upload picture to s3');

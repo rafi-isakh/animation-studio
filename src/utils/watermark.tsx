@@ -131,9 +131,9 @@ export default function WatermarkedImage({
           // Calculate x coordinate based on position
           let x = width / 2;
           if (titlePosition === "centerLeft") {
-            x = 30; // Margin from left edge
+            x = 50; // Margin from left edge
           } else if (titlePosition === "centerRight") {
-            x = width - 30; // Margin from right edge
+            x = width - 50; // Margin from right edge
           }
 
           // Calculate y coordinate based on position

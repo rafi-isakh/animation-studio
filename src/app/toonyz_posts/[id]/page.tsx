@@ -5,12 +5,13 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
-import { IconButton } from "@mui/material";
+import { Button } from "@/components/shadcnUI/Button"
+import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
+
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import ToonyzPostCommentWrapper from "@/components/ToonyzPostCommentWrapper";
 import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
-import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
 
@@ -128,12 +129,20 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <p className="text-sm font-base">Back</p>
                     </Link>
                     {/* <p className="text-2xl font-bold">{post.title}</p> */}
-                    <IconButton
-                        aria-label="share"
-                    // className="bg-[#DE2B74]"
-                    >
-                        <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
-                    </IconButton>
+                    <Popover >
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                            // className="bg-[#DE2B74]"
+                            >
+                                <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-24">
+                            <p>Share</p>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
 
@@ -152,12 +161,6 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         titleColor="white"
                         className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
                     />
-                    // <Image
-                    //     src={getImageUrl(post.image)}
-                    //     alt={post.title}
-                    //     fill
-                    //     className="object-cover transition-all duration-300 group-hover:blur-sm  overflow-hidden"
-                    // />
                 ) : (
                     <div className="relative group h-full mt-14 md:mt-14">
                         <video
@@ -315,7 +318,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                     <hr className="w-full border-gray-500" />
 
-                    <ChapterCommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
+                    <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
                 <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">

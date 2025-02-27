@@ -18,7 +18,7 @@ import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 import UpvoteButton from '@/components/UI/UpvotedButton';
 
-const ChapterCommentsComponent = ({
+const CommentsComponent = ({
     contentToAttachTo,
     webnovelOrPost,
     addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
@@ -498,4 +498,4 @@ const ChapterCommentsComponent = ({
     )
 }
 
-export default ChapterCommentsComponent;
+export default CommentsComponent;

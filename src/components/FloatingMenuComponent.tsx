@@ -112,7 +112,7 @@ const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void
 };
 
 
-const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string }> = ({ children, window, webnovel_id, chapter_id }) => {
+const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string; context: string }> = ({ children, window, webnovel_id, chapter_id, context }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
@@ -362,6 +362,7 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
                                     <TabPanel value="1">
                                         <TransitionAlerts dictionary={dictionary} language={language} />
                                         <PictureGenerator
+                                            context={context}
                                             prompt={selectedText}
                                             onComplete={handlePicturesGenerated}
                                             webnovel_id={webnovel_id}

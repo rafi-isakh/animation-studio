@@ -16,9 +16,10 @@ interface PictureGeneratorProps {
   onComplete: (pictures: string[]) => void;
   webnovel_id: string;
   chapter_id: string;
+  context: string;
 }
 
-const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id }) => {
+const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id, context }) => {
   const [pictures, setPictures] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,10 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     setError(null);
 
     try {
-      const response = await fetch(`/api/generate_pictures?text=${savedPrompt}&n=4`)
+      const response = await fetch(`/api/generate_pictures`, {
+        method: 'POST',
+        body: JSON.stringify({ text: savedPrompt, n: 4, context: context })
+      })
 
       if (!response.ok) {
         switch (response.status) {

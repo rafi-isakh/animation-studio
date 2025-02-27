@@ -1,4 +1,4 @@
-import { Webnovel, SortBy } from '@/components/Types';
+import { Webnovel, SortBy, Chapter, Comment, ToonyzPost } from '@/components/Types';
 import moment from 'moment';
 
 
@@ -91,3 +91,4 @@ export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMob
             return columns;
         }
     }
+

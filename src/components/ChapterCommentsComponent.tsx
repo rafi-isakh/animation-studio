@@ -472,8 +472,8 @@ const ChapterCommentsComponent = ({
                                                             <textarea
                                                                 value={replyContent[index]}
                                                                 rows={1}
-                                                                className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-black
-                                                                        resize-none border border-gray-300 text-black dark:text-white'
+                                                                className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-[#211F21]
+                                                                        resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white'
                                                                 onChange={(e) => updateReplyContent(index, e.target.value)}
                                                             />
                                                             {/* send button */}

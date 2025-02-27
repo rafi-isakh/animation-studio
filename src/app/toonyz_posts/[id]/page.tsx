@@ -12,8 +12,7 @@ import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-
-
+import WatermarkedImage from "@/utils/watermark";
 
 const breakpointColumnsObj = {
     default: 5,
@@ -45,6 +44,10 @@ function getRandomDimensions() {
     }
 }
 
+const ToonyzLogo = () => {
+    return <Image src="/toonyz_logo_pink.svg" alt="Toonyz Logo" width={100} height={30} />
+}
+
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     // const post = await getPost(params.id);
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
@@ -53,7 +56,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
-    
+
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -117,8 +120,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
     return (
         <div className="flex flex-col mx-auto w-full min-h-screen">
-            {/* header */}
-            <div className="fixed top-0 z-50 w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
+            {/* header fixed */}
+            <div className="fixed top-0 z-[99] w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
                     <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
@@ -138,12 +141,23 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             <div className="relative md:max-w-screen-xl mx-auto w-full h-screen group mt-14 md:mt-14 ">
                 {/* top margin is 14 */}
                 {post.image ? (
-                    <Image
-                        src={getImageUrl(post.image)}
-                        alt={post.title}
-                        fill
-                        className="object-cover transition-all duration-300 group-hover:blur-sm  overflow-hidden"
+                    <WatermarkedImage
+                        imageUrl={getImageUrl(post.image)}
+                        watermarkUrl="/toonyz_logo_pink.svg"
+                        webnovelTitle={webnovel?.title}
+                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                        watermarkOpacity={0.2}
+                        watermarkPosition="centerRight"
+                        titlePosition="centerLeft"
+                        titleColor="white"
+                        className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
                     />
+                    // <Image
+                    //     src={getImageUrl(post.image)}
+                    //     alt={post.title}
+                    //     fill
+                    //     className="object-cover transition-all duration-300 group-hover:blur-sm  overflow-hidden"
+                    // />
                 ) : (
                     <div className="relative group h-full mt-14 md:mt-14">
                         <video
@@ -151,7 +165,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             muted
                             loop
                             autoPlay
-                            className="w-full h-full object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35] pt-14 md:pt-14 overflow-hidden"
+                            className="w-full h-full object-cover scale-125 transition-transform duration-200  pt-14 md:pt-14 overflow-hidden"
                         />
                     </div>
                 )}
@@ -223,7 +237,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <div className="flex flex-row gap-2">
                             <p className="text-sm text-gray-500">Novel: {webnovel.title} &#62;</p>
                             {post.chapter_id && (
-                                <p className="text-sm text-gray-500">Chapter {post.chapter_id}</p>
+                                <p className="text-sm text-gray-500">
+                                    Chapter {webnovel.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                                </p>
                             )}
                         </div>
                     )}
@@ -240,9 +256,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             onClick={toggleQuote}
                             className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer"
                         >
-                            <span 
+                            <span
                                 ref={arrowRef}
-                                className="transform transition-transform duration-200" 
+                                className="transform transition-transform duration-200"
                                 style={{
                                     display: 'inline-block',
                                     transform: 'rotate(0deg)'
@@ -254,7 +270,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         </button>
 
                         {post.quote && (
-                            <p 
+                            <p
                                 ref={quoteRef}
                                 className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start transition-opacity duration-300 max-h-0 opacity-0 overflow-hidden"
                             >
@@ -301,7 +317,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                     <ChapterCommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
-
+                <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
                     <Masonry

@@ -11,14 +11,17 @@ import { ChevronRight, CircleHelp, Settings, Loader2 } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
 import { ImageOrVideo } from './Types';
+import { v4 as uuidv4 } from 'uuid';
+import { getImageUrl } from '@/utils/urls';
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
   webnovel_id: string;
   chapter_id: string;
+  context: string;
 }
 
-const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id }) => {
+const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id, context }) => {
   const [pictures, setPictures] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +46,10 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     setError(null);
 
     try {
-      const response = await fetch(`/api/generate_pictures?text=${savedPrompt}&n=4`)
+      const response = await fetch(`/api/generate_pictures`, {
+        method: 'POST',
+        body: JSON.stringify({ text: savedPrompt, n: 4, context: context })
+      })
 
       if (!response.ok) {
         switch (response.status) {
@@ -83,6 +89,41 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     }
   }, [error]);
 
+  const makeVideo = async () => {
+    const uuid = uuidv4();
+    const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
+      method: 'POST',
+      // make just one picture to a video as test.
+      body: JSON.stringify({ fileBufferBase64: pictures[0], fileName: `${uuid}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
+    });
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload picture to s3');
+    }
+    const image_url = getImageUrl(`${uuid}.png`);
+    console.log(image_url);
+    const response = await fetch('/api/generate_video', {
+      method: 'POST',
+      body: JSON.stringify({ video_prompt: "", image_url: image_url }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to generate video');
+    }
+    const data = await response.json();
+    const url = data.video;
+    console.log(data);
+    const s3UploadResponse = await fetch('/api/download_and_upload_video', {
+      method: 'POST',
+      body: JSON.stringify({ videoUrl: url }),
+    });
+    if (!s3UploadResponse.ok) {
+      throw new Error('Failed to download and upload video');
+    }
+    const uploadData = await s3UploadResponse.json();
+    setVideoFileName(uploadData.fileName);
+    alert("Video created successfully");
+    setShowShareAsPostModal(true);
+  }
+
   const makeSlideshow = async () => {
     const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
       method: 'POST',
@@ -94,7 +135,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     const data = await response.json();
     console.log(data);
     setVideoFileName(data.fileName);
-    alert("Video created successfully");
+    alert("Slideshow created successfully");
     setShowShareAsPostModal(true);
   }
 
@@ -251,6 +292,9 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
         <div className="flex md:flex-row flex-col gap-4 mt-6 select-none">
           <button onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md'>
             Make Slideshow
+          </button>
+          <button onClick={makeVideo} className='bg-pink-600 text-white px-4 py-2 rounded-md'>
+            Make Video
           </button>
           {pictures.map((picture, index) => (
             <div key={index} className="flex-shrink flex-wrap">

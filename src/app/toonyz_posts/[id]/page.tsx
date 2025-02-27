@@ -3,7 +3,7 @@ import { User, ToonyzPost, Webnovel } from "@/components/Types";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
@@ -164,7 +164,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 ) : (
                     <div className="relative group h-full mt-14 md:mt-14">
                         <video
-                            src={getImageUrl(post.video)}
+                            src={getVideoUrl(post.video)}
                             muted
                             loop
                             autoPlay

@@ -51,7 +51,7 @@ export function Pin({ post }: PinProps) {
                 <div className="relative w-full h-full">
                   <video
                     ref={videoRef}
-                    src={getImageUrl(post.video)}
+                    src={getVideoUrl(post.video)}
                     muted
                     loop
                     className="w-full h-full object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"

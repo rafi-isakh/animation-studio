@@ -3,7 +3,7 @@ import { User, ToonyzPost, Webnovel } from "@/components/Types";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
 import { IconButton } from "@mui/material";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
@@ -128,7 +128,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 ) : (
                     <div className="relative group h-full">
                         <video
-                            src={getImageUrl(post.video)}
+                            src={getVideoUrl(post.video)}
                             muted
                             loop
                             autoPlay

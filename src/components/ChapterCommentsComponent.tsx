@@ -18,9 +18,9 @@ import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 import UpvoteButton from '@/components/UI/UpvotedButton';
 
-const ChapterCommentsComponent = ({ 
-    contentToAttachTo, 
-    webnovelOrPost, 
+const ChapterCommentsComponent = ({
+    contentToAttachTo,
+    webnovelOrPost,
     addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
     const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
@@ -39,6 +39,36 @@ const ChapterCommentsComponent = ({
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
+    const [textareaRows, setTextareaRows] = useState(1);
+
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter') {
+            // Prevent form submission on Enter
+            e.preventDefault();
+            
+            // Store a reference to the textarea element before the event is cleaned up
+            const textarea = e.currentTarget;
+            
+            // Insert a newline character at cursor position
+            const cursorPosition = textarea.selectionStart;
+            const textBefore = commentContent.substring(0, cursorPosition);
+            const textAfter = commentContent.substring(cursorPosition);
+            setCommentContent(textBefore + '\n' + textAfter);
+            
+            // Set cursor position after the newline
+            setTimeout(() => {
+                const newCursorPosition = cursorPosition + 1;
+                textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            }, 0);
+            
+            // Increase rows up to a maximum of 5
+            setTextareaRows(prev => Math.min(prev + 1, 5));
+        } else if (e.key === 'Backspace' && commentContent.split('\n').length < textareaRows) {
+            // Decrease rows when deleting content, but keep minimum of 2
+            setTextareaRows(prev => Math.max(prev - 1, 2));
+        }
+    };
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -110,7 +140,7 @@ const ChapterCommentsComponent = ({
         }
         const data = await response.json();
         const updatedComment = data.comment;
-    
+
         setAllComments(prevComments => {
             const updatedComments = prevComments.map(comment =>
                 comment.id.toString() === commentId ? { ...comment, upvotes: updatedComment.upvotes } : comment
@@ -232,32 +262,28 @@ const ChapterCommentsComponent = ({
     // );
 
     return (
-        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto'>
-            <div className='flex flex-col'>
+        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto select-none'>
+            <div className='flex flex-col gap-y-5'>
                 {/* comments  */}
                 {addCommentEnabled &&
                     <form onSubmit={handleAddComment}>
-                        <div className='flex flex-col mb-5'>
+                        <div className='flex flex-col relative'>
                             <textarea
                                 value={commentContent}
-                                rows={6}
-                                className='textarea text-sm rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-black'
+                                rows={textareaRows}
+                                className='textarea text-base rounded-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-[#211F21]'
                                 onChange={(e) => setCommentContent(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 placeholder={phrase(dictionary, "typeYourComment", language)}
 
                             />
-                            <div className='border-gray-300 dark:border-gray-700 border border-t-0 flex justify-end rounded-b-lg'>
-                                <span className={`justify-center self-center mr-4 mt-[0px] text-sm ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
-                                    commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' :
-                                        'text-gray-400'
-                                    }`}>
-                                    {commentContent.length}/{MAX_CHARS}
-                                </span>
-                                <button type="submit" className='group/item text-sm text-white rounded-br-lg bg-[#DB2777] px-4 py-2 group-hover/item:bg-[#FFE2DC]'>
-                                    {/* <Send size={20} className="dark:text-white text-white" /> */}
-                                    {phrase(dictionary, "commentSubmit", language)}
-                                </button>
-                            </div>
+     
+                            <button
+                                type="submit"
+                                className='absolute right-2 bottom-2 bg-transparent text-black dark:text-white hover:opacity-75 transition-opacity'
+                            >
+                                <Send size={20} className="text-black dark:text-white" />
+                            </button>
 
                         </div>
                     </form>

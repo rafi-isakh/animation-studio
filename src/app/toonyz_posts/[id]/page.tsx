@@ -53,6 +53,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
+    
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -117,7 +118,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     return (
         <div className="flex flex-col mx-auto w-full min-h-screen">
             {/* header */}
-            <div className="sticky top-0 z-50 w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
+            <div className="fixed top-0 z-50 w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
                     <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
@@ -132,8 +133,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     </IconButton>
                 </div>
             </div>
+
             {/* Image Container */}
-            <div className="relative md:max-w-screen-xl mx-auto w-full h-screen group pt-14 md:pt-14 ">
+            <div className="relative md:max-w-screen-xl mx-auto w-full h-screen group mt-14 md:mt-14 ">
                 {/* top margin is 14 */}
                 {post.image ? (
                     <Image
@@ -143,7 +145,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         className="object-cover transition-all duration-300 group-hover:blur-sm  overflow-hidden"
                     />
                 ) : (
-                    <div className="relative group h-full">
+                    <div className="relative group h-full mt-14 md:mt-14">
                         <video
                             src={getImageUrl(post.video)}
                             muted
@@ -301,6 +303,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 </div>
 
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+                    {/* reusable component for the feed */}
                     <Masonry
                         breakpointCols={breakpointColumnsObj}
                         className="my-masonry-grid flex w-auto -ml-4 gap-5"

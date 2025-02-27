@@ -289,7 +289,7 @@ const CommentsComponent = ({
                     </form>
                 }
 
-                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-gray-900'>
+                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-black'>
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}

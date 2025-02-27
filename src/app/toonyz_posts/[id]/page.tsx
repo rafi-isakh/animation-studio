@@ -13,6 +13,8 @@ import { Pin } from "@/components/UI/Pin";
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 
+
+
 const breakpointColumnsObj = {
     default: 5,
     1280: 4,
@@ -36,7 +38,7 @@ async function getPost(id: string) {
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
+    const heights = [1000, 1200, 1400, 1600]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
@@ -49,7 +51,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-    const [showQuote, setShowQuote] = useState(false);
+    const quoteRef = useRef<HTMLParagraphElement>(null);
+    const arrowRef = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -76,15 +79,15 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
     useEffect(() => {
         fetch('/api/get_toonyz_posts')
-        .then(res => res.json())
-        .then(data => {
-            // Add random dimensions to each post
-            const postsWithDimensions = data.map((post: ToonyzPost) => ({
-                ...post,
-                ...getRandomDimensions()
-            }));
-            setAllPosts(postsWithDimensions);
-        });
+            .then(res => res.json())
+            .then(data => {
+                // Add random dimensions to each post
+                const postsWithDimensions = data.map((post: ToonyzPost) => ({
+                    ...post,
+                    ...getRandomDimensions()
+                }));
+                setAllPosts(postsWithDimensions);
+            });
     }, []);
 
     const truncateText = (text: string, maxLength: number = 15) => {
@@ -92,6 +95,20 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
         return text.slice(0, maxLength) + '...';
     };
 
+    const toggleQuote = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        if (quoteRef.current && arrowRef.current) {
+            if (quoteRef.current.classList.contains('max-h-0')) {
+                quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
+                quoteRef.current.classList.add('max-h-[1000px]', 'opacity-100');
+                arrowRef.current.style.transform = 'rotate(90deg)';
+            } else {
+                quoteRef.current.classList.remove('max-h-[1000px]', 'opacity-100');
+                quoteRef.current.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
+                arrowRef.current.style.transform = 'rotate(0deg)';
+            }
+        }
+    }, []);
 
     if (!post) {
         return <></>
@@ -138,7 +155,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 )}
                 <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-3xl leading-loose text-center max-w-[80%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {/*TODO: this translation should actually come from the novel. It shouldn't be a new translation.*/}
-                    <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote"/>
+                    <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
                 </p>
             </div>
 
@@ -173,7 +190,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         </Link>
                     </div>
                     <p className="relative -top-5 text-center text-xl md:text-4xl font-bold">
-                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title"/>
+                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                     </p>
                     {/* views, comments likes and date */}
                     <div className='flex flex-row gap-2'>
@@ -210,31 +227,36 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     )}
 
                     {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">
-                        <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content"/>
+                        <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" />
                     </p>)}
 
                     {/* quote */}
                     {/* quote toggle */}
                     <div className="flex flex-col self-start">
                         <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setShowQuote(prev => !prev)
-                            }}
-                            className="text-sm text-gray-500 flex items-center gap-1"
+                            type="button"
+                            onClick={toggleQuote}
+                            className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer"
                         >
-                            <span className="transform transition-transform duration-200" style={{
-                                display: 'inline-block',
-                                transform: showQuote ? 'rotate(90deg)' : 'rotate(0deg)'
-                            }}>
+                            <span 
+                                ref={arrowRef}
+                                className="transform transition-transform duration-200" 
+                                style={{
+                                    display: 'inline-block',
+                                    transform: 'rotate(0deg)'
+                                }}
+                            >
                                 ▶
                             </span>
                             Quote
                         </button>
 
-                        {post.quote && showQuote && (
-                            <p className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start">
-                                {post.quote}
+                        {post.quote && (
+                            <p 
+                                ref={quoteRef}
+                                className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start transition-opacity duration-300 max-h-0 opacity-0 overflow-hidden"
+                            >
+                                <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
                             </p>
                         )}
                     </div>

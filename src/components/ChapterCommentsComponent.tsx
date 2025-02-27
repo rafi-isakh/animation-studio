@@ -22,6 +22,7 @@ const ChapterCommentsComponent = ({
     contentToAttachTo, 
     webnovelOrPost, 
     addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
+    const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);
     const { email, upvotedComments, setUpvotedComments } = useUser();
@@ -38,13 +39,6 @@ const ChapterCommentsComponent = ({
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
-
-
-    useEffect(() => {
-        for (let i = 0; i < allComments.length; i++) {
-            updateAllReplies(i)
-        }
-    }, [])
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -75,16 +69,16 @@ const ChapterCommentsComponent = ({
                 }
                 let comments_sans_replies;
                 if (!webnovelOrPost) {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${contentToAttachTo.id}`)
+                    comments_sans_replies = await fetch(`/api/get_comments?chapter_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
                 else {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_post_comments?chapter_id=${contentToAttachTo.id}`)
+                    comments_sans_replies = await fetch(`/api/get_toonyz_post_comments?post_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
 
                 if (Array.isArray(comments_sans_replies)) {
-                    setAllComments(comments_sans_replies);
+                    setAllComments(comments_sans_replies.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
                     setRepliesKey(prevKey => prevKey + 1)
                 }
                 setCommentContent('');
@@ -273,7 +267,7 @@ const ChapterCommentsComponent = ({
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}
-                        <OtherTranslateComponent content={contentToAttachTo.title} elementId={contentToAttachTo.id.toString()} elementType="chapter" />
+                        <OtherTranslateComponent content={contentToAttachTo.title} elementId={contentToAttachTo.id.toString()} elementType={webnovelOrPostElementType} />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
                         <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
                     </div>

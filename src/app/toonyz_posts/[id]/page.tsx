@@ -11,6 +11,7 @@ import ToonyzPostCommentWrapper from "@/components/ToonyzPostCommentWrapper";
 import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
 import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 
 const breakpointColumnsObj = {
     default: 5,
@@ -53,7 +54,6 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     useEffect(() => {
         const fetchWebnovel = async () => {
             if (post?.webnovel_id) {
-                console.log("fetching webnovel", post.webnovel_id);
                 const novel = await getWebnovelById(post.webnovel_id);
                 setWebnovel(novel);
             }
@@ -137,7 +137,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     </div>
                 )}
                 <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-3xl leading-loose text-center max-w-[80%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    {post.quote}
+                    {/*TODO: this translation should actually come from the novel. It shouldn't be a new translation.*/}
+                    <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote"/>
                 </p>
             </div>
 
@@ -171,7 +172,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             )}
                         </Link>
                     </div>
-                    <p className="relative -top-5 text-center text-xl md:text-4xl font-bold">{truncateText(post.title, 100)}</p>
+                    <p className="relative -top-5 text-center text-xl md:text-4xl font-bold">
+                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title"/>
+                    </p>
                     {/* views, comments likes and date */}
                     <div className='flex flex-row gap-2'>
                         <div className="text-sm text-gray-500 flex flex-row items-center">
@@ -206,7 +209,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         </div>
                     )}
 
-                    {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">{post.content}</p>)}
+                    {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">
+                        <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content"/>
+                    </p>)}
 
                     {/* quote */}
                     {/* quote toggle */}
@@ -214,7 +219,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
-                                setShowQuote(!showQuote)
+                                setShowQuote(prev => !prev)
                             }}
                             className="text-sm text-gray-500 flex items-center gap-1"
                         >

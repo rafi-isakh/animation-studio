@@ -72,17 +72,16 @@ interface FloatingMenuNavItem {
     label: string;
     href: string;
     color: string;
-    isLottie?: boolean;
-    isBlobButton?: boolean;
+    type: 'normal' | 'blob' | 'lottie';
 }
 
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
     // { icon: <LottieLoader animationData={animationData} className='object-cover' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black', isLottie: true },
-    // { icon: <BlobButton text={<Sparkles size={30} />}/>, label: 'Explore', href: '#', color: '', isBlobButton: true },
-    { icon: <Sparkles size={30} />, label: 'Explore', href: '#', color: 'px-5 py-5 bg-black/10 dark:bg-black  hover:bg-blue-500/10' },
-    { icon: <Image size={30} />, label: 'Explore', href: '#', color: 'px-5 py-5 bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10' },
-    { icon: <Clapperboard size={30} />, label: 'Search', href: '#', color: 'px-5 py-5bg-gray-200/20 dark:bg-gray-500/10 hover:bg-green-500/10' },
-    { icon: <Share2 size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10' },
+    { icon: <BlobButton text={<Sparkles size={30} />}/>, label: 'Explore', href: '#', color: '', type: 'blob' },
+    // { icon: <Sparkles size={30} />, label: 'Explore', href: '#', color: 'bg-black/10 dark:bg-black  hover:bg-blue-500/10', type: 'normal' },
+    { icon: <Image size={30} />, label: 'Explore', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10', type: 'normal' },
+    { icon: <Clapperboard size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-green-500/10', type: 'normal' },
+    { icon: <Share2 size={30} />, label: 'Search', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10', type: 'normal' },
 ];
 
 
@@ -104,9 +103,12 @@ const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void
                     {FloatingMenuNavItems.map((item) => (
                         <div key={item.label} className="flex-auto hover:w-full group rounded-full">
                             <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto p-1 ">
-                                <span className={`${item.color} backdrop-blur-md flex flex-row  rounded-full group-hover:text-[#DE2B74] text-black dark:text-white 
-                                    ${item.isLottie ? 'w-16 h-16 p-0 overflow-hidden' : ''}
-                                    ${item.isBlobButton ? 'p-0 overflow-hidden' : ''}`}>
+                                <span 
+                                    className={`${item.color} backdrop-blur-md flex flex-row rounded-full
+                                    group-hover:text-[#DE2B74] text-black dark:text-white 
+                                    ${item.type === 'normal' ? 'p-5' : ''}
+                                    ${item.type === 'lottie' ? 'w-16 h-16 p-0 overflow-hidden' : ''}
+                                    ${item.type === 'blob' ? 'inline-flex items-center justify-center overflow-hidden' : ''}`}>
                                     {item.icon}
                                 </span>
                             </Link>

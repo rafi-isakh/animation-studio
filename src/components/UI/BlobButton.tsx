@@ -3,8 +3,8 @@ import styles from "@/styles/BlobButton.module.css";
 
 const BlobButton: React.FC<{ text: React.ReactNode }> = ({ text }) => {
   return (
-    <button className={styles.button}>
-      <span className={styles.text} style={{ backdropFilter: "blur(10px)" }}>
+    <button className={`${styles.button} w-16 h-16 self-center`}>
+      <span className={`${styles.text}`} style={{ backdropFilter: "blur(10px)" }}>
         {text}
       </span>
       <span className={styles.blob}></span>

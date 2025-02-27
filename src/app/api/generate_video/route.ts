@@ -9,13 +9,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { text, context, n} = await request.json();
-    if (!text || !context) {
-        return NextResponse.json({ error: 'Text and context are required' }, { status: 400 });
+    const { video_prompt, image_url } = await request.json();
+    if (!image_url) {
+        return NextResponse.json({ error: 'Video prompt and image url are required' }, { status: 400 });
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/generate_pictures`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/generate_video`, {
         method: 'POST',
-        body: JSON.stringify({ text, context, n }),
+        body: JSON.stringify({ video_prompt, image_url }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.accessToken}`,
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         }
     })
     if (!response.ok) {
-        return NextResponse.json({ error: 'Failed to generate pictures', message: response.statusText }, { status: response.status });
+        return NextResponse.json({ error: 'Failed to generate video', message: response.statusText }, { status: response.status });
     }
     const data = await response.json()
     return NextResponse.json(data)

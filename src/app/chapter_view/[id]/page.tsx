@@ -315,9 +315,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div className='flex justify-between px-4'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" >
-                                    {/* className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}  */}
-                                    <FloatingMenu webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
+                                    <FloatingMenu context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
@@ -356,7 +355,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         />
                     </div>
                 </div>
-                <ChapterCommentsComponent chapter={chapter} webnovelOrWebtoon={true} addCommentEnabled={true} />
+                <ChapterCommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
             </div >
         )

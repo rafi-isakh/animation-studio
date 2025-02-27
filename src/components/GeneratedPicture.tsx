@@ -1,10 +1,5 @@
-import { Box, Button, Modal, TextField } from "@mui/material";
 import Image from "next/image";
 import { useState } from "react";
-import { useModalStyle } from "@/styles/ModalStyles"
-import { useLanguage } from "@/contexts/LanguageContext";
-import { phrase } from "@/utils/phrases"
-import { uploadFile } from "@/utils/s3";
 import { ImageOrVideo } from "./Types";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 

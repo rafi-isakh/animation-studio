@@ -318,6 +318,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/search')) {
             return "hidden"
         }
+        if (pathname.startsWith('/toonyz_posts/')) {
+            return "hidden"
+        }
         return ""
     }
 

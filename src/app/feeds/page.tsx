@@ -16,11 +16,6 @@ function getRandomDimensions() {
 export default function ToonyzPosts() {
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
 
-    // useEffect(() => {
-    //     fetch('/api/get_toonyz_posts')
-    //         .then(res => res.json())
-    //         .then(data => setPosts(data));
-    // }, []);
 
     useEffect(() => {
         fetch('/api/get_toonyz_posts')

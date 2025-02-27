@@ -18,14 +18,13 @@ import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 import UpvoteButton from '@/components/UI/UpvotedButton';
 
-const ToonyzPostCommentWrapper = ({
-    // chapter, 
-    post,
-}: {
-    // chapter?: Chapter,
-    post?: ToonyzPost,
-}) => {
+const CommentsComponent = ({
+    contentToAttachTo,
+    webnovelOrPost,
+    addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
+    const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
+    const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);
     const { email, upvotedComments, setUpvotedComments } = useUser();
     const { isLoggedIn } = useAuth();
     const [replyContent, setReplyContent] = useState<string[]>([]);
@@ -47,6 +46,22 @@ const ToonyzPostCommentWrapper = ({
         if (e.key === 'Enter') {
             // Prevent form submission on Enter
             e.preventDefault();
+            
+            // Store a reference to the textarea element before the event is cleaned up
+            const textarea = e.currentTarget;
+            
+            // Insert a newline character at cursor position
+            const cursorPosition = textarea.selectionStart;
+            const textBefore = commentContent.substring(0, cursorPosition);
+            const textAfter = commentContent.substring(cursorPosition);
+            setCommentContent(textBefore + '\n' + textAfter);
+            
+            // Set cursor position after the newline
+            setTimeout(() => {
+                const newCursorPosition = cursorPosition + 1;
+                textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            }, 0);
+            
             // Increase rows up to a maximum of 5
             setTextareaRows(prev => Math.min(prev + 1, 5));
         } else if (e.key === 'Backspace' && commentContent.split('\n').length < textareaRows) {
@@ -55,29 +70,6 @@ const ToonyzPostCommentWrapper = ({
         }
     };
 
-
-    // Add helper to get the current item's ID and comments
-    const getCurrentItem = () => {
-        if (post) {
-            return {
-                id: post.id,
-                comments: post.comments || [],
-                title: post.title
-            };
-        }
-        return null
-    };
-
-    // Update state initializations
-    const currentItem = getCurrentItem();
-    const [allComments, setAllComments] = useState<Comment[]>(currentItem?.comments || []);
-
-    useEffect(() => {
-        for (let i = 0; i < allComments.length; i++) {
-            updateAllReplies(i)
-        }
-    }, [])
-
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
         if (commentContent) {
@@ -85,13 +77,15 @@ const ToonyzPostCommentWrapper = ({
                 router.push('/signin')
             } else {
                 var newComment = {
+                    "id": null,
                     "parent_id": null,
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": post?.id,  // Add post ID
+                    "chapter_id": contentToAttachTo.id,
+                    "replies": [],
+                    "webnovel_or_post": webnovelOrPost
                 }
-                console.log(newComment)
 
                 const response = await fetch(`/api/add_comment`, {
                     method: 'POST',
@@ -104,16 +98,17 @@ const ToonyzPostCommentWrapper = ({
                     console.error("Error adding comment");
                 }
                 let comments_sans_replies;
-                if (post) {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_post_comments?post_id=${post!.id}`)
+                if (!webnovelOrPost) {
+                    comments_sans_replies = await fetch(`/api/get_comments?chapter_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
-                } else {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_post_comments?post_id=${post!.id}`)
+                }
+                else {
+                    comments_sans_replies = await fetch(`/api/get_toonyz_post_comments?post_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
 
                 if (Array.isArray(comments_sans_replies)) {
-                    setAllComments(comments_sans_replies);
+                    setAllComments(comments_sans_replies.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
                     setRepliesKey(prevKey => prevKey + 1)
                 }
                 setCommentContent('');
@@ -185,9 +180,9 @@ const ToonyzPostCommentWrapper = ({
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": post?.id,  // Add post ID
+                    "chapter_id": contentToAttachTo.id,
                     "replies": [],
-
+                    "webnovel_or_post": webnovelOrPost
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -248,34 +243,57 @@ const ToonyzPostCommentWrapper = ({
         setOpenReplyDropdownId(openReplyDropdownId === replyId ? null : replyId);
     };
 
-    return (
-        <div className='md:max-w-screen-lg w-full flex flex-col items-left mx-auto'>
-            <div className='flex flex-col gap-y-5'>
-                {/* form to add comment */}
-                <form onSubmit={handleAddComment}>
-                    <div className='flex flex-col relative'>
-                        <textarea
-                            value={commentContent}
-                            rows={textareaRows}
-                            className='textarea text-base rounded-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-[#211F21]'
-                            onChange={(e) => setCommentContent(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder={phrase(dictionary, "typeYourComment", language)}
-                        />
-                        <button 
-                            type="submit" 
-                            className='absolute right-2 bottom-2 bg-transparent text-black dark:text-white hover:opacity-75 transition-opacity'
-                        >
-                            <Send size={20} className="text-black dark:text-white" />
-                        </button>
-                    </div>
-                </form>
+    // const UpvoteButton = ({ commentId, upvotes }: { commentId: string, upvotes: number }) => (
+    //     <button
+    //         onClick={() => handleUpvoteComment(commentId)}
+    //         className='flex flex-row gap-1 items-center cursor-pointer'
+    //     >
+    //         {upvotedComments.has(commentId) ? (
+    //             <div className='flex flex-row gap-1 items-center text-md text-gray-500 dark:text-white'>
+    //                 <svg width="16" height="15" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+    //                     <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+    //                 </svg>
+    //             </div>
+    //         ) : (
+    //             <Heart size={16} className='text-gray-600' />
+    //         )}
+    //         <span className='text-[#DB2777] text-sm'>{upvotes}</span>
+    //     </button>
+    // );
 
-                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-gray-900'>
+    return (
+        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto select-none'>
+            <div className='flex flex-col gap-y-5'>
+                {/* comments  */}
+                {addCommentEnabled &&
+                    <form onSubmit={handleAddComment}>
+                        <div className='flex flex-col relative'>
+                            <textarea
+                                value={commentContent}
+                                rows={textareaRows}
+                                className='textarea text-base rounded-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-[#211F21]'
+                                onChange={(e) => setCommentContent(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder={phrase(dictionary, "typeYourComment", language)}
+
+                            />
+     
+                            <button
+                                type="submit"
+                                className='absolute right-2 bottom-2 bg-transparent text-black dark:text-white hover:opacity-75 transition-opacity'
+                            >
+                                <Send size={20} className="text-black dark:text-white" />
+                            </button>
+
+                        </div>
+                    </form>
+                }
+
+                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-black'>
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}
-                        {/* <OtherTranslateComponent content={chapter?.title || post?.title || ''} elementId={chapter?.id.toString() || post?.id.toString() || ''} elementType="chapter" /> */}
+                        <OtherTranslateComponent content={contentToAttachTo.title} elementId={contentToAttachTo.id.toString()} elementType={webnovelOrPostElementType} />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
                         <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
                     </div>
@@ -443,32 +461,32 @@ const ToonyzPostCommentWrapper = ({
                                                     </div >
                                                 )) : <></>}
                                         </div >
-
-                                        <div>
-                                            {showForm[index] ? (
-                                                <form id={`replyForm.${index}`} onSubmit={handleReply}>
-                                                    <div className='flex flex-row space-x-4 ml-4 pt-2'>
-                                                        {/* arrow icon in reply form */}
-                                                        <CornerDownRight size={25} className='text-black dark:text-white' />
-                                                        {/* reply textarea */}
-                                                        <textarea
-                                                            value={replyContent[index]}
-                                                            rows={1}
-                                                            className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-black
-                                                                        resize-none border border-gray-300 text-black dark:text-white'
-                                                            onChange={(e) => updateReplyContent(index, e.target.value)}
-                                                        />
-                                                        {/* send button */}
-                                                        <button type="submit">
-                                                            <Send size={20} className="dark:text-white text-black" />
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            )
-                                             : <></>
-                                            }
-                                        </div>
-
+                                        {addCommentEnabled &&
+                                            <div>
+                                                {showForm[index] ? (
+                                                    <form id={`replyForm.${index}`} onSubmit={handleReply}>
+                                                        <div className='flex flex-row space-x-4 ml-4 pt-2'>
+                                                            {/* arrow icon in reply form */}
+                                                            <CornerDownRight size={25} className='text-black dark:text-white' />
+                                                            {/* reply textarea */}
+                                                            <textarea
+                                                                value={replyContent[index]}
+                                                                rows={1}
+                                                                className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-[#211F21]
+                                                                        resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white'
+                                                                onChange={(e) => updateReplyContent(index, e.target.value)}
+                                                            />
+                                                            {/* send button */}
+                                                            <button type="submit">
+                                                                <Send size={20} className="dark:text-white text-black" />
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                )
+                                                    : <></>
+                                                }
+                                            </div>
+                                        }
                                     </div >
                                 ) : <></>
                             ))}
@@ -480,4 +498,4 @@ const ToonyzPostCommentWrapper = ({
     )
 }
 
-export default ToonyzPostCommentWrapper;
+export default CommentsComponent;

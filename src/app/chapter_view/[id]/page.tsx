@@ -259,7 +259,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 <header
                     className={`
                         w-full transition-transform duration-300 ease-in bg-white dark:bg-black py-2
-                        ${isSticky ? 'fixed top-0 z-10' : 'relative'}
+                        ${isSticky ? 'fixed top-0 z-[99]' : 'relative'}
                     `}
                 >
                     <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>

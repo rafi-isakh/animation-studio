@@ -34,6 +34,8 @@ import { X, Circle, ArrowRight, WandSparkles, Compass, Clapperboard, Image, Shar
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
+import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
+import Draggable from 'react-draggable';
 
 type Position = {
     x: number;
@@ -61,7 +63,7 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
 
 const FloatingMenuNav = ({ handleOpenModal }: { handleOpenModal: () => void }) => {
     return (
-        <div className="relative mx-auto z-150">
+        <div className="relative mx-auto z-50">
             <style jsx global>{`
                     .lucide {
                         stroke-width: 1px;
@@ -136,9 +138,7 @@ const FloatingMenu: React.FC<{
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-    const dialogRef = useRef<HTMLDivElement>(null);
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -181,7 +181,8 @@ const FloatingMenu: React.FC<{
                 containerRef.current &&
                 !containerRef.current.contains(event.target as Node) &&
                 drawerRef.current &&
-                !drawerRef.current.contains(event.target as Node)
+                !drawerRef.current.contains(event.target as Node) &&
+                !nodeRef.current?.contains(event.target as Node)
             ) {
                 // Close floating menu only and clear timeout
                 setSelection(undefined);
@@ -208,34 +209,33 @@ const FloatingMenu: React.FC<{
         }
     }, []);
 
-    useEffect(() => {
-        if (dialogRef.current && !initialDialogPositionSet) {
-            // Get the viewport dimensions
-            const viewportWidth = window?.()?.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window?.()?.innerHeight || document.documentElement.clientHeight;
-
-            // Calculate the center position
-            const centerX = viewportWidth / 2;
-            const centerY = viewportHeight / 2;
-
-            setDialogPosition({ x: centerX, y: centerY });
-            setInitialDialogPositionSet(true);
-        }
-    }, [dialogRef.current, initialDialogPositionSet]);
-
     const handleOpenModal = () => {
         setOpen(true);
     }
 
     const handleClose = () => {
-        setSelection(undefined);
-        setPosition(undefined);
-        setSelectedText('');
-        setShowMessage(false);
-
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
+        // First, add a fade-out animation
+        if (nodeRef.current) {
+            nodeRef.current.style.transition = 'opacity 0.3s ease';
+            nodeRef.current.style.opacity = '0';
         }
+
+        // Wait for the animation to complete before closing
+        setTimeout(() => {
+            setSelection(undefined);
+            setPosition(undefined);
+            setSelectedText('');
+            setShowMessage(false);
+
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            // Reset the opacity for next open
+            if (nodeRef.current) {
+                nodeRef.current.style.opacity = '1';
+            }
+        }, 300); // Match this duration with the transition duration
     }
 
     const handlePicturesGenerated = (newPictures: string[]) => {
@@ -243,48 +243,31 @@ const FloatingMenu: React.FC<{
     };
 
 
-    const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (dialogRef.current) {
-            setIsDragging(true);
-            const boundingRect = dialogRef.current.getBoundingClientRect();
-
-            // Store the offset between mouse position and dialog top-left corner
-            setDragOffset({
-                x: e.clientX - boundingRect.left,
-                y: e.clientY - boundingRect.top
-            });
-        }
-    };
-
-    const handleDragMove = (e: MouseEvent) => {
-        if (isDragging) {
-            // Calculate new position considering scroll position
-            const win = typeof window !== 'undefined' ? (window?.() || window) : null;
-            const scrollX = win?.scrollX || 0;
-            const scrollY = win?.scrollY || 0;
-
-            setDialogPosition({
-                x: e.clientX - dragOffset.x + scrollX,
-                y: e.clientY - dragOffset.y + scrollY
-            });
-        }
-    };
-
-    const handleDragEnd = () => {
-        setIsDragging(false);
-    };
-
     useEffect(() => {
-        if (isDragging) {
-            window?.()?.document.addEventListener('mousemove', handleDragMove);
-            window?.()?.document.addEventListener('mouseup', handleDragEnd);
+        if (!initialDialogPositionSet && nodeRef.current) {
+            const viewportWidth = window?.()?.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window?.()?.innerHeight || document.documentElement.clientHeight;
+            // Code is cut off here
         }
+    }, [initialDialogPositionSet]);
+    // Update your useEffect for initial positioning
+    useEffect(() => {
+        if (!initialDialogPositionSet && nodeRef.current) {
+            const viewportWidth = window?.()?.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window?.()?.innerHeight || document.documentElement.clientHeight;
+            
+            setDialogPosition({
+                x: viewportWidth / 2 - 212, // Half of max-width (425px)
+                y: viewportHeight / 2 - 150, // Approximate half height
+            });
+            setInitialDialogPositionSet(true);
+        }
+    }, [initialDialogPositionSet, window]);
 
-        return () => {
-            window?.()?.document.removeEventListener('mousemove', handleDragMove);
-            window?.()?.document.removeEventListener('mouseup', handleDragEnd);
-        };
-    }, [isDragging, dragOffset]);
+    // Update your handleDrag function
+    const handleDrag = (e: any, data: any) => {
+        setDialogPosition({ x: data.x, y: data.y });
+    };
 
     if (isDesktop) {
         return (
@@ -297,7 +280,6 @@ const FloatingMenu: React.FC<{
                                 top: `${position.y + position.height + 30}px`,
                                 left: `${position.x - 30}px`,
                             }}
-                        // onClick={handleClose}
                         >
                             <style jsx global>{`
                             ::selection {
@@ -315,48 +297,56 @@ const FloatingMenu: React.FC<{
                         </div>
                     )}
                     {children}
-                    <AlertDialogContent
-                        ref={dialogRef}
-                        className="sm:max-w-[425px] select-none p-0 dark:bg-[#211F21] bg-white"
-                        style={{
-                            position: 'fixed',
-                            left: isDragging || initialDialogPositionSet ? `${dialogPosition.x}px` : '50%',
-                            top: isDragging || initialDialogPositionSet ? `${dialogPosition.y}px` : '50%',
-                            transform: isDragging || initialDialogPositionSet
-                                ? 'translate(-50%, -50%)'
-                                : 'translate(-50%, -50%)',
-                            cursor: isDragging ? 'grabbing' : 'pointer'
-                        }}
-                        onMouseDown={handleDragStart}
-                    >
-                        <AlertDialogHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                            <AlertDialogTitle className='absolute top-0 left-0 '>
-                                <div className='flex flex-row gap-1 items-center justify-center p-2'>
-                                    <AlertDialogCancel className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent' onClick={handleClose}>
-                                        <X size={8} className="text-white p-[1px]" />
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                        <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                    </AlertDialogAction>
-                                    <AlertDialogAction className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                        <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                    </AlertDialogAction>
-                                </div>
-                            </AlertDialogTitle>
 
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <div className='relative w-full'>
-                                <PictureGenerator
-                                    context={truncateText(context, 200)}
-                                    prompt={truncateText(selectedText, 200)}
-                                    onComplete={handlePicturesGenerated}
-                                    webnovel_id={webnovel_id}
-                                    chapter_id={chapter_id}
-                                />
-                            </div>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
+                    <Draggable
+                        nodeRef={nodeRef}
+                        position={dialogPosition}
+                        onStop={(e, data) => {
+                            setDialogPosition({ x: data.x, y: data.y });
+                        }}                    
+                        handle=".drag-handle"
+                        bounds="body"
+                    >
+                        <AlertDialogContent
+                            ref={nodeRef}
+                            forceMount
+                            className="sm:max-w-[425px] select-none p-0 dark:bg-[#211F21] bg-white"
+                            // onDrag={handleDrag}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <AlertDialogHeader className='drag-handle px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
+                                <AlertDialogTitle className='absolute top-0 left-0 '>
+                                    <div className='flex flex-row gap-1 items-center justify-center p-2'>
+                                        <AlertDialogAction
+                                            className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
+                                            onClick={handleClose}>
+                                            <X size={8} className="text-white p-[1px]" />
+                                        </AlertDialogAction>
+                                        <AlertDialogAction className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                            <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                                        </AlertDialogAction>
+                                        <AlertDialogAction className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                            <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                                        </AlertDialogAction>
+                                    </div>
+                                </AlertDialogTitle>
+
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <ScrollArea className='h-full'>
+                                    <div className='relative w-full'>
+                                        <PictureGenerator
+                                            context={truncateText(context, 200)}
+                                            prompt={truncateText(selectedText, 200)}
+                                            onComplete={handlePicturesGenerated}
+                                            webnovel_id={webnovel_id}
+                                            chapter_id={chapter_id}
+                                        />
+                                    </div>
+                                </ScrollArea>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </Draggable>
                 </div>
             </AlertDialog>
         );
@@ -372,7 +362,6 @@ const FloatingMenu: React.FC<{
                             top: `${position.y + position.height + 30}px`,
                             left: `${position.x - 30}px`,
                         }}
-                    // onClick={handleClose}
                     >
                         <style jsx global>{`
                         ::selection {
@@ -433,16 +422,16 @@ export { FloatingMenu }
 
 function ShareForm({ className }: React.ComponentProps<"form">) {
     return (
-      <form className={cn("grid items-start gap-4", className)}>
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input type="email" id="email" defaultValue="shadcn@example.com" />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" defaultValue="@shadcn" />
-        </div>
-        <Button type="submit">Save changes</Button>
-      </form>
+        <form className={cn("grid items-start gap-4", className)}>
+            <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input type="email" id="email" defaultValue="shadcn@example.com" />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" defaultValue="@shadcn" />
+            </div>
+            <Button type="submit">Save changes</Button>
+        </form>
     )
-  }
+}

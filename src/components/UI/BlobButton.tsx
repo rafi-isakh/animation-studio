@@ -3,18 +3,16 @@ import styles from "@/styles/BlobButton.module.css";
 
 const BlobButton: React.FC<{ text: React.ReactNode }> = ({ text }) => {
   return (
-    <div className="relative inline-flex group w-[50px] h-[50px]">
-      <div className="absolute transition-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-xl filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-      </div>
-      <button className={`${styles.button} self-center`}>
+    <button
+    // ${styles.button} 
+    className={` ${styles.button}  flex-shrink-1 w-full relative inline-flex items-center justify-center md:text-base text-md font-medium text-white transition-all duration-200 bg-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900`}
+    >
         <span className={`${styles.text} backdrop-blur-sm`}>
           {text}
-        </span>
-        <span className={styles.blob}></span>
-        <span className={styles.blob}></span>
-
-      </button>
-    </div>
+         </span>
+         <span className={styles.blob}></span>
+         <span className={styles.blob}></span>
+    </button>
   );
 };
 

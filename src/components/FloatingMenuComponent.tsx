@@ -73,14 +73,15 @@ const FloatingMenuNav = ({ handleOpenModal }: { handleOpenModal: () => void }) =
                         <div key={item.label} className="flex-1 w-full group">
                             <Link
                                 href="#"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleOpenModal();
-                                }}
                                 className="!no-underline flex items-center justify-center text-center mx-auto p-1">
                                 {item.type === 'blob' ? (
                                     // Special rendering for blob type items
-                                    <div className="relative inline-flex group p-1 w-16 h-16">
+                                    <div className="relative inline-flex group p-1 w-16 h-16"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleOpenModal();
+                                        }}
+                                    >
                                         <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
                                         </div>
                                         {item.icon}
@@ -299,14 +300,14 @@ const FloatingMenu: React.FC<{
                         // onClick={handleClose}
                         >
                             <style jsx global>{`
-                        ::selection {
-                             @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
-                             @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
-                            text-decoration: underline;
-                            text-decoration-color: #DE2B74;
-                            text-decoration-thickness: 2px;
-                            text-decoration-style: solid;
-                        }
+                            ::selection {
+                                @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
+                                @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
+                                text-decoration: underline;
+                                text-decoration-color: #DE2B74;
+                                text-decoration-thickness: 2px;
+                                text-decoration-style: solid;
+                            }
                         `}</style>
                             <AlertDialogTrigger asChild>
                                 <FloatingMenuNav handleOpenModal={handleOpenModal} />
@@ -327,7 +328,7 @@ const FloatingMenu: React.FC<{
                             cursor: isDragging ? 'grabbing' : 'pointer'
                         }}
                         onMouseDown={handleDragStart}
-                           >
+                    >
                         <AlertDialogHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
                             <AlertDialogTitle className='absolute top-0 left-0 '>
                                 <div className='flex flex-row gap-1 items-center justify-center p-2'>

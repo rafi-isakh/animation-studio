@@ -1,5 +1,7 @@
 "use client"
-import { Button } from "@mui/material";
+import { Button } from "@/components/shadcnUI/Button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog"
+import { Input } from "@/components/shadcnUI/Input"
 import { Box, TextField } from "@mui/material";
 import { useModalStyle } from "@/styles/ModalStyles";
 import { useState } from "react";
@@ -7,6 +9,7 @@ import { Modal } from "@mui/material"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { ImageOrVideo } from "@/components/Types";
+import { Label } from "@radix-ui/react-label";
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -74,37 +77,41 @@ export default function ShareAsToonyzPostModal({
         }
         alert("Post created successfully");
         setShowShareAsPostModal(false);
-};
+    };
 
     const handleSetTags = (value: string) => {
         setTags(value.split(',').map(tag => tag.trim()));
     }
 
     return (
-        <Modal open={showShareAsPostModal} onClose={() => setShowShareAsPostModal(false)}>
-            <Box sx={useModalStyle}>
-                <div className="flex flex-col space-y-4 items-center justify-center select-none">
-                    <h2>{phrase(dictionary, "ShareAsPostImage", language)}</h2>
-                    <TextField
-                        label={phrase(dictionary, "title", language)}
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                    />
+        <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
+            <DialogContent className="sm:max-w-[425px] select-none">
+                <DialogHeader>
+                    <DialogTitle>{phrase(dictionary, "ShareAsPostImage", language)}</DialogTitle>
+                    <DialogDescription>
+                        Make changes to your profile here. Click save when you're done.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">
+                            {phrase(dictionary, "title", language)}
+                        </Label>
+                        <Input
+                            placeholder={phrase(dictionary, "title", language)}
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="col-span-3"
+                        />
+                    </div>
+
                     <h2>{phrase(dictionary, "quote", language)}</h2>
-                    <Button
-                        value={quote}
-                        disabled
-                        variant="text"
-                        className="w-full select-none"
-                        sx={{
-                            '&.Mui-disabled': {
-                                color: 'black',
-                                opacity: 1,
-                            },
-                        }}
+                    <div
+                        className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
                     >
                         {quote}
-                    </Button>
+                    </div>
+
                     <TextField
                         label={phrase(dictionary, "content", language)}
                         value={content}
@@ -117,10 +124,13 @@ export default function ShareAsToonyzPostModal({
                         value={tags}
                         onChange={(e) => handleSetTags(e.target.value)}
                     />
-                    <Button variant="outlined" color="gray" onClick={() => handleShareAsPost()}>{phrase(dictionary, "yes", language)}</Button>
-                    <Button variant="outlined" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "no", language)}</Button>
+
                 </div>
-            </Box>
-        </Modal>
+                <DialogFooter>
+                    <Button variant="outline" color="gray" onClick={() => handleShareAsPost()}>{phrase(dictionary, "confirm", language)}</Button>
+                    <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog >
     )
 }

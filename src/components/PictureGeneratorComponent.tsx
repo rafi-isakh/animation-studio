@@ -167,18 +167,18 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   return (
     <div className="z-50 select-none">
       {/* picture generator */}
-      <div className="flex md:flex-row flex-col items-center gap-4 space-y-4">
+      <div className="flex md:flex-row flex-col items-center gap-4 space-y-4 flex-grow-0">
         <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex flex-col min-h-[100px]">
           {/* Text content with scrolling if needed */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto flex-grow-0">
             <p className="text-sm text-gray-600 dark:text-gray-300  p-4">
               {savedPrompt}
             </p>
           </div>
 
-          <div className='flex-shrink-0 flex flex-row justify-between text-gray-500'>
+          <div className='flex-grow-0 flex flex-row justify-between text-gray-500'>
             <div className='flex flex-row gap-4 p-4 items-center '>
-              {savedPrompt.length}/{savedPrompt.length}
+              {savedPrompt.length}/200
               <InfoTooltip title={
                 <div className='flex flex-row justify-center rounded-md w-full'>
                   {phrase(dictionary, "preparing", language)}
@@ -186,32 +186,6 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
               }
                 placement="bottom">
                 <CircleHelp size={16} />
-              </InfoTooltip>
-
-              <InfoTooltip title={
-                <div className='flex flex-row justify-center border border-black rounded-md w-full'>
-                  <div className='flex-1 p-4 text-left self-center'>
-
-                    <p>{phrase(dictionary, "freeTrial", language)}</p>
-                    <BorderLinearProgress value={30} variant="determinate" />
-                    <p>1000 credits</p>
-
-                  </div>
-                  <div className='flex-1 relative py-8 px-2'>
-                    <div className='absolute left-0 top-4 bottom-4 w-[1px] bg-black'></div>
-                    <div className="flex flex-row">
-                      <div className='px-2'>
-                        <p>{phrase(dictionary, "haveYouEnjoyed", language)}</p>
-                        <p>{phrase(dictionary, "youCanUnlock", language)}</p>
-                      </div>
-                      <div className='self-center'>
-                        <ChevronRight size={16} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              } placement="bottom">
-                <Settings size={16} />
               </InfoTooltip>
             </div>
             <Button
@@ -287,7 +261,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
 
       {pictures.length > 0 && (
-        <div className="flex md:flex-row flex-col gap-4 mt-6 select-none">
+        <div className="flex flex-col gap-4 mt-6 select-none">
           <button onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md'>
             Make Slideshow
           </button>
@@ -301,16 +275,16 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
           ))}
         </div>
       )}
-      <ShareAsToonyzPostModal
-        imageOrVideo={'video' as ImageOrVideo}
-        showShareAsPostModal={showShareAsPostModal}
-        setShowShareAsPostModal={setShowShareAsPostModal}
-        index={0}
-        videoFileName={videoFileName!}
-        webnovel_id={webnovel_id}
-        chapter_id={chapter_id}
-        quote={savedPrompt}
-      />
+          <ShareAsToonyzPostModal
+            imageOrVideo={'video' as ImageOrVideo}
+            showShareAsPostModal={showShareAsPostModal}
+            setShowShareAsPostModal={setShowShareAsPostModal}
+            index={0}
+            videoFileName={videoFileName!}
+            webnovel_id={webnovel_id}
+            chapter_id={chapter_id}
+            quote={savedPrompt}
+          />
     </div>
   );
 };

@@ -117,7 +117,7 @@ const FloatingMenu: React.FC<{
     chapter_id:
     string;
     context: string
-}> = ({ children, window, webnovel_id, chapter_id, context }) => {
+}> = ({ children, window: windowFn, webnovel_id, chapter_id, context }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
@@ -165,7 +165,7 @@ const FloatingMenu: React.FC<{
 
                 timeoutRef.current = setTimeout(() => {
                     handleClose();
-                }, 8000);
+                }, 5000);
             }
         }
 
@@ -215,10 +215,10 @@ const FloatingMenu: React.FC<{
 
     const handleClose = () => {
         // First, add a fade-out animation
-        if (nodeRef.current) {
-            nodeRef.current.style.transition = 'opacity 0.3s ease';
-            nodeRef.current.style.opacity = '0';
-        }
+        // if (containerRef.current) {
+        //     containerRef.current.style.transition = 'opacity 0.3s ease';
+        //     containerRef.current.style.opacity = '0';
+        // }
 
         // Wait for the animation to complete before closing
         setTimeout(() => {
@@ -232,9 +232,9 @@ const FloatingMenu: React.FC<{
             }
 
             // Reset the opacity for next open
-            if (nodeRef.current) {
-                nodeRef.current.style.opacity = '1';
-            }
+            // if (containerRef.current) {
+            //     containerRef.current.style.opacity = '1';
+            // }
         }, 300); // Match this duration with the transition duration
     }
 
@@ -245,29 +245,41 @@ const FloatingMenu: React.FC<{
 
     useEffect(() => {
         if (!initialDialogPositionSet && nodeRef.current) {
-            const viewportWidth = window?.()?.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window?.()?.innerHeight || document.documentElement.clientHeight;
+            const viewportWidth = windowFn?.()?.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = windowFn?.()?.innerHeight || document.documentElement.clientHeight;
             // Code is cut off here
         }
     }, [initialDialogPositionSet]);
     // Update your useEffect for initial positioning
     useEffect(() => {
         if (!initialDialogPositionSet && nodeRef.current) {
-            const viewportWidth = window?.()?.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window?.()?.innerHeight || document.documentElement.clientHeight;
-            
+            const viewportWidth = windowFn?.()?.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = windowFn?.()?.innerHeight || document.documentElement.clientHeight;
+
             setDialogPosition({
-                x: viewportWidth / 2 - 212, // Half of max-width (425px)
-                y: viewportHeight / 2 - 150, // Approximate half height
+                x: viewportWidth - 450, // Position it near the right edge
+                y: viewportHeight / 4,   // Position it a quarter down from the top
             });
             setInitialDialogPositionSet(true);
         }
-    }, [initialDialogPositionSet, window]);
+    }, [initialDialogPositionSet, windowFn]);
 
     // Update your handleDrag function
     const handleDrag = (e: any, data: any) => {
         setDialogPosition({ x: data.x, y: data.y });
     };
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'auto';
+            document.body.style.overflowX = 'hidden';
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [open]);
 
     if (isDesktop) {
         return (
@@ -289,7 +301,10 @@ const FloatingMenu: React.FC<{
                                 text-decoration-color: #DE2B74;
                                 text-decoration-thickness: 2px;
                                 text-decoration-style: solid;
-                            }
+
+                                
+                            }                            
+                          
                         `}</style>
                             <AlertDialogTrigger asChild>
                                 <FloatingMenuNav handleOpenModal={handleOpenModal} />
@@ -297,57 +312,60 @@ const FloatingMenu: React.FC<{
                         </div>
                     )}
                     {children}
-
                     <Draggable
                         nodeRef={nodeRef}
                         position={dialogPosition}
                         onStop={(e, data) => {
                             setDialogPosition({ x: data.x, y: data.y });
-                        }}                    
+                        }}
                         handle=".drag-handle"
                         bounds="body"
                     >
                         <AlertDialogContent
                             ref={nodeRef}
                             forceMount
-                            className="sm:max-w-[425px] select-none p-0 dark:bg-[#211F21] bg-white"
-                            // onDrag={handleDrag}
+                            className="sm:max-w-[425px] h-screen select-none p-0 dark:bg-[#211F21] bg-white rounded-lg fixed"
                             onClick={(e) => e.stopPropagation()}
+                            style={{
+                                position: 'fixed',
+                                pointerEvents: 'auto'
+                            }}
+                            preventScroll={false}
                         >
-                            <AlertDialogHeader className='drag-handle px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
+                            <AlertDialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
                                 <AlertDialogTitle className='absolute top-0 left-0 '>
-                                    <div className='flex flex-row gap-1 items-center justify-center p-2'>
+                                    <div className='flex flex-row gap-1 items-start justify-start p-2'>
                                         <AlertDialogAction
                                             className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
                                             onClick={handleClose}>
                                             <X size={8} className="text-white p-[1px]" />
                                         </AlertDialogAction>
-                                        <AlertDialogAction className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                        <AlertDialogAction disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                             <Circle size={8} className="text-gray-200 dark:text-gray-700" />
                                         </AlertDialogAction>
-                                        <AlertDialogAction className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                        <AlertDialogAction disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                             <Circle size={8} className="text-gray-200 dark:text-gray-700" />
                                         </AlertDialogAction>
                                     </div>
                                 </AlertDialogTitle>
-
                             </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <ScrollArea className='h-full'>
-                                    <div className='relative w-full'>
-                                        <PictureGenerator
-                                            context={truncateText(context, 200)}
-                                            prompt={truncateText(selectedText, 200)}
-                                            onComplete={handlePicturesGenerated}
-                                            webnovel_id={webnovel_id}
-                                            chapter_id={chapter_id}
-                                        />
-                                    </div>
-                                </ScrollArea>
-                            </AlertDialogFooter>
+
+                            <ScrollArea className='drag-handle h-screen items-start flex-1'>
+                                <div className='relative w-full'>
+                                    <PictureGenerator
+                                        context={truncateText(context, 200)}
+                                        prompt={truncateText(selectedText, 200)}
+                                        onComplete={handlePicturesGenerated}
+                                        webnovel_id={webnovel_id}
+                                        chapter_id={chapter_id}
+                                    />
+                                </div>
+                            </ScrollArea>
+
                         </AlertDialogContent>
                     </Draggable>
                 </div>
+
             </AlertDialog>
         );
     }

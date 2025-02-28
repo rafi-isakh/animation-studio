@@ -258,8 +258,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 {/* Top bar: Back to novel and like button */}
                 <header
                     className={`
-                        w-full transition-transform duration-300 ease-in bg-white dark:bg-black py-2
-                        ${isSticky ? 'fixed top-0 z-[99]' : 'relative'}
+                        w-full transition-transform duration-300 ease-in py-2
+                        ${isSticky 
+                            ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none' 
+                            : 'relative bg-white dark:bg-black'}
                     `}
                 >
                     <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>

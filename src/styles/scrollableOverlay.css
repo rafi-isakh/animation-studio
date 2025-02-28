@@ -1,0 +1,31 @@
+
+
+    body[data-state="open"] {
+      @apply overflow-auto;
+    }
+
+    [data-radix-popper-content-wrapper] {
+        position: absolute !important;
+        pointer-events: none !important;
+    }
+
+
+.DialogOverlay {
+	/* background: rgba(0 0 0 / 0.5); */
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: grid;
+	place-items: center;
+	overflow: auto !important;
+}
+
+.DialogContent {
+    pointer-events: auto !important;
+	/* min-width: 300px; */
+	/* background: transparent; */
+	/* padding: 30px;
+	border-radius: 4px; */
+}

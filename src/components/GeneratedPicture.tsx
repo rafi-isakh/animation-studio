@@ -24,7 +24,7 @@ export default function GeneratedPicture({
         quote?: string,
         makeSlideshow?: () => void,
         makeVideo?: () => void,
-        isSelected: boolean,
+        isSelected?: boolean,
     }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     return (

@@ -1,9 +1,16 @@
 import Image from "next/image";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ImageOrVideo } from "./Types";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { Button } from "@/components/shadcnUI/Button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import { Share, Image as ImageIcon, Clapperboard, Sparkles } from "lucide-react";
+
+interface ToonyzPostMenuNavItem {
+    icon: React.ReactNode;
+    label: string;
+    type: 'normal' | 'blob';
+}
 
 export default function GeneratedPicture({
     index,
@@ -25,9 +32,33 @@ export default function GeneratedPicture({
     }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
 
+    const ToonyzPostMenuNavItems: ToonyzPostMenuNavItem[] = [
+        { icon: <Share size={10} />, label: 'Share', type: 'normal' },
+        { icon: <ImageIcon size={10} />, label: 'Make Slideshow', type: 'normal' },
+        { icon: <Clapperboard size={10} />, label: 'Make Video', type: 'normal' },
+    ];
+
+    // Get handler function based on button label
+    const getButtonHandler = (label: string) => {
+        switch (label) {
+            case 'Share': 
+                return () => setShowShareAsPostModal(true);
+            case 'Make Slideshow': 
+                return makeSlideshow;
+            case 'Make Video': 
+                return makeVideo;
+            default: 
+                return () => {};
+        }
+    };
+
+    // Get button color based on label
+    const getButtonColor = (label: string) => {
+        return label === 'Share' ? 'bg-[#DE2B74]' : 'bg-pink-600';
+    };
 
     return (
-        <>
+        <TooltipProvider delayDuration={0}>
             <div
                 className="group relative w-80 h-80 select-none "
             >
@@ -37,34 +68,31 @@ export default function GeneratedPicture({
                     width={320}
                     height={320}
 
-                    className=" object-cover w-full h-full rounded-xl border-none  group-hover:opacity-50 transition-opacity duration-300"
+                    className=" object-cover w-full h-full rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
                 />
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="flex flex-row gap-2 justify-center items-center h-full w-full">
-                    <Button
-                        onClick={() => setShowShareAsPostModal(true)}
-                        variant="outline"
-                        className="group/share rounded-lg bg-[#DE2B74] hover:bg-pink-400 text-white">
-                        <Share size={16} />
-                        <span className="text-sm hidden group-hover/share:block">Share</span>
-                    </Button>
-                    <Button 
-                        variant="outline" 
-                        onClick={makeSlideshow} 
-                        className='group/slideshow rounded-lg bg-pink-600 text-white hover:bg-pink-400 border-0'>
-                        <ImageIcon size={16} />
-                        <span className="text-sm hidden group-hover/slideshow:block">Make Slideshow</span>
-                    </Button>
-                    <Button 
-                    variant="outline" 
-                    onClick={makeVideo} 
-                    className='group/video rounded-lg bg-pink-600 text-white hover:bg-pink-400 border-0'>
-                        <Clapperboard size={16} />
-                        <span className="text-sm hidden group-hover/video:block">Make Video</span>
-                    </Button>
-                    </div>
+                    {ToonyzPostMenuNavItems.map((item, idx) => (
+                        <Tooltip key={idx}>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={getButtonHandler(item.label)}
+                                    variant="outline"
+                                    className={`group/${item.label.toLowerCase().replace(' ', '')} rounded-full ${getButtonColor(item.label)} text-white hover:bg-pink-400 border-0`}
+                                >
+                                    {React.cloneElement(item.icon as React.ReactElement, { size: 16 })}
+                                    {/* <span className={`text-sm hidden group-hover/${item.label.toLowerCase().replace(' ', '')}:block`}>
+                                        {item.label}
+                                    </span> */}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{item.label}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    ))}
                 </div>
             </div>
+
             <ShareAsToonyzPostModal
                 imageOrVideo={'image' as ImageOrVideo}
                 showShareAsPostModal={showShareAsPostModal}
@@ -75,6 +103,6 @@ export default function GeneratedPicture({
                 chapter_id={chapter_id}
                 quote={quote!}
             />
-        </>
+        </TooltipProvider>
     )
 }

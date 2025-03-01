@@ -15,7 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { ImageOrVideo } from "@/components/Types";
 import { Label } from "@radix-ui/react-label";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea"
 import { useToast } from "@/hooks/use-toast"
 
@@ -47,9 +47,11 @@ export default function ShareAsToonyzPostModal({
     const [tagInput, setTagInput] = useState("");
     const displayQuote = quote.length > 200 ? quote.slice(0, 200) + "..." : quote;
     const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleShareAsPost = async () => {
         try {
+            setIsLoading(true);
             if (imageOrVideo === 'image') {
                 if (!image) {
                     console.error('Image is undefined');
@@ -58,6 +60,8 @@ export default function ShareAsToonyzPostModal({
                         title: "Error",
                         description: "Image is undefined"
                     });
+
+                    setIsLoading(false);
                     return;
                 }
                 const fileBufferBase64 = Buffer.from(image, 'base64').toString('base64');
@@ -80,6 +84,7 @@ export default function ShareAsToonyzPostModal({
                         title: "Error",
                         description: "Error uploading picture to S3"
                     });
+
                     return;
                 }
                 if (!createResponse.ok) {
@@ -89,6 +94,7 @@ export default function ShareAsToonyzPostModal({
                         title: "Error",
                         description: "Error creating Toonyz post"
                     });
+
                     return;
                 }
             }
@@ -100,13 +106,14 @@ export default function ShareAsToonyzPostModal({
                         title: "Error",
                         description: "Video file name is undefined"
                     });
+                    setIsLoading(false);
                     return;
                 }
                 const response = await fetch('/api/create_toonyz_post', {
                     method: 'POST',
                     body: JSON.stringify({ title, content, quote, fileName: videoFileName, type: "video", tags: tags.toString(), link: `/posts/${videoFileName}`, webnovel_id, chapter_id }),
                 });
-                
+
                 if (!response.ok) {
                     console.error('Error creating Toonyz post');
                     toast({
@@ -114,15 +121,16 @@ export default function ShareAsToonyzPostModal({
                         title: "Error",
                         description: "Error creating Toonyz post"
                     });
+
                     return;
                 }
             }
-            
             toast({
                 title: "Success",
                 description: "Post created successfully"
             });
             setShowShareAsPostModal(false);
+            setIsLoading(false);
         } catch (error) {
             console.error('Unexpected error:', error);
             toast({
@@ -130,6 +138,8 @@ export default function ShareAsToonyzPostModal({
                 title: "Error",
                 description: "An unexpected error occurred"
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -235,7 +245,23 @@ export default function ShareAsToonyzPostModal({
                     </div>
                 </ScrollArea>
                 <DialogFooter>
-                    <Button variant="outline" className="bg-[#DE2B74] hover:bg-pink-400 text-white" onClick={() => handleShareAsPost()}>{phrase(dictionary, "confirm", language)}</Button>
+                    <Button
+                        disabled={isLoading}
+                        variant="outline"
+                        className="bg-[#DE2B74] hover:bg-pink-400 text-white"
+                        onClick={() => handleShareAsPost()}>
+                        {isLoading ? (
+                         <>
+                            <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                            <span className="text-[16px]">
+                                {phrase(dictionary, "generatingPrompt", language)}
+                            </span>
+                         </>) : (
+                            
+                            phrase(dictionary, "confirm", language))
+            
+                        }
+                    </Button>
                     <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
                 </DialogFooter>
             </DialogContent>

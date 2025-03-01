@@ -1,7 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
-import { Button, Alert, styled, Box } from '@mui/material';
+import { Alert, styled, Box } from '@mui/material';
+import { Button } from '@/components/shadcnUI/Button';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import GeneratedPicture from '@/components/GeneratedPicture';
@@ -189,16 +190,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
               </InfoTooltip>
             </div>
             <Button
-              variant="text"
-              sx={{
-                color: 'gray',
-                backgroundColor: 'white',
-                borderRadius: '10px',
-                padding: '10px',
-                fontWeight: 'bold',
-                minWidth: '100px',
-                alignSelf: 'flex-end',
-              }}
+              variant="outline"
               onClick={generatePictures}
               disabled={isLoading}
               className='px-4 py-2 font-bold ml-4 bg-white dark:text-pink-600 dark:bg-white 
@@ -262,29 +254,37 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
-          <button onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md'>
-            Make Slideshow
-          </button>
-          <button onClick={makeVideo} className='bg-pink-600 text-white px-4 py-2 rounded-md'>
-            Make Video
-          </button>
+          {/* {pictures.length > 1 && (
+            <>
+              <Button variant="outline" onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
+                Make Slideshow
+              </Button>
+              <Button variant="outline" onClick={makeVideo} className='bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
+                Make Video
+              </Button>
+            </>
+          )} */}
           {pictures.map((picture, index) => (
             <div key={index} className="flex-shrink flex-wrap">
-              <GeneratedPicture index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} quote={savedPrompt} />
+              <GeneratedPicture 
+                index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} quote={savedPrompt}
+                makeSlideshow={makeSlideshow}
+                makeVideo={makeVideo}
+                 />
             </div>
           ))}
         </div>
       )}
-          <ShareAsToonyzPostModal
-            imageOrVideo={'video' as ImageOrVideo}
-            showShareAsPostModal={showShareAsPostModal}
-            setShowShareAsPostModal={setShowShareAsPostModal}
-            index={0}
-            videoFileName={videoFileName!}
-            webnovel_id={webnovel_id}
-            chapter_id={chapter_id}
-            quote={savedPrompt}
-          />
+      <ShareAsToonyzPostModal
+        imageOrVideo={'video' as ImageOrVideo}
+        showShareAsPostModal={showShareAsPostModal}
+        setShowShareAsPostModal={setShowShareAsPostModal}
+        index={0}
+        videoFileName={videoFileName!}
+        webnovel_id={webnovel_id}
+        chapter_id={chapter_id}
+        quote={savedPrompt}
+      />
     </div>
   );
 };

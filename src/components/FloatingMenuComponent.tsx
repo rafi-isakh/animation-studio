@@ -321,7 +321,7 @@ const FloatingMenu: React.FC<{
                         <DialogContent
                             ref={nodeRef}
                             forceMount
-                            className="sm:max-w-[425px] h-screen select-none p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
+                            className="sm:max-w-[425px] h-screen select-none fixed top-10 right-0 p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
                             onClick={(e) => e.stopPropagation()}
                             showCloseButton={false}
                         >
@@ -346,8 +346,8 @@ const FloatingMenu: React.FC<{
                             <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar'>
                                 <div className='relative w-full'>
                                     <PictureGenerator
-                                        context={truncateText(context, 200)}
-                                        prompt={truncateText(selectedText, 200)}
+                                        context={truncateText(context, 197)}
+                                        prompt={truncateText(selectedText, 197)}
                                         onComplete={handlePicturesGenerated}
                                         webnovel_id={webnovel_id}
                                         chapter_id={chapter_id}

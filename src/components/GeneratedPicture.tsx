@@ -14,6 +14,7 @@ export default function GeneratedPicture({
     quote,
     makeSlideshow,
     makeVideo,
+    isSelected,
 }:
     {
         index: number,
@@ -21,8 +22,9 @@ export default function GeneratedPicture({
         webnovel_id: string,
         chapter_id: string,
         quote?: string,
-        makeSlideshow: () => void,
-        makeVideo: () => void,
+        makeSlideshow?: () => void,
+        makeVideo?: () => void,
+        isSelected: boolean,
     }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     return (
@@ -32,7 +34,7 @@ export default function GeneratedPicture({
                     src={`data:image/png;base64,${image}`}
                     alt={`Generated image ${index + 1}`}
                     fill
-                    className="object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
+                    className={`object-cover rounded-xl group-hover:opacity-50 transition-opacity duration-300 ${isSelected ? 'border-2 border-[#DE2B74]' : 'opacity-100'}`}
                 />
 
                 <div className="z-[99] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-center items-center">

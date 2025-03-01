@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import { Alert, styled, Box } from '@mui/material';
 import { Button } from '@/components/shadcnUI/Button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,7 +15,7 @@ import {
   CarouselPrevious,
 } from "@/components/shadcnUI/Carousel"
 import { Card, CardContent } from "@/components/shadcnUI/Card"
-import { CircleHelp, Loader2, Share } from 'lucide-react';
+import { CircleHelp, Loader2, Share, ArrowRight } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
 import { ImageOrVideo } from './Types';
@@ -248,16 +247,9 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       )}
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
-          {(pictures.length > 1 && isSelected) && (
-            <>
-              <Button variant="outline" onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
-                Make Slideshow
-              </Button>
-              <Button variant="outline" onClick={makeVideo} className='bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
-                Make Video
-              </Button>
-            </>
-          )}
+          <div className="py-2 text-center text-sm text-muted-foreground">
+            Slide {current} of {count}
+          </div>
           <Carousel
             setApi={setApi}
             opts={{
@@ -269,7 +261,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
               {pictures.map((picture, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 border-0">
                   <RadioGroup
-                    onValueChange={() => {}}
+                    onValueChange={() => { }}
                     id={`img-select-${index}`}
                     defaultValue={index.toString()}
                     className="relative"
@@ -283,14 +275,15 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
                         quote={savedPrompt}
                         makeSlideshow={makeSlideshow}
                         makeVideo={makeVideo}
+                        isSelected={isSelected}
                       />
-                      <div className="absolute top-2 left-2 z-[100]">
+                      <div className="absolute top-0 left-0 z-[100]">
                         <RadioGroupItem
                           value={index.toString()}
                           id={`img-select-${index}`}
                           checked={isSelected}
                           onClick={() => setIsSelected(!isSelected)}
-                          className="relative h-5 w-5 border-2 border-white rounded-full appearance-none 
+                          className="relative h-5 w-5 border-2 border-white appearance-none 
                             data-[state=checked]:border-[#DE2B74] focus:outline-none focus:ring-0 focus:ring-offset-0
                             after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 
                             after:h-3 after:w-3 after:rounded-full after:bg-transparent
@@ -317,9 +310,17 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
               disabled={current === count}
             />
           </Carousel>
-          <div className="py-2 text-center text-sm text-muted-foreground">
-            Slide {current} of {count}
-          </div>
+          {(pictures.length > 1 && isSelected) && (
+            <div className='flex flex-row gap-4 justify-center'>
+              <Button variant="ghost" onClick={makeSlideshow} className=' text-white px-4 py-2 rounded-md border-0'>
+                Make Slideshow
+              </Button>
+              <Button variant="outline" onClick={makeVideo} className='inline-flex  bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
+                Make Video
+                <ArrowRight className='w-4 h-4' />
+              </Button>
+            </div>
+          )}
         </div>
       )}
       <ShareAsToonyzPostModal

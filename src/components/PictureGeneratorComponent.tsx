@@ -301,7 +301,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       
       {isLoading && (
         <div className="flex flex-col items-center mt-4">
-          <CircularProgress value={progress} />
+          <CircularProgress value={progress} color="stroke-[#DE2B74]" trackColor="stroke-pink-200" />
           <p className="text-sm text-muted-foreground mt-2">
             Generating images... {Math.round(progress)}%
           </p>

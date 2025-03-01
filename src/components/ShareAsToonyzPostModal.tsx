@@ -1,15 +1,23 @@
 "use client"
 import { Button } from "@/components/shadcnUI/Button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter
+} from "@/components/shadcnUI/Dialog"
+import { Textarea } from "@/components/shadcnUI/Textarea"
 import { Input } from "@/components/shadcnUI/Input"
-import { Box, TextField } from "@mui/material";
-import { useModalStyle } from "@/styles/ModalStyles";
 import { useState } from "react";
-import { Modal } from "@mui/material"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { ImageOrVideo } from "@/components/Types";
 import { Label } from "@radix-ui/react-label";
+import { X } from "lucide-react";
+import { ScrollArea } from "@/components/shadcnUI/ScrollArea"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -36,65 +44,147 @@ export default function ShareAsToonyzPostModal({
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState("");
+    const displayQuote = quote.length > 200 ? quote.slice(0, 200) + "..." : quote;
+    const { toast } = useToast();
 
     const handleShareAsPost = async () => {
-        if (imageOrVideo === 'image') {
-            if (!image) {
-                console.error('Image is undefined');
-                throw new Error('Image is undefined');
+        try {
+            if (imageOrVideo === 'image') {
+                if (!image) {
+                    console.error('Image is undefined');
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Image is undefined"
+                    });
+                    return;
+                }
+                const fileBufferBase64 = Buffer.from(image, 'base64').toString('base64');
+                const fileName = `${index}-${Date.now()}.png`;
+                const fileType = 'image/png';
+                const [uploadResponse, createResponse] = await Promise.all([
+                    fetch('/api/upload_picture_to_s3', {
+                        method: 'POST',
+                        body: JSON.stringify({ fileBufferBase64, fileName, fileType }),
+                    }),
+                    fetch('/api/create_toonyz_post', {
+                        method: 'POST',
+                        body: JSON.stringify({ title, content, quote, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id }),
+                    }),
+                ]);
+                if (!uploadResponse.ok) {
+                    console.error('Error uploading picture to S3');
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Error uploading picture to S3"
+                    });
+                    return;
+                }
+                if (!createResponse.ok) {
+                    console.error('Error creating Toonyz post');
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Error creating Toonyz post"
+                    });
+                    return;
+                }
             }
-            const fileBufferBase64 = Buffer.from(image, 'base64').toString('base64');
-            const fileName = `${index}-${Date.now()}.png`;
-            const fileType = 'image/png';
-            const [uploadResponse, createResponse] = await Promise.all([
-                fetch('/api/upload_picture_to_s3', {
+            else if (imageOrVideo === 'video') {
+                if (!videoFileName) {
+                    console.error('Video file name is undefined');
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Video file name is undefined"
+                    });
+                    return;
+                }
+                const response = await fetch('/api/create_toonyz_post', {
                     method: 'POST',
-                    body: JSON.stringify({ fileBufferBase64, fileName, fileType }),
-                }),
-                fetch('/api/create_toonyz_post', {
-                    method: 'POST',
-                    body: JSON.stringify({ title, content, quote, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id }),
-                }),
-            ]);
-            if (!uploadResponse.ok) {
-                console.error('Error uploading picture to S3');
-                throw new Error('Error uploading picture to S3');
+                    body: JSON.stringify({ title, content, quote, fileName: videoFileName, type: "video", tags: tags.toString(), link: `/posts/${videoFileName}`, webnovel_id, chapter_id }),
+                });
+                
+                if (!response.ok) {
+                    console.error('Error creating Toonyz post');
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Error creating Toonyz post"
+                    });
+                    return;
+                }
             }
-            if (!createResponse.ok) {
-                console.error('Error creating Toonyz post');
-                throw new Error('Error creating Toonyz post');
-            }
+            
+            toast({
+                title: "Success",
+                description: "Post created successfully"
+            });
+            setShowShareAsPostModal(false);
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "An unexpected error occurred"
+            });
         }
-        else if (imageOrVideo === 'video') {
-            if (!videoFileName) {
-                console.error('Video file name is undefined');
-                throw new Error('Video file name is undefined');
-            }
-            fetch('/api/create_toonyz_post', {
-                method: 'POST',
-                body: JSON.stringify({ title, content, quote, fileName: videoFileName, type: "video", tags: tags.toString(), link: `/posts/${videoFileName}`, webnovel_id, chapter_id }),
-            })
-        }
-        alert("Post created successfully");
-        setShowShareAsPostModal(false);
     };
 
-    const handleSetTags = (value: string) => {
-        setTags(value.split(',').map(tag => tag.trim()));
-    }
+    const handleTagInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        if (value.includes(',')) {
+            const newTag = value.replace(',', '').trim();
+            if (newTag && !tags.includes(newTag)) {
+                setTags([...tags, newTag]);
+            }
+            setTagInput('');
+        } else {
+            setTagInput(value);
+        }
+    };
+
+    const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+                setTags([...tags, tagInput.trim()]);
+                setTagInput('');
+            }
+        }
+        else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+            setTags(tags.slice(0, -1));
+        }
+    };
+
+    const removeTag = (tagToRemove: string) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
 
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
-            <DialogContent className="sm:max-w-[425px] select-none">
+            <DialogContent
+                className="sm:max-w-[425px] select-none no-scrollbar bg-white dark:bg-[#211F21]"
+                onClick={(e) => e.stopPropagation()}
+                showCloseButton={true}
+            >
                 <DialogHeader>
-                    <DialogTitle>{phrase(dictionary, "ShareAsPostImage", language)}</DialogTitle>
+                    <DialogTitle>Share as Toonyz Post</DialogTitle>
                     <DialogDescription>
-                        Make changes to your profile here. Click save when you&apos;re done.
+                        {/* <h2>{phrase(dictionary, "quote", language)}</h2> */}
+                        <div
+                            className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
+                        >
+                            {displayQuote}
+                        </div>
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
+                <ScrollArea className="flex flex-col">
+                    <div className="items-center">
+                        <Label htmlFor="name" className="text-right text-sm">
                             {phrase(dictionary, "title", language)}
                         </Label>
                         <Input
@@ -104,30 +194,48 @@ export default function ShareAsToonyzPostModal({
                             className="col-span-3"
                         />
                     </div>
-
-                    <h2>{phrase(dictionary, "quote", language)}</h2>
-                    <div
-                        className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
-                    >
-                        {quote}
+                    <div className="items-center">
+                        <Label htmlFor="tags" className="text-right text-sm">
+                            {phrase(dictionary, "tags", language)}
+                        </Label>
+                        <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 col-span-3">
+                            {tags.map((tag, i) => (
+                                <span
+                                    key={i}
+                                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm flex items-center"
+                                >
+                                    {tag}
+                                    <X
+                                        size={14}
+                                        className="ml-1 cursor-pointer"
+                                        onClick={() => removeTag(tag)}
+                                    />
+                                </span>
+                            ))}
+                            <Input
+                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags", language)}
+                                value={tagInput}
+                                onChange={handleTagInput}
+                                onKeyDown={handleTagKeyDown}
+                                className="flex-grow shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-6 min-w-20"
+                            />
+                        </div>
                     </div>
-
-                    <TextField
-                        label={phrase(dictionary, "content", language)}
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        multiline
-                        rows={4}
-                    />
-                    <TextField
-                        label={phrase(dictionary, "tags", language)}
-                        value={tags}
-                        onChange={(e) => handleSetTags(e.target.value)}
-                    />
-
-                </div>
+                    <div className="items-center">
+                        <Label htmlFor="content" className="text-right text-sm">
+                            {phrase(dictionary, "content", language)}
+                        </Label>
+                        <Textarea
+                            placeholder={phrase(dictionary, "content", language)}
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            className=""
+                            rows={4}
+                        />
+                    </div>
+                </ScrollArea>
                 <DialogFooter>
-                    <Button variant="outline" color="gray" onClick={() => handleShareAsPost()}>{phrase(dictionary, "confirm", language)}</Button>
+                    <Button variant="outline" className="bg-[#DE2B74] hover:bg-pink-400 text-white" onClick={() => handleShareAsPost()}>{phrase(dictionary, "confirm", language)}</Button>
                     <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
                 </DialogFooter>
             </DialogContent>

@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState } from 'react';
 import { Toast } from '@/components/shadcnUI/Toast';
 import { Button } from '@/components/shadcnUI/Button';
 import { X } from 'lucide-react';
+import { ToastAction } from "@/components/shadcnUI/Toast";
 
 type ToastVariant = 'default' | 'destructive' | 'success';
 
@@ -12,6 +13,8 @@ interface ToastProps {
     title?: string;
     description?: string;
     duration?: number;
+    action?: React.ReactNode;
+    altText?: string;
 }
 
 interface Toast extends ToastProps {
@@ -33,10 +36,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         variant = 'default',
         title,
         description,
-        duration = 5000
+        duration = 5000,
+        action,
+        altText = ""
     }: ToastProps) => {
         const id = Math.random().toString(36).substring(2, 9);
-        const newToast = { id, variant, title, description, duration };
+        const newToast = { id, variant, title, description, duration, action, altText };
 
         setToasts((prevToasts) => [...prevToasts, newToast]);
 
@@ -79,14 +84,18 @@ function ToastContainer() {
                         {toast.title && <p className="font-medium">{toast.title} </p>}
                         <Button
                             variant="ghost"
-                            color="gray" size="icon"
+                            color="gray"
+                            size="icon"
                             onClick={() => dismiss(toast.id)}
-                            className="relative top-0 right-1 p-2 w-4 h-4 rounded-full text-black hover:text-gray-600"
+                            className="relative top-0 right-1 p-2 w-4 h-4  text-black hover:text-gray-600"
                         >
                             <X size={8} />
                         </Button>
                     </div>
-                    {toast.description && <p className="text-sm">{toast.description}</p>}
+                    <div className="flex flex-row gap-4 items-center">
+                        {toast.description && <p className="text-sm">{toast.description}</p>}
+                        {toast.action && <ToastAction className="bg-gray-100" altText={toast.altText || ""}>{toast.altText}</ToastAction>}
+                    </div>
                 </div>
             ))}
         </div>

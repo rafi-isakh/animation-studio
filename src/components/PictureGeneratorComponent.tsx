@@ -1,7 +1,5 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import Snackbar from '@mui/material/Snackbar';
-import { Alert, styled, Box } from '@mui/material';
 import { Button } from '@/components/shadcnUI/Button';
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
@@ -14,6 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/shadcnUI/Carousel"
+import { ToastAction } from "@/components/shadcnUI/Toast";
 import { Card, CardContent } from "@/components/shadcnUI/Card"
 import { CircleHelp, Loader2, Share, ArrowRight } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
@@ -22,6 +21,7 @@ import { ImageOrVideo } from './Types';
 import { v4 as uuidv4 } from 'uuid';
 import { getImageUrl } from '@/utils/urls';
 import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup";
+import { useToast } from "@/hooks/use-toast";
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
@@ -43,6 +43,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [current, setCurrent] = React.useState(0)
   const [count, setCount] = React.useState(0)
   const [isSelected, setIsSelected] = React.useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (initialPrompt) {
@@ -52,6 +53,11 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
   const generatePictures = async () => {
     if (!savedPrompt) {
+      toast({
+        title: "Error",
+        description: "Please provide a prompt",
+        variant: "destructive"
+      })
       setError('Please provide a prompt');
       return;
     }
@@ -68,10 +74,27 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       if (!response.ok) {
         switch (response.status) {
           case 401:
+            toast({
+              title: "Error",
+              description: "Please login to generate pictures",
+              variant: "destructive",
+              action: <ToastAction altText="Try again">Try again</ToastAction>,
+              altText: "Try again"
+            })
             throw new Error('Please login to generate pictures');
           case 429:
+            toast({
+              title: "Error",
+              description: "Too many requests. Please try again later.",
+              variant: "destructive"
+            })
             throw new Error('Too many requests. Please try again later.');
           default:
+            toast({
+              title: "Error",
+              description: "Error: Failed to generate pictures",
+              variant: "destructive"
+            })
             throw new Error('Failed to generate pictures');
         }
       }
@@ -79,9 +102,13 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       const data = await response.json();
 
       if (!data.images || !Array.isArray(data.images)) {
+        toast({
+          title: "Error",
+          description: "Invalid response format from server",
+          variant: "destructive"
+        })
         throw new Error('Invalid response format from server');
       }
-
       setPictures(data.images);
       onComplete(data.images);
     } catch (err) {
@@ -111,6 +138,11 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       body: JSON.stringify({ fileBufferBase64: pictures[0], fileName: `${uuid}.png`, fileType: "image/png" }),
     });
     if (!uploadResponse.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to upload picture to s3, please try again later",
+        variant: "destructive"
+      })
       throw new Error('Failed to upload picture to s3');
     }
     const image_url = getImageUrl(`${uuid}.png`);
@@ -120,6 +152,11 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       body: JSON.stringify({ video_prompt: "", image_url: image_url }),
     });
     if (!response.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to generate video, please try again later",
+        variant: "destructive"
+      })
       throw new Error('Failed to generate video');
     }
     const data = await response.json();
@@ -130,11 +167,19 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       body: JSON.stringify({ videoUrl: url }),
     });
     if (!s3UploadResponse.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to download and upload video",
+        variant: "destructive"
+      })
       throw new Error('Failed to download and upload video');
     }
     const uploadData = await s3UploadResponse.json();
     setVideoFileName(uploadData.fileName);
-    alert("Video created successfully");
+    toast({
+      title: "Success",
+      description: "Video created successfully",
+    })
     setShowShareAsPostModal(true);
   }
 
@@ -144,12 +189,20 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       body: JSON.stringify({ pictures }),
     });
     if (!response.ok) {
-      throw new Error('Failed to make slideshow');
+      toast({
+        title: "Error",
+        description: "Failed to make slideshow",
+        variant: "destructive"
+      })
+      throw new Error('Failed to make slideshow, please try again later');
     }
     const data = await response.json();
     console.log(data);
     setVideoFileName(data.fileName);
-    alert("Slideshow created successfully");
+    toast({
+      title: "Success",
+      description: "Slideshow created successfully",
+    })
     setShowShareAsPostModal(true);
   }
 
@@ -229,22 +282,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
         </div>
 
       </div>
-      {error && showAlert && (
-        <Snackbar
-          open={showAlert}
-          autoHideDuration={5000}
-          onClose={() => setShowAlert(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert
-            severity="error"
-            onClose={() => setShowAlert(false)}
-            className="w-full"
-          >
-            <p>{phrase(dictionary, "error", language)}</p>
-          </Alert>
-        </Snackbar>
-      )}
+      
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
           <div className="py-2 text-center text-sm text-muted-foreground">

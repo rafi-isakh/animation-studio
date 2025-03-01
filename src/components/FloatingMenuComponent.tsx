@@ -306,7 +306,6 @@ const FloatingMenu: React.FC<{
                                 <FloatingMenuNav handleOpenModal={handleOpenModal} />
                             </DialogTrigger>
                         </div>
-
                     )}
                     {children}
                     <Draggable

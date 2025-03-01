@@ -29,7 +29,7 @@ export default function PleaseLoginModal({ open, setOpen }: { open: boolean, set
                         {phrase(dictionary, "pleaseLogin", language)}
                     </DialogTitle>
                 </DialogHeader>
-                <DialogFooter className="flex flex-row space-x-4 justify-end">
+                <DialogFooter className="flex flex-row space-x-4 md:justify-end justify-center">
                     <Button variant="outline" className="text-white bg-[#DE2B74]" onClick={() => router.push('/signin')}>
                         {phrase(dictionary, "ok", language)}
                     </Button>

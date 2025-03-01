@@ -270,10 +270,10 @@ const WebnovelTranslateComponent = (
                     {scrollType === 'horizontal' &&
                         <div className='relative flex flex-col'>
                             {/* Navigation buttons - positioned absolutely on the sides */}
-                            <div className="fixed top-1/2 left-5 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 left-20 transform -translate-y-1/2 ">
                                 <button
                                     onClick={prevPage}
-                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors duration-300 opacity-[0.4] hover:opacity-[1]"
                                     aria-label="Previous page"
                                 >
                                     <ChevronLeft size={68} />
@@ -284,7 +284,7 @@ const WebnovelTranslateComponent = (
                             <div className="fixed top-1/2 right-5 transform -translate-y-1/2 ">
                                 <button
                                     onClick={nextPage}
-                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors opacity-[0.4] hover:opacity-[1]"
                                     aria-label="Next page"
                                 >
                                     <ChevronRight size={68} />

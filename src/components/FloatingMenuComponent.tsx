@@ -4,16 +4,14 @@ import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/shadcnUI/AlertDialog"
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/shadcnUI/Dialog"
 import {
     Drawer,
     DrawerClose,
@@ -264,26 +262,11 @@ const FloatingMenu: React.FC<{
         }
     }, [initialDialogPositionSet, windowFn]);
 
-    // Update your handleDrag function
-    const handleDrag = (e: any, data: any) => {
-        setDialogPosition({ x: data.x, y: data.y });
-    };
 
-    useEffect(() => {
-        if (open) {
-            document.body.style.overflow = 'auto';
-            document.body.style.overflowX = 'hidden';
-            document.body.classList.remove('overflow-hidden');
-        }
-
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [open]);
 
     if (isDesktop) {
         return (
-            <AlertDialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={setOpen} modal={false}>
                 <div className='relative' ref={containerRef} >
                     {selection && position && (
                         <div
@@ -301,15 +284,14 @@ const FloatingMenu: React.FC<{
                                 text-decoration-color: #DE2B74;
                                 text-decoration-thickness: 2px;
                                 text-decoration-style: solid;
-
-                                
                             }                            
                           
                         `}</style>
-                            <AlertDialogTrigger asChild>
+                            <DialogTrigger asChild>
                                 <FloatingMenuNav handleOpenModal={handleOpenModal} />
-                            </AlertDialogTrigger>
+                            </DialogTrigger>
                         </div>
+
                     )}
                     {children}
                     <Draggable
@@ -321,34 +303,30 @@ const FloatingMenu: React.FC<{
                         handle=".drag-handle"
                         bounds="body"
                     >
-                        <AlertDialogContent
+                        <DialogContent
                             ref={nodeRef}
                             forceMount
                             className="sm:max-w-[425px] h-screen select-none p-0 dark:bg-[#211F21] bg-white rounded-lg fixed"
                             onClick={(e) => e.stopPropagation()}
-                            style={{
-                                position: 'fixed',
-                                pointerEvents: 'auto'
-                            }}
-                            preventScroll={false}
+                            showCloseButton={false}
                         >
-                            <AlertDialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                                <AlertDialogTitle className='absolute top-0 left-0 '>
+                            <DialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
+                                <DialogTitle className='absolute top-0 left-0 '>
                                     <div className='flex flex-row gap-1 items-start justify-start p-2'>
-                                        <AlertDialogAction
+                                        <DialogClose
                                             className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
                                             onClick={handleClose}>
                                             <X size={8} className="text-white p-[1px]" />
-                                        </AlertDialogAction>
-                                        <AlertDialogAction disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                        </DialogClose>
+                                        <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                             <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                        </AlertDialogAction>
-                                        <AlertDialogAction disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                        </DialogClose>
+                                        <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                             <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                        </AlertDialogAction>
+                                        </DialogClose>
                                     </div>
-                                </AlertDialogTitle>
-                            </AlertDialogHeader>
+                                </DialogTitle>
+                            </DialogHeader>
 
                             <ScrollArea className='drag-handle h-screen items-start flex-1'>
                                 <div className='relative w-full'>
@@ -362,11 +340,11 @@ const FloatingMenu: React.FC<{
                                 </div>
                             </ScrollArea>
 
-                        </AlertDialogContent>
+                        </DialogContent>
                     </Draggable>
                 </div>
 
-            </AlertDialog>
+            </Dialog>
         );
     }
 

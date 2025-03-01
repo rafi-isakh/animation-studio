@@ -2,17 +2,22 @@
 
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
-import "@/styles/scrollableOverlay.css"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/shadcnUI/Button"
 
 const AlertDialog = AlertDialogPrimitive.Root;
+
 AlertDialog.displayName = AlertDialogPrimitive.Root.displayName;
 
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
-const AlertDialogPortal = AlertDialogPrimitive.Portal
+const AlertDialogPortal = ({
+  ...props
+}: AlertDialogPrimitive.AlertDialogPortalProps) => (
+  <AlertDialogPrimitive.Portal {...props} />
+)
+AlertDialogPortal.displayName = AlertDialogPrimitive.Portal.displayName
 
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
@@ -21,9 +26,8 @@ const AlertDialogOverlay = React.forwardRef<
   <AlertDialogPrimitive.Overlay
     className={
       cn(
-      "inset-0 z-50 overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className, 
-      "DialogOverlay overflow-visible"
+      "fixed inset-0 z-50 overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className,
     )}
     {...props}
     ref={ref}
@@ -34,9 +38,8 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & {
-    preventScroll?: boolean;
   }
->(({ className, preventScroll, ...props }, ref) => (
+>(({ className, ...props }, ref) => (
   <AlertDialogPortal>
     <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
@@ -45,9 +48,8 @@ const AlertDialogContent = React.forwardRef<
         "fixed right-0 top-10 z-[999] h-screen w-full max-w-md border-l bg-background shadow-lg",
         "max-h-[calc(100vh-2rem)] overflow-y-auto pointer-events-auto",
         className,
-        "DialogContent",
-        preventScroll ? "overflow-hidden" : "overflow-y-auto"
       )}
+      
       {...props}
     />
   </AlertDialogPortal>

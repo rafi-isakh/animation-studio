@@ -9,31 +9,29 @@ import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
-import { Modal, Box, dividerClasses, Skeleton } from "@mui/material";
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronRight, ChevronLeft, Trash2 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/shadcnUI/Dialog";
+import { ChevronRight, ChevronLeft, Trash2, Settings, Languages } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
 import { useReader } from '@/contexts/ReaderContext';
-import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
-import { useTheme, Theme } from '@/contexts/providers'
+import { useTheme } from '@/contexts/providers'
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
 
-import dynamic from 'next/dynamic';
 import ProgressBar from '@/components/UI/ProgressBar';
+import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import { useWebnovels } from "@/contexts/WebnovelsContext";
+import ViewerSettingDialog from '@/components/UI/ViewerSettingDialog';
+import dynamic from 'next/dynamic';
+
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
-
-// Import the animation data
 import animationData from '@/assets/N_logo_with_heart.json';
-import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
-import { useWebnovels } from "@/contexts/WebnovelsContext";
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -53,7 +51,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
     const [isSticky, setIsSticky] = useState(false);
-    const { fontSize,
+    const {
+        fontSize,
         fontFamily = 'default',
         lineHeight,
         margin,
@@ -61,13 +60,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         padding,
         setPadding,
         scrollType,
-        containerWidth,
         page,
         maxPage,
     } = useReader();
 
-    const muiTheme = useMuiTheme();
-    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
@@ -77,15 +74,20 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                    fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
+    const [showIsViewerModal, setShowIsViewerModal] = useState(false);
 
+
+    const handleViewSettings = () => {
+        setShowIsViewerModal(true);
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -259,8 +261,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 <header
                     className={`
                         w-full transition-transform duration-300 ease-in py-2
-                        ${isSticky 
-                            ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none' 
+                        ${isSticky
+                            ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none'
                             : 'relative bg-white dark:bg-black'}
                     `}
                 >
@@ -272,7 +274,22 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </Button>
 
-                        <div className="flex flex-row items-center">
+                        <div className="flex flex-row gap-4 items-center">
+                            <Link
+                                href={``}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleViewSettings();
+                                }}
+                                className=''
+                            >
+                                <p className='hover:text-[#DB2777] relative' >
+                                    <Settings size={16} />
+                                    <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
+                                        <Languages size={10} />
+                                    </span>
+                                </p>
+                            </Link>
                             <Link
                                 href='#'
                                 className="text-center flex flex-row items-center "
@@ -283,7 +300,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                         :
                                         <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center" style={{ fontSize: '16px' }}></i>
                                 }
-                                <p className='ml-2 w-6 self-center' style={{ fontSize: '16px' }}>{upvotes}</p>
+                                <p className='ml-1 self-center text-sm'>{upvotes}</p>
                             </Link>
                             {/* Delete button */}
                             {isAuthor && <Button
@@ -303,13 +320,15 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             }
                         </div>
                     </div>
+                    {/* view settings modal */}
+                    <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
                 </header>
                 <div
                     className={`${theme} relative`}
                     style={{
                         ...readerStyle,
                     }}
-                >
+                   >
                     <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
@@ -324,22 +343,24 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 </div>
                             </div>
                         </div>
-                        {/* Title and content : end */}
+                    {/* Title and content : end */}
                     </div>
                     <div className="relative">
                         <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
-                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={useModalStyle}>
+                    <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
+                        <DialogContent>
+                              <DialogHeader>  
+                               <DialogTitle>{phrase(dictionary, "deleteChapterConfirm", language)}</DialogTitle> 
+                             </DialogHeader> 
                             <div className='flex flex-col space-y-4 items-center justify-cente'>
-                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
-                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-black' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-black' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
+                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                             </div>
-                        </Box>
-                    </Modal>
+                        </DialogContent>
+                    </Dialog>
                     {/* delete confirmation modal */}
                     <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 </div>
@@ -359,7 +380,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 </div>
                 <ChapterCommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
-            </div >
+            </div>
         )
     }
     else {

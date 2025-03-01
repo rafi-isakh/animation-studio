@@ -6,12 +6,12 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Box, Button, Modal } from '@mui/material';
-import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
+import { useModalStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { MessageCircle, Settings, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
+import { MessageCircle, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import BlobButton from '@/components/UI/BlobButton';
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -24,18 +24,11 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const chapters = webnovel.chapters.sort((a, b) => a.id - b.id);
     const [isVisible, setIsVisible] = useState(true); // State to track visibility
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
-    const [showIsViewerModal, setShowIsViewerModal] = useState(false);
-    const viewSettingsStyle = useViewSettingsStyle();
-    const { toggleTheme, theme } = useTheme();
-    const { fontSize,
-        setFontSize,
-        fontFamily = 'default',
-        setFontFamily,
-        lineHeight,
-        setLineHeight,
+    const { theme } = useTheme();
+    const {
         scrollType,
-        setScrollType,
-        setPage } = useReader();
+        setPage
+    } = useReader();
 
     useEffect(() => {
         setPage(1);
@@ -117,10 +110,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         }
     }
 
-    const handleViewSettings = () => {
-        setShowIsViewerModal(true);
-    }
-
     return (
         <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-[3.5rem] md:bottom-0 left-1/2 -translate-x-1/2 select-none md:z-[1200] z-50">
             {/* */}
@@ -142,26 +131,22 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                             {phrase(dictionary, "prevChapter", language)}
                         </div>
                     </Link>
-                    <Link 
-                        href={``}
+                    <div 
+                        className="relative inline-flex group p-1 w-32 h-10"
                         onClick={(e) => {
                             e.preventDefault();
-                            handleViewSettings();
-                        }}
-                        className='z-[1250]'
+                         }}
                          >
-                        <p className='hover:text-[#DB2777] relative' >
-                            <Settings size={16} />
-                            <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
-                                <Languages size={10} />
-                            </span>
-                        </p>
-                    </Link>
+                        <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                        </div>
+                        <BlobButton text={<span className='text-sm inline-flex gap-1'><Sparkles size={20} />Post</span>} />
+                    </div>
                     {/* view next and prev btn */}
                     <Link href={nextChapterLink} onClick={handleNextChapter} > 
                         <div className='group hover:text-[#DB2777] flex flex-row'>
                             {phrase(dictionary, "nextChapter", language)}
                             <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4' />
+                           
                         </div>
                     </Link>
                 </div >
@@ -179,131 +164,6 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     <div className='flex flex-col space-y-4'>
                         <p>{phrase(dictionary, "isFirstChapter", language)}</p>
                         <Button color="gray" variant="outlined" onClick={() => setShowIsFirstChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
-            {/* view settings modal */}
-            <Modal open={showIsViewerModal} onClose={() => setShowIsViewerModal(false)}
-            >
-                <Box sx={viewSettingsStyle}>
-                    <div className='flex flex-col space-y-4 text-black dark:text-black'>
-                        <p className='flex justify-between'>
-                            {/* View Settings */}
-                            {phrase(dictionary, "viewSettings", language)}
-                            <button onClick={() => setShowIsViewerModal(false)}>
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </p>
-                        <hr className='my-2 border-gray-200' />
-
-                        <div className='text-sm justify-between md:flex hidden'>
-                            {/* 넘김 방식 */}
-                            {phrase(dictionary, "scrollType", language)}
-                            <div className='flex flex-row gap-2'>
-                                <Link href='' className='text-gray-300' onClick={() => setScrollType('vertical')}>
-                                    {/* 스크롤 */}
-                                    {phrase(dictionary, "viewSettings_scroll", language)}
-                                </Link>
-                                <Link href='' className='text-gray-500' onClick={() => setScrollType('horizontal')}>
-                                    {/* 페이지 */}
-                                    {phrase(dictionary, "viewSettings_page", language)}
-                                </Link>
-                            </div>
-                        </div>
-                        <div className='text-sm flex justify-between'>
-                            {/* 테마  */}
-                            {phrase(dictionary, "theme", language)}
-                            <div className='flex flex-row gap-2'>
-                                <Link
-                                    href=''
-                                    onClick={() => toggleTheme('light')}
-                                    className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
-                                    Aa
-                                </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => toggleTheme('dark')}
-                                    className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
-                                    Aa
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className='text-sm flex justify-between'>
-                            {/* 글꼴  */}
-                            {phrase(dictionary, "font", language)}
-                            <div className='flex flex-row gap-2'>
-                                <Link
-                                    href=''
-                                    onClick={() => {
-                                        setFontFamily('default');
-                                        console.log('Font family set to:', 'default');
-                                    }}
-                                    className={`${fontFamily === 'default' ? 'text-gray-300' : 'text-gray-500'}`}
-                                >
-                                    {/* 기본 */}
-                                    {phrase(dictionary, "defaultFont", language)}
-                                </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => setFontFamily('gowun-batang')}
-                                    className={`${fontFamily === 'gowun-batang' ? 'text-gray-300 gowun-batang' : 'text-gray-500'}`}
-                                >
-                                    {/* 바탕체 */}
-                                    <span className='gowun-batang text-[12px]'> {phrase(dictionary, "batangFont", language)} </span>
-                                </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => {
-                                        setFontFamily('nanum-gothic');
-                                        console.log('Font family set to:', 'nanum-gothic');
-                                    }} className={`${fontFamily === 'nanum-gothic' ? 'text-gray-300 nanum-gothic' : 'text-gray-500'}`}
-                                >
-                                    {/* 고딕체 */}
-                                    <span className='nanum-gothic text-[12px]'> {phrase(dictionary, "gothicFont", language)} </span>
-                                </Link>
-                            </div>
-                        </div>
-                        <div className='text-sm flex justify-between'>
-                            {/* 글자 크기 */}
-                            {phrase(dictionary, "fontSize", language)}
-                            <div className='flex flex-row gap-2 justify-evenly'>
-                                <Link
-                                    href=''
-                                    onClick={() => setFontSize(fontSize + 2)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-plus"></i>
-                                </Link>
-                                <p className='w-7 self-center text-center'>{fontSize} </p>
-                                <Link
-                                    href=''
-                                    onClick={() => setFontSize(fontSize - 2)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-minus"></i>
-                                </Link>
-                            </div>
-                        </div>
-                        <div className='text-sm flex justify-between'>
-                            {/* 줄 간격 */}
-                            {phrase(dictionary, "lineHeight", language)}
-                            <div className='flex flex-row gap-2 justify-evenly'>
-                                <Link
-                                    href=''
-                                    onClick={(e) => setLineHeight(lineHeight + 0.1)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-plus"></i>
-                                </Link>
-                                <p> {Math.round(lineHeight * 10)}% </p>
-                                <Link
-                                    href=''
-                                    onClick={(e) => setLineHeight(lineHeight - 0.1)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-minus"></i>
-                                </Link>
-                            </div>
-                        </div>
-
-
                     </div>
                 </Box>
             </Modal>

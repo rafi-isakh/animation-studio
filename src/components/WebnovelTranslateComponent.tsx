@@ -37,7 +37,8 @@ const WebnovelTranslateComponent = (
     const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const { theme } = useTheme();
-    const { fontSize,
+    const { 
+        fontSize,
         fontFamily = 'default',
         lineHeight,
         margin,

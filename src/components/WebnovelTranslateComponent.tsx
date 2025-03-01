@@ -262,7 +262,7 @@ const WebnovelTranslateComponent = (
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
                             onContextMenu={(e) => e.preventDefault()}
-                            className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-900 first-line:tracking-widest first-line:uppercase'
+                            className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
                             >
                         </div>
                     }
@@ -296,7 +296,7 @@ const WebnovelTranslateComponent = (
                                 <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-1'>
                                     <div
                                         id='first-half'
-                                        className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-900 first-line:tracking-widest first-line:uppercase'
+                                        className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
                                         dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords) }}
                                         onContextMenu={(e) => e.preventDefault()}>

@@ -11,7 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from "@/components/shadcnUI/Dialog"
+} from "@/components/shadcnUI/Dialog"
 import {
     Drawer,
     DrawerClose,
@@ -22,12 +22,19 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/shadcnUI/Drawer"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/shadcnUI/Tooltip"
 import { Input } from "@/components/shadcnUI/Input"
 import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
+import { styled } from '@mui/material';
 import { X, Circle, ArrowRight, WandSparkles, Compass, Clapperboard, Image, Share2, Sparkles } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
@@ -51,6 +58,16 @@ interface FloatingMenuNavItem {
     type: 'normal' | 'blob' | 'lottie';
 }
 
+
+const MenuContainer = styled('div')`
+  .lucide {
+    stroke-width: 1;
+  }
+  position: relative;
+  margin: 0 auto;
+  z-index: 50;
+`;
+
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
     // { icon: <LottieLoader animationData={animationData} className='object-cover' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black', isLottie: true },
     // { icon: <Sparkles size={30} />, label: 'Explore', href: '#', color: 'bg-black/10 dark:bg-black  hover:bg-blue-500/10', type: 'normal' },
@@ -61,49 +78,46 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
 
 const FloatingMenuNav = ({ handleOpenModal }: { handleOpenModal: () => void }) => {
     return (
-        <div className="relative mx-auto z-50">
-            <style jsx global>{`
-                    .lucide {
-                        stroke-width: 1px;
-                    }
-                `}</style>
-            <div className="relative rounded-full dark:bg-black/50 backdrop-blur-sm">
-                <div className="flex justify-evenly">
-                    {FloatingMenuNavItems.map((item, index) => (
-                        <div key={item.label} className="flex-1 w-full group">
-                            <Link
-                                href="#"
-                                className="!no-underline flex items-center justify-center text-center mx-auto p-1">
-                                {item.type === 'blob' ? (
-                                    // Special rendering for blob type items
-                                    <div className="relative inline-flex group p-1 w-16 h-16"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            handleOpenModal();
-                                        }}
-                                    >
-                                        <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                        </div>
-                                        {item.icon}
-                                    </div>
-                                ) : (
-                                    // Regular rendering for other types
-                                    <span
-                                        className={`${item.color} backdrop-blur-md flex flex-row rounded-full
+        <TooltipProvider>
+            <MenuContainer>
+                <div className="relative rounded-full dark:bg-black/50 backdrop-blur-sm">
+                    <div className="flex justify-evenly">
+                        <Tooltip>
+                            {FloatingMenuNavItems.map((item, index) => (
+                                <div key={item.label} className="flex-1 w-full group">
+                                    <Link
+                                        href="#"
+                                        className="!no-underline flex items-center justify-center text-center mx-auto p-1">
+                                        {item.type === 'blob' ? (
+                                            // Special rendering for blob type items
+                                            <div className="relative inline-flex group p-1 w-16 h-16"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleOpenModal();
+                                                }}
+                                            >
+                                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                                </div>
+                                                {item.icon}
+                                            </div>
+                                        ) : (
+                                            // Regular rendering for other types
+                                            <span
+                                                className={`${item.color} backdrop-blur-md flex flex-row rounded-full
                                                             group-hover:text-[#DE2B74] text-black dark:text-white 
                                                             ${item.type === 'normal' ? 'p-4' : ''}
                                                             ${item.type === 'lottie' ? 'w-16 h-16 p-0 overflow-hidden' : ''}`}>
-                                        {item.icon}
-                                    </span>
-                                )}
-                            </Link>
-
-                        </div>
-                    ))}
+                                                {item.icon}
+                                            </span>
+                                        )}
+                                    </Link>
+                                </div>
+                            ))}
+                        </Tooltip>
+                    </div>
                 </div>
-            </div>
-
-        </div>
+            </MenuContainer>
+        </TooltipProvider>
     );
 };
 
@@ -122,7 +136,6 @@ const FloatingMenu: React.FC<{
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [showIsModal, setShowIsModal] = useState(false);
     const { language, dictionary } = useLanguage();
     const [open, setOpen] = useState(false);
     const isDesktop = useMediaQuery("(min-width: 768px)")
@@ -285,7 +298,6 @@ const FloatingMenu: React.FC<{
                                 text-decoration-thickness: 2px;
                                 text-decoration-style: solid;
                             }                            
-                          
                         `}</style>
                             <DialogTrigger asChild>
                                 <FloatingMenuNav handleOpenModal={handleOpenModal} />
@@ -306,7 +318,7 @@ const FloatingMenu: React.FC<{
                         <DialogContent
                             ref={nodeRef}
                             forceMount
-                            className="sm:max-w-[425px] h-screen select-none p-0 dark:bg-[#211F21] bg-white rounded-lg fixed"
+                            className="sm:max-w-[425px] h-screen select-none p-0 dark:bg-[#211F21] bg-white rounded-lg"
                             onClick={(e) => e.stopPropagation()}
                             showCloseButton={false}
                         >
@@ -316,7 +328,7 @@ const FloatingMenu: React.FC<{
                                         <DialogClose
                                             className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
                                             onClick={handleClose}>
-                                            <X size={8} className="text-white p-[1px]" />
+                                            <X size={8} className="text-red-600" />
                                         </DialogClose>
                                         <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                             <Circle size={8} className="text-gray-200 dark:text-gray-700" />
@@ -385,7 +397,7 @@ const FloatingMenu: React.FC<{
                         <DrawerTitle className='absolute top-0 left-0'>
                             <div className='flex flex-row gap-1 items-center justify-center p-2'>
                                 <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent' onClick={handleClose}>
-                                    <X size={8} className="text-white" />
+                                    <X size={8} className="text-red-600" />
                                 </DrawerClose>
                                 <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                     <Circle size={8} className="text-gray-200 dark:text-gray-700" />

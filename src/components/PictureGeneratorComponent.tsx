@@ -3,17 +3,26 @@ import React, { useState, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import { Alert, styled, Box } from '@mui/material';
 import { Button } from '@/components/shadcnUI/Button';
-import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronRight, CircleHelp, Settings, Loader2 } from 'lucide-react';
+import {
+  Carousel,
+  CarouselApi,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/shadcnUI/Carousel"
+import { Card, CardContent } from "@/components/shadcnUI/Card"
+import { CircleHelp, Loader2, Share } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
 import { ImageOrVideo } from './Types';
 import { v4 as uuidv4 } from 'uuid';
 import { getImageUrl } from '@/utils/urls';
+import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup";
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
@@ -31,6 +40,11 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [showAlert, setShowAlert] = useState(false);
   const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
   const [videoFileName, setVideoFileName] = useState<string | null>(null);
+  const [api, setApi] = React.useState<CarouselApi>()
+  const [current, setCurrent] = React.useState(0)
+  const [count, setCount] = React.useState(0)
+  const [isSelected, setIsSelected] = React.useState(false)
+
   useEffect(() => {
     if (initialPrompt) {
       setSavedPrompt(initialPrompt);
@@ -141,32 +155,21 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   }
 
 
-  const BorderLinearProgress = styled(LinearProgress)(() => ({
-    height: 10,
-    borderRadius: 5,
-    [`&.${linearProgressClasses.colorPrimary}`]: {
-      backgroundColor: '#eee',
-    },
-    [`& .${linearProgressClasses.bar}`]: {
-      borderRadius: 5,
-      backgroundColor: '#1a90ff',
-    },
-  }));
+  React.useEffect(() => {
+    if (!api) {
+      return
+    }
 
-  const InfoTooltip = styled(({ className, ...props }: TooltipProps) => (
-    <Tooltip {...props} classes={{ popper: className }} />
-  ))(({ theme }) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-      backgroundColor: '#f5f5f9',
-      color: 'rgba(0, 0, 0, 0.87)',
-      maxWidth: 320,
-      padding: '5px',
-      border: '1px solid #dadde9',
-    },
-  }));
+    setCount(api.scrollSnapList().length)
+    setCurrent(api.selectedScrollSnap() + 1)
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1)
+    })
+  }, [api])
 
   return (
-    <div className="z-50 select-none">
+    <div className="relative w-full select-none">
       {/* picture generator */}
       <div className="flex md:flex-row flex-col items-center gap-4 space-y-4 flex-grow-0">
         <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex flex-col min-h-[100px]">
@@ -180,14 +183,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
           <div className='flex-grow-0 flex flex-row justify-between text-gray-500'>
             <div className='flex flex-row gap-4 p-4 items-center '>
               {savedPrompt.length}/200
-              <InfoTooltip title={
-                <div className='flex flex-row justify-center rounded-md w-full'>
-                  {phrase(dictionary, "preparing", language)}
-                </div>
-              }
-                placement="bottom">
-                <CircleHelp size={16} />
-              </InfoTooltip>
+
             </div>
             <Button
               variant="outline"
@@ -250,11 +246,9 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
           </Alert>
         </Snackbar>
       )}
-
-
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
-          {/* {pictures.length > 1 && (
+          {(pictures.length > 1 && isSelected) && (
             <>
               <Button variant="outline" onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
                 Make Slideshow
@@ -263,16 +257,69 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
                 Make Video
               </Button>
             </>
-          )} */}
-          {pictures.map((picture, index) => (
-            <div key={index} className="flex-shrink flex-wrap">
-              <GeneratedPicture 
-                index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} quote={savedPrompt}
-                makeSlideshow={makeSlideshow}
-                makeVideo={makeVideo}
-                 />
-            </div>
-          ))}
+          )}
+          <Carousel
+            setApi={setApi}
+            opts={{
+              align: "start",
+            }}
+            className="w-full md:max-w-[425px] relative"
+          >
+            <CarouselContent>
+              {pictures.map((picture, index) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 border-0">
+                  <RadioGroup
+                    onValueChange={() => {}}
+                    id={`img-select-${index}`}
+                    defaultValue={index.toString()}
+                    className="relative"
+                  >
+                    <Card className='border-0'>
+                      <GeneratedPicture
+                        index={index}
+                        image={picture}
+                        webnovel_id={webnovel_id}
+                        chapter_id={chapter_id}
+                        quote={savedPrompt}
+                        makeSlideshow={makeSlideshow}
+                        makeVideo={makeVideo}
+                      />
+                      <div className="absolute top-2 left-2 z-[100]">
+                        <RadioGroupItem
+                          value={index.toString()}
+                          id={`img-select-${index}`}
+                          checked={isSelected}
+                          onClick={() => setIsSelected(!isSelected)}
+                          className="relative h-5 w-5 border-2 border-white rounded-full appearance-none 
+                            data-[state=checked]:border-[#DE2B74] focus:outline-none focus:ring-0 focus:ring-offset-0
+                            after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 
+                            after:h-3 after:w-3 after:rounded-full after:bg-transparent
+                            data-[state=checked]:after:bg-[#DE2B74]"
+                        />
+                      </div>
+                    </Card>
+                  </RadioGroup>
+                </CarouselItem>
+
+              ))}
+            </CarouselContent>
+
+            {/* Custom positioned navigation buttons */}
+            < CarouselPrevious
+              onClick={() => api?.scrollPrev()}
+              className={`cursor-pointer absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full shadow-md z-10 flex items-center justify-center ${current === 1 ? 'invisible opacity-0 cursor-not-allowed' : ''}`}
+              disabled={current === 1}
+            />
+
+            <CarouselNext
+              onClick={() => api?.scrollNext()}
+              className={`cursor-pointer absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full shadow-md z-10 flex items-center justify-center`}
+              disabled={current === count}
+            />
+          </Carousel>
+          <div className="py-2 text-center text-sm text-muted-foreground">
+            Slide {current} of {count}
+          </div>
         </div>
       )}
       <ShareAsToonyzPostModal

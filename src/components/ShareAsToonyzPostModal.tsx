@@ -18,13 +18,14 @@ import { Label } from "@radix-ui/react-label";
 import { X, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea"
 import { useToast } from "@/hooks/use-toast"
+import Image from "next/image";
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
     showShareAsPostModal,
     setShowShareAsPostModal,
     index,
-    image,
+    image, // image is base64 string
     videoFileName,
     webnovel_id,
     chapter_id,
@@ -177,14 +178,20 @@ export default function ShareAsToonyzPostModal({
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
-                className="sm:max-w-[425px] select-none no-scrollbar bg-white dark:bg-[#211F21]"
+                className="md:max-w-md select-none no-scrollbar bg-white dark:bg-[#211F21]"
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >
                 <DialogHeader>
                     <DialogTitle>Share as Toonyz Post</DialogTitle>
                     <DialogDescription>
-                        {/* <h2>{phrase(dictionary, "quote", language)}</h2> */}
+                        <Image
+                            src={`data:image/png;base64,${image}`}
+                            alt={`Generated image ${index + 1}`}
+                            width={200}
+                            height={200}
+                            className="object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
+                        />
                         <div
                             className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
                         >
@@ -251,15 +258,15 @@ export default function ShareAsToonyzPostModal({
                         className="bg-[#DE2B74] hover:bg-pink-400 text-white"
                         onClick={() => handleShareAsPost()}>
                         {isLoading ? (
-                         <>
-                            <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
-                            <span className="text-[16px]">
-                                {phrase(dictionary, "generatingPrompt", language)}
-                            </span>
-                         </>) : (
-                            
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                                <span className="text-[16px]">
+                                    {phrase(dictionary, "generatingPrompt", language)}
+                                </span>
+                            </>) : (
+
                             phrase(dictionary, "confirm", language))
-            
+
                         }
                     </Button>
                     <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>

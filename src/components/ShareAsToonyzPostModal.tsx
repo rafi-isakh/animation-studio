@@ -178,7 +178,7 @@ export default function ShareAsToonyzPostModal({
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
-                className="md:max-w-md select-none no-scrollbar bg-white dark:bg-[#211F21]"
+                className="md:max-w-md select-none no-scrollbar bg-white dark:bg-[#211F21] z-[9999]"
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >

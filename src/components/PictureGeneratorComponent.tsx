@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getImageUrl } from '@/utils/urls';
 import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup";
 import { useToast } from "@/hooks/use-toast";
+import { CircularProgress } from '@/components/shadcnUI/CircularProgress';
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
@@ -44,6 +45,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [count, setCount] = React.useState(0)
   const [isSelected, setIsSelected] = React.useState(false)
   const { toast } = useToast()
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (initialPrompt) {
@@ -64,6 +66,14 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
     setIsLoading(true);
     setError(null);
+    setProgress(0);
+    
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + (5 * Math.random());
+        return newProgress > 95 ? 95 : newProgress;
+      });
+    }, 300);
 
     try {
       const response = await fetch(`/api/generate_pictures`, {
@@ -111,7 +121,11 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       }
       setPictures(data.images);
       onComplete(data.images);
+      setProgress(100);
+      clearInterval(progressInterval);
     } catch (err) {
+      clearInterval(progressInterval);
+      setProgress(0);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -178,6 +192,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     setVideoFileName(uploadData.fileName);
     toast({
       title: "Success",
+      variant: "success",
       description: "Video created successfully",
     })
     setShowShareAsPostModal(true);
@@ -201,6 +216,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     setVideoFileName(data.fileName);
     toast({
       title: "Success",
+      variant: "success",
       description: "Slideshow created successfully",
     })
     setShowShareAsPostModal(true);
@@ -283,6 +299,15 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
       </div>
       
+      {isLoading && (
+        <div className="flex flex-col items-center mt-4">
+          <CircularProgress value={progress} />
+          <p className="text-sm text-muted-foreground mt-2">
+            Generating images... {Math.round(progress)}%
+          </p>
+        </div>
+      )}
+
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
           <div className="py-2 text-center text-sm text-muted-foreground">
@@ -297,7 +322,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
           >
             <CarouselContent>
               {pictures.map((picture, index) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 border-0">
+                <CarouselItem key={index} className="basis-1/2 md:basis-1/3 border-0">
                   <RadioGroup
                     onValueChange={() => { }}
                     id={`img-select-${index}`}
@@ -350,7 +375,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
           </Carousel>
           {(pictures.length > 1 && isSelected) && (
             <div className='flex flex-row gap-4 justify-center'>
-              <Button variant="ghost" onClick={makeSlideshow} className=' text-white px-4 py-2 rounded-md border-0'>
+              <Button variant="ghost" onClick={makeSlideshow} className='text-black dark:text-white px-4 py-2 rounded-md border-0'>
                 Make Slideshow
               </Button>
               <Button variant="outline" onClick={makeVideo} className='inline-flex  bg-pink-600 text-white px-4 py-2 rounded-md border-0'>

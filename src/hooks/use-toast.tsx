@@ -75,7 +75,7 @@ function ToastContainer() {
                     className={`
                         rounded-md shadow-sm p-4 transition-all duration-300 
                         ${toast.variant === 'destructive' ? 'bg-red-100 text-red-700' : ''}
-                        ${toast.variant === 'success' ? 'bg-green-100 text-green-700' : ''}
+                        ${toast.variant === 'success' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200' : ''}
                         ${toast.variant === 'default' ? 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-200' : ''}
                     `}
                 >

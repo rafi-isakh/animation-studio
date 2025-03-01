@@ -289,7 +289,7 @@ const FloatingMenu: React.FC<{
                             className="absolute z-10 w-30"
                             style={{
                                 top: `${position.y + position.height + 30}px`,
-                                left: `${position.x - 30}px`,
+                                left: `${position.x - 1}px`,
                             }}
                         >
                             <style jsx global>{`
@@ -341,7 +341,6 @@ const FloatingMenu: React.FC<{
                                     </div>
                                 </DialogTitle>
                             </DialogHeader>
-
                             <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar'>
                                 <div className='relative w-full'>
                                     <PictureGenerator
@@ -353,11 +352,9 @@ const FloatingMenu: React.FC<{
                                     />
                                 </div>
                             </ScrollArea>
-
                         </DialogContent>
                     </Draggable>
                 </div>
-
             </Dialog>
         );
     }
@@ -411,7 +408,7 @@ const FloatingMenu: React.FC<{
                         </DrawerTitle>
                     </DrawerHeader>
                     <DrawerFooter className='w-full h-full'>
-                        <div className='relative'>
+                    <ScrollArea className='no-scrollbar'>
                             <PictureGenerator
                                 context={truncateText(context, 200)}
                                 prompt={truncateText(selectedText, 200)}
@@ -419,7 +416,7 @@ const FloatingMenu: React.FC<{
                                 webnovel_id={webnovel_id}
                                 chapter_id={chapter_id}
                             />
-                        </div>
+                        </ScrollArea>
                     </DrawerFooter>
                 </DrawerContent>
             </div>

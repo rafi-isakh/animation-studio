@@ -74,9 +74,10 @@ const FloatingMenuNavItems: FloatingMenuNavItem[] = [
     { icon: <BlobButton text={<Sparkles size={30} />} />, label: 'ImageStudio', href: '#', color: '', type: 'blob' },
     { icon: <Image size={30} />, label: 'VideoStudio', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10', type: 'normal' },
     { icon: <Share2 size={30} />, label: 'Share', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10', type: 'normal' },
+    { icon: <X size={30} />, label: 'Close', href: '#', color: 'bg-gray-200/20 dark:bg-black text-red-500 dark:text-red-500 hover:bg-red-500/10', type: 'normal' },
 ];
 
-const FloatingMenuNav = ({ handleOpenModal }: { handleOpenModal: () => void }) => {
+const FloatingMenuNav = ({ handleOpenModal, handleClose }: { handleOpenModal: () => void, handleClose?: () => void }) => {
     return (
         <TooltipProvider delayDuration={0}>
             <MenuContainer>
@@ -105,7 +106,14 @@ const FloatingMenuNav = ({ handleOpenModal }: { handleOpenModal: () => void }) =
                                                     className={`${item.color} backdrop-blur-md flex flex-row rounded-full
                                                             group-hover:text-[#DE2B74] text-black dark:text-white 
                                                             ${item.type === 'normal' ? 'p-4' : ''}
-                                                            ${item.type === 'lottie' ? 'w-16 h-16 p-0 overflow-hidden' : ''}`}>
+                                                            ${item.type === 'lottie' ? 'w-16 h-16 p-0 overflow-hidden' : ''}`}
+                                                    onClick={(e) => {
+                                                        if (item.label === 'Close') {
+                                                            e.preventDefault();
+                                                            handleClose?.();
+                                                        }
+                                                    }}
+                                                 >
                                                     {item.icon}
                                                 </span>
                                             )}
@@ -177,9 +185,9 @@ const FloatingMenu: React.FC<{
                     clearTimeout(timeoutRef.current);
                 }
 
-                timeoutRef.current = setTimeout(() => {
-                    handleClose();
-                }, 5000);
+                // timeoutRef.current = setTimeout(() => {
+                //     handleClose();
+                // }, 5000);
             }
         }
 
@@ -303,7 +311,7 @@ const FloatingMenu: React.FC<{
                             }                            
                         `}</style>
                             <DialogTrigger asChild>
-                                <FloatingMenuNav handleOpenModal={handleOpenModal} />
+                                <FloatingMenuNav handleOpenModal={handleOpenModal} handleClose={handleClose} />
                             </DialogTrigger>
                         </div>
                     )}
@@ -381,13 +389,13 @@ const FloatingMenu: React.FC<{
                         }
                         `}</style>
                         <DrawerTrigger asChild>
-                            <FloatingMenuNav handleOpenModal={handleOpenModal} />
+                            <FloatingMenuNav handleOpenModal={handleOpenModal} handleClose={handleClose} />
                         </DrawerTrigger>
                     </div>
                 )}
                 {children}
                 <DrawerContent
-                    className='h-[80%] no-scrollbar'
+                    className='h-[90%] no-scrollbar'
                     style={{
                         backgroundColor: theme === 'light' ? 'white' : '#211F21',
                     }}
@@ -426,19 +434,3 @@ const FloatingMenu: React.FC<{
 
 export { FloatingMenu }
 
-
-function ShareForm({ className }: React.ComponentProps<"form">) {
-    return (
-        <form className={cn("grid items-start gap-4", className)}>
-            <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" id="email" defaultValue="shadcn@example.com" />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue="@shadcn" />
-            </div>
-            <Button type="submit">Save changes</Button>
-        </form>
-    )
-}

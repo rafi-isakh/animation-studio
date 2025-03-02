@@ -4,16 +4,7 @@ import { Button } from '@/components/shadcnUI/Button';
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-  Carousel,
-  CarouselApi,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/shadcnUI/Carousel"
 import { ToastAction } from "@/components/shadcnUI/Toast";
-import { Card, CardContent } from "@/components/shadcnUI/Card"
 import { CircleHelp, Loader2, Share, ArrowRight } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
@@ -23,6 +14,9 @@ import { getImageUrl } from '@/utils/urls';
 import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup";
 import { useToast } from "@/hooks/use-toast";
 import { CircularProgress } from '@/components/shadcnUI/CircularProgress';
+import { CardStack } from '@/components/UI/CardStack';
+import CardStyleButton from './UI/CardStyleButton';
+import Link from 'next/link';
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
@@ -40,10 +34,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [showAlert, setShowAlert] = useState(false);
   const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
   const [videoFileName, setVideoFileName] = useState<string | null>(null);
-  const [api, setApi] = React.useState<CarouselApi>()
-  const [current, setCurrent] = React.useState(0)
-  const [count, setCount] = React.useState(0)
-  const [isSelected, setIsSelected] = React.useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const { toast } = useToast()
   const [progress, setProgress] = useState(0);
 
@@ -67,7 +58,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     setIsLoading(true);
     setError(null);
     setProgress(0);
-    
+
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         const newProgress = prev + (5 * Math.random());
@@ -199,42 +190,41 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   }
 
   const makeSlideshow = async () => {
-    const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
-      method: 'POST',
-      body: JSON.stringify({ pictures }),
-    });
-    if (!response.ok) {
+    try {
+      const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
+        method: 'POST',
+        body: JSON.stringify({ pictures }),
+      });
+      setIsLoading(true);
+      if (!response.ok) {
+        toast({
+          title: "Error",
+          description: "Failed to make slideshow",
+          variant: "destructive"
+        })
+        throw new Error('Failed to make slideshow, please try again later');
+      }
+      const data = await response.json();
+      console.log(data);
+      setVideoFileName(data.fileName);
+      toast({
+        title: "Success",
+        variant: "success",
+        description: "Slideshow created successfully",
+      })
+      setShowShareAsPostModal(true);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Slideshow creation error:', error);
       toast({
         title: "Error",
-        description: "Failed to make slideshow",
+        description: error instanceof Error ? error.message : "An unexpected error occurred creating slideshow",
         variant: "destructive"
-      })
-      throw new Error('Failed to make slideshow, please try again later');
+      });
+    } finally {
+      setIsLoading(false);
     }
-    const data = await response.json();
-    console.log(data);
-    setVideoFileName(data.fileName);
-    toast({
-      title: "Success",
-      variant: "success",
-      description: "Slideshow created successfully",
-    })
-    setShowShareAsPostModal(true);
   }
-
-
-  React.useEffect(() => {
-    if (!api) {
-      return
-    }
-
-    setCount(api.scrollSnapList().length)
-    setCurrent(api.selectedScrollSnap() + 1)
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1)
-    })
-  }, [api])
 
   return (
     <div className="relative w-full select-none">
@@ -250,8 +240,8 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
           <div className='flex-grow-0 flex flex-row justify-between text-gray-500'>
             <div className='flex flex-row gap-4 p-4 items-center '>
-              {savedPrompt.length}/200
-
+              {/* {savedPrompt.length}/200 */}
+              <span className='text-[0.875rem]'>Free trial 100</span>
             </div>
             <Button
               variant="outline"
@@ -298,7 +288,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
         </div>
 
       </div>
-      
+
       {isLoading && (
         <div className="flex flex-col items-center mt-4">
           <CircularProgress value={progress} color="stroke-[#DE2B74]" trackColor="stroke-pink-200" />
@@ -310,78 +300,68 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
-          <div className="py-2 text-center text-sm text-muted-foreground">
-            Slide {current} of {count}
-          </div>
-          <Carousel
-            setApi={setApi}
-            opts={{
-              align: "start",
-            }}
-            className="w-full md:max-w-[425px] relative"
-          >
-            <CarouselContent>
-              {pictures.map((picture, index) => (
-                <CarouselItem key={index} className="basis-1/2 md:basis-1/3 border-0">
-                  <RadioGroup
-                    onValueChange={() => { }}
-                    id={`img-select-${index}`}
-                    defaultValue={index.toString()}
-                    className="relative"
-                  >
-                    <Card className='border-0'>
-                      <GeneratedPicture
-                        index={index}
-                        image={picture}
-                        webnovel_id={webnovel_id}
-                        chapter_id={chapter_id}
-                        quote={savedPrompt}
-                        makeSlideshow={makeSlideshow}
-                        makeVideo={makeVideo}
-                        isSelected={isSelected}
-                      />
-                      <div className="absolute top-0 left-0 z-[100]">
-                        <RadioGroupItem
-                          value={index.toString()}
-                          id={`img-select-${index}`}
-                          checked={isSelected}
-                          onClick={() => setIsSelected(!isSelected)}
-                          className="relative h-5 w-5 border-2 border-white appearance-none 
+          <CardStack items={pictures.map((picture, index) => {
+            return {
+              id: index,
+              name: picture,
+              designation: picture,
+              content: (
+                <RadioGroup>
+                  <GeneratedPicture
+                    index={index}
+                    image={picture}
+                    webnovel_id={webnovel_id}
+                    chapter_id={chapter_id}
+                    quote={savedPrompt}
+                    makeSlideshow={makeSlideshow}
+                    makeVideo={makeVideo}
+                    isSelected={selectedImageIndex === index}
+                  />
+                  <div className="absolute top-4 left-2 z-[500]">
+                    <RadioGroupItem
+                      value={index.toString()}
+                      id={`img-select-${index}`}
+                      onClick={() => setSelectedImageIndex(selectedImageIndex === index ? null : index)}
+                      className="relative h-5 w-5 border-2 border-white appearance-none 
                             data-[state=checked]:border-[#DE2B74] focus:outline-none focus:ring-0 focus:ring-offset-0
                             after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 
-                            after:h-3 after:w-3 after:rounded-full after:bg-transparent
+                            after:h-3 after:w-3 after:rounded-full after:bg-transparent z-[200]
                             data-[state=checked]:after:bg-[#DE2B74]"
-                        />
-                      </div>
-                    </Card>
-                  </RadioGroup>
-                </CarouselItem>
+                    />
+                  </div>
+                </RadioGroup>
+              )
+            }
+          })}
+          />
+          {(pictures.length > 0 && selectedImageIndex !== null) && (
+            <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
 
-              ))}
-            </CarouselContent>
-
-            {/* Custom positioned navigation buttons */}
-            < CarouselPrevious
-              onClick={() => api?.scrollPrev()}
-              className={`cursor-pointer absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full shadow-md z-10 flex items-center justify-center ${current === 1 ? 'invisible opacity-0 cursor-not-allowed' : ''}`}
-              disabled={current === 1}
-            />
-
-            <CarouselNext
-              onClick={() => api?.scrollNext()}
-              className={`cursor-pointer absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 p-2 rounded-full shadow-md z-10 flex items-center justify-center`}
-              disabled={current === count}
-            />
-          </Carousel>
-          {(pictures.length > 1 && isSelected) && (
-            <div className='flex flex-row gap-4 justify-center'>
-              <Button variant="ghost" onClick={makeSlideshow} className='text-black dark:text-white px-4 py-2 rounded-md border-0'>
-                Make Slideshow
-              </Button>
-              <Button variant="outline" onClick={makeVideo} className='inline-flex  bg-pink-600 text-white px-4 py-2 rounded-md border-0'>
+              <Button
+                variant="outline"
+                onClick={makeVideo} 
+                className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                 Make Video
                 <ArrowRight className='w-4 h-4' />
               </Button>
+
+              <Link 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                makeSlideshow();
+               }} 
+              className='relative'>
+                <CardStyleButton
+                  title="Slideshow"
+                  subtitle="Watch Ads to make a slideshow"
+                  ideaCount={pictures.length}
+                  images={pictures}
+                  gradientFrom="#DE2B74"
+                  gradientTo="#FF6F91"
+                  className='w-full'
+                />
+              </Link>
             </div>
           )}
         </div>

@@ -59,16 +59,15 @@
   }
   
   .button .blob:nth-child(4) {
-    left: 4em;
+    left: 5.5em;
     top: -1em;
-    /* background: #ff1b6b; */
-    background: #bf0fff; 
+    background: #0061ff;
+    /* background: #bf0fff;  */
   }
   
   .button .blob:nth-child(5) {
     left: 4.3em;
     top: 1.6em;
-  
     background: #0061ff;
   }
   

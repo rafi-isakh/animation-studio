@@ -22,16 +22,14 @@ import { useTheme } from '@/contexts/providers'
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
 import ProgressBar from '@/components/UI/ProgressBar';
-import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import ViewerSettingDialog from '@/components/UI/ViewerSettingDialog';
 import dynamic from 'next/dynamic';
-
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/N_logo_with_heart.json';
-
+import ChapterCommentsComponent from "@/components/CommentsComponent";
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();

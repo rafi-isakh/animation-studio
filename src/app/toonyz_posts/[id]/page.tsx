@@ -5,13 +5,15 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
-import { IconButton } from "@mui/material";
+import { Button } from "@/components/shadcnUI/Button"
+import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
+
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import ToonyzPostCommentWrapper from "@/components/ToonyzPostCommentWrapper";
 import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
-import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import WatermarkedImage from "@/utils/watermark";
 
 const breakpointColumnsObj = {
     default: 5,
@@ -36,11 +38,15 @@ async function getPost(id: string) {
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
+    const heights = [1000, 1200, 1400, 1600]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
     }
+}
+
+const ToonyzLogo = () => {
+    return <Image src="/toonyz_logo_pink.svg" alt="Toonyz Logo" width={100} height={30} />
 }
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
@@ -49,7 +55,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-    const [showQuote, setShowQuote] = useState(false);
+    const quoteRef = useRef<HTMLParagraphElement>(null);
+    const arrowRef = useRef<HTMLSpanElement>(null);
+
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -76,15 +84,15 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
     useEffect(() => {
         fetch('/api/get_toonyz_posts')
-        .then(res => res.json())
-        .then(data => {
-            // Add random dimensions to each post
-            const postsWithDimensions = data.map((post: ToonyzPost) => ({
-                ...post,
-                ...getRandomDimensions()
-            }));
-            setAllPosts(postsWithDimensions);
-        });
+            .then(res => res.json())
+            .then(data => {
+                // Add random dimensions to each post
+                const postsWithDimensions = data.map((post: ToonyzPost) => ({
+                    ...post,
+                    ...getRandomDimensions()
+                }));
+                setAllPosts(postsWithDimensions);
+            });
     }, []);
 
     const truncateText = (text: string, maxLength: number = 15) => {
@@ -92,6 +100,20 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
         return text.slice(0, maxLength) + '...';
     };
 
+    const toggleQuote = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        if (quoteRef.current && arrowRef.current) {
+            if (quoteRef.current.classList.contains('max-h-0')) {
+                quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
+                quoteRef.current.classList.add('max-h-[1000px]', 'opacity-100');
+                arrowRef.current.style.transform = 'rotate(90deg)';
+            } else {
+                quoteRef.current.classList.remove('max-h-[1000px]', 'opacity-100');
+                quoteRef.current.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
+                arrowRef.current.style.transform = 'rotate(0deg)';
+            }
+        }
+    }, []);
 
     if (!post) {
         return <></>
@@ -99,46 +121,60 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
     return (
         <div className="flex flex-col mx-auto w-full min-h-screen">
-            {/* header */}
-            <div className="sticky top-0 z-50 w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
+            {/* header fixed */}
+            <div className="fixed top-0 z-[99] w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
                     <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm font-base">Back</p>
                     </Link>
                     {/* <p className="text-2xl font-bold">{post.title}</p> */}
-                    <IconButton
-                        aria-label="share"
-                    // className="bg-[#DE2B74]"
-                    >
-                        <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
-                    </IconButton>
+                    <Popover >
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                            // className="bg-[#DE2B74]"
+                            >
+                                <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-24">
+                            <p>Share</p>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
+
             {/* Image Container */}
-            <div className="relative md:max-w-screen-xl mx-auto w-full h-screen group pt-14 md:pt-14 ">
+            <div className="relative md:max-w-screen-xl mx-auto w-full h-screen group mt-14 md:mt-14 ">
                 {/* top margin is 14 */}
                 {post.image ? (
-                    <Image
-                        src={getImageUrl(post.image)}
-                        alt={post.title}
-                        fill
-                        className="object-cover transition-all duration-300 group-hover:blur-sm  overflow-hidden"
+                    <WatermarkedImage
+                        imageUrl={getImageUrl(post.image)}
+                        watermarkUrl="/toonyz_logo_pink.svg"
+                        webnovelTitle={webnovel?.title}
+                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                        watermarkOpacity={0.2}
+                        watermarkPosition="centerRight"
+                        titlePosition="centerLeft"
+                        titleColor="white"
+                        className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
                     />
                 ) : (
-                    <div className="relative group h-full">
+                    <div className="relative group h-full mt-14 md:mt-14">
                         <video
                             src={getVideoUrl(post.video)}
                             muted
                             loop
                             autoPlay
-                            className="w-full h-full object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35] pt-14 md:pt-14 overflow-hidden"
+                            className="w-full h-full object-cover scale-125 transition-transform duration-200  pt-14 md:pt-14 overflow-hidden"
                         />
                     </div>
                 )}
                 <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-3xl leading-loose text-center max-w-[80%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {/*TODO: this translation should actually come from the novel. It shouldn't be a new translation.*/}
-                    <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote"/>
+                    <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
                 </p>
             </div>
 
@@ -173,7 +209,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         </Link>
                     </div>
                     <p className="relative -top-5 text-center text-xl md:text-4xl font-bold">
-                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title"/>
+                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                     </p>
                     {/* views, comments likes and date */}
                     <div className='flex flex-row gap-2'>
@@ -204,37 +240,44 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <div className="flex flex-row gap-2">
                             <p className="text-sm text-gray-500">Novel: {webnovel.title} &#62;</p>
                             {post.chapter_id && (
-                                <p className="text-sm text-gray-500">Chapter {post.chapter_id}</p>
+                                <p className="text-sm text-gray-500">
+                                    Chapter {webnovel.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                                </p>
                             )}
                         </div>
                     )}
 
                     {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">
-                        <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content"/>
+                        <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" />
                     </p>)}
 
                     {/* quote */}
                     {/* quote toggle */}
                     <div className="flex flex-col self-start">
                         <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setShowQuote(prev => !prev)
-                            }}
-                            className="text-sm text-gray-500 flex items-center gap-1"
+                            type="button"
+                            onClick={toggleQuote}
+                            className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer"
                         >
-                            <span className="transform transition-transform duration-200" style={{
-                                display: 'inline-block',
-                                transform: showQuote ? 'rotate(90deg)' : 'rotate(0deg)'
-                            }}>
+                            <span
+                                ref={arrowRef}
+                                className="transform transition-transform duration-200"
+                                style={{
+                                    display: 'inline-block',
+                                    transform: 'rotate(0deg)'
+                                }}
+                            >
                                 ▶
                             </span>
                             Quote
                         </button>
 
-                        {post.quote && showQuote && (
-                            <p className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start">
-                                {post.quote}
+                        {post.quote && (
+                            <p
+                                ref={quoteRef}
+                                className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start transition-opacity duration-300 max-h-0 opacity-0 overflow-hidden"
+                            >
+                                <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
                             </p>
                         )}
                     </div>
@@ -275,10 +318,11 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                     <hr className="w-full border-gray-500" />
 
-                    <ChapterCommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
+                    <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
-
+                <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+                    {/* reusable component for the feed */}
                     <Masonry
                         breakpointCols={breakpointColumnsObj}
                         className="my-masonry-grid flex w-auto -ml-4 gap-5"

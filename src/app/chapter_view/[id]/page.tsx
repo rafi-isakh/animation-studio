@@ -29,7 +29,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/N_logo_with_heart.json';
-import ChapterCommentsComponent from "@/components/CommentsComponent";
+import CommentsComponent from "@/components/CommentsComponent";
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -388,7 +388,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         />
                     </div>
                 </div>
-                <ChapterCommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
             </div>
         )

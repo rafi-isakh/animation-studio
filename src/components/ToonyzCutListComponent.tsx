@@ -24,7 +24,6 @@ export const ToonyzCutListComponent = ({ webnovels }: { webnovels: Webnovel[] })
 
     return (
         <>
-
             <div className='flex flex-col items-center gap-4 mt-4'>
                 <Box 
                      sx={{ 

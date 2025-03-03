@@ -2,7 +2,7 @@
 import { Webnovel, Webtoon } from "@/components/Types"
 import Image from "next/image"
 import TextField from '@mui/material/TextField';
-import { Button, Modal, Box, Typography, Radio, RadioGroup, FormControlLabel, FormLabel, FormControl } from "@mui/material"
+import { Button } from "@mui/material"
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from "@/utils/phrases"
 import { useState } from "react"
@@ -60,7 +60,7 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
             </div>
             <div className='flex flex-col items-center gap-1 w-full'>
                 <div className='font-semibold truncate w-full text-center text-base'>
-                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
+                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' classParams="text-black dark:text-black" />
                 </div>
                 <p className='text-gray-600 truncate w-full text-center text-sm'>{webnovel.user.nickname}</p>
                 <p className='text-gray-500 truncate w-full text-center text-sm'>

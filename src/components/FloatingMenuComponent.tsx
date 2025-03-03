@@ -236,28 +236,10 @@ const FloatingMenu: React.FC<{
     }
 
     const handleClose = () => {
-        // First, add a fade-out animation
-        // if (containerRef.current) {
-        //     containerRef.current.style.transition = 'opacity 0.3s ease';
-        //     containerRef.current.style.opacity = '0';
-        // }
-
-        // Wait for the animation to complete before closing
-        setTimeout(() => {
-            setSelection(undefined);
-            setPosition(undefined);
-            setSelectedText('');
-            setShowMessage(false);
-
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-
-            // Reset the opacity for next open
-            // if (containerRef.current) {
-            //     containerRef.current.style.opacity = '1';
-            // }
-        }, 300); // Match this duration with the transition duration
+        setSelection(undefined);
+        setPosition(undefined);
+        setSelectedText('');
+        setShowMessage(false);
     }
 
     const handlePicturesGenerated = (newPictures: string[]) => {
@@ -337,7 +319,10 @@ const FloatingMenu: React.FC<{
                                     <div className='flex flex-row gap-1 items-start justify-start p-2'>
                                         <DialogClose
                                             className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
-                                            onClick={handleClose}>
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setOpen(false);
+                                            }}>
                                             <X size={8} className="text-red-600" />
                                         </DialogClose>
                                         <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
@@ -395,7 +380,7 @@ const FloatingMenu: React.FC<{
                 )}
                 {children}
                 <DrawerContent
-                    className='h-[90%] no-scrollbar'
+                    className='h-[90%] no-scrollbar top-5 right-0'
                     style={{
                         backgroundColor: theme === 'light' ? 'white' : '#211F21',
                     }}
@@ -403,7 +388,7 @@ const FloatingMenu: React.FC<{
                     <DrawerHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
                         <DrawerTitle className='absolute top-0 left-0'>
                             <div className='flex flex-row gap-1 items-center justify-center p-2'>
-                                <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent' onClick={handleClose}>
+                                <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent'  >
                                     <X size={8} className="text-red-600" />
                                 </DrawerClose>
                                 <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>

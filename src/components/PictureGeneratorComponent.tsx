@@ -230,7 +230,7 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     <div className="relative w-full select-none">
       {/* picture generator */}
       <div className="flex md:flex-row flex-col items-center gap-4 space-y-4 flex-grow-0">
-        <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex flex-col min-h-[100px]">
+        <div className="flex-1 bg-gray-100 dark:bg-[#373737] p-3 rounded-lg flex flex-col min-h-[100px]">
           {/* Text content with scrolling if needed */}
           <div className="flex-1 overflow-y-auto flex-grow-0">
             <p className="text-sm text-gray-600 dark:text-gray-300  p-4">

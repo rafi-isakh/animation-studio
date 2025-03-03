@@ -33,6 +33,7 @@ import BlobButton from '@/components/UI/BlobButton';
 import Draggable from 'react-draggable';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 
 
 const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
@@ -184,7 +185,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     </Link>
                     {/* middle post button */}
                     <div
-                        className="relative inline-flex group p-1 w-32 h-10"
+                        className="relative inline-flex group p-1 w-12 h-12"
                         onClick={(e) => {
                             e.preventDefault();
                             handleOpen();
@@ -192,7 +193,17 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     >
                         <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
                         </div>
-                        <BlobButton text={<span className='text-sm inline-flex gap-1'><Sparkles size={20} />Post</span>} />
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <BlobButton text={<TooltipTrigger asChild>
+                                    <Sparkles size={20} />
+                                </TooltipTrigger>
+                                }/>
+                            <TooltipContent>
+                                post
+                            </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                     {isDesktop && (
                         <Dialog open={open} onOpenChange={setOpen} modal={false}>
@@ -269,7 +280,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 </DrawerHeader>
                                 <DrawerFooter className='w-full h-full'>
                                     <ScrollArea className='no-scrollbar'>
-                                            contents area
+                                        contents area
                                     </ScrollArea>
                                 </DrawerFooter>
                             </DrawerContent>

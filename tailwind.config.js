@@ -78,6 +78,7 @@ module.exports = {
     flowbitePlugin,
     scrollbarHide,
     tailwindcssAnimate,
+    flowbite.plugin(),
     function ({ addUtilities }) {
       const newUtilities = {
         ".nanum-gothic": {

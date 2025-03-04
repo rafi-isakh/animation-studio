@@ -36,7 +36,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 
 
-const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
+const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnovel, chapter: Chapter, context: string, prompt: string }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -47,14 +47,10 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const chapters = webnovel.chapters.sort((a, b) => a.id - b.id);
     const [isVisible, setIsVisible] = useState(true); // State to track visibility
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
-    const { theme } = useTheme();
     const { scrollType, setPage } = useReader();
-    const [open, setOpen] = useState(false);
-    const nodeRef = useRef<HTMLDivElement>(null);
-    const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
-    const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    const isDesktop = useMediaQuery("(min-width: 768px)")
-    const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuContentRef = useRef<HTMLDivElement>(null);
+    const [allowClose, setAllowClose] = useState(false);
 
     useEffect(() => {
         setPage(1);
@@ -136,45 +132,46 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         }
     }
 
-    const handleClose = () => {
-        setOpen(false);
+    const handleOpenMenu = () => {
+        setAllowClose(false);
+        setOpenMenu(true);
     }
 
-    const handleOpen = () => {
-        if (isDesktop) {
-            setOpen(true);
-        } else {
-            setMobileDialogOpen(true);
-        }
-
+    // Function to close the menu
+    const handleCloseMenu = () => {
+        setAllowClose(true);
+        setOpenMenu(false);
     }
 
-    useEffect(() => {
-        if (!initialDialogPositionSet && nodeRef.current) {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    // useEffect(() => {
+    //     if (!initialDialogPositionSet && nodeRef.current) {
+    //         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    //         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
-            setDialogPosition({
-                x: viewportWidth - 450, // Position it near the right edge
-                y: viewportHeight / 4,   // Position it a quarter down from the top
-            });
-            setInitialDialogPositionSet(true);
-        }
-    }, [initialDialogPositionSet]);
+    //         setDialogPosition({
+    //             x: viewportWidth - 450, // Position it near the right edge
+    //             y: viewportHeight / 4,   // Position it a quarter down from the top
+    //         });
+    //         setInitialDialogPositionSet(true);
+    //     }
+    // }, [initialDialogPositionSet]);
 
 
     return (
         <>
             <NavigationMenu className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-0 left-1/2 -translate-x-1/2 select-none z-[1250]">
                 <NavigationMenuList
-                    className={`w-full mx-auto  justify-center rounded-t-lg max-w-[350px]
-                                ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                                ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
-                                text-black dark:text-white font-base !text-base
+                    className={`w-full mx-auto justify-center rounded-t-lg max-w-[350px]
+                              bg-white  dark:bg-[#211F21] bg-white text-black
+                                 dark:text-white font-base !text-base
                                 bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
                                 transition-transform duration-300 
                                 ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                                 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+
+                                    {/*   ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
+                                          ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
+                                 */}
                     <NavigationMenuItem>
                         <div className={` text-black dark:text-white flex gap-5 items-center justify-evenly mx-auto p-2 z-[1150]`}>
                             <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
@@ -191,7 +188,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         <NavigationMenuTrigger
                             onClick={(e) => {
                                 e.preventDefault();
-                                handleOpen();
+                                handleOpenMenu();
                             }}
                             showChevron={false}
                             className='bg-transparent hover:bg-transparent dark:hover:bg-transparent'>
@@ -203,7 +200,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                         <BlobButton text={<TooltipTrigger asChild>
                                             <Sparkles size={20} />
                                         </TooltipTrigger>
-                                        } />
+                                        }/>
                                         <TooltipContent>
                                             post
                                         </TooltipContent>
@@ -214,29 +211,15 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                         <NavigationMenuContent
                             className="data-[motion=from-start]:animate-enterFromBottom data-[motion=from-end]:animate-enterFromBottom data-[motion=to-start]:animate-exitToBottom data-[motion=to-end]:animate-exitToBottom"
                         >
-                            <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                <li className="row-span-3">
-                                    <NavigationMenuLink asChild>
-                                        <a
-                                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                            href="/"
-                                        >
-                                            <div className="mb-2 mt-4 text-lg font-medium">shadcn/ui</div>
-                                            <p className="text-sm leading-tight text-muted-foreground">
-                                                Beautifully designed components built with Radix UI and Tailwind CSS.
-                                            </p>
-                                        </a>
-                                    </NavigationMenuLink>
-                                </li>
-                            </ul>
+                            {prompt}
                         </NavigationMenuContent>
-                    </NavigationMenuItem>
+                        </NavigationMenuItem>
 
-                    {/* view next and prev btn */}
-                    <NavigationMenuItem>
-                        <Link href={nextChapterLink} onClick={handleNextChapter}>
-                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                {phrase(dictionary, "nextChapter", language)}
+
+                        <NavigationMenuItem>
+                            <Link href={nextChapterLink} onClick={handleNextChapter}>
+                                <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                    {phrase(dictionary, "nextChapter", language)}
                                 <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
                             </div>
                         </Link>

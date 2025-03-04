@@ -1,4 +1,9 @@
-const flowbite = require("flowbite-react/tailwind");
+import flowbite from 'flowbite-react/tailwind';
+import scrollbarHide from 'tailwind-scrollbar-hide';
+import flowbitePlugin from 'flowbite/plugin';
+import tailwindcssAnimate from 'tailwindcss-animate';
+
+// const flowbite = require("flowbite-react/tailwind");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -68,34 +73,11 @@ module.exports = {
         },
       },
     },
-    keyframes: {
-      enterFromBottom: {
-        from: { opacity: 0, transform: "translateY(10px)" },
-        to: { opacity: 1, transform: "translateY(0)" },
-      },
-      exitToBottom: {
-        from: { opacity: 1, transform: "translateY(0)" },
-        to: { opacity: 0, transform: "translateY(10px)" },
-      },
-    },
-    animation: {
-      enterFromBottom: "enterFromBottom 0.2s ease",
-      exitToBottom: "exitToBottom 0.2s ease",
-    },
-    borderRadius: {
-      lg: "var(--radius)",
-      md: "calc(var(--radius) - 2px)",
-      sm: "calc(var(--radius) - 4px)",
-    },
-    container: {
-      center: true,
-    },
   },
   plugins: [
-    require("flowbite/plugin"),
-    require("tailwind-scrollbar-hide"),
-    require("tailwindcss-animate"),
-    flowbite.plugin(),
+    flowbitePlugin,
+    scrollbarHide,
+    tailwindcssAnimate,
     function ({ addUtilities }) {
       const newUtilities = {
         ".nanum-gothic": {

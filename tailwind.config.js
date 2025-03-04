@@ -82,11 +82,11 @@ module.exports = {
       enterFromBottom: "enterFromBottom 0.2s ease",
       exitToBottom: "exitToBottom 0.2s ease",
     },
-    borderRadius: {
-      lg: "var(--radius)",
-      md: "calc(var(--radius) - 2px)",
-      sm: "calc(var(--radius) - 4px)",
-    },
+    // borderRadius: {
+    //   lg: "var(--radius)",
+    //   md: "calc(var(--radius) - 2px)",
+    //   sm: "calc(var(--radius) - 4px)",
+    // },
     container: {
       center: true,
     },

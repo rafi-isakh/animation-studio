@@ -30,6 +30,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
+import { useFloatingMenuContext } from '@/components/FloatingMenuComponent';
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -79,7 +80,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
-
+    const { webnovel_id, chapter_id, context, selectedText } = useFloatingMenuContext();
 
     const handleViewSettings = () => {
         setShowIsViewerModal(true);
@@ -349,7 +350,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
                                     <FloatingMenu webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                      
+                                        <div className="relative">
+                                            <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                                        </div>
                                     </FloatingMenu>
                                 </div>
                             </div>

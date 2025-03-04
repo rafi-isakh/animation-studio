@@ -34,6 +34,7 @@ import Draggable from 'react-draggable';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
+import { useFloatingMenuContext } from '@/components/FloatingMenuComponent';
 
 
 const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnovel, chapter: Chapter, context: string, prompt: string }) => {

@@ -1,5 +1,5 @@
 'use Client'
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
@@ -43,6 +43,16 @@ import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import Draggable from 'react-draggable';
 import { Webnovel, Chapter } from '@/components/Types';
 import ViewerFooter from '@/components/ViewerFooter';
+
+const FloatingMenuContext = createContext<{
+    webnovel_id?: string;
+    chapter_id?: string;
+    context?: string;
+    selectedText: string;
+}>({selectedText: ''});
+
+// Export context hook for ViewerFooter to use
+export const useFloatingMenuContext = () => useContext(FloatingMenuContext);
 
 type Position = {
     x: number;
@@ -271,21 +281,20 @@ const FloatingMenu: React.FC<{
         }
     }, [initialDialogPositionSet, windowFn]);
 
-
-
     if (isDesktop) {
         return (
-            <Dialog open={open} onOpenChange={setOpen} modal={false}>
-                <div className='relative' ref={containerRef} >
-                    {selection && position && (
-                        <div
-                            className="absolute z-10 w-30"
-                            style={{
-                                top: `${position.y + position.height + 30}px`,
-                                left: `${position.x - 1}px`,
-                            }}
-                        >
-                            <style jsx global>{`
+            <FloatingMenuContext.Provider value={{ webnovel_id, chapter_id, selectedText, context }}>
+                <Dialog open={open} onOpenChange={setOpen} modal={false}>
+                    <div className='relative' ref={containerRef} >
+                        {selection && position && (
+                            <div
+                                className="absolute z-10 w-30"
+                                style={{
+                                    top: `${position.y + position.height + 30}px`,
+                                    left: `${position.x - 1}px`,
+                                }}
+                            >
+                                <style jsx global>{`
                             ::selection {
                                 @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
                                 @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
@@ -325,56 +334,65 @@ const FloatingMenu: React.FC<{
                             onClick={(e) => e.stopPropagation()}
                             showCloseButton={false}
                         >
-                            <DialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                                <DialogTitle className='absolute top-0 left-0 '>
-                                    <div className='flex flex-row gap-1 items-start justify-start p-2'>
-                                        <DialogClose
-                                            className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                setOpen(false);
-                                            }}>
-                                            <X size={8} className="text-red-600" />
-                                        </DialogClose>
-                                        <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                            <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                        </DialogClose>
-                                        <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                            <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                        </DialogClose>
+                            <DialogContent
+                                ref={nodeRef}
+                                forceMount
+                                className="sm:max-w-[425px] h-screen select-none fixed top-10 right-0 p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
+                                onClick={(e) => e.stopPropagation()}
+                                showCloseButton={false}
+                            >
+                                <DialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
+                                    <DialogTitle className='absolute top-0 left-0 '>
+                                        <div className='flex flex-row gap-1 items-start justify-start p-2'>
+                                            <DialogClose
+                                                className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    setOpen(false);
+                                                }}>
+                                                <X size={8} className="text-red-600" />
+                                            </DialogClose>
+                                            <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                                <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                                            </DialogClose>
+                                            <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                                <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                                            </DialogClose>
+                                        </div>
+                                    </DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar'>
+                                    <div className='relative w-full'>
+                                        <PictureGenerator
+                                            context={truncateText(context, 197)}
+                                            prompt={truncateText(selectedText, 197)}
+                                            onComplete={handlePicturesGenerated}
+                                            webnovel_id={webnovel_id}
+                                            chapter_id={chapter_id}
+                                        />
                                     </div>
-                                </DialogTitle>
-                            </DialogHeader>
-                            <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar'>
-                                <div className='relative w-full'>
-                                    <PictureGenerator
-                                        context={truncateText(context, 197)}
-                                        prompt={truncateText(selectedText, 197)}
-                                        onComplete={handlePicturesGenerated}
-                                        webnovel_id={webnovel_id}
-                                        chapter_id={chapter_id}
-                                    />
-                                </div>
-                            </ScrollArea>
-                        </DialogContent>
-                    </Draggable>
-                </div>
-            </Dialog>
+                                </ScrollArea>
+                            </DialogContent>
+                        </Draggable>
+                    </div>
+                </Dialog>
+            </FloatingMenuContext.Provider>
         );
     }
 
     return (
-        <Drawer open={open} onOpenChange={setOpen}>
-            <div className='relative' ref={containerRef} >
-                {selection && position && (
-                    <div
-                        className="absolute z-10 w-30"
-                        style={{
-                            top: `${position.y + position.height + 30}px`,
-                            left: `${position.x - 30}px`,
-                        }}
-                    >
-                        <style jsx global>{`
+        <FloatingMenuContext.Provider value={{ webnovel_id, chapter_id, selectedText, context }}>
+            <Drawer open={open} onOpenChange={setOpen}>
+                <div className='relative' ref={containerRef} >
+                    {selection && position && (
+                        <div
+                            className="absolute z-10 w-30"
+                            style={{
+                                top: `${position.y + position.height + 30}px`,
+                                left: `${position.x - 30}px`,
+                            }}
+                        >
+                            <style jsx global>{`
                         ::selection {
                              @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
                              @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
@@ -384,26 +402,30 @@ const FloatingMenu: React.FC<{
                             text-decoration-style: solid;
                         }
                         `}</style>
-                        <DrawerTrigger asChild>
-                            <FloatingMenuNav handleOpenModal={handleOpenModal} handleClose={handleClose} />
-                        </DrawerTrigger>
-                    </div>
-                )}
-                {children}
-                <DrawerContent
-                    className='h-[90%] no-scrollbar top-5 right-0'
-                    style={{
-                        backgroundColor: theme === 'light' ? 'white' : '#211F21',
-                    }}
-                >
-                    <DrawerHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                        <DrawerTitle className='absolute top-0 left-0'>
-                            <div className='flex flex-row gap-1 items-center justify-center p-2'>
-                                <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent'  >
-                                    <X size={8} className="text-red-600" />
-                                </DrawerClose>
-                                <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                    <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                            <DrawerTrigger asChild>
+                                <FloatingMenuNav handleOpenModal={handleOpenModal} handleClose={handleClose} />
+                            </DrawerTrigger>
+                        </div>
+                    )}
+                    {children}
+                    <DrawerContent
+                        className='h-[90%] no-scrollbar top-5 right-0'
+                        style={{
+                            backgroundColor: theme === 'light' ? 'white' : '#211F21',
+                        }}
+                    >
+                        <DrawerHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
+                            <DrawerTitle className='absolute top-0 left-0'>
+                                <div className='flex flex-row gap-1 items-center justify-center p-2'>
+                                    <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent'  >
+                                        <X size={8} className="text-red-600" />
+                                    </DrawerClose>
+                                    <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                        <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                                    </div>
+                                    <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
+                                        <Circle size={8} className="text-gray-200 dark:text-gray-700" />
+                                    </div>
                                 </div>
                                 <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
                                     <Circle size={8} className="text-gray-200 dark:text-gray-700" />
@@ -428,5 +450,5 @@ const FloatingMenu: React.FC<{
     )
 }
 
-export { FloatingMenu }
+export {FloatingMenu}
 

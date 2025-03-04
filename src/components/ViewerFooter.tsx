@@ -135,17 +135,12 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         }
     }
 
-    const handleClose = () => {
-        setOpen(false);
+    const handleToogle = (prev: boolean) => {
+        setOpen(!prev);
     }
 
     const handleOpen = () => {
-        if (isDesktop) {
-            setOpen(true);
-        } else {
-            setMobileDialogOpen(true);
-        }
-
+        setOpen(true);
     }
 
 
@@ -171,74 +166,82 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
                                     ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
                                     text-black dark:text-white font-base !text-base
-                                    bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
+                                    bottom-0 left-0 pt-2 pb-2 mr-0 ml-0
                                     transition-transform duration-300 
                                     ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                                     ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-                    <NavigationMenuItem>
-                        <div className={`max-w-[350px] text-black dark:text-white flex gap-5 items-center justify-evenly mx-auto p-2 z-[1150]`}>
-                            <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
-                                <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                    <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-                                    {phrase(dictionary, "prevChapter", language)}
+
+                    <div className={`max-w-[350px] text-black dark:text-white flex gap-5 items-center justify-evenly mx-auto p-2 z-[1150]`}>
+                        <NavigationMenuItem>
+                            <NavigationMenuLink>
+                                <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
+                                    <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                        <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                                        {phrase(dictionary, "prevChapter", language)}
+                                    </div>
+                                </Link>
+                            </NavigationMenuLink>
+                        </NavigationMenuItem>
+
+                        {/* middle post button */}
+                        <NavigationMenuItem className="relative">
+                            <NavigationMenuTrigger showChevron={false} onClick={handleOpen}>
+                                <div
+                                    className="relative inline-flex group p-1 w-12 h-12"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setOpen(prev => !prev);
+                                    }}
+                                >
+                                    <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
+                                    <TooltipProvider delayDuration={0}>
+                                        <Tooltip>
+                                            <BlobButton text={<TooltipTrigger asChild>
+                                                <Sparkles size={20} />
+                                            </TooltipTrigger>
+                                            } />
+                                            <TooltipContent>
+                                                post
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
-                            </Link>
-                        </div>
-                    </NavigationMenuItem>
+                            </NavigationMenuTrigger>
+                            {open && (
+                                <NavigationMenuContent
+                                    className="absolute right-0 bottom-full mb-2 bg-white shadow-lg rounded-md z-50 border border-red-500 transition-all duration-300 ease-in-out transform origin-bottom"
+                                >
+                                    <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                                        <li className="row-span-3">
+                                            <NavigationMenuLink asChild>
+                                                <a
+                                                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                                    href="/"
+                                                >
+                                                    <div className="mb-2 mt-4 text-lg font-medium">shadcn/ui</div>
+                                                    <p className="text-sm leading-tight text-muted-foreground">
+                                                        Beautifully designed components built with Radix UI and Tailwind CSS.
+                                                    </p>
+                                                </a>
+                                            </NavigationMenuLink>
+                                        </li>
+                                    </ul>
+                                </NavigationMenuContent>
+                            )}
+                        </NavigationMenuItem>
 
-                    {/* middle post button */}
-                    <NavigationMenuItem>
-                        <NavigationMenuTrigger showChevron={false}>
-                            <div
-                                className="relative inline-flex group p-1 w-12 h-12"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleOpen();
-                                }}
-                            >
-                                 <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
-                                <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                        <BlobButton text={<TooltipTrigger asChild>
-                                            <Sparkles size={20} />
-                                        </TooltipTrigger>
-                                        } />
-                                        <TooltipContent>
-                                            post
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </NavigationMenuTrigger>
-                        <NavigationMenuContent className="absolute origin-top-center  top-auto bottom-full !mt-0 !mb-2 data-[motion=from-start]:animate-enterFromBottom data-[motion=from-end]:animate-enterFromBottom data-[motion=to-start]:animate-exitToBottom data-[motion=to-end]:animate-exitToBottom"
-                        >
-                            <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                <li className="row-span-3">
-                                    <NavigationMenuLink asChild>
-                                        <a
-                                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                            href="/"
-                                        >
-                                            <div className="mb-2 mt-4 text-lg font-medium">shadcn/ui</div>
-                                            <p className="text-sm leading-tight text-muted-foreground">
-                                                Beautifully designed components built with Radix UI and Tailwind CSS.
-                                            </p>
-                                        </a>
-                                    </NavigationMenuLink>
-                                </li>
-                            </ul>
-                        </NavigationMenuContent>
-                    </NavigationMenuItem>
-
-                    {/* view next and prev btn */}
-                    <NavigationMenuItem>
-                        <Link href={nextChapterLink} onClick={handleNextChapter}>
-                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                {phrase(dictionary, "nextChapter", language)}
-                                <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-                            </div>
-                        </Link>
-                    </NavigationMenuItem>
+                        {/* view next and prev btn */}
+                        <NavigationMenuItem>
+                            <NavigationMenuLink>
+                                <Link href={nextChapterLink} onClick={handleNextChapter}>
+                                    <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                        {phrase(dictionary, "nextChapter", language)}
+                                        <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                                    </div>
+                                </Link>
+                            </NavigationMenuLink>
+                        </NavigationMenuItem>
+                    </div>
                 </NavigationMenuList >
             </NavigationMenu >
             {/* Dialogs for last and first chapter */}

@@ -70,12 +70,12 @@ module.exports = {
     },
     keyframes: {
       enterFromBottom: {
-        from: { opacity: 0, transform: "translateY(10px)" },
+        from: { opacity: 0, transform: "translateY(100%)" },
         to: { opacity: 1, transform: "translateY(0)" },
       },
       exitToBottom: {
         from: { opacity: 1, transform: "translateY(0)" },
-        to: { opacity: 0, transform: "translateY(10px)" },
+        to: { opacity: 0, transform: "translateY(100%)" },
       },
     },
     animation: {

@@ -35,7 +35,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 
 
-const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
+const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnovel, chapter: Chapter, context: string, prompt: string }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -48,7 +48,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const { scrollType, setPage } = useReader();
     const [openMenu, setOpenMenu] = useState(false)
-
+    const menuContentRef = useRef<HTMLDivElement>(null);
+    const [allowClose, setAllowClose] = useState(false);
 
     useEffect(() => {
         setPage(1);
@@ -131,27 +132,34 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     const handleOpenMenu = () => {
-        setOpenMenu(true)
+        setAllowClose(false);
+        setOpenMenu(true);
     }
 
     // Function to close the menu
     const handleCloseMenu = () => {
-        setOpenMenu(false)
+        setAllowClose(true);
+        setOpenMenu(false);
     }
 
-    const handleOutsideInteraction = (e: React.MouseEvent<HTMLDivElement>) => {
-        // Prevent the default behavior which would close the menu
-        e.preventDefault()
-    }
+    const handleOpenChange = (e: React.MouseEvent<HTMLDivElement>) => {
+        // If the menu is trying to close but the flag isn't set, ignore the change
+            if (!openMenu && !allowClose) {
+                setOpenMenu(true);
+                return;
+            }
+            // Otherwise, update the state normally
+            setOpenMenu(false);
+    };
 
     return (
         <>
             <Menubar className="fixed w-full md:max-w-screen-sm md:pl-[72px] 
-                                bottom-0 left-1/2 -translate-x-1/2 select-none z-50
+                                bottom-3 left-1/2 -translate-x-1/2 select-none z-50
                                 dark:text-white text-black border-none gap-0">
                 <div className={`w-full md:w-max-[400px] mx-auto text-black dark:text-white 
                                 font-base !text-base dark:bg-[#211F21] bg-white rounded-t-lg 
-                                transition-transform duration-300 
+                                transition-transform duration-300 py-1
                                 inline-flex justify-evenly items-center border-none
                                 ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                                 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
@@ -173,7 +181,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                         <BlobButton text={<TooltipTrigger asChild>
                                             <Sparkles size={20} />
                                         </TooltipTrigger>
-                                        } />
+                                        }/>
                                         <TooltipContent>
                                             post
                                         </TooltipContent>
@@ -182,15 +190,17 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                             </div>
                         </MenubarTrigger>
                         <MenubarContent
-                            sideOffset={0}
-                            onFocusOutside={() => handleCloseMenu()}
-                            onInteractOutside={(e) => handleOutsideInteraction(e as unknown as React.MouseEvent<HTMLDivElement>)}
+                            hideWhenDetached={false}
+                            sideOffset={5}
+                            onInteractOutside={(e) => handleOpenChange(e as unknown as React.MouseEvent<HTMLDivElement>)}
                             className={`border-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
                                         bg-transparent dark:bg-transparent hover:bg-transparent
                                         transition-all duration-300 ease-in-out shadow-none
                                         ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
                         >
-                            <MenubarItem className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
+                            <MenubarItem
+                                ref={menuContentRef}
+                                className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
                                 <div className="relative w-full md:w-full h-full">
                                     <button
                                         className="absolute top-1 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -200,7 +210,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                     </button>
                                     <div className="flex w-full">
                                         {/* ... existing code ... */}
-                                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Facere in eaque nemo, vel dolor dignissimos labore adipisci amet vitae quae? Quis minima distinctio ducimus voluptates, consequuntur tempora fuga ea doloremque!
+                                        {prompt}
+                                        {/* {context} */}
                                     </div>
                                 </div>
                             </MenubarItem>

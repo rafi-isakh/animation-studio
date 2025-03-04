@@ -41,6 +41,8 @@ import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import Draggable from 'react-draggable';
+import { Webnovel, Chapter } from '@/components/Types';
+import ViewerFooter from '@/components/ViewerFooter';
 
 type Position = {
     x: number;
@@ -113,7 +115,7 @@ const FloatingMenuNav = ({ handleOpenModal, handleClose }: { handleOpenModal: ()
                                                             handleClose?.();
                                                         }
                                                     }}
-                                                 >
+                                                >
                                                     {item.icon}
                                                 </span>
                                             )}
@@ -132,15 +134,16 @@ const FloatingMenuNav = ({ handleOpenModal, handleClose }: { handleOpenModal: ()
     );
 };
 
-
 const FloatingMenu: React.FC<{
     children: React.ReactNode;
     window?: () => Window;
     webnovel_id: string;
     chapter_id:
     string;
-    context: string
-}> = ({ children, window: windowFn, webnovel_id, chapter_id, context }) => {
+    context: string,
+    webnovel: Webnovel,
+    chapter: Chapter
+}> = ({ children, window: windowFn, webnovel_id, chapter_id, context, webnovel, chapter }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
@@ -298,6 +301,14 @@ const FloatingMenu: React.FC<{
                         </div>
                     )}
                     {children}
+                    <div className="relative">
+                        <ViewerFooter
+                            webnovel={webnovel}
+                            chapter={chapter}
+                            context={truncateText(context, 197)}
+                            prompt={truncateText(selectedText, 197)}
+                        />
+                    </div>
                     <Draggable
                         nodeRef={nodeRef}
                         position={dialogPosition}
@@ -401,7 +412,7 @@ const FloatingMenu: React.FC<{
                         </DrawerTitle>
                     </DrawerHeader>
                     <DrawerFooter className='w-full h-full'>
-                    <ScrollArea className='no-scrollbar'>
+                        <ScrollArea className='no-scrollbar'>
                             <PictureGenerator
                                 context={truncateText(context, 200)}
                                 prompt={truncateText(selectedText, 200)}

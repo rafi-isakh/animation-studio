@@ -70,8 +70,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                    fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
@@ -308,7 +308,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                         onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
                                         <Heart size={16} />
                                     </Link>
-                                   )
+                                )
                                 }
                                 <p className='ml-1 self-center text-sm'>{upvotes}</p>
                             </div>
@@ -347,16 +347,14 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                    <FloatingMenu webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
+                                      
                                     </FloatingMenu>
                                 </div>
                             </div>
                         </div>
                         {/* Title and content : end */}
-                    </div>
-                    <div className="relative">
-                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}

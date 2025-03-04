@@ -1,4 +1,7 @@
-const flowbite = require("flowbite-react/tailwind");
+import flowbite from 'flowbite-react/tailwind';
+import scrollbarHide from 'tailwind-scrollbar-hide';
+import flowbitePlugin from 'flowbite/plugin';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -82,19 +85,14 @@ module.exports = {
       enterFromBottom: "enterFromBottom 0.2s ease",
       exitToBottom: "exitToBottom 0.2s ease",
     },
-    // borderRadius: {
-    //   lg: "var(--radius)",
-    //   md: "calc(var(--radius) - 2px)",
-    //   sm: "calc(var(--radius) - 4px)",
-    // },
     container: {
       center: true,
     },
   },
   plugins: [
-    require("flowbite/plugin"),
-    require("tailwind-scrollbar-hide"),
-    require("tailwindcss-animate"),
+    flowbitePlugin,
+    scrollbarHide,
+    tailwindcssAnimate,
     flowbite.plugin(),
     function ({ addUtilities }) {
       const newUtilities = {

@@ -13,15 +13,14 @@ import {
     DialogClose
 } from "@/components/shadcnUI/Dialog";
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@/components/shadcnUI/Drawer"
+    NavigationMenu,
+    NavigationMenuContent,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenuTrigger,
+    navigationMenuTriggerStyle,
+} from "@/components/shadcnUI/NavigationMenu"
 import { Button } from "@/components/shadcnUI/Button";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -165,8 +164,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
 
 
     return (
-        <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-[3.5rem] md:bottom-0 left-1/2 -translate-x-1/2 select-none z-50">
-            {/* */}
+        <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-0 left-1/2 -translate-x-1/2 select-none z-50"> {/* bottom-[3.5rem] */}
             <div className={`w-full mx-auto  justify-center rounded-t-lg
                             ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
                             ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
@@ -183,6 +181,8 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                             {phrase(dictionary, "prevChapter", language)}
                         </div>
                     </Link>
+
+
                     {/* middle post button */}
                     <div
                         className="relative inline-flex group p-1 w-12 h-12"
@@ -198,94 +198,15 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                                 <BlobButton text={<TooltipTrigger asChild>
                                     <Sparkles size={20} />
                                 </TooltipTrigger>
-                                }/>
-                            <TooltipContent>
-                                post
-                            </TooltipContent>
+                                } />
+                                <TooltipContent>
+                                    post
+                                </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     </div>
-                    {isDesktop && (
-                        <Dialog open={open} onOpenChange={setOpen} modal={false}>
-                            <Draggable
-                                nodeRef={nodeRef}
-                                position={dialogPosition}
-                                onStop={(e, data) => {
-                                    setDialogPosition({ x: data.x, y: data.y });
-                                }}
-                                handle=".drag-handle"
-                                bounds="body"
-                            >
-                                <DialogContent
-                                    ref={nodeRef}
-                                    forceMount
-                                    className="sm:max-w-[425px] h-screen select-none fixed top-10 right-0 p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
-                                    onClick={(e) => e.stopPropagation()}
-                                    showCloseButton={false}
-                                >
-                                    <DialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                                        <DialogTitle className='absolute top-0 left-0 '>
-                                            <div className='flex flex-row gap-1 items-start justify-start p-2'>
-                                                <DialogClose
-                                                    className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
-                                                    onClick={handleClose}>
-                                                    <X size={8} className="text-red-600" />
-                                                </DialogClose>
-                                                <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                                    <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                                </DialogClose>
-                                                <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                                    <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                                </DialogClose>
-                                            </div>
-                                        </DialogTitle>
-                                    </DialogHeader>
-                                    <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar'>
-                                        <div className='relative w-full'>
-                                            {/* <PictureGenerator
-                                        context={truncateText(context, 197)}
-                                        prompt={truncateText(selectedText, 197)}
-                                        onComplete={handlePicturesGenerated}
-                                        webnovel_id={webnovel_id}
-                                        chapter_id={chapter_id}
-                                    /> */}
-                                        </div>
-                                    </ScrollArea>
-                                </DialogContent>
-                            </Draggable>
-                        </Dialog>
-                    )}
-                    {!isDesktop && (
-                        <Drawer open={mobileDialogOpen} onOpenChange={setMobileDialogOpen}>
-                            <DrawerContent
-                                className='h-[90%] no-scrollbar'
-                                style={{
-                                    backgroundColor: theme === 'light' ? 'white' : '#211F21',
-                                }}
-                            >
-                                <DrawerHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                                    <DrawerTitle className='absolute top-0 left-0'>
-                                        <div className='flex flex-row gap-1 items-center justify-center p-2'>
-                                            <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent' onClick={handleClose}>
-                                                <X size={8} className="text-red-600" />
-                                            </DrawerClose>
-                                            <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                                <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                            </div>
-                                            <div className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                                <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                            </div>
-                                        </div>
-                                    </DrawerTitle>
-                                </DrawerHeader>
-                                <DrawerFooter className='w-full h-full'>
-                                    <ScrollArea className='no-scrollbar'>
-                                        contents area
-                                    </ScrollArea>
-                                </DrawerFooter>
-                            </DrawerContent>
-                        </Drawer>
-                    )}
+
+
                     {/* view next and prev btn */}
                     <Link href={nextChapterLink} onClick={handleNextChapter}>
                         <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
@@ -296,18 +217,27 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                 </div >
             </div >
 
+
+            {/* Dialogs for last and first chapter */}
             <Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal}>
                 <DialogContent
                     className="sm:max-w-[425px] select-none dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
                     onClick={(e) => e.stopPropagation()}
                     showCloseButton={true}
                 >
-                    <div className='flex flex-col space-y-4'>
-                        <p>{phrase(dictionary, "isLastChapter", language)}</p>
-                        <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsLastChapterModal(false)}>
-                            {phrase(dictionary, "ok", language)}
-                        </Button>
-                    </div>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {phrase(dictionary, "isLastChapter", language)}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        <div className='flex flex-col space-y-4'>
+                            <p>{phrase(dictionary, "isLastChapter", language)}</p>
+                            <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsLastChapterModal(false)}>
+                                {phrase(dictionary, "ok", language)}
+                            </Button>
+                        </div>
+                    </DialogDescription>
                 </DialogContent>
             </Dialog>
             <Dialog open={showIsFirstChapterModal} onOpenChange={setShowIsFirstChapterModal}>
@@ -316,12 +246,19 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
                     onClick={(e) => e.stopPropagation()}
                     showCloseButton={true}
                 >
-                    <div className='flex flex-col space-y-4'>
-                        <p>{phrase(dictionary, "isFirstChapter", language)}</p>
-                        <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsFirstChapterModal(false)}>
-                            {phrase(dictionary, "ok", language)}
-                        </Button>
-                    </div>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {phrase(dictionary, "isFirstChapter", language)}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        <div className='flex flex-col space-y-4'>
+                            <p>{phrase(dictionary, "isFirstChapter", language)}</p>
+                            <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsFirstChapterModal(false)}>
+                                {phrase(dictionary, "ok", language)}
+                            </Button>
+                        </div>
+                    </DialogDescription>
                 </DialogContent>
             </Dialog>
         </div >

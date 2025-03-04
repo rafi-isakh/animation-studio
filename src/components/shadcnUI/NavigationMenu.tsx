@@ -7,14 +7,19 @@ import { cn } from "@/lib/utils"
 
 const NavigationMenu = React.forwardRef<
     React.ElementRef<typeof NavigationMenuPrimitive.Root>,
-    React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root>
->(({ className, children, ...props }, ref) => (
+    React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root> & {
+        persistentValue?: string;
+        onPersistentValueChange?: (value: string) => void;
+    }
+>(({ className, children, persistentValue, onPersistentValueChange, ...props }, ref) => (
     <NavigationMenuPrimitive.Root
         ref={ref}
         className={cn(
             "relative z-10 flex max-w-max flex-1 items-center justify-center",
             className
         )}
+        value={persistentValue}
+        onValueChange={onPersistentValueChange}
         {...props}
     >
         {children}
@@ -68,8 +73,11 @@ NavigationMenuTrigger.displayName = NavigationMenuPrimitive.Trigger.displayName
 
 const NavigationMenuContent = React.forwardRef<
     React.ElementRef<typeof NavigationMenuPrimitive.Content>,
-    React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content>
->(({ className, ...props }, ref) => (
+    React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content> & {
+        showCloseButton?: boolean;
+        onClose?: () => void;
+    }
+>(({ className, showCloseButton, onClose, children, ...props }, ref) => (
     <NavigationMenuPrimitive.Content
         ref={ref}
         className={cn(
@@ -77,7 +85,23 @@ const NavigationMenuContent = React.forwardRef<
             className
         )}
         {...props}
-    />
+    >
+        {showCloseButton && (
+            <div className="flex justify-end p-2">
+                <button 
+                    onClick={onClose}
+                    className="p-1 rounded-full hover:bg-accent/50 focus:outline-none"
+                    aria-label="Close menu"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        )}
+        {children}
+    </NavigationMenuPrimitive.Content>
 ))
 NavigationMenuContent.displayName = NavigationMenuPrimitive.Content.displayName
 

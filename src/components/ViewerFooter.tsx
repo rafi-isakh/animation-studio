@@ -13,14 +13,14 @@ import {
     DialogClose
 } from "@/components/shadcnUI/Dialog";
 import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-} from "@/components/shadcnUI/NavigationMenu"
+    Menubar,
+    MenubarContent,
+    MenubarItem,
+    MenubarMenu,
+    MenubarSeparator,
+    MenubarShortcut,
+    MenubarTrigger,
+} from "@/components/shadcnUI/Menubar";
 import { Button } from "@/components/shadcnUI/Button";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -46,14 +46,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const chapters = webnovel.chapters.sort((a, b) => a.id - b.id);
     const [isVisible, setIsVisible] = useState(true); // State to track visibility
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
-    const { theme } = useTheme();
     const { scrollType, setPage } = useReader();
-    const [open, setOpen] = useState(false);
-    const nodeRef = useRef<HTMLDivElement>(null);
-    const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
-    const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    const isDesktop = useMediaQuery("(min-width: 768px)")
-    const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
+    const [openMenu, setOpenMenu] = useState(false)
+
 
     useEffect(() => {
         setPage(1);
@@ -135,115 +130,95 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         }
     }
 
-    const handleToogle = (prev: boolean) => {
-        setOpen(!prev);
+    const handleOpenMenu = () => {
+        setOpenMenu(true)
     }
 
-    const handleOpen = () => {
-        setOpen(true);
+    // Function to close the menu
+    const handleCloseMenu = () => {
+        setOpenMenu(false)
     }
 
-
-    useEffect(() => {
-        if (!initialDialogPositionSet && nodeRef.current) {
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-            setDialogPosition({
-                x: viewportWidth - 450, // Position it near the right edge
-                y: viewportHeight / 4,   // Position it a quarter down from the top
-            });
-            setInitialDialogPositionSet(true);
-        }
-    }, [initialDialogPositionSet]);
-
+    const handleOutsideInteraction = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Prevent the default behavior which would close the menu
+        e.preventDefault()
+    }
 
     return (
         <>
-            <NavigationMenu className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-0 left-1/2 -translate-x-1/2 select-none z-50">
-                <NavigationMenuList
-                    className={`w-full mx-auto  justify-center rounded-t-lg
-                                    ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                                    ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
-                                    text-black dark:text-white font-base !text-base
-                                    bottom-0 left-0 pt-2 pb-2 mr-0 ml-0
-                                    transition-transform duration-300 
-                                    ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
-                                    ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-
-                    <div className={`max-w-[350px] text-black dark:text-white flex gap-5 items-center justify-evenly mx-auto p-2 z-[1150]`}>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink>
-                                <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
-                                    <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                        <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-                                        {phrase(dictionary, "prevChapter", language)}
+            <Menubar className="fixed w-full md:max-w-screen-sm md:pl-[72px] 
+                                bottom-0 left-1/2 -translate-x-1/2 select-none z-50
+                                dark:text-white text-black border-none gap-0">
+                <div className={`w-full md:w-max-[400px] mx-auto text-black dark:text-white 
+                                font-base !text-base dark:bg-[#211F21] bg-white rounded-t-lg 
+                                transition-transform duration-300 
+                                inline-flex justify-evenly items-center border-none
+                                ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
+                                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+                    <MenubarMenu>
+                        <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                                {phrase(dictionary, "prevChapter", language)}
+                            </div>
+                        </Link>
+                    </MenubarMenu>
+                    {/* middle post button */}
+                    <MenubarMenu>
+                        <MenubarTrigger onClick={handleOpenMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
+                            <div className="relative inline-flex group p-1 w-12 h-12 border-none" >
+                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
+                                        <BlobButton text={<TooltipTrigger asChild>
+                                            <Sparkles size={20} />
+                                        </TooltipTrigger>
+                                        } />
+                                        <TooltipContent>
+                                            post
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </MenubarTrigger>
+                        <MenubarContent
+                            sideOffset={0}
+                            onFocusOutside={() => handleCloseMenu()}
+                            onInteractOutside={(e) => handleOutsideInteraction(e as unknown as React.MouseEvent<HTMLDivElement>)}
+                            className={`border-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
+                                        bg-transparent dark:bg-transparent hover:bg-transparent
+                                        transition-all duration-300 ease-in-out shadow-none
+                                        ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
+                        >
+                            <MenubarItem className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
+                                <div className="relative w-full md:w-full h-full">
+                                    <button
+                                        className="absolute top-1 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        onClick={handleCloseMenu}
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                    <div className="flex w-full">
+                                        {/* ... existing code ... */}
+                                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Facere in eaque nemo, vel dolor dignissimos labore adipisci amet vitae quae? Quis minima distinctio ducimus voluptates, consequuntur tempora fuga ea doloremque!
                                     </div>
-                                </Link>
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-
-                        {/* middle post button */}
-                        <NavigationMenuItem className="relative">
-                            <NavigationMenuTrigger showChevron={false} onClick={handleOpen}>
-                                <div
-                                    className="relative inline-flex group p-1 w-12 h-12"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        setOpen(prev => !prev);
-                                    }}
-                                >
-                                    <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
-                                    <TooltipProvider delayDuration={0}>
-                                        <Tooltip>
-                                            <BlobButton text={<TooltipTrigger asChild>
-                                                <Sparkles size={20} />
-                                            </TooltipTrigger>
-                                            } />
-                                            <TooltipContent>
-                                                post
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
                                 </div>
-                            </NavigationMenuTrigger>
-                            {open && (
-                                <NavigationMenuContent
-                                    className="absolute right-0 bottom-full mb-2 bg-white shadow-lg rounded-md z-50 border border-red-500 transition-all duration-300 ease-in-out transform origin-bottom"
-                                >
-                                    <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                        <li className="row-span-3">
-                                            <NavigationMenuLink asChild>
-                                                <a
-                                                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                                    href="/"
-                                                >
-                                                    <div className="mb-2 mt-4 text-lg font-medium">shadcn/ui</div>
-                                                    <p className="text-sm leading-tight text-muted-foreground">
-                                                        Beautifully designed components built with Radix UI and Tailwind CSS.
-                                                    </p>
-                                                </a>
-                                            </NavigationMenuLink>
-                                        </li>
-                                    </ul>
-                                </NavigationMenuContent>
-                            )}
-                        </NavigationMenuItem>
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
 
-                        {/* view next and prev btn */}
-                        <NavigationMenuItem>
-                            <NavigationMenuLink>
-                                <Link href={nextChapterLink} onClick={handleNextChapter}>
-                                    <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                        {phrase(dictionary, "nextChapter", language)}
-                                        <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-                                    </div>
-                                </Link>
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                    </div>
-                </NavigationMenuList >
-            </NavigationMenu >
+                    {/* view next and prev btn */}
+                    <MenubarMenu>
+                        <Link href={nextChapterLink} onClick={handleNextChapter}>
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                {phrase(dictionary, "nextChapter", language)}
+                                <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                            </div>
+                        </Link>
+                    </MenubarMenu>
+                </div >
+                {/* <NavigationMenuViewport className="origin-bottom-right bottom-[25vh] mb-2" /> */}
+            </Menubar >
             {/* Dialogs for last and first chapter */}
             < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent

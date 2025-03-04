@@ -68,6 +68,25 @@ module.exports = {
         },
       },
     },
+    keyframes: {
+      enterFromBottom: {
+        from: { opacity: 0, transform: "translateY(10px)" },
+        to: { opacity: 1, transform: "translateY(0)" },
+      },
+      exitToBottom: {
+        from: { opacity: 1, transform: "translateY(0)" },
+        to: { opacity: 0, transform: "translateY(10px)" },
+      },
+    },
+    animation: {
+      enterFromBottom: "enterFromBottom 0.2s ease",
+      exitToBottom: "exitToBottom 0.2s ease",
+    },
+    borderRadius: {
+      lg: "var(--radius)",
+      md: "calc(var(--radius) - 2px)",
+      sm: "calc(var(--radius) - 4px)",
+    },
     container: {
       center: true,
     },

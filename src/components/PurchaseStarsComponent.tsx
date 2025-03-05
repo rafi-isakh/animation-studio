@@ -24,7 +24,7 @@ export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (
     // true if reaching the page with this component after completion of payment
     const complete = searchParams.get('complete');
     // const { enqueueSnackbar } = useSnackbar();
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(true); 
 
     const handleCloseSnackbar = (
         event?: React.SyntheticEvent | Event,
@@ -65,7 +65,7 @@ export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (
             buyer_email: email, // 구매자 이메일
             // buyer_addr: "신사동 661-16", // 구매자 주소
             // buyer_postcode: "06018", // 구매자 우편번호
-            m_redirect_url: `10.12.110.7:3000/api/complete`
+            m_redirect_url: `${process.env.NEXT_PUBLIC_HOST}/payment-redirect`,
         };
 
         /* 4. 결제 창 호출하기 */
@@ -74,13 +74,24 @@ export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (
         async function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;
             if (success) {
-                const addTransactionResponse = await fetch("/api/add_transaction", {
+                const completeResponse = await fetch(`${process.env.NEXT_PUBLIC_HOST}/payment/complete`, {
                     method: "POST",
-                    body: JSON.stringify({ currency: "KRW", email: email, stars: numStars, price: response.paid_amount, date: new Date().toISOString() }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        imp_uid: response.imp_uid,
+                        merchant_uid: response.merchant_uid,
+                        email: email,
+                        stars: numStars,
+                    })
                 });
-                const data = await addTransactionResponse.json();
-                alert("결제 성공");
-                setTabValue("2");
+                if (completeResponse.ok) {
+                    alert("결제 성공");
+                    setTabValue("2");
+                } else {
+                    alert(`결제 실패: ${completeResponse.statusText}`);
+                }
             } else {
                 alert(`결제 실패: ${error_msg}`);
             }
@@ -99,7 +110,7 @@ export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (
                     key="error"
                 >
                     <Alert severity="error" onClose={() => setIsOpen(false)}>
-                        <AlertTitle>이용에 불편을 드려 죄송합니다. 별 구입 서비스를 사용하실 수 없습니다.</AlertTitle>
+                        <AlertTitle>별 구입 서비스는 테스트 중입니다. 테스트 목적으로만 구매하세요.</AlertTitle>
                     </Alert>
                 </Snackbar>
 

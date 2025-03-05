@@ -1,11 +1,9 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest, res: NextResponse) {
     const session = await auth();
-    const { searchParams } = new URL(req.url);
-    const imp_uid = searchParams.get('imp_uid');
-    const merchant_uid = searchParams.get('merchant_uid');
+    const { imp_uid, email, merchant_uid } = await req.json();
     try {
         const tokenResponse = await fetch("https://api.iamport.kr/users/getToken", {
             method: "POST",
@@ -26,8 +24,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
         if (!paymentResponse.ok)
             throw new Error(`paymentResponse: ${await paymentResponse.json()}`);
         const payment = await paymentResponse.json();
-        const starsMatch = payment.name?.match(/\d{1,3}(,\d{3})*|\d+/);
-        const stars = starsMatch ? parseInt(starsMatch[0].replace(/,/g, ''), 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
+        const starsMatch = payment.name?.match(/\d+/);
+        const stars = starsMatch ? parseInt(starsMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
         if (stars === -1) {
             return NextResponse.json({ message: "Payment failed: invalid amount of stars. Check if the name of the purchased item has a number." });
         }

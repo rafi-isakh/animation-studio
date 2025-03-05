@@ -49,7 +49,9 @@ const FloatingMenuContext = createContext<{
     chapter_id?: string;
     context?: string;
     selectedText: string;
-}>({selectedText: ''});
+    openDialog: boolean;
+    setOpenDialog: (open: boolean) => void;
+}>({selectedText: '', openDialog: false, setOpenDialog: () => {}});
 
 // Export context hook for ViewerFooter to use
 export const useFloatingMenuContext = () => useContext(FloatingMenuContext);
@@ -161,7 +163,7 @@ const FloatingMenu: React.FC<{
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { language, dictionary } = useLanguage();
-    const [open, setOpen] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
     const isDesktop = useMediaQuery("(min-width: 768px)")
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
@@ -207,7 +209,7 @@ const FloatingMenu: React.FC<{
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 handleClose();
-                setOpen(false);
+                setOpenDialog(false);
             }
         };
 
@@ -245,7 +247,7 @@ const FloatingMenu: React.FC<{
     }, []);
 
     const handleOpenModal = () => {
-        setOpen(true);
+        setOpenDialog(true);
     }
 
     const handleClose = () => {
@@ -256,7 +258,7 @@ const FloatingMenu: React.FC<{
     }
 
     const handlePicturesGenerated = (newPictures: string[]) => {
-        setOpen(true);
+        setOpenDialog(true);
     };
 
 
@@ -283,8 +285,8 @@ const FloatingMenu: React.FC<{
 
     if (isDesktop) {
         return (
-            <FloatingMenuContext.Provider value={{ webnovel_id, chapter_id, selectedText, context }}>
-                <Dialog open={open} onOpenChange={setOpen} modal={false}>
+            <FloatingMenuContext.Provider value={{ webnovel_id, chapter_id, selectedText, context, openDialog, setOpenDialog }}>
+                <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
                     <div className='relative' ref={containerRef} >
                         {selection && position && (
                             <div
@@ -348,7 +350,9 @@ const FloatingMenu: React.FC<{
                                                 className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    setOpen(false);
+                                                    setOpenDialog(false);
+                                                    e.stopPropagation()
+                                                    setSelectedText('');
                                                 }}>
                                                 <X size={8} className="text-red-600" />
                                             </DialogClose>
@@ -382,7 +386,7 @@ const FloatingMenu: React.FC<{
 
     return (
         <FloatingMenuContext.Provider value={{ webnovel_id, chapter_id, selectedText, context }}>
-            <Drawer open={open} onOpenChange={setOpen}>
+            <Drawer open={openDialog} onOpenChange={setOpenDialog}>
                 <div className='relative' ref={containerRef} >
                     {selection && position && (
                         <div

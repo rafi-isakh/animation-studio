@@ -35,6 +35,7 @@ import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 import { useFloatingMenuContext } from '@/components/FloatingMenuComponent';
+import { truncateText } from '@/utils/truncateText';
 
 
 const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnovel, chapter: Chapter, context: string, prompt: string }) => {
@@ -50,8 +51,8 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const { scrollType, setPage } = useReader();
     const [openMenu, setOpenMenu] = useState(false)
-    const menuContentRef = useRef<HTMLDivElement>(null);
-    const [allowClose, setAllowClose] = useState(false);
+    const { selectedText, context, openDialog, setOpenDialog } = useFloatingMenuContext();
+
 
     useEffect(() => {
         setPage(1);
@@ -134,29 +135,17 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
     }
 
     const handleOpenMenu = () => {
-        setAllowClose(false);
         setOpenMenu(true);
     }
 
     // Function to close the menu
     const handleCloseMenu = () => {
-        setAllowClose(true);
         setOpenMenu(false);
     }
 
-    // useEffect(() => {
-    //     if (!initialDialogPositionSet && nodeRef.current) {
-    //         const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-    //         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-    //         setDialogPosition({
-    //             x: viewportWidth - 450, // Position it near the right edge
-    //             y: viewportHeight / 4,   // Position it a quarter down from the top
-    //         });
-    //         setInitialDialogPositionSet(true);
-    //     }
-    // }, [initialDialogPositionSet]);
-
+    // if (openDialog) {
+    //     setOpenMenu(true)
+    // }
 
     return (
         <>
@@ -198,7 +187,7 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
                                 </div>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip>
-                                        <BlobButton text={<TooltipTrigger asChild>
+                                        <BlobButton text={<TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
                                             <Sparkles size={20} />
                                         </TooltipTrigger>
                                         }/>
@@ -212,7 +201,8 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
                         <NavigationMenuContent
                             className="data-[motion=from-start]:animate-enterFromBottom data-[motion=from-end]:animate-enterFromBottom data-[motion=to-start]:animate-exitToBottom data-[motion=to-end]:animate-exitToBottom"
                         >
-                            {prompt}
+                            {truncateText(prompt, 100)}
+                            {truncateText(context, 100)}
                         </NavigationMenuContent>
                         </NavigationMenuItem>
 

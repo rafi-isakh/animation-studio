@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ImageOrVideo } from "./Types";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { Button } from "@/components/shadcnUI/Button";
@@ -29,6 +29,10 @@ export default function GeneratedPicture({
         isSelected?: boolean,
     }) {
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
+
+    useEffect(() => {
+        console.log('image changed');
+    }, [image]);
 
     const buttonList = [
         {

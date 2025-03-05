@@ -65,6 +65,7 @@ export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (
             buyer_email: email, // 구매자 이메일
             // buyer_addr: "신사동 661-16", // 구매자 주소
             // buyer_postcode: "06018", // 구매자 우편번호
+            m_redirect_url: `10.12.110.7:3000/api/complete`
         };
 
         /* 4. 결제 창 호출하기 */

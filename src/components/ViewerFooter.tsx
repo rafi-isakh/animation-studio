@@ -13,15 +13,14 @@ import {
     DialogClose
 } from "@/components/shadcnUI/Dialog";
 import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-    NavigationMenuViewport
-} from "@/components/shadcnUI/NavigationMenu"
+    Menubar,
+    MenubarContent,
+    MenubarItem,
+    MenubarMenu,
+    MenubarSeparator,
+    MenubarShortcut,
+    MenubarTrigger,
+} from "@/components/shadcnUI/Menubar";
 import { Button } from "@/components/shadcnUI/Button";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -34,11 +33,10 @@ import Draggable from 'react-draggable';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
-import { useFloatingMenuContext } from '@/components/FloatingMenuComponent';
-import { truncateText } from '@/utils/truncateText';
 
 
-const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnovel, chapter: Chapter, context: string, prompt: string }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText }:
+     { webnovel: Webnovel, chapter: Chapter, selectedText: string, setSelectedText: (text: string) => void }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -51,8 +49,8 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const { scrollType, setPage } = useReader();
     const [openMenu, setOpenMenu] = useState(false)
-    const { selectedText, context, openDialog, setOpenDialog } = useFloatingMenuContext();
-
+    const menuContentRef = useRef<HTMLDivElement>(null);
+    const [allowClose, setAllowClose] = useState(false);
 
     useEffect(() => {
         setPage(1);
@@ -135,59 +133,53 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
     }
 
     const handleOpenMenu = () => {
+        setAllowClose(false);
         setOpenMenu(true);
     }
 
     // Function to close the menu
     const handleCloseMenu = () => {
+        setAllowClose(true);
         setOpenMenu(false);
     }
 
-    // if (openDialog) {
-    //     setOpenMenu(true)
-    // }
+    const handleOpenChange = (e: React.MouseEvent<HTMLDivElement>) => {
+        // If the menu is trying to close but the flag isn't set, ignore the change
+            if (!openMenu && !allowClose) {
+                setOpenMenu(true);
+                return;
+            }
+            // Otherwise, update the state normally
+            setOpenMenu(false);
+    };
 
     return (
         <>
-            <NavigationMenu className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-0 left-1/2 -translate-x-1/2 select-none z-[1250]">
-                <NavigationMenuList
-                    className={`w-full mx-auto justify-center rounded-t-lg max-w-[350px]
-                              bg-white  dark:bg-[#211F21] bg-white text-black
-                                 dark:text-white font-base !text-base
-                                bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
-                                transition-transform duration-300 
+            <Menubar className="fixed w-full md:max-w-screen-sm md:pl-[72px] 
+                                bottom-3 left-1/2 -translate-x-1/2 select-none z-50
+                                dark:text-white text-black border-none gap-0">
+                <div className={`w-full md:w-max-[400px] mx-auto text-black dark:text-white 
+                                font-base !text-base dark:bg-[#211F21] bg-white rounded-t-lg 
+                                transition-transform duration-300 py-1
+                                inline-flex justify-evenly items-center border-none
                                 ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
                                 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-
-                                    {/*   ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                                          ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
-                                 */}
-                    <NavigationMenuItem>
-                        <div className={` text-black dark:text-white flex gap-5 items-center justify-evenly mx-auto p-2 z-[1150]`}>
-                            <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
-                                <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                    <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-                                    {phrase(dictionary, "prevChapter", language)}
-                                </div>
-                            </Link>
-                        </div>
-                    </NavigationMenuItem>
-
+                    <MenubarMenu>
+                        <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                                {phrase(dictionary, "prevChapter", language)}
+                            </div>
+                        </Link>
+                    </MenubarMenu>
                     {/* middle post button */}
-                    <NavigationMenuItem>
-                        <NavigationMenuTrigger
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleOpenMenu();
-                            }}
-                            showChevron={false}
-                            className='bg-transparent hover:bg-transparent dark:hover:bg-transparent'>
-                            <div className="relative inline-flex group p-1 w-12 h-12">
-                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                </div>
+                    <MenubarMenu>
+                        <MenubarTrigger onClick={handleOpenMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
+                            <div className="relative inline-flex group p-1 w-12 h-12 border-none" >
+                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip>
-                                        <BlobButton text={<TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                        <BlobButton text={<TooltipTrigger asChild>
                                             <Sparkles size={20} />
                                         </TooltipTrigger>
                                         }/>
@@ -197,27 +189,48 @@ const ViewerFooter = ({ webnovel, chapter, context, prompt }: { webnovel: Webnov
                                     </Tooltip>
                                 </TooltipProvider>
                             </div>
-                        </NavigationMenuTrigger>
-                        <NavigationMenuContent
-                            className="data-[motion=from-start]:animate-enterFromBottom data-[motion=from-end]:animate-enterFromBottom data-[motion=to-start]:animate-exitToBottom data-[motion=to-end]:animate-exitToBottom"
+                        </MenubarTrigger>
+                        <MenubarContent
+                            hideWhenDetached={false}
+                            sideOffset={5}
+                            onInteractOutside={(e) => handleOpenChange(e as unknown as React.MouseEvent<HTMLDivElement>)}
+                            className={`border-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
+                                        bg-transparent dark:bg-transparent hover:bg-transparent
+                                        transition-all duration-300 ease-in-out shadow-none
+                                        ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
                         >
-                            {truncateText(prompt, 100)}
-                            {truncateText(context, 100)}
-                        </NavigationMenuContent>
-                        </NavigationMenuItem>
+                            <MenubarItem
+                                ref={menuContentRef}
+                                className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
+                                <div className="relative w-full md:w-full h-full">
+                                    <button
+                                        className="absolute top-1 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        onClick={handleCloseMenu}
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                    <div className="flex w-full">
+                                        {/* ... existing code ... */}
+                                        {selectedText}
+                                        {/* {context} */}
+                                    </div>
+                                </div>
+                            </MenubarItem>
+                        </MenubarContent>
+                    </MenubarMenu>
 
-
-                        <NavigationMenuItem>
-                            <Link href={nextChapterLink} onClick={handleNextChapter}>
-                                <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                    {phrase(dictionary, "nextChapter", language)}
+                    {/* view next and prev btn */}
+                    <MenubarMenu>
+                        <Link href={nextChapterLink} onClick={handleNextChapter}>
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                                {phrase(dictionary, "nextChapter", language)}
                                 <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
                             </div>
                         </Link>
-                    </NavigationMenuItem>
-                </NavigationMenuList >
-                <NavigationMenuViewport className="bottom-0 left-0 z-[1250]" />
-            </NavigationMenu >
+                    </MenubarMenu>
+                </div >
+                {/* <NavigationMenuViewport className="origin-bottom-right bottom-[25vh] mb-2" /> */}
+            </Menubar >
             {/* Dialogs for last and first chapter */}
             < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent

@@ -30,7 +30,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
-import { useFloatingMenuContext } from '@/components/FloatingMenuComponent';
+
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -47,6 +47,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
+    const [selectedText, setSelectedText] = useState('');
     const [isSticky, setIsSticky] = useState(false);
     const {
         fontSize,
@@ -80,7 +81,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
-    const { webnovel_id, chapter_id, context, selectedText } = useFloatingMenuContext();
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const handleViewSettings = () => {
         setShowIsViewerModal(true);
@@ -208,6 +209,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);
+
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
@@ -348,16 +350,16 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                    <FloatingMenu selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                        <div className="relative">
-                                            <ViewerFooter webnovel={webnovel} chapter={chapter} />
-                                        </div>
                                     </FloatingMenu>
                                 </div>
                             </div>
                         </div>
                         {/* Title and content : end */}
+                        <div className="relative" ref={containerRef}>
+                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText} />
+                        </div>
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}

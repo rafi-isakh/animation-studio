@@ -9,9 +9,11 @@ import { useReader } from '@/contexts/ReaderContext';
 import { Slider } from '@/components/shadcnUI/Slider';
 import { Switch } from '@/components/shadcnUI/Switch';
 import { Label } from '@/components/shadcnUI/Label';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Minus, Plus } from 'lucide-react';
+import { Button } from '@/components/shadcnUI/Button';
 
-export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }: { showIsViewerModal: boolean, setShowIsViewerModal: (showIsViewerModal: boolean) => void }) => {
+export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }:
+    { showIsViewerModal: boolean, setShowIsViewerModal: (showIsViewerModal: boolean) => void }) => {
     const { dictionary, language } = useLanguage();
     const { theme, toggleTheme } = useTheme();
     const {
@@ -71,7 +73,6 @@ export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }:
                                 className="data-[state=checked]:bg-pink-800 data-[state=unchecked]:bg-gray-200"
                             />
                         </div>
-
                     </div>
 
                     <div className='text-sm flex justify-between'>
@@ -111,40 +112,67 @@ export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }:
                     </div>
                     <div className='text-sm flex justify-between'>
                         {/* 글자 크기 */}
-                        {phrase(dictionary, "fontSize", language)}
-                        <div className='flex flex-row gap-2 justify-evenly'>
-                            <Link
-                                href=''
-                                onClick={() => setFontSize(fontSize + 2)}
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                <i className="fas fa-plus"></i>
-                            </Link>
-                            <p className='w-7 self-center text-center'>{fontSize} </p>
-                            <Link
-                                href=''
-                                onClick={() => setFontSize(fontSize - 2)}
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                <i className="fas fa-minus"></i>
-                            </Link>
+
+                        <div className="space-y-2 w-full">
+                            <div className="flex items-center justify-between">
+                                {phrase(dictionary, "fontSize", language)}
+                                <span className="text-sm text-right">{fontSize}px</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 shrink-0 rounded-full"
+                                    onClick={() => setFontSize(Math.max(12, fontSize - 1))}
+                                >
+                                    <Minus className="h-3 w-3" />
+                                    <span className="sr-only">Decrease font size</span>
+                                </Button>
+                                <Slider
+                                    value={[fontSize]}
+                                    min={12}
+                                    max={24}
+                                    step={1}
+                                    onValueChange={(value) => setFontSize(value[0])}
+                                    className="flex-1"
+                                />
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 shrink-0 rounded-full"
+                                    onClick={() => setFontSize(Math.min(24, fontSize + 1))}
+                                >
+                                    <Plus className="h-3 w-3" />
+                                    <span className="sr-only">Increase font size</span>
+                                </Button>
+                            </div>
                         </div>
                     </div>
+
                     <div className='text-sm flex justify-between'>
                         {/* 줄 간격 */}
                         {phrase(dictionary, "lineHeight", language)}
                         <div className='flex flex-row gap-2 justify-evenly'>
-                            <Link
-                                href=''
-                                onClick={(e) => setLineHeight(lineHeight + 0.1)}
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                <i className="fas fa-plus"></i>
-                            </Link>
-                            <p> {Math.round(lineHeight * 10)}% </p>
-                            <Link
-                                href=''
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 shrink-0 rounded-full"
                                 onClick={(e) => setLineHeight(lineHeight - 0.1)}
-                                className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                <i className="fas fa-minus"></i>
-                            </Link>
+
+                            >
+                                <Minus className="h-3 w-3" />
+                                <span className="sr-only">Decrease font size</span>
+                            </Button>
+                            <p className="text-sm self-center"> {Math.round(lineHeight * 10)}% </p>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 shrink-0 rounded-full"
+                                onClick={(e) => setLineHeight(lineHeight + 0.1)}
+                            >
+                                <Plus className="h-3 w-3" />
+                                <span className="sr-only">Increase font size</span>
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -27,16 +27,34 @@ import { phrase } from '@/utils/phrases'
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
-import { ChevronLeft, ChevronRight, Sparkles, X, Circle } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Sparkles,
+    X,
+    Circle,
+    BookOpen,
+    List,
+    Bookmark,
+    Settings,
+    Search,
+    Sun,
+    Moon,
+    Minus,
+    Plus,
+    BookMarked,
+} from 'lucide-react';
+import { Slider } from '@/components/shadcnUI/Slider';
+import { Switch } from '@/components/shadcnUI/Switch';
+import { Label } from '@/components/shadcnUI/Label';
 import BlobButton from '@/components/UI/BlobButton';
-import Draggable from 'react-draggable';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 
 
-const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText }:
-     { webnovel: Webnovel, chapter: Chapter, selectedText: string, setSelectedText: (text: string) => void }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, maxPage }:
+    { webnovel: Webnovel, chapter: Chapter, selectedText: string, setSelectedText: (text: string) => void, page: number, maxPage: number }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -51,6 +69,33 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText }:
     const [openMenu, setOpenMenu] = useState(false)
     const menuContentRef = useRef<HTMLDivElement>(null);
     const [allowClose, setAllowClose] = useState(false);
+    const [scrollPercent, setScrollPercent] = useState(0);
+
+    useEffect(() => {
+        if (scrollType === 'horizontal') {
+            // Handle horizontal pagination
+            if (page && maxPage) {
+                setScrollPercent(Math.floor((page / maxPage) * 100));
+            }
+        } else {
+            // Handle vertical scrolling
+            const handleScroll = () => {
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight - windowHeight;
+                const scrolled = window.scrollY;
+                const percent = Math.floor((scrolled / documentHeight) * 100);
+                setScrollPercent(percent);
+            };
+
+            // Add scroll event listener
+            window.addEventListener('scroll', handleScroll);
+            // Initial calculation
+            handleScroll();
+
+            return () => window.removeEventListener('scroll', handleScroll);
+        }
+    }, [page, maxPage, scrollType]);
+
 
     useEffect(() => {
         setPage(1);
@@ -58,12 +103,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText }:
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
-
-        // If scrollType is horizontal, always show the footer
-        // if (scrollType === 'horizontal') {
-        //     setIsVisible(true);
-        //     return; // Exit early, no need to add scroll listener
-        // }
 
         const handleScroll = () => {
             if (scrollType === 'vertical' || scrollType === 'horizontal') {
@@ -145,92 +184,99 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText }:
 
     const handleOpenChange = (e: React.MouseEvent<HTMLDivElement>) => {
         // If the menu is trying to close but the flag isn't set, ignore the change
-            if (!openMenu && !allowClose) {
-                setOpenMenu(true);
-                return;
-            }
-            // Otherwise, update the state normally
-            setOpenMenu(false);
+        if (!openMenu && !allowClose) {
+            setOpenMenu(true);
+            return;
+        }
+        // Otherwise, update the state normally
+        setOpenMenu(false);
     };
 
     return (
         <>
-            <Menubar className="fixed w-full md:max-w-screen-sm md:pl-[72px] 
-                                bottom-3 left-1/2 -translate-x-1/2 select-none z-50
-                                dark:text-white text-black border-none gap-0">
-                <div className={`w-full md:w-max-[400px] mx-auto text-black dark:text-white 
-                                font-base !text-base dark:bg-[#211F21] bg-white rounded-t-lg 
-                                transition-transform duration-300 py-1
-                                inline-flex justify-evenly items-center border-none
-                                ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
-                                ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl rounded-full border shadow-lg bg-background/90 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300">
+
+                <Menubar className="flex justify-between border-none rounded-full px-3 py-1.5">
                     <MenubarMenu>
+
                         <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
-                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
                                 <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-                                {phrase(dictionary, "prevChapter", language)}
+                                <span className='uppercase text-sm'>{phrase(dictionary, "prevChapter", language)}</span>
                             </div>
                         </Link>
+
                     </MenubarMenu>
+
+
                     {/* middle post button */}
-                    <MenubarMenu>
-                        <MenubarTrigger onClick={handleOpenMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
-                            <div className="relative inline-flex group p-1 w-12 h-12 border-none" >
-                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
-                                <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                        <BlobButton text={<TooltipTrigger asChild>
-                                            <Sparkles size={20} />
-                                        </TooltipTrigger>
-                                        }/>
-                                        <TooltipContent>
-                                            post
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </MenubarTrigger>
-                        <MenubarContent
-                            hideWhenDetached={false}
-                            sideOffset={5}
-                            onInteractOutside={(e) => handleOpenChange(e as unknown as React.MouseEvent<HTMLDivElement>)}
-                            className={`border-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
+                    <div className="flex items-center gap-1">
+                        <MenubarMenu>
+                            <MenubarTrigger onClick={handleOpenMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
+                                <div className="relative inline-flex group p-1 w-12 h-12 border-none" >
+                                    <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
+                                    <TooltipProvider delayDuration={0}>
+                                        <Tooltip>
+                                            <BlobButton text={<TooltipTrigger asChild>
+                                                <Sparkles size={20} />
+                                            </TooltipTrigger>
+                                            } />
+                                            <TooltipContent>
+                                                post
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            </MenubarTrigger>
+                            <MenubarContent
+                                hideWhenDetached={false}
+                                sideOffset={5}
+                                onInteractOutside={(e) => handleOpenChange(e as unknown as React.MouseEvent<HTMLDivElement>)}
+                                className={`border-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
                                         bg-transparent dark:bg-transparent hover:bg-transparent
                                         transition-all duration-300 ease-in-out shadow-none
                                         ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
-                        >
-                            <MenubarItem
-                                ref={menuContentRef}
-                                className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
-                                <div className="relative w-full md:w-full h-full">
-                                    <button
-                                        className="absolute top-1 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                                        onClick={handleCloseMenu}
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                    <div className="flex w-full">
-                                        {/* ... existing code ... */}
-                                        {selectedText}
-                                        {/* {context} */}
+                            >
+                                <MenubarItem
+                                    ref={menuContentRef}
+                                    className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
+                                    <div className="relative w-full md:w-full h-full">
+                                        <button
+                                            className="absolute top-1 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                            onClick={handleCloseMenu}
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                        <div className="flex w-full">
+                                            {/* ... existing code ... */}
+                                            {selectedText}
+                                            {/* {context} */}
+                                        </div>
                                     </div>
-                                </div>
-                            </MenubarItem>
-                        </MenubarContent>
-                    </MenubarMenu>
+                                </MenubarItem>
+                            </MenubarContent>
+                        </MenubarMenu>
+                    </div>
+
 
                     {/* view next and prev btn */}
                     <MenubarMenu>
                         <Link href={nextChapterLink} onClick={handleNextChapter}>
-                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center'>
-                                {phrase(dictionary, "nextChapter", language)}
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
+                                <span className="uppercase text-sm">{phrase(dictionary, "nextChapter", language)}</span>
                                 <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
                             </div>
                         </Link>
                     </MenubarMenu>
-                </div >
-                {/* <NavigationMenuViewport className="origin-bottom-right bottom-[25vh] mb-2" /> */}
-            </Menubar >
+                    {/* </div > */}
+                </Menubar >
+                <div className="flex items-center justify-center py-1 text-xs text-muted-foreground">
+                    <BookOpen className="mr-1 h-3 w-3" />
+                    <span>
+                        Page {page} of {scrollPercent}&#37;
+                    </span>
+                </div>
+            </div>
             {/* Dialogs for last and first chapter */}
             < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent

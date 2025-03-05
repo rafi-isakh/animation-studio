@@ -356,9 +356,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 </div>
                             </div>
                         </div>
-                        {/* Title and content : end */}
+                        {/* Viewer footer */}
                         <div className="relative" ref={containerRef}>
-                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText} />
+                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText} page={page} maxPage={maxPage} />
                         </div>
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />

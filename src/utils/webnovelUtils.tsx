@@ -6,11 +6,11 @@ export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 6
 
 export const chapterPrice = (language: string) => {
     if (language === "ko") {
-        return "10";
+        return "100";
     } else if (language === "en") {
-        return "30";
+        return "300";
     } else if (language === "ja") {
-        return "20";
+        return "200";
     } 
 }
 

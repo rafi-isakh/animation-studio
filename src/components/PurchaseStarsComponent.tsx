@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useStripeContext } from "@/contexts/StripeContext";
 import StripeComponent from "@/components/StripeComponent";
 
-export default function PurchaseStarsComponent() {
+export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (value: string) => void }) {
     const starsOptions = [100, 300, 500, 1000]
     const starsEventOptions = [150, 350, 550, 1100]
     const discount_factors = [0.95, 0.9, 0.85, 0.8]
@@ -79,6 +79,7 @@ export default function PurchaseStarsComponent() {
                 });
                 const data = await addTransactionResponse.json();
                 alert("결제 성공");
+                setTabValue("2");
             } else {
                 alert(`결제 실패: ${error_msg}`);
             }

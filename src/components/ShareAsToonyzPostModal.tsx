@@ -19,6 +19,7 @@ import { X, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -185,18 +186,31 @@ export default function ShareAsToonyzPostModal({
                 <DialogHeader>
                     <DialogTitle>Share as Toonyz Post</DialogTitle>
                     <DialogDescription>
-                        <Image
-                            src={`data:image/png;base64,${image}`}
-                            alt={`Generated image ${index + 1}`}
-                            width={200}
-                            height={200}
-                            className="object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
-                        />
-                        <div
-                            className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
-                        >
-                            {displayQuote}
-                        </div>
+                        {image && (<>
+                            <Image
+                                src={`data:image/png;base64,${image}`}
+                                alt={`Generated image ${index + 1}`}
+                                width={200}
+                                height={200}
+                                className="object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
+                            />
+                            <div
+                                className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
+                            >
+                                {displayQuote}
+                            </div>
+                        </>)
+                        }
+                        {videoFileName && (
+                            <>
+                            <video
+                                src={getVideoUrl(videoFileName)}
+                                // alt={`Generated video ${index + 1}`}
+                                width={200}
+                                height={200}
+                                />
+                            </>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="flex flex-col">
@@ -272,6 +286,6 @@ export default function ShareAsToonyzPostModal({
                     <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog >
+        </Dialog>
     )
 }

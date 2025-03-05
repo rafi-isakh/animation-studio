@@ -32,7 +32,6 @@ import {
     ChevronRight,
     Sparkles,
     X,
-    Circle,
     BookOpen,
 } from 'lucide-react';
 import { Slider } from '@/components/shadcnUI/Slider';
@@ -188,7 +187,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, 
     return (
         <>
             <div className="z-[999] fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl rounded-full border shadow-lg bg-background/90 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 select-none">
-                <Menubar className="flex justify-between border-none rounded-full px-3 py-1.5 select-none">
+                <Menubar className="flex justify-between border-none rounded-full px-3 py-1.5 select-none shadow-none">
                     <MenubarMenu>
 
                         <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
@@ -199,8 +198,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, 
                         </Link>
 
                     </MenubarMenu>
-
-
                     {/* middle post button */}
                     <div className="flex items-center gap-1">
                         <MenubarMenu>
@@ -240,9 +237,9 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, 
                                             <X size={18} />
                                         </button>
                                         <div className="flex w-full">
-                                            {/* ... existing code ... */}
+    
                                             {truncateText(selectedText, 100)}
-                                            {/* {context} */}
+
                                         </div>
                                     </div>
                                 </MenubarItem>

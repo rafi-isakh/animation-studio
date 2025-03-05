@@ -8,6 +8,7 @@ import {
     DialogClose,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -28,6 +29,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/shadcnUI/Tooltip"
+import { ToastAction } from "@/components/shadcnUI/Toast";
 import { Input } from "@/components/shadcnUI/Input"
 import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -35,13 +37,15 @@ import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
 import { styled } from '@mui/material';
-import { X, Circle, ArrowRight, WandSparkles, Compass, Clapperboard, Image, Share2, Sparkles } from 'lucide-react';
+import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2 } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import Draggable from 'react-draggable';
 import { Webnovel, Chapter } from '@/components/Types';
+import { useToast } from "@/hooks/use-toast";
+import WatermarkedImage from "@/utils/watermark";
 
 type Position = {
     x: number;
@@ -50,6 +54,7 @@ type Position = {
     height: number;
     window?: () => Window;
 };
+
 interface FloatingMenuNavItem {
     icon: React.ReactNode;
     label: string;
@@ -57,7 +62,6 @@ interface FloatingMenuNavItem {
     color: string;
     type: 'normal' | 'blob' | 'lottie';
 }
-
 
 const MenuContainer = styled('div')`
   .lucide {
@@ -71,13 +75,47 @@ const MenuContainer = styled('div')`
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
     // { icon: <LottieLoader animationData={animationData} className='object-cover' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black', isLottie: true },
     // { icon: <Sparkles size={30} />, label: 'Explore', href: '#', color: 'bg-black/10 dark:bg-black  hover:bg-blue-500/10', type: 'normal' },
-    { icon: <BlobButton text={<Sparkles size={30} />} />, label: 'ImageStudio', href: '#', color: '', type: 'blob' },
-    { icon: <Image size={30} />, label: 'VideoStudio', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10', type: 'normal' },
+    { icon: <BlobButton text={<Sparkles size={30} />} />, label: 'AI', href: '#', color: '', type: 'blob' },
+    { icon: <Image size={30} />, label: 'ImageStudio', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10', type: 'normal' },
     { icon: <Share2 size={30} />, label: 'Share', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10', type: 'normal' },
     { icon: <X size={30} />, label: 'Close', href: '#', color: 'bg-gray-200/20 dark:bg-black text-red-500 dark:text-red-500 hover:bg-red-500/10', type: 'normal' },
 ];
 
-const FloatingMenuNav = ({ handleOpenModal, handleClose }: { handleOpenModal: () => void, handleClose?: () => void }) => {
+const FloatingMenuNav = ({
+    handleOpenModal,
+    handleClose,
+    setShowShareDialog,
+    showImageStudioDialog,
+    setShowImageStudioDialog,
+    context,
+    prompt,
+    savedPrompt,
+    setSavedPrompt,
+    generatePictures,
+    handlePicturesGenerated
+}: {
+    handleOpenModal: () => void,
+    handleClose?: () => void,
+    setShowShareDialog: (showShareDialog: boolean) => void,
+    showImageStudioDialog: boolean,
+    setShowImageStudioDialog: (showImageStudioDialog: boolean) => void,
+    context: string,
+    prompt: string,
+    savedPrompt: string,
+    setSavedPrompt: (savedPrompt: string) => void,
+    generatePictures: () => Promise<void>,
+    handlePicturesGenerated: (newPictures: string[]) => void
+}) => {
+
+    // const [savedPrompt, setSavedPrompt] = useState<string>(initialPrompt);
+
+    // useEffect(() => {
+    //     if (initialPrompt) {
+    //         setSavedPrompt(initialPrompt);
+    //     }
+    // }, [initialPrompt]);
+
+
     return (
         <TooltipProvider delayDuration={0}>
             <MenuContainer>
@@ -112,6 +150,16 @@ const FloatingMenuNav = ({ handleOpenModal, handleClose }: { handleOpenModal: ()
                                                             e.preventDefault();
                                                             handleClose?.();
                                                         }
+                                                        if (item.label === 'ImageStudio') {
+                                                            e.preventDefault();
+                                                            console.log("image")
+                                                            generatePictures();
+                                                        }
+                                                        if (item.label === 'Share') {
+                                                            e.preventDefault();
+                                                            console.log("share")
+                                                            setShowShareDialog(true)
+                                                        }
                                                     }}
                                                 >
                                                     {item.icon}
@@ -143,6 +191,7 @@ const FloatingMenu: React.FC<{
     chapter: Chapter,
     selectedText: string;
     setSelectedText: (text: string) => void;
+
 }> = ({ children, window: windowFn, webnovel_id, chapter_id, context, webnovel, chapter, selectedText, setSelectedText }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
@@ -153,15 +202,19 @@ const FloatingMenu: React.FC<{
     const [openDialog, setOpenDialog] = useState(false);
     const isDesktop = useMediaQuery("(min-width: 768px)")
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
-    const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
-    const [showError, setShowError] = useState(false);
-    const [prompt, setPrompt] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState(0);
     const [pictures, setPictures] = useState([]);
     const drawerRef = useRef<HTMLDivElement>(null);
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
     const nodeRef = useRef<HTMLDivElement>(null);
+    const [showShareDialog, setShowShareDialog] = useState(false);
+    const [showImageStudioDialog, setShowImageStudioDialog] = useState(false);
+    const [savedPrompt, setSavedPrompt] = useState<string>(selectedText || "");
+    const { toast } = useToast();
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -185,10 +238,6 @@ const FloatingMenu: React.FC<{
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
-
-                // timeoutRef.current = setTimeout(() => {
-                //     handleClose();
-                // }, 5000);
             }
         }
 
@@ -252,27 +301,146 @@ const FloatingMenu: React.FC<{
         if (!initialDialogPositionSet && nodeRef.current) {
             const viewportWidth = windowFn?.()?.innerWidth || document.documentElement.clientWidth;
             const viewportHeight = windowFn?.()?.innerHeight || document.documentElement.clientHeight;
-            // Code is cut off here
-        }
-    }, [initialDialogPositionSet]);
-    // Update your useEffect for initial positioning
-    useEffect(() => {
-        if (!initialDialogPositionSet && nodeRef.current) {
-            const viewportWidth = windowFn?.()?.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = windowFn?.()?.innerHeight || document.documentElement.clientHeight;
 
             setDialogPosition({
-                x: viewportWidth - 450, // Position it near the right edge
+                x: viewportWidth - 1000, // Position it near the right edge
                 y: viewportHeight / 4,   // Position it a quarter down from the top
             });
             setInitialDialogPositionSet(true);
         }
     }, [initialDialogPositionSet, windowFn]);
 
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            // Check if Clipboard API is available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+                toast({
+                    variant: "success",
+                    title: "Link copied to clipboard!",
+                    description: "You can now paste it anywhere you want.",
+                })
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed"; // Prevent scrolling to bottom of page
+                textArea.style.left = "-9999px"; // Hide the textarea
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand("copy");
+                    toast({
+                        variant: "destructive",
+                        title: "Failed to copy",
+                        description: "Please try selecting and copying the text manually.",
+                    })
+                } catch (err) {
+                    console.error("Fallback: Unable to copy", err);
+                    toast({
+                        variant: "destructive",
+                        title: "Failed to copy",
+                        description: "Please try selecting and copying the text manually.",
+                    })
+                }
+                document.body.removeChild(textArea);
+            }
+        } catch (err) {
+            console.error("Failed to copy text: ", err);
+            toast({
+                variant: "destructive",
+                title: "Failed to copy",
+                description: "Please try selecting and copying the text manually.",
+            })
+        }
+    };
+
+    // image generating
+    const generatePictures = async () => {
+        if (!savedPrompt) {
+            toast({
+                title: "Error",
+                description: "Please provide a prompt",
+                variant: "destructive"
+            })
+            setError('Please provide a prompt');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        setProgress(0);
+
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (5 * Math.random());
+                return newProgress > 95 ? 95 : newProgress;
+            });
+        }, 300);
+
+        try {
+            const response = await fetch(`/api/generate_pictures`, {
+                method: 'POST',
+                body: JSON.stringify({ text: savedPrompt, n: 4, context: context })
+            })
+
+            if (!response.ok) {
+                switch (response.status) {
+                    case 401:
+                        toast({
+                            title: "Error",
+                            description: "Please login to generate pictures",
+                            variant: "destructive",
+                            action: <ToastAction altText="Try again">Try again</ToastAction>,
+                            altText: "Try again"
+                        })
+                        throw new Error('Please login to generate pictures');
+                    case 429:
+                        toast({
+                            title: "Error",
+                            description: "Too many requests. Please try again later.",
+                            variant: "destructive"
+                        })
+                        throw new Error('Too many requests. Please try again later.');
+                    default:
+                        toast({
+                            title: "Error",
+                            description: "Error: Failed to generate pictures",
+                            variant: "destructive"
+                        })
+                        throw new Error('Failed to generate pictures');
+                }
+            }
+
+            const data = await response.json();
+
+            if (!data.images || !Array.isArray(data.images)) {
+                toast({
+                    title: "Error",
+                    description: "Invalid response format from server",
+                    variant: "destructive"
+                })
+                throw new Error('Invalid response format from server');
+            }
+            setPictures(data.images);
+            handlePicturesGenerated(data.images);
+            setProgress(100);
+            clearInterval(progressInterval);
+        } catch (err) {
+            clearInterval(progressInterval);
+            setProgress(0);
+            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (isDesktop) {
         return (
             <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
-                <div className='relative' ref={containerRef} >
+                <div className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-2' ref={containerRef} >
                     {selection && position && (
                         <div
                             className="absolute z-10 w-30"
@@ -281,18 +449,20 @@ const FloatingMenu: React.FC<{
                                 left: `${position.x - 1}px`,
                             }}
                         >
-                            <style jsx global>{`
-                            ::selection {
-                                @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
-                                @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
-                                text-decoration: underline;
-                                text-decoration-color: #DE2B74;
-                                text-decoration-thickness: 2px;
-                                text-decoration-style: solid;
-                            }                            
-                        `}</style>
                             <DialogTrigger asChild>
-                                <FloatingMenuNav handleOpenModal={handleOpenModal} handleClose={handleClose} />
+                                <FloatingMenuNav
+                                    handleOpenModal={handleOpenModal}
+                                    handleClose={handleClose}
+                                    setShowShareDialog={setShowShareDialog}
+                                    showImageStudioDialog={showImageStudioDialog}
+                                    setShowImageStudioDialog={setShowImageStudioDialog}
+                                    context={truncateText(context, 197)}
+                                    prompt={truncateText(selectedText, 197)}
+                                    savedPrompt={savedPrompt}
+                                    setSavedPrompt={setSavedPrompt}
+                                    generatePictures={generatePictures}
+                                    handlePicturesGenerated={handlePicturesGenerated}
+                                />
                             </DialogTrigger>
                         </div>
                     )}
@@ -309,33 +479,39 @@ const FloatingMenu: React.FC<{
                         <DialogContent
                             ref={nodeRef}
                             forceMount
-                            className="sm:max-w-[425px] h-screen select-none fixed top-10 right-0 p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
+                            className="sm:max-w-[425px] max-h-[90vh] select-none fixed top-10 right-0 p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
                             onClick={(e) => e.stopPropagation()}
                             showCloseButton={false}
                         >
-                            <DialogHeader className='drag-handle cursor-move  px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                                <DialogTitle className='absolute top-0 left-0 '>
-                                    <div className='flex flex-row gap-1 items-start justify-start p-2'>
-                                        <DialogClose
-                                            className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center p-0 border border-transparent'
+                            <DialogHeader className='drag-handle px-2 py-[1.1rem] '>
+                                <div className="flex items-center justify-between p-4 border-b">
+                                    <div className="flex items-center gap-2">
+                                        {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
+                                        <DialogTitle>
+                                            <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
+                                        </DialogTitle>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                                            <MoreVertical className="h-5 w-5" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 cursor-move" >
+                                            <Maximize2 className="h-5 w-5" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 setOpenDialog(false);
                                                 e.stopPropagation()
                                                 setSelectedText('');
                                             }}>
-                                            <X size={8} className="text-red-600" />
-                                        </DialogClose>
-                                        <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                            <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                        </DialogClose>
-                                        <DialogClose disabled className='rounded-full bg-gray-200  dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                            <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                        </DialogClose>
+
+                                            <X className="h-5 w-5" />
+                                        </Button>
                                     </div>
-                                </DialogTitle>
+                                </div>
                             </DialogHeader>
-                            <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar'>
+                            <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar '>
                                 <div className='relative w-full'>
                                     <PictureGenerator
                                         context={truncateText(context, 197)}
@@ -349,13 +525,59 @@ const FloatingMenu: React.FC<{
                         </DialogContent>
                     </Draggable>
                 </div>
+
+
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
+                        <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                                Share the link with your friends and family.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {selectedText && <span> {truncateText(selectedText, 197)}</span>}
+
+                        <div className="flex items-center space-x-2">
+                            <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    defaultValue={`${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                    readOnly
+                                    className='select-none bg-transparent'
+                                    disabled
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    const linkText = `${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                    const text = `${truncateText(selectedText, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    copyToClipboard(text);
+                                }}
+                            >
+                                <span className="sr-only">Copy</span>
+                                <Copy />
+                            </Button>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Close
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </Dialog>
         );
     }
 
     return (
         <Drawer open={openDialog} onOpenChange={setOpenDialog}>
-            <div className='relative' ref={containerRef} >
+            <div className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-2' ref={containerRef} >
                 {selection && position && (
                     <div
                         className="absolute z-10 w-30"
@@ -364,18 +586,20 @@ const FloatingMenu: React.FC<{
                             left: `${position.x - 30}px`,
                         }}
                     >
-                        <style jsx global>{`
-                            ::selection {
-                             @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
-                             @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
-                            text-decoration: underline;
-                            text-decoration-color: #DE2B74;
-                            text-decoration-thickness: 2px;
-                            text-decoration-style: solid;
-                           }
-                           `}</style>
                         <DrawerTrigger asChild>
-                            <FloatingMenuNav handleOpenModal={handleOpenModal} handleClose={handleClose} />
+                            <FloatingMenuNav
+                                handleOpenModal={handleOpenModal}
+                                handleClose={handleClose}
+                                setShowShareDialog={setShowShareDialog}
+                                showImageStudioDialog={showImageStudioDialog}
+                                setShowImageStudioDialog={setShowImageStudioDialog}
+                                context={context}
+                                prompt={selectedText}
+                                savedPrompt={selectedText}
+                                setSavedPrompt={setSelectedText}
+                                generatePictures={async () => {}}
+                                handlePicturesGenerated={handlePicturesGenerated}
+                            />
                         </DrawerTrigger>
                     </div>
                 )}
@@ -414,6 +638,54 @@ const FloatingMenu: React.FC<{
                         </ScrollArea>
                     </DrawerFooter>
                 </DrawerContent>
+
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
+                        <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                                Share the link with your friends and family.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {selectedText && <span> {truncateText(selectedText, 197)}</span>}
+
+                        <div className="flex items-center space-x-2">
+                            <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    defaultValue={`${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                    readOnly
+                                    className='select-none bg-transparent'
+                                    disabled
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    const linkText = `${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                    const text = `${truncateText(selectedText, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    copyToClipboard(text);
+                                }}
+                                type="button"
+                                size="sm"
+                                className="px-3"
+                            >
+                                <span className="sr-only">Copy</span>
+                                <Copy />
+                            </Button>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Close
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </Drawer >
     )

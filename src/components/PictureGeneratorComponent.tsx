@@ -34,7 +34,6 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [showAlert, setShowAlert] = useState(false);
   const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
   const [videoFileName, setVideoFileName] = useState<string | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const { toast } = useToast()
   const [progress, setProgress] = useState(0);
 
@@ -300,58 +299,40 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
       {pictures.length > 0 && (
         <div className="flex flex-col gap-4 mt-6 select-none">
-          <CardStack items={pictures.map((picture, index) => {
-            return {
-              id: index,
-              name: picture,
-              designation: picture,
-              content: (
-                <RadioGroup>
-                  <GeneratedPicture
-                    index={index}
-                    image={picture}
-                    webnovel_id={webnovel_id}
-                    chapter_id={chapter_id}
-                    quote={savedPrompt}
-                    makeSlideshow={makeSlideshow}
-                    makeVideo={makeVideo}
-                    isSelected={selectedImageIndex === index}
-                  />
-                  <div className="absolute top-4 left-2 z-[500]">
-                    <RadioGroupItem
-                      value={index.toString()}
-                      id={`img-select-${index}`}
-                      onClick={() => setSelectedImageIndex(selectedImageIndex === index ? null : index)}
-                      className="relative h-5 w-5 border-2 border-white appearance-none 
-                            data-[state=checked]:border-[#DE2B74] focus:outline-none focus:ring-0 focus:ring-offset-0
-                            after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 
-                            after:h-3 after:w-3 after:rounded-full after:bg-transparent z-[200]
-                            data-[state=checked]:after:bg-[#DE2B74]"
-                    />
-                  </div>
-                </RadioGroup>
+          <div className="grid grid-cols-2 gap-1 ">
+            {pictures.map((picture, index) => {
+              return (
+                <GeneratedPicture
+                  key={index}
+                  index={index}
+                  image={picture}
+                  webnovel_id={webnovel_id}
+                  chapter_id={chapter_id}
+                  quote={savedPrompt}
+                  makeSlideshow={makeSlideshow}
+                  makeVideo={makeVideo}
+                />
               )
             }
-          })}
-          />
-          {(pictures.length > 0 && selectedImageIndex !== null) && (
-            <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+            )}
+          </div>
 
+          {pictures.length > 0 && (
+            <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
               <Button
                 variant="outline"
-                onClick={makeVideo} 
+                onClick={makeVideo}
                 className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                 Make Video
                 <ArrowRight className='w-4 h-4' />
               </Button>
-
-              <Link 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                makeSlideshow();
-               }} 
-              className='relative'>
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  makeSlideshow();
+                }}
+                className='relative'>
                 <CardStyleButton
                   title="Slideshow"
                   subtitle="Watch Ads to make a slideshow"

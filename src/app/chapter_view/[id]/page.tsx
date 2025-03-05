@@ -32,6 +32,14 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
 
+type Position = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    window?: () => Window;
+};
+
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -55,7 +63,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         fontFamily = 'default',
         lineHeight,
         margin,
-        scrollType ,
+        scrollType,
         page,
         maxPage,
     } = useReader();
@@ -79,7 +87,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
+    // const [selection, setSelection] = useState<string>()
+    // const [position, setPosition] = useState<Position>()
     const containerRef = useRef<HTMLDivElement>(null);
+
 
     const handleViewSettings = () => {
         setShowIsViewerModal(true);
@@ -209,228 +220,228 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, []);
 
 
-    const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
-        { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
-        const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
-        const nextChapter = currentIndex > -1 && currentIndex < webnovel.chapters.length - 1
-            ? webnovel.chapters[currentIndex + 1]
-            : null;
+        const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
+            { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
+            const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
+            const nextChapter = currentIndex > -1 && currentIndex < webnovel.chapters.length - 1
+                ? webnovel.chapters[currentIndex + 1]
+                : null;
 
-        if (!nextChapter) {
-            return null;
-        }
+            if (!nextChapter) {
+                return null;
+            }
 
-        return (
-            <Link href={`/chapter_view/${nextChapter.id}`}>
-                <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3">
-                    <div className="flex flex-row items-center space-x-4">
-                        <Image
-                            src={getImageUrl(webnovel.cover_art)}
-                            alt={webnovel.title}
-                            width={50} height={50}
-                            className="rounded-lg"
-                        />
-                        <div className="flex flex-col">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
-                                {phrase(dictionary, "nextChapterView", language)}
-                            </p>
-                            <OtherTranslateComponent
-                                content={nextChapter.title}
-                                elementId={nextChapter.id.toString()}
-                                elementType='chapter'
-                                elementSubtype="title"
-                                classParams="text-md mt-1 mb-1"
+            return (
+                <Link href={`/chapter_view/${nextChapter.id}`}>
+                    <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3">
+                        <div className="flex flex-row items-center space-x-4">
+                            <Image
+                                src={getImageUrl(webnovel.cover_art)}
+                                alt={webnovel.title}
+                                width={50} height={50}
+                                className="rounded-lg"
+                            />
+                            <div className="flex flex-col">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
+                                    {phrase(dictionary, "nextChapterView", language)}
+                                </p>
+                                <OtherTranslateComponent
+                                    content={nextChapter.title}
+                                    elementId={nextChapter.id.toString()}
+                                    elementType='chapter'
+                                    elementSubtype="title"
+                                    classParams="text-md mt-1 mb-1"
+                                />
+                            </div>
+                        </div>
+                        <ChevronRight size={18} className="" />
+                    </div>
+                </Link>
+            );
+        };
+
+
+        if (webnovel && chapter) {
+            return (
+                <div className="">
+                    <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
+                    {/* Top bar: */}
+                    <header
+                        className={`
+                        w-full transition-transform duration-300 ease-in py-2
+                        ${isSticky
+                                ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none'
+                                : 'relative bg-white dark:bg-black'}
+                    `}
+                    >
+                        <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
+                            <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
+                                <div className="flex flex-row space-x-1 items-center">
+                                    <ChevronLeft size={18} />
+                                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                                </div>
+                            </Button>
+
+                            <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none ">
+                                <MenubarMenu>
+                                    <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent">
+                                        <List className="h-5 w-5" />
+                                        <span className="sr-only">Table of Contents</span>
+                                    </MenubarTrigger>
+                                    <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
+                                        <MenubarItem className="font-semibold" inset>
+                                            Table of Contents
+                                        </MenubarItem>
+                                        <MenubarSeparator />
+                                        {webnovel.chapters.map((chapter, index) => (
+                                            <MenubarItem
+                                                key={chapter.id}
+                                                onClick={() => router.push(`/chapter_view/${chapter.id}`)}
+                                                className={`${chapter.id === Number(id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
+                                                disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                                            >
+                                                <p className="text-sm">{index + 1}.</p>
+                                                <MenubarShortcut>
+                                                    {chapter.title}
+                                                    {!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) && (
+                                                        <span className="ml-2">🔒</span>
+                                                    )}
+                                                </MenubarShortcut>
+                                            </MenubarItem>
+                                        ))}
+                                    </MenubarContent>
+                                </MenubarMenu>
+                                {/* viewer settings */}
+                                <MenubarMenu>
+                                    <Button
+                                        variant="ghost"
+                                        className="rounded-full p-2"
+                                        size="icon"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleViewSettings();
+                                        }}>
+                                        {/* <div className='hover:text-[#DB2777] relative'> */}
+                                        <Settings className="h-5 w-5" />
+                                        {/* <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
+                                            <Languages size={10} />
+                                        </span> */}
+                                        {/* </div> */}
+                                    </Button>
+                                </MenubarMenu>
+                                {/* like button */}
+                                <MenubarMenu>
+                                    <div className="text-center flex flex-row items-center md:pr-0 pr-[15px]">
+                                        {likeToggle ? (
+                                            <Link href='#' className='p-0'
+                                                style={{
+                                                    margin: '0px !important',
+                                                    padding: '0px !important'
+                                                }}
+                                                onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
+                                                {/* heart icon */}
+                                                <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                                </svg>
+                                            </Link>
+                                        ) : (
+                                            <Link href='#' className='p-0'
+                                                style={{
+                                                    margin: '0px !important',
+                                                    padding: '0px !important'
+                                                }}
+                                                onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
+                                                <Heart className="h-5 w-5" />
+                                            </Link>
+                                        )
+                                        }
+                                        <p className='ml-1 self-center text-sm'>{upvotes}</p>
+                                    </div>
+                                </MenubarMenu>
+                                {/* Delete button */}
+                                {isAuthor && <Button
+                                    color='gray'
+                                    variant='ghost'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDeleteModal(true);
+                                        setDeleteChapterId(chapter.id);
+                                        //    handleChapterDelete(Number(id))
+                                    }}>
+                                    <Trash2 size={18} className="mr-2 text-gray-500" />
+                                    <span className="text-sm self-center">
+                                        {phrase(dictionary, "delete", language)}
+                                    </span>
+                                </Button>
+                                }
+                            </Menubar>
+                        </div>
+                        {/* view settings modal */}
+                        <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
+                    </header>
+
+                    <div className={`${theme} relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
+                        <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
+                            {/* Title and content */}
+                            <div className='flex flex-col space-y-4' >
+                                <div id='translate-div'>
+                                    <div className='flex justify-between px-4'>
+                                        <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
+                                    </div>
+                                    <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
+                                        <FloatingMenu  selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                            <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
+                                        </FloatingMenu>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Viewer footer */}
+                            <div className="relative" ref={containerRef}>
+                                <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText}  page={page} maxPage={maxPage} />
+                            </div>
+                        </div>
+                        <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
+                        {/* delete confirmation modal */}
+                        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>{phrase(dictionary, "deleteChapterConfirm", language)}</DialogTitle>
+                                </DialogHeader>
+                                <div className='flex flex-col space-y-4 items-center justify-cente'>
+                                    <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
+                                    <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                        {/* delete confirmation modal */}
+                        <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
+                    </div>
+                    {/* hr divider */}
+                    <div className='flex flex-col items-center justify-center w-full mb-4'>
+                        <hr className='w-screen border-t border-gray-300 my-4' />
+                        <div className='bg-white dark:bg-black px-4 absolute'>
+                            <Image
+                                src="/images/N_logo.svg"
+                                alt="logo"
+                                width={20}
+                                height={20}
+                                quality={100}
+                                className="w-[20px] h-[20px] self-center md:mt-0 mt-1"
                             />
                         </div>
                     </div>
-                    <ChevronRight size={18} className="" />
+                    <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                    <div className="md:h-[10vh] h-[10vh]"></div>
                 </div>
-            </Link>
-        );
-    };
-
-
-    if (webnovel && chapter) {
-        return (
-            <div className="">
-                <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
-                {/* Top bar: */}
-                <header
-                    className={`
-                        w-full transition-transform duration-300 ease-in py-2
-                        ${isSticky
-                            ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none'
-                            : 'relative bg-white dark:bg-black'}
-                    `}
-                >
-                    <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
-                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
-                            <div className="flex flex-row space-x-1 items-center">
-                                <ChevronLeft size={18} />
-                                <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
-                            </div>
-                        </Button>
-
-                        <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none ">
-                            <MenubarMenu>
-                                <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent">
-                                    <List className="h-5 w-5" />
-                                    <span className="sr-only">Table of Contents</span>
-                                </MenubarTrigger>
-                                <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
-                                    <MenubarItem className="font-semibold" inset>
-                                        Table of Contents
-                                    </MenubarItem>
-                                    <MenubarSeparator />
-                                    {webnovel.chapters.map((chapter, index) => (
-                                        <MenubarItem
-                                            key={chapter.id}
-                                            onClick={() => router.push(`/chapter_view/${chapter.id}`)}
-                                            className={`${chapter.id === Number(id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
-                                            disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
-                                        >
-                                            <p className="text-sm">{index + 1}.</p>
-                                            <MenubarShortcut>
-                                                {chapter.title}
-                                                {!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) && (
-                                                    <span className="ml-2">🔒</span>
-                                                )}
-                                            </MenubarShortcut>
-                                        </MenubarItem>
-                                    ))}
-                                </MenubarContent>
-                            </MenubarMenu>
-                            {/* viewer settings */}
-                            <MenubarMenu>
-                                <Button
-                                    variant="ghost"
-                                    className="rounded-full p-2"
-                                    size="icon"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleViewSettings();
-                                    }}>
-                                    {/* <div className='hover:text-[#DB2777] relative'> */}
-                                    <Settings className="h-5 w-5" />
-                                    {/* <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
-                                            <Languages size={10} />
-                                        </span> */}
-                                    {/* </div> */}
-                                </Button>
-                            </MenubarMenu>
-                            {/* like button */}
-                            <MenubarMenu>
-                                <div className="text-center flex flex-row items-center md:pr-0 pr-[15px]">
-                                    {likeToggle ? (
-                                        <Link href='#' className='p-0'
-                                            style={{
-                                                margin: '0px !important',
-                                                padding: '0px !important'
-                                            }}
-                                            onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            {/* heart icon */}
-                                            <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
-                                            </svg>
-                                        </Link>
-                                    ) : (
-                                        <Link href='#' className='p-0'
-                                            style={{
-                                                margin: '0px !important',
-                                                padding: '0px !important'
-                                            }}
-                                            onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            <Heart className="h-5 w-5" />
-                                        </Link>
-                                    )
-                                    }
-                                    <p className='ml-1 self-center text-sm'>{upvotes}</p>
-                                </div>
-                            </MenubarMenu>
-                            {/* Delete button */}
-                            {isAuthor && <Button
-                                color='gray'
-                                variant='ghost'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowDeleteModal(true);
-                                    setDeleteChapterId(chapter.id);
-                                    //    handleChapterDelete(Number(id))
-                                }}>
-                                <Trash2 size={18} className="mr-2 text-gray-500" />
-                                <span className="text-sm self-center">
-                                    {phrase(dictionary, "delete", language)}
-                                </span>
-                            </Button>
-                            }
-                        </Menubar>
-                    </div>
-                    {/* view settings modal */}
-                    <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
-                </header>
-
-                <div className={`${theme} relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
-                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
-                        {/* Title and content */}
-                        <div className='flex flex-col space-y-4' >
-                            <div id='translate-div'>
-                                <div className='flex justify-between px-4'>
-                                    <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
-                                </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
-                                        <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                    </FloatingMenu>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Viewer footer */}
-                        <div className="relative" ref={containerRef}>
-                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText} page={page} maxPage={maxPage} />
-                        </div>
-                    </div>
-                    <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
-                    {/* delete confirmation modal */}
-                    <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>{phrase(dictionary, "deleteChapterConfirm", language)}</DialogTitle>
-                            </DialogHeader>
-                            <div className='flex flex-col space-y-4 items-center justify-cente'>
-                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                    {/* delete confirmation modal */}
-                    <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
+            )
+        }
+        else {
+            return (
+                <div className="loader-container">
+                    <LottieLoader width="w-40" animationData={animationData} />
                 </div>
-                {/* hr divider */}
-                <div className='flex flex-col items-center justify-center w-full mb-4'>
-                    <hr className='w-screen border-t border-gray-300 my-4' />
-                    <div className='bg-white dark:bg-black px-4 absolute'>
-                        <Image
-                            src="/images/N_logo.svg"
-                            alt="logo"
-                            width={20}
-                            height={20}
-                            quality={100}
-                            className="w-[20px] h-[20px] self-center md:mt-0 mt-1"
-                        />
-                    </div>
-                </div>
-                <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
-                <div className="md:h-[10vh] h-[10vh]"></div>
-            </div>
-        )
+            )
+        }
     }
-    else {
-        return (
-            <div className="loader-container">
-                <LottieLoader width="w-40" animationData={animationData} />
-            </div>
-        )
-    }
-}
 
 export default ChapterView;

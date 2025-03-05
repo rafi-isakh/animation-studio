@@ -51,11 +51,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [selectedText, setSelectedText] = useState('');
     const [isSticky, setIsSticky] = useState(false);
     const {
-        fontSize,
+        fontSize = 17,
         fontFamily = 'default',
         lineHeight,
         margin,
-        scrollType,
+        scrollType ,
         page,
         maxPage,
     } = useReader();
@@ -369,7 +369,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
                 </header>
 
-                <div className={`${theme} relative`} style={{ ...readerStyle, }} >
+                <div className={`${theme} relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
                     <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >

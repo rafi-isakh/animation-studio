@@ -34,15 +34,6 @@ import {
     X,
     Circle,
     BookOpen,
-    List,
-    Bookmark,
-    Settings,
-    Search,
-    Sun,
-    Moon,
-    Minus,
-    Plus,
-    BookMarked,
 } from 'lucide-react';
 import { Slider } from '@/components/shadcnUI/Slider';
 import { Switch } from '@/components/shadcnUI/Switch';
@@ -51,6 +42,8 @@ import BlobButton from '@/components/UI/BlobButton';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
+import { truncateText } from '@/utils/truncateText';
+
 
 
 const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, maxPage }:
@@ -194,9 +187,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, 
 
     return (
         <>
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl rounded-full border shadow-lg bg-background/90 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300">
-
-                <Menubar className="flex justify-between border-none rounded-full px-3 py-1.5">
+            <div className="z-[999] fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl rounded-full border shadow-lg bg-background/90 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 select-none">
+                <Menubar className="flex justify-between border-none rounded-full px-3 py-1.5 select-none">
                     <MenubarMenu>
 
                         <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
@@ -230,9 +222,9 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, 
                             </MenubarTrigger>
                             <MenubarContent
                                 hideWhenDetached={false}
-                                sideOffset={5}
+                                sideOffset={15}
                                 onInteractOutside={(e) => handleOpenChange(e as unknown as React.MouseEvent<HTMLDivElement>)}
-                                className={`border-none absolute bottom-0 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
+                                className={`border-none absolute bottom-14 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
                                         bg-transparent dark:bg-transparent hover:bg-transparent
                                         transition-all duration-300 ease-in-out shadow-none
                                         ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
@@ -249,7 +241,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, 
                                         </button>
                                         <div className="flex w-full">
                                             {/* ... existing code ... */}
-                                            {selectedText}
+                                            {truncateText(selectedText, 100)}
                                             {/* {context} */}
                                         </div>
                                     </div>

@@ -128,7 +128,7 @@ export default function PurchaseStarsComponent() {
                         {starsEventOptions.map((stars, index) => (
                             <Button
                                 key={index}
-                                onClick={() => onClickPaymentStripe(stars, discount_factors[index])}
+                                onClick={() => onClickPaymentInicis(stars, discount_factors[index])}
                                 variant="text"
                                 sx={{
                                     borderBottom: 1,
@@ -178,7 +178,7 @@ export default function PurchaseStarsComponent() {
                         {starsOptions.map((stars, index) => (
                             <Button
                                 key={index}
-                                onClick={() => onClickPaymentStripe(stars, 1)}
+                                onClick={() => onClickPaymentInicis(stars, 1)}
                                 variant="text"
                                 sx={{
                                     borderBottom: 1,

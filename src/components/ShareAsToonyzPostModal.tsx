@@ -103,6 +103,7 @@ export default function ShareAsToonyzPostModal({
                 }
             }
             else if (imageOrVideo === 'video') {
+                console.log(videoFileName)
                 if (!videoFileName) {
                     console.error('Video file name is undefined');
                     toast({

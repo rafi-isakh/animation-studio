@@ -218,7 +218,7 @@ const FloatingMenu: React.FC<{
     // image generating
     const generatePictures = async () => {
         // todo: get rid of this
-        const initialPrompt = "";
+        const initialPrompt = selectedTextRef.current;
         setSavedPrompt(initialPrompt);
         if (!initialPrompt) {
             toast({
@@ -244,7 +244,7 @@ const FloatingMenu: React.FC<{
         try {
             const response = await fetch(`/api/generate_pictures`, {
                 method: 'POST',
-                body: JSON.stringify({ text: savedPrompt, n: 4, context: context })
+                body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
             })
 
             if (!response.ok) {

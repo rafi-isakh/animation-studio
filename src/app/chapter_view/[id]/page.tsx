@@ -48,7 +48,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
-    const [selectedText, setSelectedText] = useState('');
     const [isSticky, setIsSticky] = useState(false);
     const {
         fontSize,
@@ -84,10 +83,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const handleViewSettings = () => {
         setShowIsViewerModal(true);
     }
-
-    const setSelectedTextCallback = useCallback((text: string) => {
-        setSelectedText(text);
-    }, []);
 
     useEffect(() => {
         const fetchData = async () => {

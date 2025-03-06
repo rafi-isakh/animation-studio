@@ -101,31 +101,32 @@ export default function CommentsDropdownButton({
                         </AlertDialog>
                     }
 
-                {comment.user.id.toString() === id &&
-                    <MenuItem
-                        key="delete"
-                        onClick={() => {
-                            handleDeleteComment(comment.id.toString());
-                            handleClose();
-                        }}
-                        className='flex items-center gap-2 dark:text-white text-black
+                    {comment.user.id.toString() === id &&
+                        <MenuItem
+                            key="delete"
+                            onClick={() => {
+                                handleDeleteComment(comment.id.toString());
+                                handleClose();
+                            }}
+                            className='flex items-center gap-2 dark:text-white text-black
                                  dark:group-hover/user-dropdown:text-black'>
-                        <Trash size={20} className="dark:text-white text-black" />
-                        {phrase(dictionary, "delete", language)}
-                    </MenuItem>
-                }
+                            <Trash size={20} className="dark:text-white text-black" />
+                            {phrase(dictionary, "delete", language)}
+                        </MenuItem>
+                    }
 
-                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                    <MenuItem
-                        key="report"
-                        className="flex items-center gap-2 dark:text-white
+                    <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                        <MenuItem
+                            key="report"
+                            className="flex items-center gap-2 dark:text-white
                                  text-black dark:group-hover/user-dropdown:text-black"
-                    >
-                        <Flag size={20} className="dark:text-white text-black" />
-                        {phrase(dictionary, "report", language)}
-                    </MenuItem>
-                </Tooltip>
-            </Menu>
-        </div>
+                        >
+                            <Flag size={20} className="dark:text-white text-black" />
+                            {phrase(dictionary, "report", language)}
+                        </MenuItem>
+                    </Tooltip>
+                </div>
+            </PopoverContent>
+        </Popover>
     );
 }

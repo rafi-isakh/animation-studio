@@ -7,13 +7,19 @@ import { getImageUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
-
+import { useTheme } from '@/contexts/providers';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/shadcnUI/HoverCard"
+
 
 const breakpointColumnsObj = {
     default: 5,
@@ -57,6 +63,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
+    const { theme } = useTheme();
 
 
     useEffect(() => {
@@ -152,7 +159,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 {post.image ? (
                     <WatermarkedImage
                         imageUrl={getImageUrl(post.image)}
-                        watermarkUrl="/toonyz_logo_pink.svg"
+                        // watermarkUrl={theme === "dark" ? "/toonyz_logo_black.svg" : "/toonyz_logo_pink.svg"}
+                        watermarkUrl="/toonyz_logo_black.svg"
                         webnovelTitle={webnovel?.title}
                         chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
                         watermarkOpacity={0.2}
@@ -237,14 +245,43 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
 
                     {webnovel && (
-                        <div className="flex flex-row gap-2">
-                            <p className="text-sm text-gray-500">Novel: {webnovel.title} &#62;</p>
-                            {post.chapter_id && (
-                                <p className="text-sm text-gray-500">
-                                    Chapter {webnovel.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
-                                </p>
-                            )}
-                        </div>
+                        <HoverCard>
+                            <div className="flex flex-row gap-2">
+                                <HoverCardTrigger asChild>
+                                    <Button variant="ghost">
+                                        <p className="text-sm text-gray-500">Novel: {webnovel.title} &#62;</p>
+                                        {post.chapter_id && (
+                                            <p className="text-sm text-gray-500">
+                                                Chapter {webnovel.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                                            </p>
+                                        )}
+                                    </Button>
+                                </HoverCardTrigger>
+                            </div>
+                            <HoverCardContent className="w-80">
+                                <div className="flex justify-between space-x-4">
+                                    <Image src={getImageUrl(webnovel.cover_art)} alt={webnovel.title} width={100} height={100} />
+                                    {/* <Avatar>
+                                        <AvatarImage src="https://github.com/vercel.png" />
+                                        <AvatarFallback>VC</AvatarFallback>
+                                    </Avatar> */}
+                                    <div className="space-y-1">
+                                        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+                                            <h4 className="text-sm font-semibold">{webnovel.title}</h4>
+                                        </Link>
+                                        <p className="text-sm">
+                                            {webnovel.description}
+                                        </p>
+                                        <div className="flex items-center pt-2">
+                                            {/* <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}
+                                            <span className="text-xs text-muted-foreground">
+                                                Joined December 2021
+                                            </span> */}
+                                        </div>
+                                    </div>
+                                </div>
+                            </HoverCardContent>
+                        </HoverCard>
                     )}
 
                     {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">

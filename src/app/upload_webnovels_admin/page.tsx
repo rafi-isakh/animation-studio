@@ -123,7 +123,7 @@ export default function UploadWebnovelsAdmin() {
         <TextField label="Publisher English Name" type="text" value={publisherEnglishName} onChange={(e) => setPublisherEnglishName(e.target.value)} />
         <TextField label="Publisher Korean Name" type="text" value={publisherKoreanName} onChange={(e) => setPublisherKoreanName(e.target.value)} />
         <TextField label="Publisher Email" type="text" value={publisherEmail} onChange={(e) => setPublisherEmail(e.target.value)} />
-        <TextField label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(e.target.value)} />
+        <TextField label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(Number(e.target.value))} />
         <Button color='gray' variant='contained' onClick={handleAddChapter}>Add Chapter</Button>
     </div>
 }

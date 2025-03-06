@@ -17,7 +17,7 @@ interface WebnovelsContextState {
 const WebnovelsContext = createContext<WebnovelsContextState | undefined>(undefined);
 // Create a provider component
 export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); // Replace 'any' with a more specific type if available
+    const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); 
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
 
     const fetchWebnovelsMetadata = async () => {

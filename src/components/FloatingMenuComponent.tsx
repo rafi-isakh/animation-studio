@@ -98,6 +98,7 @@ const FloatingMenu: React.FC<{
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const promotionBannerRef = useRef(<PromotionBannerComponent />);
+    const [authFailed, setAuthFailed] = useState(false);
 
     useEffect(() => {
 
@@ -258,6 +259,7 @@ const FloatingMenu: React.FC<{
             if (!response.ok) {
                 switch (response.status) {
                     case 401:
+                        setAuthFailed(true); // Set auth failed state
                         toast({
                             title: "Error",
                             description: "Please login to generate pictures",
@@ -348,10 +350,10 @@ const FloatingMenu: React.FC<{
 
 
     useEffect(() => {
-        if (openDialog && !isLoading && pictures.length === 0) {
+        if (openDialog && !isLoading && pictures.length === 0 && !authFailed) {
             generatePictures();
         }
-    }, [openDialog, isLoading, pictures, generatePictures]);
+    }, [openDialog, isLoading, pictures, generatePictures, authFailed]);
 
 
 
@@ -473,7 +475,7 @@ const FloatingMenu: React.FC<{
                             {/* Ad banner */}
                             <div className='w-full flex-shrink-0'>
                                 <div className='relative top-0 left-0 w-full'>
-                                {promotionBannerRef.current}
+                                    {promotionBannerRef.current}
                                 </div>
                             </div>
                             <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>

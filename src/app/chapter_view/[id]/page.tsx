@@ -31,14 +31,6 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
 
-type Position = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    window?: () => Window;
-};
-
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -66,7 +58,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         page,
         maxPage,
     } = useReader();
-
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const webnovelViewRef = useRef<HTMLDivElement>(null);
@@ -374,7 +365,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <div className='flex justify-between px-4'>
                                         <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                     </div>
-                                    <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
+                                    <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                         <FloatingMenu selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                             <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                         </FloatingMenu>

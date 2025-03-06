@@ -37,15 +37,23 @@ import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
 import { styled } from '@mui/material';
-import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2 } from 'lucide-react';
+import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import Draggable from 'react-draggable';
-import { Webnovel, Chapter } from '@/components/Types';
+import { Webnovel, Chapter, ImageOrVideo } from '@/components/Types';
 import { useToast } from "@/hooks/use-toast";
 import WatermarkedImage from "@/utils/watermark";
+import GeneratedPicture from '@/components/GeneratedPicture';
+import CardStyleButton from '@/components/UI/CardStyleButton';
+import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
+import dynamic from 'next/dynamic';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+import animationData from '@/assets/gradient_loader.json';
 
 type Position = {
     x: number;
@@ -53,102 +61,6 @@ type Position = {
     width: number;
     height: number;
     window?: () => Window;
-};
-
-interface FloatingMenuNavItem {
-    icon: React.ReactNode;
-    label: string;
-    href: string;
-    color: string;
-    type: 'normal' | 'blob' | 'lottie';
-}
-
-
-
-const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    { icon: <BlobButton text={<Sparkles size={30} />} />, label: 'AI', href: '#', color: '', type: 'blob' },
-    { icon: <Share2 size={30} />, label: 'Share', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10', type: 'normal' },
-    { icon: <X size={30} />, label: 'Close', href: '#', color: 'bg-gray-200/20 dark:bg-black text-red-500 dark:text-red-500 hover:bg-red-500/10', type: 'normal' },
-];
-
-const FloatingMenuNav = ({
-    handleOpenModal,
-    handleClose,
-    setShowShareDialog,
-    generatePictures,
-}: {
-    handleOpenModal: () => void,
-    handleClose?: () => void,
-    setShowShareDialog: (showShareDialog: boolean) => void,
-    generatePictures: () => Promise<void>,
-}) => {
-
-    const MenuContainer = styled('div')`
-     .lucide {
-        stroke-width: 1;
-      }
-        position: relative;
-        margin: 0 auto;
-        z-index: 50;
-     `;
-
-    return (
-        <TooltipProvider delayDuration={0}>
-            <MenuContainer>
-                <div className="relative rounded-full dark:bg-black/50 backdrop-blur-sm">
-                    <div className="flex justify-evenly">
-                        {FloatingMenuNavItems.map((item, index) => (
-                            <div key={item.label} className="flex-1 w-full group">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link
-                                            href="#"
-                                            className="!no-underline flex items-center justify-center text-center mx-auto p-1">
-                                            {item.type === 'blob' ? (
-                                                <div className="relative inline-flex group p-1 w-16 h-16"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleOpenModal();
-                                                    }}
-                                                >
-                                                    <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                                    </div>
-                                                    {item.icon}
-                                                </div>
-                                            ) : (
-                                                <span
-                                                    className={`${item.color} backdrop-blur-md flex flex-row rounded-full
-                                                            group-hover:text-[#DE2B74] text-black dark:text-white 
-                                                            ${item.type === 'normal' ? 'p-4' : ''}
-                                                            ${item.type === 'lottie' ? 'w-16 h-16 p-0 overflow-hidden' : ''}`}
-                                                    onClick={(e) => {
-                                                        if (item.label === 'Close') {
-                                                            e.preventDefault();
-                                                            handleClose?.();
-                                                        }
-                                                        if (item.label === 'Share') {
-                                                            e.preventDefault();
-                                                            console.log("share")
-                                                            setShowShareDialog(true)
-                                                        }
-                                                    }}
-                                                >
-                                                    {item.icon}
-                                                </span>
-                                            )}
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {item.label}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </MenuContainer >
-        </TooltipProvider >
-    );
 };
 
 const FloatingMenu: React.FC<{
@@ -183,7 +95,10 @@ const FloatingMenu: React.FC<{
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
     const [savedPrompt, setSavedPrompt] = useState<string>(selectedText || "");
+    const [videoFileName, setVideoFileName] = useState<string | null>(null);
+    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     useEffect(() => {
+
         const handleSelectionChange = () => {
             const activeSelection = document.getSelection()
             if (!activeSelection) return;
@@ -215,36 +130,12 @@ const FloatingMenu: React.FC<{
             }
         };
 
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target as Node) &&
-                drawerRef.current &&
-                !drawerRef.current.contains(event.target as Node) &&
-                !nodeRef.current?.contains(event.target as Node)
-            ) {
-                // Close floating menu only and clear timeout
-                setSelection(undefined);
-                setPosition(undefined);
-                setSelectedText('');
-                setShowMessage(false);
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-            }
-        };
-
         document.addEventListener('selectionchange', handleSelectionChange);
         document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('mousedown', handleClickOutside);
 
         return () => {
             document.removeEventListener('selectionchange', handleSelectionChange);
             document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('mousedown', handleClickOutside);
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
         }
     }, []);
 
@@ -326,8 +217,9 @@ const FloatingMenu: React.FC<{
 
     // image generating
     const generatePictures = async () => {
-        // setSavedPrompt(selectedText);
-        if (!savedPrompt) {
+        const initialPrompt = selectedText;
+        setSavedPrompt(initialPrompt);
+        if (!initialPrompt) {
             toast({
                 title: "Error",
                 description: "Please provide a prompt",
@@ -405,6 +297,48 @@ const FloatingMenu: React.FC<{
         }
     };
 
+    // make slideshow
+
+    const makeSlideshow = async () => {
+        try {
+            const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
+                method: 'POST',
+                body: JSON.stringify({ pictures }),
+            });
+            setIsLoading(true);
+            if (!response.ok) {
+                toast({
+                    title: "Error",
+                    description: "Failed to make slideshow",
+                    variant: "destructive"
+                })
+                throw new Error('Failed to make slideshow, please try again later');
+            }
+            const data = await response.json();
+            console.log(data);
+            setVideoFileName(data.fileName);
+            toast({
+                title: "Success",
+                variant: "success",
+                description: "Slideshow created successfully",
+            })
+            setShowShareAsPostModal(true);
+            setIsLoading(false);
+        } catch (error) {
+            console.error('Slideshow creation error:', error);
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : "An unexpected error occurred creating slideshow",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+
+
+
     if (isDesktop) {
         return (
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
@@ -415,16 +349,53 @@ const FloatingMenu: React.FC<{
                                 top: `${position.y + position.height + 30}px`,
                                 left: `${position.x - 1}px`,
                             }}>
-                            <DialogTrigger asChild>
-                                <FloatingMenuNav
-                                    handleOpenModal={handleOpenModal}
-                                    handleClose={handleClose}
-                                    setShowShareDialog={setShowShareDialog}
-                                    generatePictures={generatePictures}
-                                />
-                            </DialogTrigger>
+
+                            <ul className='flex flex-row gap-2 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
+
+                                        <DialogTrigger asChild onClick={generatePictures}>
+                                            <Button
+                                                variant="ghost"
+                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent"
+                                                disabled={isLoading}
+                                            >
+                                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                                </div>
+                                                <BlobButton text={
+                                                    <>
+                                                        {isLoading ? (
+                                                            <>
+                                                                <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Sparkles size={30} strokeWidth={1} />
+                                                            </>
+                                                        )}
+                                                    </>} />
+                                            </Button>
+                                        </DialogTrigger>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                onClick={() => setShowShareDialog(true)}
+                                                variant="ghost"
+                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                              inline-flex group w-16 h-16 
+                                             bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                            >
+                                                <Share2 size={30} strokeWidth={1} />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            Share
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </ul>
                         </div>
-                    )}
+                    )
+                    }
                     {children}
                     <Draggable
                         nodeRef={nodeRef}
@@ -438,7 +409,12 @@ const FloatingMenu: React.FC<{
                         <DialogContent
                             ref={nodeRef}
                             forceMount
-                            className="sm:max-w-[425px] max-h-[90vh] select-none fixed top-10 right-0 p-0 dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
+                            className="sm:max-w-[425px] max-h-[90vh] select-none fixed top-10 right-0 p-0  
+                            bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md
+                            rounded-lg no-scrollbar"
+                            onInteractOutside={(e) => {
+                                e.preventDefault();
+                            }}
                             onClick={(e) => e.stopPropagation()}
                             showCloseButton={false}
                         >
@@ -470,24 +446,113 @@ const FloatingMenu: React.FC<{
                                     </div>
                                 </div>
                             </DialogHeader>
-                            <ScrollArea className='drag-handle h-screen items-start flex-1 no-scrollbar '>
+                            <ScrollArea className='drag-handle h-full items-start flex-1 no-scrollbar '>
                                 <div className='relative w-full'>
-                                    <PictureGenerator
-                                        context={truncateText(context, 197)}
-                                        prompt={truncateText(selectedText, 197)}
-                                        onComplete={handlePicturesGenerated}
-                                        webnovel_id={webnovel_id}
-                                        chapter_id={chapter_id}
-                                    />
+                                    {isLoading && (
+                                        <div className="flex flex-col mt-4">
+                                            <div className="loader-container ">
+                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mt-2">
+                                                Generating images... {Math.round(progress)}%
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {pictures.length > 0 && (
+                                        <div className="flex flex-col gap-4 mt-6 select-none">
+                                            <div className="grid grid-cols-2 gap-1 ">
+                                                {pictures.map((picture, index) => {
+                                                    return (
+                                                        <GeneratedPicture
+                                                            key={index}
+                                                            index={index}
+                                                            image={picture}
+                                                            webnovel_id={webnovel_id}
+                                                            chapter_id={chapter_id}
+                                                            quote={savedPrompt}
+
+                                                        />
+                                                    )
+                                                }
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {pictures.length > 0 && (
+                                        <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+                                            <Button
+                                                variant="outline"
+                                                // onClick={makeVideo}
+                                                className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                                                Make Video
+                                                <ArrowRight className='w-4 h-4' />
+                                            </Button>
+                                            <Link
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    console.log("making slideshow clicked")
+                                                    makeSlideshow();
+                                                }}
+                                                className='relative'>
+                                                <CardStyleButton
+                                                    title="Slideshow"
+                                                    subtitle="Watch Ads to make a slideshow"
+                                                    ideaCount={pictures.length}
+                                                    images={pictures}
+                                                    gradientFrom="#DE2B74"
+                                                    gradientTo="#FF6F91"
+                                                    className='w-full'
+                                                />
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
                             </ScrollArea>
+                            {/* Footer with suggestions and input */}
+                            <DialogFooter className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg">
+                                {/* <div className="flex gap-2 overflow-x-auto pb-2">
+                                    <Button variant="outline" className="rounded-full flex items-center gap-2 whitespace-nowrap">
+                                        <Search className="h-4 w-4" />
+                                        <span>Show me my unread emails</span>
+                                    </Button>
+                                    <Button variant="outline" className="rounded-full whitespace-nowrap">
+                                        Show more suggestions
+                                    </Button>
+                                </div> */}
+
+                                <div className="relative flex flex-col gap-2">
+                                    <Input
+                                        value={selectedText && truncateText(selectedText, 100)}
+                                        onChange={(e) => setSavedPrompt(e.target.value)}
+                                        placeholder={truncateText(selectedText, 30)}
+                                        className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
+                                    />
+                                    <div className='absolute right-3 top-4 cursor-pointer'>
+                                        <Link href="#" >
+                                            <Sparkles className="h-4 w-4 text-black dark:text-black hover:text-pink-600" />
+                                        </Link>
+                                    </div>
+                                    <p className="text-xs text-gray-500 text-center">
+                                        Toonyz Post is a tool that allows you to create a slideshow from a list of images.{" "}
+                                        <Link href="#" className="underline">
+                                            Learn more
+                                        </Link>
+                                    </p>
+                                </div>
+
+
+                            </DialogFooter>
                         </DialogContent>
                     </Draggable>
 
 
-
                     <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                        <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
+                        <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+
+                            {/*     //dark:bg-[#211F21] */}
                             <DialogHeader>
                                 <DialogTitle>Share link</DialogTitle>
                                 <DialogDescription>
@@ -528,10 +593,21 @@ const FloatingMenu: React.FC<{
                                     </Button>
                                 </DialogClose>
                             </DialogFooter>
+
                         </DialogContent>
                     </Dialog>
-                </Dialog>
-            </div>
+                </Dialog >
+                <ShareAsToonyzPostModal
+                    imageOrVideo={'video' as ImageOrVideo}
+                    showShareAsPostModal={showShareAsPostModal}
+                    setShowShareAsPostModal={setShowShareAsPostModal}
+                    index={0}
+                    videoFileName={videoFileName!}
+                    webnovel_id={webnovel_id}
+                    chapter_id={chapter_id}
+                    quote={savedPrompt}
+                />
+            </div >
         );
     }
 
@@ -547,12 +623,27 @@ const FloatingMenu: React.FC<{
                         }}
                     >
                         <DrawerTrigger asChild>
-                            <FloatingMenuNav
-                                handleOpenModal={handleOpenModal}
-                                handleClose={handleClose}
-                                setShowShareDialog={setShowShareDialog}
-                                generatePictures={generatePictures}
-                            />
+                            <Button
+                                variant="ghost"
+                                className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent"
+                                onClick={generatePictures}
+                                disabled={isLoading}
+                            >
+                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                </div>
+                                <BlobButton text={
+                                    <>
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles size={30} strokeWidth={1} />
+                                            </>
+                                        )}
+                                    </>} />
+                            </Button>
                         </DrawerTrigger>
                     </div>
                 )}
@@ -562,6 +653,10 @@ const FloatingMenu: React.FC<{
                     style={{
                         backgroundColor: theme === 'light' ? 'white' : '#211F21',
                     }}
+                    // onInteractOutside={(e) => {
+                    //     e.preventDefault();
+                    // }}
+                    // onClick={(e) => e.stopPropagation()}
                 >
                     <DrawerHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
                         <DrawerTitle className='absolute top-0 left-0'>
@@ -640,6 +735,16 @@ const FloatingMenu: React.FC<{
                     </DialogContent>
                 </Dialog>
             </div>
+            <ShareAsToonyzPostModal
+                imageOrVideo={'video' as ImageOrVideo}
+                showShareAsPostModal={showShareAsPostModal}
+                setShowShareAsPostModal={setShowShareAsPostModal}
+                index={0}
+                videoFileName={videoFileName!}
+                webnovel_id={webnovel_id}
+                chapter_id={chapter_id}
+                quote={savedPrompt}
+            />
         </Drawer >
     )
 }

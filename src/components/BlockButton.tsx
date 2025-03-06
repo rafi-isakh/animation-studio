@@ -25,10 +25,9 @@ export default function BlockButton({ user, setRefreshBlockedUsers }: { user: Us
 
     return (
         <>
-            <Button color='gray' variant='outlined' onClick={() => setShowBlockModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
+            <Button color='gray' variant='outlined' onClick={() => setShowBlockModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
                 {/* report */}
                 <UserRoundX size={10} />
-                <span className='text-sm'>{phrase(dictionary, "block", language)}</span>
             </Button>
             <Modal open={showBlockModal} onClose={() => setShowBlockModal(false)}>
                 <Box sx={useModalStyle}>

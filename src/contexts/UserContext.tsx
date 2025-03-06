@@ -18,6 +18,7 @@ interface UserContextProps {
     upvotedComments: string[];
     email_hash: string;
     setUpvotedComments: (upvotedComments: string[]) => void;
+    id: string;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -39,6 +40,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [checking, setChecking] = useState<boolean>(false);
     const { isLoggedIn, loading } = useAuth();
     const [email_hash, setEmailHash] = useState<string>("");
+    const [id, setId] = useState<string>("");
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -58,6 +60,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setChecking(false);
                 setUpvotedComments(data.upvoted_comments);
                 setEmailHash(data.email_hash);
+                setId(data.id);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -78,7 +81,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             setInvokeCheckUser,
             checking,
             upvotedComments, setUpvotedComments,
-            email_hash
+            email_hash,
+            id
         }}>
             {children}
         </userContext.Provider>

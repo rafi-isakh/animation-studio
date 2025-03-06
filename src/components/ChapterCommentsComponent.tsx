@@ -10,7 +10,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
 import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
-import { createEmailHash } from '@/utils/cryptography';
 import Image from 'next/image';
 import { Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
 import moment from 'moment';
@@ -327,7 +326,6 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                     user={comment.user}
                                                     email={email}
                                                     handleDeleteComment={handleDeleteComment}
-                                                    createEmailHash={createEmailHash}
                                                 />
 
                                             </div>
@@ -413,7 +411,6 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                                     user={reply.user}
                                                                     email={email}
                                                                     handleDeleteComment={handleDeleteComment}
-                                                                    createEmailHash={createEmailHash}
                                                                 />
 
                                                             </div>

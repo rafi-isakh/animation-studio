@@ -7,8 +7,6 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
-import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
-import { createEmailHash } from '@/utils/cryptography'
 import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
@@ -25,7 +23,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.user.nickname;
-    const author_email = webnovel?.user.email_hash;
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -71,13 +68,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
         setAtLeastOneWebnovel(hasWebnovels);
     }, [webnovel, userWebnovels, deletedWebnovelId]);
 
-    const isAuthor = (): boolean => {
-        // if (!email || !author_email) return false;
-        const userEmailHash = createEmailHash(email);
-        const authorEmailHash = author_email
-        return userEmailHash === authorEmailHash;
-    };
-
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
     }
@@ -113,10 +103,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const handleAIEditor = () => {
         router.push(`/ai_editor?id=${id}`)
     }
-
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-        setTabValue(newValue);
-    };
 
     if (language === 'ja' && (id == '19' || id == '20')) {
         alert("이 웹소설은 아직 일본어로 서비스되지 않습니다.");

@@ -13,6 +13,7 @@ import { Textarea } from "flowbite-react";
 import { useModalStyle } from "@/styles/ModalStyles";
 import Image from 'next/image';
 import { useTheme } from '@/contexts/providers'
+import { useUser } from '@/contexts/UserContext';
 
 const ITEM_HEIGHT = 48;
 
@@ -20,19 +21,17 @@ export default function CommentsDropdownButton({
     comment,
     user,
     email,
-    createEmailHash,
     handleDeleteComment,
 }: {
     comment: Comment,
     user: User,
     email: string,
-    createEmailHash: (email: string) => string,
     handleDeleteComment: (commentId: string) => void,
 }) {
     const { language, dictionary } = useLanguage();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
-
+    const { id } = useUser();
     const { theme } = useTheme();
     const [showReportModal, setShowReportModal] = useState(false);
 
@@ -75,7 +74,7 @@ export default function CommentsDropdownButton({
                 }}
             >
 
-                {comment.user.email_hash === createEmailHash(email) &&
+                {comment.user.id.toString() === id &&
                     <MenuItem
                         key="delete"
                         onClick={() => {

@@ -16,6 +16,10 @@ export default function UploadWebnovelsAdmin() {
     const [epubObj, setEpubObj] = useState<any>(null);
     const [webnovelId, setWebnovelId] = useState<string | null>(null);
     const [chapterTitle, setChapterTitle] = useState<string>("");
+    const [publisherKoreanName, setPublisherKoreanName] = useState<string>("");
+    const [publisherEnglishName, setPublisherEnglishName] = useState<string>("");
+    const [publisherEmail, setPublisherEmail] = useState<string>("");
+    const [numberOfFreeChapters, setNumberOfFreeChapters] = useState<number>(0);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -30,6 +34,7 @@ export default function UploadWebnovelsAdmin() {
             const split = file.name.split(" ")
             const _chapterTitle = split[split.length - 1].split(".")[0]
             setChapterTitle(_chapterTitle)
+            setPublisherKoreanName(epubObj.info?.publisher ?? "")
             console.log(epubObj);
         }
     }
@@ -46,6 +51,7 @@ export default function UploadWebnovelsAdmin() {
         const text = parseHtmlToText(htmlString!);
         const title = epubObj.info?.title;
         const author = epubObj.info?.author;
+        const publisherKoreanName = epubObj.info?.publisher;
         const formData = new FormData();
         formData.append('title', title!);
         formData.append('description', description);
@@ -54,6 +60,10 @@ export default function UploadWebnovelsAdmin() {
         formData.append('coverArt', picture!);
         formData.append('email', email);
         formData.append('author', author!);
+        formData.append('publisherEnglishName', publisherEnglishName);
+        formData.append('publisherKoreanName', publisherKoreanName);
+        formData.append('publisherEmail', publisherEmail);
+        formData.append('numberOfFreeChapters', numberOfFreeChapters.toString());
         const response = await fetch('/api/add_webnovel_admin', {
             method: 'POST',
             body: formData,
@@ -110,6 +120,10 @@ export default function UploadWebnovelsAdmin() {
         <Button color='gray' variant='contained' onClick={handleAddWebnovel}>Add Webnovel</Button>
         <div className="py-4"></div>
         <TextField label="Chapter Title" type="text" value={chapterTitle} onChange={(e) => setChapterTitle(e.target.value)} />
+        <TextField label="Publisher English Name" type="text" value={publisherEnglishName} onChange={(e) => setPublisherEnglishName(e.target.value)} />
+        <TextField label="Publisher Korean Name" type="text" value={publisherKoreanName} onChange={(e) => setPublisherKoreanName(e.target.value)} />
+        <TextField label="Publisher Email" type="text" value={publisherEmail} onChange={(e) => setPublisherEmail(e.target.value)} />
+        <TextField label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(e.target.value)} />
         <Button color='gray' variant='contained' onClick={handleAddChapter}>Add Chapter</Button>
     </div>
 }

@@ -98,6 +98,7 @@ const FloatingMenu: React.FC<{
     const [authFailed, setAuthFailed] = useState(false);
     const [testText, setTestText] = useState<string>("")
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
+    const shareButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
 
@@ -144,8 +145,9 @@ const FloatingMenu: React.FC<{
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
             const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
+            const isClickShareButton = shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node);
 
-            if (isClickOutsideFloatingButton) {
+            if (isClickOutsideFloatingButton && isClickShareButton) {
                 handleCloseFloatingButton();
             }
         };
@@ -183,42 +185,43 @@ const FloatingMenu: React.FC<{
         }
     }, [initialDialogPositionSet]);
 
-
     const copyToClipboard = async (text: string) => {
         try {
-            // Check if Clipboard API is available
+            // Use the modern Clipboard API if available
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 await navigator.clipboard.writeText(text);
                 toast({
                     variant: "success",
                     title: "Link copied to clipboard!",
                     description: "You can now paste it anywhere you want.",
-                })
+                });
             } else {
-                // Fallback for older browsers
+                // Fallback for browsers (like Safari) that may not support Clipboard API
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
-                textArea.style.position = "fixed"; // Prevent scrolling to bottom of page
-                textArea.style.left = "-9999px"; // Hide the textarea
+                textArea.setAttribute("readonly", ""); // Prevent iOS keyboard from appearing
+                textArea.style.position = "absolute";
+                textArea.style.left = "-9999px"; // Move element off-screen
                 document.body.appendChild(textArea);
-                textArea.focus();
                 textArea.select();
-                try {
-                    document.execCommand("copy");
-                    toast({
-                        variant: "destructive",
-                        title: "Failed to copy",
-                        description: "Please try selecting and copying the text manually.",
-                    })
-                } catch (err) {
-                    console.error("Fallback: Unable to copy", err);
-                    toast({
-                        variant: "destructive",
-                        title: "Failed to copy",
-                        description: "Please try selecting and copying the text manually.",
-                    })
-                }
+                
+                // Execute the copy command
+                const successful = document.execCommand("copy");
                 document.body.removeChild(textArea);
+                
+                if (successful) {
+                    toast({
+                        variant: "success",
+                        title: "Link copied to clipboard!",
+                        description: "You can now paste it anywhere you want.",
+                    });
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: "Failed to copy",
+                        description: "Please try selecting and copying the text manually.",
+                    });
+                }
             }
         } catch (err) {
             console.error("Failed to copy text: ", err);
@@ -226,9 +229,10 @@ const FloatingMenu: React.FC<{
                 variant: "destructive",
                 title: "Failed to copy",
                 description: "Please try selecting and copying the text manually.",
-            })
+            });
         }
     };
+    
 
     // image generating
     const generatePictures = async () => {
@@ -370,7 +374,6 @@ const FloatingMenu: React.FC<{
                                 top: `${position.y + position.height + 30}px`,
                                 left: `${position.x - 1}px`,
                             }}>
-
                             <ul className='flex flex-row gap-1 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip>
@@ -400,10 +403,15 @@ const FloatingMenu: React.FC<{
                                         </Button>
                                         <TooltipTrigger asChild>
                                             <Button
-                                                onClick={() => setShowShareDialog(true)}
+                                                ref={shareButtonRef}
+                                                onClick={() => {
+                                                    console.log('share dialog clicked')
+                                                    setShowShareDialog(true)
+                                                }
+                                                }
                                                 variant="ghost"
                                                 className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
-                                                            inline-flex group w-10 h-10 
+                                                            inline-flex group w-10 h-10 text-black dark:text-white
                                                           bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
                                             >
                                                 <Share2 size={46} strokeWidth={1} />
@@ -541,16 +549,6 @@ const FloatingMenu: React.FC<{
                             </ScrollArea>
                             {/* Footer with suggestions and input */}
                             <DialogFooter className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
-                                {/* <div className="flex gap-2 overflow-x-auto pb-2">
-                                    <Button variant="outline" className="rounded-full flex items-center gap-2 whitespace-nowrap">
-                                        <Search className="h-4 w-4" />
-                                        <span>Show me my unread emails</span>
-                                    </Button>
-                                    <Button variant="outline" className="rounded-full whitespace-nowrap">
-                                        Show more suggestions
-                                    </Button>
-                                </div> */}
-
                                 <div className="relative flex flex-col gap-2">
                                     <Input
                                         value={savedPrompt}
@@ -570,17 +568,12 @@ const FloatingMenu: React.FC<{
                                         </Link>
                                     </p>
                                 </div>
-
-
                             </DialogFooter>
                         </DialogContent>
                     </Draggable>
-
-
+                    {/* share dialog */}
                     <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                         <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
-
-                            {/*     //dark:bg-[#211F21] */}
                             <DialogHeader>
                                 <DialogTitle>Share link</DialogTitle>
                                 <DialogDescription>
@@ -588,7 +581,7 @@ const FloatingMenu: React.FC<{
                                 </DialogDescription>
                             </DialogHeader>
 
-                            {selection && <span> {truncateText(selection, 197)}</span>}
+                            {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
 
                             <div className="flex items-center space-x-2">
                                 <div className="grid flex-1 gap-2">
@@ -597,7 +590,7 @@ const FloatingMenu: React.FC<{
                                     </Label>
                                     <Input
                                         id="link"
-                                        defaultValue={`${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                        defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
                                         readOnly
                                         className='select-none bg-transparent'
                                         disabled
@@ -605,7 +598,7 @@ const FloatingMenu: React.FC<{
                                 </div>
                                 <Button
                                     onClick={() => {
-                                        const linkText = `${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                        const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
                                         const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
                                         copyToClipboard(text);
                                     }}
@@ -650,29 +643,52 @@ const FloatingMenu: React.FC<{
                             left: `${position.x - 30}px`,
                         }}
                     >
-                        <DrawerTrigger asChild onClick={generatePictures}>
-                            <Button
-                                variant="ghost"
-                                className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
 
-                                disabled={isLoading}
-                            >
-                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                </div>
-                                <BlobButton text={
-                                    <>
-                                        {isLoading ? (
+                        <ul className='flex flex-row gap-1 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <Button
+                                        variant="ghost"
+                                        className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                        onClick={generatePictures}
+                                        disabled={isLoading}
+                                    >
+                                        <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                        </div>
+                                        <BlobButton text={
                                             <>
-                                                <Loader2 className="h-20 w-20 animate-spin text-pink-600" />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles className="w-20 h-20" strokeWidth={1} />
-                                            </>
-                                        )}
-                                    </>} />
-                            </Button>
-                        </DrawerTrigger>
+                                                {isLoading ? (
+                                                    <>
+                                                        <Loader2 className="h-20 w-20 animate-spin text-pink-600" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Sparkles className="w-20 h-20" strokeWidth={1} />
+                                                    </>
+                                                )}
+                                            </>} />
+                                    </Button>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            ref={shareButtonRef}
+                                            onClick={() => {
+                                                console.log('share dialog clicked')
+                                                setShowShareDialog(true)
+                                            }}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                                            inline-flex group w-10 h-10 text-black dark:text-white
+                                                          bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                        >
+                                            <Share2 size={46} strokeWidth={1} />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Share
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </ul>
+
                     </div>
                 )}
                 {children}
@@ -692,13 +708,7 @@ const FloatingMenu: React.FC<{
                     </DrawerHeader>
                     <DrawerFooter className='w-full h-full'>
                         <ScrollArea className='h-full no-scrollbar'>
-                            {/* <PictureGenerator
-                                context={truncateText(context, 200)}
-                                prompt={truncateText(selection, 200)}
-                                onComplete={handlePicturesGenerated}
-                                webnovel_id={webnovel_id}
-                                chapter_id={chapter_id}
-                            /> */}
+
                             <div className='relative w-full'>
                                 {isLoading && (
                                     <div className="flex flex-row">
@@ -783,7 +793,7 @@ const FloatingMenu: React.FC<{
                                 </Label>
                                 <Input
                                     id="link"
-                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
                                     readOnly
                                     className='select-none bg-transparent'
                                     disabled
@@ -791,7 +801,7 @@ const FloatingMenu: React.FC<{
                             </div>
                             <Button
                                 onClick={() => {
-                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
                                     const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
                                     copyToClipboard(text);
                                 }}

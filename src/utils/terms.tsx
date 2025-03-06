@@ -1009,7 +1009,6 @@ export const terms_purchase_stars_ko = `
    - 환불 신청은 dami@stelland.io로 이메일을 보내 진행할 수 있습니다.
    - 이용약관에 따라 500원 또는 잔액의 10% 중 큰 금액을 환급 수수료로 공제합니다.
    - 잔액이 500원 이하인 경우 환불이 불가능합니다.
-   - 환불 조건을 충족한 경우, 영업일 기준 5일 이내에 지정된 계좌로 환불 금액이 입금됩니다.
    - 환불 신청 후 포인트를 사용하면 환불이 불가능할 수 있습니다.
    - 환불은 원래 결제한 수단으로만 가능합니다.
 
@@ -1047,7 +1046,6 @@ Refund Procedure and Method
 - Refund requests can be made by sending an email to dami@stelland.io.
 - As per the terms of service, a refund fee of 500 won or 10% of the balance, whichever is greater, will be deducted.
 - Refunds are not possible if the balance is 500 won or less.
-- If refund conditions are met, the refund amount will be deposited into the designated account within 5 business days.
 - Refunds may not be possible if points are used after submitting a refund request.
 - Refunds are only possible through the original payment method.
 

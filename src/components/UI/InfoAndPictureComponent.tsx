@@ -57,8 +57,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const author_email = content?.user?.email_hash;
-    const { email } = useUser();
+    const { id, email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -93,10 +92,7 @@ export default function InfoAndPictureComponent({
 
 
     const isAuthor = (): boolean => {
-        // if (!email || !author_email) return false;
-        const userEmailHash = createEmailHash(email);
-        const authorEmailHash = author_email
-        return userEmailHash === authorEmailHash;
+        return id === content.user.id.toString()
     };
 
     const isJongmin = () => {

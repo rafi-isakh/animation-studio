@@ -7,12 +7,14 @@ import { Transaction, StarUse } from "@/app/stars/page";
 import CustomSkeleton from "@/components/UI/CustomSkeleton";
 import { CircularProgress, Skeleton } from "@mui/material";
 import { useTheme } from "@/contexts/providers";
+import { useUser } from "@/contexts/UserContext";
 
 const StarsTransactionComponent = () => {
     const { dictionary, language } = useLanguage();
     const [totalHistory, setTotalHistory] = useState<(Transaction | StarUse)[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { theme } = useTheme();
+    const { stars } = useUser();
     const skeletonCount = 3;
     useEffect(() => {
         const fetchTotalHistory = async () => {
@@ -55,8 +57,11 @@ const StarsTransactionComponent = () => {
                     {/* 충전 내역 */}
                     {phrase(dictionary, "starsTransaction", language)}
                 </h1>
-
-
+                <div className="flex flex-col mx-auto justify-center items-center w-full gap-2 pt-5">
+                    {/* top padding 5 */}
+                    {language === 'ko' && <p className="text-sm text-gray-500">현재 보유중인 투니즈 별 <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>}
+                    {language === 'en' && <p className="text-sm text-gray-500">You have <span className="font-bold text-[#DE2B74]">{stars}</span> stars </p>}
+                </div>
                 <ul className="flex flex-col w-full gap-2 p-5 text-base text-gray-500">
                     {isLoading ? (
                         // Skeleton loader while loading
@@ -83,7 +88,7 @@ const StarsTransactionComponent = () => {
                             <li key={'transaction-' + index}
                                 className="flex flex-col w-full gap-1 py-5 border-b border-gray-200">
                                 {'price' in element ?
-                                    <div className="flex flex-row items-center gap-2">
+                                    <div className="flex flex-row items-center gap-1">
                                         <Plus className="text-gray-500 w-4 h-4" />
                                         <p className="text-gray-500 font-bold">{element.stars}</p>
                                         <p className="text-gray-500 font-bold">{phrase(dictionary, "star", language)}</p>

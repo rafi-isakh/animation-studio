@@ -23,6 +23,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/shadcnUI/AlertDialog"
 import { useTheme } from '@/contexts/providers'
+import { useUser } from '@/contexts/UserContext';
+import { createEmailHash } from '@/utils/cryptography'
 
 const ITEM_HEIGHT = 48;
 
@@ -30,17 +32,17 @@ export default function CommentsDropdownButton({
     comment,
     user,
     email,
-    createEmailHash,
     handleDeleteComment,
 }: {
     comment: Comment,
     user: User,
     email: string,
-    createEmailHash: (email: string) => string,
     handleDeleteComment: (commentId: string) => void,
 }) {
     const { language, dictionary } = useLanguage();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const { id } = useUser();
     const { theme } = useTheme();
     const [showReportModal, setShowReportModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -99,18 +101,31 @@ export default function CommentsDropdownButton({
                         </AlertDialog>
                     }
 
-                    <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                        <Button
-                            key="report"
-                            variant='ghost'
-                            className="flex items-center gap-2 dark:text-white text-black "
-                        >
-                            <Flag size={20} className="dark:text-white text-black" />
-                            {phrase(dictionary, "report", language)}
-                        </Button>
-                    </Tooltip>
-                </div>
-            </PopoverContent>
-        </Popover>
+                {comment.user.id.toString() === id &&
+                    <MenuItem
+                        key="delete"
+                        onClick={() => {
+                            handleDeleteComment(comment.id.toString());
+                            handleClose();
+                        }}
+                        className='flex items-center gap-2 dark:text-white text-black
+                                 dark:group-hover/user-dropdown:text-black'>
+                        <Trash size={20} className="dark:text-white text-black" />
+                        {phrase(dictionary, "delete", language)}
+                    </MenuItem>
+                }
+
+                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                    <MenuItem
+                        key="report"
+                        className="flex items-center gap-2 dark:text-white
+                                 text-black dark:group-hover/user-dropdown:text-black"
+                    >
+                        <Flag size={20} className="dark:text-white text-black" />
+                        {phrase(dictionary, "report", language)}
+                    </MenuItem>
+                </Tooltip>
+            </Menu>
+        </div>
     );
 }

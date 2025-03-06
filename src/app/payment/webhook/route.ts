@@ -6,7 +6,6 @@ import crypto from "crypto";
 export async function POST(req: NextRequest, res: NextResponse) {
     const { imp_uid, merchant_uid } = await req.json();
     if (!process.env.PORTONE_API_KEY || !process.env.PORTONE_API_SECRET) {
-        console.error("Missing Portone API credentials");
         return NextResponse.json(
             { message: "Server configuration error" },
             { status: 500 }
@@ -26,8 +25,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
             throw new Error(`tokenResponse: ${await tokenResponse.json()}`);
         const { response } = await tokenResponse.json();
         const { access_token } = response;
-        console.log("Got access token:", access_token.slice(0, 10) + "...");
-        console.log("Fetching payment details for:", imp_uid);
 
         // get payment corresponding to the imp_uid
         const paymentResponse = await fetch(
@@ -35,9 +32,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
             { headers: { Authorization: access_token } },
         );
         if (!paymentResponse.ok)
-            throw new Error('paymentResponse is not ok');
+            throw new Error(`paymentResponse is not ok: imp_uid: ${imp_uid}, merchant_uid: ${merchant_uid}`);
         const payment = await paymentResponse.json();
-        console.log(payment);
         const starsMatch = payment.response.name?.match(/\d+/);
         const stars = starsMatch ? parseInt(starsMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
         if (stars === -1) {

@@ -1,6 +1,5 @@
 "use client"
 import React, { createContext, Dispatch, SetStateAction, useState, useContext, useEffect } from 'react';
-import { useTheme } from '@/contexts/providers';
 
 const ReaderContext = createContext<{
     fontSize: number;
@@ -11,8 +10,6 @@ const ReaderContext = createContext<{
     setTextColor: (color: string) => void;
     lineHeight: number;
     setLineHeight: (height: number) => void;
-    backgroundColor: string;
-    setBackgroundColor: (color: string) => void;
     margin: number;
     setMargin: (margin: number) => void;
     padding: number;
@@ -25,7 +22,6 @@ const ReaderContext = createContext<{
     setPage: Dispatch<SetStateAction<number>>
     maxPage: number;
     setMaxPage: Dispatch<SetStateAction<number>>
-    setBgColor: (color: string) => void;
 } | undefined>(undefined);
 
 export function ReaderProvider({ children }: { children: React.ReactNode }) {
@@ -33,7 +29,6 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   const [fontFamily, setFontFamily] = useState('default');
   const [textColor, setTextColor] = useState('#000000');
   const [lineHeight, setLineHeight] = useState(1.8);
-  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [margin, setMargin] = useState(10);
   const [padding, setPadding] = useState(10);
   const [scrollType, setScrollType] = useState<"vertical" | "horizontal">('vertical');
@@ -44,12 +39,11 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedSettings = localStorage.getItem('readerSettings');
     if (savedSettings) {
-      const { fontSize, fontFamily, textColor, lineHeight, backgroundColor, margin, padding } = JSON.parse(savedSettings);
+      const { fontSize, fontFamily, textColor, lineHeight, margin, padding } = JSON.parse(savedSettings);
       setFontSize(fontSize);
       setFontFamily(fontFamily);
       setTextColor(textColor);
       setLineHeight(lineHeight);
-      setBackgroundColor(backgroundColor);
       setMargin(margin);
       setPadding(padding);
     }
@@ -61,18 +55,10 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
       fontFamily,
       textColor,
       lineHeight,
-      backgroundColor,
       margin,
       padding
     }));
-  }, [fontSize, fontFamily, textColor, lineHeight, backgroundColor, margin, padding]);
-
-
-   function setBgColor(color: string) {
-  
-      setBackgroundColor(color)
- 
-  } 
+  }, [fontSize, fontFamily, textColor, lineHeight, margin, padding]);
 
   const value = {
     fontSize,
@@ -83,8 +69,6 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     setTextColor,
     lineHeight,
     setLineHeight,
-    backgroundColor,
-    setBackgroundColor,
     margin,
     setMargin,
     padding,
@@ -95,7 +79,6 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
     setPage,
     containerWidth,
     setContainerWidth,
-    setBgColor,
     maxPage,
     setMaxPage,
   };

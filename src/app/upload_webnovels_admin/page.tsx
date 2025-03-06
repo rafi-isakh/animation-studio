@@ -97,7 +97,7 @@ export default function UploadWebnovelsAdmin() {
         }
     }
 
-    return <div className="flex flex-col space-y-4 items-center justify-center h-screen w-128">
+    return <div className="flex flex-col space-y-4 items-center justify-center w-128">
         <TextField label="Email" type="text" value={email} onChange={(e) => setEmail(e.target.value)} />
         <TextField 
             label="Description" 

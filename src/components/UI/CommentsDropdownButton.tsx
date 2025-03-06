@@ -23,6 +23,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/shadcnUI/AlertDialog"
 import { useTheme } from '@/contexts/providers'
+import { useUser } from '@/contexts/UserContext';
 
 const ITEM_HEIGHT = 48;
 
@@ -30,17 +31,17 @@ export default function CommentsDropdownButton({
     comment,
     user,
     email,
-    createEmailHash,
     handleDeleteComment,
 }: {
     comment: Comment,
     user: User,
     email: string,
-    createEmailHash: (email: string) => string,
     handleDeleteComment: (commentId: string) => void,
 }) {
     const { language, dictionary } = useLanguage();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const { id } = useUser();
     const { theme } = useTheme();
     const [showReportModal, setShowReportModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -65,49 +66,29 @@ export default function CommentsDropdownButton({
             </PopoverTrigger>
             <PopoverContent className="w-24">
                 <div className='flex flex-col gap-2'>
-                    {comment.user.email_hash === createEmailHash(email) &&
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    variant='ghost'
-                                    key="delete"
-                                    onClick={() => {
-                                        setShowDeleteModal(true);
-                                    }}
-                                    className='flex items-center gap-2 dark:text-white text-black'>
-                                    <Trash size={20} className="dark:text-white text-black" />
-                                    {phrase(dictionary, "delete", language)}
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                        Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={() => {
-                                            handleDeleteComment(comment.id.toString());
-                                            setShowDeleteModal(false);
-                                        }}>
-                                        Delete
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                    {comment.user.id.toString() === id &&
+                        <MenuItem
+                            key="delete"
+                            onClick={() => {
+                                handleDeleteComment(comment.id.toString());
+                                handleClose();
+                            }}
+                            className='flex items-center gap-2 dark:text-white text-black
+                                 dark:group-hover/user-dropdown:text-black'>
+                            <Trash size={20} className="dark:text-white text-black" />
+                            {phrase(dictionary, "delete", language)}
+                        </MenuItem>
                     }
 
                     <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                        <Button
+                        <MenuItem
                             key="report"
-                            variant='ghost'
-                            className="flex items-center gap-2 dark:text-white text-black "
+                            className="flex items-center gap-2 dark:text-white
+                                 text-black dark:group-hover/user-dropdown:text-black"
                         >
                             <Flag size={20} className="dark:text-white text-black" />
                             {phrase(dictionary, "report", language)}
-                        </Button>
+                        </MenuItem>
                     </Tooltip>
                 </div>
             </PopoverContent>

@@ -45,8 +45,8 @@ import { truncateText } from '@/utils/truncateText';
 
 
 
-const ViewerFooter = ({ webnovel, chapter, selectedText, page, maxPage }:
-    { webnovel: Webnovel, chapter: Chapter, selectedText: string, page: number, maxPage: number }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
+    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -237,9 +237,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedText, page, maxPage }:
                                             <X size={18} />
                                         </button>
                                         <div className="flex w-full">
-    
-                                            {truncateText(selectedText, 100)}
-
+                                            {truncateText(selectedTextRef.current, 100)}
                                         </div>
                                     </div>
                                 </MenubarItem>

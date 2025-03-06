@@ -71,8 +71,8 @@ const FloatingMenu: React.FC<{
     context: string,
     webnovel: Webnovel,
     chapter: Chapter,
-    setSelectedText: (text: string) => void;
-}> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, setSelectedText }) => {
+    selectedTextRef: React.MutableRefObject<string>;
+}> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
     const [selection, setSelection] = useState<string>("")
     const [position, setPosition] = useState<Position | undefined>();
     const [showMessage, setShowMessage] = useState(false);
@@ -107,7 +107,6 @@ const FloatingMenu: React.FC<{
             if (!text) return;
             const rect = activeSelection.getRangeAt(0).getBoundingClientRect()
             const containerRect = containerRef.current?.getBoundingClientRect();
-
             if (containerRect) {
                 setPosition({
                     x: rect.left - containerRect.left + (rect.width / 2) - (100 / 2),
@@ -116,9 +115,7 @@ const FloatingMenu: React.FC<{
                     height: rect.height,
                 })
                 setSelection(text)
-                setTimeout(() => {
-                    setSelectedText(text)
-                }, 1000)
+                selectedTextRef.current = text
 
                 //setTestText(text)
                 if (timeoutRef.current) {

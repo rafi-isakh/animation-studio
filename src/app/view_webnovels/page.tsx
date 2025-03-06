@@ -26,22 +26,22 @@ const ViewWebnovels = () => {
     const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
-    const { getWebnovelById, getWebnovelsMetadataByEmailHash, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
+    const { getWebnovelById, getWebnovelsMetadataByUserId, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
     const searchParams = useSearchParams();
     const searchParamsObject = Object.fromEntries(searchParams.entries());
 
     useEffect(() => {
         const setData = async () => {
             const webnovel = await getWebnovelById(searchParams.get("id")!);
-            let author_email_hash = "";
+            let author_id = "";
             if (webnovel) {
                 setWebnovel(webnovel);
                 setLoading(false);
-                author_email_hash = webnovel.user.email_hash;
+                author_id = webnovel.user.id.toString();
                 fetchChaptersLikelyNeededWebnovel(webnovel);
             }
-            if (author_email_hash) {
-                const userWebnovels = await getWebnovelsMetadataByEmailHash(author_email_hash);
+            if (author_id) {
+                const userWebnovels = await getWebnovelsMetadataByUserId(author_id);
                 setUserWebnovels(userWebnovels);
                 setLoadingUsersOtherWebnovels(false);
             }

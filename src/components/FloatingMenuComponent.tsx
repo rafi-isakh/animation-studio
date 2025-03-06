@@ -49,6 +49,7 @@ import WatermarkedImage from "@/utils/watermark";
 import GeneratedPicture from '@/components/GeneratedPicture';
 import CardStyleButton from '@/components/UI/CardStyleButton';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
+import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
@@ -87,7 +88,6 @@ const FloatingMenu: React.FC<{
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
     const [pictures, setPictures] = useState([]);
-    const drawerRef = useRef<HTMLDivElement>(null);
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
@@ -97,6 +97,8 @@ const FloatingMenu: React.FC<{
     const [savedPrompt, setSavedPrompt] = useState<string>(selectedText || "");
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
+    const promotionBannerRef = useRef(<PromotionBannerComponent />);
+
     useEffect(() => {
 
         const handleSelectionChange = () => {
@@ -154,14 +156,21 @@ const FloatingMenu: React.FC<{
         setOpenDialog(true);
     };
 
+    // Add a useEffect to update savedPrompt when selectedText changes
+    useEffect(() => {
+        if (selectedText) {
+            setSavedPrompt(selectedText);
+        }
+    }, [selectedText]);
 
     useEffect(() => {
         if (!initialDialogPositionSet && nodeRef.current) {
             const viewportWidth = windowFn?.()?.innerWidth || document.documentElement.clientWidth;
             const viewportHeight = windowFn?.()?.innerHeight || document.documentElement.clientHeight;
+            const dialogWidth = 425; // sm:max-w-[425px] from the DialogContent className
 
             setDialogPosition({
-                x: viewportWidth - 1000, // Position it near the right edge
+                x: viewportWidth - dialogWidth - 20, // Position it 20px from the right edge
                 y: viewportHeight / 4,   // Position it a quarter down from the top
             });
             setInitialDialogPositionSet(true);
@@ -338,6 +347,14 @@ const FloatingMenu: React.FC<{
 
 
 
+    useEffect(() => {
+        if (openDialog && !isLoading && pictures.length === 0) {
+            generatePictures();
+        }
+    }, [openDialog, isLoading, pictures, generatePictures]);
+
+
+
 
     if (isDesktop) {
         return (
@@ -359,6 +376,13 @@ const FloatingMenu: React.FC<{
                                                 variant="ghost"
                                                 className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent"
                                                 disabled={isLoading}
+                                            // onInteractOutside={(e) => {
+
+                                            // }}
+                                            // onClick={(e) => {
+                                            //     e.stopPropagation();
+                                            //     e.preventDefault();
+                                            // }}
                                             >
                                                 <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
                                                 </div>
@@ -409,16 +433,16 @@ const FloatingMenu: React.FC<{
                         <DialogContent
                             ref={nodeRef}
                             forceMount
-                            className="sm:max-w-[425px] max-h-[90vh] select-none fixed top-10 right-0 p-0  
+                            className="sm:max-w-[425px] max-h-[95vh] h-[95vh] select-none fixed top-10 right-10 p-0  
                             bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md
-                            rounded-lg no-scrollbar"
+                            rounded-lg no-scrollbar flex flex-col gap-0"
                             onInteractOutside={(e) => {
                                 e.preventDefault();
                             }}
                             onClick={(e) => e.stopPropagation()}
                             showCloseButton={false}
                         >
-                            <DialogHeader className='drag-handle px-2 py-[1.1rem] '>
+                            <DialogHeader className='drag-handle px-2 flex-shrink-0'>
                                 <div className="flex items-center justify-between p-4 border-b">
                                     <div className="flex items-center gap-2">
                                         {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
@@ -446,19 +470,24 @@ const FloatingMenu: React.FC<{
                                     </div>
                                 </div>
                             </DialogHeader>
-                            <ScrollArea className='drag-handle h-full items-start flex-1 no-scrollbar '>
+                            {/* Ad banner */}
+                            <div className='w-full flex-shrink-0'>
+                                <div className='relative top-0 left-0 w-full'>
+                                {promotionBannerRef.current}
+                                </div>
+                            </div>
+                            <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
                                 <div className='relative w-full'>
                                     {isLoading && (
-                                        <div className="flex flex-col mt-4">
+                                        <div className="flex flex-row">
                                             <div className="loader-container ">
                                                 <LottieLoader width="w-20" centered={false} animationData={animationData} />
                                             </div>
-                                            <p className="text-sm text-muted-foreground mt-2">
+                                            <p className="text-sm text-muted-foreground mt-2 self-end">
                                                 Generating images... {Math.round(progress)}%
                                             </p>
                                         </div>
                                     )}
-
                                     {pictures.length > 0 && (
                                         <div className="flex flex-col gap-4 mt-6 select-none">
                                             <div className="grid grid-cols-2 gap-1 ">
@@ -512,7 +541,7 @@ const FloatingMenu: React.FC<{
                                 </div>
                             </ScrollArea>
                             {/* Footer with suggestions and input */}
-                            <DialogFooter className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg">
+                            <DialogFooter className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
                                 {/* <div className="flex gap-2 overflow-x-auto pb-2">
                                     <Button variant="outline" className="rounded-full flex items-center gap-2 whitespace-nowrap">
                                         <Search className="h-4 w-4" />
@@ -525,15 +554,15 @@ const FloatingMenu: React.FC<{
 
                                 <div className="relative flex flex-col gap-2">
                                     <Input
-                                        value={selectedText && truncateText(selectedText, 100)}
+                                        value={savedPrompt}
                                         onChange={(e) => setSavedPrompt(e.target.value)}
                                         placeholder={truncateText(selectedText, 30)}
                                         className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
                                     />
-                                    <div className='absolute right-3 top-4 cursor-pointer'>
-                                        <Link href="#" >
+                                    <div className='absolute left-3 top-4 cursor-pointer'>
+                                        {/* <Link href="#" >
                                             <Sparkles className="h-4 w-4 text-black dark:text-black hover:text-pink-600" />
-                                        </Link>
+                                        </Link> */}
                                     </div>
                                     <p className="text-xs text-gray-500 text-center">
                                         Toonyz Post is a tool that allows you to create a slideshow from a list of images.{" "}
@@ -622,11 +651,11 @@ const FloatingMenu: React.FC<{
                             left: `${position.x - 30}px`,
                         }}
                     >
-                        <DrawerTrigger asChild>
+                        <DrawerTrigger asChild onClick={generatePictures}>
                             <Button
                                 variant="ghost"
-                                className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent"
-                                onClick={generatePictures}
+                                className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent border-none"
+
                                 disabled={isLoading}
                             >
                                 <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
@@ -649,40 +678,90 @@ const FloatingMenu: React.FC<{
                 )}
                 {children}
                 <DrawerContent
-                    className='h-[90%] no-scrollbar top-5 right-0'
+                    className='h-[98vh] no-scrollbar top-5 right-0'
                     style={{
                         backgroundColor: theme === 'light' ? 'white' : '#211F21',
                     }}
-                    // onInteractOutside={(e) => {
-                    //     e.preventDefault();
-                    // }}
-                    // onClick={(e) => e.stopPropagation()}
                 >
-                    <DrawerHeader className='px-2 py-[1.1rem] border-b border-gray-200 dark:border-gray-800 '>
-                        <DrawerTitle className='absolute top-0 left-0'>
-                            <div className='flex flex-row gap-1 items-center justify-center p-2'>
-                                <DrawerClose className='rounded-full bg-red-600 hover:bg-red-700 w-5 h-5 flex items-center justify-center border border-transparent'>
-                                    <X size={8} className="text-red-600" />
-                                </DrawerClose>
-                                <div className='rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                    <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                </div>
-                                <div className='rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-600 w-5 h-5 flex items-center justify-center p-0 border border-transparent'>
-                                    <Circle size={8} className="text-gray-200 dark:text-gray-700" />
-                                </div>
+                    <DrawerHeader>
+                        {/* Ads banner */}
+                        <div className='w-full'>
+                            <div className='relative top-0 left-0 w-full'>
+                                {promotionBannerRef.current}
                             </div>
-                        </DrawerTitle>
+                        </div>
                     </DrawerHeader>
-
                     <DrawerFooter className='w-full h-full'>
-                        <ScrollArea className='no-scrollbar'>
-                            <PictureGenerator
+                        <ScrollArea className='h-full no-scrollbar'>
+                            {/* <PictureGenerator
                                 context={truncateText(context, 200)}
                                 prompt={truncateText(selectedText, 200)}
                                 onComplete={handlePicturesGenerated}
                                 webnovel_id={webnovel_id}
                                 chapter_id={chapter_id}
-                            />
+                            /> */}
+                            <div className='relative w-full'>
+                                {isLoading && (
+                                    <div className="flex flex-row">
+                                        <div className="loader-container ">
+                                            <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mt-2 self-end">
+                                            Generating images... {Math.round(progress)}%
+                                        </p>
+                                    </div>
+                                )}
+                                {pictures.length > 0 && (
+                                    <div className="flex flex-col gap-4 mt-6 select-none">
+                                        <div className="grid grid-cols-2 gap-1 ">
+                                            {pictures.map((picture, index) => {
+                                                return (
+                                                    <GeneratedPicture
+                                                        key={index}
+                                                        index={index}
+                                                        image={picture}
+                                                        webnovel_id={webnovel_id}
+                                                        chapter_id={chapter_id}
+                                                        quote={savedPrompt}
+
+                                                    />
+                                                )
+                                            }
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {pictures.length > 0 && (
+                                    <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+                                        <Button
+                                            variant="outline"
+                                            // onClick={makeVideo}
+                                            className='inline-flex md:h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                                            Make Video
+                                            <ArrowRight className='w-4 h-4' />
+                                        </Button>
+                                        <Link
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                console.log("making slideshow clicked")
+                                                makeSlideshow();
+                                            }}
+                                            className='relative w-full'>
+                                            <CardStyleButton
+                                                title="Slideshow"
+                                                subtitle="Watch Ads to make a slideshow"
+                                                ideaCount={pictures.length}
+                                                images={pictures}
+                                                gradientFrom="#DE2B74"
+                                                gradientTo="#FF6F91"
+                                                className='w-full'
+                                            />
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
                         </ScrollArea>
                     </DrawerFooter>
                 </DrawerContent>
@@ -744,6 +823,7 @@ const FloatingMenu: React.FC<{
                 webnovel_id={webnovel_id}
                 chapter_id={chapter_id}
                 quote={savedPrompt}
+                isDesktop={isDesktop}
             />
         </Drawer >
     )

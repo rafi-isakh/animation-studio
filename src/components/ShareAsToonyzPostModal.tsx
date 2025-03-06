@@ -30,7 +30,8 @@ export default function ShareAsToonyzPostModal({
     videoFileName,
     webnovel_id,
     chapter_id,
-    quote
+    quote,
+    isDesktop
 }: {
     imageOrVideo: ImageOrVideo,
     showShareAsPostModal: boolean,
@@ -40,7 +41,8 @@ export default function ShareAsToonyzPostModal({
     videoFileName?: string, // fileName is name of file uploaded to S3. I know, inconsistent
     webnovel_id: string,
     chapter_id: string,
-    quote: string
+    quote: string,
+    isDesktop?: boolean
 }) {
     const { dictionary, language } = useLanguage();
     const [title, setTitle] = useState("");
@@ -179,7 +181,8 @@ export default function ShareAsToonyzPostModal({
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
-                className="md:max-w-md select-none no-scrollbar bg-white dark:bg-[#211F21] z-[9999]"
+                className={`select-none no-scrollbar backdrop-blur-md z-[9999]
+                     ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >

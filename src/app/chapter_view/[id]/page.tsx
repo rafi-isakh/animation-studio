@@ -264,7 +264,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 </div>
                             </Button>
 
-                            <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none ">
+                            <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
                                 <MenubarMenu>
                                     <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent">
                                         <List className="h-5 w-5" />

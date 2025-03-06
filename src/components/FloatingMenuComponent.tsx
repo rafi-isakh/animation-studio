@@ -182,7 +182,7 @@ const FloatingMenu: React.FC<{
     const nodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
-
+    const [savedPrompt, setSavedPrompt] = useState<string>(selectedText || "");
     useEffect(() => {
         const handleSelectionChange = () => {
             const activeSelection = document.getSelection()
@@ -326,6 +326,7 @@ const FloatingMenu: React.FC<{
 
     // image generating
     const generatePictures = async () => {
+        // setSavedPrompt(selectedText);
         if (!savedPrompt) {
             toast({
                 title: "Error",
@@ -406,16 +407,14 @@ const FloatingMenu: React.FC<{
 
     if (isDesktop) {
         return (
-            <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
-                <div className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-2' ref={containerRef} >
+            <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
+                <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
                     {selection && position && (
-                        <div
-                            className="absolute z-10 w-30"
+                        <div className="absolute z-10 w-30"
                             style={{
                                 top: `${position.y + position.height + 30}px`,
                                 left: `${position.x - 1}px`,
-                            }}
-                        >
+                            }}>
                             <DialogTrigger asChild>
                                 <FloatingMenuNav
                                     handleOpenModal={handleOpenModal}
@@ -484,54 +483,55 @@ const FloatingMenu: React.FC<{
                             </ScrollArea>
                         </DialogContent>
                     </Draggable>
-                </div>
 
 
-                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                    <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
-                        <DialogHeader>
-                            <DialogTitle>Share link</DialogTitle>
-                            <DialogDescription>
-                                Share the link with your friends and family.
-                            </DialogDescription>
-                        </DialogHeader>
 
-                        {selectedText && <span> {truncateText(selectedText, 197)}</span>}
+                    <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                        <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
+                            <DialogHeader>
+                                <DialogTitle>Share link</DialogTitle>
+                                <DialogDescription>
+                                    Share the link with your friends and family.
+                                </DialogDescription>
+                            </DialogHeader>
 
-                        <div className="flex items-center space-x-2">
-                            <div className="grid flex-1 gap-2">
-                                <Label htmlFor="link" className="sr-only">
-                                    Link
-                                </Label>
-                                <Input
-                                    id="link"
-                                    defaultValue={`${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
-                                    readOnly
-                                    className='select-none bg-transparent'
-                                    disabled
-                                />
-                            </div>
-                            <Button
-                                onClick={() => {
-                                    const linkText = `${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
-                                    const text = `${truncateText(selectedText, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
-                                    copyToClipboard(text);
-                                }}
-                            >
-                                <span className="sr-only">Copy</span>
-                                <Copy />
-                            </Button>
-                        </div>
-                        <DialogFooter className="sm:justify-start">
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">
-                                    Close
+                            {selectedText && <span> {truncateText(selectedText, 197)}</span>}
+
+                            <div className="flex items-center space-x-2">
+                                <div className="grid flex-1 gap-2">
+                                    <Label htmlFor="link" className="sr-only">
+                                        Link
+                                    </Label>
+                                    <Input
+                                        id="link"
+                                        defaultValue={`${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                        readOnly
+                                        className='select-none bg-transparent'
+                                        disabled
+                                    />
+                                </div>
+                                <Button
+                                    onClick={() => {
+                                        const linkText = `${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                        const text = `${truncateText(selectedText, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                        copyToClipboard(text);
+                                    }}
+                                >
+                                    <span className="sr-only">Copy</span>
+                                    <Copy />
                                 </Button>
-                            </DialogClose>
-                        </DialogFooter>
-                    </DialogContent>
+                            </div>
+                            <DialogFooter className="sm:justify-start">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary">
+                                        Close
+                                    </Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </Dialog>
-            </Dialog>
+            </div>
         );
     }
 

@@ -29,10 +29,10 @@ const ReaderContext = createContext<{
 } | undefined>(undefined);
 
 export function ReaderProvider({ children }: { children: React.ReactNode }) {
-  const [fontSize, setFontSize] = useState(16);
+  const [fontSize, setFontSize] = useState(18);
   const [fontFamily, setFontFamily] = useState('default');
   const [textColor, setTextColor] = useState('#000000');
-  const [lineHeight, setLineHeight] = useState(1.5);
+  const [lineHeight, setLineHeight] = useState(1.8);
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [margin, setMargin] = useState(10);
   const [padding, setPadding] = useState(10);

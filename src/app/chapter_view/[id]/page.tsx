@@ -58,7 +58,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [selectedText, setSelectedText] = useState('');
     const [isSticky, setIsSticky] = useState(false);
     const {
-        fontSize = 17,
+        fontSize,
         fontFamily = 'default',
         lineHeight,
         margin,

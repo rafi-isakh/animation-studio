@@ -63,20 +63,10 @@ interface FloatingMenuNavItem {
     type: 'normal' | 'blob' | 'lottie';
 }
 
-const MenuContainer = styled('div')`
-  .lucide {
-    stroke-width: 1;
-  }
-  position: relative;
-  margin: 0 auto;
-  z-index: 50;
-`;
+
 
 const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    // { icon: <LottieLoader animationData={animationData} className='object-cover' />, label: 'Home', href: '#', color: 'bg-black/10 dark:bg-black', isLottie: true },
-    // { icon: <Sparkles size={30} />, label: 'Explore', href: '#', color: 'bg-black/10 dark:bg-black  hover:bg-blue-500/10', type: 'normal' },
     { icon: <BlobButton text={<Sparkles size={30} />} />, label: 'AI', href: '#', color: '', type: 'blob' },
-    { icon: <Image size={30} />, label: 'ImageStudio', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10  hover:bg-blue-500/10', type: 'normal' },
     { icon: <Share2 size={30} />, label: 'Share', href: '#', color: 'bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10', type: 'normal' },
     { icon: <X size={30} />, label: 'Close', href: '#', color: 'bg-gray-200/20 dark:bg-black text-red-500 dark:text-red-500 hover:bg-red-500/10', type: 'normal' },
 ];
@@ -85,36 +75,22 @@ const FloatingMenuNav = ({
     handleOpenModal,
     handleClose,
     setShowShareDialog,
-    showImageStudioDialog,
-    setShowImageStudioDialog,
-    context,
-    prompt,
-    savedPrompt,
-    setSavedPrompt,
     generatePictures,
-    handlePicturesGenerated
 }: {
     handleOpenModal: () => void,
     handleClose?: () => void,
     setShowShareDialog: (showShareDialog: boolean) => void,
-    showImageStudioDialog: boolean,
-    setShowImageStudioDialog: (showImageStudioDialog: boolean) => void,
-    context: string,
-    prompt: string,
-    savedPrompt: string,
-    setSavedPrompt: (savedPrompt: string) => void,
     generatePictures: () => Promise<void>,
-    handlePicturesGenerated: (newPictures: string[]) => void
 }) => {
 
-    // const [savedPrompt, setSavedPrompt] = useState<string>(initialPrompt);
-
-    // useEffect(() => {
-    //     if (initialPrompt) {
-    //         setSavedPrompt(initialPrompt);
-    //     }
-    // }, [initialPrompt]);
-
+    const MenuContainer = styled('div')`
+     .lucide {
+        stroke-width: 1;
+      }
+        position: relative;
+        margin: 0 auto;
+        z-index: 50;
+     `;
 
     return (
         <TooltipProvider delayDuration={0}>
@@ -149,11 +125,6 @@ const FloatingMenuNav = ({
                                                         if (item.label === 'Close') {
                                                             e.preventDefault();
                                                             handleClose?.();
-                                                        }
-                                                        if (item.label === 'ImageStudio') {
-                                                            e.preventDefault();
-                                                            console.log("image")
-                                                            generatePictures();
                                                         }
                                                         if (item.label === 'Share') {
                                                             e.preventDefault();
@@ -191,7 +162,6 @@ const FloatingMenu: React.FC<{
     chapter: Chapter,
     selectedText: string;
     setSelectedText: (text: string) => void;
-
 }> = ({ children, window: windowFn, webnovel_id, chapter_id, context, webnovel, chapter, selectedText, setSelectedText }) => {
     const [selection, setSelection] = useState<string>()
     const [position, setPosition] = useState<Position | undefined>();
@@ -201,7 +171,6 @@ const FloatingMenu: React.FC<{
     const { language, dictionary } = useLanguage();
     const [openDialog, setOpenDialog] = useState(false);
     const isDesktop = useMediaQuery("(min-width: 768px)")
-    const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
@@ -212,8 +181,6 @@ const FloatingMenu: React.FC<{
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
     const nodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
-    const [showImageStudioDialog, setShowImageStudioDialog] = useState(false);
-    const [savedPrompt, setSavedPrompt] = useState<string>(selectedText || "");
     const { toast } = useToast();
 
     useEffect(() => {
@@ -454,14 +421,7 @@ const FloatingMenu: React.FC<{
                                     handleOpenModal={handleOpenModal}
                                     handleClose={handleClose}
                                     setShowShareDialog={setShowShareDialog}
-                                    showImageStudioDialog={showImageStudioDialog}
-                                    setShowImageStudioDialog={setShowImageStudioDialog}
-                                    context={truncateText(context, 197)}
-                                    prompt={truncateText(selectedText, 197)}
-                                    savedPrompt={savedPrompt}
-                                    setSavedPrompt={setSavedPrompt}
                                     generatePictures={generatePictures}
-                                    handlePicturesGenerated={handlePicturesGenerated}
                                 />
                             </DialogTrigger>
                         </div>
@@ -591,14 +551,7 @@ const FloatingMenu: React.FC<{
                                 handleOpenModal={handleOpenModal}
                                 handleClose={handleClose}
                                 setShowShareDialog={setShowShareDialog}
-                                showImageStudioDialog={showImageStudioDialog}
-                                setShowImageStudioDialog={setShowImageStudioDialog}
-                                context={context}
-                                prompt={selectedText}
-                                savedPrompt={selectedText}
-                                setSavedPrompt={setSelectedText}
-                                generatePictures={async () => {}}
-                                handlePicturesGenerated={handlePicturesGenerated}
+                                generatePictures={generatePictures}
                             />
                         </DrawerTrigger>
                     </div>

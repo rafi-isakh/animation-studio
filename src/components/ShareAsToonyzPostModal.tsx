@@ -189,7 +189,7 @@ export default function ShareAsToonyzPostModal({
                         {image && (<>
                             <Image
                                 src={`data:image/png;base64,${image}`}
-                                alt={`Generated image ${index + 1}`}
+                                alt={`image ${index + 1}`}
                                 width={200}
                                 height={200}
                                 className="object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"

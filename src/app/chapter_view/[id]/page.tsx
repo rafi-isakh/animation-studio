@@ -19,7 +19,6 @@ import { useReader } from '@/contexts/ReaderContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
-import { useTheme } from '@/contexts/providers'
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
 import ProgressBar from '@/components/UI/ProgressBar';
@@ -70,7 +69,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
-    const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
     const { purchased_webnovel_chapters, checking } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
@@ -78,8 +76,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                    fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
@@ -87,8 +85,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
-    // const [selection, setSelection] = useState<string>()
-    // const [position, setPosition] = useState<Position>()
     const containerRef = useRef<HTMLDivElement>(null);
 
 
@@ -209,11 +205,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 setIsSticky(false);
             }
         };
-
-        // Add scroll event listener
         window.addEventListener('scroll', handleScroll);
-
-        // Clean up the event listener on component unmount
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
@@ -259,7 +251,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 </Link>
             );
         };
-
 
         if (webnovel && chapter) {
             return (
@@ -321,12 +312,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                             e.preventDefault();
                                             handleViewSettings();
                                         }}>
-                                        {/* <div className='hover:text-[#DB2777] relative'> */}
                                         <Settings className="h-5 w-5" />
-                                        {/* <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
-                                            <Languages size={10} />
-                                        </span> */}
-                                        {/* </div> */}
                                     </Button>
                                 </MenubarMenu>
                                 {/* like button */}
@@ -380,7 +366,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
                     </header>
 
-                    <div className={`${theme} relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
+                    <div className={`relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
                         <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
                             {/* Title and content */}
                             <div className='flex flex-col space-y-4' >
@@ -389,7 +375,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                         <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                     </div>
                                     <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                        <FloatingMenu  selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                        <FloatingMenu selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                             <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                         </FloatingMenu>
                                     </div>
@@ -397,7 +383,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                             {/* Viewer footer */}
                             <div className="relative" ref={containerRef}>
-                                <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText}  page={page} maxPage={maxPage} />
+                                <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText} page={page} maxPage={maxPage} />
                             </div>
                         </div>
                         <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />

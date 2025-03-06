@@ -37,7 +37,7 @@ import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
 import { styled } from '@mui/material';
-import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight } from 'lucide-react';
+import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
@@ -88,7 +88,7 @@ const FloatingMenu: React.FC<{
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    const nodeRef = useRef<HTMLDivElement>(null);
+    const draggableNodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
     const [savedPrompt, setSavedPrompt] = useState<string>("");
@@ -97,6 +97,7 @@ const FloatingMenu: React.FC<{
     const promotionBannerRef = useRef(<PromotionBannerComponent />);
     const [authFailed, setAuthFailed] = useState(false);
     const [testText, setTestText] = useState<string>("")
+    const floatingButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
 
@@ -126,7 +127,7 @@ const FloatingMenu: React.FC<{
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                handleClose();
+                handleCloseFloatingButton();
                 setOpenDialog(false);
             }
         };
@@ -140,11 +141,25 @@ const FloatingMenu: React.FC<{
         }
     }, []);
 
-    const handleOpenModal = () => {
-        setOpenDialog(true);
-    }
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
 
-    const handleClose = () => {
+            if (isClickOutsideFloatingButton) {
+                handleCloseFloatingButton();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [position]);
+
+    const handleCloseFloatingButton = () => {
         setSelection("");
         setPosition(undefined);
         setShowMessage(false);
@@ -155,7 +170,7 @@ const FloatingMenu: React.FC<{
     };
 
     useEffect(() => {
-        if (!initialDialogPositionSet && nodeRef.current) {
+        if (!initialDialogPositionSet && draggableNodeRef.current) {
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
             const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
             const dialogWidth = 425; // sm:max-w-[425px] from the DialogContent className
@@ -217,7 +232,14 @@ const FloatingMenu: React.FC<{
 
     // image generating
     const generatePictures = async () => {
-        // todo: get rid of this
+        const confirmed = window.confirm("Are you sure you want to generate pictures? This will use your credits.");
+        if (!confirmed) {
+            setIsLoading(false);
+            setOpenDialog(false);
+            return;
+        }
+
+        console.log('generating pictures')
         const initialPrompt = selectedTextRef.current;
         setSavedPrompt(initialPrompt);
         if (!initialPrompt) {
@@ -338,17 +360,6 @@ const FloatingMenu: React.FC<{
         }
     }
 
-
-
-    useEffect(() => {
-        if (openDialog && !isLoading && pictures.length === 0 && !authFailed) {
-            generatePictures();
-        }
-    }, [openDialog, isLoading, pictures, generatePictures, authFailed]);
-
-
-
-
     if (isDesktop) {
         return (
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
@@ -363,30 +374,30 @@ const FloatingMenu: React.FC<{
                             <ul className='flex flex-row gap-1 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip>
-                                        <DialogTrigger asChild onClick={generatePictures}>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                                disabled={isLoading}
-                                            >
-                                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                                </div>
-                                                <BlobButton text={
-                                                    <>
-                                                        {isLoading ? (
-                                                            <>
-                                                                <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Sparkles className="w-24 h-24" strokeWidth={1} />
-                                                            </>
-                                                        )}
-                                                    </>} 
-                                                    />
-                                            </Button>
-                                        </DialogTrigger>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            ref={floatingButtonRef}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                            disabled={isLoading}
+                                            onClick={() => { setOpenDialog(true); generatePictures() }}
+                                        >
+                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                            </div>
+                                            <BlobButton text={
+                                                <>
+                                                    {isLoading ? (
+                                                        <>
+                                                            <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                        </>
+                                                    )}
+                                                </>}
+                                            />
+                                        </Button>
                                         <TooltipTrigger asChild>
                                             <Button
                                                 onClick={() => setShowShareDialog(true)}
@@ -409,7 +420,7 @@ const FloatingMenu: React.FC<{
                     }
                     {children}
                     <Draggable
-                        nodeRef={nodeRef}
+                        nodeRef={draggableNodeRef}
                         position={dialogPosition}
                         onStop={(e, data) => {
                             setDialogPosition({ x: data.x, y: data.y });
@@ -418,7 +429,7 @@ const FloatingMenu: React.FC<{
                         bounds="body"
                     >
                         <DialogContent
-                            ref={nodeRef}
+                            ref={draggableNodeRef}
                             forceMount
                             className="sm:max-w-[425px] max-h-[95vh] h-[95vh] select-none fixed top-10 right-10 p-0  
                             bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md
@@ -447,8 +458,9 @@ const FloatingMenu: React.FC<{
                                         <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                setOpenDialog(false);
                                                 e.stopPropagation()
+                                                setOpenDialog(false);
+                                                setIsLoading(false);
                                                 setSelection('');
                                             }}>
 

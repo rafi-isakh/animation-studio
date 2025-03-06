@@ -366,7 +366,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                         <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                     </div>
                                     <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
-                                        <FloatingMenu selectedText={selectedText} setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                        <FloatingMenu setSelectedText={setSelectedText} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                             <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                         </FloatingMenu>
                                     </div>
@@ -374,7 +374,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                             {/* Viewer footer */}
                             <div className="relative" ref={containerRef}>
-                                <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} setSelectedText={setSelectedText} page={page} maxPage={maxPage} />
+                                <ViewerFooter webnovel={webnovel} chapter={chapter} selectedText={selectedText} page={page} maxPage={maxPage} />
                             </div>
                         </div>
                         <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />

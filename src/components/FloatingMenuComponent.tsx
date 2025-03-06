@@ -1,5 +1,5 @@
 'use Client'
-import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, Dispatch, SetStateAction } from 'react';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
@@ -61,22 +61,19 @@ type Position = {
     y: number;
     width: number;
     height: number;
-    window?: () => Window;
 };
 
 const FloatingMenu: React.FC<{
     children: React.ReactNode;
-    window?: () => Window;
     webnovel_id: string;
     chapter_id:
     string;
     context: string,
     webnovel: Webnovel,
     chapter: Chapter,
-    selectedText: string;
     setSelectedText: (text: string) => void;
-}> = ({ children, window: windowFn, webnovel_id, chapter_id, context, webnovel, chapter, selectedText, setSelectedText }) => {
-    const [selection, setSelection] = useState<string>()
+}> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, setSelectedText }) => {
+    const [selection, setSelection] = useState<string>("")
     const [position, setPosition] = useState<Position | undefined>();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -94,11 +91,12 @@ const FloatingMenu: React.FC<{
     const nodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
-    const [savedPrompt, setSavedPrompt] = useState<string>(selectedText || "");
+    const [savedPrompt, setSavedPrompt] = useState<string>("");
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const promotionBannerRef = useRef(<PromotionBannerComponent />);
     const [authFailed, setAuthFailed] = useState(false);
+    const [testText, setTestText] = useState<string>("")
 
     useEffect(() => {
 
@@ -111,15 +109,18 @@ const FloatingMenu: React.FC<{
             const containerRect = containerRef.current?.getBoundingClientRect();
 
             if (containerRect) {
-                setSelection(text)
                 setPosition({
                     x: rect.left - containerRect.left + (rect.width / 2) - (100 / 2),
                     y: rect.top - containerRect.top - 25,
                     width: rect.width,
                     height: rect.height,
                 })
-                setSelectedText(text)
+                setSelection(text)
+                setTimeout(() => {
+                    setSelectedText(text)
+                }, 1000)
 
+                //setTestText(text)
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
@@ -147,9 +148,8 @@ const FloatingMenu: React.FC<{
     }
 
     const handleClose = () => {
-        setSelection(undefined);
+        setSelection("");
         setPosition(undefined);
-        setSelectedText('');
         setShowMessage(false);
     }
 
@@ -157,17 +157,10 @@ const FloatingMenu: React.FC<{
         setOpenDialog(true);
     };
 
-    // Add a useEffect to update savedPrompt when selectedText changes
-    useEffect(() => {
-        if (selectedText) {
-            setSavedPrompt(selectedText);
-        }
-    }, [selectedText]);
-
     useEffect(() => {
         if (!initialDialogPositionSet && nodeRef.current) {
-            const viewportWidth = windowFn?.()?.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = windowFn?.()?.innerHeight || document.documentElement.clientHeight;
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
             const dialogWidth = 425; // sm:max-w-[425px] from the DialogContent className
 
             setDialogPosition({
@@ -176,7 +169,7 @@ const FloatingMenu: React.FC<{
             });
             setInitialDialogPositionSet(true);
         }
-    }, [initialDialogPositionSet, windowFn]);
+    }, [initialDialogPositionSet]);
 
 
     const copyToClipboard = async (text: string) => {
@@ -227,7 +220,8 @@ const FloatingMenu: React.FC<{
 
     // image generating
     const generatePictures = async () => {
-        const initialPrompt = selectedText;
+        // todo: get rid of this
+        const initialPrompt = "";
         setSavedPrompt(initialPrompt);
         if (!initialPrompt) {
             toast({
@@ -363,28 +357,21 @@ const FloatingMenu: React.FC<{
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
                 <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
                     {selection && position && (
-                        <div className="absolute z-10 w-30"
+                        <div className="absolute z-10"
                             style={{
                                 top: `${position.y + position.height + 30}px`,
                                 left: `${position.x - 1}px`,
                             }}>
 
-                            <ul className='flex flex-row gap-2 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
+                            <ul className='flex flex-row gap-1 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip>
-
                                         <DialogTrigger asChild onClick={generatePictures}>
                                             <Button
+                                                size="icon"
                                                 variant="ghost"
-                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent"
+                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
                                                 disabled={isLoading}
-                                            // onInteractOutside={(e) => {
-
-                                            // }}
-                                            // onClick={(e) => {
-                                            //     e.stopPropagation();
-                                            //     e.preventDefault();
-                                            // }}
                                             >
                                                 <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
                                                 </div>
@@ -392,14 +379,15 @@ const FloatingMenu: React.FC<{
                                                     <>
                                                         {isLoading ? (
                                                             <>
-                                                                <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                                                                <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <Sparkles size={30} strokeWidth={1} />
+                                                                <Sparkles className="w-24 h-24" strokeWidth={1} />
                                                             </>
                                                         )}
-                                                    </>} />
+                                                    </>} 
+                                                    />
                                             </Button>
                                         </DialogTrigger>
                                         <TooltipTrigger asChild>
@@ -407,10 +395,10 @@ const FloatingMenu: React.FC<{
                                                 onClick={() => setShowShareDialog(true)}
                                                 variant="ghost"
                                                 className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
-                                              inline-flex group w-16 h-16 
-                                             bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                                            inline-flex group w-10 h-10 
+                                                          bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
                                             >
-                                                <Share2 size={30} strokeWidth={1} />
+                                                <Share2 size={46} strokeWidth={1} />
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -464,7 +452,7 @@ const FloatingMenu: React.FC<{
                                                 e.preventDefault();
                                                 setOpenDialog(false);
                                                 e.stopPropagation()
-                                                setSelectedText('');
+                                                setSelection('');
                                             }}>
 
                                             <X className="h-5 w-5" />
@@ -558,7 +546,7 @@ const FloatingMenu: React.FC<{
                                     <Input
                                         value={savedPrompt}
                                         onChange={(e) => setSavedPrompt(e.target.value)}
-                                        placeholder={truncateText(selectedText, 30)}
+                                        placeholder={truncateText(selection, 30)}
                                         className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
                                     />
                                     <div className='absolute left-3 top-4 cursor-pointer'>
@@ -581,7 +569,7 @@ const FloatingMenu: React.FC<{
 
 
                     <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                        <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+                        <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
 
                             {/*     //dark:bg-[#211F21] */}
                             <DialogHeader>
@@ -591,7 +579,7 @@ const FloatingMenu: React.FC<{
                                 </DialogDescription>
                             </DialogHeader>
 
-                            {selectedText && <span> {truncateText(selectedText, 197)}</span>}
+                            {selection && <span> {truncateText(selection, 197)}</span>}
 
                             <div className="flex items-center space-x-2">
                                 <div className="grid flex-1 gap-2">
@@ -600,7 +588,7 @@ const FloatingMenu: React.FC<{
                                     </Label>
                                     <Input
                                         id="link"
-                                        defaultValue={`${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                        defaultValue={`${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
                                         readOnly
                                         className='select-none bg-transparent'
                                         disabled
@@ -608,8 +596,8 @@ const FloatingMenu: React.FC<{
                                 </div>
                                 <Button
                                     onClick={() => {
-                                        const linkText = `${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
-                                        const text = `${truncateText(selectedText, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                        const linkText = `${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                        const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
                                         copyToClipboard(text);
                                     }}
                                 >
@@ -647,7 +635,7 @@ const FloatingMenu: React.FC<{
             <div className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-2' ref={containerRef} >
                 {selection && position && (
                     <div
-                        className="absolute z-10 w-30"
+                        className="absolute z-10"
                         style={{
                             top: `${position.y + position.height + 30}px`,
                             left: `${position.x - 30}px`,
@@ -656,7 +644,7 @@ const FloatingMenu: React.FC<{
                         <DrawerTrigger asChild onClick={generatePictures}>
                             <Button
                                 variant="ghost"
-                                className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-16 h-16 hover:bg-transparent border-none"
+                                className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
 
                                 disabled={isLoading}
                             >
@@ -666,11 +654,11 @@ const FloatingMenu: React.FC<{
                                     <>
                                         {isLoading ? (
                                             <>
-                                                <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                                                <Loader2 className="h-20 w-20 animate-spin text-pink-600" />
                                             </>
                                         ) : (
                                             <>
-                                                <Sparkles size={30} strokeWidth={1} />
+                                                <Sparkles className="w-20 h-20" strokeWidth={1} />
                                             </>
                                         )}
                                     </>} />
@@ -697,7 +685,7 @@ const FloatingMenu: React.FC<{
                         <ScrollArea className='h-full no-scrollbar'>
                             {/* <PictureGenerator
                                 context={truncateText(context, 200)}
-                                prompt={truncateText(selectedText, 200)}
+                                prompt={truncateText(selection, 200)}
                                 onComplete={handlePicturesGenerated}
                                 webnovel_id={webnovel_id}
                                 chapter_id={chapter_id}
@@ -777,7 +765,7 @@ const FloatingMenu: React.FC<{
                             </DialogDescription>
                         </DialogHeader>
 
-                        {selectedText && <span> {truncateText(selectedText, 197)}</span>}
+                        {selection && <span> {truncateText(selection, 197)}</span>}
 
                         <div className="flex items-center space-x-2">
                             <div className="grid flex-1 gap-2">
@@ -786,7 +774,7 @@ const FloatingMenu: React.FC<{
                                 </Label>
                                 <Input
                                     id="link"
-                                    defaultValue={`${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
+                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`}
                                     readOnly
                                     className='select-none bg-transparent'
                                     disabled
@@ -794,8 +782,8 @@ const FloatingMenu: React.FC<{
                             </div>
                             <Button
                                 onClick={() => {
-                                    const linkText = `${window.location.origin}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
-                                    const text = `${truncateText(selectedText, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/webnovel/${webnovel_id}/chapter/${chapter_id}`;
+                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
                                     copyToClipboard(text);
                                 }}
                                 type="button"

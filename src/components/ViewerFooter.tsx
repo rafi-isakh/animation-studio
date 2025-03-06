@@ -45,8 +45,8 @@ import { truncateText } from '@/utils/truncateText';
 
 
 
-const ViewerFooter = ({ webnovel, chapter, selectedText, setSelectedText, page, maxPage }:
-    { webnovel: Webnovel, chapter: Chapter, selectedText: string, setSelectedText: (text: string) => void, page: number, maxPage: number }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedText, page, maxPage }:
+    { webnovel: Webnovel, chapter: Chapter, selectedText: string, page: number, maxPage: number }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();

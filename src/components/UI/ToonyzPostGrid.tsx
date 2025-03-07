@@ -1,8 +1,17 @@
 "use client"
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
 import { ToonyzPost } from '@/components/Types';
+
+function getRandomDimensions() {
+    const widths = [900, 1000, 1200]
+    const heights = [1000, 1200, 1400, 1600]
+    return {
+        width: widths[Math.floor(Math.random() * widths.length)],
+        height: heights[Math.floor(Math.random() * heights.length)],
+    }
+}
 
 const breakpointColumnsObj = {
     default: 5,
@@ -14,58 +23,62 @@ const breakpointColumnsObj = {
 
 interface ToonyzPostGridProps {
     initialPosts: ToonyzPost[];
-    fetchMorePosts?: () => Promise<ToonyzPost[]>;
     className?: string;
+  
 }
 
-const ToonyzPostGrid = ({ initialPosts, fetchMorePosts, className = "" }: ToonyzPostGridProps) => {
+const ToonyzPostGrid = ({ initialPosts, className = "" }: ToonyzPostGridProps) => {
     const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [hasMore, setHasMore] = useState<boolean>(true);
-    const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
+    const [loading, setLoading] = useState(false);
+    // TODO: add infinite scroll 
+    //
+    const fetchPosts = useCallback(async () => {
+        const response = await fetch(`/api/get_toonyz_posts`);
+        const data = await response.json();
+        return data;
+    }, []);
 
-    const loadMorePosts = async () => {
-        if (isLoading || !hasMore) return;
-        
-        setIsLoading(true);
+    const loadMorePosts = useCallback(async () => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
         try {
-            const newPosts = await fetchMorePosts();
-            
+            const newPosts = await fetchPosts();
             if (newPosts.length === 0) {
                 setHasMore(false);
             } else {
-                setPosts(prev => [...prev, ...newPosts]);
+                // Add random dimensions to each new post
+                const postsWithDimensions = newPosts.map((post: ToonyzPost) => ({
+                    ...post,
+                    ...getRandomDimensions()
+                }));
+
+                // Filter out posts with duplicate IDs
+                const uniquePosts = postsWithDimensions.filter(
+                    (newPost: ToonyzPost) => !posts.some((existingPost: ToonyzPost) => existingPost.id === newPost.id)
+                );
+
+                setPosts(prev => [...prev, ...uniquePosts]);
             }
         } catch (error) {
-            console.error("Error loading more posts:", error);
+            console.error('Error loading more posts:', error);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
-    };
+    }, [fetchPosts, loading, hasMore, posts]);
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isLoading) {
-                    loadMorePosts();
-                }
-            },
-            { threshold: 0.1 }
-        );
-        
-        observerRef.current = observer;
-        
-        if (loadMoreRef.current) {
-            observer.observe(loadMoreRef.current);
-        }
-        
-        return () => {
-            if (observerRef.current && loadMoreRef.current) {
-                observerRef.current.unobserve(loadMoreRef.current);
+        const handleScroll = () => {
+            if (window.innerHeight + document.documentElement.scrollTop + 100 >= document.documentElement.offsetHeight) {
+                loadMorePosts();
             }
         };
-    }, [hasMore, isLoading]);
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [loadMorePosts]);
 
     return (
         <div className={className}>
@@ -78,10 +91,10 @@ const ToonyzPostGrid = ({ initialPosts, fetchMorePosts, className = "" }: Toonyz
                     <Pin key={post.id} post={post} />
                 ))}
             </Masonry>
-            
+
             {hasMore && (
                 <div ref={loadMoreRef} className="flex justify-center py-4">
-                    {isLoading ? (
+                    {loading ? (
                         <div className="loader h-8 w-8 rounded-full border-4 border-t-4 border-gray-200 border-t-blue-500 animate-spin"></div>
                     ) : (
                         <div className="h-10" />

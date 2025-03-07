@@ -212,7 +212,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     </p>)}
 
                     {/* quote toggle */}
-                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}      
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
 
                     {post.tags && (
                         <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
@@ -253,7 +253,12 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
-                    {allPosts && (<ToonyzPostGrid initialPosts={allPosts} className="w-full" />)}
+                    {allPosts && (
+                        <ToonyzPostGrid 
+                                    className="w-full" 
+                                    initialPosts={allPosts}
+                                    // fetchPosts={fetchPost}
+                                />)}
                 </div>
             </div>
         </div>

@@ -233,10 +233,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     </p>)}
 
                     {/* quote toggle */}
-                    {post.quote && (
-                        <ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />
-                    )}
-
+                        {post.quote && (
+                            <ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />
+                        )}      
 
                     {post.tags && (
                         <div className="flex flex-row flex-wrap gap-2 items-center justify-start">

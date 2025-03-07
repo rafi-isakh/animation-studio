@@ -1,13 +1,14 @@
 // src/components/QuoteToggle.tsx
 import React, { useState, useRef, useCallback } from 'react';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 
-interface ToonyzPostQuoteToggleProps {
+interface QuoteToggleProps {
     quote: string;
     postId: string;
 }
 
-const ToonyzPostQuoteToggle: React.FC<ToonyzPostQuoteToggleProps> = ({ quote, postId }) => {
+const QuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId }) => {
     const [quoteExpanded, setQuoteExpanded] = useState<boolean>(true);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
@@ -18,10 +19,10 @@ const ToonyzPostQuoteToggle: React.FC<ToonyzPostQuoteToggleProps> = ({ quote, po
         if (quoteRef.current && arrowRef.current) {
             if (quoteRef.current.classList.contains('max-h-0')) {
                 quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
-                quoteRef.current.classList.add('max-h-[1000px]', 'opacity-100');
+                quoteRef.current.classList.add('max-h-[300px]', 'opacity-100');
                 arrowRef.current.style.transform = 'rotate(90deg)';
             } else {
-                quoteRef.current.classList.remove('max-h-[1000px]', 'opacity-100');
+                quoteRef.current.classList.remove('max-h-[300px]', 'opacity-100');
                 quoteRef.current.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
                 arrowRef.current.style.transform = 'rotate(0deg)';
             }
@@ -55,11 +56,13 @@ const ToonyzPostQuoteToggle: React.FC<ToonyzPostQuoteToggleProps> = ({ quote, po
                         quoteExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
                     }`}
                 >
-                    <OtherTranslateComponent content={quote} elementId={postId} elementType="toonyz_post" elementSubtype="quote" />
+                    <ScrollArea className="h-[300px]">
+                        <OtherTranslateComponent content={quote} elementId={postId} elementType="toonyz_post" elementSubtype="quote" />
+                    </ScrollArea>
                 </p>
             )}
         </div>
     );
 };
 
-export default ToonyzPostQuoteToggle;
+export default QuoteToggle;

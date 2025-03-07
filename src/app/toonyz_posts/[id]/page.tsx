@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
-import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
+import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
 import { useTheme } from '@/contexts/providers';
@@ -14,12 +14,23 @@ import { Pin } from "@/components/UI/Pin";
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
+import { Label } from "@/components/shadcnUI/Label";
+import { Input } from "@/components/shadcnUI/Input";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogClose,
+    DialogFooter
+} from "@/components/shadcnUI/Dialog";
 import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/shadcnUI/HoverCard"
-
+// import { truncateText } from "@/utils/truncateText";
 
 const breakpointColumnsObj = {
     default: 5,
@@ -28,7 +39,6 @@ const breakpointColumnsObj = {
     768: 2,
     640: 1,
 }
-
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
@@ -51,9 +61,6 @@ function getRandomDimensions() {
     }
 }
 
-const ToonyzLogo = () => {
-    return <Image src="/toonyz_logo_pink.svg" alt="Toonyz Logo" width={100} height={30} />
-}
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     // const post = await getPost(params.id);
@@ -64,7 +71,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
     const { theme } = useTheme();
-
+    const [showShareDialog, setShowShareDialog] = useState(false);
+    const [selection, setSelection] = useState<string | undefined>(undefined);
+    
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -102,10 +111,6 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             });
     }, []);
 
-    const truncateText = (text: string, maxLength: number = 15) => {
-        if (text.length <= maxLength) return text;
-        return text.slice(0, maxLength) + '...';
-    };
 
     const toggleQuote = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -136,20 +141,59 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <p className="text-sm font-base">Back</p>
                     </Link>
                     {/* <p className="text-2xl font-bold">{post.title}</p> */}
-                    <Popover >
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                            // className="bg-[#DE2B74]"
-                            >
-                                <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-24">
-                            <p>Share</p>
-                        </PopoverContent>
-                    </Popover>
+                    <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                        <Popover >
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className='!no-underline !bg-transparent' >
+                                    <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-24">
+                                <Link href="#" onClick={() => setShowShareDialog(true)} className="text-sm font-base">Share</Link>
+                            </PopoverContent>
+                        </Popover>
+                        <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none">
+                            <DialogHeader>
+                                <DialogTitle>Share link</DialogTitle>
+                                <DialogDescription>
+                                    Share the link with your friends and family.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex items-center space-x-2">
+                                <div className="grid flex-1 gap-2">
+                                    <Label htmlFor="link" className="sr-only">
+                                        Link
+                                    </Label>
+                                    <Input
+                                        id="link"
+                                        defaultValue={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`}
+                                        readOnly
+                                        className='select-none bg-transparent'
+                                        disabled
+                                    />
+                                </div>
+                                <Button
+                                    onClick={() => {
+                                        const linkText = `${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`;
+                                        // copyToClipboard(linkText);
+                                    }}
+                                    type="button"
+                                    size="sm"
+                                    className="px-3"
+                                >
+                                    <span className="sr-only">Copy</span>
+                                    <Copy />
+                                </Button>
+                            </div>
+                            <DialogFooter className="sm:justify-start">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary">
+                                        Close
+                                    </Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 

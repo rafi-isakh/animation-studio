@@ -101,6 +101,7 @@
     "react-share": "^5.1.1",
     "react-slick": "^0.30.2",
     "react-use": "^17.6.0",
+    "recharts": "^2.15.1",
     "slick-carousel": "^1.8.1",
     "stripe": "^17.5.0",
     "tailwind-merge": "^2.5.4",

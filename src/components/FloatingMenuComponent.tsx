@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, createContext, useContext, Dispatch
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
+import { v4 as uuidv4 } from 'uuid';
 import {
     Dialog,
     DialogClose,
@@ -33,10 +34,7 @@ import { ToastAction } from "@/components/shadcnUI/Toast";
 import { Input } from "@/components/shadcnUI/Input"
 import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
-import { phrase } from '@/utils/phrases'
-import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
-import { styled } from '@mui/material';
 import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
@@ -56,6 +54,8 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/gradient_loader.json';
+import { downloadVideo, uploadVideo } from '@/utils/s3';
+import { getImageUrl } from '@/utils/urls';
 
 type Position = {
     x: number;
@@ -326,13 +326,33 @@ const FloatingMenu: React.FC<{
         }
     };
 
-    // make slideshow
-
+    // there's makeSlideshow and makeVideo.
+    // the logic is largely the same, except in makeSlideshow, we upload the pictures to s3, make a slideshow, then upload.
+    // in makeVideo, we don't need to upload to s3 because we get a url back from vidu. so we generate videos, combine, then upload.
+    // combining and uploading are done in the backend.
     const makeSlideshow = async () => {
         try {
-            const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
+            const pictureFilenames = [];
+            for (const picture of pictures) {
+                const pictureFilename = uuidv4();
+                const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
+                    method: 'POST',
+                    // make just one picture to a video as test.
+                    body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
+                });
+                if (!uploadResponse.ok) {
+                    toast({
+                        title: "Error",
+                        description: "Failed to upload picture to s3, please try again later",
+                        variant: "destructive"
+                    })
+                    throw new Error('Failed to upload picture to s3');
+                }
+                pictureFilenames.push(pictureFilename);
+            }
+            const response = await fetch('/api/ffmpeg_combine_pictures_to_slideshow', {
                 method: 'POST',
-                body: JSON.stringify({ pictures }),
+                body: JSON.stringify({ picture_urls: pictureFilenames.map(getImageUrl) }),
             });
             setIsLoading(true);
             if (!response.ok) {
@@ -345,7 +365,7 @@ const FloatingMenu: React.FC<{
             }
             const data = await response.json();
             console.log(data);
-            setVideoFileName(data.fileName);
+            setVideoFileName(data.video_filename);
             toast({
                 title: "Success",
                 variant: "success",
@@ -363,6 +383,85 @@ const FloatingMenu: React.FC<{
         } finally {
             setIsLoading(false);
         }
+    }
+
+    const makeVideo = async () => {
+        console.log("making video!");
+        const videoUrls: string[] = [];
+        for (let i = 0; i < pictures.length; i++) {
+            const picture = pictures[i];
+            const pictureFilename = uuidv4();
+            const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
+                method: 'POST',
+                // make just one picture to a video as test.
+                body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
+            });
+            if (!uploadResponse.ok) {
+                toast({
+                    title: "Error",
+                    description: "Failed to upload picture to s3, please try again later",
+                    variant: "destructive"
+                })
+                throw new Error('Failed to upload picture to s3');
+            }
+            const image_url = getImageUrl(`${pictureFilename}.png`);
+            const response = await fetch('/api/generate_video', {
+                method: 'POST',
+                body: JSON.stringify({ video_prompt: "TEST PROMPT", image_url: image_url }),
+            });
+            if (!response.ok) {
+                toast({
+                    title: "Error",
+                    description: "Failed to generate video, please try again later",
+                    variant: "destructive"
+                })
+                throw new Error('Failed to generate video');
+            }
+            const data = await response.json();
+            const url = data.video_url;
+            console.log(`video ${i} url: `, url);
+            videoUrls.push(url);
+        }
+
+        const getVideoDuration = (videoUrl: string): Promise<number> => {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video'); // Create video element in memory
+                video.preload = 'metadata'; // Load metadata only
+                video.src = videoUrl;
+
+                video.addEventListener('loadedmetadata', () => {
+                    resolve(video.duration); // Resolve with the duration in seconds
+                });
+
+                video.addEventListener('error', () => {
+                    reject(new Error('Failed to load video metadata'));
+                });
+            });
+        };
+
+        const durations = await Promise.all(videoUrls.map(getVideoDuration));
+        console.log(durations);
+        const stitchedResponse = await fetch('/api/ffmpeg_combine_videos', {
+            method: 'POST',
+            body: JSON.stringify({ video_urls: videoUrls, durations: durations }),
+        });
+        if (!stitchedResponse.ok) {
+            toast({
+                title: "Error",
+                description: "Failed to stitch videos",
+                variant: "destructive"
+            })
+        }
+        const stitchedData = await stitchedResponse.json();
+        const videoFilename = stitchedData.video_filename;
+        console.log(stitchedData);
+        setVideoFileName(videoFilename);
+        toast({
+            title: "Success",
+            variant: "success",
+            description: "Video created successfully",
+        })
+        setShowShareAsPostModal(true);
     }
 
     if (isDesktop) {
@@ -523,6 +622,7 @@ const FloatingMenu: React.FC<{
                                         <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
                                             <Button
                                                 variant="outline"
+                                                onClick={makeVideo}
                                                 className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                                                 Make Video
                                                 <ArrowRight className='w-4 h-4' />
@@ -752,6 +852,7 @@ const FloatingMenu: React.FC<{
                                     <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
                                         <Button
                                             variant="outline"
+                                            onClick={makeVideo}
                                             className='inline-flex md:h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                                             Make Video
                                             <ArrowRight className='w-4 h-4' />

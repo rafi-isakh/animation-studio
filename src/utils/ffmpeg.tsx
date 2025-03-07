@@ -1,4 +1,6 @@
 import ffmpeg from "fluent-ffmpeg";
+
+// Set the paths from the installed packages
 import fs from "fs-extra";
 import path from "path";
 import { NextRequest } from "next/server";
@@ -119,7 +121,7 @@ export const ffmpegCombineToSlideshow = async (pictures: string[], request: Next
     return videoFileName;
 };
 
-export const ffmpegCombineVideosToSlideshow = async (videos: string[], request: NextRequest) => {
+export const ffmpegCombineVideosToSlideshow = async (videos: string[], durations: number[], request: NextRequest) => {
     // videos is an array of base64 encoded video files
     const tempDir = path.join(__dirname, "temp_videos");
     fs.ensureDirSync(tempDir);
@@ -135,31 +137,14 @@ export const ffmpegCombineVideosToSlideshow = async (videos: string[], request: 
         process.exit(1);
     }
 
-    // Function to get the duration of a video file using ffprobe
-    const getVideoDuration = (filePath: string): Promise<number> => {
-        return new Promise((resolve, reject) => {
-            ffmpeg.ffprobe(filePath, (err, metadata) => {
-                if (err) return reject(err);
-                const duration = metadata.format.duration || 0;
-                resolve(duration);
-            });
-        });
-    };
-
     // Get durations for each video
-    const videoDurations: number[] = [];
-    for (const file of videoFiles) {
-        const duration = await getVideoDuration(file);
-        videoDurations.push(duration);
-    }
-
     // Configuration: duration of transition effect (fade) in seconds
     const transitionDuration = 1; // seconds
 
     // Build filter_complex parts for fade effects on each video stream.
     const filterParts: string[] = [];
     for (let i = 0; i < videoFiles.length; i++) {
-        const duration = videoDurations[i];
+        const duration = durations[i];
         if (videoFiles.length === 1) {
             // If only one video, simply apply a fade-in at the beginning.
             filterParts.push(`[${i}:v]fade=t=in:st=0:d=${transitionDuration}[v${i}]`);
@@ -188,10 +173,10 @@ export const ffmpegCombineVideosToSlideshow = async (videos: string[], request: 
     let xfadeChain = "";
     let cumulativeOffset = 0;
     if (videoFiles.length > 1) {
-        cumulativeOffset = videoDurations[0] - transitionDuration;
+        cumulativeOffset = durations[0] - transitionDuration;
         xfadeChain += `[v0][v1]xfade=transition=fade:duration=${transitionDuration}:offset=${cumulativeOffset}[x1]`;
         for (let i = 2; i < videoFiles.length; i++) {
-            cumulativeOffset += videoDurations[i - 1] - transitionDuration;
+            cumulativeOffset += durations[i - 1] - transitionDuration;
             xfadeChain += `;[x${i - 1}][v${i}]xfade=transition=fade:duration=${transitionDuration}:offset=${cumulativeOffset}[x${i}]`;
         }
     }

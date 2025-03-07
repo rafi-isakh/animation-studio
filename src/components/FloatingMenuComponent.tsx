@@ -50,6 +50,7 @@ import GeneratedPicture from '@/components/GeneratedPicture';
 import CardStyleButton from '@/components/UI/CardStyleButton';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
+import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgressbar';
 import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
@@ -204,11 +205,11 @@ const FloatingMenu: React.FC<{
                 textArea.style.left = "-9999px"; // Move element off-screen
                 document.body.appendChild(textArea);
                 textArea.select();
-                
+
                 // Execute the copy command
                 const successful = document.execCommand("copy");
                 document.body.removeChild(textArea);
-                
+
                 if (successful) {
                     toast({
                         variant: "success",
@@ -232,7 +233,7 @@ const FloatingMenu: React.FC<{
             });
         }
     };
-    
+
 
     // image generating
     const generatePictures = async () => {
@@ -374,33 +375,35 @@ const FloatingMenu: React.FC<{
                                 top: `${position.y + position.height + 30}px`,
                                 left: `${position.x - 1}px`,
                             }}>
-                            <ul className='flex flex-row gap-1 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
+                            <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
                                 <TooltipProvider delayDuration={0}>
                                     <Tooltip>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            ref={floatingButtonRef}
-                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                            disabled={isLoading}
-                                            onClick={() => { setOpenDialog(true); generatePictures() }}
+                                        <CustomCircularProgressbar
+                                            progress={Math.round(progress)}
+                                            size={50}
+                                            backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                            progressColor="#DE2B74"
+                                            strokeWidth={5}
                                         >
-                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                            </div>
-                                            <BlobButton text={
-                                                <>
-                                                    {isLoading ? (
-                                                        <>
-                                                            <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
-                                                        </>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                ref={floatingButtonRef}
+                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                                disabled={isLoading}
+                                                onClick={() => { setOpenDialog(true); generatePictures() }}
+                                            >
+                                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                                </div>
+                                                <BlobButton text={
+                                                    isLoading ? (
+                                                        <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
                                                     ) : (
-                                                        <>
-                                                            <Sparkles className="w-24 h-24" strokeWidth={1} />
-                                                        </>
-                                                    )}
-                                                </>}
-                                            />
-                                        </Button>
+                                                        <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                    )
+                                                } />
+                                            </Button>
+                                        </CustomCircularProgressbar>
                                         <TooltipTrigger asChild>
                                             <Button
                                                 ref={shareButtonRef}
@@ -411,7 +414,7 @@ const FloatingMenu: React.FC<{
                                                 }
                                                 variant="ghost"
                                                 className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
-                                                            inline-flex group w-10 h-10 text-black dark:text-white
+                                                           inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
                                                           bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
                                             >
                                                 <Share2 size={46} strokeWidth={1} />
@@ -644,30 +647,35 @@ const FloatingMenu: React.FC<{
                         }}
                     >
 
-                        <ul className='flex flex-row gap-1 relative rounded-full dark:bg-black/50 backdrop-blur-sm'>
+                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
                             <TooltipProvider delayDuration={0}>
                                 <Tooltip>
-                                    <Button
-                                        variant="ghost"
-                                        className="!no-underline items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                        onClick={generatePictures}
-                                        disabled={isLoading}
+                                    <CustomCircularProgressbar
+                                        progress={Math.round(progress)}
+                                        size={50}
+                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                        progressColor="#DE2B74"
+                                        strokeWidth={5}
                                     >
-                                        <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                        </div>
-                                        <BlobButton text={
-                                            <>
-                                                {isLoading ? (
-                                                    <>
-                                                        <Loader2 className="h-20 w-20 animate-spin text-pink-600" />
-                                                    </>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            ref={floatingButtonRef}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                            disabled={isLoading}
+                                            onClick={() => { setOpenDialog(true); generatePictures() }}
+                                        >
+                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                            </div>
+                                            <BlobButton text={
+                                                isLoading ? (
+                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
                                                 ) : (
-                                                    <>
-                                                        <Sparkles className="w-20 h-20" strokeWidth={1} />
-                                                    </>
-                                                )}
-                                            </>} />
-                                    </Button>
+                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                )
+                                            } />
+                                        </Button>
+                                    </CustomCircularProgressbar>
                                     <TooltipTrigger asChild>
                                         <Button
                                             ref={shareButtonRef}
@@ -676,8 +684,8 @@ const FloatingMenu: React.FC<{
                                                 setShowShareDialog(true)
                                             }}
                                             className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
-                                                            inline-flex group w-10 h-10 text-black dark:text-white
-                                                          bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                                       inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
+                                                     bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
                                         >
                                             <Share2 size={46} strokeWidth={1} />
                                         </Button>

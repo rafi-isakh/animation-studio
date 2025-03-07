@@ -43,8 +43,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 import { truncateText } from '@/utils/truncateText';
 
-
-
 const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
     { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number }) => {
     const [webnovelId, setWebnovelId] = useState(0);
@@ -206,10 +204,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
                                     <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
                                     <TooltipProvider delayDuration={0}>
                                         <Tooltip>
-                                            <BlobButton text={<TooltipTrigger asChild>
-                                                <Sparkles size={20} />
-                                            </TooltipTrigger>
-                                            } />
+                                          <BlobButton text={<TooltipTrigger asChild><Sparkles size={20} /></TooltipTrigger> } />
                                             <TooltipContent>
                                                 post
                                             </TooltipContent>

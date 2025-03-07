@@ -378,7 +378,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                     <FloatingMenuMemo webnovel={webnovel} chapter={chapter}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                </FloatingMenuMemo>
+                                   </FloatingMenuMemo>
                                 </div>
                             </div>
                         </div>

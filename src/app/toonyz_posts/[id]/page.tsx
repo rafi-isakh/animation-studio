@@ -3,7 +3,7 @@ import { User, ToonyzPost, Webnovel } from "@/components/Types";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
@@ -30,8 +30,8 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/shadcnUI/HoverCard"
-// import { useToast } from "@/components/shadcnUI/toast"
-// import { truncateText } from "@/utils/truncateText";
+import { useToast } from "@/components/shadcnUI/toast"
+import { truncateText } from "@/utils/truncateText";
 
 const breakpointColumnsObj = {
     default: 5,
@@ -74,6 +74,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const { theme } = useTheme();
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [selection, setSelection] = useState<string | undefined>(undefined);
+    const { toast } = useToast()
     
 
     useEffect(() => {
@@ -226,7 +227,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                 <Button
                                     onClick={() => {
                                         const linkText = `${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`;
-                                        // copyToClipboard(linkText);
+                                        copyToClipboard(linkText);
                                     }}
                                     type="button"
                                     size="sm"
@@ -267,7 +268,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 ) : (
                     <div className="relative group h-full mt-14 md:mt-14">
                         <video
-                            src={getImageUrl(post.video)}
+                            src={getVideoUrl(post.video)}
                             muted
                             loop
                             autoPlay

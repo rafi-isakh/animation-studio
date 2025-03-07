@@ -1,24 +1,31 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import Snackbar from '@mui/material/Snackbar';
-import { Button, Alert, styled, Box } from '@mui/material';
-import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import { Button } from '@/components/shadcnUI/Button';
 import GeneratedPicture from '@/components/GeneratedPicture';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronRight, CircleHelp, Settings, Loader2 } from 'lucide-react';
+import { ToastAction } from "@/components/shadcnUI/Toast";
+import { CircleHelp, Loader2, Share, ArrowRight } from 'lucide-react';
 import { ffmpegCombineToSlideshow } from '@/utils/ffmpeg';
 import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
 import { ImageOrVideo } from './Types';
+import { v4 as uuidv4 } from 'uuid';
+import { getImageUrl } from '@/utils/urls';
+import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup";
+import { useToast } from "@/hooks/use-toast";
+import { CircularProgress } from '@/components/shadcnUI/CircularProgress';
+import { CardStack } from '@/components/UI/CardStack';
+import CardStyleButton from './UI/CardStyleButton';
+import Link from 'next/link';
 interface PictureGeneratorProps {
   prompt: string;
   onComplete: (pictures: string[]) => void;
   webnovel_id: string;
   chapter_id: string;
+  context: string;
 }
 
-const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id }) => {
+const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialPrompt, onComplete, webnovel_id, chapter_id, context }) => {
   const [pictures, setPictures] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +34,9 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
   const [showAlert, setShowAlert] = useState(false);
   const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
   const [videoFileName, setVideoFileName] = useState<string | null>(null);
+  const { toast } = useToast()
+  const [progress, setProgress] = useState(0);
+
   useEffect(() => {
     if (initialPrompt) {
       setSavedPrompt(initialPrompt);
@@ -35,23 +45,56 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
 
   const generatePictures = async () => {
     if (!savedPrompt) {
+      toast({
+        title: "Error",
+        description: "Please provide a prompt",
+        variant: "destructive"
+      })
       setError('Please provide a prompt');
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + (5 * Math.random());
+        return newProgress > 95 ? 95 : newProgress;
+      });
+    }, 300);
 
     try {
-      const response = await fetch(`/api/generate_pictures?text=${savedPrompt}&n=4`)
+      const response = await fetch(`/api/generate_pictures`, {
+        method: 'POST',
+        body: JSON.stringify({ text: savedPrompt, n: 4, context: context })
+      })
 
       if (!response.ok) {
         switch (response.status) {
           case 401:
+            toast({
+              title: "Error",
+              description: "Please login to generate pictures",
+              variant: "destructive",
+              action: <ToastAction altText="Try again">Try again</ToastAction>,
+              altText: "Try again"
+            })
             throw new Error('Please login to generate pictures');
           case 429:
+            toast({
+              title: "Error",
+              description: "Too many requests. Please try again later.",
+              variant: "destructive"
+            })
             throw new Error('Too many requests. Please try again later.');
           default:
+            toast({
+              title: "Error",
+              description: "Error: Failed to generate pictures",
+              variant: "destructive"
+            })
             throw new Error('Failed to generate pictures');
         }
       }
@@ -59,12 +102,20 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
       const data = await response.json();
 
       if (!data.images || !Array.isArray(data.images)) {
+        toast({
+          title: "Error",
+          description: "Invalid response format from server",
+          variant: "destructive"
+        })
         throw new Error('Invalid response format from server');
       }
-
       setPictures(data.images);
       onComplete(data.images);
+      setProgress(100);
+      clearInterval(progressInterval);
     } catch (err) {
+      clearInterval(progressInterval);
+      setProgress(0);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -83,109 +134,116 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
     }
   }, [error]);
 
-  const makeSlideshow = async () => {
-    const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
+  const makeVideo = async () => {
+    const uuid = uuidv4();
+    const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
       method: 'POST',
-      body: JSON.stringify({ pictures }),
+      // make just one picture to a video as test.
+      body: JSON.stringify({ fileBufferBase64: pictures[0], fileName: `${uuid}.png`, fileType: "image/png" }),
+    });
+    if (!uploadResponse.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to upload picture to s3, please try again later",
+        variant: "destructive"
+      })
+      throw new Error('Failed to upload picture to s3');
+    }
+    const image_url = getImageUrl(`${uuid}.png`);
+    console.log(image_url);
+    const response = await fetch('/api/generate_video', {
+      method: 'POST',
+      body: JSON.stringify({ video_prompt: "", image_url: image_url }),
     });
     if (!response.ok) {
-      throw new Error('Failed to make slideshow');
+      toast({
+        title: "Error",
+        description: "Failed to generate video, please try again later",
+        variant: "destructive"
+      })
+      throw new Error('Failed to generate video');
     }
     const data = await response.json();
+    const url = data.video;
     console.log(data);
-    setVideoFileName(data.fileName);
-    alert("Video created successfully");
+    const s3UploadResponse = await fetch('/api/download_and_upload_video', {
+      method: 'POST',
+      body: JSON.stringify({ videoUrl: url }),
+    });
+    if (!s3UploadResponse.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to download and upload video",
+        variant: "destructive"
+      })
+      throw new Error('Failed to download and upload video');
+    }
+    const uploadData = await s3UploadResponse.json();
+    setVideoFileName(uploadData.fileName);
+    toast({
+      title: "Success",
+      variant: "success",
+      description: "Video created successfully",
+    })
     setShowShareAsPostModal(true);
   }
 
-
-  const BorderLinearProgress = styled(LinearProgress)(() => ({
-    height: 10,
-    borderRadius: 5,
-    [`&.${linearProgressClasses.colorPrimary}`]: {
-      backgroundColor: '#eee',
-    },
-    [`& .${linearProgressClasses.bar}`]: {
-      borderRadius: 5,
-      backgroundColor: '#1a90ff',
-    },
-  }));
-
-  const InfoTooltip = styled(({ className, ...props }: TooltipProps) => (
-    <Tooltip {...props} classes={{ popper: className }} />
-  ))(({ theme }) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-      backgroundColor: '#f5f5f9',
-      color: 'rgba(0, 0, 0, 0.87)',
-      maxWidth: 320,
-      padding: '5px',
-      border: '1px solid #dadde9',
-    },
-  }));
+  const makeSlideshow = async () => {
+    try {
+      const response = await fetch('/api/ffmpeg_combine_to_slideshow', {
+        method: 'POST',
+        body: JSON.stringify({ pictures }),
+      });
+      setIsLoading(true);
+      if (!response.ok) {
+        toast({
+          title: "Error",
+          description: "Failed to make slideshow",
+          variant: "destructive"
+        })
+        throw new Error('Failed to make slideshow, please try again later');
+      }
+      const data = await response.json();
+      console.log(data);
+      setVideoFileName(data.fileName);
+      toast({
+        title: "Success",
+        variant: "success",
+        description: "Slideshow created successfully",
+      })
+      setShowShareAsPostModal(true);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Slideshow creation error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred creating slideshow",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
-    <div className="z-50 select-none">
-
+    <div className="relative w-full select-none">
       {/* picture generator */}
-
-      <div className="flex md:flex-row flex-col items-center gap-4 space-y-4">
-        <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex flex-col min-h-[100px]">
+      <div className="flex md:flex-row flex-col items-center gap-4 space-y-4 flex-grow-0">
+        <div className="flex-1 bg-gray-100 dark:bg-[#373737] p-3 rounded-lg flex flex-col min-h-[100px]">
           {/* Text content with scrolling if needed */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto flex-grow-0">
             <p className="text-sm text-gray-600 dark:text-gray-300  p-4">
               {savedPrompt}
             </p>
           </div>
 
-          <div className='flex-shrink-0 flex flex-row justify-between text-gray-500'>
+          <div className='flex-grow-0 flex flex-row justify-between text-gray-500'>
             <div className='flex flex-row gap-4 p-4 items-center '>
-              {savedPrompt.length}/{savedPrompt.length}
-              <InfoTooltip title={
-                <div className='flex flex-row justify-center rounded-md w-full'>
-                  {phrase(dictionary, "preparing", language)}
-                </div>
-              }
-                placement="bottom">
-                <CircleHelp size={16} />
-              </InfoTooltip>
-
-              <InfoTooltip title={
-                <div className='flex flex-row justify-center border border-black rounded-md w-full'>
-                  <div className='flex-1 p-4 text-left self-center'>
-
-                    <p>{phrase(dictionary, "freeTrial", language)}</p>
-                    <BorderLinearProgress value={30} variant="determinate" />
-                    <p>1000 credits</p>
-
-                  </div>
-                  <div className='flex-1 relative py-8 px-2'>
-                    <div className='absolute left-0 top-4 bottom-4 w-[1px] bg-black'></div>
-                    <div className="flex flex-row">
-                      <div className='px-2'>
-                        <p>{phrase(dictionary, "haveYouEnjoyed", language)}</p>
-                        <p>{phrase(dictionary, "youCanUnlock", language)}</p>
-                      </div>
-                      <div className='self-center'>
-                        <ChevronRight size={16} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              } placement="bottom">
-                <Settings size={16} />
-              </InfoTooltip>
+              {/* {savedPrompt.length}/200 */}
+              <span className='text-[0.875rem]'>Free trial 100</span>
             </div>
             <Button
-              variant="text"
-              sx={{
-                color: 'gray',
-                backgroundColor: 'white',
-                borderRadius: '10px',
-                padding: '10px',
-                fontWeight: 'bold',
-                minWidth: '100px',
-                alignSelf: 'flex-end',
-              }}
+              variant="outline"
               onClick={generatePictures}
               disabled={isLoading}
               className='px-4 py-2 font-bold ml-4 bg-white dark:text-pink-600 dark:bg-white 
@@ -229,34 +287,64 @@ const PictureGenerator: React.FC<PictureGeneratorProps> = ({ prompt: initialProm
         </div>
 
       </div>
-      {error && showAlert && (
-        <Snackbar
-          open={showAlert}
-          autoHideDuration={5000}
-          onClose={() => setShowAlert(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert
-            severity="error"
-            onClose={() => setShowAlert(false)}
-            className="w-full"
-          >
-            <p>{phrase(dictionary, "error", language)}</p>
-          </Alert>
-        </Snackbar>
+
+      {isLoading && (
+        <div className="flex flex-col items-center mt-4">
+          <CircularProgress value={progress} color="stroke-[#DE2B74]" trackColor="stroke-pink-200" />
+          <p className="text-sm text-muted-foreground mt-2">
+            Generating images... {Math.round(progress)}%
+          </p>
+        </div>
       )}
 
-
       {pictures.length > 0 && (
-        <div className="flex md:flex-row flex-col gap-4 mt-6 select-none">
-          <button onClick={makeSlideshow} className='bg-pink-600 text-white px-4 py-2 rounded-md'>
-            Make Slideshow
-          </button>
-          {pictures.map((picture, index) => (
-            <div key={index} className="flex-shrink flex-wrap">
-              <GeneratedPicture index={index} image={picture} webnovel_id={webnovel_id} chapter_id={chapter_id} quote={savedPrompt} />
+        <div className="flex flex-col gap-4 mt-6 select-none">
+          <div className="grid grid-cols-2 gap-1 ">
+            {pictures.map((picture, index) => {
+              return (
+                <GeneratedPicture
+                  key={index}
+                  index={index}
+                  image={picture}
+                  webnovel_id={webnovel_id}
+                  chapter_id={chapter_id}
+                  quote={savedPrompt}
+                  makeSlideshow={makeSlideshow}
+                  makeVideo={makeVideo}
+                />
+              )
+            }
+            )}
+          </div>
+
+          {pictures.length > 0 && (
+            <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+              <Button
+                variant="outline"
+                onClick={makeVideo}
+                className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                Make Video
+                <ArrowRight className='w-4 h-4' />
+              </Button>
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  makeSlideshow();
+                }}
+                className='relative'>
+                <CardStyleButton
+                  title="Slideshow"
+                  subtitle="Watch Ads to make a slideshow"
+                  ideaCount={pictures.length}
+                  images={pictures}
+                  gradientFrom="#DE2B74"
+                  gradientTo="#FF6F91"
+                  className='w-full'
+                />
+              </Link>
             </div>
-          ))}
+          )}
         </div>
       )}
       <ShareAsToonyzPostModal

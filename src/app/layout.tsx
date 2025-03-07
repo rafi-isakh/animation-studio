@@ -20,6 +20,7 @@ import { GlobalSidebar } from '@/components/UI/Sidebar';
 import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
+import { ToastProvider } from '@/hooks/use-toast';
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -92,9 +93,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                               <Header isLoggedIn={isLoggedIn} />
                             </Suspense>
                             <Margin>
-                              <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
-                                {children}
-                              </div>
+                              <ToastProvider>
+                                <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                  {children}
+                                </div>
+                              </ToastProvider>
                               <Analytics />
                             </Margin>
                             {/* 

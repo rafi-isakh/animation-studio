@@ -110,7 +110,7 @@ export const ffmpegCombineToSlideshow = async (pictures: string[], request: Next
             // Read the video and convert it to base64 for uploading
             const fileBuffer = fs.readFileSync(outputVideo);
             const fileType = "video/mp4";
-            uploadFile(fileBuffer, videoFileName, fileType, request);
+            uploadFile("toonyzvideosbucket", fileBuffer, videoFileName, fileType, request);
             // Optionally remove temporary images:
             fs.removeSync(tempDir);
         })

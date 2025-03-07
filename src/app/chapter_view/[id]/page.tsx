@@ -251,7 +251,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             </FloatingMenu>
         )
     });
-
+    FloatingMenuMemo.displayName = 'FloatingMenuMemo';
 
     if (webnovel && chapter) {
         return (

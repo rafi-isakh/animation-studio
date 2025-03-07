@@ -523,7 +523,6 @@ const FloatingMenu: React.FC<{
                                         <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
                                             <Button
                                                 variant="outline"
-                                                // onClick={makeVideo}
                                                 className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                                                 Make Video
                                                 <ArrowRight className='w-4 h-4' />
@@ -753,7 +752,6 @@ const FloatingMenu: React.FC<{
                                     <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
                                         <Button
                                             variant="outline"
-                                            // onClick={makeVideo}
                                             className='inline-flex md:h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                                             Make Video
                                             <ArrowRight className='w-4 h-4' />

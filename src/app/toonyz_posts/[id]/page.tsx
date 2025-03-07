@@ -51,9 +51,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [lastPostId, setLastPostId] = useState<string | null>(null);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-    const quoteRef = useRef<HTMLParagraphElement>(null);
-    const arrowRef = useRef<HTMLSpanElement>(null);
-    const [quoteExpanded, setQuoteExpanded] = useState<boolean>(true);
+
 
 
     useEffect(() => {
@@ -97,22 +95,6 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             });
     }, []);
 
-    const toggleQuote = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        setQuoteExpanded(prev => !prev);
-        if (quoteRef.current && arrowRef.current) {
-            if (quoteRef.current.classList.contains('max-h-0')) {
-                quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
-                quoteRef.current.classList.add('max-h-[1000px]', 'opacity-100');
-                arrowRef.current.style.transform = 'rotate(90deg)';
-            } else {
-                quoteRef.current.classList.remove('max-h-[1000px]', 'opacity-100');
-                quoteRef.current.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
-                arrowRef.current.style.transform = 'rotate(0deg)';
-            }
-        }
-    }, []);
-
     if (!post) {
         return <></>
     }
@@ -126,8 +108,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm font-base">Back</p>
                     </Link>
-
-                    <TopNavigationMenu postId={post.id.toString()} />
+                    <TopNavigationMenu email={post.user.email} user={post.user} postId={post.id.toString()} />
                 </div>
             </div>
 
@@ -224,18 +205,14 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         )}
                     </div>
 
-                    {webnovel && (
-                        <WebnovelHoverCard webnovel={webnovel} post={post} />
-                    )}
+                    {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} />)}
 
                     {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">
                         <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" />
                     </p>)}
 
                     {/* quote toggle */}
-                        {post.quote && (
-                            <ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />
-                        )}      
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}      
 
                     {post.tags && (
                         <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
@@ -276,13 +253,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
-                    {allPosts && (
-                        <ToonyzPostGrid
-                            initialPosts={allPosts}
-                            // fetchMorePosts={fetchMorePosts}
-                            className="w-full"
-                        />
-                    )}
+                    {allPosts && (<ToonyzPostGrid initialPosts={allPosts} className="w-full" />)}
                 </div>
             </div>
         </div>

@@ -9,10 +9,10 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
-import { useToast } from "@/hooks/use-toast";
 import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { WebnovelHoverCard } from "@/components/UI/WebnovelHoverCard";
+import { useToast } from "@/hooks/use-toast";
 
 
 async function getPost(id: string) {
@@ -53,7 +53,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
-    const { toast } = useToast()
+    const { toast } = useToast();
 
 
     useEffect(() => {

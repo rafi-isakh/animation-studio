@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/shadcnUI/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/shadcnUI/Popover";
 import { Button } from "@/components/shadcnUI/Button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/shadcnUI/Label";
 import { Input } from "@/components/shadcnUI/Input";
 import Link from "next/link";
 import { Copy, Share2, EllipsisVertical, Flag } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const TopNavigationMenu = ({ postId }: { postId: string }) => {
     const [showShareDialog, setShowShareDialog] = useState(false);

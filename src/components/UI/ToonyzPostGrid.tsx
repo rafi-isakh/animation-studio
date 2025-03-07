@@ -14,7 +14,7 @@ const breakpointColumnsObj = {
 
 interface ToonyzPostGridProps {
     initialPosts: ToonyzPost[];
-    fetchMorePosts: () => Promise<ToonyzPost[]>;
+    fetchMorePosts?: () => Promise<ToonyzPost[]>;
     className?: string;
 }
 

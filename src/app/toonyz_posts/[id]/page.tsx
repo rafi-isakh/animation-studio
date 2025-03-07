@@ -12,7 +12,7 @@ import WatermarkedImage from "@/utils/watermark";
 import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { WebnovelHoverCard } from "@/components/UI/WebnovelHoverCard";
-import { useToast } from "@/hooks/use-toast";
+import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
 
 
 async function getPost(id: string) {
@@ -53,7 +53,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
-    const { toast } = useToast();
+    const [quoteExpanded, setQuoteExpanded] = useState<boolean>(true);
 
 
     useEffect(() => {
@@ -97,34 +97,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             });
     }, []);
 
-    // Function for infinite scroll - cursor-based approach
-    const fetchMorePosts = async (): Promise<ToonyzPost[]> => {
-        if (!lastPostId) return [];
-
-        try {
-            const response = await fetch(`/api/get_toonyz_posts?after=${lastPostId}`);
-            const data = await response.json();
-
-            // Add dimensions to new posts
-            const newPostsWithDimensions = data.map((post: ToonyzPost) => ({
-                ...post,
-                ...getRandomDimensions()
-            }));
-
-            // Update the cursor for the next fetch
-            if (newPostsWithDimensions.length > 0) {
-                setLastPostId(newPostsWithDimensions[newPostsWithDimensions.length - 1].id.toString());
-            }
-
-            return newPostsWithDimensions;
-        } catch (error) {
-            console.error("Error fetching more posts:", error);
-            return [];
-        }
-    };
-
     const toggleQuote = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
+        setQuoteExpanded(prev => !prev);
         if (quoteRef.current && arrowRef.current) {
             if (quoteRef.current.classList.contains('max-h-0')) {
                 quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
@@ -151,7 +126,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm font-base">Back</p>
                     </Link>
-                    {/* <p className="text-2xl font-bold">{post.title}</p> */}
+
                     <TopNavigationMenu postId={post.id.toString()} />
                 </div>
             </div>
@@ -258,34 +233,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     </p>)}
 
                     {/* quote toggle */}
-                    <div className="flex flex-col self-start">
-                        <button
-                            type="button"
-                            onClick={toggleQuote}
-                            className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer"
-                        >
-                            <span
-                                ref={arrowRef}
-                                className="transform transition-transform duration-200"
-                                style={{
-                                    display: 'inline-block',
-                                    transform: 'rotate(0deg)'
-                                }}
-                            >
-                                ▶
-                            </span>
-                            Quote
-                        </button>
-
-                        {post.quote && (
-                            <p
-                                ref={quoteRef}
-                                className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start transition-opacity duration-300 max-h-0 opacity-0 overflow-hidden"
-                            >
-                                <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
-                            </p>
-                        )}
-                    </div>
+                    {post.quote && (
+                        <ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />
+                    )}
 
 
                     {post.tags && (
@@ -330,7 +280,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     {allPosts && (
                         <ToonyzPostGrid
                             initialPosts={allPosts}
-                            fetchMorePosts={fetchMorePosts}
+                            // fetchMorePosts={fetchMorePosts}
                             className="w-full"
                         />
                     )}

@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { Box, Modal } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
-import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import { Ellipsis, UserRoundX, CircleHelp, Flag, Trash } from 'lucide-react';
@@ -25,9 +23,6 @@ import {
 import { useTheme } from '@/contexts/providers'
 import { useUser } from '@/contexts/UserContext';
 import { createEmailHash } from '@/utils/cryptography'
-
-const ITEM_HEIGHT = 48;
-
 export default function CommentsDropdownButton({
     comment,
     user,
@@ -100,30 +95,14 @@ export default function CommentsDropdownButton({
                             </AlertDialogContent>
                         </AlertDialog>
                     }
-
-                    {comment.user.id.toString() === id &&
-                        <MenuItem
-                            key="delete"
-                            onClick={() => {
-                                handleDeleteComment(comment.id.toString());
-                                handleClose();
-                            }}
-                            className='flex items-center gap-2 dark:text-white text-black
-                                 dark:group-hover/user-dropdown:text-black'>
-                            <Trash size={20} className="dark:text-white text-black" />
-                            {phrase(dictionary, "delete", language)}
-                        </MenuItem>
-                    }
-
                     <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                        <MenuItem
+                        <Button
                             key="report"
-                            className="flex items-center gap-2 dark:text-white
-                                 text-black dark:group-hover/user-dropdown:text-black"
-                        >
+                            variant="ghost"
+                            className="flex items-center gap-2 dark:text-white text-black">
                             <Flag size={20} className="dark:text-white text-black" />
                             {phrase(dictionary, "report", language)}
-                        </MenuItem>
+                        </Button>
                     </Tooltip>
                 </div>
             </PopoverContent>

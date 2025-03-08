@@ -23,7 +23,7 @@ export function WebnovelHoverCard({ webnovel, post }: { webnovel: Webnovel, post
     const { dictionary, language } = useLanguage();
 
     return (
-        <HoverCard openDelay={0}>
+        <HoverCard openDelay={0} closeDelay={0}>
             <div className="flex flex-row gap-2">
                 <HoverCardTrigger asChild>
                     <Button variant="ghost">

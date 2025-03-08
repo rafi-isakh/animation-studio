@@ -48,7 +48,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
-    const [isSticky, setIsSticky] = useState(false);
     const {
         fontSize,
         fontFamily = 'default',
@@ -186,22 +185,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         const _screenWidth = scrollType === 'horizontal' ? 'max-w-screen-lg' : 'max-w-screen-sm';
         setScreenWidth(_screenWidth);
     }, [scrollType])
-
-    // useEffect(() => {
-    //     const handleScroll = () => {
-    //         const scrollTrigger = 100;
-
-    //         if (window.scrollY > scrollTrigger) {
-    //             setIsSticky(true);
-    //         } else {
-    //             setIsSticky(false);
-    //         }
-    //     };
-    //     window.addEventListener('scroll', handleScroll);
-    //     return () => {
-    //         window.removeEventListener('scroll', handleScroll);
-    //     };
-    // }, []);
 
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:

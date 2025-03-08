@@ -144,27 +144,8 @@ const FloatingMenu: React.FC<{
     }, []);
 
     useEffect(() => {
-        const handleScroll = (e: Event) => {
-            if (openDialog) {
-                e.stopPropagation();
-            }
-        };
-        
-        if (openDialog) {
-            window.addEventListener('scroll', handleScroll, { capture: true });
-            
-            return () => {
-                window.removeEventListener('scroll', handleScroll, { capture: true });
-            };
-        }
-    }, [openDialog]);
-
-    useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-            if ((event.target as HTMLElement).closest('header')) {
-                return;
-            }
-            
+
             const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
             const isClickShareButton = shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node);
 

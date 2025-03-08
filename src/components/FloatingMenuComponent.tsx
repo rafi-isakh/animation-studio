@@ -438,7 +438,7 @@ const FloatingMenu: React.FC<{
                 <div
                     ref={draggableNodeRef}
                     className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
-                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md
+                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
                             rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
                             ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
                     onClick={(e) => e.stopPropagation()}

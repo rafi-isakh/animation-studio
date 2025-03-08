@@ -37,7 +37,7 @@ import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
 import { styled } from '@mui/material';
-import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare } from 'lucide-react';
+import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
@@ -176,11 +176,15 @@ const FloatingMenu: React.FC<{
         if (!initialDialogPositionSet && draggableNodeRef.current) {
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
             const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-            const dialogWidth = 425; // sm:max-w-[425px] from the DialogContent className
+            const dialogWidth = 425; // sm:max-w-[425px]
+
+            // Position within visible area of screen
+            const xPos = Math.max(20, Math.min(viewportWidth - dialogWidth - 20, viewportWidth / 2));
+            const yPos = Math.max(20, Math.min(viewportHeight - 100, viewportHeight / 4));
 
             setDialogPosition({
-                x: viewportWidth - dialogWidth - 20, // Position it 20px from the right edge
-                y: viewportHeight / 4,   // Position it a quarter down from the top
+                x: xPos,
+                y: yPos,
             });
             setInitialDialogPositionSet(true);
         }
@@ -368,259 +372,243 @@ const FloatingMenu: React.FC<{
     if (isDesktop) {
         return (
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
-                <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
-                    {selection && position && (
-                        <div className="absolute z-10"
-                            style={{
-                                top: `${position.y + position.height + 30}px`,
-                                left: `${position.x - 1}px`,
-                            }}>
-                            <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
-                                <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                        <CustomCircularProgressbar
-                                            progress={Math.round(progress)}
-                                            size={50}
-                                            backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
-                                            progressColor="#DE2B74"
-                                            strokeWidth={5}
+
+                {selection && position && (
+                    <div className="absolute z-10"
+                        style={{
+                            top: `${position.y + position.height + 30}px`,
+                            left: `${position.x - 1}px`,
+                        }}>
+                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <CustomCircularProgressbar
+                                        progress={Math.round(progress)}
+                                        size={50}
+                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                        progressColor="#DE2B74"
+                                        strokeWidth={5}
+                                    >
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            ref={floatingButtonRef}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                            disabled={isLoading}
+                                            onClick={() => { setOpenDialog(true); generatePictures() }}
                                         >
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                ref={floatingButtonRef}
-                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                                disabled={isLoading}
-                                                onClick={() => { setOpenDialog(true); generatePictures() }}
-                                            >
-                                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                                </div>
-                                                <BlobButton text={
-                                                    isLoading ? (
-                                                        <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
-                                                    ) : (
-                                                        <Sparkles className="w-24 h-24" strokeWidth={1} />
-                                                    )
-                                                } />
-                                            </Button>
-                                        </CustomCircularProgressbar>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                ref={shareButtonRef}
-                                                onClick={() => {
-                                                    console.log('share dialog clicked')
-                                                    setShowShareDialog(true)
-                                                }
-                                                }
-                                                variant="ghost"
-                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                            </div>
+                                            <BlobButton text={
+                                                isLoading ? (
+                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                                ) : (
+                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                )
+                                            } />
+                                        </Button>
+                                    </CustomCircularProgressbar>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            ref={shareButtonRef}
+                                            onClick={() => {
+                                                console.log('share dialog clicked')
+                                                setShowShareDialog(true)
+                                            }
+                                            }
+                                            variant="ghost"
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
                                                            inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
                                                           bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
-                                            >
-                                                <Share2 size={46} strokeWidth={1} />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            Share
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </ul>
-                        </div>
-                    )
-                    }
-                    {children}
-                    <Draggable
-                        nodeRef={draggableNodeRef}
-                        position={dialogPosition}
-                        onStop={(e, data) => {
-                            setDialogPosition({ x: data.x, y: data.y });
-                        }}
-                        handle=".drag-handle"
-                        bounds="body"
-                    >
-                        <DialogContent
-                            ref={draggableNodeRef}
-                            forceMount
-                            className="sm:max-w-[425px] max-h-[95vh] h-[95vh] select-none fixed top-10 right-10 p-0  
-                            bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md
-                            rounded-lg no-scrollbar flex flex-col gap-0"
-                            onInteractOutside={(e) => {
-                                e.preventDefault();
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            showCloseButton={false}
-                        >
-                            <DialogHeader className='drag-handle px-2 flex-shrink-0'>
-                                <div className="flex items-center justify-between p-4 border-b">
-                                    <div className="flex items-center gap-2">
-                                        {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
-                                        <DialogTitle>
-                                            <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
-                                        </DialogTitle>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                                            <MoreVertical className="h-5 w-5" />
+                                        >
+                                            <Share2 size={46} strokeWidth={1} />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 cursor-move" >
-                                            <Maximize2 className="h-5 w-5" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation()
-                                                setOpenDialog(false);
-                                                setIsLoading(false);
-                                                setSelection('');
-                                            }}>
-
-                                            <X className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </DialogHeader>
-                            {/* Ad banner */}
-                            <div className='w-full flex-shrink-0'>
-                                <div className='relative top-0 left-0 w-full'>
-                                    {promotionBannerRef.current}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Share
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </ul>
+                    </div>
+                )
+                }
+                {children}
+                <div
+                    ref={draggableNodeRef}
+                    className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
+                            bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md
+                            rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
+                            ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className='drag-handle px-2 flex-shrink-0'>
+                        <div className="flex items-center justify-between p-4 border-b">
+                            <div className="flex items-center gap-2">
+                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
+                                <div>
+                                    <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
                                 </div>
                             </div>
-                            <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
-                                <div className='relative w-full'>
-                                    {isLoading && (
-                                        <div className="flex flex-row">
-                                            <div className="loader-container ">
-                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-2 self-end">
-                                                Generating images... {Math.round(progress)}%
-                                            </p>
-                                        </div>
-                                    )}
-                                    {pictures.length > 0 && (
-                                        <div className="flex flex-col gap-4 mt-6 select-none">
-                                            <div className="grid grid-cols-2 gap-1 ">
-                                                {pictures.map((picture, index) => {
-                                                    return (
-                                                        <GeneratedPicture
-                                                            key={index}
-                                                            index={index}
-                                                            image={picture}
-                                                            webnovel_id={webnovel_id}
-                                                            chapter_id={chapter_id}
-                                                            quote={savedPrompt}
-
-                                                        />
-                                                    )
-                                                }
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {pictures.length > 0 && (
-                                        <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                            <Button
-                                                variant="outline"
-                                                // onClick={makeVideo}
-                                                className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
-                                                Make Video
-                                                <ArrowRight className='w-4 h-4' />
-                                            </Button>
-                                            <Link
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    console.log("making slideshow clicked")
-                                                    makeSlideshow();
-                                                }}
-                                                className='relative'>
-                                                <CardStyleButton
-                                                    title="Slideshow"
-                                                    subtitle="Watch Ads to make a slideshow"
-                                                    ideaCount={pictures.length}
-                                                    images={pictures}
-                                                    gradientFrom="#DE2B74"
-                                                    gradientTo="#FF6F91"
-                                                    className='w-full'
-                                                />
-                                            </Link>
-                                        </div>
-                                    )}
-                                </div>
-                            </ScrollArea>
-                            {/* Footer with suggestions and input */}
-                            <DialogFooter className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
-                                <div className="relative flex flex-col gap-2">
-                                    <Input
-                                        value={savedPrompt}
-                                        onChange={(e) => setSavedPrompt(e.target.value)}
-                                        placeholder={truncateText(selection, 30)}
-                                        className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
-                                    />
-                                    <div className='absolute left-3 top-4 cursor-pointer'>
-                                        {/* <Link href="#" >
-                                            <Sparkles className="h-4 w-4 text-black dark:text-black hover:text-pink-600" />
-                                        </Link> */}
-                                    </div>
-                                    <p className="text-xs text-gray-500 text-center">
-                                        Toonyz Post is a tool that allows you to create a slideshow from a list of images.{" "}
-                                        <Link href="#" className="underline">
-                                            Learn more
-                                        </Link>
-                                    </p>
-                                </div>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Draggable>
-                    {/* share dialog */}
-                    <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                        <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
-                            <DialogHeader>
-                                <DialogTitle>Share link</DialogTitle>
-                                <DialogDescription>
-                                    Share the link with your friends and family.
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
-
-                            <div className="flex items-center space-x-2">
-                                <div className="grid flex-1 gap-2">
-                                    <Label htmlFor="link" className="sr-only">
-                                        Link
-                                    </Label>
-                                    <Input
-                                        id="link"
-                                        defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
-                                        readOnly
-                                        className='select-none bg-transparent'
-                                        disabled
-                                    />
-                                </div>
-                                <Button
-                                    onClick={() => {
-                                        const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
-                                        const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
-                                        copyToClipboard(text);
-                                    }}
-                                >
-                                    <span className="sr-only">Copy</span>
-                                    <Copy />
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 cursor-move" >
+                                    <Maximize2 className="h-5 w-5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation()
+                                        setOpenDialog(false);
+                                        setIsLoading(false);
+                                        setSelection('');
+                                    }}>
+                                    <X className="h-5 w-5" />
                                 </Button>
                             </div>
-                            <DialogFooter className="sm:justify-start">
-                                <DialogClose asChild>
-                                    <Button type="button" variant="secondary">
-                                        Close
-                                    </Button>
-                                </DialogClose>
-                            </DialogFooter>
+                        </div>
+                    </div>
+                    {/* Ad banner */}
+                    <div className='w-full flex-shrink-0'>
+                        <div className='relative top-0 left-0 w-full'>
+                            {promotionBannerRef.current}
+                        </div>
+                    </div>
+                    <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
+                        <div className='relative w-full'>
+                            {isLoading && (
+                                <div className="flex flex-row">
+                                    <div className="loader-container ">
+                                        <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-2 self-end">
+                                        Generating images... {Math.round(progress)}%
+                                    </p>
+                                </div>
+                            )}
+                            {pictures.length > 0 && (
+                                <div className="flex flex-col gap-4 mt-6 select-none">
+                                    <div className="grid grid-cols-2 gap-1 ">
+                                        {pictures.map((picture, index) => {
+                                            return (
+                                                <GeneratedPicture
+                                                    key={index}
+                                                    index={index}
+                                                    image={picture}
+                                                    webnovel_id={webnovel_id}
+                                                    chapter_id={chapter_id}
+                                                    quote={savedPrompt}
 
-                        </DialogContent>
-                    </Dialog>
-                </Dialog >
+                                                />
+                                            )
+                                        }
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {pictures.length > 0 && (
+                                <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+                                    <Button
+                                        variant="outline"
+                                        // onClick={makeVideo}
+                                        className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                                        Make Video
+                                        <ArrowRight className='w-4 h-4' />
+                                    </Button>
+                                    <Link
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            console.log("making slideshow clicked")
+                                            makeSlideshow();
+                                        }}
+                                        className='relative'>
+                                        <CardStyleButton
+                                            title="Slideshow"
+                                            subtitle="Watch Ads to make a slideshow"
+                                            ideaCount={pictures.length}
+                                            images={pictures}
+                                            gradientFrom="#DE2B74"
+                                            gradientTo="#FF6F91"
+                                            className='w-full'
+                                        />
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                    {/* Footer input */}
+                    <div className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
+                        <div className="relative flex flex-col gap-2">
+                            <Input
+                                value={savedPrompt}
+                                onChange={(e) => setSavedPrompt(e.target.value)}
+                                placeholder={truncateText(selection, 30)}
+                                className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
+                            />
+                            <div className='absolute left-3 top-4 cursor-pointer'>
+                                {/* <Link href="#" >
+                                            <Sparkles className="h-4 w-4 text-black dark:text-black hover:text-pink-600" />
+                                        </Link> */}
+                            </div>
+                            <p className="text-xs text-gray-500 text-center">
+                                Toonyz Post is a tool that allows you to create a slideshow from a list of images.{" "}
+                                <Link href="#" className="underline">
+                                    Learn more
+                                </Link>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* share dialog */}
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+                        <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                                Share the link with your friends and family.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
+
+                        <div className="flex items-center space-x-2">
+                            <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
+                                    readOnly
+                                    className='select-none bg-transparent'
+                                    disabled
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
+                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    copyToClipboard(text);
+                                }}
+                            >
+                                <span className="sr-only">Copy</span>
+                                <Copy />
+                            </Button>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Close
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
                 <ShareAsToonyzPostModal
                     imageOrVideo={'video' as ImageOrVideo}
                     showShareAsPostModal={showShareAsPostModal}

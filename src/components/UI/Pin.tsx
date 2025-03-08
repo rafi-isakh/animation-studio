@@ -8,11 +8,9 @@ import { useRef, useEffect } from "react";
 
 interface PinProps {
   post: any
-  isLastItem?: boolean
-  onView?: () => void
 }
 
-export function Pin({ post, isLastItem = false, onView }: PinProps) {
+export function Pin({ post }: PinProps) {
   const aspectRatio = post.height / post.width
   const { getWebnovelById } = useWebnovels()
   const truncateText = (text: string, maxLength: number = 15) => {
@@ -23,26 +21,6 @@ export function Pin({ post, isLastItem = false, onView }: PinProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isLastItem && onView && pinRef.current) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            onView();
-          }
-        },
-        { threshold: 0.1 }
-      );
-      
-      observer.observe(pinRef.current);
-      
-      return () => {
-        if (pinRef.current) {
-          observer.unobserve(pinRef.current);
-        }
-      };
-    }
-  }, [isLastItem, onView]);
 
   const handleMouseEnter = () => {
     if (videoRef.current) {

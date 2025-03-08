@@ -14,6 +14,7 @@ import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { WebnovelHoverCard } from "@/components/UI/WebnovelHoverCard";
 import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
 import { useUser } from '@/contexts/UserContext';
+import UserInfoCard from "@/components/UI/UserInfoCard";
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
@@ -159,31 +160,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             <div className="w-full flex flex-col gap-4 p-5 bg-white dark:bg-[#211F21] sticky bottom-0 z-50">
                 <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5">
                     <div className="relative -top-[3.5rem] flex justify-center ">
-                        <Link href={`/view_profile/${post.user.id}`}>
-                            {post.user.picture ? (
-                                <div className="dark:bg-[#211F21] bg-white rounded-full w-20 h-20 flex items-center justify-center overflow-hidden">
-                                    <div className="relative w-full h-full">
-                                        <Image
-                                            src={getImageUrl(post.user.picture)}
-                                            alt={post.user.nickname || 'User'}
-                                            fill
-                                            className='object-cover'
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-gray-400 rounded-full w-20 h-20 flex items-center justify-center">
-                                    <svg
-                                        className="w-20 h-20 text-gray-100 rounded-full"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                                    </svg>
-                                </div>
-                            )}
-                        </Link>
+                        {/* user hover card */}
+                        <UserInfoCard post={post} />
                     </div>
                     <p className="relative -top-5 text-center text-xl md:text-4xl font-bold">
                         <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
@@ -264,7 +242,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <ToonyzPostGrid
                             className="w-full"
                             initialPosts={allPosts}
-                            fetchPosts={allPosts}
+                            // fetchPosts={() => Promise.resolve(allPosts)}
                         />)}
                 </div>
             </div>

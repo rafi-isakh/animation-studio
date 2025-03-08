@@ -35,6 +35,7 @@ export interface User {
   marketing: string;
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
+  created_at: Date;
 }
 
 export interface UserCreate {

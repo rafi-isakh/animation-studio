@@ -696,16 +696,16 @@ const FloatingMenu: React.FC<{
                 >
                     <DrawerHeader>
                         {/* Ads banner */}
-                        <div className='w-full'>
+                        <div className='w-full h-14'>
                             <div className='relative top-0 left-0 w-full'>
                                 {promotionBannerRef.current}
                             </div>
                         </div>
                     </DrawerHeader>
                     <DrawerFooter className='w-full h-full'>
-                        <ScrollArea className='h-full no-scrollbar'>
+                        <ScrollArea className='max-h-[600px] no-scrollbar'>
 
-                            <div className='relative w-full'>
+                            <div className='relative w-full h-full'>
                                 {isLoading && (
                                     <div className="flex flex-row">
                                         <div className="loader-container ">

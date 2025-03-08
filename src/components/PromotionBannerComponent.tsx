@@ -48,8 +48,6 @@ const PromotionBannerComponent = () => {
           <div className='flex flex-col justify-center md:p-0 pl-5'>
             <Image
               src={isDarkMode ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
-              // src='/toonyzLogo.png' 
-              // src={isHovered ? '/toonyzLogo.png' : '/toonyz_logo_black.svg'} 
               alt='Toonyz logo'
               sizes="cover"
               width={logoWidth}
@@ -100,9 +98,9 @@ const PromotionBannerComponent = () => {
               sizes="cover"
               width={0}
               height={0}
-              className='relative -bottom-2 mx-auto z-10'
+              className='relative -bottom-1 mx-auto z-10'
               style={{
-                width: '100px',
+                width: isDesktop ? '100px' : '70px',
                 height: 'auto'
               }}
             />
@@ -118,7 +116,6 @@ const PromotionBannerComponent = () => {
       <div
         className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pb-1'
       >
-
         <div className='flex flex-col gap-4 justify-center items-center px-3 py-3 text-sm'>
           <Image
             src={isDarkMode ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
@@ -128,9 +125,7 @@ const PromotionBannerComponent = () => {
             height={logoHeight}
             className=''
           />
-          {/* Begin exploring with the app today! */}
-          {/* {phrase(dictionary, 'promotionApp', language)} */}
-          <p className='text-center'> Boost your brand with us! <br />
+          <p className='text-center text-sm'>
             Advertise with our platform to reach more customers.</p>
         </div>
       </div>
@@ -150,7 +145,7 @@ const PromotionBannerComponent = () => {
   const SelectedComponent = componentsArray[selectedComponent];
 
   return (
-    <div className='dark:text-white self-center max-w-screen-xl w-full mx-auto'>
+    <div className='dark:text-white self-center max-w-screen-xl w-full md:h-full h-14 mx-auto'>
       <SelectedComponent />
     </div>
   );

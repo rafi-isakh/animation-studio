@@ -254,11 +254,12 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
                     {allPosts && (
-                        <ToonyzPostGrid 
-                                    className="w-full" 
-                                    initialPosts={allPosts}
-                                    // fetchPosts={fetchPost}
-                                />)}
+                        <ToonyzPostGrid
+                            key={post.id.toString()}
+                            className="w-full"
+                            initialPosts={allPosts}
+
+                        />)}
                 </div>
             </div>
         </div>

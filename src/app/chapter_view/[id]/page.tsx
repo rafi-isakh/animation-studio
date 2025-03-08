@@ -77,6 +77,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedTextRef = useRef<string>("");
+    const [posts, setPosts] = useState([]);
 
 
     const handleViewSettings = () => {
@@ -186,6 +187,28 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setScreenWidth(_screenWidth);
     }, [scrollType])
 
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await fetch('/api/get_toonyz_posts');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+
+                const data = await response.json();
+                const filteredPosts = data.filter((post: any) => post.webnovel_id === webnovel?.id);
+
+                console.log(filteredPosts, "filteredPosts");
+
+                setPosts(filteredPosts);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+        }
+        fetchPosts();
+    }, [webnovel?.id]);
+
+
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
@@ -242,6 +265,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         )
     });
     FloatingMenuMemo.displayName = 'FloatingMenuMemo';
+
 
     if (webnovel && chapter) {
         return (

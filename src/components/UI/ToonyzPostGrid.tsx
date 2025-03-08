@@ -22,13 +22,13 @@ const breakpointColumnsObj = {
 }
 
 interface ToonyzPostGridProps {
-    initialPosts: ToonyzPost[];
+    initialPosts?: ToonyzPost[];
     className?: string;
-  
+    key?: string;
 }
 
-const ToonyzPostGrid = ({ initialPosts, className = "" }: ToonyzPostGridProps) => {
-    const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts);
+const ToonyzPostGrid = ({ initialPosts, className = "", key }: ToonyzPostGridProps) => {
+    const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts || []);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
@@ -81,7 +81,7 @@ const ToonyzPostGrid = ({ initialPosts, className = "" }: ToonyzPostGridProps) =
     }, [loadMorePosts]);
 
     return (
-        <div className={className}>
+        <div key={key} className={className}>
             <Masonry
                 breakpointCols={breakpointColumnsObj}
                 className="my-masonry-grid flex w-auto -ml-4 gap-5"

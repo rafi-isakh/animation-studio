@@ -187,21 +187,21 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setScreenWidth(_screenWidth);
     }, [scrollType])
 
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollTrigger = 100;
+    // useEffect(() => {
+    //     const handleScroll = () => {
+    //         const scrollTrigger = 100;
 
-            if (window.scrollY > scrollTrigger) {
-                setIsSticky(true);
-            } else {
-                setIsSticky(false);
-            }
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
+    //         if (window.scrollY > scrollTrigger) {
+    //             setIsSticky(true);
+    //         } else {
+    //             setIsSticky(false);
+    //         }
+    //     };
+    //     window.addEventListener('scroll', handleScroll);
+    //     return () => {
+    //         window.removeEventListener('scroll', handleScroll);
+    //     };
+    // }, []);
 
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
@@ -259,12 +259,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 {/* Top bar: */}
                 <header
-                    className={`
-                        w-full transition-transform duration-300 ease-in py-2
-                        ${isSticky
-                            ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none'
-                            : 'relative bg-white dark:bg-black'}
-                    `}
+                    className="w-full fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
+                    bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
                     <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
                         <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
@@ -367,8 +363,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
                 </header>
 
-                <div className={`relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
-                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
+                <div className="relative" style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
+                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10 pt-[60px]`}>
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>

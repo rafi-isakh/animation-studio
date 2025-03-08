@@ -144,7 +144,27 @@ const FloatingMenu: React.FC<{
     }, []);
 
     useEffect(() => {
+        const handleScroll = (e: Event) => {
+            if (openDialog) {
+                e.stopPropagation();
+            }
+        };
+        
+        if (openDialog) {
+            window.addEventListener('scroll', handleScroll, { capture: true });
+            
+            return () => {
+                window.removeEventListener('scroll', handleScroll, { capture: true });
+            };
+        }
+    }, [openDialog]);
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+            if ((event.target as HTMLElement).closest('header')) {
+                return;
+            }
+            
             const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
             const isClickShareButton = shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node);
 
@@ -437,7 +457,7 @@ const FloatingMenu: React.FC<{
                 <div
                     ref={draggableNodeRef}
                     className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
-                            bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md
+                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md
                             rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
                             ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
                     onClick={(e) => e.stopPropagation()}
@@ -453,9 +473,6 @@ const FloatingMenu: React.FC<{
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
                                     <MoreVertical className="h-5 w-5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 cursor-move" >
-                                    <Maximize2 className="h-5 w-5" />
                                 </Button>
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                     onClick={(e) => {

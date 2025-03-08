@@ -24,28 +24,23 @@ const breakpointColumnsObj = {
 interface ToonyzPostGridProps {
     initialPosts: ToonyzPost[];
     className?: string;
+    fetchPosts?: ToonyzPost[];
   
 }
 
-const ToonyzPostGrid = ({ initialPosts, className = "" }: ToonyzPostGridProps) => {
+const ToonyzPostGrid = ({ initialPosts, className = "", fetchPosts }: ToonyzPostGridProps) => {
     const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     // TODO: add infinite scroll 
     //
-    const fetchPosts = useCallback(async () => {
-        const response = await fetch(`/api/get_toonyz_posts`);
-        const data = await response.json();
-        return data;
-    }, []);
-
     const loadMorePosts = useCallback(async () => {
         if (loading || !hasMore) return;
 
         setLoading(true);
         try {
-            const newPosts = await fetchPosts();
+            const newPosts = fetchPosts || [];
             if (newPosts.length === 0) {
                 setHasMore(false);
             } else {

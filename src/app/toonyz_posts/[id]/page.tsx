@@ -13,7 +13,7 @@ import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { WebnovelHoverCard } from "@/components/UI/WebnovelHoverCard";
 import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
-
+import { useUser } from '@/contexts/UserContext';
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
@@ -51,7 +51,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [lastPostId, setLastPostId] = useState<string | null>(null);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-
+    const { email: currentUserEmail } = useUser();
 
 
     useEffect(() => {
@@ -99,6 +99,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
         return <></>
     }
 
+    const isAuthor = post && currentUserEmail === post.user.email_hash;
+
     return (
         <div className="flex flex-col mx-auto w-full min-h-screen">
             {/* header fixed */}
@@ -108,7 +110,12 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm font-base">Back</p>
                     </Link>
-                    <TopNavigationMenu email={post.user.email} user={post.user} postId={post.id.toString()} />
+                    <TopNavigationMenu
+                        email={currentUserEmail}
+                        isAuthor={isAuthor ?? false}
+                        user={post.user}
+                        postId={post.id.toString()}
+                    />
                 </div>
             </div>
 
@@ -254,11 +261,11 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
                     {allPosts && (
-                        <ToonyzPostGrid 
-                                    className="w-full" 
-                                    initialPosts={allPosts}
-                                    // fetchPosts={fetchPost}
-                                />)}
+                        <ToonyzPostGrid
+                            className="w-full"
+                            initialPosts={allPosts}
+                            fetchPosts={allPosts}
+                        />)}
                 </div>
             </div>
         </div>

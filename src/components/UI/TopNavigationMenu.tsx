@@ -24,7 +24,7 @@ import { User } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 
-const TopNavigationMenu = ({ email, user, postId }: { email: string, user: User, postId: string }) => {
+const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor: boolean, user: User, postId: string }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
@@ -110,40 +110,41 @@ const TopNavigationMenu = ({ email, user, postId }: { email: string, user: User,
               <Flag size={10} className="dark:text-white text-gray-500" />
               Report
             </Link>
+            {createEmailHash(email) === user.email_hash &&
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Link
+                    href="#"
+                    key="delete"
+                    onClick={(e) => {
+                     e.preventDefault
+                      setShowDeleteModal(true);
+                    }}
+                    className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
+                    <Trash size={10} className="dark:text-white text-gray-500" />
+                    {phrase(dictionary, "delete", language)}
+                  </Link>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        // handleDeleteComment(comment.id.toString());
+                        setShowDeleteModal(false);
+                      }}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            }
           </PopoverContent>
-          {user.email_hash === createEmailHash(email) &&
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Link
-                  href="#"
-                  key="delete"
-                  onClick={() => {
-                    setShowDeleteModal(true);
-                  }}
-                  className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
-                  <Trash size={20} className="dark:text-white text-black" />
-                  {phrase(dictionary, "delete", language)}
-                </Link>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      // handleDeleteComment(comment.id.toString());
-                      setShowDeleteModal(false);
-                    }}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          }
         </Popover>
 
         {/* share dialog */}

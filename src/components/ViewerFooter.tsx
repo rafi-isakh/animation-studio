@@ -184,44 +184,42 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
 
     return (
         <>
-            <div className="z-[999] fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl rounded-full border shadow-lg bg-background/90 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 select-none">
-                <Menubar className="flex justify-between border-none rounded-full px-3 py-1.5 select-none shadow-none">
-                    <MenubarMenu>
-
+            <div className={`${isVisible ? 'z-[999] fixed left-0 bottom-0 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'z-[-1]'}`}>
+                <div className="md:w-[350px] h-full flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
+                    {/* bg-background/90 backdrop-blur-md */}
+                    <div>
                         <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
                             <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
                                 <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
                                 <span className='uppercase text-sm'>{phrase(dictionary, "prevChapter", language)}</span>
                             </div>
                         </Link>
+                    </div>
 
-                    </MenubarMenu>
                     {/* middle post button */}
                     <div className="flex items-center gap-1">
-                        <MenubarMenu>
-                            <MenubarTrigger onClick={handleOpenMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
+                        <div>
+                            <button onClick={handleOpenMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
                                 <div className="relative inline-flex group p-1 w-12 h-12 border-none" >
                                     <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
                                     <TooltipProvider delayDuration={0}>
                                         <Tooltip>
-                                          <BlobButton text={<TooltipTrigger asChild><Sparkles size={20} /></TooltipTrigger> } />
+                                            <BlobButton text={<TooltipTrigger asChild><Sparkles size={20} /></TooltipTrigger>} />
                                             <TooltipContent>
                                                 post
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
                                 </div>
-                            </MenubarTrigger>
-                            <MenubarContent
-                                hideWhenDetached={false}
-                                sideOffset={15}
-                                onInteractOutside={(e) => handleOpenChange(e as unknown as React.MouseEvent<HTMLDivElement>)}
+                            </button>
+                            <div
+
                                 className={`border-none absolute bottom-14 left-1/2 -translate-x-1/2 w-full md:pl-[74px] md:w-[640px] 
                                         bg-transparent dark:bg-transparent hover:bg-transparent
                                         transition-all duration-300 ease-in-out shadow-none
                                         ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
                             >
-                                <MenubarItem
+                                <div
                                     ref={menuContentRef}
                                     className="border-none rounded-xl w-full bg-gray-200 dark:bg-[#211F21]">
                                     <div className="relative w-full md:w-full h-full">
@@ -235,29 +233,24 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
                                             {truncateText(selectedTextRef.current, 100)}
                                         </div>
                                     </div>
-                                </MenubarItem>
-                            </MenubarContent>
-                        </MenubarMenu>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
 
                     {/* view next and prev btn */}
-                    <MenubarMenu>
+                    <div>
                         <Link href={nextChapterLink} onClick={handleNextChapter}>
                             <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
                                 <span className="uppercase text-sm">{phrase(dictionary, "nextChapter", language)}</span>
                                 <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
                             </div>
                         </Link>
-                    </MenubarMenu>
-                    {/* </div > */}
-                </Menubar >
-                <div className="flex items-center justify-center py-1 text-xs text-muted-foreground">
-                    <BookOpen className="mr-1 h-3 w-3" />
-                    <span>
-                        Page {page} of {scrollPercent}&#37;
-                    </span>
-                </div>
+                    </div>
+
+                </div >
+
             </div>
             {/* Dialogs for last and first chapter */}
             < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >

@@ -145,7 +145,7 @@ const PromotionBannerComponent = () => {
   const SelectedComponent = componentsArray[selectedComponent];
 
   return (
-    <div className='dark:text-white self-center max-w-screen-xl w-full md:h-full h-14 mx-auto'>
+    <div className='dark:text-white self-center max-w-screen-xl w-full mx-auto'>
       <SelectedComponent />
     </div>
   );

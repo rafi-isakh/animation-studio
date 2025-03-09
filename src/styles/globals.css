@@ -152,18 +152,20 @@ input[type='text'],textarea {font-size:1rem;}
   font-weight: 800;
   font-style: normal;
 }
-
-@keyframes customFadeUp {
-  0% {
-      opacity: 0;
-      transform: translateY(20px);
-  }
-  100% {
-      opacity: 1;
-      transform: translateY(0);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.custom-fade-up {
-  animation: customFadeUp 0.5s ease-out forwards;
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }

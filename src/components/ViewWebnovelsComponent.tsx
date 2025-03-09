@@ -11,6 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     searchParams: { [key: string]: string | string[] | undefined },
     webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean, posts: ToonyzPost[]

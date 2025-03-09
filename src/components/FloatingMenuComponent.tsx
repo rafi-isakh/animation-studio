@@ -480,6 +480,12 @@ const FloatingMenu: React.FC<{
                             {isLoading && (
                                 <div className="flex flex-col w-full gap-4">
                                     <div className="flex flex-col mb-2">
+                                        <div className="loader-container inline-flex flex-row">
+                                            <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                            <p className="text-sm text-muted-foreground mt-2 self-end">
+                                                Generating images... {Math.round(progress)}%
+                                            </p>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-1">
                                             {[1, 2, 3, 4].map((item) => (
                                                 <div
@@ -499,12 +505,12 @@ const FloatingMenu: React.FC<{
                                     <div className="grid grid-cols-2 gap-1">
                                         {pictures.map((picture, index) => {
                                             return (
-                                                <div 
+                                                <div
                                                     key={index}
                                                     className="opacity-0 animate-fadeIn"
-                                                    style={{ 
-                                                        animationDelay: `${index * 300}ms`, 
-                                                        animationFillMode: 'forwards' 
+                                                    style={{
+                                                        animationDelay: `${index * 300}ms`,
+                                                        animationFillMode: 'forwards'
                                                     }}
                                                 >
                                                     <GeneratedPicture
@@ -720,13 +726,26 @@ const FloatingMenu: React.FC<{
 
                             <div className='relative w-full h-full'>
                                 {isLoading && (
-                                    <div className="flex flex-row">
-                                        <div className="loader-container ">
-                                            <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                    <div className="flex flex-col w-full gap-4">
+                                        <div className="flex flex-col mb-2">
+                                            <div className="loader-container inline-flex flex-row">
+                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                                <p className="text-sm text-muted-foreground mt-2 self-end">
+                                                    Generating images... {Math.round(progress)}%
+                                                </p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1">
+                                                {[1, 2, 3, 4].map((item) => (
+                                                    <div
+                                                        key={item}
+                                                        className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
+                                                        style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
+                                                    >
+                                                        <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <p className="text-sm text-muted-foreground mt-2 self-end">
-                                            Generating images... {Math.round(progress)}%
-                                        </p>
                                     </div>
                                 )}
                                 {pictures.length > 0 && (
@@ -734,12 +753,12 @@ const FloatingMenu: React.FC<{
                                         <div className="grid grid-cols-2 gap-1">
                                             {pictures.map((picture, index) => {
                                                 return (
-                                                    <div 
+                                                    <div
                                                         key={index}
                                                         className="opacity-0 animate-fadeIn"
-                                                        style={{ 
-                                                            animationDelay: `${index * 300}ms`, 
-                                                            animationFillMode: 'forwards' 
+                                                        style={{
+                                                            animationDelay: `${index * 300}ms`,
+                                                            animationFillMode: 'forwards'
                                                         }}
                                                     >
                                                         <GeneratedPicture

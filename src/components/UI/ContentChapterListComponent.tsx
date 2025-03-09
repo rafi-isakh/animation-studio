@@ -33,7 +33,7 @@ import {
 import { CommentList } from "@/components/CommentList";
 import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
-
+import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
 interface ContentChapterListComponentProps {
     content: Webtoon | Webnovel;
     slug?: string;
@@ -373,11 +373,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                     <div className="flex flex-col self-start justify-start gap-4 space-y-4">
                         {posts && posts.length > 0 ? (
                             <div>
-                                {posts.map((post) => (
-                                    <div key={post.id}>
-                                          <p className="text-sm text-black dark:text-white">
-                                            {post.title}
-                                        </p>
+                                {posts.map((post, index) => (
+                                    <div key={index} className="flex flex-col mb-4">
+                                        <ToonyzPostCard post={post} webnovel={content as Webnovel} />
                                     </div>
                                 ))}
 

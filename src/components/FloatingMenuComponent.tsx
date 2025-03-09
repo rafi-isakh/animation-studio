@@ -529,13 +529,16 @@ const FloatingMenu: React.FC<{
                                             <div className="space-y-3">
                                                 {/* User message bubble */}
                                                 <div className="flex justify-end">
-                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
                                                         {savedPrompt}
                                                     </div>
                                                 </div>
 
                                                 {/* AI response bubble */}
                                                 <div className="flex justify-start">
+                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                    </div>
                                                     <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
                                                         I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
                                                     </div>

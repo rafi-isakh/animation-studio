@@ -123,7 +123,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             <Tab label={
                                 <span className="flex flex-row items-center gap-1 text-sm">
                                     <MessageCircle size={16} />
-                                    POST
+                                    POST{' '}
                                     {postCount}
                                 </span>
                             }

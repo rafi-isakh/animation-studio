@@ -14,6 +14,7 @@ import Image from "next/image"
 import WatermarkedImage from "@/utils/watermark"
 import { truncateText } from "@/utils/truncateText"
 import ToonyzPostQuoteToggle from "./ToonyzPostQuoteToggle"
+import Link from "next/link"
 
 export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, webnovel: Webnovel }) {
     const [liked, setLiked] = useState(false)
@@ -71,25 +72,27 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
 
                 </p>
                 <div className="mt-4 rounded-md overflow-hidden">
-                    {post.image && (
-                        <WatermarkedImage
-                            imageUrl={getImageUrl(post.image)}
-                            watermarkUrl="/toonyz_logo_white.svg"
-                            webnovelTitle={webnovel?.title}
-                            chapterTitle={webnovel?.chapters.find((chapter: { id: number, title: string }) =>
-                                chapter.id.toString() === post.chapter_id
-                            )?.title || post.chapter_id}
-                            watermarkOpacity={0.2}
-                            watermarkPosition="centerRight"
-                            titlePosition="centerLeft"
-                            titleColor="white"
-                            className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
-                        />
+                    <Link href={`/toonyz_posts/${post.id}`} >
+                        {post.image && (
+                            <WatermarkedImage
+                                imageUrl={getImageUrl(post.image)}
+                                watermarkUrl="/toonyz_logo_white.svg"
+                                webnovelTitle={webnovel?.title}
+                                chapterTitle={webnovel?.chapters.find((chapter: { id: number, title: string }) =>
+                                    chapter.id.toString() === post.chapter_id
+                                )?.title || post.chapter_id}
+                                watermarkOpacity={0.2}
+                                watermarkPosition="centerRight"
+                                titlePosition="centerLeft"
+                                titleColor="white"
+                                className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
+                            />
 
-                    )}
-                    {post.video && (
-                        <video src={getVideoUrl(post.video)} autoPlay muted loop className="w-full h-auto object-cover" />
-                    )}
+                        )}
+                        {post.video && (
+                            <video src={getVideoUrl(post.video)} autoPlay muted loop className="w-full h-auto object-cover" />
+                        )}
+                    </Link>
                 </div>
             </CardContent>
             <CardFooter className="p-4 border-t flex flex-col gap-2">

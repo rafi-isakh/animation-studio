@@ -1,5 +1,5 @@
 'use Client'
-import React, { useEffect, useState, useRef, createContext, useContext, Dispatch, SetStateAction } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
@@ -38,7 +38,7 @@ import { phrase } from '@/utils/phrases'
 import PictureGenerator from '@/components/PictureGeneratorComponent';
 import Link from 'next/link';
 import { styled } from '@mui/material';
-import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide } from 'lucide-react';
+import { X, Video, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide, MessageSquare, RefreshCw } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
@@ -252,7 +252,7 @@ const FloatingMenu: React.FC<{
 
         console.log('generating pictures')
         const initialPrompt = selectedTextRef.current;
-        setSavedPrompt(initialPrompt);
+        setSavedPrompt(truncateText(initialPrompt, 150));
         if (!initialPrompt) {
             toast({
                 title: "Error",
@@ -453,9 +453,9 @@ const FloatingMenu: React.FC<{
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
                                     <MoreVertical className="h-5 w-5" />
-                                </Button>
+                                </Button> */}
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -469,22 +469,29 @@ const FloatingMenu: React.FC<{
                             </div>
                         </div>
                     </div>
-                    {/* Ad banner */}
-                    <div className='w-full flex-shrink-0'>
-                        <div className='relative top-0 left-0 w-full'>
-                            {promotionBannerRef.current}
-                        </div>
-                    </div>
+
                     <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
                         <div className='relative w-full'>
                             {isLoading && (
                                 <div className="flex flex-col w-full gap-4">
                                     <div className="flex flex-col mb-2">
                                         <div className="loader-container inline-flex flex-row">
-                                            <LottieLoader width="w-20" centered={false} animationData={animationData} />
-                                            <p className="text-sm text-muted-foreground mt-2 self-end">
-                                                Generating images... {Math.round(progress)}%
-                                            </p>
+                                            {/* <LottieLoader width="w-20" centered={false} animationData={animationData} /> */}
+                                            <div className="my-6 space-y-4">
+                                                <p className="text-sm text-muted-foreground self-end">
+                                                    Generating images... {Math.round(progress)}%
+                                                </p>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-end">
+                                                        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
+                                                            {savedPrompt}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
                                         </div>
                                         <div className="grid grid-cols-2 gap-1">
                                             {[1, 2, 3, 4].map((item) => (
@@ -500,8 +507,73 @@ const FloatingMenu: React.FC<{
                                     </div>
                                 </div>
                             )}
+
                             {pictures.length > 0 && (
-                                <div className="flex flex-col gap-4 mt-6 select-none">
+                                <div className="flex flex-col select-none">
+                                    {savedPrompt && (
+                                        <div className="my-6 space-y-4">
+                                            <div className="space-y-3">
+                                                <p className="text-sm text-gray-400">Generated a scene with</p>
+                                                {/* <div className="flex flex-wrap gap-2">
+                                            {keywords.map((keyword) => (
+                                                <span
+                                                    key={keyword}
+                                                    className="px-3 py-1 text-sm rounded-full bg-[#1a1b1f] border border-[#2a2b2f] text-gray-200"
+                                                >
+                                                    {keyword}
+                                                </span>
+                                            ))}
+                                        </div> */}
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {/* User message bubble */}
+                                                <div className="flex justify-end">
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
+                                                        {savedPrompt}
+                                                    </div>
+                                                </div>
+
+                                                {/* AI response bubble */}
+                                                <div className="flex justify-start">
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                        I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <RefreshCw className="w-4 h-4" />
+                                                    Generate again
+                                                </Button>
+                                                {/* <Button
+                                                    variant="outline"
+                                                    className="bg-[#1a1b1f] text-white border-[#2a2b2f] hover:bg-[#2a2b2f] flex gap-2 shrink-0"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                    Brainstorm
+                                                </Button> */}
+                                                {/* <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    Reply
+                                                </Button> */}
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <Video className="w-4 h-4" />
+                                                    Make a video
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-2 gap-1">
                                         {pictures.map((picture, index) => {
                                             return (
@@ -530,13 +602,13 @@ const FloatingMenu: React.FC<{
 
                             {pictures.length > 0 && (
                                 <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                    <Button
+                                    {/* <Button
                                         variant="outline"
                                         // onClick={makeVideo}
                                         className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                                         Make Video
                                         <ArrowRight className='w-4 h-4' />
-                                    </Button>
+                                    </Button> */}
                                     <Link
                                         href="#"
                                         onClick={(e) => {
@@ -544,7 +616,7 @@ const FloatingMenu: React.FC<{
                                             console.log("making slideshow clicked")
                                             makeSlideshow();
                                         }}
-                                        className='relative'>
+                                        className='w-full'>
                                         <CardStyleButton
                                             title="Slideshow"
                                             subtitle="Watch Ads to make a slideshow"
@@ -560,25 +632,12 @@ const FloatingMenu: React.FC<{
                         </div>
                     </ScrollArea>
                     {/* Footer input */}
-                    <div className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
-                        <div className="relative flex flex-col gap-2">
-                            <Input
-                                value={savedPrompt}
-                                onChange={(e) => setSavedPrompt(e.target.value)}
-                                placeholder={truncateText(selection, 30)}
-                                className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
-                            />
-                            <div className='absolute left-3 top-4 cursor-pointer'>
-                                {/* <Link href="#" >
-                                            <Sparkles className="h-4 w-4 text-black dark:text-black hover:text-pink-600" />
-                                        </Link> */}
+                    <div className="flex flex-col space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
+                        {/* Ad banner */}
+                        <div className='w-full flex-shrink-0'>
+                            <div className='relative top-0 left-0 w-full'>
+                                {promotionBannerRef.current}
                             </div>
-                            <p className="text-xs text-gray-500 text-center">
-                                Toonyz Post is a tool that allows you to create a slideshow from a list of images.{" "}
-                                <Link href="#" className="underline">
-                                    Learn more
-                                </Link>
-                            </p>
                         </div>
                     </div>
                 </div>

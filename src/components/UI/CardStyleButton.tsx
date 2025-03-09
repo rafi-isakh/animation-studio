@@ -32,12 +32,13 @@ export default function CardStyleButton({
   return (
     <Button
       className={cn(
-        "relative w-full h-52  max-w-md rounded-3xl overflow-hidden text-left transition-transform duration-300 ease-out",
+        "relative w-full h-52 rounded-3xl overflow-hidden text-left transition-transform duration-300 ease-out",
         isHovered ? "" : "",
         className,
       )}
       style={{
         background: `linear-gradient(to bottom, ${gradientFrom}, ${gradientTo})`,
+        width: "100%",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

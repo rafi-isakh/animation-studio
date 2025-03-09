@@ -37,9 +37,9 @@ export default function GeneratedPicture({
 
     const buttonList = [
         {
-            id: 'share',
+            id: 'post',
             icon: <Share size={10} />,
-            tooltipText: 'Share',
+            tooltipText: 'Post to Toonyz',
             onClick: () => setShowShareAsPostModal(true),
             className: 'bg-[#DE2B74] hover:bg-pink-400'
         },

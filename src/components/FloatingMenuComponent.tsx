@@ -32,6 +32,7 @@ type Position = {
     window?: () => Window;
 };
 
+<<<<<<< Updated upstream
 const Puller = styled('div')(({ theme }) => ({
     width: 30,
     height: 6,
@@ -114,6 +115,20 @@ const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void
 
 const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string; context: string }> = ({ children, window, webnovel_id, chapter_id, context }) => {
     const [selection, setSelection] = useState<string>()
+=======
+const FloatingMenu: React.FC<{
+    children: React.ReactNode;
+    webnovel_id: string;
+    chapter_id:
+    string;
+    context: string,
+    webnovel: Webnovel,
+    chapter: Chapter,
+    selectedTextRef: React.MutableRefObject<string>;
+    mode: 'pictures' | 'trailer'
+}> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef, mode }) => {
+    const [selection, setSelection] = useState<string>("")
+>>>>>>> Stashed changes
     const [position, setPosition] = useState<Position | undefined>();
     const [selectedText, setSelectedText] = useState<string>('');
     const [showMessage, setShowMessage] = useState(false);

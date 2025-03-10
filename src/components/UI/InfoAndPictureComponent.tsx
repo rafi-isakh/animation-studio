@@ -1,26 +1,22 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
 import { Webtoon, Webnovel } from "@/components/Types";
-import { Button, useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
+import { Button } from "@/components/shadcnUI/Button";
+import { useMediaQuery, Modal, Box, Skeleton } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye } from "lucide-react"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { MdStars } from "react-icons/md";
 import DictionaryPhrase from "@/components/DictionaryPhrase";
 import {
-    FacebookShareButton,
     TwitterShareButton,
-    FacebookIcon,
     TwitterIcon,
-    EmailShareButton,
-    EmailIcon,
     LinkedinShareButton,
     LinkedinIcon,
-    TumblrShareButton,
-    TumblrIcon,
     TelegramShareButton,
     TelegramIcon,
     WhatsappShareButton,
@@ -34,6 +30,7 @@ import { useUser } from '@/contexts/UserContext';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from "@/styles/ModalStyles";
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
+import { useCopyToClipboard } from "@/utils/copyToClipboard";
 
 
 interface InfoAndPictureProps {
@@ -60,6 +57,7 @@ export default function InfoAndPictureComponent({
     const { id, email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const { copyToClipboard } = useCopyToClipboard();
 
     useEffect(() => {
         if (window !== undefined) {
@@ -124,9 +122,9 @@ export default function InfoAndPictureComponent({
                         {/* Cover Image */}
                         <div className="min-w-[300px] h-[350px] md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px] rounded-xl">
-                                { coverArt ?
+                                {coverArt ?
                                     <Image
-                                        src={isWebtoon ? coverArt : getImageUrl(coverArt) }
+                                        src={isWebtoon ? coverArt : getImageUrl(coverArt)}
                                         alt={content.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 300px"
@@ -200,18 +198,8 @@ export default function InfoAndPictureComponent({
                             <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
                                 {/* Read Button */}
                                 <Button
-                                    sx={{
-                                        backgroundColor: '#DE2B74',
-                                        color: 'white',
-                                        borderRadius: '5px',
-                                        height: '40px',
-                                        '&:hover': {
-                                            backgroundColor: '#DE2B74',
-                                        },
-                                    }}
-                                    variant="contained"
-                                    disableElevation
-                                    className="w-full"
+                                    variant="default"
+                                    className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                 >
                                     <Link
                                         href={isWebtoon ? `/webtoons/${content.id}/001` :
@@ -223,81 +211,62 @@ export default function InfoAndPictureComponent({
                                 </Button>
 
                                 {/* Like Button */}
-                                <Link
-                                    href=""
-                                    className="flex-shrink-0 w-[40px] h-[40px] border border-gray-500 hover:border-[#DB2777] hover:bg-[#DB2777] rounded-md flex items-center justify-center group"
+                                <Button
+                                    size="icon"
+                                    className="flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
                                 >
-                                    <Heart size={20} className="text-gray-500 group-hover:text-white" />
-                                </Link>
+                                    <Heart size={20} className="text-white group-hover:text-white" />
+                                </Button>
 
                                 {/* Share Button and Dropdown */}
                                 <div className="relative">
-                                    <Link
-                                        onClick={toggleShareDropdown}
-                                        href=""
-                                        className="flex-shrink-0 w-[40px] h-[40px] border border-gray-500 hover:border-[#DB2777] hover:bg-[#DB2777] rounded-md flex items-center justify-center group"
-                                    >
-                                        <Share size={20} className="text-gray-500 group-hover:text-white" />
-                                    </Link>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                size="icon"
+                                                className="z-[99] flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
+                                                onClick={(e) => e.stopPropagation()}>
 
-                                    {/* Share Dropdown */}
-                                    {isShareDropdownOpen && (
-                                        <div
-                                            id="share-dropdown"
-                                            ref={shareDropdownRef}
-                                            className={`absolute rounded-md md:border-0 border
-                                              border-gray-400 z-10 font-normal 
-                                              right-0 top-[44px]
-                                              bg-white dark:bg-black dark:text-white shadow w-52`}>
-                                            <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
-                                            <div className="flex flex-col">
-                                                <div className="flex flex-row gap-2 p-4">
-                                                    <FacebookShareButton url={currentPageUrl} title={content.title}>
-                                                        <FacebookIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                                    </FacebookShareButton>
-
-                                                    <TwitterShareButton url={currentPageUrl} title={content.title}>
-                                                        <TwitterIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                                <Share size={20} className="text-white group-hover:text-white" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="flex flex-col justify-center items-center">
+                                            <DropdownMenuLabel>Share this webnovel</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="flex flex-row gap-2">
+                                                    <TwitterShareButton url={currentPageUrl}>
+                                                        <TwitterIcon size={22} round={true} />
                                                     </TwitterShareButton>
-
-                                                    <TumblrShareButton url={currentPageUrl} title={content.title}>
-                                                        <TumblrIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                                    </TumblrShareButton>
-
-                                                    <TelegramShareButton url={currentPageUrl} title={content.title}>
-                                                        <TelegramIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                                                    </TelegramShareButton>
-
-                                                    <WhatsappShareButton url={currentPageUrl} title={content.title}>
-                                                        <WhatsappIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                                    <WhatsappShareButton url={currentPageUrl}>
+                                                        <WhatsappIcon size={22} round={true} />
                                                     </WhatsappShareButton>
-
-                                                    <PinterestShareButton url={currentPageUrl} title={content.title} media={content.cover_art || ""}>
-                                                        <PinterestIcon size={22} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
+                                                    <TelegramShareButton url={currentPageUrl}>
+                                                        <TelegramIcon size={22} round={true} />
+                                                    </TelegramShareButton>
+                                                    <PinterestShareButton url={currentPageUrl} media={getImageUrl(content.cover_art)}>
+                                                        <PinterestIcon size={22} round={true} />
                                                     </PinterestShareButton>
+                                                    <LinkedinShareButton url={currentPageUrl}>
+                                                        <LinkedinIcon size={22} round={true} />
+                                                    </LinkedinShareButton>
                                                 </div>
-
-
-                                                <div className="flex flex-row gap-2 p-4">
-                                                    <p className="text-center text-[10px] text-gray-500">{currentPageUrl} </p>
+                                                <div className='flex flex-row gap-2 text-center px-1'>
+                                                    <p className="text-[10px] self-center text-gray-500">{currentPageUrl}</p>
                                                     <Button
-                                                        sx={{
-                                                            minWidth: '0', // Remove default minimum width
-                                                            padding: '4px', // Minimal padding or '0px' for no padding
-                                                            color: 'white',
-                                                            borderRadius: '5px',
-                                                            transition: 'background-color 0.3s ease-in-out',
-                                                            '&:hover': {
-                                                                color: '#8A2BE2',
-                                                            },
-                                                        }}
-                                                        variant="text" className="text-gray-500">
+                                                        onClick={() => copyToClipboard(currentPageUrl)}
+                                                        variant="link"
+                                                        size='icon'
+                                                        className="!no-underline p-0"
+                                                    >
+                                                        <span className="sr-only">Copy</span>
                                                         <Copy size={10} />
                                                     </Button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                   
                                 </div>
                             </div>
 
@@ -332,8 +301,8 @@ export default function InfoAndPictureComponent({
                                         <Box sx={useModalStyle}>
                                             <div className='flex flex-col space-y-4 items-center justify-center'>
                                                 <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
-                                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                                <Button color='gray' variant='outlined' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                                <Button color='gray' variant='outline' className='mt-10 w-32' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
+                                                <Button color='gray' variant='outline' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                                             </div>
                                         </Box>
                                     </Modal>

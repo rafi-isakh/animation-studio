@@ -125,33 +125,34 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 </div>
             </div>
 
-            {/* Image Container */}
-            <div className="relative md:max-w-screen-xl mx-auto w-full h-screen group mt-14 md:mt-14 ">
-                {/* top margin is 14 */}
+            {/* Image/Video Container - adjusted with conditional classes */}
+            <div className={`relative md:max-w-screen-lg mx-auto w-full group ${post.image ? 'h-screen top-20 mt-20' : 'h-[80vh] top-20 mt-20'}`}>
                 {post.image ? (
-                    <WatermarkedImage
-                        imageUrl={getImageUrl(post.image)}
-                        watermarkUrl="/toonyz_logo_pink.svg"
-                        webnovelTitle={webnovel?.title}
-                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
-                        watermarkOpacity={0.2}
-                        watermarkPosition="centerRight"
-                        titlePosition="centerLeft"
-                        titleColor="white"
-                        className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
-                    />
+                    <div className="group">
+                        <WatermarkedImage
+                            imageUrl={getImageUrl(post.image)}
+                            watermarkUrl="/toonyz_logo_white.svg"
+                            webnovelTitle={webnovel?.title}
+                            chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                            watermarkOpacity={0.2}
+                            watermarkPosition="centerRight"
+                            titlePosition="centerLeft"
+                            titleColor="white"
+                            className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
+                        />
+                    </div>
                 ) : (
-                    <div className="relative group h-full mt-14 md:mt-14">
+                    <div className="relative group h-full">
                         <video
                             src={getVideoUrl(post.video)}
                             muted
                             loop
                             autoPlay
-                            className="w-full h-full object-cover scale-125 transition-transform duration-200  pt-14 md:pt-14 overflow-hidden"
+                            className="w-full h-full object-cover scale-125 transition-transform duration-200 overflow-hidden"
                         />
                     </div>
                 )}
-                <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-3xl leading-loose text-center max-w-[80%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <p className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-2xl leading-loose text-center max-w-[100%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {/*TODO: this translation should actually come from the novel. It shouldn't be a new translation.*/}
                     {post.image ? (
                         <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
@@ -161,14 +162,14 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 </p>
             </div>
 
-            {/* Description Container */}
-            <div className="w-full flex flex-col gap-4 p-5 bg-white dark:bg-[#211F21] sticky bottom-0 z-50">
+            {/* Description Container - adjusted with conditional classes */}
+            <div className={`w-full flex flex-col gap-4 ${post.image ? 'p-0 -mt-[6rem]' : 'p-3 mt-[11rem]'} bg-white dark:bg-[#211F21] sticky bottom-0 z-50`}>
                 <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5">
-                    <div className="relative -top-[3.5rem] flex justify-center ">
+                    <div className={`relative flex justify-center ${post.image ? '-top-[2rem]' : '-top-[2.2rem]'}`}>
                         {/* user hover card */}
                         <UserInfoCard post={post} />
                     </div>
-                    <p className="relative -top-5 text-center text-xl md:text-4xl font-bold">
+                    <p className={`relative ${post.image ? '-top-5' : '-top-3'} text-center text-xl md:text-4xl font-bold`}>
                         <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                     </p>
                     {/* views, comments likes and date */}

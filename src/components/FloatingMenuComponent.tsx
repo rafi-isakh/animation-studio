@@ -276,16 +276,16 @@ const FloatingMenu: React.FC<{
         }, 300);
 
         try {
-            // const response = await fetch(`/api/generate_pictures`, {
-            //     method: 'POST',
-            //     body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
-            // })
-
-            const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)
-            const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+            const response = await fetch(`/api/generate_pictures`, {
                 method: 'POST',
-                body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "anime", trailer_type: "A" })
+                body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
             })
+
+            // const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)
+            // const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+            //     method: 'POST',
+            //     body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "anime", trailer_type: "A" })
+            // })
 
             if (!response.ok) {
                 switch (response.status) {

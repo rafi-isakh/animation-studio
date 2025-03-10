@@ -1,8 +1,8 @@
 "use client"
-import { useEffect, useState, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import Masonry from 'react-masonry-css';
 import { Pin } from "@/components/UI/Pin";
-import Masonry from "react-masonry-css"
-import { ToonyzPost } from "@/components/Types";
+import { ToonyzPost } from '@/components/Types';
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
@@ -13,11 +13,27 @@ function getRandomDimensions() {
     }
 }
 
-export default function ToonyzPosts() {
-    const [posts, setPosts] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
+const breakpointColumnsObj = {
+    default: 5,
+    1280: 4,
+    1024: 3,
+    768: 2,
+    640: 1,
+}
 
+interface ToonyzPostGridProps {
+    initialPosts?: ToonyzPost[];
+    className?: string;
+    key?: string;
+}
+
+const ToonyzPostGrid = ({ initialPosts, className = "", key }: ToonyzPostGridProps) => {
+    const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts || []);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const loadMoreRef = useRef<HTMLDivElement>(null);
+    const [loading, setLoading] = useState(false);
+    // TODO: add infinite scroll 
+    //
     const fetchPosts = useCallback(async () => {
         const response = await fetch(`/api/get_toonyz_posts`);
         const data = await response.json();
@@ -64,27 +80,29 @@ export default function ToonyzPosts() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [loadMorePosts]);
 
-    const breakpointColumnsObj = {
-        default: 5,
-        1280: 4,
-        1024: 3,
-        768: 2,
-        640: 1,
-    }
-
     return (
-        <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-            <main className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
-                <Masonry
-                    breakpointCols={breakpointColumnsObj}
-                    className="my-masonry-grid flex w-auto -ml-4 gap-5"
-                    columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
-                >
-                    {posts.map((post: ToonyzPost, index: number) => (
-                        <Pin key={post.id} post={post} isLastItem={index === posts.length - 1} onView={loadMorePosts} />
-                    ))}
-                </Masonry>
-            </main>
+        <div key={key} className={className}>
+            <Masonry
+                breakpointCols={breakpointColumnsObj}
+                className="my-masonry-grid flex w-auto -ml-4 gap-5"
+                columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
+            >
+                {posts.map((post) => (
+                    <Pin key={post.id} post={post} />
+                ))}
+            </Masonry>
+
+            {hasMore && (
+                <div ref={loadMoreRef} className="flex justify-center py-4">
+                    {loading ? (
+                        <div className="loader h-8 w-8 rounded-full border-4 border-t-4 border-gray-200 border-t-blue-500 animate-spin"></div>
+                    ) : (
+                        <div className="h-10" />
+                    )}
+                </div>
+            )}
         </div>
-    )
-}
+    );
+};
+
+export default ToonyzPostGrid;

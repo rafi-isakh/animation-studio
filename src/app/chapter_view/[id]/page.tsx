@@ -48,7 +48,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
-    const [isSticky, setIsSticky] = useState(false);
     const {
         fontSize,
         fontFamily = 'default',
@@ -78,6 +77,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showIsViewerModal, setShowIsViewerModal] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedTextRef = useRef<string>("");
+    const [posts, setPosts] = useState([]);
 
 
     const handleViewSettings = () => {
@@ -188,20 +188,26 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }, [scrollType])
 
     useEffect(() => {
-        const handleScroll = () => {
-            const scrollTrigger = 100;
+        const fetchPosts = async () => {
+            try {
+                const response = await fetch('/api/get_toonyz_posts');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
 
-            if (window.scrollY > scrollTrigger) {
-                setIsSticky(true);
-            } else {
-                setIsSticky(false);
+                const data = await response.json();
+                const filteredPosts = data.filter((post: any) => post.webnovel_id === webnovel?.id);
+
+                console.log(filteredPosts, "filteredPosts");
+
+                setPosts(filteredPosts);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
             }
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
+        }
+        fetchPosts();
+    }, [webnovel?.id]);
+
 
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
@@ -216,31 +222,38 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         }
 
         return (
-            <Link href={`/chapter_view/${nextChapter.id}`}>
-                <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3">
-                    <div className="flex flex-row items-center space-x-4">
-                        <Image
-                            src={getImageUrl(webnovel.cover_art)}
-                            alt={webnovel.title}
-                            width={50} height={50}
-                            className="rounded-lg"
-                        />
-                        <div className="flex flex-col">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
-                                {phrase(dictionary, "nextChapterView", language)}
-                            </p>
-                            <OtherTranslateComponent
-                                content={nextChapter.title}
-                                elementId={nextChapter.id.toString()}
-                                elementType='chapter'
-                                elementSubtype="title"
-                                classParams="text-md mt-1 mb-1"
-                            />
+            <div className={`${screenWidth} mx-auto w-full pb-5`}>
+                <Button
+                    variant="link"
+                    disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
+                    className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
+                    <Link href={`/chapter_view/${nextChapter.id}`} className="w-full">
+                        <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
+                            <div className="flex flex-row items-center space-x-4">
+                                <Image
+                                    src={getImageUrl(webnovel.cover_art)}
+                                    alt={webnovel.title}
+                                    width={50} height={50}
+                                    className="rounded-lg"
+                                />
+                                <div className="flex flex-col">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
+                                        {phrase(dictionary, "nextChapterView", language)}
+                                    </p>
+                                    <OtherTranslateComponent
+                                        content={nextChapter.title}
+                                        elementId={nextChapter.id.toString()}
+                                        elementType='chapter'
+                                        elementSubtype="title"
+                                        classParams="text-md mt-1 mb-1"
+                                    />
+                                </div>
+                            </div>
+                            <ChevronRight size={18} className="" />
                         </div>
-                    </div>
-                    <ChevronRight size={18} className="" />
-                </div>
-            </Link>
+                    </Link>
+                </Button>
+            </div>
         );
     };
 
@@ -251,6 +264,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             </FloatingMenu>
         )
     });
+    FloatingMenuMemo.displayName = 'FloatingMenuMemo';
 
 
     if (webnovel && chapter) {
@@ -259,12 +273,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 {/* Top bar: */}
                 <header
-                    className={`
-                        w-full transition-transform duration-300 ease-in py-2
-                        ${isSticky
-                            ? 'fixed top-0 z-[99] bg-background/80 backdrop-blur-sm dark:bg-background/80 dark:backdrop-blur-sm border-none'
-                            : 'relative bg-white dark:bg-black'}
-                    `}
+                    className="w-full fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
+                    bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
                     <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
                         <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
@@ -367,8 +377,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
                 </header>
 
-                <div className={`relative`} style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
-                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10`}>
+                <div className="relative" style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
+                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10 pt-[60px]`}>
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
@@ -378,7 +388,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                     <FloatingMenuMemo webnovel={webnovel} chapter={chapter}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                   </FloatingMenuMemo>
+                                    </FloatingMenuMemo>
                                 </div>
                             </div>
                         </div>
@@ -400,9 +410,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                             </div>
                         </DialogContent>
                     </Dialog>
-                    {/* delete confirmation modal */}
-                    <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 </div>
+                <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 {/* hr divider */}
                 <div className='flex flex-col items-center justify-center w-full mb-4'>
                     <hr className='w-screen border-t border-gray-300 my-4' />

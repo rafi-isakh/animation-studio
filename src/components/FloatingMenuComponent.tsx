@@ -1,5 +1,5 @@
 'use Client'
-import React, { useEffect, useState, useRef, createContext, useContext, Dispatch, SetStateAction } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
@@ -30,12 +30,13 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/shadcnUI/Tooltip"
+import { Skeleton } from "@mui/material"
 import { ToastAction } from "@/components/shadcnUI/Toast";
 import { Input } from "@/components/shadcnUI/Input"
 import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
-import { X, Circle, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare } from 'lucide-react';
+import { X, Video, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide, MessageSquare, RefreshCw } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
@@ -146,6 +147,7 @@ const FloatingMenu: React.FC<{
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+
             const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
             const isClickShareButton = shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node);
 
@@ -177,11 +179,15 @@ const FloatingMenu: React.FC<{
         if (!initialDialogPositionSet && draggableNodeRef.current) {
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
             const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-            const dialogWidth = 425; // sm:max-w-[425px] from the DialogContent className
+            const dialogWidth = 425; // sm:max-w-[425px]
+
+            // Position within visible area of screen
+            const xPos = Math.max(20, Math.min(viewportWidth - dialogWidth - 20, viewportWidth / 2));
+            const yPos = Math.max(20, Math.min(viewportHeight - 100, viewportHeight / 4));
 
             setDialogPosition({
-                x: viewportWidth - dialogWidth - 20, // Position it 20px from the right edge
-                y: viewportHeight / 4,   // Position it a quarter down from the top
+                x: xPos,
+                y: yPos,
             });
             setInitialDialogPositionSet(true);
         }
@@ -247,7 +253,7 @@ const FloatingMenu: React.FC<{
 
         console.log('generating pictures')
         const initialPrompt = selectedTextRef.current;
-        setSavedPrompt(initialPrompt);
+        setSavedPrompt(truncateText(initialPrompt, 150));
         if (!initialPrompt) {
             toast({
                 title: "Error",
@@ -475,259 +481,322 @@ const FloatingMenu: React.FC<{
     if (isDesktop) {
         return (
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
-                <Dialog open={openDialog} onOpenChange={setOpenDialog} modal={false}>
-                    {selection && position && (
-                        <div className="absolute z-10"
-                            style={{
-                                top: `${position.y + position.height + 30}px`,
-                                left: `${position.x - 1}px`,
-                            }}>
-                            <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
-                                <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                        <CustomCircularProgressbar
-                                            progress={Math.round(progress)}
-                                            size={50}
-                                            backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
-                                            progressColor="#DE2B74"
-                                            strokeWidth={5}
+
+                {selection && position && (
+                    <div className="absolute z-10"
+                        style={{
+                            top: `${position.y + position.height + 30}px`,
+                            left: `${position.x - 1}px`,
+                        }}>
+                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <CustomCircularProgressbar
+                                        progress={Math.round(progress)}
+                                        size={50}
+                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                        progressColor="#DE2B74"
+                                        strokeWidth={5}
+                                    >
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            ref={floatingButtonRef}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                            disabled={isLoading}
+                                            onClick={() => { setOpenDialog(true); generatePictures() }}
                                         >
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                ref={floatingButtonRef}
-                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                                disabled={isLoading}
-                                                onClick={() => { setOpenDialog(true); generatePictures() }}
-                                            >
-                                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                                </div>
-                                                <BlobButton text={
-                                                    isLoading ? (
-                                                        <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
-                                                    ) : (
-                                                        <Sparkles className="w-24 h-24" strokeWidth={1} />
-                                                    )
-                                                } />
-                                            </Button>
-                                        </CustomCircularProgressbar>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                ref={shareButtonRef}
-                                                onClick={() => {
-                                                    console.log('share dialog clicked')
-                                                    setShowShareDialog(true)
-                                                }
-                                                }
-                                                variant="ghost"
-                                                className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                            </div>
+                                            <BlobButton text={
+                                                isLoading ? (
+                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                                ) : (
+                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                )
+                                            } />
+                                        </Button>
+                                    </CustomCircularProgressbar>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            ref={shareButtonRef}
+                                            onClick={() => {
+                                                console.log('share dialog clicked')
+                                                setShowShareDialog(true)
+                                            }
+                                            }
+                                            variant="ghost"
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
                                                            inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
                                                           bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
-                                            >
-                                                <Share2 size={46} strokeWidth={1} />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            Share
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </ul>
-                        </div>
-                    )
-                    }
-                    {children}
-                    <Draggable
-                        nodeRef={draggableNodeRef}
-                        position={dialogPosition}
-                        onStop={(e, data) => {
-                            setDialogPosition({ x: data.x, y: data.y });
-                        }}
-                        handle=".drag-handle"
-                        bounds="body"
-                    >
-                        <DialogContent
-                            ref={draggableNodeRef}
-                            forceMount
-                            className="sm:max-w-[425px] max-h-[95vh] h-[95vh] select-none fixed top-10 right-10 p-0  
-                            bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md
-                            rounded-lg no-scrollbar flex flex-col gap-0"
-                            onInteractOutside={(e) => {
-                                e.preventDefault();
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            showCloseButton={false}
-                        >
-                            <DialogHeader className='drag-handle px-2 flex-shrink-0'>
-                                <div className="flex items-center justify-between p-4 border-b">
-                                    <div className="flex items-center gap-2">
-                                        {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
-                                        <DialogTitle>
-                                            <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
-                                        </DialogTitle>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                                            <MoreVertical className="h-5 w-5" />
+                                        >
+                                            <Share2 size={46} strokeWidth={1} />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 cursor-move" >
-                                            <Maximize2 className="h-5 w-5" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation()
-                                                setOpenDialog(false);
-                                                setIsLoading(false);
-                                                setSelection('');
-                                            }}>
-
-                                            <X className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </DialogHeader>
-                            {/* Ad banner */}
-                            <div className='w-full flex-shrink-0'>
-                                <div className='relative top-0 left-0 w-full'>
-                                    {promotionBannerRef.current}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Share
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </ul>
+                    </div>
+                )
+                }
+                {children}
+                <div
+                    ref={draggableNodeRef}
+                    className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
+                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
+                            rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
+                            ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className='drag-handle px-2 flex-shrink-0'>
+                        <div className="flex items-center justify-between p-4 border-b">
+                            <div className="flex items-center gap-2">
+                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
+                                <div>
+                                    <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
                                 </div>
                             </div>
-                            <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
-                                <div className='relative w-full'>
-                                    {isLoading && (
-                                        <div className="flex flex-row">
-                                            <div className="loader-container ">
-                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-2 self-end">
-                                                Generating images... {Math.round(progress)}%
-                                            </p>
-                                        </div>
-                                    )}
-                                    {pictures.length > 0 && (
-                                        <div className="flex flex-col gap-4 mt-6 select-none">
-                                            <div className="grid grid-cols-2 gap-1 ">
-                                                {pictures.map((picture, index) => {
-                                                    return (
-                                                        <GeneratedPicture
-                                                            key={index}
-                                                            index={index}
-                                                            image={picture}
-                                                            webnovel_id={webnovel_id}
-                                                            chapter_id={chapter_id}
-                                                            quote={savedPrompt}
-
-                                                        />
-                                                    )
-                                                }
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {pictures.length > 0 && (
-                                        <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                            <Button
-                                                variant="outline"
-                                                onClick={makeVideo}
-                                                className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
-                                                Make Video
-                                                <ArrowRight className='w-4 h-4' />
-                                            </Button>
-                                            <Link
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    console.log("making slideshow clicked")
-                                                    makeSlideshow();
-                                                }}
-                                                className='relative'>
-                                                <CardStyleButton
-                                                    title="Slideshow"
-                                                    subtitle="Watch Ads to make a slideshow"
-                                                    ideaCount={pictures.length}
-                                                    images={pictures}
-                                                    gradientFrom="#DE2B74"
-                                                    gradientTo="#FF6F91"
-                                                    className='w-full'
-                                                />
-                                            </Link>
-                                        </div>
-                                    )}
-                                </div>
-                            </ScrollArea>
-                            {/* Footer with suggestions and input */}
-                            <DialogFooter className="flex flex-col gap-2 p-4 space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
-                                <div className="relative flex flex-col gap-2">
-                                    <Input
-                                        value={savedPrompt}
-                                        onChange={(e) => setSavedPrompt(e.target.value)}
-                                        placeholder={truncateText(selection, 30)}
-                                        className="w-full rounded-full py-6 px-4 bg-gray-100 border-gray-200 text-black dark:text-black"
-                                    />
-                                    <div className='absolute left-3 top-4 cursor-pointer'>
-                                        {/* <Link href="#" >
-                                            <Sparkles className="h-4 w-4 text-black dark:text-black hover:text-pink-600" />
-                                        </Link> */}
-                                    </div>
-                                    <p className="text-xs text-gray-500 text-center">
-                                        Toonyz Post is a tool that allows you to create a slideshow from a list of images.{" "}
-                                        <Link href="#" className="underline">
-                                            Learn more
-                                        </Link>
-                                    </p>
-                                </div>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Draggable>
-                    {/* share dialog */}
-                    <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                        <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
-                            <DialogHeader>
-                                <DialogTitle>Share link</DialogTitle>
-                                <DialogDescription>
-                                    Share the link with your friends and family.
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
-
-                            <div className="flex items-center space-x-2">
-                                <div className="grid flex-1 gap-2">
-                                    <Label htmlFor="link" className="sr-only">
-                                        Link
-                                    </Label>
-                                    <Input
-                                        id="link"
-                                        defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
-                                        readOnly
-                                        className='select-none bg-transparent'
-                                        disabled
-                                    />
-                                </div>
-                                <Button
-                                    onClick={() => {
-                                        const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
-                                        const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
-                                        copyToClipboard(text);
-                                    }}
-                                >
-                                    <span className="sr-only">Copy</span>
-                                    <Copy />
+                            <div className="flex items-center gap-2">
+                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button> */}
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation()
+                                        setOpenDialog(false);
+                                        setIsLoading(false);
+                                        setSelection('');
+                                    }}>
+                                    <X className="h-5 w-5" />
                                 </Button>
                             </div>
-                            <DialogFooter className="sm:justify-start">
-                                <DialogClose asChild>
-                                    <Button type="button" variant="secondary">
-                                        Close
-                                    </Button>
-                                </DialogClose>
-                            </DialogFooter>
+                        </div>
+                    </div>
 
-                        </DialogContent>
-                    </Dialog>
-                </Dialog >
+                    <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
+                        <div className='relative w-full'>
+                            {isLoading && (
+                                <div className="flex flex-col w-full gap-4">
+                                    <div className="flex flex-col mb-2">
+                                        <div className="loader-container inline-flex flex-row">
+                                            {/* <LottieLoader width="w-20" centered={false} animationData={animationData} /> */}
+                                            <div className="my-6 space-y-4">
+                                                <p className="text-sm text-muted-foreground self-end">
+                                                    Generating images... {Math.round(progress)}%
+                                                </p>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-end">
+                                                        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
+                                                            {savedPrompt}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1">
+                                            {[1, 2, 3, 4].map((item) => (
+                                                <div
+                                                    key={item}
+                                                    className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
+                                                    style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
+                                                >
+                                                    <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {pictures.length > 0 && (
+                                <div className="flex flex-col select-none">
+                                    {savedPrompt && (
+                                        <div className="my-6 space-y-4">
+                                            <div className="space-y-3">
+                                                <p className="text-sm text-gray-400">Generated a scene with</p>
+                                                {/* <div className="flex flex-wrap gap-2">
+                                            {keywords.map((keyword) => (
+                                                <span
+                                                    key={keyword}
+                                                    className="px-3 py-1 text-sm rounded-full bg-[#1a1b1f] border border-[#2a2b2f] text-gray-200"
+                                                >
+                                                    {keyword}
+                                                </span>
+                                            ))}
+                                        </div> */}
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {/* User message bubble */}
+                                                <div className="flex justify-end">
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                        {savedPrompt}
+                                                    </div>
+                                                </div>
+
+                                                {/* AI response bubble */}
+                                                <div className="flex justify-start">
+                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                    </div>
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                        I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <RefreshCw className="w-4 h-4" />
+                                                    Generate again
+                                                </Button>
+                                                {/* <Button
+                                                    variant="outline"
+                                                    className="bg-[#1a1b1f] text-white border-[#2a2b2f] hover:bg-[#2a2b2f] flex gap-2 shrink-0"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                    Brainstorm
+                                                </Button> */}
+                                                {/* <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    Reply
+                                                </Button> */}
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <Video className="w-4 h-4" />
+                                                    Make a video
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-1">
+                                        {pictures.map((picture, index) => {
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="opacity-0 animate-fadeIn"
+                                                    style={{
+                                                        animationDelay: `${index * 300}ms`,
+                                                        animationFillMode: 'forwards'
+                                                    }}
+                                                >
+                                                    <GeneratedPicture
+                                                        key={index}
+                                                        index={index}
+                                                        image={picture}
+                                                        webnovel_id={webnovel_id}
+                                                        chapter_id={chapter_id}
+                                                        quote={savedPrompt}
+                                                    />
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {pictures.length > 0 && (
+                                <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+                                    {/* <Button
+                                        variant="outline"
+                                        // onClick={makeVideo}
+                                        className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                                        Make Video
+                                        <ArrowRight className='w-4 h-4' />
+                                    </Button> */}
+                                    <Link
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            console.log("making slideshow clicked")
+                                            makeSlideshow();
+                                        }}
+                                        className='w-full'>
+                                        <CardStyleButton
+                                            title="Slideshow"
+                                            subtitle="Watch Ads to make a slideshow"
+                                            ideaCount={pictures.length}
+                                            images={pictures}
+                                            gradientFrom="#DE2B74"
+                                            gradientTo="#FF6F91"
+                                            className='w-full'
+                                        />
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                    {/* Footer input */}
+                    <div className="flex flex-col space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
+                        {/* Ad banner */}
+                        <div className='w-full flex-shrink-0'>
+                            <div className='relative top-0 left-0 w-full'>
+                                {promotionBannerRef.current}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* share dialog */}
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+                        <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                                Share the link with your friends and family.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
+
+                        <div className="flex items-center space-x-2">
+                            <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
+                                    readOnly
+                                    className='select-none bg-transparent'
+                                    disabled
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
+                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    copyToClipboard(text);
+                                }}
+                            >
+                                <span className="sr-only">Copy</span>
+                                <Copy />
+                            </Button>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Close
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
                 <ShareAsToonyzPostModal
                     imageOrVideo={'video' as ImageOrVideo}
                     showShareAsPostModal={showShareAsPostModal}
@@ -815,43 +884,63 @@ const FloatingMenu: React.FC<{
                 >
                     <DrawerHeader>
                         {/* Ads banner */}
-                        <div className='w-full'>
+                        <div className='w-full h-14'>
                             <div className='relative top-0 left-0 w-full'>
                                 {promotionBannerRef.current}
                             </div>
                         </div>
                     </DrawerHeader>
                     <DrawerFooter className='w-full h-full'>
-                        <ScrollArea className='h-full no-scrollbar'>
+                        <ScrollArea className='max-h-[600px] no-scrollbar'>
 
-                            <div className='relative w-full'>
+                            <div className='relative w-full h-full'>
                                 {isLoading && (
-                                    <div className="flex flex-row">
-                                        <div className="loader-container ">
-                                            <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                    <div className="flex flex-col w-full gap-4">
+                                        <div className="flex flex-col mb-2">
+                                            <div className="loader-container inline-flex flex-row">
+                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                                <p className="text-sm text-muted-foreground mt-2 self-end">
+                                                    Generating images... {Math.round(progress)}%
+                                                </p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1">
+                                                {[1, 2, 3, 4].map((item) => (
+                                                    <div
+                                                        key={item}
+                                                        className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
+                                                        style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
+                                                    >
+                                                        <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <p className="text-sm text-muted-foreground mt-2 self-end">
-                                            Generating images... {Math.round(progress)}%
-                                        </p>
                                     </div>
                                 )}
                                 {pictures.length > 0 && (
                                     <div className="flex flex-col gap-4 mt-6 select-none">
-                                        <div className="grid grid-cols-2 gap-1 ">
+                                        <div className="grid grid-cols-2 gap-1">
                                             {pictures.map((picture, index) => {
                                                 return (
-                                                    <GeneratedPicture
+                                                    <div
                                                         key={index}
-                                                        index={index}
-                                                        image={picture}
-                                                        webnovel_id={webnovel_id}
-                                                        chapter_id={chapter_id}
-                                                        quote={savedPrompt}
-
-                                                    />
+                                                        className="opacity-0 animate-fadeIn"
+                                                        style={{
+                                                            animationDelay: `${index * 300}ms`,
+                                                            animationFillMode: 'forwards'
+                                                        }}
+                                                    >
+                                                        <GeneratedPicture
+                                                            key={index}
+                                                            index={index}
+                                                            image={picture}
+                                                            webnovel_id={webnovel_id}
+                                                            chapter_id={chapter_id}
+                                                            quote={savedPrompt}
+                                                        />
+                                                    </div>
                                                 )
-                                            }
-                                            )}
+                                            })}
                                         </div>
                                     </div>
                                 )}

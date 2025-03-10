@@ -1,9 +1,6 @@
 import * as React from 'react';
-import { Box, Modal } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import { Ellipsis, UserRoundX, CircleHelp, Flag, Trash } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,9 +21,7 @@ import {
 } from "@/components/shadcnUI/AlertDialog"
 import { useTheme } from '@/contexts/providers'
 import { useUser } from '@/contexts/UserContext';
-
-const ITEM_HEIGHT = 48;
-
+import { createEmailHash } from '@/utils/cryptography'
 export default function CommentsDropdownButton({
     comment,
     user,
@@ -66,29 +61,47 @@ export default function CommentsDropdownButton({
             </PopoverTrigger>
             <PopoverContent className="w-24">
                 <div className='flex flex-col gap-2'>
-                    {comment.user.id.toString() === id &&
-                        <MenuItem
-                            key="delete"
-                            onClick={() => {
-                                handleDeleteComment(comment.id.toString());
-                                handleClose();
-                            }}
-                            className='flex items-center gap-2 dark:text-white text-black
-                                 dark:group-hover/user-dropdown:text-black'>
-                            <Trash size={20} className="dark:text-white text-black" />
-                            {phrase(dictionary, "delete", language)}
-                        </MenuItem>
+                    {comment.user.email_hash === createEmailHash(email) &&
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    variant='ghost'
+                                    key="delete"
+                                    onClick={() => {
+                                        setShowDeleteModal(true);
+                                    }}
+                                    className='flex items-center gap-2 dark:text-white text-black'>
+                                    <Trash size={20} className="dark:text-white text-black" />
+                                    {phrase(dictionary, "delete", language)}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                        Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={() => {
+                                            handleDeleteComment(comment.id.toString());
+                                            setShowDeleteModal(false);
+                                        }}>
+                                        Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     }
-
                     <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                        <MenuItem
+                        <Button
                             key="report"
-                            className="flex items-center gap-2 dark:text-white
-                                 text-black dark:group-hover/user-dropdown:text-black"
-                        >
+                            variant="ghost"
+                            className="flex items-center gap-2 dark:text-white text-black">
                             <Flag size={20} className="dark:text-white text-black" />
                             {phrase(dictionary, "report", language)}
-                        </MenuItem>
+                        </Button>
                     </Tooltip>
                 </div>
             </PopoverContent>

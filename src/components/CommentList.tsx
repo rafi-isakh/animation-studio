@@ -32,7 +32,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter }) => {
                 sortedChapters
                     .filter(chapter => chapter.comments && chapter.comments.length > 0)
                     .map((chapter, index) => (
-                            <div key={chapter.id} className="bg-gray-100 dark:bg-gray-900 px-1 first:rounded-t-lg last:rounded-b-lg">
+                            <div key={chapter.id} className="bg-gray-100 dark:bg-[#211F21] px-1 first:rounded-t-lg last:rounded-b-lg">
                                 {/*CommentList is only used for webnovels so webnovelOrPost is false*/}
                                 <CommentsComponent contentToAttachTo={chapter as Chapter} webnovelOrPost={false} addCommentEnabled={false} />
                             </div>

@@ -75,57 +75,47 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className={`antialiased dark`}>
         <RegisterSW />
-        <WebnovelsProvider>
-          <LanguageProvider>
-            <LanguageSetter />
-            <ThemeProvider>
-              <AuthProvider>
-                <UserProvider>
-                  <DeviceProvider>
-                    <MobileMenuProvider>
-                      <SearchProvider>
-                        <StripeProvider>
-                          <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
-                            <Suspense>
-                              <NavigationEvents />
-                            </Suspense>
-                            <Suspense>
-                              <Header isLoggedIn={isLoggedIn} />
-                            </Suspense>
-                            <Margin>
-                              <ToastProvider>
+        <ToastProvider>
+          <WebnovelsProvider>
+            <LanguageProvider>
+              <LanguageSetter />
+              <ThemeProvider>
+                <AuthProvider>
+                  <UserProvider>
+                    <DeviceProvider>
+                      <MobileMenuProvider>
+                        <SearchProvider>
+                          <StripeProvider>
+                            <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
+                              <Suspense>
+                                <NavigationEvents />
+                              </Suspense>
+                              <Suspense>
+                                <Header isLoggedIn={isLoggedIn} />
+                              </Suspense>
+                              <Margin>
                                 <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
                                   {children}
                                 </div>
-                              </ToastProvider>
-                              <Analytics />
-                            </Margin>
-                            {/* 
-                    <div className={`children min-h-screen`}>  
-                     // Header bottom margin :: pt-28 md:pt-24 mb-4
-                  <div className={`${notoSans.className} ${notoSansKR.className} ${notoSansArabic.className} 
-                  ${notoSansThai.className} ${notoSansJP.className} ${notoSansTC.className} ${notoSansSC.className}`}>
-                    <HeaderWrapper />
-                    <Margin>
-                      {children}
-                    </div> 
-                   */}
-                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
-                              <GlobalSidebar />
+                                <Analytics />
+                              </Margin>
+                              <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
+                                <GlobalSidebar />
+                              </div>
+                              <div className="block md:hidden z-[99]">
+                                <BottomNavigationBar />
+                              </div>
                             </div>
-                            <div className="block md:hidden z-[99]">
-                              <BottomNavigationBar />
-                            </div>
-                          </div>
-                        </StripeProvider>
-                      </SearchProvider>
-                    </MobileMenuProvider>
-                  </DeviceProvider>
-                </UserProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </LanguageProvider>
-        </WebnovelsProvider>
+                          </StripeProvider>
+                        </SearchProvider>
+                      </MobileMenuProvider>
+                    </DeviceProvider>
+                  </UserProvider>
+                </AuthProvider>
+              </ThemeProvider>
+            </LanguageProvider>
+          </WebnovelsProvider>
+        </ToastProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
         <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>

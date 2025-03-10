@@ -4,36 +4,37 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
-import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye } from "lucide-react";
-import { Button } from "@/components/shadcnUI/Button"
-import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
-
+import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy } from "lucide-react";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import Masonry from 'react-masonry-css';
-import { Pin } from "@/components/UI/Pin";
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
-
-const breakpointColumnsObj = {
-    default: 5,
-    1280: 4,
-    1024: 3,
-    768: 2,
-    640: 1,
-}
+import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
+import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
+import { WebnovelHoverCard } from "@/components/UI/WebnovelHoverCard";
+import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
 
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_toonyz_post_by_id?id=${id}`);
     if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
+        try {
+            const errorData = await response.json();
+            console.error(errorData);
+        } catch (e) {
+            console.error("Error parsing error response:", e);
+        }
         return null;
     }
-    const post: ToonyzPost = await response.json();
-    return post;
+
+    try {
+        const post: ToonyzPost = await response.json();
+        return post;
+    } catch (e) {
+        console.error("Error parsing post data:", e);
+        return null;
+    }
 }
 
 function getRandomDimensions() {
@@ -44,19 +45,13 @@ function getRandomDimensions() {
         height: heights[Math.floor(Math.random() * heights.length)],
     }
 }
-
-const ToonyzLogo = () => {
-    return <Image src="/toonyz_logo_pink.svg" alt="Toonyz Logo" width={100} height={30} />
-}
-
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
-    // const post = await getPost(params.id);
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
+    const [lastPostId, setLastPostId] = useState<string | null>(null);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-    const quoteRef = useRef<HTMLParagraphElement>(null);
-    const arrowRef = useRef<HTMLSpanElement>(null);
+
 
 
     useEffect(() => {
@@ -92,27 +87,12 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     ...getRandomDimensions()
                 }));
                 setAllPosts(postsWithDimensions);
+
+                // Set the last post ID for cursor-based pagination
+                if (postsWithDimensions.length > 0) {
+                    setLastPostId(postsWithDimensions[postsWithDimensions.length - 1].id.toString());
+                }
             });
-    }, []);
-
-    const truncateText = (text: string, maxLength: number = 15) => {
-        if (text.length <= maxLength) return text;
-        return text.slice(0, maxLength) + '...';
-    };
-
-    const toggleQuote = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        if (quoteRef.current && arrowRef.current) {
-            if (quoteRef.current.classList.contains('max-h-0')) {
-                quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
-                quoteRef.current.classList.add('max-h-[1000px]', 'opacity-100');
-                arrowRef.current.style.transform = 'rotate(90deg)';
-            } else {
-                quoteRef.current.classList.remove('max-h-[1000px]', 'opacity-100');
-                quoteRef.current.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
-                arrowRef.current.style.transform = 'rotate(0deg)';
-            }
-        }
     }, []);
 
     if (!post) {
@@ -128,21 +108,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm font-base">Back</p>
                     </Link>
-                    {/* <p className="text-2xl font-bold">{post.title}</p> */}
-                    <Popover >
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                            // className="bg-[#DE2B74]"
-                            >
-                                <Share2 size={20} className="dark:text-white text-gray-500 z-10" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-24">
-                            <p>Share</p>
-                        </PopoverContent>
-                    </Popover>
+                    <TopNavigationMenu email={post.user.email} user={post.user} postId={post.id.toString()} />
                 </div>
             </div>
 
@@ -174,7 +140,11 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 )}
                 <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-3xl leading-loose text-center max-w-[80%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {/*TODO: this translation should actually come from the novel. It shouldn't be a new translation.*/}
-                    <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
+                    {post.image ? (
+                        <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
+                    ) : (
+                        <></>
+                    )}
                 </p>
             </div>
 
@@ -235,53 +205,14 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         )}
                     </div>
 
-
-                    {webnovel && (
-                        <div className="flex flex-row gap-2">
-                            <p className="text-sm text-gray-500">Novel: {webnovel.title} &#62;</p>
-                            {post.chapter_id && (
-                                <p className="text-sm text-gray-500">
-                                    Chapter {webnovel.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                    {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} />)}
 
                     {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">
                         <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" />
                     </p>)}
 
-                    {/* quote */}
                     {/* quote toggle */}
-                    <div className="flex flex-col self-start">
-                        <button
-                            type="button"
-                            onClick={toggleQuote}
-                            className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer"
-                        >
-                            <span
-                                ref={arrowRef}
-                                className="transform transition-transform duration-200"
-                                style={{
-                                    display: 'inline-block',
-                                    transform: 'rotate(0deg)'
-                                }}
-                            >
-                                ▶
-                            </span>
-                            Quote
-                        </button>
-
-                        {post.quote && (
-                            <p
-                                ref={quoteRef}
-                                className="text-black dark:text-white whitespace-pre-wrap mb-2 text-start self-start transition-opacity duration-300 max-h-0 opacity-0 overflow-hidden"
-                            >
-                                <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
-                            </p>
-                        )}
-                    </div>
-
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
 
                     {post.tags && (
                         <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
@@ -317,21 +248,18 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     )}
 
                     <hr className="w-full border-gray-500" />
-
                     <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
                 <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
-                    <Masonry
-                        breakpointCols={breakpointColumnsObj}
-                        className="my-masonry-grid flex w-auto -ml-4 gap-5"
-                        columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
-                    >
-                        {allPosts?.map((post: any) => (
-                            <Pin key={post.id} post={post} />
-                        ))}
-                    </Masonry>
+                    {allPosts && (
+                        <ToonyzPostGrid
+                            key={post.id.toString()}
+                            className="w-full"
+                            initialPosts={allPosts}
+
+                        />)}
                 </div>
             </div>
         </div>

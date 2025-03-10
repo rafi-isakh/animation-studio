@@ -4,17 +4,21 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
-import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy } from "lucide-react";
+import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy, Bookmark } from "lucide-react";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
 import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
-import { WebnovelHoverCard } from "@/components/UI/WebnovelHoverCard";
+import { WebnovelHoverCard, WebnovelCard } from "@/components/UI/WebnovelHoverCard";
 import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
 import { useUser } from '@/contexts/UserContext';
 import UserInfoCard from "@/components/UI/UserInfoCard";
+import { truncateText } from "@/utils/truncateText";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcnUI/Popover";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 async function getPost(id: string) {
     // get_toonyz_post_by_id?id=${id}
@@ -53,6 +57,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const { email: currentUserEmail } = useUser();
+    const { dictionary, language } = useLanguage();
 
 
     useEffect(() => {
@@ -190,14 +195,13 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         )}
                     </div>
 
-                    {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} />)}
+                    {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} isHoverCard={true} showDetailInfo={true} showEngagementStats={false} showSynopsis={false} showActionButtons={false} />)}
 
-                    {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start">
-                        <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" />
-                    </p>)}
+                    {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
 
                     {/* quote toggle */}
                     {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
+
 
                     {post.tags && (
                         <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
@@ -232,6 +236,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         </div>
                     )}
 
+                    {/* card for the webnovel */}
+                    {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
+
                     <hr className="w-full border-gray-500" />
                     <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
@@ -243,7 +250,6 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             key={post.id.toString()}
                             className="w-full"
                             initialPosts={allPosts}
-
                         />)}
                 </div>
             </div>

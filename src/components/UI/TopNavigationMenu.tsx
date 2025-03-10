@@ -23,6 +23,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import { User } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { useCopyToClipboard } from "@/utils/copyToClipboard";
 
 const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor: boolean, user: User, postId: string }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -30,55 +31,8 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
   const { language, dictionary } = useLanguage();
   const { id, email_hash } = useUser();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const copyToClipboard = async (text: string) => {
-    try {
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        toast({
-          variant: "success",
-          title: "Link copied to clipboard!",
-          description: "You can now paste it anywhere you want.",
-        });
-      } else {
-        // Fallback for browsers (like Safari) that may not support Clipboard API
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.setAttribute("readonly", ""); // Prevent iOS keyboard from appearing
-        textArea.style.position = "absolute";
-        textArea.style.left = "-9999px"; // Move element off-screen
-        document.body.appendChild(textArea);
-        textArea.select();
-
-        // Execute the copy command
-        const successful = document.execCommand("copy");
-        document.body.removeChild(textArea);
-
-        if (successful) {
-          toast({
-            variant: "success",
-            title: "Link copied to clipboard!",
-            description: "You can now paste it anywhere you want.",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Failed to copy",
-            description: "Please try selecting and copying the text manually.",
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-      toast({
-        variant: "destructive",
-        title: "Failed to copy",
-        description: "Please try selecting and copying the text manually.",
-      });
-    }
-  };
-
+  const copyToClipboard = useCopyToClipboard();
+ 
   return (
     <>
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
@@ -172,10 +126,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
               />
             </div>
             <Button
-              onClick={() => {
-                const linkText = `${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`;
-                copyToClipboard(linkText);
-              }}
+              onClick={() => { copyToClipboard(`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`);}}
               type="button"
               size="sm"
               className="px-3"

@@ -73,7 +73,7 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                                 <div className="flex flex-1 justify-between mt-2">
                                     <div className="text-center">
                                         <p className="text-muted-foreground mb-1">Stories</p>
-                                        {userWebnovels.length > 0 ?  <p className="text-xl font-semibold text-[#DE2B74]">{userWebnovels.length}</p> : <p className="text-xl font-semibold text-indigo-900">0</p>}
+                                        {userWebnovels.length > 0 ?  <p className="text-xl font-semibold text-[#DE2B74]">{userWebnovels.length}</p> : <p className="text-xl font-semibold text-[#DE2B74]">0</p>}
                                     </div>
                                      <div className="text-center">
                                         <p className="text-muted-foreground mb-1">Posts</p>

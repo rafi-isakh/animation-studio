@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Webtoon, Webnovel } from "@/components/Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { useMediaQuery, Modal, Box, Skeleton } from "@mui/material";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -296,15 +297,17 @@ export default function InfoAndPictureComponent({
                                         </Button>
                                     </div>
 
-                                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                                        <Box sx={useModalStyle}>
-                                            <div className='flex flex-col space-y-4 items-center justify-center'>
-                                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
-                                                <Button color='gray' variant='outline' className='mt-10 w-32' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                                <Button color='gray' variant='outline' className='mt-10 w-32' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                                            </div>
-                                        </Box>
-                                    </Modal>
+                                    <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter className='flex flex-row gap-2 items-center justify-center'>
+                                                <Button color='destructive' variant='outline' className='' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
+                                                <Button color='gray' variant='outline' className='' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </>
                             }
                             {/* Premium Info */}

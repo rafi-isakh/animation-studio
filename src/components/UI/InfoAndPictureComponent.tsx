@@ -58,6 +58,7 @@ export default function InfoAndPictureComponent({
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
+    const [pictures, setPictures] = useState([]);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -99,6 +100,15 @@ export default function InfoAndPictureComponent({
         return userEmailHash == jongminEmailHash
     }
 
+    const generateTrailer = async (chapter_ids: number[]) => {
+        console.log(chapter_ids);
+        const response = await fetch("/api/generate_trailer", {
+            method: "POST",
+            body: JSON.stringify({ chapter_ids, trailer_style: "cinematic", trailer_type: "B" }),
+        });
+        const data = await response.json();
+        setPictures(data.trailer);
+    }
     return (
         <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
                         bg-gradient-to-b from-transparent to-transparent 
@@ -270,6 +280,26 @@ export default function InfoAndPictureComponent({
                                 </div>
                             </div>
 
+                            <div className="pb-5 w-full">
+                                <Button
+                                    variant="default"
+                                    className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                    onClick={() => {
+                                        generateTrailer(content.chapters.map(chapter => chapter.id));
+                                    }}
+                                >
+                                    <p>
+                                        {phrase(dictionary, "createVideo", language)}
+                                    </p>
+                                </Button>
+                            </div>
+                            {pictures && pictures.length > 0 && (
+                                <div className="pb-5 w-full">
+                                    {pictures.map((picture, index) => (
+                                        <Image key={index} src={`data:image/png;base64,${picture}`} alt="Trailer" width={100} height={100} />
+                                    ))}
+                                </div>
+                            )}
                             {isJongmin() &&
                                 <div className="pb-5 w-full">
                                     <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />

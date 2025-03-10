@@ -3,7 +3,7 @@ import { Webnovel, Chapter, Webtoon } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { FC, useEffect, useState } from "react";
-import ChapterCommentsComponent from "@/components/ChapterCommentsComponent";
+import CommentsComponent from "@/components/CommentsComponent";
 
 interface CommentListProps {
     content: Webnovel | Webtoon;
@@ -34,7 +34,7 @@ export const CommentList: FC<CommentListProps> = ({ content, chapter }) => {
                     .map((chapter, index) => (
                             <div key={chapter.id} className="bg-gray-100 dark:bg-gray-900 px-1 first:rounded-t-lg last:rounded-b-lg">
                                 {/*CommentList is only used for webnovels so webnovelOrPost is false*/}
-                                <ChapterCommentsComponent contentToAttachTo={chapter as Chapter} webnovelOrPost={false} addCommentEnabled={false} />
+                                <CommentsComponent contentToAttachTo={chapter as Chapter} webnovelOrPost={false} addCommentEnabled={false} />
                             </div>
                     ))
             )}

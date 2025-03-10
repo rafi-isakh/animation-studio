@@ -19,7 +19,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const language = formData.get('language')
     const email = formData.get('email')
     const author = formData.get('author')
-
+    const publisherEnglishName = formData.get('publisherEnglishName')
+    const publisherKoreanName = formData.get('publisherKoreanName')
+    const publisherEmail = formData.get('publisherEmail')
+    const numberOfFreeChapters = formData.get('numberOfFreeChapters')
     const fileType = coverArt.type;
     const fileContent = Buffer.from(await coverArt.arrayBuffer());
 
@@ -51,6 +54,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
         cover_art: fileName,
         user_email: email,
         author: author,
+        publisher_english_name: publisherEnglishName,
+        publisher_korean_name: publisherKoreanName,
+        publisher_email: publisherEmail,
+        num_free_chapters: numberOfFreeChapters
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webnovel_admin`, {

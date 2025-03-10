@@ -37,7 +37,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ page, maxPage, scrollType }) 
 
 
     return (
-        <div className="w-full fixed top-0 z-50">
+        <div className="w-full fixed top-0 z-[999]">
             <LinearProgress variant="determinate" value={scrollPercent} color="inherit" />
         </div>
     );

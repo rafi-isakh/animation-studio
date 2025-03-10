@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
                 loggedIn: true,
                 nickname: user.nickname,
                 bio: user.bio,
-                id: user.id,
+                id: user.id.toString(),
                 email: email,
                 email_hash: user.email_hash,
                 stars: user.stars,

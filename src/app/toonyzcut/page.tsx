@@ -3,7 +3,7 @@ import { ToonyzCutListComponent } from '@/components/ToonyzCutListComponent';
 import { Webnovel } from '@/components/Types';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
-export default async function Toonyzcut() {
+export default function Toonyzcut() {
     let { webnovels } = useWebnovels();
     webnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
 

@@ -12,7 +12,7 @@ interface Post {
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
+    const heights = [1000, 1200, 1400, 1600]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
@@ -20,21 +20,45 @@ function getRandomDimensions() {
 }
 
 export default function ToonyzPosts() {
-    const [posts, setPosts] = useState([]);
+    const [posts, setPosts] = useState<any[]>([]);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
 
-    useEffect(() => {
-        fetch('/api/get_toonyz_posts')
-            .then(res => res.json())
-            .then(data => {
-                // Add random dimensions to each post
-                const postsWithDimensions = data.map((post: Post) => ({
+    const fetchPosts = async (page: number) => {
+        const response = await fetch(`/api/get_toonyz_posts?page=${page}`);
+        const data = await response.json();
+        return data;
+    };
+
+    const loadMorePosts = async () => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
+        try {
+            const newPosts = await fetchPosts(page);
+            if (newPosts.length === 0) {
+                setHasMore(false);
+            } else {
+                // Add random dimensions to each new post
+                const postsWithDimensions = newPosts.map((post: Post) => ({
                     ...post,
                     ...getRandomDimensions()
                 }));
-                setPosts(postsWithDimensions);
-            });
-    }, []);
+                setPosts(prev => [...prev, ...postsWithDimensions]);
+                setPage(prev => prev + 1);
+            }
+        } catch (error) {
+            console.error('Error loading more posts:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
+        // Load initial posts only once
+        loadMorePosts();
+    }, []);
 
     const breakpointColumnsObj = {
         default: 5,
@@ -53,8 +77,8 @@ export default function ToonyzPosts() {
                     className="my-masonry-grid flex w-auto -ml-4 gap-5"
                     columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
                 >
-                    {posts.map((post: any) => (
-                        <Pin key={post.id} post={post} />
+                    {posts.map((post: any, index: number) => (
+                        <Pin key={post.id} post={post} isLastItem={index === posts.length - 1} onView={loadMorePosts} />
                     ))}
                 </Masonry>
             </main>

@@ -71,7 +71,7 @@ export default function Stars() {
                     </div>
                 </Box>
                 <TabPanel value="1">
-                    <PurchaseStarsComponent />
+                    <PurchaseStarsComponent setTabValue={setTabValue}/>
                     {/* terms of use */}
                     <div className="md:w-[360px] w-full mx-auto text-[10px] text-left py-2 px-2 text-black dark:text-gray-500">
                         <div className='w-full whitespace-pre-wrap'>

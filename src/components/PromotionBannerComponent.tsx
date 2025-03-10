@@ -20,11 +20,11 @@ const PromotionBannerComponent = () => {
 
   useEffect(() => {
     if (isDesktop) {
-      setLogoWidth(141);
-      setLogoHeight(32);
-    } else {
       setLogoWidth(106);
       setLogoHeight(24);
+    } else {
+      setLogoWidth(90);
+      setLogoHeight(20);
     }
   }, [isDesktop]);
 
@@ -39,13 +39,11 @@ const PromotionBannerComponent = () => {
   }, [isDesktop]);
 
 
-  const ComponentOne: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => {
+  const ComponentOne: React.FC = () => {
     return (
       <Link href='https://www.instagram.com/toonyz_en'>
         <div
-          className='flex flex-row justify-center rounded-xl md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 '
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 '
         >
           <div className='flex flex-col justify-center md:p-0 pl-5'>
             <Image
@@ -58,7 +56,7 @@ const PromotionBannerComponent = () => {
               height={logoHeight}
               className=''
             />
-            <p className='md:text-base text-[10px]'>{phrase(dictionary, 'promotionInsta', language)}</p>
+            <p className='md:text-sm text-[10px]'>{phrase(dictionary, 'promotionInsta', language)}</p>
           </div>
           <div className='md:p-0'>
             <Image
@@ -75,13 +73,11 @@ const PromotionBannerComponent = () => {
     )
   }
 
-  const ComponentTwo: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => (
+  const ComponentTwo: React.FC = () => (
 
     <Link href='/creators' className="cursor-pointer">
       <div
-        className='flex flex-row justify-center rounded-xl md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pt-3 pb-1'
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pb-1'
       >
         <div className="flex items-center justify-center h-full">
           <div className="flex flex-row">
@@ -116,16 +112,14 @@ const PromotionBannerComponent = () => {
     </Link>
   );
 
-  const ComponentThree: React.FC<{ isHovered: boolean; setIsHovered: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isHovered, setIsHovered }) => {
+  const ComponentThree: React.FC = () => {
 
     return (
       <div
-        className='flex flex-row justify-center rounded-xl md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pt-3 pb-1'
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 pb-1'
       >
 
-        <div className='flex md:flex-row flex-col gap-4 justify-center items-center md:p-5 p-4 px-10'>
+        <div className='flex flex-col gap-4 justify-center items-center px-3 py-3 text-sm'>
           <Image
             src={isDarkMode ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
             alt='Toonyz logo'
@@ -135,19 +129,9 @@ const PromotionBannerComponent = () => {
             className=''
           />
           {/* Begin exploring with the app today! */}
-          {phrase(dictionary, 'promotionApp', language)}
-
-          <div className='flex flex-row gap-4 justify-center md:p-0 md:pb-1 pb-2'>     {/* items-center */}
-
-            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-xl px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
-              <i className="fab fa-apple"></i>
-              <span className='md:block hidden'> iOS </span> Download
-            </button>
-            <button className='flex flex-row justify-center items-center gap-1 bg-white dark:text-black rounded-xl px-3 md:h-10 h-5 hover:bg-[#FFF0EC] md:text-base text-[10px]'>
-              <i className="fab fa-android text-[12px]"></i>
-              <span className='md:block hidden'> Android </span> Download
-            </button>
-          </div>
+          {/* {phrase(dictionary, 'promotionApp', language)} */}
+          <p className='text-center'> Boost your brand with us! <br />
+            Advertise with our platform to reach more customers.</p>
         </div>
       </div>
     )
@@ -163,14 +147,11 @@ const PromotionBannerComponent = () => {
     setSelectedComponent(getRandomComponentIndex(componentsArray.length));
   }, []);
 
-
-
   const SelectedComponent = componentsArray[selectedComponent];
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div className='dark:text-white self-center max-w-screen-xl w-full mx-auto'>
-      <SelectedComponent isHovered={isHovered} setIsHovered={setIsHovered} />
+      <SelectedComponent />
     </div>
   );
 };

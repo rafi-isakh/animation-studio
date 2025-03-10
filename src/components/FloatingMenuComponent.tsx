@@ -284,7 +284,7 @@ const FloatingMenu: React.FC<{
             const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)
             const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
                 method: 'POST',
-                body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "cinematic", trailer_type: "B" })
+                body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "anime", trailer_type: "A" })
             })
 
             if (!response.ok) {
@@ -402,17 +402,15 @@ const FloatingMenu: React.FC<{
     const makeVideo = async () => {
         console.log("making video!");
         const videoUrls: string[] = [];
-        for (let i = 0; i < pictures.length; i++) {
-            const picture = pictures[i];
+        const processPromises = pictures.map(async (picture, i) => {
             const pictureFilename = uuidv4();
             const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
                 method: 'POST',
-                // make just one picture to a video as test.
                 body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
             });
             if (!uploadResponse.ok) {
                 toast({
-                    title: "Error",
+                    title: "Error", 
                     description: "Failed to upload picture to s3, please try again later",
                     variant: "destructive"
                 })
@@ -426,7 +424,7 @@ const FloatingMenu: React.FC<{
             if (!response.ok) {
                 toast({
                     title: "Error",
-                    description: "Failed to generate video, please try again later",
+                    description: "Failed to generate video, please try again later", 
                     variant: "destructive"
                 })
                 throw new Error('Failed to generate video');
@@ -434,8 +432,11 @@ const FloatingMenu: React.FC<{
             const data = await response.json();
             const url = data.video_url;
             console.log(`video ${i} url: `, url);
-            videoUrls.push(url);
-        }
+            return url;
+        });
+
+        const urls = await Promise.all(processPromises);
+        videoUrls.push(...urls);
 
         const getVideoDuration = (videoUrl: string): Promise<number> => {
             return new Promise((resolve, reject) => {
@@ -677,6 +678,9 @@ const FloatingMenu: React.FC<{
                                                 <Button
                                                     variant="outline"
                                                     className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                    onClick={() => {
+                                                        makeVideo();
+                                                    }}
                                                 >
                                                     <Video className="w-4 h-4" />
                                                     Make a video

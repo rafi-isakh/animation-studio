@@ -22,13 +22,13 @@ const breakpointColumnsObj = {
 }
 
 interface ToonyzPostGridProps {
-    initialPosts: ToonyzPost[];
+    initialPosts?: ToonyzPost[];
     className?: string;
     fetchPosts?: () => Promise<ToonyzPost[]>;
 }
 
 const ToonyzPostGrid = ({ initialPosts, className = "", fetchPosts }: ToonyzPostGridProps) => {
-    const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts);
+    const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts || []);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);

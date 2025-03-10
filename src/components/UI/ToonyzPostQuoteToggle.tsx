@@ -6,9 +6,10 @@ import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 interface QuoteToggleProps {
     quote: string;
     postId: string;
+    
 }
 
-const QuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId }) => {
+const QuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, }) => {
     const [quoteExpanded, setQuoteExpanded] = useState<boolean>(true);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);

@@ -240,9 +240,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     {/* reusable component for the feed */}
                     {allPosts && (
                         <ToonyzPostGrid
+                            key={post.id.toString()}
                             className="w-full"
                             initialPosts={allPosts}
-                            // fetchPosts={() => Promise.resolve(allPosts)}
+
                         />)}
                 </div>
             </div>

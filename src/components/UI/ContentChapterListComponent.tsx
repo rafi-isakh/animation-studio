@@ -1,18 +1,17 @@
 'use client'
 import { useState, useRef, useEffect } from "react";
-import { Button, Skeleton } from "@mui/material";
+import { Button } from "@/components/shadcnUI/Button";
+import { Skeleton } from "@mui/material";
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { Box } from "@mui/material";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon, Comment, Webnovel, Chapter } from "@/components/Types";
+import { Webtoon, Comment, Webnovel, Chapter, ToonyzPost } from "@/components/Types";
 import Link from "next/link";
-import { WebtoonChapter } from "@/components/Types";
 import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
-import { Flag, CircleHelp, ArrowDownUp, List, MessageCircle, FileText, Heart, AlignLeft, ChevronRightIcon } from "lucide-react";
+import { ArrowDownUp, MessageCircle, FileText, AlignLeft, ChevronRightIcon } from "lucide-react";
 import WebtoonRecommendationsComponent from "@/components/WebtoonRecommendationsComponent";
 import Image from "next/image";
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
@@ -22,10 +21,6 @@ import {
     TwitterShareButton,
     FacebookIcon,
     TwitterIcon,
-    EmailShareButton,
-    EmailIcon,
-    LinkedinShareButton,
-    LinkedinIcon,
     TumblrShareButton,
     TumblrIcon,
     TelegramShareButton,
@@ -38,7 +33,7 @@ import {
 import { CommentList } from "@/components/CommentList";
 import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
-
+import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
 interface ContentChapterListComponentProps {
     content: Webtoon | Webnovel;
     slug?: string;
@@ -48,6 +43,7 @@ interface ContentChapterListComponentProps {
     isWebtoon?: boolean;
     onContentUpdate?: (updatedContent: Webtoon | Webnovel) => void;
     loadingUsersOtherWebnovels?: boolean;
+    posts?: ToonyzPost[];
 }
 
 const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = ({
@@ -59,6 +55,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     isWebtoon = false,
     loadingUsersOtherWebnovels = false,
     onContentUpdate,
+    posts = [],
 }) => {
     const [isSortedByLatest, setIsSortedByLatest] = useState(true);
     const [tabValue, setTabValue] = useState('1');
@@ -77,24 +74,15 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     };
 
     const chapterCount = content?.chapters?.length || 0;
+    const postCount = posts?.length || 0;
 
     return (
         <div className="flex flex-col w-full md:overflow-auto overflow-x-hidden">
             <TabContext value={tabValue}>
-                <Box
-                    sx={{
-                        borderBottom: 1,
-                        borderColor: 'divider', // gray-700 #374151 //  #6b7280
-                        padding: {
-                            xs: '20px 10px',  // padding for mobile (<600px)
-                            sm: 0          // padding for larger screens
-                        }
-                    }}
-                    className='dark:text-gray-700 dark:border-gray-700'>
+                <div className='border-b text-gray-700 dark:text-gray-700 dark:border-gray-700  border-gray-200'>
                     <div className="flex flex-row justify-between items-center">
                         <TabList
                             onChange={handleChange}
-                            aria-label="lab API tabs"
                             sx={{
                                 '& .MuiTab-root': {
                                     marginLeft: '10px',
@@ -112,57 +100,54 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                         >
                             <Tab
                                 label={
-                                    <div className="flex flex-row items-center gap-1">
-                                        <span className="flex flex-row items-center gap-1">
-                                            <AlignLeft size={16} />
-                                            {phrase(dictionary, "episodes", language)}
-                                        </span>
-                                        <span className="">
-                                            {chapterCount}
-                                        </span>
-                                    </div>
+                                    <span className="flex flex-row items-center gap-1 text-sm">
+                                        <AlignLeft size={16} />
+                                        {phrase(dictionary, "episodes", language)}
+                                        {chapterCount}
+                                    </span>
                                 }
                                 value="1"
                                 className="dark:text-white 
                                  dark:focus:text-[#DB2777]
                                  dark:active:text-[#DB2777]
-                                "
-                            />
+                                " />
                             <Tab label={
-                                <>
-                                    <span className="flex flex-row items-center gap-1">
-                                        <FileText size={16} /> {phrase(dictionary, "description", language)}
-                                    </span>
-                                </>
+                                <span className="flex flex-row items-center gap-1 text-sm">
+                                    <FileText size={16} /> {phrase(dictionary, "description", language)}
+                                </span>
                             }
                                 value="2"
                                 className="dark:text-white  dark:focus:text-[#DB2777] dark:active:text-[#DB2777]
                                 md:w-auto sm:w-[10px]
                                 " />
+                            <Tab label={
+                                <span className="flex flex-row items-center gap-1 text-sm">
+                                    <MessageCircle size={16} />
+                                    POST{' '}
+                                    {postCount}
+                                </span>
+                            }
+                                value="3"
+                                className="dark:text-white  dark:focus:text-[#DB2777] dark:active:text-[#DB2777]
+                                md:w-auto sm:w-[10px]
+                                " />
                         </TabList>
+
                         <div className='self-center text-sm'>
                             <Button
-                                sx={{
-                                    color: 'gray',
-                                    backgroundColor: 'transparent',
-                                }}
-                                variant="text"
+                                variant="link"
                                 onClick={handleSortToggle}
-                                className="bg-transparent text-black dark:text-white 
+                                className="bg-transparent text-black dark:text-white !no-underline
                                             hover:text-[#DB2777] dark:hover:text-[#DB2777] 
                                             px-2 py-1 rounded-md flex flex-row items-center gap-2">
                                 <ArrowDownUp size={16} className="text-gray-500 group-hover:text-white self-center" />
                                 <span className="hidden md:flex">
-                                    {phrase(
-                                        dictionary,
-                                        isSortedByLatest ? "sort_latest" : "sort_oldest",
-                                        language
-                                    )}
+                                    {phrase(dictionary, isSortedByLatest ? "sort_latest" : "sort_oldest", language)}
                                 </span>
                             </Button>
                         </div>
                     </div>
-                </Box>
+                </div>
 
                 <TabPanel
                     value="1"
@@ -181,7 +166,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
                             <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                                <Button variant='text' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 rounded-md py-3">
+                                <Button variant='outline' className="flex flex-row justify-between items-center gap-2 text-sm text-black dark:text-white bg-gray-100 dark:bg-gray-900 border-none rounded-md py-3">
                                     <p className="text-sm flex flex-row items-center gap-2">
                                         <Image
                                             src="/images/N_logo.svg"
@@ -264,7 +249,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
 
                             {/* Comments list */}
                             {content && content.chapters && content.chapters.length > 0 ? (
-                                <CommentList    
+                                <CommentList
                                     content={content}
                                     chapter={content.chapters[0] as Chapter}
                                 />
@@ -381,6 +366,28 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             </p>
                         </div>
                     )}
+                </TabPanel>
+                <TabPanel
+                    value="3"
+                >
+                    <div className="flex flex-col self-start justify-start gap-4 space-y-4">
+                        {posts && posts.length > 0 ? (
+                            <div>
+                                {posts.map((post, index) => (
+                                    <div key={index} className="flex flex-col mb-4">
+                                        <ToonyzPostCard post={post} webnovel={content as Webnovel} />
+                                    </div>
+                                ))}
+
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-8">
+                                <p className="text-gray-500 text-sm">
+                                    {phrase(dictionary, "noPosts", language)}
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </TabPanel>
             </TabContext>
         </div>

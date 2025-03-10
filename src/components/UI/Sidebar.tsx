@@ -166,7 +166,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
           <div className={`flex flex-row items-center justify-between ${expanded ? "gap-10" : "gap-0"}`}>
             <Link href="/?version=premium">
               {expanded && <Image
-                src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
+                src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyz_logo_pink.svg'}
                 alt="N_logo"
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? "inline-flex" : "hidden"}`}
                 width={100}

@@ -270,7 +270,7 @@ const WebnovelTranslateComponent = (
                     {scrollType === 'horizontal' &&
                         <div className='relative flex flex-col'>
                             {/* Navigation buttons - positioned absolutely on the sides */}
-                            <div className="fixed top-1/2 left-20 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 left-20 transform -translate-y-1/2 z-[999]">
                                 <button
                                     onClick={prevPage}
                                     className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors duration-300 opacity-[0.4] hover:opacity-[1]"
@@ -281,7 +281,7 @@ const WebnovelTranslateComponent = (
                                 </button>
                             </div>
 
-                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 z-[999]">
                                 <button
                                     onClick={nextPage}
                                     className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors opacity-[0.4] hover:opacity-[1]"

@@ -2,14 +2,15 @@
 import Image from "next/image"
 import Link from "next/link"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
-import {formatRelativeTime} from "@/utils/formatTime";
+import { formatRelativeTime } from "@/utils/formatTime";
 import { User, ToonyzPost } from "@/components/Types";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useState, useEffect } from "react";
 import { Webnovel } from "@/components/Types";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { truncateText } from "@/utils/truncateText";
-
+import { MessageCircle } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar";
 
 
 interface CollectionCardProps {
@@ -17,23 +18,24 @@ interface CollectionCardProps {
   pinCount: number
   created_at: string
   webnovel_id: string
+  commentCount: number
   images: {
     image: string
     type?: 'image' | 'video'
     thumbnail?: string
   }[]
-  likedBy?: {
+  commentedBy?: {
     id: string
-    name: string
-    avatar: string
+    nickname: string
+    picture: string
   }[]
 }
 
-export default function CollectionCard({ title, pinCount, webnovel_id, created_at, images, likedBy = [] }: CollectionCardProps) {
+export default function CollectionCard({ title, pinCount, webnovel_id, created_at, images, commentedBy = [], commentCount }: CollectionCardProps) {
   const { getWebnovelById } = useWebnovels();
   const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
   const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
-  
+
   // Create refs for the videos
   const videoRefs = [
     useState<HTMLVideoElement | null>(null),
@@ -48,7 +50,7 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
     };
     fetchWebnovel();
   }, [webnovel_id]);
-  
+
   // Handle mouse enter to play video
   const handleMouseEnter = (index: number) => {
     setHoveredVideo(index);
@@ -56,7 +58,7 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
       videoRefs[index][0].play().catch(e => console.log("Video play error:", e));
     }
   };
-  
+
   // Handle mouse leave to pause video
   const handleMouseLeave = (index: number) => {
     setHoveredVideo(null);
@@ -64,8 +66,8 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
       videoRefs[index][0].pause();
     }
   };
-  
-    return (
+
+  return (
     <div className="max-w-[400px] w-fit rounded-xl overflow-hidden shadow-md bg-white dark:bg-[#211F21] flex-shrink-0 flex-grow-0">
       <Link href={webnovel_id ? `/toonyz_posts/${webnovel_id}` : "#"} className="block">
         <div className="relative h-64 w-full">
@@ -73,9 +75,9 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
           <div className="absolute left-0 top-0 w-1/3 h-full p-0.5">
             <div className="relative h-full w-full overflow-hidden">
               {images[0]?.type === 'video' ? (
-                <div 
+                <div
                   className="relative h-full w-full"
-                  onMouseEnter={() => handleMouseEnter(0)} 
+                  onMouseEnter={() => handleMouseEnter(0)}
                   onMouseLeave={() => handleMouseLeave(0)}
                 >
                   <video
@@ -110,9 +112,9 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
           <div className="absolute left-1/3 top-0 w-1/3 h-full p-0.5">
             <div className="relative h-full w-full overflow-hidden">
               {images[1]?.type === 'video' ? (
-                <div 
+                <div
                   className="relative h-full w-full"
-                  onMouseEnter={() => handleMouseEnter(1)} 
+                  onMouseEnter={() => handleMouseEnter(1)}
                   onMouseLeave={() => handleMouseLeave(1)}
                 >
                   <video
@@ -146,9 +148,9 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
           <div className="absolute right-0 top-0 w-1/3 h-full p-0.5">
             <div className="relative h-full w-full overflow-hidden">
               {images[2]?.type === 'video' ? (
-                <div 
+                <div
                   className="relative h-full w-full"
-                  onMouseEnter={() => handleMouseEnter(2)} 
+                  onMouseEnter={() => handleMouseEnter(2)}
                   onMouseLeave={() => handleMouseLeave(2)}
                 >
                   <video
@@ -193,29 +195,37 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
             />
           </h2>
         </Link>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-gray-500 text-sm">
+        <div className="flex flex-col items-start justify-between">
+          <div className="flex flex-row items-center text-gray-500 text-sm">
             <span>{pinCount} Pins</span>
             <span className="mx-1">•</span>
             <span>{formatRelativeTime(created_at)}</span>
+            <span className="mx-1"><MessageCircle className="w-4 h-4" /></span>
+            <span>{commentCount} Comments</span>
           </div>
-
-          {likedBy.length > 0 && (
+          {/* <div className="flex flex-row items-start text-gray-500 text-sm">
+            <span className="mx-1"><MessageCircle className="w-4 h-4" /></span>
+            <span>{commentCount} Comments</span>
+          </div> */}
+          {commentedBy.length > 0 && (
             <div className="flex items-center">
               <div className="flex -space-x-2 mr-2">
-                {likedBy.slice(0, 3).map((user) => (
-                  <div key={user.id} className="relative w-6 h-6 rounded-full border border-white overflow-hidden">
-                    <Image src={user.avatar || "/placeholder.svg"} alt={user.name} fill className="object-cover" />
-                  </div>
+                {commentedBy.slice(0, 3).map((user) => (
+                  <Avatar key={user.id} className="relative w-6 h-6 rounded-full border border-white overflow-hidden">
+                    <AvatarImage src={getImageUrl(user.picture) || ""} alt={user.nickname} />
+                    <AvatarFallback className="bg-gray-300 flex items-center justify-center text-xs text-black dark:text-black">
+                      {user.nickname.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                 ))}
               </div>
-              {likedBy.length > 0 && (
+              {commentedBy.length > 0 && (
                 <span className="text-xs text-gray-500">
-                  {likedBy.length > 3
-                    ? `+${likedBy.length - 3} more`
-                    : likedBy.length === 1
-                      ? `${likedBy[0].name} likes this`
-                      : `${likedBy.length} likes`}
+                  {commentedBy.length > 3
+                    ? `+${commentedBy.length - 3} more`
+                    : commentedBy.length === 1
+                      ? `${commentedBy[0].nickname} engaged`
+                      : `${commentedBy.length} engaged`}
                 </span>
               )}
             </div>

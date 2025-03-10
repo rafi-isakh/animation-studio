@@ -11,6 +11,7 @@ interface Collection {
   id: string
   title: string
   pinCount: number
+  commentCount: number
   created_at: string
   webnovel_id?: string
   images: {
@@ -18,6 +19,7 @@ interface Collection {
     type?: 'image' | 'video'
     thumbnail?: string
   }[]
+  commentedBy: { id: string; nickname: string; picture: string }[]
 }
 
 interface CollectionGridProps {
@@ -30,16 +32,17 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
     <div className="relative max-w-screen-xl mx-auto">
       <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "ToonyzPost", language)}</h2>
       <ScrollArea className="no-scrollbar">
-        <div className="flex w-full space-x-4">
+        <div className="flex w-full space-x-4 py-1">
           {collections.map((collection) => (
             <CollectionCard
               key={collection.id}
               title={collection.title}
               pinCount={collection.pinCount}
+              commentCount={collection.commentCount}
               created_at={collection.created_at}
               images={collection.images}
               webnovel_id={collection.webnovel_id || ''}
-            // likedBy={collection.likedBy}
+              commentedBy={collection.commentedBy}
             />
           ))}
         </div>
@@ -79,10 +82,31 @@ export const ToonyzPostCards = () => {
       return dateB.getTime() - dateA.getTime();
     })[0];
 
+    // Count unique users who commented on any post in this group
+    const uniqueCommenters = new Set();
+    const commenters: { id: string; nickname: string; picture: string }[] = [];
+    
+    postsGroup.forEach(post => {
+      if (post.comments && Array.isArray(post.comments)) {
+        post.comments.forEach(comment => {
+          if (comment.user && comment.user.id && !uniqueCommenters.has(comment.user.id)) {
+            uniqueCommenters.add(comment.user.id);
+            commenters.push({
+              id: comment.user.id.toString(),
+              nickname: comment.user.nickname || 'Anonymous',
+              picture: comment.user.picture || '/default-avatar.png'
+            });
+          }
+        });
+      }
+    });
+
     return {
       id: webnovelId === 'undefined' ? `group-${Math.random().toString(36).substr(2, 9)}` : webnovelId,
       title: mostRecentPost.title || '',
       pinCount: postsGroup.length, // Count of posts in this group
+      commentCount: uniqueCommenters.size, // Count of unique users who commented
+      commentedBy: commenters, // Add the commenter information
       webnovel_id: webnovelId === 'undefined' ? '' : webnovelId,
       created_at: mostRecentPost.created_at instanceof Date
         ? mostRecentPost.created_at.toISOString()

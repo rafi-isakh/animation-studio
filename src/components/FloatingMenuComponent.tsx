@@ -100,6 +100,7 @@ const FloatingMenu: React.FC<{
     const [testText, setTestText] = useState<string>("")
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
+    const [prompts, setPrompts] = useState<string[]>([]);
 
     useEffect(() => {
 
@@ -269,9 +270,15 @@ const FloatingMenu: React.FC<{
         }, 300);
 
         try {
-            const response = await fetch(`/api/generate_pictures`, {
+            // const response = await fetch(`/api/generate_pictures`, {
+            //     method: 'POST',
+            //     body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
+            // })
+
+            const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)
+            const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
                 method: 'POST',
-                body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
+                body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "cinematic", trailer_type: "B" })
             })
 
             if (!response.ok) {
@@ -314,6 +321,7 @@ const FloatingMenu: React.FC<{
                 throw new Error('Invalid response format from server');
             }
             setPictures(data.images);
+            setPrompts(data.prompts);
             handlePicturesGenerated(data.images);
             setProgress(100);
             clearInterval(progressInterval);
@@ -407,7 +415,7 @@ const FloatingMenu: React.FC<{
             const image_url = getImageUrl(`${pictureFilename}.png`);
             const response = await fetch('/api/generate_video', {
                 method: 'POST',
-                body: JSON.stringify({ video_prompt: "TEST PROMPT", image_url: image_url }),
+                body: JSON.stringify({ video_prompt: prompts[i], image_url: image_url }),
             });
             if (!response.ok) {
                 toast({

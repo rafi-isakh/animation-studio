@@ -24,8 +24,6 @@ import {
     TwitterIcon,
     LinkedinShareButton,
     LinkedinIcon,
-    TumblrShareButton,
-    TumblrIcon,
     TelegramShareButton,
     TelegramIcon,
     WhatsappShareButton,
@@ -69,15 +67,18 @@ export function WebnovelCard({
             <div className="relative bg-gradient-to-r from-pink-300 to-pink-200/10 dark:from-pink-800 dark:to-purple-900/10 p-6 rounded-t-xl" >
                 <div className="z-10 flex items-start gap-6">
                     {/* Book Cover */}
-                    <div className="">
-                        <Link href={`/view_webnovels?id=${webnovel.id}`} className="flex-1 min-w-[80px] md:aspect-[180/257] group z-[99]">
+                    <div className="relative w-auto flex-shrink-0">
+                        <Link href={`/view_webnovels?id=${webnovel.id}`} className="block relative min-w-[80px] group z-[99]" 
+                              style={{
+                                  width: isHoverCard ? '80px' : '120px',
+                                  height: isHoverCard ? '114px' : '171px', // Maintaining aspect ratio of 180/257
+                                  aspectRatio: '180/257'
+                              }}>
                             <Image
                                 src={getImageUrl(webnovel.cover_art)}
                                 alt={webnovel.title}
-                                // width={50}
-                                // height={70}
                                 fill
-                                className={`rounded-md object-cover w-full h-auto ${isHoverCard ? 'max-w-[50px]' : 'max-w-[120px]'}`}
+                                className="rounded-md object-cover"
                             />
                         </Link>
                         <div className="absolute inset-0 bg-black/80 rounded-md flex flex-col justify-center items-center text-white text-xs tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -103,8 +104,6 @@ export function WebnovelCard({
                        
                             </div>
                         )}
-
-
 
                         {/* Action Buttons */}
                         {showActionButtons && (
@@ -142,15 +141,16 @@ export function WebnovelCard({
                                                     <LinkedinIcon size={22} round={true} />
                                                 </LinkedinShareButton>
                                             </div>
-                                            <div className='flex flex-row gap-2 text-center'>
+                                            <div className='flex flex-row gap-2 text-center px-1'>
                                                 <p className="text-[10px] self-center text-gray-500">{getWebnovelUrl(webnovel.id.toString())}</p>
-                                                <Button onClick={() => copyToClipboard(getWebnovelUrl(webnovel.id.toString()))}
-                                                    variant="link"
-                                                    size="sm"
-                                                    className="!no-underline px-3"
+                                                <Button 
+                                                    onClick={() => copyToClipboard(getWebnovelUrl(webnovel.id.toString()))}
+                                                    variant="link"             
+                                                    size='icon'                  
+                                                    className="!no-underline p-0"
                                                 >
                                                     <span className="sr-only">Copy</span>
-                                                    <Copy />
+                                                    <Copy size={10} />
                                                 </Button>
                                             </div>
                                         </div>
@@ -231,7 +231,7 @@ export function WebnovelHoverCard({
                     </Button>
                 </HoverCardTrigger>
             </div>
-            <HoverCardContent className="w-80" onClick={(e) => { e.stopPropagation(); }}>
+            <HoverCardContent className="w-80 bg-transparents border-none shadow-none" onClick={(e) => { e.stopPropagation(); }}>
                 <WebnovelCard
                     webnovel={webnovel}
                     post={post}

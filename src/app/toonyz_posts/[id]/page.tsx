@@ -239,7 +239,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                     {/* card for the webnovel */}
                     {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
 
-                    <hr className="w-full border-gray-500" />
+                    <hr className="w-full border-gray-200" />
                     <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
                 <div className="h-[10vh]" />

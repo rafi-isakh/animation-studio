@@ -15,7 +15,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
     const scrollRef = useRef<HTMLDivElement>(null);
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
-            <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
+            <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
             <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}
                 <div

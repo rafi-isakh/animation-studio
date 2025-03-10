@@ -18,23 +18,12 @@ import Link from "next/link"
 
 export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, webnovel: Webnovel }) {
     const [liked, setLiked] = useState(false)
-    //   const [likeCount, setLikeCount] = useState(post.upvotes)
-
-    //   const handleLike = () => {
-    //     if (liked) {
-    //       setLikeCount(likeCount - 1)
-    //     } else {
-    //       setLikeCount(likeCount + 1)
-    //     }
-    //     setLiked(!liked)
-    //   }
 
     return (
         <Card key={post.id} className="max-w-xl w-full mx-auto p-2 shadow-none">
             <CardHeader className="flex flex-row items-center gap-4 p-4">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User avatar" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    {post.user.picture ? <AvatarImage src={getImageUrl(post.user.picture)} alt={post.user.nickname} /> : <AvatarFallback>{post.user.nickname.charAt(0)}</AvatarFallback>}
                 </Avatar>
                 <div className="flex flex-col">
                     <p className="text-sm font-medium">{post.user.nickname}</p>
@@ -63,11 +52,6 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
                 <p className="text-sm space-y-2">
                     {post.content}
 
-                    {/* {post.quote && (
-                        <p className="text-sm">
-                            {truncateText(post.quote, 100)}
-                        </p>
-                    )} */}
                     {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
 
                 </p>

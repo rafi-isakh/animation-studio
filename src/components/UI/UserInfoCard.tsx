@@ -67,15 +67,14 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                         <CardHeader className="pb-0">
                             <div className="flex items-start gap-4">
                                 <Avatar className="h-10 w-10 border-2 border-background self-center ">
-                                    <AvatarImage src={getImageUrl(post.user.picture)} alt={post.user.nickname} />
-                                    <AvatarFallback>{post.user.nickname.charAt(0)}</AvatarFallback>
+                                    {post.user.picture ? <AvatarImage src={getImageUrl(post.user.picture)} alt={post.user.nickname} /> : <AvatarFallback>{post.user.nickname.charAt(0)}</AvatarFallback>}
                                 </Avatar>
                                 <div className="flex flex-1 justify-between mt-2">
                                     <div className="text-center">
                                         <p className="text-muted-foreground mb-1">Stories</p>
-                                        {userWebnovels.length > 0 ?  <p className="text-xl font-semibold text-[#DE2B74]">{userWebnovels.length}</p> : <p className="text-xl font-semibold text-[#DE2B74]">0</p>}
+                                        {userWebnovels.length > 0 ? <p className="text-xl font-semibold text-[#DE2B74]">{userWebnovels.length}</p> : <p className="text-xl font-semibold text-[#DE2B74]">0</p>}
                                     </div>
-                                     <div className="text-center">
+                                    <div className="text-center">
                                         <p className="text-muted-foreground mb-1">Posts</p>
                                         <p className="text-xl font-semibold text-[#DE2B74]">0</p>
                                     </div>
@@ -96,7 +95,7 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                             </p>
                         </CardContent>
                     </Card>
-                   
+
                 </HoverCardContent>
             </HoverCard>
         </Link>

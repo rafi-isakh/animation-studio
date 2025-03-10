@@ -27,7 +27,6 @@ import {
 import { getImageUrl } from "@/utils/urls";
 import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
-import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from "@/styles/ModalStyles";
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
@@ -57,7 +56,7 @@ export default function InfoAndPictureComponent({
     const { id, email } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const { copyToClipboard } = useCopyToClipboard();
+    const copyToClipboard = useCopyToClipboard();
 
     useEffect(() => {
         if (window !== undefined) {
@@ -254,7 +253,7 @@ export default function InfoAndPictureComponent({
                                                 <div className='flex flex-row gap-2 text-center px-1'>
                                                     <p className="text-[10px] self-center text-gray-500">{currentPageUrl}</p>
                                                     <Button
-                                                        onClick={() => copyToClipboard(currentPageUrl)}
+                                                        onClick={() => copyToClipboard(currentPageUrl.toString())}
                                                         variant="link"
                                                         size='icon'
                                                         className="!no-underline p-0"
@@ -279,22 +278,22 @@ export default function InfoAndPictureComponent({
                             {isAuthor() &&
                                 <>
                                     <div className='flex flex-row gap-4 w-full justify-center items-center pb-5'>
-                                        <NoCapsButton
+                                        <Button
                                             color='gray'
-                                            variant='outlined'
+                                            variant='outline'
                                             onClick={onNewChapter}
                                             className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
                                         >
                                             {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
-                                        </NoCapsButton>
-                                        <NoCapsButton
+                                        </Button>
+                                        <Button
                                             color='gray'
-                                            variant='outlined'
+                                            variant='outline'
                                             onClick={() => setShowDeleteModal(true)}
                                             className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
                                         >
                                             {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
-                                        </NoCapsButton>
+                                        </Button>
                                     </div>
 
                                     <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
@@ -308,18 +307,10 @@ export default function InfoAndPictureComponent({
                                     </Modal>
                                 </>
                             }
-
-
                             {/* Premium Info */}
-                            <div className="flex flex-col gap-2 px-2 md:pt-5 md:pb-5 pt-3 pb-3 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
-                                {/* <div className="flex flex-row gap-2">
-                                    <p className="text-sm text-gray-500 dark:text-white self-center">
-                                        <span className="font-extrabold">대여권</span> 0장
-                                    </p>
-                                </div>
-                                <hr /> */}
-                                <div className="text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between">
-                                    <div className="font-extrabold flex flex-row gap-2 items-center cursor-pointer">
+                            <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
+                                <Button className="font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent hover:bg-white/90  dark:hover:bg-black/90 shadow-none">
+                                    <div className="flex flex-row gap-2 items-center cursor-pointer">
                                         <MdStars className="text-xl text-[#D92979]" />
                                         <Link href={`/stars`}>
                                             <p>
@@ -329,7 +320,7 @@ export default function InfoAndPictureComponent({
                                         </Link>
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
-                                </div>
+                                </Button>
                             </div>
                         </div>
                     </div>

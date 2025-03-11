@@ -1,5 +1,5 @@
 // src/components/QuoteToggle.tsx
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 
@@ -14,7 +14,7 @@ const ToonyzPostQuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, defa
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (quoteRef.current && arrowRef.current) {
             if (!defaultExpanded) {
                 quoteRef.current.classList.remove('max-h-[300px]', 'opacity-100');

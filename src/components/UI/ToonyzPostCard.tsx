@@ -22,6 +22,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/shadcnUI/AlertDialog"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import CommentToggleButton from "@/components/UI/CommentToggleButton";
 
 export default function ToonyzPostCard({ post, webnovel, user, email }: { post: ToonyzPost, webnovel: Webnovel, user?: User, email?: string }) {
     const [liked, setLiked] = useState(false)
@@ -98,10 +99,33 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-0">
+
                 <p className="text-sm space-y-2">
                     {post.content}
                     {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} defaultExpanded={false} />)}
                 </p>
+
+                <div className="flex flex-row gap-2 justify-center">
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`inline-flex items-center gap-1 ${liked ? "text-red-500" : ""}`}
+                    // onClick={handleLike}
+                    >
+                        <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+                        {post.upvotes > 0 ? `${post.upvotes} ${phrase(dictionary, "likes", language)}` : "Like"}
+                    </Button>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="inline-flex items-center gap-1">
+                                <Share2 className="h-4 w-4" />
+                                Share
+                            </Button>
+                        </DialogTrigger>
+                        <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`} description={`Share this post with your friends and family.`} />
+                    </Dialog>
+                </div>
                 <div className="mt-4 rounded-md overflow-hidden">
                     <Link href={`/toonyz_posts/${post.id}`} >
                         {post.image && (
@@ -126,38 +150,8 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                     </Link>
                 </div>
             </CardContent>
-            <CardFooter className="p-4 border-t flex flex-col gap-2">
-                <div className="flex items-center text-xs text-muted-foreground">
-                    <span>{post.upvotes} likes</span>
-                    <span className="mx-2">•</span>
-                    <span>{post.comments.length} comments</span>
-                    {/* <span className="mx-2">•</span> */}
-                    {/* <span>shares</span> */}
-                </div>
-                <div className="flex items-center justify-between border-t pt-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`flex items-center gap-1 ${liked ? "text-red-500" : ""}`}
-                    // onClick={handleLike}
-                    >
-                        <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-                        Like
-                    </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
-                        Comment
-                    </Button>
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                                <Share2 className="h-4 w-4" />
-                                Share
-                            </Button>
-                        </DialogTrigger>
-                        <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`} description={`Share this post with your friends and family.`} />
-                    </Dialog>
-                </div>
+            <CardFooter className="p-4 border-t flex gap-2 justify-center">
+                <CommentToggleButton post={post} />
             </CardFooter>
         </Card>
     )

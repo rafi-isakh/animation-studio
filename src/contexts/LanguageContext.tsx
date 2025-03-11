@@ -40,7 +40,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [language]);
 
   const setLanguageOverride = (language: Language) => {
-    console.log('setting language override', language);
     setLanguage(language);
     localStorage.setItem('language_override', language);
   }

@@ -64,6 +64,7 @@ interface RootLayoutProps {
 export default async function RootLayout({ children }: RootLayoutProps) {
   const session = await auth();
   const isLoggedIn = !!session?.user;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

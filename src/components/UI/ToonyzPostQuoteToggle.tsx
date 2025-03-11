@@ -6,13 +6,27 @@ import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 interface QuoteToggleProps {
     quote: string;
     postId: string;
-    
+    defaultExpanded?: boolean;
 }
 
-const QuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, }) => {
-    const [quoteExpanded, setQuoteExpanded] = useState<boolean>(true);
+const ToonyzPostQuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, defaultExpanded = true }) => {
+    const [quoteExpanded, setQuoteExpanded] = useState<boolean>(defaultExpanded);
     const quoteRef = useRef<HTMLParagraphElement>(null);
     const arrowRef = useRef<HTMLSpanElement>(null);
+
+    React.useEffect(() => {
+        if (quoteRef.current && arrowRef.current) {
+            if (!defaultExpanded) {
+                quoteRef.current.classList.remove('max-h-[300px]', 'opacity-100');
+                quoteRef.current.classList.add('max-h-0', 'opacity-0', 'overflow-hidden');
+                arrowRef.current.style.transform = 'rotate(0deg)';
+            } else {
+                quoteRef.current.classList.remove('max-h-0', 'opacity-0', 'overflow-hidden');
+                quoteRef.current.classList.add('max-h-[300px]', 'opacity-100');
+                arrowRef.current.style.transform = 'rotate(90deg)';
+            }
+        }
+    }, [defaultExpanded]);
 
     const toggleQuote = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -66,4 +80,4 @@ const QuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, }) => {
     );
 };
 
-export default QuoteToggle;
+export default ToonyzPostQuoteToggle;

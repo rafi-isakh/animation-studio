@@ -13,8 +13,10 @@ import moment from "moment"
 import Image from "next/image"
 import WatermarkedImage from "@/utils/watermark"
 import { truncateText } from "@/utils/truncateText"
-import ToonyzPostQuoteToggle from "./ToonyzPostQuoteToggle"
+import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle"
 import Link from "next/link"
+import { Dialog, DialogTrigger } from "@/components/shadcnUI/Dialog"
+import ShareDialog from "@/components/UI/ShareDialog"
 
 export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, webnovel: Webnovel }) {
     const [liked, setLiked] = useState(false)
@@ -51,9 +53,7 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
             <CardContent className="p-4 pt-0">
                 <p className="text-sm space-y-2">
                     {post.content}
-
-                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
-
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} defaultExpanded={false} />)}
                 </p>
                 <div className="mt-4 rounded-md overflow-hidden">
                     <Link href={`/toonyz_posts/${post.id}`} >
@@ -84,7 +84,7 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
                     <span>{post.upvotes} likes</span>
                     <span className="mx-2">•</span>
                     <span>{post.comments.length} comments</span>
-                    <span className="mx-2">•</span>
+                    {/* <span className="mx-2">•</span> */}
                     {/* <span>shares</span> */}
                 </div>
                 <div className="flex items-center justify-between border-t pt-2">
@@ -101,10 +101,15 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
                         <MessageCircle className="h-4 w-4" />
                         Comment
                     </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        <Share2 className="h-4 w-4" />
-                        Share
-                    </Button>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                <Share2 className="h-4 w-4" />
+                                Share
+                            </Button>
+                        </DialogTrigger>
+                        <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`} description={`Share this post with your friends and family.`} />
+                    </Dialog>
                 </div>
             </CardFooter>
         </Card>

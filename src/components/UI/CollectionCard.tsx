@@ -99,7 +99,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                 </div>
               ) : (
                 <Image
-                  src={getImageUrl(images[0]?.image) || "/placeholder.svg?height=400&width=300"}
+                  src={getImageUrl(images[0]?.image) || "/coverArt_thumbnail.png"}
                   alt={images[0]?.image || "Collection image"}
                   fill
                   className="object-cover rounded-tl-xl"
@@ -136,7 +136,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                 </div>
               ) : (
                 <Image
-                  src={getImageUrl(images[1]?.image) || "/placeholder.svg?height=200&width=150"}
+                  src={getImageUrl(images[1]?.image) || "/coverArt_thumbnail.png"}
                   alt={images[1]?.image || "Collection image"}
                   fill
                   className="object-cover"
@@ -172,7 +172,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                 </div>
               ) : (
                 <Image
-                  src={getImageUrl(images[2]?.image) || "/placeholder.svg?height=200&width=150"}
+                  src={getImageUrl(images[2]?.image) || "/coverArt_thumbnail.png"}
                   alt={images[2]?.image || "Collection image"}
                   fill
                   className="object-cover rounded-tr-xl"

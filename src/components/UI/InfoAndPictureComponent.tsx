@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
-import { Webtoon, Webnovel } from "@/components/Types";
+import { Webtoon, Webnovel, ImageOrVideo } from "@/components/Types";
 import { Button, useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
@@ -34,6 +34,9 @@ import { useUser } from '@/contexts/UserContext';
 import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { useModalStyle } from "@/styles/ModalStyles";
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
+import { useToast } from "@/hooks/use-toast";
+import { v4 as uuidv4 } from 'uuid';
+import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 
 
 interface InfoAndPictureProps {
@@ -61,6 +64,10 @@ export default function InfoAndPictureComponent({
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [pictures, setPictures] = useState([]);
+    const [prompts, setPrompts] = useState([]);
+    const { toast } = useToast();
+    const [videoFileName, setVideoFileName] = useState('');
+    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -103,14 +110,101 @@ export default function InfoAndPictureComponent({
     }
 
     const generateTrailer = async (chapter_ids: number[]) => {
-        console.log(chapter_ids);
-        const response = await fetch("/api/generate_trailer", {
-            method: "POST",
-            body: JSON.stringify({ chapter_ids, trailer_style: "cinematic", trailer_type: "B" }),
-        });
+        const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+            method: 'POST',
+            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
+        })
         const data = await response.json();
-        setPictures(data.trailer);
+        console.log('data', data);
+        setPictures(data.images);
+        setPrompts(data.prompts);
+        await makeVideo(data.images, data.prompts);
     }
+
+    // TODO: refactor this function as it's copied from FloatingMenuComponent
+    const makeVideo = async (pictures: string[], prompts: string[]) => {
+        console.log("making video!");
+        const videoUrls: string[] = [];
+        const processPromises = pictures.map(async (picture, i) => {
+            const pictureFilename = uuidv4();
+            const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
+                method: 'POST',
+                body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
+            });
+            if (!uploadResponse.ok) {
+                toast({
+                    title: "Error", 
+                    description: "Failed to upload picture to s3, please try again later",
+                    variant: "destructive"
+                })
+                throw new Error('Failed to upload picture to s3');
+            }
+            const image_url = getImageUrl(`${pictureFilename}.png`);
+            const response = await fetch('/api/generate_video', {
+                method: 'POST',
+                body: JSON.stringify({ video_prompt: prompts[i], image_url: image_url }),
+            });
+            if (!response.ok) {
+                toast({
+                    title: "Error",
+                    description: "Failed to generate video, please try again later", 
+                    variant: "destructive"
+                })
+                throw new Error('Failed to generate video');
+            }
+            const data = await response.json();
+            const url = data.video_url;
+            console.log(`video ${i} url: `, url);
+            return url;
+        });
+
+        const urls = await Promise.all(processPromises);
+        videoUrls.push(...urls);
+
+        const getVideoDuration = (videoUrl: string): Promise<number> => {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video'); // Create video element in memory
+                video.preload = 'metadata'; // Load metadata only
+                video.src = videoUrl;
+
+                video.addEventListener('loadedmetadata', () => {
+                    resolve(video.duration); // Resolve with the duration in seconds
+                });
+
+                video.addEventListener('error', () => {
+                    reject(new Error('Failed to load video metadata'));
+                });
+            });
+        };
+
+        const durations = await Promise.all(videoUrls.map(getVideoDuration));
+        const stitchedResponse = await fetch('/api/ffmpeg_combine_videos', {
+            method: 'POST',
+            body: JSON.stringify({ video_urls: videoUrls, durations: durations }),
+        });
+        if (!stitchedResponse.ok) {
+            toast({
+                title: "Error",
+                description: "Failed to stitch videos",
+                variant: "destructive"
+            })
+        }
+        const stitchedData = await stitchedResponse.json();
+        const videoFilename = stitchedData.video_filename;
+        setVideoFileName(videoFilename);
+        toast({
+            title: "Success",
+            variant: "success",
+            description: "Video created successfully",
+        })
+        setShowShareAsPostModal(true);
+    }
+
+    const clickShareAsPost = () => {
+        setVideoFileName('slideshow-1741594985112.mp4');
+        setShowShareAsPostModal(true);
+    }
+
     return (
         <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
                         bg-gradient-to-b from-transparent to-transparent 
@@ -334,6 +428,9 @@ export default function InfoAndPictureComponent({
                                     </p>
                                 </Button>
                             </div>
+                            <Button onClick={clickShareAsPost}>
+                                Share as Post
+                            </Button>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
                                     {pictures.map((picture, index) => (
@@ -406,6 +503,16 @@ export default function InfoAndPictureComponent({
                     </div>
                 </div>
             </div>
+            <ShareAsToonyzPostModal
+                    imageOrVideo={'video' as ImageOrVideo}
+                    showShareAsPostModal={showShareAsPostModal}
+                    setShowShareAsPostModal={setShowShareAsPostModal}
+                    index={0}
+                    videoFileName={videoFileName!}
+                    webnovel_id={content.id.toString()}
+                    chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
+                    quote={content.title}
+                />
         </div>
     );
 }

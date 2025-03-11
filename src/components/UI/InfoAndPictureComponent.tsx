@@ -386,7 +386,6 @@ export default function InfoAndPictureComponent({
                                     </p>
                                 </Button>
                             </div>
-                            <CreateTrailerComponent webnovel={content as Webnovel}/>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
                                     {pictures.map((picture, index) => (

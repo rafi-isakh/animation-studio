@@ -53,7 +53,6 @@ const WebnovelTranslateComponent = (
         const handleTranslate = async () => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
-            console.log(data)
             if (data.text) {
                 setText(await marked(data.text))
             }

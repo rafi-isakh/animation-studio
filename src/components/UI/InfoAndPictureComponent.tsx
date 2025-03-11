@@ -34,8 +34,6 @@ import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
-import CreateTrailerComponent from "./CreateTrailerComponent";
-
 
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;

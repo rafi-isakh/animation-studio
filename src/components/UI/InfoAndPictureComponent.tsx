@@ -38,6 +38,8 @@ import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { CircularProgress } from "@mui/material";
+import CreateMediaArea from "../CreateMediaArea";
+import PromotionBannerComponent from "../PromotionBannerComponent";
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;
     coverArt: string;
@@ -68,6 +70,13 @@ export default function InfoAndPictureComponent({
     const [videoFileName, setVideoFileName] = useState('');
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const [loadingTrailerGeneration, setLoadingTrailerGeneration] = useState(false);
+    const [loadingPictures, setLoadingPictures] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selection, setSelection] = useState('');
+    const [progress, setProgress] = useState(0);
+    const draggableNodeRef = useRef<HTMLDivElement>(null);
+    const promotionBannerRef = useRef(<PromotionBannerComponent />);
+    const [narrations, setNarrations] = useState<string[]>([]);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -111,80 +120,35 @@ export default function InfoAndPictureComponent({
 
     const generateTrailer = async (chapter_ids: number[]) => {
         setLoadingTrailerGeneration(true);
+        setLoadingPictures(true)
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (5 * Math.random());
+                return newProgress > 95 ? 95 : newProgress;
+            });
+        }, 500);
         const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
             method: 'POST',
             body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
         })
+        if (!response.ok) {
+            toast({
+                title: "Error",
+                description: "Failed to generate trailer, please try again later",
+                variant: "destructive"
+            })
+            throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
+        }
+        setLoadingPictures(false);
         const data = await response.json();
         console.log('data', data);
         setPictures(data.images);
         setPrompts(data.prompts);
-        await makeVideo(data.images, data.prompts, data.narrations);
+        setNarrations(data.narrations);
+        // Hands off to CreateMediaArea for rest of logic
     }
 
     // TODO: refactor this function as it's copied from FloatingMenuComponent
-    const makeVideo = async (pictures: string[], prompts: string[], narrations: string[]) => {
-        console.log("making video!");
-        const videoUrls: string[] = [];
-        const processPromises = pictures.map(async (picture, i) => {
-            const pictureFilename = uuidv4();
-            const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
-                method: 'POST',
-                body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
-            });
-            if (!uploadResponse.ok) {
-                toast({
-                    title: "Error", 
-                    description: "Failed to upload picture to s3, please try again later",
-                    variant: "destructive"
-                })
-                throw new Error('Failed to upload picture to s3');
-            }
-            const image_url = getImageUrl(`${pictureFilename}.png`);
-            const response = await fetch('/api/generate_video', {
-                method: 'POST',
-                body: JSON.stringify({ video_prompt: prompts[i], image_url: image_url }),
-            });
-            if (!response.ok) {
-                toast({
-                    title: "Error",
-                    description: "Failed to generate video, please try again later", 
-                    variant: "destructive"
-                })
-                throw new Error('Failed to generate video');
-            }
-            const data = await response.json();
-            const url = data.video_url;
-            console.log(`video ${i} url: `, url);
-            return url;
-        });
-
-        const urls = await Promise.all(processPromises);
-        videoUrls.push(...urls);
-
-        const stitchedResponse = await fetch('/api/ffmpeg_combine_videos', {
-            method: 'POST',
-            body: JSON.stringify({ video_urls: videoUrls, narrations: narrations }),
-        });
-        if (!stitchedResponse.ok) {
-            toast({
-                title: "Error",
-                description: "Failed to stitch videos",
-                variant: "destructive"
-            })
-        }
-        const stitchedData = await stitchedResponse.json();
-        const videoFilename = stitchedData.video_filename;
-        setVideoFileName(videoFilename);
-        toast({
-            title: "Success",
-            variant: "success",
-            description: "Video created successfully",
-        })
-        setShowShareAsPostModal(true);
-        setLoadingTrailerGeneration(false);
-    }
-
     return (
         <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
                         bg-gradient-to-b from-transparent to-transparent 
@@ -208,9 +172,9 @@ export default function InfoAndPictureComponent({
                         {/* Cover Image */}
                         <div className="min-w-[300px] h-[350px] md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px] rounded-xl">
-                                { coverArt ?
+                                {coverArt ?
                                     <Image
-                                        src={isWebtoon ? coverArt : getImageUrl(coverArt) }
+                                        src={isWebtoon ? coverArt : getImageUrl(coverArt)}
                                         alt={content.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 300px"
@@ -279,12 +243,6 @@ export default function InfoAndPictureComponent({
                                     />
                                 }
                             </div>
-                            <Button onClick={() => {
-                                setVideoFileName('slideshow-1741598130265.mp4');
-                                setShowShareAsPostModal(true);
-                            }}>
-                                Share as Post
-                            </Button>
 
                             {/* Action Buttons */}
                             <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
@@ -407,6 +365,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full"
                                     disabled={loadingTrailerGeneration}
                                     onClick={() => {
+                                        setOpenDialog(true);
                                         generateTrailer(content.chapters.map(chapter => chapter.id));
                                     }}
                                 >
@@ -414,6 +373,23 @@ export default function InfoAndPictureComponent({
                                         {loadingTrailerGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
                                     </p>
                                 </Button>
+                                <CreateMediaArea
+                                    isLoading={loadingPictures}
+                                    setIsLoading={setLoadingPictures}
+                                    progress={progress}
+                                    savedPrompt={""}
+                                    prompts={prompts}
+                                    pictures={pictures}
+                                    webnovel_id={content.id.toString()}
+                                    chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
+                                    setOpenDialog={setOpenDialog}
+                                    openDialog={openDialog}
+                                    setSelection={setSelection}
+                                    promotionBannerRef={promotionBannerRef}
+                                    draggableNodeRef={draggableNodeRef}
+                                    source='webnovel'
+                                    initialNarrations={narrations}
+                                />
                             </div>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
@@ -488,15 +464,15 @@ export default function InfoAndPictureComponent({
                 </div>
             </div>
             <ShareAsToonyzPostModal
-                    imageOrVideo={'video' as ImageOrVideo}
-                    showShareAsPostModal={showShareAsPostModal}
-                    setShowShareAsPostModal={setShowShareAsPostModal}
-                    index={0}
-                    videoFileName={videoFileName!}
-                    webnovel_id={content.id.toString()}
-                    chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
-                    quote={content.title}
-                />
+                imageOrVideo={'video' as ImageOrVideo}
+                showShareAsPostModal={showShareAsPostModal}
+                setShowShareAsPostModal={setShowShareAsPostModal}
+                index={0}
+                videoFileName={videoFileName!}
+                webnovel_id={content.id.toString()}
+                chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
+                quote={content.title}
+            />
         </div>
     );
 }

@@ -405,59 +405,23 @@ const FloatingMenu: React.FC<{
                 )
                 }
                 {children}
-                <div
-                    ref={draggableNodeRef}
-                    className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
-                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
-                            rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
-                            ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className='drag-handle px-2 flex-shrink-0'>
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <div className="flex items-center gap-2">
-                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
-                                <div>
-                                    <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Button> */}
-                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation()
-                                        setOpenDialog(false);
-                                        setIsLoading(false);
-                                        setSelection('');
-                                    }}>
-                                    <X className="h-5 w-5" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                    <CreateMediaArea
-                        isLoading={isLoading}
-                        progress={progress}
-                        savedPrompt={savedPrompt}
-                        pictures={pictures}
-                        webnovel_id={webnovel_id}
-                        chapter_id={chapter_id}
-                        setIsLoading={setIsLoading}
-                    />
-                    {/* Footer input */}
-                    <div className="flex flex-col space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
-                        {/* Ad banner */}
-                        <div className='w-full flex-shrink-0'>
-                            <div className='relative top-0 left-0 w-full'>
-                                {promotionBannerRef.current}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <CreateMediaArea
+                    isLoading={isLoading}
+                    progress={progress}
+                    savedPrompt={savedPrompt}
+                    prompts={prompts}
+                    pictures={pictures}
+                    webnovel_id={webnovel_id}
+                    chapter_id={chapter_id}
+                    setIsLoading={setIsLoading}
+                    draggableNodeRef={draggableNodeRef}
+                    openDialog={openDialog}
+                    setOpenDialog={setOpenDialog}
+                    setSelection={setSelection}
+                    promotionBannerRef={promotionBannerRef}
+                    source='chapter'
+                    initialNarrations={[]}
+                />
                 {/* share dialog */}
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                     <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>

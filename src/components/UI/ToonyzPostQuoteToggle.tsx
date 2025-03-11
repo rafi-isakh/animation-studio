@@ -57,7 +57,7 @@ const QuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, }) => {
                         quoteExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
                     }`}
                 >
-                    <ScrollArea className="h-[300px]">
+                    <ScrollArea className="md:h-[150px] h-[100px]">
                         <OtherTranslateComponent content={quote} elementId={postId} elementType="toonyz_post" elementSubtype="quote" />
                     </ScrollArea>
                 </p>

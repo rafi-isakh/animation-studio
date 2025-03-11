@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
+import CreateTrailerComponent from "./CreateTrailerComponent";
 
 
 interface InfoAndPictureProps {
@@ -387,9 +388,7 @@ export default function InfoAndPictureComponent({
                                     </p>
                                 </Button>
                             </div>
-                            <Button onClick={clickShareAsPost}>
-                                Share as Post
-                            </Button>
+                            <CreateTrailerComponent webnovel={content as Webnovel}/>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
                                     {pictures.map((picture, index) => (

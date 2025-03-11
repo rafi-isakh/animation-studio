@@ -51,7 +51,7 @@ export default function CreateMediaArea({
     const { toast } = useToast();
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
     const [showShareAsPostModal, setShowShareAsPostModal] = useState<boolean>(false);
-    const [narrations, setNarrations] = useState<string[]>([]);
+    const [narrations, setNarrations] = useState<string[]>(initialNarrations);
     const [loadingVideoGeneration, setLoadingVideoGeneration] = useState<boolean>(false);
 
     useEffect(() => {
@@ -85,9 +85,10 @@ export default function CreateMediaArea({
                 pictureFilenames.push(pictureFilename);
             }
             console.log("pictureFilenames", pictureFilenames.map(getImageUrl));
+            console.log("narrations", narrations);
             const response = await fetch('/api/ffmpeg_combine_pictures_to_slideshow', {
                 method: 'POST',
-                body: JSON.stringify({ picture_urls: pictureFilenames.map(getImageUrl) }),
+                body: JSON.stringify({ picture_urls: pictureFilenames.map(getImageUrl), narrations: narrations }),
             });
             if (!response.ok) {
                 toast({

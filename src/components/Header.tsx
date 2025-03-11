@@ -191,14 +191,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     };
 
 
-    const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
-        event.preventDefault();
-        setLanguageOverride(language);
-        setIsLanguageDropdownOpen(false);
-        if (device === 'mobile') {
-            handleMobileMenuClick();
-        }
-    }
+    // const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
+    //     event.preventDefault();
+    //     setLanguageOverride(language);
+    //     setIsLanguageDropdownOpen(false);
+    //     if (device === 'mobile') {
+    //         handleMobileMenuClick();
+    //     }
+    // }
 
     const handleUserItemClick = () => {
         setIsUserDropdownOpen(false);

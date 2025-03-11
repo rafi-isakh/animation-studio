@@ -37,8 +37,7 @@ import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllBut
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
-
-
+import { CircularProgress } from "@mui/material";
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;
     coverArt: string;
@@ -68,6 +67,7 @@ export default function InfoAndPictureComponent({
     const { toast } = useToast();
     const [videoFileName, setVideoFileName] = useState('');
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
+    const [loadingTrailerGeneration, setLoadingTrailerGeneration] = useState(false);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -110,6 +110,7 @@ export default function InfoAndPictureComponent({
     }
 
     const generateTrailer = async (chapter_ids: number[]) => {
+        setLoadingTrailerGeneration(true);
         const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
             method: 'POST',
             body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
@@ -118,11 +119,11 @@ export default function InfoAndPictureComponent({
         console.log('data', data);
         setPictures(data.images);
         setPrompts(data.prompts);
-        await makeVideo(data.images, data.prompts);
+        await makeVideo(data.images, data.prompts, data.narrations);
     }
 
     // TODO: refactor this function as it's copied from FloatingMenuComponent
-    const makeVideo = async (pictures: string[], prompts: string[]) => {
+    const makeVideo = async (pictures: string[], prompts: string[], narrations: string[]) => {
         console.log("making video!");
         const videoUrls: string[] = [];
         const processPromises = pictures.map(async (picture, i) => {
@@ -161,26 +162,9 @@ export default function InfoAndPictureComponent({
         const urls = await Promise.all(processPromises);
         videoUrls.push(...urls);
 
-        const getVideoDuration = (videoUrl: string): Promise<number> => {
-            return new Promise((resolve, reject) => {
-                const video = document.createElement('video'); // Create video element in memory
-                video.preload = 'metadata'; // Load metadata only
-                video.src = videoUrl;
-
-                video.addEventListener('loadedmetadata', () => {
-                    resolve(video.duration); // Resolve with the duration in seconds
-                });
-
-                video.addEventListener('error', () => {
-                    reject(new Error('Failed to load video metadata'));
-                });
-            });
-        };
-
-        const durations = await Promise.all(videoUrls.map(getVideoDuration));
         const stitchedResponse = await fetch('/api/ffmpeg_combine_videos', {
             method: 'POST',
-            body: JSON.stringify({ video_urls: videoUrls, durations: durations }),
+            body: JSON.stringify({ video_urls: videoUrls, narrations: narrations }),
         });
         if (!stitchedResponse.ok) {
             toast({
@@ -198,11 +182,7 @@ export default function InfoAndPictureComponent({
             description: "Video created successfully",
         })
         setShowShareAsPostModal(true);
-    }
-
-    const clickShareAsPost = () => {
-        setVideoFileName('slideshow-1741594985112.mp4');
-        setShowShareAsPostModal(true);
+        setLoadingTrailerGeneration(false);
     }
 
     return (
@@ -299,6 +279,12 @@ export default function InfoAndPictureComponent({
                                     />
                                 }
                             </div>
+                            <Button onClick={() => {
+                                setVideoFileName('slideshow-1741598130265.mp4');
+                                setShowShareAsPostModal(true);
+                            }}>
+                                Share as Post
+                            </Button>
 
                             {/* Action Buttons */}
                             <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
@@ -419,18 +405,16 @@ export default function InfoAndPictureComponent({
                                     variant="contained"
                                     disableElevation
                                     className="w-full"
+                                    disabled={loadingTrailerGeneration}
                                     onClick={() => {
                                         generateTrailer(content.chapters.map(chapter => chapter.id));
                                     }}
                                 >
                                     <p>
-                                        {phrase(dictionary, "createVideo", language)}
+                                        {loadingTrailerGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
                                     </p>
                                 </Button>
                             </div>
-                            <Button onClick={clickShareAsPost}>
-                                Share as Post
-                            </Button>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
                                     {pictures.map((picture, index) => (

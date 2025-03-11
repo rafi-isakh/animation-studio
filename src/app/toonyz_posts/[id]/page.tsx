@@ -119,7 +119,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             {/* Image/Video Container - simplified for mobile */}
             <div className={`relative max-w-screen-xl mx-auto w-full group
                             ${post.image
-                            ? 'md:h-full h-[40vh] md:top-8 md:mt-8'
+                            ? 'md:h-full h-[40vh] top-8 mt-8'
                             : 'md:h-full md:top-16 md:mt-16'}`}>
                 {post.image ? (
                     <div className="group h-full w-full">
@@ -159,7 +159,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
             {/* Description Container - simplified for mobile */}
             <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
-                            ${post.image ? 'p-4 md:mt-[2rem] mt-0' : 'p-4 md:mt-[8rem] mt-0'}`}>
+                            ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
                 <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
                     <div className="relative flex justify-center md:-top-[2rem] -top-[2.1rem]">
                         {/* user hover card */}

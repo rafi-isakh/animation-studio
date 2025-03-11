@@ -11,7 +11,7 @@ import { getImageUrl } from "@/utils/urls";
 import { Webnovel, ToonyzPost } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Star, Share, Heart, Bookmark, Copy, Eye } from "lucide-react"
+import { Star, Share, Heart, Bookmark, Copy, Eye, ChevronRight } from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -68,12 +68,12 @@ export function WebnovelCard({
                 <div className="z-10 flex items-start gap-6">
                     {/* Book Cover */}
                     <div className="relative w-auto flex-shrink-0">
-                        <Link href={`/view_webnovels?id=${webnovel.id}`} className="block relative min-w-[80px] group z-[99]" 
-                              style={{
-                                  width: isHoverCard ? '80px' : '120px',
-                                  height: isHoverCard ? '114px' : '171px', // Maintaining aspect ratio of 180/257
-                                  aspectRatio: '180/257'
-                              }}>
+                        <Link href={`/view_webnovels?id=${webnovel.id}`} className="block relative min-w-[80px] group z-[99]"
+                            style={{
+                                width: isHoverCard ? '80px' : '120px',
+                                height: isHoverCard ? '114px' : '171px', // Maintaining aspect ratio of 180/257
+                                aspectRatio: '180/257'
+                            }}>
                             <Image
                                 src={getImageUrl(webnovel.cover_art)}
                                 alt={webnovel.title}
@@ -101,22 +101,22 @@ export function WebnovelCard({
                             <div className="text-gray-700 dark:text-gray-200 text-sm mb-1">
                                 <p className="inline-flex gap-1"> <Heart className="w-4 h-4 text-red-500" /> {webnovel.upvotes}</p>
                                 <p className="inline-flex gap-1"> <Eye className="w-4 h-4 text-gray-400" /> {webnovel.views}</p>
-                       
+
                             </div>
                         )}
 
                         {/* Action Buttons */}
                         {showActionButtons && (
                             <div className="flex items-center gap-3">
-                                <Button className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-md">
+                                <Button className="md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md">
                                     <Heart className="w-5 h-5 text-red-500" />
                                 </Button>
-                                <Button className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-md">
+                                <Button className="md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md">
                                     <Bookmark className="w-5 h-5 text-gray-400" />
                                 </Button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button className="z-[99] w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-md cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                                        <Button className="z-[99] md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md cursor-pointer" onClick={(e) => e.stopPropagation()}>
                                             <Share className="w-5 h-5 text-gray-400" />
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -143,10 +143,10 @@ export function WebnovelCard({
                                             </div>
                                             <div className='flex flex-row gap-2 text-center px-1'>
                                                 <p className="text-[10px] self-center text-gray-500">{getWebnovelUrl(webnovel.id.toString())}</p>
-                                                <Button 
+                                                <Button
                                                     onClick={() => copyToClipboard(getWebnovelUrl(webnovel.id.toString()))}
-                                                    variant="link"             
-                                                    size='icon'                  
+                                                    variant="link"
+                                                    size='icon'
                                                     className="!no-underline p-0"
                                                 >
                                                     <span className="sr-only">Copy</span>
@@ -159,6 +159,9 @@ export function WebnovelCard({
                             </div>
                         )}
                     </div>
+                    <Link href={`/view_webnovels?id=${webnovel.id}`} className="flex self-center">
+                        <ChevronRight className="w-5 h-5 text-white " />
+                    </Link>
                 </div>
             </div>
 
@@ -184,7 +187,7 @@ export function WebnovelCard({
 
             {/* Synopsis */}
             {
-             showSynopsis && (
+                showSynopsis && (
                     <div className="p-6">
                         <p className="text-gray-600 leading-relaxed">
                             {truncateText(webnovel.description, 200)}

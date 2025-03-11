@@ -78,7 +78,7 @@ export function Pin({ post }: PinProps) {
                         opacity-0 group-hover:opacity-100
                         transition-opacity duration-200
                         bg-gradient-to-t from-black/60 to-transparent ">
-
+{/* 
               {post.id && <div className="absolute right-2 top-2" onClick={(e) => e.stopPropagation()}>
                 <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
                   <DialogTrigger asChild>
@@ -101,7 +101,7 @@ export function Pin({ post }: PinProps) {
                   </DialogContent>
                 </Dialog>
               </div>
-              }
+              } */}
 
               {post.quote && (
                 <p

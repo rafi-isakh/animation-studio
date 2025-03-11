@@ -62,10 +62,13 @@ const WebnovelTranslateComponent = (
                 submitContent(data.text);
             }
         }
+        const setContentMarked = async () => {
+            setText(await marked(content));
+            setFinished(true);
+        }
 
         if (sourceLanguage == language) {
-            setText(content)
-            setFinished(true);
+            setContentMarked();
         } else {
             handleTranslate();
         }

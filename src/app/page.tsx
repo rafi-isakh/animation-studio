@@ -10,6 +10,7 @@ import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
+import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`,
@@ -80,8 +81,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
                     {largeGap()}
-                    <CarouselComponent items={items} searchParams={searchParams} />
-                    {largeGap()}
+                    <ToonyzPostCards />
+                    {smallGap()}
+                    {/* <CarouselComponent items={items} searchParams={searchParams} />
+                    {largeGap()} */}
                     <PromotionBannerComponent />
                 </div>
             </div>

@@ -24,43 +24,39 @@ const breakpointColumnsObj = {
 interface ToonyzPostGridProps {
     initialPosts?: ToonyzPost[];
     className?: string;
-    key?: string;
+    fetchPosts?: () => Promise<ToonyzPost[]>;
 }
 
-const ToonyzPostGrid = ({ initialPosts, className = "", key }: ToonyzPostGridProps) => {
+const ToonyzPostGrid = ({ initialPosts, className = "", fetchPosts }: ToonyzPostGridProps) => {
     const [posts, setPosts] = useState<ToonyzPost[]>(initialPosts || []);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(false);
     // TODO: add infinite scroll 
     //
-    const fetchPosts = useCallback(async () => {
-        const response = await fetch(`/api/get_toonyz_posts`);
-        const data = await response.json();
-        return data;
-    }, []);
-
     const loadMorePosts = useCallback(async () => {
         if (loading || !hasMore) return;
 
         setLoading(true);
         try {
-            const newPosts = await fetchPosts();
-            if (newPosts.length === 0) {
-                setHasMore(false);
-            } else {
-                // Add random dimensions to each new post
-                const postsWithDimensions = newPosts.map((post: ToonyzPost) => ({
-                    ...post,
-                    ...getRandomDimensions()
-                }));
+            if (typeof fetchPosts === 'function') {
+                const newPosts = await fetchPosts();
+                if (newPosts.length === 0) {
+                    setHasMore(false);
+                } else {
+                    // Add random dimensions to each new post
+                    const postsWithDimensions = newPosts.map((post: ToonyzPost) => ({
+                        ...post,
+                        ...getRandomDimensions()
+                    }));
 
-                // Filter out posts with duplicate IDs
-                const uniquePosts = postsWithDimensions.filter(
-                    (newPost: ToonyzPost) => !posts.some((existingPost: ToonyzPost) => existingPost.id === newPost.id)
-                );
+                    // Filter out posts with duplicate IDs
+                    const uniquePosts = postsWithDimensions.filter(
+                        (newPost: ToonyzPost) => !posts.some((existingPost: ToonyzPost) => existingPost.id === newPost.id)
+                    );
 
-                setPosts(prev => [...prev, ...uniquePosts]);
+                    setPosts(prev => [...prev, ...uniquePosts]);
+                }
             }
         } catch (error) {
             console.error('Error loading more posts:', error);
@@ -81,7 +77,7 @@ const ToonyzPostGrid = ({ initialPosts, className = "", key }: ToonyzPostGridPro
     }, [loadMorePosts]);
 
     return (
-        <div key={key} className={className}>
+        <div className={className}>
             <Masonry
                 breakpointCols={breakpointColumnsObj}
                 className="my-masonry-grid flex w-auto -ml-4 gap-5"

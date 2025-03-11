@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
+import { getImageUrl } from "@/utils/urls"
 
 interface WatermarkedImageProps {
   imageUrl: string
@@ -16,6 +18,8 @@ interface WatermarkedImageProps {
   titleFontSize?: number
   chapterFontSize?: number
   className?: string
+  fallbackUrl?: string
+  onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void
 }
 
 export default function WatermarkedImage({
@@ -32,6 +36,8 @@ export default function WatermarkedImage({
   titleFontSize = 24,
   chapterFontSize = 18,
   className = "",
+  fallbackUrl,
+  onError,
 }: WatermarkedImageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [dataUrl, setDataUrl] = useState<string>("")
@@ -53,16 +59,34 @@ export default function WatermarkedImage({
     canvas.height = height
 
     // Load the main image
-    const img = new Image()
+    const img = new window.Image()
     img.crossOrigin = "anonymous" // Important for CORS
-    img.src = imageUrl
+    const processedImageUrl = imageUrl
+    
+    // Try using fetch to preload the image with CORS headers
+    const preloadImage = async (url: string) => {
+      try {
+        const response = await fetch(url, { mode: 'cors' });
+        if (!response.ok) throw new Error('Network response was not ok');
+        return url;
+      } catch (err) {
+        console.error('Image preload error:', err);
+        return fallbackUrl || url;
+      }
+    }
+    
+    // Preload the image to ensure CORS is handled properly
+    preloadImage(processedImageUrl).then(finalUrl => {
+      img.src = finalUrl;
+      console.log("Loading image from:", finalUrl);
+    });
 
     img.onload = () => {
       // Draw the main image
       ctx.drawImage(img, 0, 0, width, height)
 
       // Load the watermark SVG
-      const watermarkImg = new Image()
+      const watermarkImg = new window.Image()
       watermarkImg.crossOrigin = "anonymous"
       watermarkImg.src = watermarkUrl
 
@@ -167,8 +191,12 @@ export default function WatermarkedImage({
     }
 
     img.onerror = () => {
-      setError("Failed to load image")
-      setIsLoading(false)
+      if (fallbackUrl && img.src !== fallbackUrl) {
+        img.src = fallbackUrl;
+      } else {
+        setError(`Failed to load image: ${img.src}`);
+        setIsLoading(false);
+      }
     }
   }, [
     imageUrl,
@@ -183,6 +211,8 @@ export default function WatermarkedImage({
     titleColor,
     titleFontSize,
     chapterFontSize,
+    fallbackUrl,
+    onError,
   ])
 
   return (
@@ -199,12 +229,18 @@ export default function WatermarkedImage({
       {error && <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-500">{error}</div>}
 
       {dataUrl && !isLoading && (
-        <img
+        <Image
           src={dataUrl || "/placeholder.svg"}
           alt={webnovelTitle ? `${webnovelTitle} - ${chapterTitle}` : "Watermarked image"}
           width={width}
           height={height}
           className="object-cover w-full h-full"
+          onError={(e) => {
+            if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {
+              e.currentTarget.src = fallbackUrl;
+            }
+            if (onError) onError(e);
+          }}
         />
       )}
     </div>

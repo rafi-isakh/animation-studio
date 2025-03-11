@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avata
 
 
 interface CollectionCardProps {
+  id: string
   title: string
   pinCount: number
   created_at: string
@@ -31,7 +32,7 @@ interface CollectionCardProps {
   }[]
 }
 
-export default function CollectionCard({ title, pinCount, webnovel_id, created_at, images, commentedBy = [], commentCount }: CollectionCardProps) {
+export default function CollectionCard({ id, title, pinCount, webnovel_id, created_at, images, commentedBy = [], commentCount }: CollectionCardProps) {
   const { getWebnovelById } = useWebnovels();
   const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
   const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
@@ -69,7 +70,7 @@ export default function CollectionCard({ title, pinCount, webnovel_id, created_a
 
   return (
     <div className="max-w-[400px] w-fit rounded-xl overflow-hidden shadow-md bg-white dark:bg-[#211F21] flex-shrink-0 flex-grow-0">
-      <Link href={webnovel_id ? `/toonyz_posts/${webnovel_id}` : "#"} className="block">
+      <Link href={webnovel_id ? `/toonyz_posts/${id}` : "#"} className="block">
         <div className="relative h-64 w-full">
           {/* Three equal-width images in a row */}
           <div className="absolute left-0 top-0 w-1/3 h-full p-0.5">

@@ -31,11 +31,12 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
   return (
     <div className="relative max-w-screen-xl mx-auto">
       <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "ToonyzPost", language)}</h2>
-      <ScrollArea className="no-scrollbar">
+      <ScrollArea className="!no-scrollbar">
         <div className="flex w-full space-x-4 py-1">
           {collections.map((collection) => (
             <CollectionCard
               key={collection.id}
+              id={collection.id}
               title={collection.title}
               pinCount={collection.pinCount}
               commentCount={collection.commentCount}
@@ -46,7 +47,7 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
             />
           ))}
         </div>
-        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="horizontal" className="!no-scrollbar" />
       </ScrollArea>
     </div>
   )
@@ -102,7 +103,8 @@ export const ToonyzPostCards = () => {
     });
 
     return {
-      id: webnovelId === 'undefined' ? `group-${Math.random().toString(36).substr(2, 9)}` : webnovelId,
+      // id: webnovelId === 'undefined' ? `group-${Math.random().toString(36).substr(2, 9)}` : webnovelId,
+      id: postsGroup[0].id.toString(),
       title: mostRecentPost.title || '',
       pinCount: postsGroup.length, // Count of posts in this group
       commentCount: uniqueCommenters.size, // Count of unique users who commented

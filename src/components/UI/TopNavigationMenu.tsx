@@ -99,7 +99,6 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
             }
           </PopoverContent>
         </Popover>
-
         {/* share dialog */}
         <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`} description={`Share this post with your friends and family.`} />
       </Dialog>

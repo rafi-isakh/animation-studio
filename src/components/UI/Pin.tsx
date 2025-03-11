@@ -19,6 +19,7 @@ export function Pin({ post }: PinProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [webnovelTitle, setWebnovelTitle] = useState<string>("");
 
   const handleMouseEnter = () => {
     if (videoRef.current) {
@@ -44,6 +45,9 @@ export function Pin({ post }: PinProps) {
   const handleDialogClose = useCallback(() => {
     setShareDialogOpen(false);
   }, []);
+
+
+  const WebnovelTitle = getWebnovelById(post.webnovel_id).then(webnovel => webnovel?.title) 
 
   return (
     <div className="relative group shadow-sm">
@@ -78,7 +82,7 @@ export function Pin({ post }: PinProps) {
                         opacity-0 group-hover:opacity-100
                         transition-opacity duration-200
                         bg-gradient-to-t from-black/60 to-transparent ">
-{/* 
+              {/* 
               {post.id && <div className="absolute right-2 top-2" onClick={(e) => e.stopPropagation()}>
                 <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
                   <DialogTrigger asChild>
@@ -140,24 +144,21 @@ export function Pin({ post }: PinProps) {
 
               <div className="bg-white dark:bg-[#211F21] rounded-b-xl p-4 z-30">
                 <h3 className="mb-1 text-sm font-bold text-black dark:text-white line-clamp-2">
-                  {truncateText(post.title, 15)}
+                  {truncateText(post.title, 10)}
                 </h3>
                 <div className="flex flex-col items-center justify-between text-white">
-
-                  <p className="text-sm text-gray-500">{getWebnovelById(post.webnovel_id).then(webnovel => webnovel?.title)}</p>
-
+                  {/* <p className="text-sm text-gray-500">{truncateText(webnovelTitle, 10)}</p> */}
                   <div className="flex flex-row space-x-2 text-gray-500">
-                    <p className="text-sm text-gray-500">{post.user.nickname}</p>
-                    <div className="flex items-center space-x-2 text-sm">
+                    <div className="flex flex-row items-center space-x-2 text-sm">
                       <Heart size={14} className="" />
                       <span>{post.upvotes}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm">
+                    <div className="flex flex-row items-center space-x-2 text-sm">
                       <MessageCircle size={14} className="" />
                       <span>{post.comments.length}</span>
                     </div>
                   </div>
-
+                  <p className="text-sm text-gray-500">{post.user.nickname}</p>
                 </div>
 
               </div>

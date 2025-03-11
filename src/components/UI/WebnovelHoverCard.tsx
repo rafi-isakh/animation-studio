@@ -98,10 +98,9 @@ export function WebnovelCard({
                         <div className="text-gray-600 dark:text-gray-200 mb-2">by {webnovel.user.nickname}</div>
                         {/* Detail info */}
                         {showDetailInfo && (
-                            <div className="text-gray-700 dark:text-gray-200 text-sm mb-1">
-                                <p className="inline-flex gap-1"> <Heart className="w-4 h-4 text-red-500" /> {webnovel.upvotes}</p>
-                                <p className="inline-flex gap-1"> <Eye className="w-4 h-4 text-gray-400" /> {webnovel.views}</p>
-
+                            <div className="text-gray-700 dark:text-gray-200 text-sm mb-1 flex gap-1 items-center">
+                               <Heart className="w-3 h-3 text-gray-400" /> <p className="inline-flex gap-1 text-center">  {webnovel.upvotes}</p>
+                               <Eye className="w-3 h-3 text-gray-400" />  <p className="inline-flex gap-1 text-center">  {webnovel.views}</p>
                             </div>
                         )}
 
@@ -160,7 +159,7 @@ export function WebnovelCard({
                         )}
                     </div>
                     <Link href={`/view_webnovels?id=${webnovel.id}`} className="flex self-center">
-                        <ChevronRight className="w-5 h-5 text-white " />
+                        <ChevronRight className="w-5 h-5 dark:text-white text-gray-300 " />
                     </Link>
                 </div>
             </div>

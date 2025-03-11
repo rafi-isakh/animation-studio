@@ -79,7 +79,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
                     {phrase(dictionary, "delete", language)}
                   </Link>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="dark:bg-[#211F21] bg-white">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   </AlertDialogHeader>

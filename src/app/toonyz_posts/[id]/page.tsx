@@ -16,31 +16,14 @@ import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
 import { useUser } from '@/contexts/UserContext';
 import UserInfoCard from "@/components/UI/UserInfoCard";
 import { truncateText } from "@/utils/truncateText";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcnUI/Popover";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-
-async function getPost(id: string) {
-    // get_toonyz_post_by_id?id=${id}
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_toonyz_post_by_id?id=${id}`);
-    if (!response.ok) {
-        try {
-            const errorData = await response.json();
-            console.error(errorData);
-        } catch (e) {
-            console.error("Error parsing error response:", e);
-        }
-        return null;
-    }
-
-    try {
-        const post: ToonyzPost = await response.json();
-        return post;
-    } catch (e) {
-        console.error("Error parsing post data:", e);
-        return null;
-    }
-}
+import { useMediaQuery } from "@mui/material";
+import dynamic from 'next/dynamic';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+import animationData from '@/assets/N_logo_with_heart.json';
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
@@ -50,6 +33,7 @@ function getRandomDimensions() {
         height: heights[Math.floor(Math.random() * heights.length)],
     }
 }
+
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
@@ -58,7 +42,41 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const { email: currentUserEmail } = useUser();
     const { dictionary, language } = useLanguage();
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    useEffect(() => {
+        const fetchPost = async () => {
+            fetch('/api/get_toonyz_posts')
+                .then(res => res.json())
+                .then(data => {
+                    const post = data.find((post: ToonyzPost) => post.id.toString() === params.id);
+                    if (post) {
+                        setPost(post);
+                    }
+                    setIsLoading(false);
+                });
+        };
+        fetchPost();
+    }, [params.id]);
+
+    // useEffect(() => {
+    //     fetch('/api/get_toonyz_posts')
+    //         .then(res => res.json())
+    //         .then(data => {
+    //             // Add random dimensions to each post
+    //             const postsWithDimensions = data.map((post: ToonyzPost) => ({
+    //                 ...post,
+    //                 ...getRandomDimensions()
+    //             }));
+    //             setAllPosts(postsWithDimensions);
+
+    //             // Set the last post ID for cursor-based pagination
+    //             if (postsWithDimensions.length > 0) {
+    //                 setLastPostId(postsWithDimensions[postsWithDimensions.length - 1].id.toString());
+    //             }
+    //         });
+    // }, []);
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -68,47 +86,20 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             }
         };
         fetchWebnovel();
-    }, [post?.webnovel_id]);
+    }, [post?.webnovel_id, getWebnovelById]);
 
-
-    useEffect(() => {
-        const fetchPost = async () => {
-            const post = await getPost(params.id);
-            if (post) {
-                if (post) {
-                }
-                setPost(post);
-            }
-        };
-        fetchPost();
-    }, [params.id]);
-
-    useEffect(() => {
-        fetch('/api/get_toonyz_posts')
-            .then(res => res.json())
-            .then(data => {
-                // Add random dimensions to each post
-                const postsWithDimensions = data.map((post: ToonyzPost) => ({
-                    ...post,
-                    ...getRandomDimensions()
-                }));
-                setAllPosts(postsWithDimensions);
-
-                // Set the last post ID for cursor-based pagination
-                if (postsWithDimensions.length > 0) {
-                    setLastPostId(postsWithDimensions[postsWithDimensions.length - 1].id.toString());
-                }
-            });
-    }, []);
-
-    if (!post) {
-        return <></>
+    if (isLoading) {
+        return (<div className="loader-container"> <LottieLoader width="w-40" animationData={animationData} /></div>)
     }
 
-    const isAuthor = post && currentUserEmail === post.user.email_hash;
+    if (!post) {
+        return <div className="flex items-center justify-center min-h-screen">Post not found</div>;
+    }
+
+    const isAuthor = currentUserEmail === post.user.email_hash;
 
     return (
-        <div className="flex flex-col mx-auto w-full min-h-screen">
+        <div className="flex flex-col mx-auto w-full min-h-screen pb-20 ">
             {/* header fixed */}
             <div className="fixed top-0 z-[99] w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
@@ -125,10 +116,14 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 </div>
             </div>
 
-            {/* Image/Video Container - adjusted with conditional classes */}
-            <div className={`relative md:max-w-screen-lg mx-auto w-full group ${post.image ? 'h-screen top-20 mt-20' : 'h-[80vh] top-20 mt-20'}`}>
+            {/* Image/Video Container - simplified for mobile */}
+            <div className={`relative w-full group mt-16
+                            ${post.image
+                    ? 'md:h-screen h-[40vh] md:top-20 md:mt-20'
+                    : 'md:h-[80vh] h-[40vh] md:top-14 md:mt-14'}`}>
                 {post.image ? (
-                    <div className="group">
+                    <div className="group h-full w-full">
+                        {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" fill className="object-cover h-full w-full overflow-hidden md:scale-125 scale-100 transition-all duration-300 group-hover:blur-sm" /> */}
                         <WatermarkedImage
                             imageUrl={getImageUrl(post.image)}
                             watermarkUrl="/toonyz_logo_white.svg"
@@ -138,22 +133,22 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             watermarkPosition="centerRight"
                             titlePosition="centerLeft"
                             titleColor="white"
-                            className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
+                            className="object-cover h-full w-full overflow-hidden md:scale-125 scale-100 transition-all duration-300 group-hover:blur-sm"
                         />
                     </div>
                 ) : (
-                    <div className="relative group h-full">
+                    <div className="relative group h-full w-full">
                         <video
                             src={getVideoUrl(post.video)}
                             muted
                             loop
                             autoPlay
-                            className="w-full h-full object-cover scale-125 transition-transform duration-200 overflow-hidden"
+                            playsInline
+                            className="w-full h-full object-cover md:scale-125 scale-100 transition-transform duration-200 overflow-hidden"
                         />
                     </div>
                 )}
-                <p className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-2xl leading-loose text-center max-w-[100%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    {/*TODO: this translation should actually come from the novel. It shouldn't be a new translation.*/}
+                <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-2xl leading-loose text-center max-w-[90%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {post.image ? (
                         <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
                     ) : (
@@ -162,18 +157,20 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 </p>
             </div>
 
-            {/* Description Container - adjusted with conditional classes */}
-            <div className={`w-full flex flex-col gap-4 ${post.image ? 'p-0 -mt-[6rem]' : 'p-3 mt-[11rem]'} bg-white dark:bg-[#211F21] sticky bottom-0 z-50`}>
-                <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5">
-                    <div className={`relative flex justify-center ${post.image ? '-top-[2rem]' : '-top-[2.2rem]'}`}>
+            {/* Description Container - simplified for mobile */}
+            <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
+                            ${post.image ? 'p-4 md:-mt-[6rem] mt-0' : 'p-4 md:mt-[11rem] mt-4'}`}>
+                <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
+                    <div className="relative flex justify-center md:-top-[2rem] -top-0">
                         {/* user hover card */}
                         <UserInfoCard post={post} />
                     </div>
-                    <p className={`relative ${post.image ? '-top-5' : '-top-3'} text-center text-xl md:text-4xl font-bold`}>
+                    <p className="text-center text-xl md:text-4xl font-bold">
                         <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                     </p>
+
                     {/* views, comments likes and date */}
-                    <div className='flex flex-row gap-2'>
+                    <div className='flex flex-row flex-wrap gap-2 justify-center'>
                         <div className="text-sm text-gray-500 flex flex-row items-center">
                             <Eye size={16} className="mr-2" />
                             <span>{post.views}</span>
@@ -246,12 +243,12 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="h-[10vh]" />
                 <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                     {/* reusable component for the feed */}
-                    {allPosts && (
+                    {/* {allPosts && (
                         <ToonyzPostGrid
                             key={post.id.toString()}
                             className="w-full"
                             initialPosts={allPosts}
-                        />)}
+                        />)} */}
                 </div>
             </div>
         </div>

@@ -25,7 +25,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 
-const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor: boolean, user: User, postId: string }) => {
+const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor?: boolean, user: User, postId: string }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();

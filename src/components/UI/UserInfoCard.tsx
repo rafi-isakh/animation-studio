@@ -35,9 +35,9 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
         <Link href={`/view_profile/${post.user.id}`}>
             <HoverCard openDelay={0} closeDelay={0}>
                 <HoverCardTrigger>
-                    <Avatar className="w-20 h-20">
+                    <Avatar className="w-10 h-10">
                         {post.user.picture ? (
-                            <div className="dark:bg-[#211F21] bg-white rounded-full w-20 h-20 flex items-center justify-center overflow-hidden">
+                            <div className="dark:bg-[#211F21] bg-white rounded-full w-10 h-10 flex items-center justify-center overflow-hidden">
                                 <div className="relative w-full h-full">
                                     <Image
                                         src={getImageUrl(post.user.picture)}
@@ -48,9 +48,9 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-gray-400 rounded-full w-20 h-20 flex items-center justify-center">
+                            <div className="bg-gray-400 rounded-full w-10 h-10 flex items-center justify-center">
                                 <svg
-                                    className="w-20 h-20 text-gray-100 rounded-full"
+                                    className="w-10 h-10 text-gray-100 rounded-full"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +59,6 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                                 </svg>
                             </div>
                         )}
-
                     </Avatar>
                 </HoverCardTrigger>
                 <HoverCardContent className="w-[300px] bg-transparent border-none shadow-none">

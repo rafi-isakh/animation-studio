@@ -117,10 +117,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Image/Video Container - simplified for mobile */}
-            <div className={`relative w-full group mt-16
+            <div className={`relative max-w-screen-xl mx-auto w-full group
                             ${post.image
-                    ? 'md:h-screen h-[40vh] md:top-20 md:mt-20'
-                    : 'md:h-[80vh] h-[40vh] md:top-14 md:mt-14'}`}>
+                            ? 'md:h-full h-[40vh] md:top-8 md:mt-8'
+                            : 'md:h-full md:top-16 md:mt-16'}`}>
                 {post.image ? (
                     <div className="group h-full w-full">
                         {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" fill className="object-cover h-full w-full overflow-hidden md:scale-125 scale-100 transition-all duration-300 group-hover:blur-sm" /> */}
@@ -133,7 +133,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             watermarkPosition="centerRight"
                             titlePosition="centerLeft"
                             titleColor="white"
-                            className="object-cover h-full w-full overflow-hidden md:scale-125 scale-100 transition-all duration-300 group-hover:blur-sm"
+                            className="object-cover h-full w-full overflow-hidden scale-100 transition-all duration-300 group-hover:blur-sm"
                         />
                     </div>
                 ) : (
@@ -144,7 +144,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             loop
                             autoPlay
                             playsInline
-                            className="w-full h-full object-cover md:scale-125 scale-100 transition-transform duration-200 overflow-hidden"
+                            className="w-full h-full object-cover md:scale-110 scale-100 transition-transform duration-200 overflow-hidden"
                         />
                     </div>
                 )}
@@ -159,9 +159,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
             {/* Description Container - simplified for mobile */}
             <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
-                            ${post.image ? 'p-4 md:-mt-[6rem] mt-0' : 'p-4 md:mt-[11rem] mt-4'}`}>
+                            ${post.image ? 'p-4 md:mt-[2rem] mt-0' : 'p-4 md:mt-[8rem] mt-0'}`}>
                 <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
-                    <div className="relative flex justify-center md:-top-[2rem] -top-0">
+                    <div className="relative flex justify-center md:-top-[2rem] -top-[2.1rem]">
                         {/* user hover card */}
                         <UserInfoCard post={post} />
                     </div>

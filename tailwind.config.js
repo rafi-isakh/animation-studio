@@ -1,8 +1,9 @@
+import scrollbarHide from 'tailwind-scrollbar-hide';
 const flowbite = require("flowbite-react/tailwind");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -15,44 +16,98 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        pretendard: ['var(--font-pretendard)'],
-        'pretendard-jp': ['var(--font-pretendard-jp)'], 
-        'pretendard-std': ['var(--font-pretendard-std)'], // Latin optimized
-        'sans': ['Arial', 'sans-serif'],
-        'gowun-batang': ['Gowun Batang', 'serif'],
-        'nanum-gothic': ['Nanum Gothic', 'sans-serif'],
+        pretendard: ["var(--font-pretendard)"],
+        "pretendard-jp": ["var(--font-pretendard-jp)"],
+        "pretendard-std": ["var(--font-pretendard-std)"], // Latin optimized
+        sans: ["Arial", "sans-serif"],
+        "gowun-batang": ["Gowun Batang", "serif"],
+        "nanum-gothic": ["Nanum Gothic", "sans-serif"],
+      },
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar-background))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          primary: 'hsl(var(--sidebar-primary))',
+          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+          accent: 'hsl(var(--sidebar-accent))',
+          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+          border: 'hsl(var(--sidebar-border))',
+          ring: 'hsl(var(--sidebar-ring))',
+        },
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 },
+        },
       },
       animation: {
-        wiggle: 'wiggle 1s ease-in-out infinite',
-      }
-    },
-    container: {
-      center: true,
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
     },
   },
   plugins: [
-    require('flowbite/plugin'),
-    require('tailwind-scrollbar-hide'),
+    scrollbarHide,
     flowbite.plugin(),
-    function({ addUtilities }) {
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'),
+    function ({ addUtilities }) {
       const newUtilities = {
-        '.nanum-gothic': {
+        ".nanum-gothic": {
           fontFamily: '"Nanum Gothic", sans-serif',
-          fontWeight: '400',
-          fontStyle: 'normal',
+          fontWeight: "400",
+          fontStyle: "normal",
         },
-        '.nanum-gothic-bold': {
+        ".nanum-gothic-bold": {
           fontFamily: '"Nanum Gothic", sans-serif',
-          fontWeight: '700',
-          fontStyle: 'normal',
+          fontWeight: "700",
+          fontStyle: "normal",
         },
-        '.nanum-gothic-extrabold': {
+        ".nanum-gothic-extrabold": {
           fontFamily: '"Nanum Gothic", sans-serif',
-          fontWeight: '800',
-          fontStyle: 'normal',
+          fontWeight: "800",
+          fontStyle: "normal",
         },
-      }
-      addUtilities(newUtilities)
-    }
+      };
+      addUtilities(newUtilities);
+    },
   ],
-}
+};

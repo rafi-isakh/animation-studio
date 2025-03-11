@@ -37,7 +37,8 @@ const WebnovelTranslateComponent = (
     const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const { theme } = useTheme();
-    const { fontSize,
+    const { 
+        fontSize,
         fontFamily = 'default',
         lineHeight,
         margin,
@@ -52,6 +53,7 @@ const WebnovelTranslateComponent = (
         const handleTranslate = async () => {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_translation?chapter_id=${chapterId}&language=${language}`)
             const data = await response.json();
+            console.log(data)
             if (data.text) {
                 setText(await marked(data.text))
             }
@@ -60,8 +62,9 @@ const WebnovelTranslateComponent = (
                 submitContent(data.text);
             }
         }
+
         if (sourceLanguage == language) {
-            setText(content);
+            setText(content)
             setFinished(true);
         } else {
             handleTranslate();
@@ -261,16 +264,18 @@ const WebnovelTranslateComponent = (
                         <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
                             style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
-                            onContextMenu={(e) => e.preventDefault()}>
+                            onContextMenu={(e) => e.preventDefault()}
+                            className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
+                            >
                         </div>
                     }
                     {scrollType === 'horizontal' &&
                         <div className='relative flex flex-col'>
                             {/* Navigation buttons - positioned absolutely on the sides */}
-                            <div className="fixed top-1/2 left-5 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 left-20 transform -translate-y-1/2 z-[999]">
                                 <button
                                     onClick={prevPage}
-                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors duration-300 opacity-[0.4] hover:opacity-[1]"
                                     aria-label="Previous page"
                                 >
                                     <ChevronLeft size={68} />
@@ -278,10 +283,10 @@ const WebnovelTranslateComponent = (
                                 </button>
                             </div>
 
-                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 z-[999]">
                                 <button
                                     onClick={nextPage}
-                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors opacity-[0.4] hover:opacity-[1]"
                                     aria-label="Next page"
                                 >
                                     <ChevronRight size={68} />
@@ -294,7 +299,7 @@ const WebnovelTranslateComponent = (
                                 <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-1'>
                                     <div
                                         id='first-half'
-                                        className='w-full'
+                                        className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
                                         style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
                                         dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords) }}
                                         onContextMenu={(e) => e.preventDefault()}>

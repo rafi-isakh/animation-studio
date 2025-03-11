@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useRef } from 'react';
-import { Chapter, Comment } from '@/components/Types'
+import { Chapter, Comment, ToonyzPost } from '@/components/Types'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
@@ -17,9 +17,13 @@ import { getImageUrl } from '@/utils/urls';
 import CommentsDropdownButton from '@/components/UI/CommentsDropdownButton';
 import UpvoteButton from '@/components/UI/UpvotedButton';
 
-const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnabled }: { chapter: Chapter, webnovelOrWebtoon: boolean, addCommentEnabled: boolean }) => {
+const CommentsComponent = ({
+    contentToAttachTo,
+    webnovelOrPost,
+    addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
+    const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
-    const [allComments, setAllComments] = useState<Comment[]>(chapter.comments || []);
+    const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);
     const { email, upvotedComments, setUpvotedComments } = useUser();
     const { isLoggedIn } = useAuth();
     const [replyContent, setReplyContent] = useState<string[]>([]);
@@ -34,13 +38,36 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
+    const [textareaRows, setTextareaRows] = useState(1);
 
 
-    useEffect(() => {
-        for (let i = 0; i < allComments.length; i++) {
-            updateAllReplies(i)
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter') {
+            // Prevent form submission on Enter
+            e.preventDefault();
+            
+            // Store a reference to the textarea element before the event is cleaned up
+            const textarea = e.currentTarget;
+            
+            // Insert a newline character at cursor position
+            const cursorPosition = textarea.selectionStart;
+            const textBefore = commentContent.substring(0, cursorPosition);
+            const textAfter = commentContent.substring(cursorPosition);
+            setCommentContent(textBefore + '\n' + textAfter);
+            
+            // Set cursor position after the newline
+            setTimeout(() => {
+                const newCursorPosition = cursorPosition + 1;
+                textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+            }, 0);
+            
+            // Increase rows up to a maximum of 5
+            setTextareaRows(prev => Math.min(prev + 1, 5));
+        } else if (e.key === 'Backspace' && commentContent.split('\n').length < textareaRows) {
+            // Decrease rows when deleting content, but keep minimum of 2
+            setTextareaRows(prev => Math.max(prev - 1, 2));
         }
-    }, [])
+    };
 
     const handleAddComment = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -54,9 +81,9 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": chapter?.id,
+                    "chapter_id": contentToAttachTo.id,
                     "replies": [],
-                    "webnovel_or_webtoon": webnovelOrWebtoon
+                    "webnovel_or_post": webnovelOrPost
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -70,17 +97,17 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                     console.error("Error adding comment");
                 }
                 let comments_sans_replies;
-                if (webnovelOrWebtoon) {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_comments?chapter_id=${chapter?.id}`)
+                if (!webnovelOrPost) {
+                    comments_sans_replies = await fetch(`/api/get_comments?chapter_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
                 else {
-                    comments_sans_replies = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webtoon_comments?chapter_id=${chapter?.id}`)
+                    comments_sans_replies = await fetch(`/api/get_toonyz_post_comments?post_id=${contentToAttachTo.id}`)
                         .then(data => data.json())
                 }
 
                 if (Array.isArray(comments_sans_replies)) {
-                    setAllComments(comments_sans_replies);
+                    setAllComments(comments_sans_replies.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
                     setRepliesKey(prevKey => prevKey + 1)
                 }
                 setCommentContent('');
@@ -112,7 +139,7 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
         }
         const data = await response.json();
         const updatedComment = data.comment;
-    
+
         setAllComments(prevComments => {
             const updatedComments = prevComments.map(comment =>
                 comment.id.toString() === commentId ? { ...comment, upvotes: updatedComment.upvotes } : comment
@@ -152,9 +179,9 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                     "email": email,
                     "content": commentContent,
                     "upvotes": 0,
-                    "chapter_id": chapter?.id,
+                    "chapter_id": contentToAttachTo.id,
                     "replies": [],
-                    "webnovel_or_webtoon": webnovelOrWebtoon
+                    "webnovel_or_post": webnovelOrPost
                 }
 
                 const response = await fetch(`/api/add_comment`, {
@@ -234,42 +261,38 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
     // );
 
     return (
-        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto'>
-            <div className='flex flex-col'>
+        <div className='md:max-w-screen-md w-full flex flex-col items-left mx-auto select-none'>
+            <div className='flex flex-col gap-y-5'>
                 {/* comments  */}
                 {addCommentEnabled &&
                     <form onSubmit={handleAddComment}>
-                        <div className='flex flex-col mb-5'>
+                        <div className='flex flex-col relative'>
                             <textarea
                                 value={commentContent}
-                                rows={6}
-                                className='textarea text-sm rounded-t-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-black'
+                                rows={textareaRows}
+                                className='textarea text-base rounded-lg focus:ring-[#DB2777] w-full resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-[#211F21]'
                                 onChange={(e) => setCommentContent(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 placeholder={phrase(dictionary, "typeYourComment", language)}
 
                             />
-                            <div className='border-gray-300 dark:border-gray-700 border border-t-0 flex justify-end rounded-b-lg'>
-                                <span className={`justify-center self-center mr-4 mt-[0px] text-sm ${commentContent.length >= MAX_CHARS ? 'text-[#DB2777]' :
-                                    commentContent.length >= MAX_CHARS * 0.8 ? 'text-yellow-500' :
-                                        'text-gray-400'
-                                    }`}>
-                                    {commentContent.length}/{MAX_CHARS}
-                                </span>
-                                <button type="submit" className='group/item text-sm text-white rounded-br-lg bg-[#DB2777] px-4 py-2 group-hover/item:bg-[#FFE2DC]'>
-                                    {/* <Send size={20} className="dark:text-white text-white" /> */}
-                                    {phrase(dictionary, "commentSubmit", language)}
-                                </button>
-                            </div>
+     
+                            <button
+                                type="submit"
+                                className='absolute right-2 bottom-2 bg-transparent text-black dark:text-white hover:opacity-75 transition-opacity'
+                            >
+                                <Send size={20} className="text-black dark:text-white" />
+                            </button>
 
                         </div>
                     </form>
                 }
 
-                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-gray-900'>
+                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-[#211F21]'>
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}
-                        <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" />
+                        <OtherTranslateComponent content={contentToAttachTo.title} elementId={contentToAttachTo.id.toString()} elementType={webnovelOrPostElementType} />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
                         <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
                     </div>
@@ -446,8 +469,8 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
                                                             <textarea
                                                                 value={replyContent[index]}
                                                                 rows={1}
-                                                                className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-black
-                                                                        resize-none border border-gray-300 text-black dark:text-white'
+                                                                className='textarea rounded focus:ring-[#DB2777] w-full bg-white dark:bg-[#211F21]
+                                                                        resize-none border border-gray-300 dark:border-gray-700 text-black dark:text-white'
                                                                 onChange={(e) => updateReplyContent(index, e.target.value)}
                                                             />
                                                             {/* send button */}
@@ -472,4 +495,4 @@ const ChapterCommentsComponent = ({ chapter, webnovelOrWebtoon, addCommentEnable
     )
 }
 
-export default ChapterCommentsComponent;
+export default CommentsComponent;

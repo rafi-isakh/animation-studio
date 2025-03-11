@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     try {
         await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
           method: 'POST',
-          body: JSON.stringify({ fileBufferBase64: fileContent.toString('base64'), fileName, fileType }),
+          body: JSON.stringify({ fileBufferBase64: fileContent.toString('base64'), fileName, fileType, bucketName: "toonyzbucket" }),
           headers: {
             cookie: req.headers.get('cookie') || ''
           }

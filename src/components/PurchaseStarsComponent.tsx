@@ -169,7 +169,6 @@ export default function PurchaseStarsComponent({ setTabValue }: { setTabValue: (
                                                 {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
                                                 <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
                                             </div>
-
                                         </div>
                                     </div>
                                     <div className="flex items-center">

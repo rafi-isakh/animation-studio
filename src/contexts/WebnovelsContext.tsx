@@ -41,10 +41,11 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     // todo: clearly delineate between webnovel metadata and webnovel with content
     const getWebnovelById = async (id: string) => {
-        const webnovel = webnovels.find((webnovel) => webnovel.id.toString() === id);
+        const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
         if (webnovel) {
             return Promise.resolve(webnovel);
         } else {
+            console.log("fetching webnovel by id", id);
             const response = await fetch(`/api/get_webnovel_by_id?id=${id}`, {
                 cache: 'no-store',
             });

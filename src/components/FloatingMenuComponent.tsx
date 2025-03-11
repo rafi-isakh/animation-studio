@@ -1,138 +1,110 @@
 'use Client'
 import React, { useEffect, useState, useRef } from 'react';
-import { Global } from '@emotion/react';
-import { styled } from '@mui/material/styles';
-import { Box, Button, Modal, Skeleton, Typography, SwipeableDrawer, Link, Alert } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-import Collapse from '@mui/material/Collapse';
-import CloseIcon from '@mui/icons-material/Close';
-import Tab from '@mui/material/Tab';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import TabContext from '@mui/lab/TabContext';
+import { cn } from "@/lib/utils"
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { Button } from "@/components/shadcnUI/Button"
+import { v4 as uuidv4 } from 'uuid';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/shadcnUI/Dialog"
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "@/components/shadcnUI/Drawer"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/shadcnUI/Tooltip"
+import { Skeleton } from "@mui/material"
+import { ToastAction } from "@/components/shadcnUI/Toast";
+import { Input } from "@/components/shadcnUI/Input"
+import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
-import { phrase } from '@/utils/phrases'
-import PictureGenerator from '@/components/PictureGeneratorComponent';
-import dynamic from 'next/dynamic';
-import animationData from '@/assets/shinny.json';
-import { X, ArrowRight, Home, WandSparkles, Compass, Clapperboard, Image } from 'lucide-react';
-import { Language } from '@/components/Types';
+import Link from 'next/link';
+import { X, Video, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide, MessageSquare, RefreshCw } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
-
-
+import BlobButton from '@/components/UI/BlobButton';
+import { truncateText } from '@/utils/truncateText';
+import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
+import Draggable from 'react-draggable';
+import { Webnovel, Chapter, ImageOrVideo } from '@/components/Types';
+import { useToast } from "@/hooks/use-toast";
+import WatermarkedImage from "@/utils/watermark";
+import GeneratedPicture from '@/components/GeneratedPicture';
+import CardStyleButton from '@/components/UI/CardStyleButton';
+import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
+import PromotionBannerComponent from '@/components/PromotionBannerComponent';
+import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgressbar';
+import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
+import animationData from '@/assets/gradient_loader.json';
+import { downloadVideo, uploadVideo } from '@/utils/s3';
+import { getImageUrl } from '@/utils/urls';
 
 type Position = {
     x: number;
     y: number;
     width: number;
     height: number;
-    window?: () => Window;
 };
 
-const Puller = styled('div')(({ theme }) => ({
-    width: 30,
-    height: 6,
-    backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',  // gray-600 #4b5563 
-    borderRadius: 3,
-    position: 'absolute',
-    top: 8,
-    left: 'calc(50% - 15px)',
-    zIndex: 5,
-}));
-
-const StyledBox = styled('div')(() => ({
-    position: 'relative',
-    height: '100%',
-    overflow: 'auto',
-}));
-
-
-export function TransitionAlerts({ dictionary, language }: { dictionary: any; language: Language }) {
-    const [open, setOpen] = useState(true);
-
-    return (
-        <Box sx={{ width: '100%', mb: 2 }}>
-            <Collapse in={true}>
-                <Alert
-                    variant="outlined"
-                    sx={{ borderColor: '#eeeee4' }}
-                    severity="info"
-                >
-                    {phrase(dictionary, "toonyzStudioPlay", language)}
-                </Alert>
-            </Collapse>
-        </Box>
-    );
-}
-
-
-
-
-interface FloatingMenuNavItem {
-    icon: React.ReactNode;
-    label: string;
-    href: string;
-}
-
-const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    { icon: <WandSparkles size={18} />, label: 'Home', href: '/' },
-    // { icon: <Image size={18} />, label: 'Explore', href: '/explore' },
-    { icon: <Clapperboard size={18} />, label: 'Search', href: '/search' },
-];
-
-
-
-const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
-
-    return (
-        <div className="relative max-w-[200px] mx-auto z-150">
-            {/* Style 1: Hover with background */}
-            <div className="px-2 bg-white shadow-lg rounded-2xl mb-5">
-                <div className="flex">
-                    {FloatingMenuNavItems.map((item) => (
-                        <div key={item.label} className="flex-auto hover:w-full group">
-                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto px-2 py-2 group-hover:w-full text-[#DE2B74]">
-                                <span className="flex flex-row px-1 py-1 group-hover:bg-indigo-100 rounded-full group-hover:flex-grow">
-                                    {item.icon}
-                                    {/* <span className="hidden group-hover:inline-flex justify-center items-center ml-3 pb-1 text-[10px] no-underline">
-                                        {item.label}
-                                    </span> */}
-                                </span>
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-
-    );
-};
-
-
-const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string }> = ({ children, window, webnovel_id, chapter_id }) => {
-    const [selection, setSelection] = useState<string>()
+const FloatingMenu: React.FC<{
+    children: React.ReactNode;
+    webnovel_id: string;
+    chapter_id:
+    string;
+    context: string,
+    webnovel: Webnovel,
+    chapter: Chapter,
+    selectedTextRef: React.MutableRefObject<string>;
+}> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
+    const [selection, setSelection] = useState<string>("")
     const [position, setPosition] = useState<Position | undefined>();
-    const [selectedText, setSelectedText] = useState<string>('');
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [showIsModal, setShowIsModal] = useState(false);
     const { language, dictionary } = useLanguage();
-    const [open, setOpen] = useState(false);
-    const drawerBleeding = 56
-    const [showPleaseLogin, setShowPleaseLogin] = useState(false);
-    const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
-    const [showError, setShowError] = useState(false);
-    const [prompt, setPrompt] = useState("");
+    const [openDialog, setOpenDialog] = useState(false);
+    const isDesktop = useMediaQuery("(min-width: 768px)")
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState(0);
     const [pictures, setPictures] = useState([]);
-    const [value, setValue] = React.useState('1');
-    const drawerRef = useRef<HTMLDivElement>(null);
     const { theme } = useTheme();
+    const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
+    const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
+    const draggableNodeRef = useRef<HTMLDivElement>(null);
+    const [showShareDialog, setShowShareDialog] = useState(false);
+    const { toast } = useToast();
+    const [savedPrompt, setSavedPrompt] = useState<string>("");
+    const [videoFileName, setVideoFileName] = useState<string | null>(null);
+    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
+    const promotionBannerRef = useRef(<PromotionBannerComponent />);
+    const [authFailed, setAuthFailed] = useState(false);
+    const [testText, setTestText] = useState<string>("")
+    const floatingButtonRef = useRef<HTMLButtonElement>(null);
+    const shareButtonRef = useRef<HTMLButtonElement>(null);
+    const [prompts, setPrompts] = useState<string[]>([]);
 
     useEffect(() => {
+
         const handleSelectionChange = () => {
             const activeSelection = document.getSelection()
             if (!activeSelection) return;
@@ -140,245 +112,939 @@ const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window;
             if (!text) return;
             const rect = activeSelection.getRangeAt(0).getBoundingClientRect()
             const containerRect = containerRef.current?.getBoundingClientRect();
-
             if (containerRect) {
-                setSelection(text)
                 setPosition({
-                    x: rect.left - containerRect.left + (rect.width / 2) - (30 / 2),
-                    y: rect.top - containerRect.top - 30,
+                    x: rect.left - containerRect.left + (rect.width / 2) - (100 / 2),
+                    y: rect.top - containerRect.top - 25,
                     width: rect.width,
                     height: rect.height,
                 })
-                setSelectedText(text)
+                setSelection(text)
+                selectedTextRef.current = text
 
+                //setTestText(text)
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
                 }
-
-                timeoutRef.current = setTimeout(() => {
-                    handleClose();
-                }, 8000);
             }
         }
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                handleClose();
-                setOpen(false);
-            }
-        };
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target as Node) &&
-                drawerRef.current &&
-                !drawerRef.current.contains(event.target as Node)
-            ) {
-                // Close floating menu only and clear timeout
-                setSelection(undefined);
-                setPosition(undefined);
-                setSelectedText('');
-                setShowMessage(false);
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
+                handleCloseFloatingButton();
+                setOpenDialog(false);
             }
         };
 
         document.addEventListener('selectionchange', handleSelectionChange);
         document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('mousedown', handleClickOutside);
 
         return () => {
             document.removeEventListener('selectionchange', handleSelectionChange);
             document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('mousedown', handleClickOutside);
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
         }
     }, []);
 
-    const truncateText = (text: string, maxLength: number): string => {
-        if (text.length <= maxLength) return text;
-        return text.slice(0, maxLength) + '...';
-    };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
 
-    const handleOpenModal = () => {
-        // open drawer 
-        setOpen(true);
-        setShowIsModal(true);
+            const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
+            const isClickShareButton = shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node);
+
+            if (isClickOutsideFloatingButton && isClickShareButton) {
+                handleCloseFloatingButton();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [position]);
+
+    const handleCloseFloatingButton = () => {
+        setSelection("");
+        setPosition(undefined);
+        setShowMessage(false);
     }
-
-    const toggleDrawer = (newOpen: boolean) => (event?: React.MouseEvent | React.KeyboardEvent) => {
-        if (event) {
-            event.preventDefault();
-        }
-        setOpen(newOpen);
-        setShowIsModal(true);
-    };
 
     const handlePicturesGenerated = (newPictures: string[]) => {
-        setOpen(true);
+        setOpenDialog(true);
     };
 
-    const handleDrawerClose = () => {
-        setOpen(false);
+    useEffect(() => {
+        if (!initialDialogPositionSet && draggableNodeRef.current) {
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const dialogWidth = 425; // sm:max-w-[425px]
+
+            // Position within visible area of screen
+            const xPos = Math.max(20, Math.min(viewportWidth - dialogWidth - 20, viewportWidth / 2));
+            const yPos = Math.max(20, Math.min(viewportHeight - 100, viewportHeight / 4));
+
+            setDialogPosition({
+                x: xPos,
+                y: yPos,
+            });
+            setInitialDialogPositionSet(true);
+        }
+    }, [initialDialogPositionSet]);
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            // Use the modern Clipboard API if available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+                toast({
+                    variant: "success",
+                    title: "Link copied to clipboard!",
+                    description: "You can now paste it anywhere you want.",
+                });
+            } else {
+                // Fallback for browsers (like Safari) that may not support Clipboard API
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.setAttribute("readonly", ""); // Prevent iOS keyboard from appearing
+                textArea.style.position = "absolute";
+                textArea.style.left = "-9999px"; // Move element off-screen
+                document.body.appendChild(textArea);
+                textArea.select();
+
+                // Execute the copy command
+                const successful = document.execCommand("copy");
+                document.body.removeChild(textArea);
+
+                if (successful) {
+                    toast({
+                        variant: "success",
+                        title: "Link copied to clipboard!",
+                        description: "You can now paste it anywhere you want.",
+                    });
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: "Failed to copy",
+                        description: "Please try selecting and copying the text manually.",
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Failed to copy text: ", err);
+            toast({
+                variant: "destructive",
+                title: "Failed to copy",
+                description: "Please try selecting and copying the text manually.",
+            });
+        }
     };
 
-    const handleClose = () => {
-        setSelection(undefined);
-        setPosition(undefined);
-        setSelectedText('');
-        setShowMessage(false);
-        // setOpen(false);
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
+
+    // image generating
+    const generatePictures = async () => {
+        const confirmed = window.confirm("Are you sure you want to generate pictures? This will use your credits.");
+        if (!confirmed) {
+            setIsLoading(false);
+            setOpenDialog(false);
+            return;
+        }
+
+        console.log('generating pictures')
+        const initialPrompt = selectedTextRef.current;
+        setSavedPrompt(truncateText(initialPrompt, 150));
+        if (!initialPrompt) {
+            toast({
+                title: "Error",
+                description: "Please provide a prompt",
+                variant: "destructive"
+            })
+            setError('Please provide a prompt');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        setProgress(0);
+
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (5 * Math.random());
+                return newProgress > 95 ? 95 : newProgress;
+            });
+        }, 300);
+
+        try {
+            const response = await fetch(`/api/generate_pictures`, {
+                method: 'POST',
+                body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
+            })
+
+            // const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)
+            // const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+            //     method: 'POST',
+            //     body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "anime", trailer_type: "A" })
+            // })
+
+            if (!response.ok) {
+                switch (response.status) {
+                    case 401:
+                        setAuthFailed(true); // Set auth failed state
+                        toast({
+                            title: "Error",
+                            description: "Please login to generate pictures",
+                            variant: "destructive",
+                            action: <ToastAction altText="Try again">Try again</ToastAction>,
+                            altText: "Try again"
+                        })
+                        throw new Error('Please login to generate pictures');
+                    case 429:
+                        toast({
+                            title: "Error",
+                            description: "Too many requests. Please try again later.",
+                            variant: "destructive"
+                        })
+                        throw new Error('Too many requests. Please try again later.');
+                    default:
+                        toast({
+                            title: "Error",
+                            description: "Error: Failed to generate pictures",
+                            variant: "destructive"
+                        })
+                        throw new Error('Failed to generate pictures');
+                }
+            }
+
+            const data = await response.json();
+
+            if (!data.images || !Array.isArray(data.images)) {
+                toast({
+                    title: "Error",
+                    description: "Invalid response format from server",
+                    variant: "destructive"
+                })
+                throw new Error('Invalid response format from server');
+            }
+            setPictures(data.images);
+            setPrompts(data.prompts);
+            handlePicturesGenerated(data.images);
+            setProgress(100);
+            clearInterval(progressInterval);
+        } catch (err) {
+            clearInterval(progressInterval);
+            setProgress(0);
+            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // there's makeSlideshow and makeVideo.
+    // the logic is largely the same, except in makeSlideshow, we upload the pictures to s3, make a slideshow, then upload.
+    // in makeVideo, we don't need to upload to s3 because we get a url back from vidu. so we generate videos, combine, then upload.
+    // combining and uploading are done in the backend.
+    const makeSlideshow = async () => {
+        try {
+            const pictureFilenames = [];
+            for (const picture of pictures) {
+                const pictureFilename = uuidv4();
+                const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
+                    method: 'POST',
+                    // make just one picture to a video as test.
+                    body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
+                });
+                if (!uploadResponse.ok) {
+                    toast({
+                        title: "Error",
+                        description: "Failed to upload picture to s3, please try again later",
+                        variant: "destructive"
+                    })
+                    throw new Error('Failed to upload picture to s3');
+                }
+                pictureFilenames.push(pictureFilename);
+            }
+            const response = await fetch('/api/ffmpeg_combine_pictures_to_slideshow', {
+                method: 'POST',
+                body: JSON.stringify({ picture_urls: pictureFilenames.map(getImageUrl) }),
+            });
+            setIsLoading(true);
+            if (!response.ok) {
+                toast({
+                    title: "Error",
+                    description: "Failed to make slideshow",
+                    variant: "destructive"
+                })
+                throw new Error('Failed to make slideshow, please try again later');
+            }
+            const data = await response.json();
+            console.log(data);
+            setVideoFileName(data.video_filename);
+            toast({
+                title: "Success",
+                variant: "success",
+                description: "Slideshow created successfully",
+            })
+            setShowShareAsPostModal(true);
+            setIsLoading(false);
+        } catch (error) {
+            console.error('Slideshow creation error:', error);
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : "An unexpected error occurred creating slideshow",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
         }
     }
 
-    // This is used only for the example
-    const container = window !== undefined ? () => window().document.body : undefined;
+    const makeVideo = async () => {
+        console.log("making video!");
+        const videoUrls: string[] = [];
+        const processPromises = pictures.map(async (picture, i) => {
+            const pictureFilename = uuidv4();
+            const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
+                method: 'POST',
+                body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
+            });
+            if (!uploadResponse.ok) {
+                toast({
+                    title: "Error", 
+                    description: "Failed to upload picture to s3, please try again later",
+                    variant: "destructive"
+                })
+                throw new Error('Failed to upload picture to s3');
+            }
+            const image_url = getImageUrl(`${pictureFilename}.png`);
+            const response = await fetch('/api/generate_video', {
+                method: 'POST',
+                body: JSON.stringify({ video_prompt: prompts[i], image_url: image_url }),
+            });
+            if (!response.ok) {
+                toast({
+                    title: "Error",
+                    description: "Failed to generate video, please try again later", 
+                    variant: "destructive"
+                })
+                throw new Error('Failed to generate video');
+            }
+            const data = await response.json();
+            const url = data.video_url;
+            console.log(`video ${i} url: `, url);
+            return url;
+        });
 
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-        setValue(newValue);
-    };
+        const urls = await Promise.all(processPromises);
+        videoUrls.push(...urls);
+
+        const getVideoDuration = (videoUrl: string): Promise<number> => {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video'); // Create video element in memory
+                video.preload = 'metadata'; // Load metadata only
+                video.src = videoUrl;
+
+                video.addEventListener('loadedmetadata', () => {
+                    resolve(video.duration); // Resolve with the duration in seconds
+                });
+
+                video.addEventListener('error', () => {
+                    reject(new Error('Failed to load video metadata'));
+                });
+            });
+        };
+
+        const durations = await Promise.all(videoUrls.map(getVideoDuration));
+        console.log(durations);
+        const stitchedResponse = await fetch('/api/ffmpeg_combine_videos', {
+            method: 'POST',
+            body: JSON.stringify({ video_urls: videoUrls, durations: durations }),
+        });
+        if (!stitchedResponse.ok) {
+            toast({
+                title: "Error",
+                description: "Failed to stitch videos",
+                variant: "destructive"
+            })
+        }
+        const stitchedData = await stitchedResponse.json();
+        const videoFilename = stitchedData.video_filename;
+        console.log(stitchedData);
+        setVideoFileName(videoFilename);
+        toast({
+            title: "Success",
+            variant: "success",
+            description: "Video created successfully",
+        })
+        setShowShareAsPostModal(true);
+    }
+
+    if (isDesktop) {
+        return (
+            <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
+
+                {selection && position && (
+                    <div className="absolute z-10"
+                        style={{
+                            top: `${position.y + position.height + 30}px`,
+                            left: `${position.x - 1}px`,
+                        }}>
+                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <CustomCircularProgressbar
+                                        progress={Math.round(progress)}
+                                        size={50}
+                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                        progressColor="#DE2B74"
+                                        strokeWidth={5}
+                                    >
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            ref={floatingButtonRef}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                            disabled={isLoading}
+                                            onClick={() => { setOpenDialog(true); generatePictures() }}
+                                        >
+                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                            </div>
+                                            <BlobButton text={
+                                                isLoading ? (
+                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                                ) : (
+                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                )
+                                            } />
+                                        </Button>
+                                    </CustomCircularProgressbar>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            ref={shareButtonRef}
+                                            onClick={() => {
+                                                console.log('share dialog clicked')
+                                                setShowShareDialog(true)
+                                            }
+                                            }
+                                            variant="ghost"
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                                           inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
+                                                          bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                        >
+                                            <Share2 size={46} strokeWidth={1} />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Share
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </ul>
+                    </div>
+                )
+                }
+                {children}
+                <div
+                    ref={draggableNodeRef}
+                    className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
+                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
+                            rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
+                            ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className='drag-handle px-2 flex-shrink-0'>
+                        <div className="flex items-center justify-between p-4 border-b">
+                            <div className="flex items-center gap-2">
+                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
+                                <div>
+                                    <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button> */}
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation()
+                                        setOpenDialog(false);
+                                        setIsLoading(false);
+                                        setSelection('');
+                                    }}>
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
+                        <div className='relative w-full'>
+                            {isLoading && (
+                                <div className="flex flex-col w-full gap-4">
+                                    <div className="flex flex-col mb-2">
+                                        <div className="loader-container inline-flex flex-row">
+                                            {/* <LottieLoader width="w-20" centered={false} animationData={animationData} /> */}
+                                            <div className="my-6 space-y-4">
+                                                <p className="text-sm text-muted-foreground self-end">
+                                                    Generating images... {Math.round(progress)}%
+                                                </p>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-end">
+                                                        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
+                                                            {savedPrompt}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1">
+                                            {[1, 2, 3, 4].map((item) => (
+                                                <div
+                                                    key={item}
+                                                    className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
+                                                    style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
+                                                >
+                                                    <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {pictures.length > 0 && (
+                                <div className="flex flex-col select-none">
+                                    {savedPrompt && (
+                                        <div className="my-6 space-y-4">
+                                            <div className="space-y-3">
+                                                <p className="text-sm text-gray-400">Generated a scene with</p>
+                                                {/* <div className="flex flex-wrap gap-2">
+                                            {keywords.map((keyword) => (
+                                                <span
+                                                    key={keyword}
+                                                    className="px-3 py-1 text-sm rounded-full bg-[#1a1b1f] border border-[#2a2b2f] text-gray-200"
+                                                >
+                                                    {keyword}
+                                                </span>
+                                            ))}
+                                        </div> */}
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {/* User message bubble */}
+                                                <div className="flex justify-end">
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                        {savedPrompt}
+                                                    </div>
+                                                </div>
+
+                                                {/* AI response bubble */}
+                                                <div className="flex justify-start">
+                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                    </div>
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                        I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <RefreshCw className="w-4 h-4" />
+                                                    Generate again
+                                                </Button>
+                                                {/* <Button
+                                                    variant="outline"
+                                                    className="bg-[#1a1b1f] text-white border-[#2a2b2f] hover:bg-[#2a2b2f] flex gap-2 shrink-0"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                    Brainstorm
+                                                </Button> */}
+                                                {/* <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                >
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    Reply
+                                                </Button> */}
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                    onClick={() => {
+                                                        makeVideo();
+                                                    }}
+                                                >
+                                                    <Video className="w-4 h-4" />
+                                                    Make a video
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-1">
+                                        {pictures.map((picture, index) => {
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="opacity-0 animate-fadeIn"
+                                                    style={{
+                                                        animationDelay: `${index * 300}ms`,
+                                                        animationFillMode: 'forwards'
+                                                    }}
+                                                >
+                                                    <GeneratedPicture
+                                                        key={index}
+                                                        index={index}
+                                                        image={picture}
+                                                        webnovel_id={webnovel_id}
+                                                        chapter_id={chapter_id}
+                                                        quote={savedPrompt}
+                                                    />
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {pictures.length > 0 && (
+                                <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+                                    {/* <Button
+                                        variant="outline"
+                                        // onClick={makeVideo}
+                                        className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                                        Make Video
+                                        <ArrowRight className='w-4 h-4' />
+                                    </Button> */}
+                                    <Link
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            console.log("making slideshow clicked")
+                                            makeSlideshow();
+                                        }}
+                                        className='w-full'>
+                                        <CardStyleButton
+                                            title="Slideshow"
+                                            subtitle="Watch Ads to make a slideshow"
+                                            ideaCount={pictures.length}
+                                            images={pictures}
+                                            gradientFrom="#DE2B74"
+                                            gradientTo="#FF6F91"
+                                            className='w-full'
+                                        />
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                    {/* Footer input */}
+                    <div className="flex flex-col space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
+                        {/* Ad banner */}
+                        <div className='w-full flex-shrink-0'>
+                            <div className='relative top-0 left-0 w-full'>
+                                {promotionBannerRef.current}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* share dialog */}
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+                        <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                                Share the link with your friends and family.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
+
+                        <div className="flex items-center space-x-2">
+                            <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
+                                    readOnly
+                                    className='select-none bg-transparent'
+                                    disabled
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
+                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    copyToClipboard(text);
+                                }}
+                            >
+                                <span className="sr-only">Copy</span>
+                                <Copy />
+                            </Button>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Close
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+                <ShareAsToonyzPostModal
+                    imageOrVideo={'video' as ImageOrVideo}
+                    showShareAsPostModal={showShareAsPostModal}
+                    setShowShareAsPostModal={setShowShareAsPostModal}
+                    index={0}
+                    videoFileName={videoFileName!}
+                    webnovel_id={webnovel_id}
+                    chapter_id={chapter_id}
+                    quote={savedPrompt}
+                />
+            </div >
+        );
+    }
 
     return (
-        <div className='relative' ref={containerRef} >
-            {selection && position && (
-                <div
-                    className="absolute z-10 w-30"
-                    style={{
-                        top: `${position.y}px`,
-                        left: `${position.x}px`,
-                    }}
-                    onClick={handleClose}
-                >
-                {/* 
-                ${readerTheme === 'light' && theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                ${readerTheme === 'dark' && theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'dark:bg-[#211F21] bg-[#211F21]'} 
-                ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
-               background-color: ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
-                */}
-                    <style jsx global>{`
-                        ::selection {
-                             @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
-                             @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
-                            text-decoration: underline;
-                            text-decoration-color: #DE2B74;
-                            text-decoration-thickness: 2px;
-                            text-decoration-style: solid;
-                        }
-                        `}</style>
-                    <FloatingMenuNav toggleDrawer={toggleDrawer} />
-                </div>
-            )}
-            {children}
-            <div ref={drawerRef}>
-                <Global
-                    styles={{
-                        '.MuiDrawer-root > .MuiPaper-root': {
-                            zIndex: 1,
-                            height: `calc(50% - ${drawerBleeding}px)`,
-                        },
-                    }}
-                />
-                <SwipeableDrawer
-                    container={container}
-                    anchor="bottom"
-                    open={open}
-                    onOpen={handleOpenModal}
-                    onClose={handleDrawerClose}
-                    swipeAreaWidth={drawerBleeding}
-                    disableSwipeToOpen={false}
-                    ModalProps={{
-                        keepMounted: true,
-                    }}
-                    sx={{
-                        '& .MuiDrawer-paper': {
-                            backgroundColor: theme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
-                            height: {
-                                xs: '70%',    // Mobile height
-                                sm: '70%',    // Tablet height
-                                md: '50%'     // Desktop height
-                            },
-                            width: {
-                                xs: '100%',   // Full width on mobile
-                                sm: '80%',    // 80% width on tablet
-                                md: '50%'     // 60% width on desktop
-                            },
-                            margin: 'auto',   // Center the drawer
-                            overflow: 'hidden',
-                            border: '0px',
-                            borderTopLeftRadius: '15px',
-                            borderTopRightRadius: '15px',
-                            boxShadow: 'none'
-                        },
-                    }}
-                >
-                    {/* Puller */}
-                    <Puller />
-                    {/* Content */}
-                    <StyledBox
-                        sx={{
-                            backgroundColor: theme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
-                            color: theme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
-                            borderTopLeftRadius: '5px',
-                            borderTopRightRadius: '5px',
-                            boxShadow: 'none'
+        <Drawer open={openDialog} onOpenChange={setOpenDialog}>
+            <div className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-2' ref={containerRef} >
+                {selection && position && (
+                    <div
+                        className="absolute z-10"
+                        style={{
+                            top: `${position.y + position.height + 30}px`,
+                            left: `${position.x - 30}px`,
                         }}
                     >
-                        <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5 select-none'>
-                            <TabContext value={value}>
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                    <TabList
-                                        onChange={handleChange}
-                                        aria-label="Toonyz Studio"
-                                        sx={{
-                                            borderColor: '#D62A79',
-                                            color: '#D62A79',
-                                            '& .MuiTabs-indicator': {
-                                                color: '#D62A79',
-                                                backgroundColor: '#D62A79',
-                                            },
-                                            '& .Mui-selected': {  // Styles for active tab
-                                                color: '#D62A79 !important',
-                                            },
-                                            '& .MuiTab-root': {  // Styles for all tabs
-                                                color: 'grey',
-                                                '&:hover': {
-                                                    color: '#D62A79',
-                                                    opacity: 0.7,
-                                                }
-                                            }
-                                        }}
+
+                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <CustomCircularProgressbar
+                                        progress={Math.round(progress)}
+                                        size={50}
+                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                        progressColor="#DE2B74"
+                                        strokeWidth={5}
                                     >
-                                        <Tab label="Image Studio" value="1" />
-                                        {/* <Tab label="Storyboard" value="2" /> */}
-                                    </TabList>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            ref={floatingButtonRef}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                            disabled={isLoading}
+                                            onClick={() => { setOpenDialog(true); generatePictures() }}
+                                        >
+                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                            </div>
+                                            <BlobButton text={
+                                                isLoading ? (
+                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                                ) : (
+                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                                )
+                                            } />
+                                        </Button>
+                                    </CustomCircularProgressbar>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            ref={shareButtonRef}
+                                            onClick={() => {
+                                                console.log('share dialog clicked')
+                                                setShowShareDialog(true)
+                                            }}
+                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                                       inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
+                                                     bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                        >
+                                            <Share2 size={46} strokeWidth={1} />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Share
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </ul>
 
-                                    <TabPanel value="1">
-                                        <TransitionAlerts dictionary={dictionary} language={language} />
-                                        <PictureGenerator
-                                            prompt={selectedText}
-                                            onComplete={handlePicturesGenerated}
-                                            webnovel_id={webnovel_id}
-                                            chapter_id={chapter_id}
-                                        />
-
-                                    </TabPanel>
-                                </Box>
-                            </TabContext>
-
+                    </div>
+                )}
+                {children}
+                <DrawerContent
+                    className='h-[98vh] no-scrollbar top-5 right-0'
+                    style={{
+                        backgroundColor: theme === 'light' ? 'white' : '#211F21',
+                    }}
+                >
+                    <DrawerHeader>
+                        {/* Ads banner */}
+                        <div className='w-full h-14'>
+                            <div className='relative top-0 left-0 w-full'>
+                                {promotionBannerRef.current}
+                            </div>
                         </div>
+                    </DrawerHeader>
+                    <DrawerFooter className='w-full h-full'>
+                        <ScrollArea className='max-h-[600px] no-scrollbar'>
 
-                    </StyledBox>
-                </SwipeableDrawer>
+                            <div className='relative w-full h-full'>
+                                {isLoading && (
+                                    <div className="flex flex-col w-full gap-4">
+                                        <div className="flex flex-col mb-2">
+                                            <div className="loader-container inline-flex flex-row">
+                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
+                                                <p className="text-sm text-muted-foreground mt-2 self-end">
+                                                    Generating images... {Math.round(progress)}%
+                                                </p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1">
+                                                {[1, 2, 3, 4].map((item) => (
+                                                    <div
+                                                        key={item}
+                                                        className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
+                                                        style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
+                                                    >
+                                                        <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {pictures.length > 0 && (
+                                    <div className="flex flex-col gap-4 mt-6 select-none">
+                                        <div className="grid grid-cols-2 gap-1">
+                                            {pictures.map((picture, index) => {
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="opacity-0 animate-fadeIn"
+                                                        style={{
+                                                            animationDelay: `${index * 300}ms`,
+                                                            animationFillMode: 'forwards'
+                                                        }}
+                                                    >
+                                                        <GeneratedPicture
+                                                            key={index}
+                                                            index={index}
+                                                            image={picture}
+                                                            webnovel_id={webnovel_id}
+                                                            chapter_id={chapter_id}
+                                                            quote={savedPrompt}
+                                                        />
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {pictures.length > 0 && (
+                                    <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
+                                        <Button
+                                            variant="outline"
+                                            onClick={makeVideo}
+                                            className='inline-flex md:h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
+                                            Make Video
+                                            <ArrowRight className='w-4 h-4' />
+                                        </Button>
+                                        <Link
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                console.log("making slideshow clicked")
+                                                makeSlideshow();
+                                            }}
+                                            className='relative w-full'>
+                                            <CardStyleButton
+                                                title="Slideshow"
+                                                subtitle="Watch Ads to make a slideshow"
+                                                ideaCount={pictures.length}
+                                                images={pictures}
+                                                gradientFrom="#DE2B74"
+                                                gradientTo="#FF6F91"
+                                                className='w-full'
+                                            />
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </DrawerFooter>
+                </DrawerContent>
+
+                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
+                        <DialogHeader>
+                            <DialogTitle>Share link</DialogTitle>
+                            <DialogDescription>
+                                Share the link with your friends and family.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {selection && <span> {truncateText(selection, 197)}</span>}
+
+                        <div className="flex items-center space-x-2">
+                            <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">
+                                    Link
+                                </Label>
+                                <Input
+                                    id="link"
+                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
+                                    readOnly
+                                    className='select-none bg-transparent'
+                                    disabled
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
+                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                    copyToClipboard(text);
+                                }}
+                                type="button"
+                                size="sm"
+                                className="px-3"
+                            >
+                                <span className="sr-only">Copy</span>
+                                <Copy />
+                            </Button>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Close
+                                </Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
-        </div >
-    );
-};
+            <ShareAsToonyzPostModal
+                imageOrVideo={'video' as ImageOrVideo}
+                showShareAsPostModal={showShareAsPostModal}
+                setShowShareAsPostModal={setShowShareAsPostModal}
+                index={0}
+                videoFileName={videoFileName!}
+                webnovel_id={webnovel_id}
+                chapter_id={chapter_id}
+                quote={savedPrompt}
+                isDesktop={isDesktop}
+            />
+        </Drawer >
+    )
+}
 
 export { FloatingMenu }
+

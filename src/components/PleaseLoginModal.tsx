@@ -1,12 +1,10 @@
 "use client"
 
-import { useModalStyle } from "@/styles/ModalStyles";
-import { Button, DialogProps } from "@mui/material";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
+import { Button } from "@/components/shadcnUI/Button";
+import { DialogProps } from "@mui/material";
 import { phrase } from "@/utils/phrases";
-import { Typography } from "@mui/material";
-import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
-import Modal from "@mui/material/Modal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 
@@ -20,20 +18,26 @@ export default function PleaseLoginModal({ open, setOpen }: { open: boolean, set
         }
     }
     return (
-        <Modal open={open} onClose={handleClose}>
-            <Box sx={useModalStyle} className="flex flex-col items-center justify-center space-y-4">
-                <Typography id="modal-modal-title" variant="h6" component="h2">
-                    {phrase(dictionary, "pleaseLogin", language)}
-                </Typography>
-                <div className="flex flex-row space-x-4">
-                    <Button variant="outlined" color="gray" onClick={() => router.push('/signin')}>
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent
+                className="md:max-w-md select-none no-scrollbar bg-white dark:bg-[#211F21]"
+                onClick={(e) => e.stopPropagation()}
+                showCloseButton={true}
+            >
+                <DialogHeader>
+                    <DialogTitle>
+                        {phrase(dictionary, "pleaseLogin", language)}
+                    </DialogTitle>
+                </DialogHeader>
+                <DialogFooter className="flex flex-row space-x-4 md:justify-end justify-center">
+                    <Button variant="outline" className="text-white bg-[#DE2B74]" onClick={() => router.push('/signin')}>
                         {phrase(dictionary, "ok", language)}
                     </Button>
-                    <Button variant="outlined" color="gray" onClick={() => setOpen(false)}>
+                    <Button variant="outline" color="gray" onClick={() => setOpen(false)}>
                         {phrase(dictionary, "cancel", language)}
                     </Button>
-                </div>
-            </Box>
-        </Modal>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

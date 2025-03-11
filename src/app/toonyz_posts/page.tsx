@@ -6,7 +6,7 @@ import { ToonyzPost } from "@/components/Types";
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
+    const heights = [1000, 1200, 1400, 1600]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
@@ -44,24 +44,6 @@ export default function ToonyzPosts() {
             });
     }, []);
 
-    const fetchAdditionalPosts = useCallback(async () => {
-        try {
-            const res = await fetch('/api/get_more_toonyz_posts');
-            if (!res.ok) throw new Error('Failed to fetch more posts');
-            const data = await res.json();
-            
-            const postsWithDimensions = data.map((post: ToonyzPost) => ({
-                ...post,
-                ...getRandomDimensions()
-            }));
-            
-            setAdditionalPosts(prev => [...prev, ...postsWithDimensions]);
-            return postsWithDimensions;
-        } catch (error) {
-            console.error('Error fetching additional posts:', error);
-            return [];
-        }
-    }, []);
 
     return (
         <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
@@ -75,10 +57,7 @@ export default function ToonyzPosts() {
                         {error}
                     </div>
                 ) : (
-                    <ToonyzPostGrid 
-                        initialPosts={initialPosts} 
-                        fetchPosts={fetchAdditionalPosts}
-                    />
+                    <ToonyzPostGrid posts={initialPosts} />
                 )}
             </main>
         </div>

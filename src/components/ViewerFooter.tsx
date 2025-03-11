@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Chapter, Webnovel } from '@/components/Types';
+import { Chapter, Webnovel, ToonyzPost } from '@/components/Types';
 import Link from 'next/link';
 import {
     Dialog,
@@ -33,9 +33,10 @@ import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 import { truncateText } from '@/utils/truncateText';
+import ToonyzPostViewer from './UI/ToonyzPostViewer';
 
-const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
-    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
+    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -217,7 +218,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
                                             <X size={18} />
                                         </button>
                                         <div className="flex w-full h-full">
-                                            {truncateText(selectedTextRef.current, 100)}
+                                            <ToonyzPostViewer posts={posts} />
                                         </div>
                                     </div>
                                 </div>

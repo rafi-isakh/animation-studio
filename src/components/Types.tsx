@@ -6,9 +6,9 @@ export type ImageOrVideo = 'image' | 'video'
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter' | 'toonyz_post'
 
-export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
+export type ElementSubtype = 'title' | 'description' | 'hook' | 'other' | 'quote' | 'content'
 
 export type SortBy = 'views' | 'likes' | 'date' | 'recommendation'
 
@@ -56,6 +56,7 @@ export interface Comment {
   chapter_id: string;
   replies: Comment[];
   created_at: Date;
+  post_id: number;
 }
 
 export interface SlickCarouselItem {

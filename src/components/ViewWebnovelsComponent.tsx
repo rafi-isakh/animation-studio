@@ -1,19 +1,20 @@
 "use client"
-import { Webnovel, Webtoon } from '@/components/Types'
+import { Webnovel, Webtoon, ToonyzPost } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
+import { Button } from '@/components/shadcnUI/Button'
 import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels }: {
+
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean, posts: ToonyzPost[]
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
@@ -26,12 +27,9 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const isMediumScreen = useMediaQuery('(min-width:768px)');
-    const [tabValue, setTabValue] = useState('1');
     const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
     const { invalidateCache } = useWebnovels();
-
-
+   
     const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
         setContent(updatedContent);
     };
@@ -116,7 +114,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                     <Image src="/stelli/stelli_4.svg" alt="noWebnovelsFound" width={150} height={100} />
                     <p className="text-md font-bold"> {phrase(dictionary, "noWebnovelsFound", language)} </p>
                     <p className="text-md"> {phrase(dictionary, "noWebnovelsFound_subtitle", language)} </p>
-                    <Button className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
+                    <Button variant="default" className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
                         <Link href="/new_webnovel">
                             {phrase(dictionary, "writeYourStory", language)}
                         </Link>
@@ -149,6 +147,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                                 relatedContent={webnovels}
                                 onContentUpdate={handleContentUpdate}
                                 loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                                posts={posts}
                             />
                         </div>
                     </div>

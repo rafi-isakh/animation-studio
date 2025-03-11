@@ -4,13 +4,15 @@ import { Heart, MessageCircle, Share, Share2, Film } from "lucide-react"
 import { IconButton } from "@mui/material"
 import Link from "next/link"
 import { useWebnovels } from "@/contexts/WebnovelsContext"
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 interface PinProps {
   post: any
+  isLastItem?: boolean
+  onView?: () => void
 }
 
-export function Pin({ post }: PinProps) {
+export function Pin({ post, isLastItem = false, onView }: PinProps) {
   const aspectRatio = post.height / post.width
   const { getWebnovelById } = useWebnovels()
   const truncateText = (text: string, maxLength: number = 15) => {
@@ -19,6 +21,28 @@ export function Pin({ post }: PinProps) {
   };
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const pinRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isLastItem && onView && pinRef.current) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            onView();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      
+      observer.observe(pinRef.current);
+      
+      return () => {
+        if (pinRef.current) {
+          observer.unobserve(pinRef.current);
+        }
+      };
+    }
+  }, [isLastItem, onView]);
 
   const handleMouseEnter = () => {
     if (videoRef.current) {
@@ -35,7 +59,7 @@ export function Pin({ post }: PinProps) {
 
   return (
     <Link href={`/toonyz_posts/${post.id}`} className="relative group shadow-sm" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <div className="mb-4 break-inside-avoid">
+      <div ref={pinRef} className="mb-4 break-inside-avoid">
         <div className="relative group overflow-hidden rounded-xl" style={{ paddingBottom: `${aspectRatio * 100}%` }}>
           <div className="absolute inset-0">
             {
@@ -51,7 +75,7 @@ export function Pin({ post }: PinProps) {
                 <div className="relative w-full h-full">
                   <video
                     ref={videoRef}
-                    src={getImageUrl(post.video)}
+                    src={getVideoUrl(post.video)}
                     muted
                     loop
                     className="w-full h-full object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
@@ -84,19 +108,22 @@ export function Pin({ post }: PinProps) {
               </p>
             )}
 
-            <div className="absolute left-1/2 bottom-[7.5rem] -translate-x-1/2">
+            <div className="absolute left-1/2 bottom-[7.5rem] -translate-x-1/2 z-50">
               {post.user.picture ? (
-                <Image
-                  src={getImageUrl(post.user.picture)}
-                  alt={post.user.nickname || 'User'}
-                  width={30}
-                  height={30}
-                  className='rounded-full'
-                />
+                <div className="dark:bg-[#211F21] bg-white rounded-full w-8 h-8 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={getImageUrl(post.user.picture)}
+                      alt={post.user.nickname || 'User'}
+                      fill
+                      className='object-cover'
+                    />
+                  </div>
+                </div>
               ) : (
-                <div className="bg-gray-400 rounded-full w-8 h-8 flex items-center justify-center">
+                <div className="bg-white dark:bg-[#211F21] rounded-full w-8 h-8 flex items-center justify-center">
                   <svg
-                    className="w-8 h-8 text-gray-100 rounded-full"
+                    className="w-8 h-8 text-gray-500 dark:text-gray-200 rounded-full"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
@@ -107,9 +134,9 @@ export function Pin({ post }: PinProps) {
               )}
             </div>
 
-            <div className="bg-white rounded-b-xl p-4">
+            <div className="bg-white dark:bg-[#211F21] rounded-b-xl p-4 z-30">
 
-              <h3 className="mb-2 text-lg font-semibold text-black line-clamp-2">
+              <h3 className="mb-2 text-lg font-semibold text-black dark:text-white line-clamp-2">
                 {truncateText(post.title)}
               </h3>
               <div className="flex flex-col items-center justify-between text-white">
@@ -139,17 +166,3 @@ export function Pin({ post }: PinProps) {
   )
 }
 
-
-
-
-{/* {post.content} */ }
-{/* {post.quote && (
-                    <p className="text-white whitespace-pre-wrap mb-2">
-                        {post.quote}
-                    </p>
-                )} */}
-
-{/* 
-                <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
-                <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
-            */}

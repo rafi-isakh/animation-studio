@@ -39,76 +39,76 @@ const PromotionBannerComponent = () => {
   }, [isDesktop]);
 
 
-  const ComponentOne: React.FC = () => {
-    return (
-      <Link href='https://www.instagram.com/toonyz_en'>
-        <div
-          className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 '
-        >
-          <div className='flex flex-col justify-center md:p-0 pl-5'>
-            <Image
-              src={isDarkMode ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
-              alt='Toonyz logo'
-              sizes="cover"
-              width={logoWidth}
-              height={logoHeight}
-              className=''
-            />
-            <p className='md:text-sm text-[10px]'>{phrase(dictionary, 'promotionInsta', language)}</p>
-          </div>
-          <div className='md:p-0'>
-            <Image
-              src='/toonyz_event_screen.png'
-              alt='Toonyz banner image'
-              sizes="100vw"
-              width={bannerWidth}
-              height={bannerHeight}
-              className=''
-            />
-          </div>
-        </div>
-      </Link>
-    )
-  }
+  // const ComponentOne: React.FC = () => {
+  //   return (
+  //     <Link href='https://www.instagram.com/toonyz_en'>
+  //       <div
+  //         className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-gray-100 dark:bg-gray-500 mx-auto gap-6 '
+  //       >
+  //         <div className='flex flex-col justify-center md:p-0 pl-5'>
+  //           <Image
+  //             src={isDarkMode ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
+  //             alt='Toonyz logo'
+  //             sizes="cover"
+  //             width={logoWidth}
+  //             height={logoHeight}
+  //             className=''
+  //           />
+  //           <p className='md:text-sm text-[10px]'>{phrase(dictionary, 'promotionInsta', language)}</p>
+  //         </div>
+  //         <div className='md:p-0'>
+  //           <Image
+  //             src='/toonyz_event_screen.png'
+  //             alt='Toonyz banner image'
+  //             sizes="100vw"
+  //             width={bannerWidth}
+  //             height={bannerHeight}
+  //             className=''
+  //           />
+  //         </div>
+  //       </div>
+  //     </Link>
+  //   )
+  // }
 
-  const ComponentTwo: React.FC = () => (
+  // const ComponentTwo: React.FC = () => (
 
-    <Link href='/creators' className="cursor-pointer">
-      <div
-        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pb-1'
-      >
-        <div className="flex items-center justify-center h-full">
-          <div className="flex flex-row">
-            <div className="flex flex-col justify-center items-center gap-1 text-sm font-pretendard">
-              <p className="text-black text-center font-bold">
-                {/* 투니즈의 크리에이터가 되어보세요! */}
-                {phrase(dictionary, "applyCreator", language)}
-              </p>
-              <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard self-start">
-                <span className="text-sm">
-                  {/* 지금 신청하기 */}
-                  {phrase(dictionary, "applyCreator_button", language)}
-                </span>
-                <ArrowRight className="w-4 h-4 text-black" />
-              </button>
-            </div>
-            <Image
-              src='/stelli/stelli_5.png'
-              alt='Toonyz event banner'
-              sizes="cover"
-              width={0}
-              height={0}
-              className='relative -bottom-1 mx-auto z-10'
-              style={{
-                width: isDesktop ? '100px' : '70px',
-                height: 'auto'
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
+  //   <Link href='/creators' className="cursor-pointer">
+  //     <div
+  //       className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pb-1'
+  //     >
+  //       <div className="flex items-center justify-center h-full">
+  //         <div className="flex flex-row">
+  //           <div className="flex flex-col justify-center items-center gap-1 text-sm font-pretendard">
+  //             <p className="text-black text-center font-bold">
+  //               {/* 투니즈의 크리에이터가 되어보세요! */}
+  //               {phrase(dictionary, "applyCreator", language)}
+  //             </p>
+  //             <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard self-start">
+  //               <span className="text-sm">
+  //                 {/* 지금 신청하기 */}
+  //                 {phrase(dictionary, "applyCreator_button", language)}
+  //               </span>
+  //               <ArrowRight className="w-4 h-4 text-black" />
+  //             </button>
+  //           </div>
+  //           <Image
+  //             src='/stelli/stelli_5.png'
+  //             alt='Toonyz event banner'
+  //             sizes="cover"
+  //             width={0}
+  //             height={0}
+  //             className='relative -bottom-1 mx-auto z-10'
+  //             style={{
+  //               width: isDesktop ? '100px' : '70px',
+  //               height: 'auto'
+  //             }}
+  //           />
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </Link>
+  // );
 
   const ComponentThree: React.FC = () => {
 
@@ -132,7 +132,9 @@ const PromotionBannerComponent = () => {
     )
   };
 
-  const componentsArray = [ComponentOne, ComponentTwo, ComponentThree];
+  // ComponentOne, ComponentTwo, ComponentThree 
+  // array of banner for promotion
+  const componentsArray = [ComponentThree];
 
   const getRandomComponentIndex = (arrayLength: number) => {
     return Math.floor(Math.random() * arrayLength);

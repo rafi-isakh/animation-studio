@@ -78,7 +78,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             } else {
                 setActiveTab('free');
             }
-        } else if (pathname.startsWith("/chapter_view")) {
+        } else if (pathname.startsWith("/view_webnovels/chapter_view")) {
             const id = pathname.split("/")[2];
             if (premiumWebnovelIds.includes(parseInt(id))) {
                 setActiveTab('premium');
@@ -264,7 +264,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         return pathname === '/' || pathname.startsWith('/webnovel') || pathname.startsWith('/view_webnovels')
             || pathname.startsWith('/view_profile') || pathname.startsWith('/new_webnovel') || pathname.startsWith('/new_chapter')
             || pathname.startsWith('/my_profile') || pathname.startsWith('/my_webnovels') || pathname.startsWith("/library")
-            || pathname.startsWith("/chapter_view") || pathname.startsWith("/view_webnovels")
+            || pathname.startsWith("/view_webnovels/chapter_view") || pathname.startsWith("/view_webnovels")
     }
     // Add this function to determine the active category
     const isActive = (path: string) => {
@@ -318,7 +318,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/search')) {
             return "hidden"
         }
-        if (pathname.startsWith('/chapter_view')) {
+        if (pathname.startsWith('/view_webnovels/chapter_view')) {
             return "hidden"
         }
         if (pathname.startsWith('/toonyz_posts/')) {

@@ -227,7 +227,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     variant="link"
                     disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
                     className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
-                    <Link href={`/chapter_view/${nextChapter.id}`} className="w-full">
+                    <Link href={`/view_webnovels/chapter_view/${nextChapter.id}`} className="w-full">
                         <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
                             <div className="flex flex-row items-center space-x-4">
                                 <Image
@@ -288,7 +288,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     {webnovel.chapters.map((chapter, index) => (
                                         <MenubarItem
                                             key={chapter.id}
-                                            onClick={() => router.push(`/chapter_view/${chapter.id}`)}
+                                            onClick={() => router.push(`/view_webnovels/chapter_view/${chapter.id}`)}
                                             className={`${chapter.id === Number(id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
                                             disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >

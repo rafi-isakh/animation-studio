@@ -16,6 +16,7 @@ import { useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { getImageUrl } from '@/utils/urls';
 interface PaddingConfig {
     desktop?: string;
     mobile?: string;
@@ -190,9 +191,9 @@ const CarouselComponentReactSlick = ({
                                         {/* max-w-screen-lg */}
                                         <Image
                                             className="object-cover object-center transition-all duration-300 rounded-xl"
-                                            src={item.image}
+                                            src={getImageUrl(item.image)}
                                             fill
-                                            alt={item.image}
+                                            alt={item.title}
                                             placeholder="blur"
                                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                         />

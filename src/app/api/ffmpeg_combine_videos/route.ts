@@ -6,13 +6,13 @@ export async function POST(req: NextRequest) {
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { video_urls, durations } = await req.json();
+    const { video_urls, narrations } = await req.json();
     try {
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND}/api/ffmpeg_combine_videos`,
             {
                 method: "POST",
-                body: JSON.stringify({ video_urls, durations }),
+                body: JSON.stringify({ video_urls, narrations }),
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.accessToken}`,

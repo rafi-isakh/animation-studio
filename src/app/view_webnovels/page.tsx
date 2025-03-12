@@ -39,7 +39,6 @@ const ViewWebnovels = () => {
                 setWebnovel(webnovel);
                 setLoading(false);
                 author_id = webnovel.user.id.toString();
-                fetchChaptersLikelyNeededWebnovel(webnovel);
             }
             if (author_id) {
                 const userWebnovels = await getWebnovelsMetadataByUserId(author_id);

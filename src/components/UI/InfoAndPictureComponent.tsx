@@ -1,8 +1,8 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
-import { Webtoon, Webnovel } from "@/components/Types";
+import { Webtoon, Webnovel, ImageOrVideo } from "@/components/Types";
+import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
-import { useMediaQuery, Modal, Box, Skeleton } from "@mui/material";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
@@ -30,9 +30,14 @@ import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
 import { useModalStyle } from "@/styles/ModalStyles";
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
+import { useToast } from "@/hooks/use-toast";
+import { v4 as uuidv4 } from 'uuid';
+import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 
-
+import { CircularProgress } from "@mui/material";
+import CreateMediaArea from "../CreateMediaArea";
+import PromotionBannerComponent from "../PromotionBannerComponent";
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;
     coverArt: string;
@@ -59,6 +64,18 @@ export default function InfoAndPictureComponent({
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
     const [pictures, setPictures] = useState([]);
+    const [prompts, setPrompts] = useState([]);
+    const { toast } = useToast();
+    const [videoFileName, setVideoFileName] = useState('');
+    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
+    const [loadingTrailerGeneration, setLoadingTrailerGeneration] = useState(false);
+    const [loadingPictures, setLoadingPictures] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selection, setSelection] = useState('');
+    const [progress, setProgress] = useState(0);
+    const draggableNodeRef = useRef<HTMLDivElement>(null);
+    const promotionBannerRef = useRef(<PromotionBannerComponent />);
+    const [narrations, setNarrations] = useState<string[]>([]);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -101,14 +118,36 @@ export default function InfoAndPictureComponent({
     }
 
     const generateTrailer = async (chapter_ids: number[]) => {
-        console.log(chapter_ids);
-        const response = await fetch("/api/generate_trailer", {
-            method: "POST",
-            body: JSON.stringify({ chapter_ids, trailer_style: "cinematic", trailer_type: "B" }),
-        });
+        setLoadingTrailerGeneration(true);
+        setLoadingPictures(true)
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (5 * Math.random());
+                return newProgress > 95 ? 95 : newProgress;
+            });
+        }, 500);
+        const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+            method: 'POST',
+            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
+        })
+        if (!response.ok) {
+            toast({
+                title: "Error",
+                description: "Failed to generate trailer, please try again later",
+                variant: "destructive"
+            })
+            throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
+        }
+        setLoadingPictures(false);
         const data = await response.json();
-        setPictures(data.trailer);
+        console.log('data', data);
+        setPictures(data.images);
+        setPrompts(data.prompts);
+        setNarrations(data.narrations);
+        // Hands off to CreateMediaArea for rest of logic
     }
+
+    // TODO: refactor this function as it's copied from FloatingMenuComponent
     return (
         <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
                         bg-gradient-to-b from-transparent to-transparent 
@@ -284,14 +323,33 @@ export default function InfoAndPictureComponent({
                                 <Button
                                     variant="default"
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                    disabled={loadingTrailerGeneration}
                                     onClick={() => {
+                                        setOpenDialog(true);
                                         generateTrailer(content.chapters.map(chapter => chapter.id));
                                     }}
                                 >
                                     <p>
-                                        {phrase(dictionary, "createVideo", language)}
+                                        {loadingTrailerGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
                                     </p>
                                 </Button>
+                                <CreateMediaArea
+                                    isLoading={loadingPictures}
+                                    setIsLoading={setLoadingPictures}
+                                    progress={progress}
+                                    savedPrompt={""}
+                                    prompts={prompts}
+                                    pictures={pictures}
+                                    webnovel_id={content.id.toString()}
+                                    chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
+                                    setOpenDialog={setOpenDialog}
+                                    openDialog={openDialog}
+                                    setSelection={setSelection}
+                                    promotionBannerRef={promotionBannerRef}
+                                    draggableNodeRef={draggableNodeRef}
+                                    source='webnovel'
+                                    initialNarrations={narrations}
+                                />
                             </div>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
@@ -359,6 +417,16 @@ export default function InfoAndPictureComponent({
                     </div>
                 </div>
             </div>
+            <ShareAsToonyzPostModal
+                imageOrVideo={'video' as ImageOrVideo}
+                showShareAsPostModal={showShareAsPostModal}
+                setShowShareAsPostModal={setShowShareAsPostModal}
+                index={0}
+                videoFileName={videoFileName!}
+                webnovel_id={content.id.toString()}
+                chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
+                quote={content.title}
+            />
         </div>
     );
 }

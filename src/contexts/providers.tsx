@@ -23,17 +23,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       toggleTheme(savedTheme)
     } else if (systemPrefersDark) {
       toggleTheme('dark')
-    }
-    toggleTheme(theme)
+    } 
 
-     // Listen for storage events to sync across tabs
-     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'theme' && e.newValue) {
-        toggleTheme(e.newValue as Theme)
-      }
-    }
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const toggleTheme = (newTheme: Theme) => {

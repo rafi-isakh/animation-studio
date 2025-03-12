@@ -176,7 +176,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                     <h2 className="text-2xl font-bold mb-1 text-black dark:text-white">
                         {/* {webnovel?.title} */}
                         <OtherTranslateComponent
-                            content={truncateText(webnovel?.title || "", 8)}
+                            content={truncateText(webnovel?.title || "", 11)}
                             elementId={webnovel?.id.toString() || ""}
                             elementType="webnovel"
                             elementSubtype="title"

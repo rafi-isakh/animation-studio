@@ -34,7 +34,7 @@ import CoverArtModal from '@/components/CoverArtModal';
 import CoverArtPreview from './CoverArtPreview';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const AddWebnovelComponent = ({ webnovels }: { webnovels: Webnovel[] }) => {
+const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [coverArt, setCoverArt] = useState<File | null>(null);

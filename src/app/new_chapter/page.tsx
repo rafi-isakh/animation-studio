@@ -1,16 +1,6 @@
 import { auth } from "@/auth";
 import AddChapterComponent from "@/components/AddChapterComponent";
 
-
-async function getWebnovels() {
-    const session = await auth();
-    const email = session?.user.email;
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_by_email?email=${email}`)
-    const data = await response.json();
-    return data;
-}
-
 async function NewChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const id = searchParams.id;
     const novelLanguage = searchParams.novelLanguage;

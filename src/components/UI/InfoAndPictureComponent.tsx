@@ -35,7 +35,6 @@ import { v4 as uuidv4 } from 'uuid';
 import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 
-
 interface InfoAndPictureProps {
     content: Webtoon | Webnovel;
     coverArt: string;
@@ -387,9 +386,6 @@ export default function InfoAndPictureComponent({
                                     </p>
                                 </Button>
                             </div>
-                            <Button onClick={clickShareAsPost}>
-                                Share as Post
-                            </Button>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">
                                     {pictures.map((picture, index) => (

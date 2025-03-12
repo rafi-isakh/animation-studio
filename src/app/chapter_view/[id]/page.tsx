@@ -257,16 +257,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         );
     };
 
-    const FloatingMenuMemo = React.memo(({ children, webnovel, chapter }: { children: ReactNode, webnovel: Webnovel, chapter: Chapter }) => {
-        return (
-            <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
-                {children}
-            </FloatingMenu>
-        )
-    });
-    FloatingMenuMemo.displayName = 'FloatingMenuMemo';
-
-
     if (webnovel && chapter) {
         return (
             <div className="">
@@ -386,9 +376,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
-                                    <FloatingMenuMemo webnovel={webnovel} chapter={chapter}>
+                                    <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                    </FloatingMenuMemo>
+                                    </FloatingMenu>
                                 </div>
                             </div>
                         </div>

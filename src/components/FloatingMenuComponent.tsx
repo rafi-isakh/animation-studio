@@ -189,7 +189,7 @@ const FloatingMenu: React.FC<{
 
     const handleCloseFloatingButton = () => {
         setSelection("");
-        setPosition(undefined);
+        setPosition({ x: 0, y: 0, width: 0, height: 0 });
         setShowMessage(false);
     }
 
@@ -369,7 +369,7 @@ const FloatingMenu: React.FC<{
                 {selection && position && (
                     <div className="absolute z-[100]"
                         style={{
-                            top: `${position.y + position.height + 30}px`,
+                            top: `${position.y + (position.height || 0) + 30}px`,
                             left: `${position.x - 1}px`,
                         }}>
                         <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
@@ -510,7 +510,7 @@ const FloatingMenu: React.FC<{
                     <div
                         className="absolute z-10"
                         style={{
-                            top: `${position.y + position.height + 30}px`,
+                            top: `${position.y + (position.height || 0) + 30}px`,
                             left: `${position.x - 30}px`,
                         }}
                     >

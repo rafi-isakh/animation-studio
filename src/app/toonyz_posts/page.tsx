@@ -2,6 +2,11 @@
 import { useEffect, useState, useCallback } from "react";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { ToonyzPost } from "@/components/Types";
+import dynamic from "next/dynamic";
+const LottieLoader = dynamic(() => import("@/components/LottieLoader"), {
+    ssr: false,
+});
+import animationData from "@/assets/N_logo_with_heart.json";
 
 
 function getRandomDimensions() {
@@ -49,8 +54,8 @@ export default function ToonyzPosts() {
         <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
             <main className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                 {initialLoading ? (
-                    <div className="flex justify-center items-center h-48">
-                        <div className="loader h-8 w-8 rounded-full border-4 border-t-4 border-gray-200 border-t-blue-500 animate-spin"></div>
+                    <div className="loader-container flex justify-center items-center h-48">
+                        <LottieLoader width="w-40" centered={true} animationData={animationData} />
                     </div>
                 ) : error ? (
                     <div className="text-center text-red-500 py-8">

@@ -12,8 +12,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { useEffect, useState } from "react";
 import { CircularProgress } from "@mui/material";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
-import { ImageOrVideo } from "./Types";
+import { ImageOrVideo } from "@/components/Types";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
+import CreateMediaDefaultContetns from "@/components/UI/CreateMediaDefaultContetns"
 
 export default function CreateMediaArea({
     isLoading,
@@ -99,7 +100,7 @@ export default function CreateMediaArea({
                 </div>
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
                     <div className='relative w-full'>
-                        {isLoading && (
+                        {isLoading ? (
                             <div className="flex flex-col w-full gap-4">
                                 <div className="flex flex-col mb-2">
                                     <div className="loader-container inline-flex flex-row">
@@ -132,9 +133,7 @@ export default function CreateMediaArea({
                                     </div>
                                 </div>
                             </div>
-                        )}
-
-                        {pictures.length > 0 && (
+                        ) : pictures.length > 0 ? (
                             <div className="flex flex-col select-none">
                                 {(savedPrompt || source === 'webnovel') && (
                                     <div className="my-6 space-y-4">
@@ -207,17 +206,14 @@ export default function CreateMediaArea({
                                     })}
                                 </div>
                             </div>
+                        ) : (
+                            <div className="flex items-center justify-center h-full">
+                                <CreateMediaDefaultContetns />
+                            </div>
                         )}
 
                         {pictures.length > 0 && (
                             <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                {/* <Button
-                                        variant="outline"
-                                        // onClick={makeVideo}
-                                        className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
-                                        Make Video
-                                        <ArrowRight className='w-4 h-4' />
-                                    </Button> */}
                                 <Link
                                     href="#"
                                     onClick={(e) => {

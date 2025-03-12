@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { CircularProgress } from "@mui/material";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { ImageOrVideo } from "./Types";
+import { useCreateMedia } from "@/contexts/CreateMediaContext";
 
 export default function CreateMediaArea({
     isLoading,
@@ -53,6 +54,7 @@ export default function CreateMediaArea({
     const [showShareAsPostModal, setShowShareAsPostModal] = useState<boolean>(false);
     const [narrations, setNarrations] = useState<string[]>(initialNarrations);
     const [loadingVideoGeneration, setLoadingVideoGeneration] = useState<boolean>(false);
+    const { makeVideo, makeSlideshow } = useCreateMedia();
 
     useEffect(() => {
         if (narrations.length == 0) {

@@ -1,8 +1,9 @@
 "use client"
 
+import React from "react";
+import { useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
-import { useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
@@ -30,7 +31,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
-import React from "react";
+
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -78,6 +79,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedTextRef = useRef<string>("");
     const [posts, setPosts] = useState([]);
+
 
 
     const handleViewSettings = () => {

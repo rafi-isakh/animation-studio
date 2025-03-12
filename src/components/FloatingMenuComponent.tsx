@@ -56,7 +56,8 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/gradient_loader.json';
 import { downloadVideo, uploadVideo } from '@/utils/s3';
 import { getImageUrl } from '@/utils/urls';
-import CreateMediaArea from './CreateMediaArea';
+import CreateMediaArea from '@/components/CreateMediaArea';
+import { useCreateMedia } from '@/contexts/CreateMediaContext';
 
 type Position = {
     x: number;
@@ -75,34 +76,55 @@ const FloatingMenu: React.FC<{
     chapter: Chapter,
     selectedTextRef: React.MutableRefObject<string>;
 }> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
-    const [selection, setSelection] = useState<string>("")
-    const [position, setPosition] = useState<Position | undefined>();
+    // const [selection, setSelection] = useState<string>("")
+    // const [position, setPosition] = useState<Position | undefined>();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { language, dictionary } = useLanguage();
-    const [openDialog, setOpenDialog] = useState(false);
+    // const [openDialog, setOpenDialog] = useState(false);
     const isDesktop = useMediaQuery("(min-width: 768px)")
-    const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [progress, setProgress] = useState(0);
-    const [pictures, setPictures] = useState([]);
+    // const [progress, setProgress] = useState(0);
+    // const [pictures, setPictures] = useState([]);
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    const draggableNodeRef = useRef<HTMLDivElement>(null);
+    // const draggableNodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
-    const [savedPrompt, setSavedPrompt] = useState<string>("");
+    // const [savedPrompt, setSavedPrompt] = useState<string>("");
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
-    const promotionBannerRef = useRef(<PromotionBannerComponent />);
+    // const promotionBannerRef = useRef(<PromotionBannerComponent />);
     const [authFailed, setAuthFailed] = useState(false);
     const [testText, setTestText] = useState<string>("")
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
-    const [prompts, setPrompts] = useState<string[]>([]);
-
+    // const [prompts, setPrompts] = useState<string[]>([]);
+    const { 
+        makeSlideshow,
+        makeVideo,
+        isLoading,
+        setIsLoading,
+        progress,
+        setProgress,
+        savedPrompt,
+        setSavedPrompt,
+        prompts,
+        setPrompts,
+        pictures,
+        setPictures,
+        draggableNodeRef,
+        openDialog,
+        setOpenDialog,
+        selection,
+        setSelection,
+        position,
+        setPosition,
+        promotionBannerRef,
+    } = useCreateMedia();
     useEffect(() => {
 
         const handleSelectionChange = () => {
@@ -345,7 +367,7 @@ const FloatingMenu: React.FC<{
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
 
                 {selection && position && (
-                    <div className="absolute z-10"
+                    <div className="absolute z-[100]"
                         style={{
                             top: `${position.y + position.height + 30}px`,
                             left: `${position.x - 1}px`,
@@ -619,7 +641,7 @@ const FloatingMenu: React.FC<{
                                     <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
                                         <Button
                                             variant="outline"
-                                            onClick={makeVideo}
+                                            // onClick={makeVideo}
                                             className='inline-flex md:h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
                                             Make Video
                                             <ArrowRight className='w-4 h-4' />
@@ -629,7 +651,7 @@ const FloatingMenu: React.FC<{
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 console.log("making slideshow clicked")
-                                                makeSlideshow();
+                                                // makeSlideshow();
                                             }}
                                             className='relative w-full'>
                                             <CardStyleButton

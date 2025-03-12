@@ -8,13 +8,10 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon, Comment, Webnovel, Chapter, ToonyzPost } from "@/components/Types";
-import Link from "next/link";
-import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
+import { Webnovel, Chapter, ToonyzPost } from "@/components/Types";
 import { ArrowDownUp, MessageCircle, FileText, AlignLeft, ChevronRightIcon } from "lucide-react";
-import WebtoonRecommendationsComponent from "@/components/WebtoonRecommendationsComponent";
 import Image from "next/image";
-import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import Tooltip from '@mui/material/Tooltip';
 import moment from "moment";
 import {
     FacebookShareButton,
@@ -35,25 +32,15 @@ import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
 import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
 interface ContentChapterListComponentProps {
-    content: Webtoon | Webnovel;
-    slug?: string;
-    coverArt: string;
-    relatedContent?: (Webtoon | Webnovel)[];
-    coverArtUrls?: string[];
-    isWebtoon?: boolean;
-    onContentUpdate?: (updatedContent: Webtoon | Webnovel) => void;
-    loadingUsersOtherWebnovels?: boolean;
+    content: Webnovel;
+    relatedContent?: Webnovel[];
+    onContentUpdate?: (updatedContent: Webnovel) => void;
     posts?: ToonyzPost[];
 }
 
 const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = ({
     content,
-    slug = "",
-    coverArt,
     relatedContent = [],
-    coverArtUrls = [],
-    isWebtoon = false,
-    loadingUsersOtherWebnovels = false,
     onContentUpdate,
     posts = [],
 }) => {
@@ -226,27 +213,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <Skeleton variant="rectangular" height={200} width={150} />
                                 </div>
                             )}
-                            {/* Recommendations section * /}
-                            {relatedContent.length > 0 && (
-                                <>
-                                    <h1 className="text-base font-bold">
-                                        {phrase(dictionary, "youMightLikeThis", language)}
-                                    </h1>
-                                    <hr />
-                                    <div className="flex flex-col w-full">
-                                        {isWebtoon ? (
-                                            <WebtoonRecommendationsComponent
-                                                webtoons={relatedContent as Webtoon[]}
-                                                coverArtUrls={coverArtUrls}
-                                            />
-                                        ) : (
-                                            // Add your webnovel recommendations component here
-                                            null
-                                        )}
-                                    </div>
-                                </>
-                            )}
-
                             {/* Comments list */}
                             {content && content.chapters && content.chapters.length > 0 ? (
                                 <CommentList

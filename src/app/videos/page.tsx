@@ -3,21 +3,13 @@ import { getVideoUrl } from '@/utils/urls';
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { initialWebtoonContents, initialWebnovelContents } from '@/utils/curriculum';
+import { initialWebnovelContents } from '@/utils/curriculum';
 import Billboard from '@/components/UI/Billboard';
 import CurriculumVideoList from '@/components/CurriculumVideoList';
 
 export default function Videos() {
     const file_src = getVideoUrl('');
     const { dictionary, language } = useLanguage();
-
-    const webtoonContents = initialWebtoonContents.map((content, index) => ({
-        ...content,
-        id: index.toString(), // Ensure each content has a unique id as a string
-        file_src: getVideoUrl(content.file_src),
-        file_src_en: getVideoUrl(content.file_src_en),
-        file_src_jp: getVideoUrl(content.file_src_jp),
-    }));
 
     const webnovelContents = initialWebnovelContents.map((content, index) => ({
         ...content,
@@ -30,31 +22,17 @@ export default function Videos() {
     return (
         <div className="relative flex flex-col items-center justify-center">
                 <Billboard 
-                 videoSrc={webtoonContents[0]?.file_src}
+                 videoSrc={webnovelContents[0]?.file_src}
                  posterSrc="/curriculum/video_heroImage.png"
                  headerPhrase="Billboard_header"
                  subheaderPhrase="Billboard_subheader"
                  className="w-full h-full"
                  containerClassName="h-[56.25vw] mb-10"
                  />
-                <div className="md:max-w-screen-lg max-w-[360px] mx-auto overflow-x-auto">
-                    <CurriculumVideoList 
-                        title={phrase(dictionary, "webtoonCurriculum", language)} 
-                        contents={webtoonContents}
-                        language={language}
-                        imageType={'webtoon'}
-                        onVideoClick={(video) => {
-                        }}  
-                    />
-                 </div>
                 <div className="md:max-w-screen-lg max-w-[360px] mx-auto overflow-x-auto pb-40">
                     <CurriculumVideoList 
                         title={phrase(dictionary, "webnovelCurriculum", language)} 
                         contents={webnovelContents}
-                        language={language}
-                        imageType={'webnovel'}
-                        onVideoClick={(video) => {
-                        }}  
                     />
                  </div>
             </div>

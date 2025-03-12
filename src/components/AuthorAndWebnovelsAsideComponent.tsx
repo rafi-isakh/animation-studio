@@ -16,7 +16,7 @@ const AuthorAndWebnovelsAsideComponent = ({ webnovel, nickname, coverArt, onNewC
     { webnovel: Webnovel, nickname: string | null | undefined, coverArt: string, onNewChapter?: () => void, onDelete?: () => void }) => {
 
     return (
-        <InfoAndPictureComponent content={webnovel} coverArt={coverArt} isWebtoon={false} onNewChapter={onNewChapter} onDelete={onDelete} />
+        <InfoAndPictureComponent content={webnovel} coverArt={coverArt} onNewChapter={onNewChapter} onDelete={onDelete} />
     )
 }
 

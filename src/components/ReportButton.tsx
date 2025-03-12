@@ -25,10 +25,9 @@ export default function ReportButton({ user }: { user: User }) {
     }
     return (
         <>
-            <Button color='gray' variant='outlined' onClick={() => setShowReportModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
+            <Button color='gray' variant='outlined' onClick={() => setShowReportModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
                 {/* report */}
                 <Flag size={10} />
-                <span className='text-sm'>{phrase(dictionary, "report", language)}</span>
             </Button>
             <Modal open={showReportModal} onClose={() => setShowReportModal(false)}>
                 <Box sx={useModalStyle}>

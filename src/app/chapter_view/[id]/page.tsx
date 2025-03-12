@@ -2,37 +2,36 @@
 
 import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { Button, Modal, Box, dividerClasses, Skeleton } from "@mui/material";
-import { useModalStyle } from '@/styles/ModalStyles';
-import { ChevronRight, ChevronLeft } from 'lucide-react'
+import { Button } from "@/components/shadcnUI/Button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/shadcnUI/Dialog";
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
+import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
 import { useReader } from '@/contexts/ReaderContext';
-import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from "@/contexts/AuthContext";
 import { FloatingMenu } from '@/components/FloatingMenuComponent';
-import { useTheme, Theme } from '@/contexts/providers'
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
-
-import dynamic from 'next/dynamic';
 import ProgressBar from '@/components/UI/ProgressBar';
+import { useWebnovels } from "@/contexts/WebnovelsContext";
+import ViewerSettingDialog from '@/components/UI/ViewerSettingDialog';
+import dynamic from 'next/dynamic';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
-
-// Import the animation data
 import animationData from '@/assets/N_logo_with_heart.json';
-import ChapterCommentsComponent from "@/components/CommentsComponent";
-import { useWebnovels } from "@/contexts/WebnovelsContext";
+import CommentsComponent from "@/components/CommentsComponent";
+import React from "react";
+
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -40,7 +39,6 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [likeToggle, setLikeToggle] = useState(false);
     const { email } = useUser();
     const { isLoggedIn } = useAuth();
-    const [deleteModal, setDeleteModal] = useState(false);
     const [isAuthor, setIsAuthor] = useState(false);
     const { dictionary, language } = useLanguage();
     const router = useRouter();
@@ -50,23 +48,17 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
     const { getWebnovelById } = useWebnovels();
-    const { fontSize,
+    const {
+        fontSize,
         fontFamily = 'default',
         lineHeight,
         margin,
-        setMargin,
-        padding,
-        setPadding,
         scrollType,
-        containerWidth,
         page,
         maxPage,
     } = useReader();
-
-    const muiTheme = useMuiTheme();
-    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
-    const { theme, toggleTheme } = useTheme()
     const webnovelViewRef = useRef<HTMLDivElement>(null);
     const { purchased_webnovel_chapters, checking } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
@@ -74,15 +66,23 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const readerStyle = {
         fontSize: `${fontSize}px`,
         fontFamily: fontFamily === 'default' ? 'sans-serif' :
-                    fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
-                  fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
+            fontFamily === 'gowun-batang' ? '"Gowun Batang", serif' :
+                fontFamily === 'nanum-gothic' ? '"Nanum Gothic", sans-serif' : 'sans-serif',
         lineHeight: lineHeight,
         padding: `${isMobile ? '10px' : `${margin}px`}`,
         maxWidth: isMobile ? '100%' : '800px',
         margin: isMobile ? `${margin}px` : `${margin}px auto`,
         width: isMobile ? `calc(100% - ${margin * 2}px)` : 'auto',
     };
+    const [showIsViewerModal, setShowIsViewerModal] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const selectedTextRef = useRef<string>("");
+    const [posts, setPosts] = useState([]);
 
+
+    const handleViewSettings = () => {
+        setShowIsViewerModal(true);
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -187,6 +187,29 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         setScreenWidth(_screenWidth);
     }, [scrollType])
 
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await fetch('/api/get_toonyz_posts');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+
+                const data = await response.json();
+                const filteredPosts = data.filter((post: any) => post.webnovel_id === webnovel?.id);
+
+                console.log(filteredPosts, "filteredPosts");
+
+                setPosts(filteredPosts);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+        }
+        fetchPosts();
+    }, [webnovel?.id]);
+
+
+
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
         const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
@@ -199,121 +222,196 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         }
 
         return (
-            <Link href={`/chapter_view/${nextChapter.id}`}>
-                <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3">
-                    <div className="flex flex-row items-center space-x-4">
-                        <Image
-                            src={getImageUrl(webnovel.cover_art)}
-                            alt={webnovel.title}
-                            width={50} height={50}
-                            className="rounded-lg"
-                        />
-                        <div className="flex flex-col">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
-                                {phrase(dictionary, "nextChapterView", language)}
-                            </p>
-                            <OtherTranslateComponent
-                                content={nextChapter.title}
-                                elementId={nextChapter.id.toString()}
-                                elementType='chapter'
-                                elementSubtype="title"
-                                classParams="text-md mt-1 mb-1"
-                            />
+            <div className={`${screenWidth} mx-auto w-full pb-5`}>
+                <Button
+                    variant="link"
+                    disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
+                    className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
+                    <Link href={`/chapter_view/${nextChapter.id}`} className="w-full">
+                        <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
+                            <div className="flex flex-row items-center space-x-4">
+                                <Image
+                                    src={getImageUrl(webnovel.cover_art)}
+                                    alt={webnovel.title}
+                                    width={50} height={50}
+                                    className="rounded-lg"
+                                />
+                                <div className="flex flex-col">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
+                                        {phrase(dictionary, "nextChapterView", language)}
+                                    </p>
+                                    <OtherTranslateComponent
+                                        content={nextChapter.title}
+                                        elementId={nextChapter.id.toString()}
+                                        elementType='chapter'
+                                        elementSubtype="title"
+                                        classParams="text-md mt-1 mb-1"
+                                    />
+                                </div>
+                            </div>
+                            <ChevronRight size={18} className="" />
                         </div>
-                    </div>
-                    <ChevronRight size={18} className="" />
-                </div>
-            </Link>
+                    </Link>
+                </Button>
+            </div>
         );
     };
+
+    const FloatingMenuMemo = React.memo(({ children, webnovel, chapter }: { children: ReactNode, webnovel: Webnovel, chapter: Chapter }) => {
+        return (
+            <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                {children}
+            </FloatingMenu>
+        )
+    });
+    FloatingMenuMemo.displayName = 'FloatingMenuMemo';
 
 
     if (webnovel && chapter) {
         return (
-            <div>
+            <div className="">
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
-                <div
-                    className={`${theme} relative`}
-                    style={{
-                        ...readerStyle,
-                    }}
+                {/* Top bar: */}
+                <header
+                    className="w-full fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
+                    bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
-                    <div className={`${screenWidth} px-4 h-full flex flex-col items-left mx-auto z-10`}>
-                        {/* Back to novel and like button */}
-                        <div className="flex flex-row max-w-full w-full justify-between">
-                            <Button color='gray' variant='text' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
-                                <div className="flex flex-row space-x-1 items-center">
-                                    <ChevronLeft size={18} className="" />
-                                    <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
-
-                                </div>
-                            </Button>
-
-                            <div className="flex flex-row items-center">
-                                <Link
-                                    href=''
-                                    className="text-center flex flex-row items-center "
-                                >
-                                    {
-                                        likeToggle ?
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-solid fa-heart self-center" style={{ fontSize: '16px' }}></i>
-                                            :
-                                            <i onClick={handleLikeClick} onTouchStart={handleLikeClick} className="fa-regular fa-heart self-center" style={{ fontSize: '16px' }}></i>
-                                    }
-                                    <p className='ml-2 w-6 self-center' style={{ fontSize: '16px' }}>{upvotes}</p>
-                                </Link>
-                                {isAuthor && <Button
-                                    color='gray'
-                                    variant='text'
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowDeleteModal(true);
-                                        setDeleteChapterId(chapter.id);
-                                        //    handleChapterDelete(Number(id))
-                                    }}>
-                                    <i className="fas fa-ellipsis-v self-center mr-3 text-gray-400"></i> <span className="text-sm self-center">
-                                        {/* Delete */}
-                                        {phrase(dictionary, "delete", language)}
-                                    </span>
-                                </Button>
-                                }
-
+                    <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
+                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
+                            <div className="flex flex-row space-x-1 items-center">
+                                <ChevronLeft size={18} />
+                                <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
                             </div>
-                        </div>
-                        {/* Title and content */}
+                        </Button>
 
+                        <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
+                            <MenubarMenu>
+                                <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent">
+                                    <List className="h-5 w-5" />
+                                    <span className="sr-only">Table of Contents</span>
+                                </MenubarTrigger>
+                                <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
+                                    <MenubarItem className="font-semibold" inset>
+                                        Table of Contents
+                                    </MenubarItem>
+                                    <MenubarSeparator />
+                                    {webnovel.chapters.map((chapter, index) => (
+                                        <MenubarItem
+                                            key={chapter.id}
+                                            onClick={() => router.push(`/chapter_view/${chapter.id}`)}
+                                            className={`${chapter.id === Number(id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
+                                            disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                                        >
+                                            <p className="text-sm">{index + 1}.</p>
+                                            <MenubarShortcut>
+                                                {chapter.title}
+                                                {!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) && (
+                                                    <span className="ml-2">🔒</span>
+                                                )}
+                                            </MenubarShortcut>
+                                        </MenubarItem>
+                                    ))}
+                                </MenubarContent>
+                            </MenubarMenu>
+                            {/* viewer settings */}
+                            <MenubarMenu>
+                                <Button
+                                    variant="ghost"
+                                    className="rounded-full p-2"
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleViewSettings();
+                                    }}>
+                                    <Settings className="h-5 w-5" />
+                                </Button>
+                            </MenubarMenu>
+                            {/* like button */}
+                            <MenubarMenu>
+                                <div className="text-center flex flex-row items-center md:pr-0 pr-[15px]">
+                                    {likeToggle ? (
+                                        <Link href='#' className='p-0'
+                                            style={{
+                                                margin: '0px !important',
+                                                padding: '0px !important'
+                                            }}
+                                            onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
+                                            {/* heart icon */}
+                                            <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                            </svg>
+                                        </Link>
+                                    ) : (
+                                        <Link href='#' className='p-0'
+                                            style={{
+                                                margin: '0px !important',
+                                                padding: '0px !important'
+                                            }}
+                                            onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
+                                            <Heart className="h-5 w-5" />
+                                        </Link>
+                                    )
+                                    }
+                                    <p className='ml-1 self-center text-sm'>{upvotes}</p>
+                                </div>
+                            </MenubarMenu>
+                            {/* Delete button */}
+                            {isAuthor && <Button
+                                color='gray'
+                                variant='ghost'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowDeleteModal(true);
+                                    setDeleteChapterId(chapter.id);
+                                    //    handleChapterDelete(Number(id))
+                                }}>
+                                <Trash2 size={18} className="mr-2 text-gray-500" />
+                                <span className="text-sm self-center">
+                                    {phrase(dictionary, "delete", language)}
+                                </span>
+                            </Button>
+                            }
+                        </Menubar>
+                    </div>
+                    {/* view settings modal */}
+                    <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
+                </header>
+
+                <div className="relative" style={{ ...readerStyle, fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} >
+                    <div className={`${screenWidth} h-full flex flex-col items-left mx-auto z-10 pt-[60px]`}>
+                        {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
-                                <div className='flex justify-between'>
+                                <div className='flex justify-between px-4'>
                                     <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
-                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit overflow-y-hidden' : ""}`}>
-                                    <FloatingMenu context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
+                                <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
+                                    <FloatingMenuMemo webnovel={webnovel} chapter={chapter}>
                                         <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
-                                    </FloatingMenu>
+                                    </FloatingMenuMemo>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Title and content : end */}
-                    </div>
-                    <div className="relative ">
-                        <ViewerFooter webnovel={webnovel} chapter={chapter} />
+                        {/* Viewer footer */}
+                        <div className="relative" ref={containerRef}>
+                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedTextRef={selectedTextRef} page={page} maxPage={maxPage} />
+                        </div>
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
-                    <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                        <Box sx={useModalStyle}>
+                    <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>{phrase(dictionary, "deleteChapterConfirm", language)}</DialogTitle>
+                            </DialogHeader>
                             <div className='flex flex-col space-y-4 items-center justify-cente'>
-                                <p className='text-lg font-bold text-black dark:text-black'>{phrase(dictionary, "deleteChapterConfirm", language)}</p>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32 text-black dark:text-black' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outlined' className='mt-10 w-32 text-black dark:text-black' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
+                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                             </div>
-                        </Box>
-                    </Modal>
-                    {/* delete confirmation modal */}
-                    <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
+                        </DialogContent>
+                    </Dialog>
                 </div>
+                <ExtraInfoContainer webnovel={webnovel} chapter={chapter} dictionary={dictionary} language={language} />
                 {/* hr divider */}
                 <div className='flex flex-col items-center justify-center w-full mb-4'>
                     <hr className='w-screen border-t border-gray-300 my-4' />
@@ -328,7 +426,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         />
                     </div>
                 </div>
-                <ChapterCommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
             </div>
         )

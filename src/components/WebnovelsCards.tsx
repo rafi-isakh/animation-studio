@@ -41,13 +41,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
 
     return (
         <div className='relative md:max-w-screen-xl group font-pretendard'>
-            <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                <span className='text-black dark:text-white'>
-                    {phrase(dictionary, "recommended", language)}
-                </span>
-            </h1>
             <WebnovelsAllCardWrapper
-                title={''}
+                title={phrase(dictionary, "recommended", language)}
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
                 renderItem={(item: Webnovel, index: number) => (

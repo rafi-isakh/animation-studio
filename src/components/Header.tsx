@@ -191,14 +191,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     };
 
 
-    const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
-        event.preventDefault();
-        setLanguageOverride(language);
-        setIsLanguageDropdownOpen(false);
-        if (device === 'mobile') {
-            handleMobileMenuClick();
-        }
-    }
+    // const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
+    //     event.preventDefault();
+    //     setLanguageOverride(language);
+    //     setIsLanguageDropdownOpen(false);
+    //     if (device === 'mobile') {
+    //         handleMobileMenuClick();
+    //     }
+    // }
 
     const handleUserItemClick = () => {
         setIsUserDropdownOpen(false);
@@ -318,6 +318,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/search')) {
             return "hidden"
         }
+        if (pathname.startsWith('/chapter_view')) {
+            return "hidden"
+        }
         if (pathname.startsWith('/toonyz_posts/')) {
             return "hidden"
         }
@@ -359,7 +362,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <Link href="/?version=premium"
                                 className="md:hidden flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                                 <Image
-                                    src={theme === 'dark' ? '/toonyz_logo_pink.svg' : '/toonyzLogo.png'}
+                                    src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyz_logo_pink.svg'}
                                     alt="Toonyz Logo"
                                     width={logoWidth}
                                     height={logoHeight}

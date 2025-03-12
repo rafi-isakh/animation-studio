@@ -1,21 +1,20 @@
 "use client"
-import { Webnovel, Webtoon } from '@/components/Types'
+import { Webnovel, Webtoon, ToonyzPost } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Button, CircularProgress, ThemeProvider, useMediaQuery } from '@mui/material';
-import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
-import { createEmailHash } from '@/utils/cryptography'
+import { Button } from '@/components/shadcnUI/Button'
 import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels }: {
+
+const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean
+    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean, posts: ToonyzPost[]
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
@@ -25,16 +24,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.user.nickname;
-    const author_email = webnovel?.user.email_hash;
     const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const isMediumScreen = useMediaQuery('(min-width:768px)');
-    const [tabValue, setTabValue] = useState('1');
     const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
     const { invalidateCache } = useWebnovels();
-
-
+   
     const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
         setContent(updatedContent);
     };
@@ -70,13 +65,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
         }
         setAtLeastOneWebnovel(hasWebnovels);
     }, [webnovel, userWebnovels, deletedWebnovelId]);
-
-    const isAuthor = (): boolean => {
-        // if (!email || !author_email) return false;
-        const userEmailHash = createEmailHash(email);
-        const authorEmailHash = author_email
-        return userEmailHash === authorEmailHash;
-    };
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
@@ -114,10 +102,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
         router.push(`/ai_editor?id=${id}`)
     }
 
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-        setTabValue(newValue);
-    };
-
     if (language === 'ja' && (id == '19' || id == '20')) {
         alert("이 웹소설은 아직 일본어로 서비스되지 않습니다.");
         setLanguage('ko');
@@ -130,7 +114,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                     <Image src="/stelli/stelli_4.svg" alt="noWebnovelsFound" width={150} height={100} />
                     <p className="text-md font-bold"> {phrase(dictionary, "noWebnovelsFound", language)} </p>
                     <p className="text-md"> {phrase(dictionary, "noWebnovelsFound_subtitle", language)} </p>
-                    <Button className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
+                    <Button variant="default" className="bg-[#DB2777] text-md text-white px-4 py-2 rounded-md">
                         <Link href="/new_webnovel">
                             {phrase(dictionary, "writeYourStory", language)}
                         </Link>
@@ -163,6 +147,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                                 relatedContent={webnovels}
                                 onContentUpdate={handleContentUpdate}
                                 loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
+                                posts={posts}
                             />
                         </div>
                     </div>

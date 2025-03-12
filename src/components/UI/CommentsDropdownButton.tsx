@@ -1,9 +1,6 @@
 import * as React from 'react';
-import { Box, Modal } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button"
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import { Ellipsis, UserRoundX, CircleHelp, Flag, Trash } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -23,24 +20,23 @@ import {
     AlertDialogTrigger,
 } from "@/components/shadcnUI/AlertDialog"
 import { useTheme } from '@/contexts/providers'
-
-const ITEM_HEIGHT = 48;
-
+import { useUser } from '@/contexts/UserContext';
+import { createEmailHash } from '@/utils/cryptography'
 export default function CommentsDropdownButton({
     comment,
     user,
     email,
-    createEmailHash,
     handleDeleteComment,
 }: {
     comment: Comment,
     user: User,
     email: string,
-    createEmailHash: (email: string) => string,
     handleDeleteComment: (commentId: string) => void,
 }) {
     const { language, dictionary } = useLanguage();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const { id } = useUser();
     const { theme } = useTheme();
     const [showReportModal, setShowReportModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -98,13 +94,11 @@ export default function CommentsDropdownButton({
                             </AlertDialogContent>
                         </AlertDialog>
                     }
-
                     <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
                         <Button
                             key="report"
-                            variant='ghost'
-                            className="flex items-center gap-2 dark:text-white text-black "
-                        >
+                            variant="ghost"
+                            className="flex items-center gap-2 dark:text-white text-black">
                             <Flag size={20} className="dark:text-white text-black" />
                             {phrase(dictionary, "report", language)}
                         </Button>

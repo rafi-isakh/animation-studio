@@ -10,7 +10,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeftIcon } from '@heroicons/react/24/solid';
 import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
-import { createEmailHash } from '@/utils/cryptography';
 import Image from 'next/image';
 import { Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
 import moment from 'moment';
@@ -289,7 +288,7 @@ const CommentsComponent = ({
                     </form>
                 }
 
-                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-black'>
+                <div className='py-1 px-1 rounded-lg bg-gray-100 dark:bg-[#211F21]'>
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}
@@ -350,7 +349,6 @@ const CommentsComponent = ({
                                                     user={comment.user}
                                                     email={email}
                                                     handleDeleteComment={handleDeleteComment}
-                                                    createEmailHash={createEmailHash}
                                                 />
 
                                             </div>
@@ -436,7 +434,6 @@ const CommentsComponent = ({
                                                                     user={reply.user}
                                                                     email={email}
                                                                     handleDeleteComment={handleDeleteComment}
-                                                                    createEmailHash={createEmailHash}
                                                                 />
 
                                                             </div>

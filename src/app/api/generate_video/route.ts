@@ -26,5 +26,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to generate video', message: response.statusText }, { status: response.status });
     }
     const data = await response.json()
+    // const data = {
+    //     video_url: "https://toonyzvideosbucket.s3.ap-northeast-2.amazonaws.com/video_1740636799390.mp4" // test
+    // }
     return NextResponse.json(data)
 }

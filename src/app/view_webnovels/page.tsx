@@ -1,12 +1,12 @@
 "use client"
-import { Webnovel } from "@/components/Types";
+import { Webnovel, ToonyzPost } from "@/components/Types";
 import ViewWebnovelsComponent from "@/components/ViewWebnovelsComponent";
 import { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import { useAuth } from "@/contexts/AuthContext";
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
-  });
+});
 import animationData from '@/assets/N_logo_with_heart.json';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useSearchParams } from "next/navigation";
@@ -26,22 +26,23 @@ const ViewWebnovels = () => {
     const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
-    const { getWebnovelById, getWebnovelsMetadataByEmailHash, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
+    const { getWebnovelById, getWebnovelsMetadataByUserId, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
     const searchParams = useSearchParams();
     const searchParamsObject = Object.fromEntries(searchParams.entries());
+    const [posts, setPosts] = useState<ToonyzPost[]>([]);
 
     useEffect(() => {
         const setData = async () => {
             const webnovel = await getWebnovelById(searchParams.get("id")!);
-            let author_email_hash = "";
+            let author_id = "";
             if (webnovel) {
                 setWebnovel(webnovel);
                 setLoading(false);
-                author_email_hash = webnovel.user.email_hash;
+                author_id = webnovel.user.id.toString();
                 fetchChaptersLikelyNeededWebnovel(webnovel);
             }
-            if (author_email_hash) {
-                const userWebnovels = await getWebnovelsMetadataByEmailHash(author_email_hash);
+            if (author_id) {
+                const userWebnovels = await getWebnovelsMetadataByUserId(author_id);
                 setUserWebnovels(userWebnovels);
                 setLoadingUsersOtherWebnovels(false);
             }
@@ -53,21 +54,52 @@ const ViewWebnovels = () => {
         setData();
     }, [searchParams])
 
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const id = searchParams.get("id");
+                if (!id) return;
+                
+                const webnovel = await getWebnovelById(id);
+                if (!webnovel) return;
+                
+                const response = await fetch('/api/get_toonyz_posts');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+                
+                const data = await response.json();
+                const filteredPosts = data.filter((post: any) => 
+                    post.webnovel_id === webnovel.id
+                );
+                
+                console.log(filteredPosts, "toonyz posts in view webnovels page?");
+                setPosts(filteredPosts);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+        };
+        
+        fetchPosts();
+    }, [searchParams, getWebnovelById]);
+
+
     return (
         <>
-        {loading? (
-               <div role="status" className={`flex items-center justify-center min-h-screen`}>    
-                   <LottieLoader 
-                       animationData={animationData}
-                       width="w-40"
-                       centered={true}
-                       pulseEffect={true}
-                   />
-               </div>
-           ) : (
-            <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} />
-           )
-        }
+            {loading ? (
+                <div role="status" className={`flex items-center justify-center min-h-screen`}>
+                    <LottieLoader
+                        animationData={animationData}
+                        width="w-40"
+                        centered={true}
+                        pulseEffect={true}
+                    />
+                </div>
+            ) : (
+                <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
+            )
+            }
         </>
     )
 }

@@ -64,8 +64,7 @@
  
 @layer base {
   * {
-    @apply border-border;
-    /* border-gray-200 dark:border-gray-700; */
+    @apply border-border;  /* border-gray-200 dark:border-gray-700; */
   }
   
   body {
@@ -119,7 +118,7 @@ body {
   font-family: "Pretendard", "Pretendard JP", "Pretendard Std", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
-/* prevent input and textarea from being resized */
+/* prevent input and textarea from being resized on mobile */
 input[type='text'],textarea {font-size:1rem;}
 
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700;800&display=swap');
@@ -152,4 +151,21 @@ input[type='text'],textarea {font-size:1rem;}
   font-family: "Nanum Gothic", sans-serif;
   font-weight: 800;
   font-style: normal;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }

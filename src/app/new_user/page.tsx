@@ -315,6 +315,7 @@ export default function NewUser() {
                                 />
 
                                 <div className="flex flex-col space-y-4 items-center">
+                                    <NewUserSubmitComponent />
                                     <button
                                         type="button"
                                         onClick={handlePrevStep}
@@ -322,7 +323,6 @@ export default function NewUser() {
                                     >
                                         {phrase(dictionary, "back", language)}
                                     </button>
-                                    <NewUserSubmitComponent />
                                 </div>
                             </div>
                         )}

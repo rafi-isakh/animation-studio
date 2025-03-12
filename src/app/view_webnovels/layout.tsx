@@ -8,31 +8,33 @@ import BlobButton from "@/components/UI/BlobButton";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
+import { CreateMediaProvider, useCreateMedia } from "@/contexts/CreateMediaContext";
 
 const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
-    const [allowClose, setAllowClose] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [savedPrompt, setSavedPrompt] = useState("");
-    const [prompts, setPrompts] = useState<string[]>([]);
-    const [pictures, setPictures] = useState<string[]>([]);
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selection, setSelection] = useState<string>("");
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    
-    const promotionBannerRef = useRef(<PromotionBannerComponent />)
-    const draggableNodeRef = useRef<HTMLDivElement>(null)
     const searchParams = useSearchParams()
     const webnovel_id = searchParams.get("id")
+
+    const {
+        isLoading,
+        setIsLoading,
+        progress,
+        savedPrompt,
+        prompts,
+        pictures,
+        openDialog,
+        setOpenDialog,
+        setSelection,
+        promotionBannerRef,
+        draggableNodeRef,
+        chapter_id,
+    } = useCreateMedia();
 
     const handleToggleMenu = () => {
         setOpenDialog((prevState: boolean) => !prevState);
     }
 
     return (
-        <CreateMediaProvider>
             <div className="relative">
                 {children}
                 <div className="fixed bottom-0 right-0 -translate-x-1/2  z-[999]">
@@ -56,12 +58,11 @@ const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
                     promotionBannerRef={promotionBannerRef}
                     draggableNodeRef={draggableNodeRef}
                     webnovel_id={webnovel_id!}
-                    chapter_id={"1"}
+                    chapter_id={chapter_id}
                     source={"webnovel"}
                     initialNarrations={[]}
                 />
             </div>
-        </CreateMediaProvider>
     )
 }
 

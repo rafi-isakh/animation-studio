@@ -64,11 +64,12 @@ export function WebnovelCard({
 
     return (
         <div className="w-full mx-auto dark:bg-transparent backdrop-blur-sm bg-white rounded-xl overflow-hidden">
+        <Link href={`/view_webnovels?id=${webnovel.id}`}>
             <div className="relative bg-gradient-to-r from-pink-300 to-pink-200/10 dark:from-pink-800 dark:to-purple-900/10 p-6 rounded-t-xl" >
                 <div className="z-10 flex items-start gap-6">
                     {/* Book Cover */}
                     <div className="relative w-auto flex-shrink-0">
-                        <Link href={`/view_webnovels?id=${webnovel.id}`} className="block relative min-w-[80px] group z-[99]"
+                        <div className="block relative min-w-[80px] group z-[99]"
                             style={{
                                 width: isHoverCard ? '80px' : '120px',
                                 height: isHoverCard ? '114px' : '171px', // Maintaining aspect ratio of 180/257
@@ -80,7 +81,7 @@ export function WebnovelCard({
                                 fill
                                 className="rounded-md object-cover"
                             />
-                        </Link>
+                        </div>
                         <div className="absolute inset-0 bg-black/80 rounded-md flex flex-col justify-center items-center text-white text-xs tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                             style={{
                                 backgroundImage: `url(${getImageUrl(webnovel.cover_art)})`,
@@ -163,6 +164,7 @@ export function WebnovelCard({
                     </Link>
                 </div>
             </div>
+            </Link>
 
             {/* Engagement Stats */}
             {
@@ -178,7 +180,7 @@ export function WebnovelCard({
                         </div>
                         <div className="text-center">
                             <div className="text-xl font-bold text-gray-800 dark:text-gray-200">1024</div>
-                            <div className="text-gray-500 text-sm">Redears</div>
+                            <div className="text-gray-500 text-sm">Readers</div>
                         </div>
                     </div>
                 )

@@ -1,8 +1,7 @@
 'use client'
-import { Webnovel, Webtoon } from "@/components/Types"
+import { Webnovel } from "@/components/Types"
 import Image from "next/image"
-import TextField from '@mui/material/TextField';
-import { Button, Modal, Box, Typography, Radio, RadioGroup, FormControlLabel, FormLabel, FormControl } from "@mui/material"
+import { Button } from "@mui/material"
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from "@/utils/phrases"
 import { useState } from "react"

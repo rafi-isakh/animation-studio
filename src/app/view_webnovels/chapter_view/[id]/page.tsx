@@ -136,10 +136,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     useEffect(() => {
         if (!viewed.current) {
             if (email) {
-                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}&is_webnovel=true`)
+                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
                 viewed.current = true;
             } else {
-                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}&is_webnovel=true`)
+                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
                 viewed.current = true;
             }
         }

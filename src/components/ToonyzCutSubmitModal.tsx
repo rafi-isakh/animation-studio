@@ -1,12 +1,11 @@
 'use client'
-import { Webnovel, Webtoon } from "@/components/Types"
+import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 import TextField from '@mui/material/TextField';
 import { Button, Modal, Box, Radio, RadioGroup, FormControlLabel, FormLabel, FormControl } from "@mui/material"
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from "@/utils/phrases"
 import { useState } from "react"
-import Link from "next/link"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useToonyzCutSubmitModalStyle } from "@/styles/ModalStyles"
 import OtherTranslateComponent from "./OtherTranslateComponent";

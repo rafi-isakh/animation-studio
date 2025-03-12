@@ -8,7 +8,8 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import CardsScroll from '@/components/CardsScroll';
+
 export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnovel[], isMobile: boolean }) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
@@ -74,24 +75,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
             </div>
 
             {!isMobile && (
-                <>
-                    <button
-                        onClick={() => scroll('left', scrollRef)}
-                        className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
-                            duration-300 absolute h-20
-                            left-0 top-[55%] -translate-y-1/2 z-50 p-1 opacity-0 rounded-sm"
-                    >
-                        <ChevronLeft className="w-6 h-6 text-gray-700" />
-                    </button>
-                    <button
-                        onClick={() => scroll('right', scrollRef)}
-                        className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
-                            duration-300 absolute h-20
-                            right-0 top-[55%] -translate-y-1/2 z-50 p-1 opacity-0 rounded-sm"
-                    >
-                        <ChevronRight className="w-6 h-6 text-gray-700" />
-                    </button>
-                </>
+                <CardsScroll scrollRef={scrollRef} shift={true} />
             )}
 
         </div>

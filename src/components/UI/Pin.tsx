@@ -82,7 +82,6 @@ export function Pin({ post }: PinProps) {
                         opacity-0 group-hover:opacity-100
                         transition-opacity duration-200
                         bg-gradient-to-t from-black/60 to-transparent ">
-
               {post.quote && (
                 <p
                   // style={{ paddingBottom: `${aspectRatio * 100}%` }}

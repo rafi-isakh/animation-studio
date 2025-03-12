@@ -1,8 +1,4 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { Info } from 'lucide-react';
-import { initialWebtoonContents } from '@/utils/curriculum';
-import { getImageUrl, getVideoUrl } from '@/utils/urls';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Play, Pause } from 'lucide-react';

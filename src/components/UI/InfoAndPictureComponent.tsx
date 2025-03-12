@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
-import { Webtoon, Webnovel, ImageOrVideo } from "@/components/Types";
+import { Webnovel, ImageOrVideo } from "@/components/Types";
 import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
@@ -36,9 +36,8 @@ import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 
 interface InfoAndPictureProps {
-    content: Webtoon | Webnovel;
+    content: Webnovel;
     coverArt: string;
-    isWebtoon?: boolean;
     children?: React.ReactNode;
     onNewChapter?: () => void;
     onDelete?: () => void;
@@ -47,7 +46,6 @@ interface InfoAndPictureProps {
 export default function InfoAndPictureComponent({
     content,
     coverArt,
-    isWebtoon = false,
     onNewChapter,
     onDelete
 }: InfoAndPictureProps) {
@@ -210,7 +208,7 @@ export default function InfoAndPictureComponent({
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
                 style={{
-                    backgroundImage: `url(${isWebtoon ? coverArt : getImageUrl(coverArt)})`,
+                    backgroundImage: `url(${getImageUrl(coverArt)})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}
@@ -227,7 +225,7 @@ export default function InfoAndPictureComponent({
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px] rounded-xl">
                                 {coverArt ?
                                     <Image
-                                        src={isWebtoon ? coverArt : getImageUrl(coverArt)}
+                                        src={getImageUrl(coverArt)}
                                         alt={content.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 300px"
@@ -243,15 +241,13 @@ export default function InfoAndPictureComponent({
 
                         {/* Content Info */}
                         <div className="flex flex-col items-center py-10">
-                            {isWebtoon ? content.title :
-                                <OtherTranslateComponent
-                                    content={content.title}
-                                    elementId={content.id.toString()}
-                                    elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                    elementSubtype="title"
-                                    classParams="text-2xl font-bold self-center text-center"
+                            <OtherTranslateComponent
+                                content={content.title}
+                                elementId={content.id.toString()}
+                                elementType="webnovel"
+                                elementSubtype="title"
+                                classParams="text-2xl font-bold self-center text-center"
                                 />
-                            }
 
                             <p className="text-center">
                                 {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
@@ -266,7 +262,7 @@ export default function InfoAndPictureComponent({
                                     </li>
                                 )}
                                 <li className="text-sm text-gray-500">
-                                    {!isWebtoon && content.premium ? phrase(dictionary, "premium", language) : phrase(dictionary, "free", language)}
+                                    {content.premium ? phrase(dictionary, "premium", language) : phrase(dictionary, "free", language)}
                                 </li>
                             </ul>
 
@@ -286,15 +282,13 @@ export default function InfoAndPictureComponent({
 
                             <div className="mt-2">
                                 {/* Description */}
-                                {isWebtoon ? content.description :
-                                    <OtherTranslateComponent
-                                        content={content.description}
-                                        elementId={content.id.toString()}
-                                        elementType={isWebtoon ? 'webtoon' : 'webnovel'}
-                                        elementSubtype="description"
-                                        classParams="text-sm text-gray-800 dark:text-white"
+                                <OtherTranslateComponent
+                                    content={content.description}
+                                    elementId={content.id.toString()}
+                                    elementType="webnovel"
+                                    elementSubtype="description"
+                                    classParams="text-sm text-gray-800 dark:text-white"
                                     />
-                                }
                             </div>
 
                             {/* Action Buttons */}
@@ -305,8 +299,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                 >
                                     <Link
-                                        href={isWebtoon ? `/webtoons/${content.id}/001` :
-                                            content.chapters.length > 0 ? `/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
+                                        href={content.chapters.length > 0 ? `/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
                                         {phrase(dictionary, "start_to_read_episode_1", language)}

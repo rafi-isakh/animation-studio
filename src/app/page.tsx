@@ -75,13 +75,13 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <MyReadingListComponent library={library} />
                     {smallGap()}
+                    <ToonyzPostCards />
+                    {smallGap()}
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
-                    {largeGap()}
+                    {smallGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
-                    {largeGap()}
-                    <ToonyzPostCards />
                     {smallGap()}
                     {/* <CarouselComponent items={items} searchParams={searchParams} />
                     {largeGap()} */}

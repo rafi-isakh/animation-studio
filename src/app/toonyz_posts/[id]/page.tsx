@@ -60,24 +60,6 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
         fetchPost();
     }, [params.id]);
 
-    // useEffect(() => {
-    //     fetch('/api/get_toonyz_posts')
-    //         .then(res => res.json())
-    //         .then(data => {
-    //             // Add random dimensions to each post
-    //             const postsWithDimensions = data.map((post: ToonyzPost) => ({
-    //                 ...post,
-    //                 ...getRandomDimensions()
-    //             }));
-    //             setAllPosts(postsWithDimensions);
-
-    //             // Set the last post ID for cursor-based pagination
-    //             if (postsWithDimensions.length > 0) {
-    //                 setLastPostId(postsWithDimensions[postsWithDimensions.length - 1].id.toString());
-    //             }
-    //         });
-    // }, []);
-
     useEffect(() => {
         const fetchWebnovel = async () => {
             if (post?.webnovel_id) {
@@ -105,7 +87,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
                     <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
-                        <p className="text-sm font-base">Back</p>
+                        <p className="text-sm text-gray-500 font-bold font-base">{phrase(dictionary, "back", language)}</p>
                     </Link>
                     <TopNavigationMenu
                         email={currentUserEmail}
@@ -117,7 +99,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Image/Video Container - simplified for mobile */}
-            <div className={`relative max-w-screen-xl mx-auto w-full group
+            <div className={`relative max-w-screen-lg mx-auto w-full group
                             ${post.image
                             ? 'md:h-full h-[40vh] top-8 mt-8'
                             : 'md:h-full md:top-16 md:mt-16'}`}>

@@ -68,7 +68,7 @@ function ToastContainer() {
     const { toasts, dismiss } = useToast();
 
     return (
-        <div className="fixed top-0 right-0 p-4 space-y-2 max-w-md z-[999]">
+        <div className="fixed top-0 right-0 p-2 space-y-2 max-w-md z-[999]">
             {toasts.map((toast) => (
                 <div
                     key={toast.id}

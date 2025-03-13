@@ -46,16 +46,16 @@ export default function CreateMediaDefaultContetns() {
   const randomVideos = shuffledPosts.filter(post => post.video).slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-to-r dark:from-gray-900/10 dark:to-transparent from-transparent to-blue-100/50 backdrop-blur-md  p-6 md:p-8">
       {/* Header Section */}
       <div className="max-w-4xl mx-auto mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4 uppercase">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 uppercase text-gray-700 dark:text-gray-300">
           Bring Stories
           <br />
           to Life
         </h1>
         {/* <h2 className="text-3xl md:text-5xl font-medium mb-6">A visual thought partner for ideation & imagination</h2> */}
-        <p className="text-lg md:text-xl text-gray-300 mb-8">
+        <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8">
         Select text, and let AI generate stunning images, videos, and slideshows.
         </p>
         <Button className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base">

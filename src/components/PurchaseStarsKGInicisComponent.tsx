@@ -8,11 +8,9 @@ import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
 import { useRouter, useSearchParams } from "next/navigation";
+import { starsOptions, starsEventOptions, discount_factors, discount_factors_event } from "@/utils/stars";
 
 export default function PurchaseStarsKGInicisComponent() {
-    const starsOptions = [100, 300, 500, 1000]
-    const starsEventOptions = [150, 350, 550, 1100]
-    const discount_factors = [0.95, 0.9, 0.85, 0.8]
     const { dictionary, language } = useLanguage();
     const { email, nickname, stars } = useUser();
     const searchParams = useSearchParams();

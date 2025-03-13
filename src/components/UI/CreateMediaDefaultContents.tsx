@@ -75,8 +75,7 @@ export default function CreateMediaDefaultContents() {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-        {/* Boards Card */}
-        <Link href="/toonyz_posts" className="rounded-3xl overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 p-6 md:p-8 col-span-1 md:col-span-3 relative min-h-[300px]">
+        <Link href="/toonyz_posts" className="rounded-3xl overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 p-6 md:p-8 col-span-1 md:col-span-3 relative min-h-[280px]">
           <div >
             <div className="w-full">
               <h3 className="text-2xl font-bold mb-1">{phrase(dictionary, "post", language)}</h3>
@@ -124,12 +123,6 @@ export default function CreateMediaDefaultContents() {
             ))}
           </div>
         </div>
-
-        {/* Keyframe Card */}
-        {/* <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-teal-600 to-teal-400 p-6 md:p-8 col-span-1 md:col-span-3 min-h-[200px]">
-          <h3 className="text-3xl font-bold mb-1">Create your own</h3>
-          <p className="text-xl mb-6">Make videos by giving start/end frames</p>
-        </div> */}
       </div>
     </div >
   )

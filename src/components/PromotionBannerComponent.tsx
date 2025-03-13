@@ -7,48 +7,57 @@ import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { useTheme } from '@/contexts/providers';
 import { ArrowRight } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
 export const AIPromotionComponent: React.FC = () => {
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
   const { dictionary, language } = useLanguage()
+  const { stars } = useUser();
 
   return (
-  <Link href='/stars' className="cursor-pointer">
-    <div
-      className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pb-1'
-    >
-      <div className="flex items-center justify-center h-full">
-        <div className="flex flex-row">
-          <div className="flex flex-col justify-center items-center gap-1 text-sm font-pretendard">
-            <p className="text-black text-center font-bold">
-              {/* 투니즈 포스트를 즐겨보세요 */}
-              {phrase(dictionary, "buyStars_promotion", language)}
-            </p>
-            <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard self-start">
-              <span className="text-sm">
-                {/* 지금 신청하기 */}
-                {phrase(dictionary, "buyStars", language)}
-              </span>
-              <ArrowRight className="w-4 h-4 text-black" />
-            </button>
+    <Link href='/stars' className="cursor-pointer">
+      <div
+        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pb-1'
+      >
+        <div className="flex items-center justify-center h-full">
+          <div className="flex flex-row">
+            <div className="flex flex-col justify-center items-center gap-1 text-sm font-pretendard">
+              <p className="text-black text-center font-bold">
+                {/* 투니즈 포스트를 즐겨보세요 */}
+                {phrase(dictionary, "buyStars_promotion", language)}
+              </p>
+              <div className='flex flex-row gap-2 items-start justify-start' >
+                <button disabled className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
+                  <span className="text-sm">
+                    {stars} stars
+                  </span>
+                </button>
+                <button className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
+                  <span className="text-sm">
+                    {/* 지금 신청하기 */}
+                    {phrase(dictionary, "buyStars", language)}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-black" />
+                </button>
+              </div>
+            </div>
+            <Image
+              src='/stelli/stelli_8.svg'
+              alt='Toonyz event banner'
+              sizes="cover"
+              width={0}
+              height={0}
+              className='relative -bottom-1 mx-auto z-10'
+              style={{
+                width: isDesktop ? '100px' : '70px',
+                height: 'auto'
+              }}
+            />
           </div>
-          <Image
-            src='/stelli/stelli_8.svg'
-            alt='Toonyz event banner'
-            sizes="cover"
-            width={0}
-            height={0}
-            className='relative -bottom-1 mx-auto z-10'
-            style={{
-              width: isDesktop ? '100px' : '70px',
-              height: 'auto'
-            }}
-          />
         </div>
       </div>
-    </div>
-  </Link>
- );
+    </Link>
+  );
 };
 
 

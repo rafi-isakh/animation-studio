@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgressbar';
 import { useCreateMedia } from '@/contexts/CreateMediaContext';
 import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
+import { useUser } from '@/contexts/UserContext';
  
 type Position = {
     x: number;
@@ -92,6 +93,7 @@ const FloatingMenu: React.FC<{
     } = useCreateMedia();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
+    const { stars } = useUser();
 
     useEffect(() => {
 

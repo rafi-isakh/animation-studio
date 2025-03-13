@@ -34,10 +34,10 @@ import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
-
 import { CircularProgress } from "@mui/material";
-import CreateMediaArea from "../CreateMediaArea";
-import PromotionBannerComponent from "../PromotionBannerComponent";
+import { useCreateMedia } from "@/contexts/CreateMediaContext";
+import CreateMediaArea from "@/components/CreateMediaArea";
+// import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 interface InfoAndPictureProps {
     content: Webnovel;
     coverArt: string;
@@ -61,19 +61,30 @@ export default function InfoAndPictureComponent({
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
-    const [pictures, setPictures] = useState([]);
-    const [prompts, setPrompts] = useState([]);
     const { toast } = useToast();
     const [videoFileName, setVideoFileName] = useState('');
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const [loadingTrailerGeneration, setLoadingTrailerGeneration] = useState(false);
-    const [loadingPictures, setLoadingPictures] = useState(false);
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selection, setSelection] = useState('');
-    const [progress, setProgress] = useState(0);
-    const draggableNodeRef = useRef<HTMLDivElement>(null);
-    const promotionBannerRef = useRef(<PromotionBannerComponent />);
     const [narrations, setNarrations] = useState<string[]>([]);
+
+    const {
+        isLoading,
+        setIsLoading,
+        progress,
+        savedPrompt,
+        prompts,
+        pictures,
+        openDialog,
+        setOpenDialog,
+        setSelection,
+        setProgress,
+        setPictures,
+        setPrompts,
+        promotionBannerRef,
+        draggableNodeRef,
+        chapter_id,
+    } = useCreateMedia();
+
 
     useEffect(() => {
         if (window !== undefined) {
@@ -117,7 +128,7 @@ export default function InfoAndPictureComponent({
 
     const generateTrailer = async (chapter_ids: number[]) => {
         setLoadingTrailerGeneration(true);
-        setLoadingPictures(true)
+        setIsLoading(true)
         const progressInterval = setInterval(() => {
             setProgress(prev => {
                 const newProgress = prev + (5 * Math.random());
@@ -136,7 +147,8 @@ export default function InfoAndPictureComponent({
             })
             throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
         }
-        setLoadingPictures(false);
+        setIsLoading(false);
+        setLoadingTrailerGeneration(false);
         const data = await response.json();
         console.log('data', data);
         setPictures(data.images);
@@ -326,9 +338,10 @@ export default function InfoAndPictureComponent({
                                         {loadingTrailerGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
                                     </p>
                                 </Button>
-                                <CreateMediaArea
-                                    isLoading={loadingPictures}
-                                    setIsLoading={setLoadingPictures}
+                                {/* <CreateMediaArea
+                                    content={content}
+                                    isLoading={isLoading}
+                                    setIsLoading={setIsLoading}
                                     progress={progress}
                                     savedPrompt={""}
                                     prompts={prompts}
@@ -342,7 +355,7 @@ export default function InfoAndPictureComponent({
                                     draggableNodeRef={draggableNodeRef}
                                     source='webnovel'
                                     initialNarrations={narrations}
-                                />
+                                /> */}
                             </div>
                             {pictures && pictures.length > 0 && (
                                 <div className="pb-5 w-full">

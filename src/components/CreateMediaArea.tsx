@@ -15,7 +15,7 @@ import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { ImageOrVideo } from "@/components/Types";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import CreateMediaDefaultContetns from "@/components/UI/CreateMediaDefaultContetns"
-
+import { Webnovel } from "@/components/Types";
 export default function CreateMediaArea({
     isLoading,
     setIsLoading,
@@ -31,7 +31,8 @@ export default function CreateMediaArea({
     setSelection,
     promotionBannerRef,
     source,
-    initialNarrations
+    initialNarrations,
+    // content
 }:
     {
         isLoading: boolean,
@@ -48,7 +49,8 @@ export default function CreateMediaArea({
         setSelection: (selection: string) => void,
         promotionBannerRef: React.MutableRefObject<React.JSX.Element>,
         source: 'webnovel' | 'chapter',
-        initialNarrations: string[]
+        initialNarrations: string[],
+        // content?: string,
     }) { // Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
@@ -101,7 +103,7 @@ export default function CreateMediaArea({
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
                     <div className='relative w-full'>
                         {isLoading ? (
-                            <div className="flex flex-col w-full gap-4">
+                            <div className="flex flex-col gap-4 w-[425px]">
                                 <div className="flex flex-col mb-2">
                                     <div className="loader-container inline-flex flex-row">
                                         {/* <LottieLoader width="w-20" centered={false} animationData={animationData} /> */}
@@ -112,7 +114,7 @@ export default function CreateMediaArea({
                                             <div className="space-y-4">
                                                 <div className="flex justify-end">
                                                     {savedPrompt &&
-                                                        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
+                                                        <div className="w-[425px] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm overflow-hidden break-keep">
                                                             {savedPrompt}
                                                         </div>
                                                     }
@@ -135,7 +137,68 @@ export default function CreateMediaArea({
                             </div>
                         ) : pictures.length > 0 ? (
                             <div className="flex flex-col select-none">
-                                {(savedPrompt || source === 'webnovel') && (
+                                {(source === 'webnovel' && content) ? (
+                                    <div className="my-6 space-y-4">
+                                        <div className="flex gap-2 justify-start items-center">
+                                            <p className="text-sm text-gray-400">Generated a scene with</p>
+                                            <ul className="flex flex-row gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-opacity-0 text-black dark:text-white border-2 dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex  shrink-0 shadow-none"
+                                                >
+                                                    {content?.title}
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="rounded-full bg-opacity-0 text-black dark:text-white border-2 dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex  shrink-0 shadow-none"
+                                                >
+                                                    {content?.genre}
+                                                </Button>
+                                            </ul>
+
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {/* User message bubble */}
+                                            {/* <div className="flex justify-end">
+                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                    {savedPrompt}
+                                                </div>
+                                            </div> */}
+
+                                            {/* AI response bubble */}
+                                            <div className="flex justify-start">
+                                                <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                    <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                </div>
+                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                    I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                                Generate again
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                disabled={loadingVideoGeneration}
+                                                onClick={() => {
+                                                    makeVideo();
+                                                }}
+                                            >
+                                                {loadingVideoGeneration ? <CircularProgress /> : <Video className="w-4 h-4" />}
+                                                Make a video
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (savedPrompt && source === 'chapter') ? (
                                     <div className="my-6 space-y-4">
                                         <div className="space-y-3">
                                             <p className="text-sm text-gray-400">Generated a scene with</p>
@@ -181,7 +244,8 @@ export default function CreateMediaArea({
                                             </Button>
                                         </div>
                                     </div>
-                                )}
+
+                                ) : (<></>)}
                                 <div className="grid grid-cols-2 gap-1">
                                     {pictures.map((picture, index) => {
                                         return (

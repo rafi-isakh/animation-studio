@@ -46,7 +46,7 @@ export default function CreateMediaDefaultContetns() {
   const randomVideos = shuffledPosts.filter(post => post.video).slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r dark:from-gray-900/10 dark:to-transparent from-transparent to-blue-100/50 backdrop-blur-md  p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-to-r dark:from-black dark:to-transparent from-transparent to-blue-100/50 backdrop-blur-md  p-6 md:p-8">
       {/* Header Section */}
       <div className="max-w-4xl mx-auto mb-12">
         <h1 className="text-3xl md:text-4xl font-bold mb-4 uppercase text-gray-700 dark:text-gray-300">

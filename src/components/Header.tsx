@@ -340,10 +340,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }
 
     const handleLibraryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        router.push('/library')
-        setIsLanguageDropdownOpen(false);
-        setIsMobileMenuOpen(false);
+        if (isLoggedIn) {
+            event.preventDefault();
+            router.push('/library')
+            setIsLanguageDropdownOpen(false);
+            setIsMobileMenuOpen(false);
+        } else {
+            router.push('/signin')
+        }
     }
 
 

@@ -130,13 +130,13 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         />
                     </div>
                 )}
-                <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-2xl leading-loose text-center max-w-[90%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                {/* <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white mix-blend-difference font-bold text-lg md:text-2xl leading-loose text-center max-w-[90%] opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {post.image ? (
                         <OtherTranslateComponent content={post.quote!} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="quote" />
                     ) : (
                         <></>
                     )}
-                </p>
+                </p> */}
             </div>
 
             {/* Description Container - simplified for mobile */}

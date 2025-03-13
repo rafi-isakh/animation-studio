@@ -37,6 +37,7 @@ import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import CreateMediaArea from "@/components/CreateMediaArea";
+import PhotoCards from "./PhotoCards";
 // import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -205,7 +206,7 @@ export default function InfoAndPictureComponent({
                                 elementType="webnovel"
                                 elementSubtype="title"
                                 classParams="text-2xl font-bold self-center text-center"
-                                />
+                            />
 
                             <p className="text-center">
                                 {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
@@ -246,7 +247,7 @@ export default function InfoAndPictureComponent({
                                     elementType="webnovel"
                                     elementSubtype="description"
                                     classParams="text-sm text-gray-800 dark:text-white"
-                                    />
+                                />
                             </div>
 
                             {/* Action Buttons */}
@@ -320,7 +321,7 @@ export default function InfoAndPictureComponent({
                                             </div>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                   
+
                                 </div>
                             </div>
 
@@ -357,13 +358,7 @@ export default function InfoAndPictureComponent({
                                     initialNarrations={narrations}
                                 /> */}
                             </div>
-                            {pictures && pictures.length > 0 && (
-                                <div className="pb-5 w-full">
-                                    {pictures.map((picture, index) => (
-                                        <Image key={index} src={`data:image/png;base64,${picture}`} alt="Trailer" width={100} height={100} />
-                                    ))}
-                                </div>
-                            )}
+
                             {isJongmin() &&
                                 <div className="pb-5 w-full">
                                     <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
@@ -419,6 +414,16 @@ export default function InfoAndPictureComponent({
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </Button>
                             </div>
+
+                            {/* photo cards */}
+                            {/* {pictures && pictures.length > 0 && (
+                                <div className="md:max-w-[360px] w-full">
+                                    {pictures && pictures.length > 0 && (
+                                        <PhotoCards images={pictures} />
+                                    )}
+                                </div>
+                            )} */}
+
                         </div>
                     </div>
                 </div>

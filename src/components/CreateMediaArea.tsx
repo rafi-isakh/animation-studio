@@ -16,6 +16,8 @@ import { ImageOrVideo } from "@/components/Types";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import CreateMediaDefaultContetns from "@/components/UI/CreateMediaDefaultContetns"
 import { Webnovel } from "@/components/Types";
+import { useWebnovels } from "@/contexts/WebnovelsContext";
+
 export default function CreateMediaArea({
     isLoading,
     setIsLoading,
@@ -32,7 +34,7 @@ export default function CreateMediaArea({
     promotionBannerRef,
     source,
     initialNarrations,
-    // content
+    content,
 }:
     {
         isLoading: boolean,
@@ -49,8 +51,8 @@ export default function CreateMediaArea({
         setSelection: (selection: string) => void,
         promotionBannerRef: React.MutableRefObject<React.JSX.Element>,
         source: 'webnovel' | 'chapter',
-        initialNarrations: string[],
-        // content?: string,
+        initialNarrations: string[], 
+        content?: Webnovel,
     }) { // Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
@@ -58,12 +60,23 @@ export default function CreateMediaArea({
     const [narrations, setNarrations] = useState<string[]>(initialNarrations);
     const [loadingVideoGeneration, setLoadingVideoGeneration] = useState<boolean>(false);
     const { makeVideo, makeSlideshow } = useCreateMedia();
-
+    const { getWebnovelsMetadataByUserId } = useWebnovels();
+    
     useEffect(() => {
         if (narrations.length == 0) {
             setNarrations(pictures.map(() => ""));
         }
     }, [pictures]);
+
+    useEffect(() => {
+        if (webnovel_id) {
+            getWebnovelsMetadataByUserId(webnovel_id).then((webnovels) => {
+                const foundWebnovel = webnovels.find((webnovel) => webnovel.id === Number(webnovel_id));
+                console.log("Fetched webnovel:", foundWebnovel); // Debug log
+            });
+        }
+    }, [webnovel_id]);
+
 
     return (
         <div>
@@ -114,7 +127,7 @@ export default function CreateMediaArea({
                                             <div className="space-y-4">
                                                 <div className="flex justify-end">
                                                     {savedPrompt &&
-                                                        <div className="w-[425px] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm overflow-hidden break-keep">
+                                                        <div className="w-[300px] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm overflow-hidden break-words">
                                                             {savedPrompt}
                                                         </div>
                                                     }
@@ -146,25 +159,24 @@ export default function CreateMediaArea({
                                                     variant="outline"
                                                     className="rounded-full bg-opacity-0 text-black dark:text-white border-2 dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex  shrink-0 shadow-none"
                                                 >
-                                                    {content?.title}
+                                                    {content.title}
                                                 </Button>
                                                 <Button
                                                     variant="outline"
                                                     className="rounded-full bg-opacity-0 text-black dark:text-white border-2 dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex  shrink-0 shadow-none"
                                                 >
-                                                    {content?.genre}
+                                                    {content.genre}
                                                 </Button>
                                             </ul>
-
                                         </div>
-
+                                        
                                         <div className="space-y-3">
                                             {/* User message bubble */}
-                                            {/* <div className="flex justify-end">
+                                            <div className="flex justify-end">
                                                 <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
                                                     {savedPrompt}
                                                 </div>
-                                            </div> */}
+                                            </div>
 
                                             {/* AI response bubble */}
                                             <div className="flex justify-start">
@@ -198,7 +210,7 @@ export default function CreateMediaArea({
                                             </Button>
                                         </div>
                                     </div>
-                                ) : (savedPrompt && source === 'chapter') ? (
+                                ) : (savedPrompt || source === 'webnovel' || source === 'chapter') && (
                                     <div className="my-6 space-y-4">
                                         <div className="space-y-3">
                                             <p className="text-sm text-gray-400">Generated a scene with</p>
@@ -244,8 +256,7 @@ export default function CreateMediaArea({
                                             </Button>
                                         </div>
                                     </div>
-
-                                ) : (<></>)}
+                                )}
                                 <div className="grid grid-cols-2 gap-1">
                                     {pictures.map((picture, index) => {
                                         return (

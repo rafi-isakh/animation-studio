@@ -2,11 +2,16 @@
 import { useEffect, useState, useCallback } from "react";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { ToonyzPost } from "@/components/Types";
+import dynamic from "next/dynamic";
+const LottieLoader = dynamic(() => import("@/components/LottieLoader"), {
+    ssr: false,
+});
+import animationData from "@/assets/N_logo_with_heart.json";
 
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
+    const heights = [1000, 1200, 1400, 1600]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
@@ -44,41 +49,20 @@ export default function ToonyzPosts() {
             });
     }, []);
 
-    const fetchAdditionalPosts = useCallback(async () => {
-        try {
-            const res = await fetch('/api/get_more_toonyz_posts');
-            if (!res.ok) throw new Error('Failed to fetch more posts');
-            const data = await res.json();
-            
-            const postsWithDimensions = data.map((post: ToonyzPost) => ({
-                ...post,
-                ...getRandomDimensions()
-            }));
-            
-            setAdditionalPosts(prev => [...prev, ...postsWithDimensions]);
-            return postsWithDimensions;
-        } catch (error) {
-            console.error('Error fetching additional posts:', error);
-            return [];
-        }
-    }, []);
 
     return (
         <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
             <main className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                 {initialLoading ? (
-                    <div className="flex justify-center items-center h-48">
-                        <div className="loader h-8 w-8 rounded-full border-4 border-t-4 border-gray-200 border-t-blue-500 animate-spin"></div>
+                    <div className="loader-container flex justify-center items-center h-48">
+                        <LottieLoader width="w-40" centered={true} animationData={animationData} />
                     </div>
                 ) : error ? (
                     <div className="text-center text-red-500 py-8">
                         {error}
                     </div>
                 ) : (
-                    <ToonyzPostGrid 
-                        initialPosts={initialPosts} 
-                        fetchPosts={fetchAdditionalPosts}
-                    />
+                    <ToonyzPostGrid posts={initialPosts} />
                 )}
             </main>
         </div>

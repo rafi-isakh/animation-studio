@@ -31,6 +31,8 @@ import { CommentList } from "@/components/CommentList";
 import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
 import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
+import { useUser } from '@/contexts/UserContext';
+
 interface ContentChapterListComponentProps {
     content: Webnovel;
     relatedContent?: Webnovel[];
@@ -48,6 +50,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');
+    const { email, email_hash } = useUser();
     const formattedDate = content?.created_at
         ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
         : '';
@@ -341,7 +344,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             <div>
                                 {posts.map((post, index) => (
                                     <div key={index} className="flex flex-col mb-4">
-                                        <ToonyzPostCard post={post} webnovel={content as Webnovel} />
+                                        <ToonyzPostCard post={post} webnovel={content as Webnovel} email={email} user={post.user} />
                                     </div>
                                 ))}
 

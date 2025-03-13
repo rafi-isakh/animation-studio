@@ -64,10 +64,10 @@ const ListOfChaptersComponent = ({
 
     const handleChapterClick = (chapter: Chapter) => {
         if (chapter.free) {
-            router.push(`/chapter_view/${chapter.id}`);
+            router.push(`/view_webnovels/chapter_view/${chapter.id}`);
         } else {
             if (purchased_webnovel_chapters.includes(chapter.id)) {
-                router.push(`/chapter_view/${chapter.id}`);
+                router.push(`/view_webnovels/chapter_view/${chapter.id}`);
                 return;
             }
             setChapterToPurchase(chapter);
@@ -93,7 +93,7 @@ const ListOfChaptersComponent = ({
                 const data = await response.json();
                 if (data.success) {
                     setInvokeCheckUser(prev => !prev);
-                    router.push(`/chapter_view/${chapter.id}`);
+                    router.push(`/view_webnovels/chapter_view/${chapter.id}`);
                 } else {
                     alert(data.message);
                 }

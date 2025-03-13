@@ -21,6 +21,7 @@ import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
+import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -87,6 +88,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                       <MobileMenuProvider>
                         <SearchProvider>
                           <StripeProvider>
+                            <CreateMediaProvider>
                             <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
                               <Suspense>
                                 <NavigationEvents />
@@ -107,6 +109,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                 <BottomNavigationBar />
                               </div>
                             </div>
+                            </CreateMediaProvider>
                           </StripeProvider>
                         </SearchProvider>
                       </MobileMenuProvider>

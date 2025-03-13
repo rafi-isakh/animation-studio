@@ -23,7 +23,7 @@ import { createEmailHash } from '@/utils/cryptography'
 import { User } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { useCopyToClipboard } from "@/utils/copyToClipboard";
+import ShareDialog from "@/components/UI/ShareDialog";
 
 const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor?: boolean, user: User, postId: string }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -31,7 +31,6 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
   const { language, dictionary } = useLanguage();
   const { id, email_hash } = useUser();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const copyToClipboard = useCopyToClipboard();
  
   return (
     <>
@@ -100,49 +99,8 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
             }
           </PopoverContent>
         </Popover>
-
         {/* share dialog */}
-        <DialogContent
-          className="sm:max-w-md bg-white dark:bg-[#211F21] select-none"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Share link</DialogTitle>
-            <DialogDescription>
-              Share the link with your friends and family.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center space-x-2">
-            <div className="grid flex-1 gap-2">
-              <Label htmlFor="link" className="sr-only">
-                Link
-              </Label>
-              <Input
-                id="link"
-                defaultValue={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`}
-                readOnly
-                className='select-none bg-transparent'
-                disabled
-              />
-            </div>
-            <Button
-              onClick={() => { copyToClipboard(`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`);}}
-              type="button"
-              size="sm"
-              className="px-3"
-            >
-              <span className="sr-only">Copy</span>
-              <Copy />
-            </Button>
-          </div>
-          <DialogFooter className="sm:justify-start">
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Close
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
+        <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`} description={`Share this post with your friends and family.`} />
       </Dialog>
     </>
   );

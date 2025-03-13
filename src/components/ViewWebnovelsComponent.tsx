@@ -24,7 +24,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.user.nickname;
-    const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [content, setContent] = useState<Webnovel | null>(null);

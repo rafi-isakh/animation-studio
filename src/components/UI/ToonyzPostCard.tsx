@@ -1,23 +1,34 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react"
+import { Heart, MessageCircle, Share2, MoreHorizontal, Trash, Flag } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
 import { Button } from "@/components/shadcnUI/Button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/shadcnUI/Card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/shadcnUI/DropdownMenu"
-import { ToonyzPost, Webnovel } from "@/components/Types"
+import { ToonyzPost, Webnovel, User } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import { formatRelativeTime } from "@/utils/formatTime"
 import moment from "moment"
 import Image from "next/image"
 import WatermarkedImage from "@/utils/watermark"
 import { truncateText } from "@/utils/truncateText"
-import ToonyzPostQuoteToggle from "./ToonyzPostQuoteToggle"
+import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle"
 import Link from "next/link"
+import { Dialog, DialogTrigger } from "@/components/shadcnUI/Dialog"
+import ShareDialog from "@/components/UI/ShareDialog"
+import { useUser } from '@/contexts/UserContext';
+import { createEmailHash } from '@/utils/cryptography'
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/shadcnUI/AlertDialog"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import CommentToggleButton from "@/components/UI/CommentToggleButton";
 
-export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, webnovel: Webnovel }) {
+export default function ToonyzPostCard({ post, webnovel, user, email }: { post: ToonyzPost, webnovel: Webnovel, user?: User, email?: string }) {
     const [liked, setLiked] = useState(false)
+    const { id, email_hash } = useUser();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const { dictionary, language } = useLanguage();
 
     return (
         <Card key={post.id} className="max-w-xl w-full mx-auto p-2 shadow-none">
@@ -41,20 +52,80 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Save post</DropdownMenuItem>
-                            <DropdownMenuItem>Delete post</DropdownMenuItem>
-                            <DropdownMenuItem>Report</DropdownMenuItem>
+                            {/* <DropdownMenuItem>Save post</DropdownMenuItem> */}
+                            {createEmailHash(email || "") === user?.email_hash &&
+                                <>
+                                    <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => {
+                                                // This prevents the dropdown from closing
+                                                e.preventDefault();
+                                                setShowDeleteModal(true);
+                                            }}>
+                                                <div className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
+                                                    <Trash size={10} className="dark:text-white text-gray-500" />
+                                                    {phrase(dictionary, "delete", language)}
+                                                </div>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="dark:bg-[#211F21] bg-white">
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => {
+                                                        // handleDeleteComment(comment.id.toString());
+                                                        setShowDeleteModal(false);
+                                                    }}>
+                                                    {phrase(dictionary, "delete", language)}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </>
+                            }
+                            <DropdownMenuItem>
+                                <div className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
+                                    <Flag size={10} className="dark:text-white text-gray-500" />
+                                    {phrase(dictionary, "report", language)}
+                                </div>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-0">
+
                 <p className="text-sm space-y-2">
                     {post.content}
-
-                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
-
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} defaultExpanded={false} />)}
                 </p>
+
+                <div className="flex flex-row gap-2 justify-center">
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`inline-flex items-center gap-1 ${liked ? "text-red-500" : ""}`}
+                    // onClick={handleLike}
+                    >
+                        <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+                        {post.upvotes > 0 ? `${post.upvotes} ${phrase(dictionary, "likes", language)}` : "Like"}
+                    </Button>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="inline-flex items-center gap-1">
+                                <Share2 className="h-4 w-4" />
+                                Share
+                            </Button>
+                        </DialogTrigger>
+                        <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`} description={`Share this post with your friends and family.`} />
+                    </Dialog>
+                </div>
                 <div className="mt-4 rounded-md overflow-hidden">
                     <Link href={`/toonyz_posts/${post.id}`} >
                         {post.image && (
@@ -79,33 +150,8 @@ export default function ToonyzPostCard({ post, webnovel }: { post: ToonyzPost, w
                     </Link>
                 </div>
             </CardContent>
-            <CardFooter className="p-4 border-t flex flex-col gap-2">
-                <div className="flex items-center text-xs text-muted-foreground">
-                    <span>{post.upvotes} likes</span>
-                    <span className="mx-2">•</span>
-                    <span>{post.comments.length} comments</span>
-                    <span className="mx-2">•</span>
-                    {/* <span>shares</span> */}
-                </div>
-                <div className="flex items-center justify-between border-t pt-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`flex items-center gap-1 ${liked ? "text-red-500" : ""}`}
-                    // onClick={handleLike}
-                    >
-                        <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-                        Like
-                    </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
-                        Comment
-                    </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        <Share2 className="h-4 w-4" />
-                        Share
-                    </Button>
-                </div>
+            <CardFooter className="p-4 border-t flex gap-2 justify-center">
+                <CommentToggleButton post={post} />
             </CardFooter>
         </Card>
     )

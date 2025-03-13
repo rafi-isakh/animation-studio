@@ -7,13 +7,13 @@ export async function POST(req: NextRequest) {
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { picture_urls } = await req.json();
+    const { picture_urls, narrations } = await req.json();
     try {
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND}/api/ffmpeg_combine_pictures_to_slideshow`,
             {
                 method: "POST",
-                body: JSON.stringify({ picture_urls }),
+                body: JSON.stringify({ picture_urls, narrations }),
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.accessToken}`,

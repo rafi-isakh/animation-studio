@@ -3,7 +3,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
-import { v4 as uuidv4 } from 'uuid';
 import {
     Dialog,
     DialogClose,
@@ -57,6 +56,8 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/gradient_loader.json';
 import { downloadVideo, uploadVideo } from '@/utils/s3';
 import { getImageUrl } from '@/utils/urls';
+import CreateMediaArea from '@/components/CreateMediaArea';
+import { useCreateMedia } from '@/contexts/CreateMediaContext';
 
 type Position = {
     x: number;
@@ -75,34 +76,55 @@ const FloatingMenu: React.FC<{
     chapter: Chapter,
     selectedTextRef: React.MutableRefObject<string>;
 }> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
-    const [selection, setSelection] = useState<string>("")
-    const [position, setPosition] = useState<Position | undefined>();
+    // const [selection, setSelection] = useState<string>("")
+    // const [position, setPosition] = useState<Position | undefined>();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { language, dictionary } = useLanguage();
-    const [openDialog, setOpenDialog] = useState(false);
+    // const [openDialog, setOpenDialog] = useState(false);
     const isDesktop = useMediaQuery("(min-width: 768px)")
-    const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [progress, setProgress] = useState(0);
-    const [pictures, setPictures] = useState([]);
+    // const [progress, setProgress] = useState(0);
+    // const [pictures, setPictures] = useState([]);
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    const draggableNodeRef = useRef<HTMLDivElement>(null);
+    // const draggableNodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
-    const [savedPrompt, setSavedPrompt] = useState<string>("");
+    // const [savedPrompt, setSavedPrompt] = useState<string>("");
     const [videoFileName, setVideoFileName] = useState<string | null>(null);
     const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
-    const promotionBannerRef = useRef(<PromotionBannerComponent />);
+    // const promotionBannerRef = useRef(<PromotionBannerComponent />);
     const [authFailed, setAuthFailed] = useState(false);
     const [testText, setTestText] = useState<string>("")
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
-    const [prompts, setPrompts] = useState<string[]>([]);
-
+    // const [prompts, setPrompts] = useState<string[]>([]);
+    const { 
+        makeSlideshow,
+        makeVideo,
+        isLoading,
+        setIsLoading,
+        progress,
+        setProgress,
+        savedPrompt,
+        setSavedPrompt,
+        prompts,
+        setPrompts,
+        pictures,
+        setPictures,
+        draggableNodeRef,
+        openDialog,
+        setOpenDialog,
+        selection,
+        setSelection,
+        position,
+        setPosition,
+        promotionBannerRef,
+    } = useCreateMedia();
     useEffect(() => {
 
         const handleSelectionChange = () => {
@@ -167,7 +189,7 @@ const FloatingMenu: React.FC<{
 
     const handleCloseFloatingButton = () => {
         setSelection("");
-        setPosition(undefined);
+        setPosition({ x: 0, y: 0, width: 0, height: 0 });
         setShowMessage(false);
     }
 
@@ -340,153 +362,13 @@ const FloatingMenu: React.FC<{
         }
     };
 
-    // there's makeSlideshow and makeVideo.
-    // the logic is largely the same, except in makeSlideshow, we upload the pictures to s3, make a slideshow, then upload.
-    // in makeVideo, we don't need to upload to s3 because we get a url back from vidu. so we generate videos, combine, then upload.
-    // combining and uploading are done in the backend.
-    const makeSlideshow = async () => {
-        try {
-            const pictureFilenames = [];
-            for (const picture of pictures) {
-                const pictureFilename = uuidv4();
-                const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
-                    method: 'POST',
-                    // make just one picture to a video as test.
-                    body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
-                });
-                if (!uploadResponse.ok) {
-                    toast({
-                        title: "Error",
-                        description: "Failed to upload picture to s3, please try again later",
-                        variant: "destructive"
-                    })
-                    throw new Error('Failed to upload picture to s3');
-                }
-                pictureFilenames.push(pictureFilename);
-            }
-            const response = await fetch('/api/ffmpeg_combine_pictures_to_slideshow', {
-                method: 'POST',
-                body: JSON.stringify({ picture_urls: pictureFilenames.map(getImageUrl) }),
-            });
-            setIsLoading(true);
-            if (!response.ok) {
-                toast({
-                    title: "Error",
-                    description: "Failed to make slideshow",
-                    variant: "destructive"
-                })
-                throw new Error('Failed to make slideshow, please try again later');
-            }
-            const data = await response.json();
-            console.log(data);
-            setVideoFileName(data.video_filename);
-            toast({
-                title: "Success",
-                variant: "success",
-                description: "Slideshow created successfully",
-            })
-            setShowShareAsPostModal(true);
-            setIsLoading(false);
-        } catch (error) {
-            console.error('Slideshow creation error:', error);
-            toast({
-                title: "Error",
-                description: error instanceof Error ? error.message : "An unexpected error occurred creating slideshow",
-                variant: "destructive"
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    }
 
-    const makeVideo = async () => {
-        console.log("making video!");
-        const videoUrls: string[] = [];
-        const processPromises = pictures.map(async (picture, i) => {
-            const pictureFilename = uuidv4();
-            const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
-                method: 'POST',
-                body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}.png`, fileType: "image/png", bucketName: "toonyzbucket" }),
-            });
-            if (!uploadResponse.ok) {
-                toast({
-                    title: "Error", 
-                    description: "Failed to upload picture to s3, please try again later",
-                    variant: "destructive"
-                })
-                throw new Error('Failed to upload picture to s3');
-            }
-            const image_url = getImageUrl(`${pictureFilename}.png`);
-            const response = await fetch('/api/generate_video', {
-                method: 'POST',
-                body: JSON.stringify({ video_prompt: prompts[i], image_url: image_url }),
-            });
-            if (!response.ok) {
-                toast({
-                    title: "Error",
-                    description: "Failed to generate video, please try again later", 
-                    variant: "destructive"
-                })
-                throw new Error('Failed to generate video');
-            }
-            const data = await response.json();
-            const url = data.video_url;
-            console.log(`video ${i} url: `, url);
-            return url;
-        });
-
-        const urls = await Promise.all(processPromises);
-        videoUrls.push(...urls);
-
-        const getVideoDuration = (videoUrl: string): Promise<number> => {
-            return new Promise((resolve, reject) => {
-                const video = document.createElement('video'); // Create video element in memory
-                video.preload = 'metadata'; // Load metadata only
-                video.src = videoUrl;
-
-                video.addEventListener('loadedmetadata', () => {
-                    resolve(video.duration); // Resolve with the duration in seconds
-                });
-
-                video.addEventListener('error', () => {
-                    reject(new Error('Failed to load video metadata'));
-                });
-            });
-        };
-
-        const durations = await Promise.all(videoUrls.map(getVideoDuration));
-        console.log(durations);
-        const stitchedResponse = await fetch('/api/ffmpeg_combine_videos', {
-            method: 'POST',
-            body: JSON.stringify({ video_urls: videoUrls, durations: durations }),
-        });
-        if (!stitchedResponse.ok) {
-            toast({
-                title: "Error",
-                description: "Failed to stitch videos",
-                variant: "destructive"
-            })
-        }
-        const stitchedData = await stitchedResponse.json();
-        const videoFilename = stitchedData.video_filename;
-        console.log(stitchedData);
-        setVideoFileName(videoFilename);
-        toast({
-            title: "Success",
-            variant: "success",
-            description: "Video created successfully",
-        })
-        setShowShareAsPostModal(true);
-    }
-
-    if (isDesktop) {
         return (
             <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
-
                 {selection && position && (
-                    <div className="absolute z-10"
+                    <div className="absolute z-[100]"
                         style={{
-                            top: `${position.y + position.height + 30}px`,
+                            top: `${position.y + (position.height || 0) + 30}px`,
                             left: `${position.x - 1}px`,
                         }}>
                         <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
@@ -544,218 +426,23 @@ const FloatingMenu: React.FC<{
                 )
                 }
                 {children}
-                <div
-                    ref={draggableNodeRef}
-                    className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
-                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
-                            rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
-                            ${openDialog ? 'opacity-100 z-[999]' : 'opacity-0'}`}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className='drag-handle px-2 flex-shrink-0'>
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <div className="flex items-center gap-2">
-                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
-                                <div>
-                                    <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Button> */}
-                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation()
-                                        setOpenDialog(false);
-                                        setIsLoading(false);
-                                        setSelection('');
-                                    }}>
-                                    <X className="h-5 w-5" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
-                        <div className='relative w-full'>
-                            {isLoading && (
-                                <div className="flex flex-col w-full gap-4">
-                                    <div className="flex flex-col mb-2">
-                                        <div className="loader-container inline-flex flex-row">
-                                            {/* <LottieLoader width="w-20" centered={false} animationData={animationData} /> */}
-                                            <div className="my-6 space-y-4">
-                                                <p className="text-sm text-muted-foreground self-end">
-                                                    Generating images... {Math.round(progress)}%
-                                                </p>
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-end">
-                                                        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm">
-                                                            {savedPrompt}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
-
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-1">
-                                            {[1, 2, 3, 4].map((item) => (
-                                                <div
-                                                    key={item}
-                                                    className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
-                                                    style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
-                                                >
-                                                    <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {pictures.length > 0 && (
-                                <div className="flex flex-col select-none">
-                                    {savedPrompt && (
-                                        <div className="my-6 space-y-4">
-                                            <div className="space-y-3">
-                                                <p className="text-sm text-gray-400">Generated a scene with</p>
-                                                {/* <div className="flex flex-wrap gap-2">
-                                            {keywords.map((keyword) => (
-                                                <span
-                                                    key={keyword}
-                                                    className="px-3 py-1 text-sm rounded-full bg-[#1a1b1f] border border-[#2a2b2f] text-gray-200"
-                                                >
-                                                    {keyword}
-                                                </span>
-                                            ))}
-                                        </div> */}
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                {/* User message bubble */}
-                                                <div className="flex justify-end">
-                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
-                                                        {savedPrompt}
-                                                    </div>
-                                                </div>
-
-                                                {/* AI response bubble */}
-                                                <div className="flex justify-start">
-                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
-                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
-                                                    </div>
-                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                        I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                                <Button
-                                                    variant="outline"
-                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                                >
-                                                    <RefreshCw className="w-4 h-4" />
-                                                    Generate again
-                                                </Button>
-                                                {/* <Button
-                                                    variant="outline"
-                                                    className="bg-[#1a1b1f] text-white border-[#2a2b2f] hover:bg-[#2a2b2f] flex gap-2 shrink-0"
-                                                >
-                                                    <Sparkles className="w-4 h-4" />
-                                                    Brainstorm
-                                                </Button> */}
-                                                {/* <Button
-                                                    variant="outline"
-                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                                >
-                                                    <MessageSquare className="w-4 h-4" />
-                                                    Reply
-                                                </Button> */}
-                                                <Button
-                                                    variant="outline"
-                                                    className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                                    onClick={() => {
-                                                        makeVideo();
-                                                    }}
-                                                >
-                                                    <Video className="w-4 h-4" />
-                                                    Make a video
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="grid grid-cols-2 gap-1">
-                                        {pictures.map((picture, index) => {
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="opacity-0 animate-fadeIn"
-                                                    style={{
-                                                        animationDelay: `${index * 300}ms`,
-                                                        animationFillMode: 'forwards'
-                                                    }}
-                                                >
-                                                    <GeneratedPicture
-                                                        key={index}
-                                                        index={index}
-                                                        image={picture}
-                                                        webnovel_id={webnovel_id}
-                                                        chapter_id={chapter_id}
-                                                        quote={savedPrompt}
-                                                    />
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {pictures.length > 0 && (
-                                <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                    {/* <Button
-                                        variant="outline"
-                                        // onClick={makeVideo}
-                                        className='inline-flex h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
-                                        Make Video
-                                        <ArrowRight className='w-4 h-4' />
-                                    </Button> */}
-                                    <Link
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            console.log("making slideshow clicked")
-                                            makeSlideshow();
-                                        }}
-                                        className='w-full'>
-                                        <CardStyleButton
-                                            title="Slideshow"
-                                            subtitle="Watch Ads to make a slideshow"
-                                            ideaCount={pictures.length}
-                                            images={pictures}
-                                            gradientFrom="#DE2B74"
-                                            gradientTo="#FF6F91"
-                                            className='w-full'
-                                        />
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                    {/* Footer input */}
-                    <div className="flex flex-col space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">
-                        {/* Ad banner */}
-                        <div className='w-full flex-shrink-0'>
-                            <div className='relative top-0 left-0 w-full'>
-                                {promotionBannerRef.current}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <CreateMediaArea
+                    isLoading={isLoading}
+                    progress={progress}
+                    savedPrompt={savedPrompt}
+                    prompts={prompts}
+                    pictures={pictures}
+                    webnovel_id={webnovel_id}
+                    chapter_id={chapter_id}
+                    setIsLoading={setIsLoading}
+                    draggableNodeRef={draggableNodeRef}
+                    openDialog={openDialog}
+                    setOpenDialog={setOpenDialog}
+                    setSelection={setSelection}
+                    promotionBannerRef={promotionBannerRef}
+                    source='chapter'
+                    initialNarrations={[]}
+                />
                 {/* share dialog */}
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                     <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
@@ -814,237 +501,6 @@ const FloatingMenu: React.FC<{
             </div >
         );
     }
-
-    return (
-        <Drawer open={openDialog} onOpenChange={setOpenDialog}>
-            <div className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-2' ref={containerRef} >
-                {selection && position && (
-                    <div
-                        className="absolute z-10"
-                        style={{
-                            top: `${position.y + position.height + 30}px`,
-                            left: `${position.x - 30}px`,
-                        }}
-                    >
-
-                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
-                            <TooltipProvider delayDuration={0}>
-                                <Tooltip>
-                                    <CustomCircularProgressbar
-                                        progress={Math.round(progress)}
-                                        size={50}
-                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
-                                        progressColor="#DE2B74"
-                                        strokeWidth={5}
-                                    >
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            ref={floatingButtonRef}
-                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                            disabled={isLoading}
-                                            onClick={() => { setOpenDialog(true); generatePictures() }}
-                                        >
-                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                            </div>
-                                            <BlobButton text={
-                                                isLoading ? (
-                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
-                                                ) : (
-                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
-                                                )
-                                            } />
-                                        </Button>
-                                    </CustomCircularProgressbar>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            ref={shareButtonRef}
-                                            onClick={() => {
-                                                console.log('share dialog clicked')
-                                                setShowShareDialog(true)
-                                            }}
-                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
-                                                       inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
-                                                     bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
-                                        >
-                                            <Share2 size={46} strokeWidth={1} />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Share
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </ul>
-
-                    </div>
-                )}
-                {children}
-                <DrawerContent
-                    className='h-[98vh] no-scrollbar top-5 right-0'
-                    style={{
-                        backgroundColor: theme === 'light' ? 'white' : '#211F21',
-                    }}
-                >
-                    <DrawerHeader>
-                        {/* Ads banner */}
-                        <div className='w-full h-14'>
-                            <div className='relative top-0 left-0 w-full'>
-                                {promotionBannerRef.current}
-                            </div>
-                        </div>
-                    </DrawerHeader>
-                    <DrawerFooter className='w-full h-full'>
-                        <ScrollArea className='max-h-[600px] no-scrollbar'>
-
-                            <div className='relative w-full h-full'>
-                                {isLoading && (
-                                    <div className="flex flex-col w-full gap-4">
-                                        <div className="flex flex-col mb-2">
-                                            <div className="loader-container inline-flex flex-row">
-                                                <LottieLoader width="w-20" centered={false} animationData={animationData} />
-                                                <p className="text-sm text-muted-foreground mt-2 self-end">
-                                                    Generating images... {Math.round(progress)}%
-                                                </p>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-1">
-                                                {[1, 2, 3, 4].map((item) => (
-                                                    <div
-                                                        key={item}
-                                                        className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
-                                                        style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
-                                                    >
-                                                        <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                {pictures.length > 0 && (
-                                    <div className="flex flex-col gap-4 mt-6 select-none">
-                                        <div className="grid grid-cols-2 gap-1">
-                                            {pictures.map((picture, index) => {
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        className="opacity-0 animate-fadeIn"
-                                                        style={{
-                                                            animationDelay: `${index * 300}ms`,
-                                                            animationFillMode: 'forwards'
-                                                        }}
-                                                    >
-                                                        <GeneratedPicture
-                                                            key={index}
-                                                            index={index}
-                                                            image={picture}
-                                                            webnovel_id={webnovel_id}
-                                                            chapter_id={chapter_id}
-                                                            quote={savedPrompt}
-                                                        />
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {pictures.length > 0 && (
-                                    <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                        <Button
-                                            variant="outline"
-                                            onClick={makeVideo}
-                                            className='inline-flex md:h-52 w-full bg-pink-600 text-white text-lg font-medium tracking-wide p-2 rounded-3xl border-0'>
-                                            Make Video
-                                            <ArrowRight className='w-4 h-4' />
-                                        </Button>
-                                        <Link
-                                            href="#"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                console.log("making slideshow clicked")
-                                                makeSlideshow();
-                                            }}
-                                            className='relative w-full'>
-                                            <CardStyleButton
-                                                title="Slideshow"
-                                                subtitle="Watch Ads to make a slideshow"
-                                                ideaCount={pictures.length}
-                                                images={pictures}
-                                                gradientFrom="#DE2B74"
-                                                gradientTo="#FF6F91"
-                                                className='w-full'
-                                            />
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </ScrollArea>
-                    </DrawerFooter>
-                </DrawerContent>
-
-                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                    <DialogContent className="sm:max-w-md bg-white dark:bg-[#211F21] select-none" showCloseButton={true}>
-                        <DialogHeader>
-                            <DialogTitle>Share link</DialogTitle>
-                            <DialogDescription>
-                                Share the link with your friends and family.
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        {selection && <span> {truncateText(selection, 197)}</span>}
-
-                        <div className="flex items-center space-x-2">
-                            <div className="grid flex-1 gap-2">
-                                <Label htmlFor="link" className="sr-only">
-                                    Link
-                                </Label>
-                                <Input
-                                    id="link"
-                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
-                                    readOnly
-                                    className='select-none bg-transparent'
-                                    disabled
-                                />
-                            </div>
-                            <Button
-                                onClick={() => {
-                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
-                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
-                                    copyToClipboard(text);
-                                }}
-                                type="button"
-                                size="sm"
-                                className="px-3"
-                            >
-                                <span className="sr-only">Copy</span>
-                                <Copy />
-                            </Button>
-                        </div>
-                        <DialogFooter className="sm:justify-start">
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">
-                                    Close
-                                </Button>
-                            </DialogClose>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </div>
-            <ShareAsToonyzPostModal
-                imageOrVideo={'video' as ImageOrVideo}
-                showShareAsPostModal={showShareAsPostModal}
-                setShowShareAsPostModal={setShowShareAsPostModal}
-                index={0}
-                videoFileName={videoFileName!}
-                webnovel_id={webnovel_id}
-                chapter_id={chapter_id}
-                quote={savedPrompt}
-                isDesktop={isDesktop}
-            />
-        </Drawer >
-    )
-}
 
 export { FloatingMenu }
 

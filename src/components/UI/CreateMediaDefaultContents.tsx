@@ -7,7 +7,7 @@ import { ToonyzPost } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 
-export default function CreateMediaDefaultContetns() {
+export default function CreateMediaDefaultContents() {
   const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

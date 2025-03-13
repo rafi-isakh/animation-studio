@@ -14,7 +14,6 @@ import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
 import RegisterSW from '@/components/RegisterSW';
 import { NavigationEvents } from '@/components/NewUserNavigation';
-import { StripeProvider } from '@/contexts/StripeContext';
 import BottomNavigationBar from '@/components/UI/BottomNavigation';
 import { GlobalSidebar } from '@/components/UI/Sidebar';
 import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
@@ -86,28 +85,26 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     <DeviceProvider>
                       <MobileMenuProvider>
                         <SearchProvider>
-                          <StripeProvider>
-                            <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
-                              <Suspense>
-                                <NavigationEvents />
-                              </Suspense>
-                              <Suspense>
-                                <Header isLoggedIn={isLoggedIn} />
-                              </Suspense>
-                              <Margin>
-                                <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
-                                  {children}
-                                </div>
-                                <Analytics />
-                              </Margin>
-                              <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
-                                <GlobalSidebar />
+                          <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
+                            <Suspense>
+                              <NavigationEvents />
+                            </Suspense>
+                            <Suspense>
+                              <Header isLoggedIn={isLoggedIn} />
+                            </Suspense>
+                            <Margin>
+                              <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                {children}
                               </div>
-                              <div className="block md:hidden z-[99]">
-                                <BottomNavigationBar />
-                              </div>
+                              <Analytics />
+                            </Margin>
+                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
+                              <GlobalSidebar />
                             </div>
-                          </StripeProvider>
+                            <div className="block md:hidden z-[99]">
+                              <BottomNavigationBar />
+                            </div>
+                          </div>
                         </SearchProvider>
                       </MobileMenuProvider>
                     </DeviceProvider>

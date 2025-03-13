@@ -5,7 +5,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { useStripeContext } from "@/contexts/StripeContext";
 import { useUser } from "@/contexts/UserContext";
 import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -29,15 +28,12 @@ const InfoIcon =
 
 
 export default function CompletePage({ setShowStripeComponent }: { setShowStripeComponent: (show: boolean) => void }) {
-  console.log('CompletePage');
   const stripe = useStripe();
-  const { stars, setPaymentIntentSecret } = useStripeContext();
   const { email } = useUser();
 
   const [status, setStatus] = useState("default");
   const [intentId, setIntentId] = useState<string | null>(null);
   const { language, dictionary } = useLanguage();
-  const router = useRouter();
 
   const STATUS_CONTENT_MAP = {
     succeeded: {

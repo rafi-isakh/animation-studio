@@ -1,31 +1,26 @@
-import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
+"use client"
 import CheckoutForm from "@/components/StripeCheckoutForm";
-import { stripe } from "@/lib/stripe";
+import { useEffect, useState } from "react";
 
-// Make sure to call loadStripe outside of a component’s render to avoid
-// recreating the Stripe object on every render.
-// This is your test publishable API key.
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+export default function StripeComponent({ isEvent, selectedPackage }: { isEvent: boolean, selectedPackage: string }) {
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-export default async function StripeComponent({ stars, discount }: { stars: number, discount: number }) {
-
-    const calculateOrderAmount = (numStars: number, discount: number) => {
-        return numStars * 10 * discount;
-    };
-
-    const { client_secret: clientSecret } = await stripe.paymentIntents.create({
-        amount: calculateOrderAmount(stars, discount),
-        currency: 'krw',
-        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-        automatic_payment_methods: {
-            enabled: true,
-        },
-    })
-
+    useEffect(() => {
+        const fetchClientSecret = async () => {
+            console.log(isEvent, selectedPackage);
+            const response = await fetch("/api/stripe_create_payment_intent", {
+                method: "POST",
+                body: JSON.stringify({ isEvent, selectedPackage }),
+            });
+            const data = await response.json();
+            setClientSecret(data.clientSecret);
+        };
+        fetchClientSecret();
+    }, [isEvent, selectedPackage]);
 
     return (
         <div className="md:max-w-screen-lg mx-auto flex flex-col items-center justify-center">
-            <CheckoutForm clientSecret={clientSecret!} />
+            {clientSecret && <CheckoutForm key={clientSecret} clientSecret={clientSecret} />}
         </div>
     );
 }

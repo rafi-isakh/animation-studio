@@ -29,34 +29,17 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/shadcnUI/Tooltip"
-import { Skeleton } from "@mui/material"
 import { ToastAction } from "@/components/shadcnUI/Toast";
 import { Input } from "@/components/shadcnUI/Input"
 import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
-import Link from 'next/link';
 import { X, Video, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide, MessageSquare, RefreshCw } from 'lucide-react';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
-import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
-import Draggable from 'react-draggable';
 import { Webnovel, Chapter, ImageOrVideo } from '@/components/Types';
 import { useToast } from "@/hooks/use-toast";
-import WatermarkedImage from "@/utils/watermark";
-import GeneratedPicture from '@/components/GeneratedPicture';
-import CardStyleButton from '@/components/UI/CardStyleButton';
-import ShareAsToonyzPostModal from './ShareAsToonyzPostModal';
-import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgressbar';
-import dynamic from 'next/dynamic';
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
-    ssr: false,
-});
-import animationData from '@/assets/gradient_loader.json';
-import { downloadVideo, uploadVideo } from '@/utils/s3';
-import { getImageUrl } from '@/utils/urls';
-import CreateMediaArea from '@/components/CreateMediaArea';
 import { useCreateMedia } from '@/contexts/CreateMediaContext';
 
 type Position = {
@@ -76,36 +59,19 @@ const FloatingMenu: React.FC<{
     chapter: Chapter,
     selectedTextRef: React.MutableRefObject<string>;
 }> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
-    // const [selection, setSelection] = useState<string>("")
-    // const [position, setPosition] = useState<Position | undefined>();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const { language, dictionary } = useLanguage();
-    // const [openDialog, setOpenDialog] = useState(false);
-    const isDesktop = useMediaQuery("(min-width: 768px)")
-    // const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    // const [progress, setProgress] = useState(0);
-    // const [pictures, setPictures] = useState([]);
     const { theme } = useTheme();
     const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
     const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
-    // const draggableNodeRef = useRef<HTMLDivElement>(null);
     const [showShareDialog, setShowShareDialog] = useState(false);
     const { toast } = useToast();
-    // const [savedPrompt, setSavedPrompt] = useState<string>("");
-    const [videoFileName, setVideoFileName] = useState<string | null>(null);
-    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
-    // const promotionBannerRef = useRef(<PromotionBannerComponent />);
     const [authFailed, setAuthFailed] = useState(false);
-    const [testText, setTestText] = useState<string>("")
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
-    // const [prompts, setPrompts] = useState<string[]>([]);
     const { 
-        makeSlideshow,
-        makeVideo,
         isLoading,
         setIsLoading,
         progress,
@@ -124,9 +90,16 @@ const FloatingMenu: React.FC<{
         position,
         setPosition,
         promotionBannerRef,
+        setChapterId,
+        setWebnovelId,
+        narrations,
+        setNarrations,
     } = useCreateMedia();
     useEffect(() => {
 
+        setChapterId(chapter_id);
+        setWebnovelId(webnovel_id);
+        console.log('webnovel_id, chapter_id', webnovel_id, chapter_id)
         const handleSelectionChange = () => {
             const activeSelection = document.getSelection()
             if (!activeSelection) return;
@@ -350,6 +323,7 @@ const FloatingMenu: React.FC<{
             }
             setPictures(data.images);
             setPrompts(data.prompts);
+            setNarrations(data.narrations);
             handlePicturesGenerated(data.images);
             setProgress(100);
             clearInterval(progressInterval);
@@ -426,23 +400,6 @@ const FloatingMenu: React.FC<{
                 )
                 }
                 {children}
-                <CreateMediaArea
-                    isLoading={isLoading}
-                    progress={progress}
-                    savedPrompt={savedPrompt}
-                    prompts={prompts}
-                    pictures={pictures}
-                    webnovel_id={webnovel_id}
-                    chapter_id={chapter_id}
-                    setIsLoading={setIsLoading}
-                    draggableNodeRef={draggableNodeRef}
-                    openDialog={openDialog}
-                    setOpenDialog={setOpenDialog}
-                    setSelection={setSelection}
-                    promotionBannerRef={promotionBannerRef}
-                    source='chapter'
-                    initialNarrations={[]}
-                />
                 {/* share dialog */}
                 <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                     <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
@@ -488,16 +445,6 @@ const FloatingMenu: React.FC<{
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-                <ShareAsToonyzPostModal
-                    imageOrVideo={'video' as ImageOrVideo}
-                    showShareAsPostModal={showShareAsPostModal}
-                    setShowShareAsPostModal={setShowShareAsPostModal}
-                    index={0}
-                    videoFileName={videoFileName!}
-                    webnovel_id={webnovel_id}
-                    chapter_id={chapter_id}
-                    quote={savedPrompt}
-                />
             </div >
         );
     }

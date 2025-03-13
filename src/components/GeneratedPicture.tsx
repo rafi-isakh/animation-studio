@@ -7,6 +7,7 @@ import { Button } from "@/components/shadcnUI/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import { Share, Image as ImageIcon, Clapperboard, Sparkles, ArrowLeft, Download, Heart, MoreHorizontal, Edit, Video, BookMarked } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { useCreateMedia } from "@/contexts/CreateMediaContext";
 
 export default function GeneratedPicture({
     index,
@@ -27,13 +28,13 @@ export default function GeneratedPicture({
     makeVideo?: () => void,
     key: number
     }) {
-    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const { setChapterId, setShowShareAsPostModal } = useCreateMedia();
 
     useEffect(() => {
-        console.log('image changed');
-    }, [image]);
+        setChapterId(chapter_id);
+    }, [chapter_id]);
 
     const buttonList = [
         {
@@ -175,17 +176,6 @@ export default function GeneratedPicture({
                     </div>
                 </DialogContent>
             </Dialog>
-            {/* Toonyz post share modal */}
-            <ShareAsToonyzPostModal
-                imageOrVideo={'image' as ImageOrVideo}
-                showShareAsPostModal={showShareAsPostModal}
-                setShowShareAsPostModal={setShowShareAsPostModal}
-                index={index}
-                image={image}
-                webnovel_id={webnovel_id}
-                chapter_id={chapter_id}
-                quote={quote!}
-            />
         </div>
     )
 }

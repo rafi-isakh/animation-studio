@@ -5,14 +5,20 @@ import CreateMediaArea from "@/components/CreateMediaArea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import BlobButton from "@/components/UI/BlobButton";
 import PromotionBannerComponent from "@/components/PromotionBannerComponent";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CreateMediaProvider, useCreateMedia } from "@/contexts/CreateMediaContext";
 
 const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
     const searchParams = useSearchParams()
-    const webnovel_id = searchParams.get("id")
+    const id = searchParams.get("id")
+
+    useEffect(() => {
+        if (id) {
+            setWebnovelId(id);
+        }
+    }, [id]);
 
     const {
         isLoading,
@@ -27,6 +33,8 @@ const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
         promotionBannerRef,
         draggableNodeRef,
         chapter_id,
+        webnovel_id,
+        setWebnovelId,
     } = useCreateMedia();
 
     const handleToggleMenu = () => {

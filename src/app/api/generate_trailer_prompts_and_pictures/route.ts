@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { chapter_ids, trailer_style, trailer_type } = await request.json();
+    // const { chapter_ids, trailer_style, trailer_type } = await request.json();
     // const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/generate_trailer_prompts_and_pictures`, {
     //     method: "POST",
     //     headers: {
@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
                     "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/a9de32bd-09d8-4bbd-a3f3-4f18b524b74d.png",
                     "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/c3b4651f-7b1c-4fdc-a901-9e14161e24b0.png"]
     const base64Images = await Promise.all(images.map(image => fetch(image).then(res => res.arrayBuffer()).then(buffer => Buffer.from(buffer).toString('base64'))));
-    const data = { images: base64Images, narrations: ["narration1", "narration2", "narration3", "narration4"] }
+    const data = { images: base64Images, narrations: ["narration1", "narration2", "narration3", "narration4"], prompts: ["prompt1", "prompt2", "prompt3", "prompt4"] }
+    // const data = await response.json();
     return NextResponse.json(data);
 }

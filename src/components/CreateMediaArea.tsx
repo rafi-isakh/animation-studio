@@ -14,9 +14,9 @@ import { CircularProgress } from "@mui/material";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { ImageOrVideo } from "@/components/Types";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
-import CreateMediaDefaultContetns from "@/components/UI/CreateMediaDefaultContetns"
 import { Webnovel } from "@/components/Types";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
+import CreateMediaDefaultContents from "@/components/UI/CreateMediaDefaultContents"
 
 export default function CreateMediaArea({
     isLoading,
@@ -55,13 +55,9 @@ export default function CreateMediaArea({
         content?: Webnovel,
     }) { // Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
-    const [videoFileName, setVideoFileName] = useState<string | null>(null);
-    const [showShareAsPostModal, setShowShareAsPostModal] = useState<boolean>(false);
-    const [narrations, setNarrations] = useState<string[]>(initialNarrations);
-    const [loadingVideoGeneration, setLoadingVideoGeneration] = useState<boolean>(false);
-    const { makeVideo, makeSlideshow } = useCreateMedia();
+    const { makeVideo, makeSlideshow, showShareAsPostModal, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
     const { getWebnovelsMetadataByUserId } = useWebnovels();
-
+    
     useEffect(() => {
         if (narrations.length == 0) {
             setNarrations(pictures.map(() => ""));
@@ -295,7 +291,7 @@ export default function CreateMediaArea({
                             </div>
                         ) : (
                             <div className="flex items-center justify-center h-full">
-                                <CreateMediaDefaultContetns />
+                                <CreateMediaDefaultContents />
                             </div>
                         )}
 

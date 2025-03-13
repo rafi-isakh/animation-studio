@@ -8,7 +8,7 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 import PhotoCards from "@/components/UI/PhotoCards";
 
-export default function CreateMediaDefaultContetns() {
+export default function CreateMediaDefaultContents() {
   const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

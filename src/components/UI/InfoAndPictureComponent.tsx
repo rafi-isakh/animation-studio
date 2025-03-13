@@ -28,17 +28,11 @@ import {
 import { getImageUrl } from "@/utils/urls";
 import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
-import { useModalStyle } from "@/styles/ModalStyles";
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 import { useToast } from "@/hooks/use-toast";
-import { v4 as uuidv4 } from 'uuid';
-import ShareAsToonyzPostModal from "@/components/ShareAsToonyzPostModal";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
-import CreateMediaArea from "@/components/CreateMediaArea";
-import PhotoCards from "./PhotoCards";
-// import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 interface InfoAndPictureProps {
     content: Webnovel;
     coverArt: string;
@@ -62,35 +56,14 @@ export default function InfoAndPictureComponent({
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
+    const { pictures, setPictures, setPrompts, setNarrations, setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration } = useCreateMedia();
     const { toast } = useToast();
-    const [videoFileName, setVideoFileName] = useState('');
-    const [showShareAsPostModal, setShowShareAsPostModal] = useState(false);
-    const [loadingTrailerGeneration, setLoadingTrailerGeneration] = useState(false);
-    const [narrations, setNarrations] = useState<string[]>([]);
-
-    const {
-        isLoading,
-        setIsLoading,
-        progress,
-        savedPrompt,
-        prompts,
-        pictures,
-        openDialog,
-        setOpenDialog,
-        setSelection,
-        setProgress,
-        setPictures,
-        setPrompts,
-        promotionBannerRef,
-        draggableNodeRef,
-        chapter_id,
-    } = useCreateMedia();
-
 
     useEffect(() => {
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
+        setChapterId(content.chapters[content.chapters.length - 1]?.id.toString());
     }, []);
 
     useEffect(() => {
@@ -128,14 +101,7 @@ export default function InfoAndPictureComponent({
     }
 
     const generateTrailer = async (chapter_ids: number[]) => {
-        setLoadingTrailerGeneration(true);
-        setIsLoading(true)
-        const progressInterval = setInterval(() => {
-            setProgress(prev => {
-                const newProgress = prev + (5 * Math.random());
-                return newProgress > 95 ? 95 : newProgress;
-            });
-        }, 500);
+        setIsLoading(true);
         const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
             method: 'POST',
             body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
@@ -148,13 +114,12 @@ export default function InfoAndPictureComponent({
             })
             throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
         }
-        setIsLoading(false);
-        setLoadingTrailerGeneration(false);
         const data = await response.json();
         console.log('data', data);
         setPictures(data.images);
         setPrompts(data.prompts);
         setNarrations(data.narrations);
+        setIsLoading(false);
         // Hands off to CreateMediaArea for rest of logic
     }
 
@@ -329,36 +294,17 @@ export default function InfoAndPictureComponent({
                                 <Button
                                     variant="default"
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                    disabled={loadingTrailerGeneration}
+                                    disabled={loadingVideoGeneration}
                                     onClick={() => {
                                         setOpenDialog(true);
                                         generateTrailer(content.chapters.map(chapter => chapter.id));
                                     }}
                                 >
                                     <p>
-                                        {loadingTrailerGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
+                                        {loadingVideoGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
                                     </p>
                                 </Button>
-                                {/* <CreateMediaArea
-                                    content={content}
-                                    isLoading={isLoading}
-                                    setIsLoading={setIsLoading}
-                                    progress={progress}
-                                    savedPrompt={""}
-                                    prompts={prompts}
-                                    pictures={pictures}
-                                    webnovel_id={content.id.toString()}
-                                    chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
-                                    setOpenDialog={setOpenDialog}
-                                    openDialog={openDialog}
-                                    setSelection={setSelection}
-                                    promotionBannerRef={promotionBannerRef}
-                                    draggableNodeRef={draggableNodeRef}
-                                    source='webnovel'
-                                    initialNarrations={narrations}
-                                /> */}
                             </div>
-
                             {isJongmin() &&
                                 <div className="pb-5 w-full">
                                     <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
@@ -428,16 +374,6 @@ export default function InfoAndPictureComponent({
                     </div>
                 </div>
             </div>
-            <ShareAsToonyzPostModal
-                imageOrVideo={'video' as ImageOrVideo}
-                showShareAsPostModal={showShareAsPostModal}
-                setShowShareAsPostModal={setShowShareAsPostModal}
-                index={0}
-                videoFileName={videoFileName!}
-                webnovel_id={content.id.toString()}
-                chapter_id={content.chapters[content.chapters.length - 1]?.id.toString() || ''}
-                quote={content.title}
-            />
         </div>
     );
 }

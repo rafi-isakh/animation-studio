@@ -9,10 +9,10 @@ export const langPairList = [
         code: 'en',
         name: 'English'
     },
-    {
-        code: 'ja',
-        name: '日本語'
-    },
+    // {
+    //     code: 'ja',
+    //     name: '日本語'
+    // },
     // {
     //     code: 'zh-CN',
     //     name: '中国语（简体）'
@@ -21,10 +21,10 @@ export const langPairList = [
     //     code: 'zh-TW',
     //     name: '中國語（繁體）'
     // },
-    {
-        code: 'th',
-        name: 'ภาษาไทย'
-    },
+    // {
+    //     code: 'th',
+    //     name: 'ภาษาไทย'
+    // },
     // {
     //     code: 'fr',
     //     name: 'Français'

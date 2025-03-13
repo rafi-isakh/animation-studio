@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/shadcnUI/ScrollArea"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
+import DictionaryPhrase from "./DictionaryPhrase"
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -192,7 +193,7 @@ export default function ShareAsToonyzPostModal({
                 showCloseButton={true}
             >
                 <DialogHeader>
-                    <DialogTitle>Share as Toonyz Post</DialogTitle>
+                    <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
                     <DialogDescription>
                         {image && (<>
                             <Image

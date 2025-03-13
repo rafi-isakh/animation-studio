@@ -13,7 +13,7 @@ export const AIPromotionComponent: React.FC = () => {
   const { dictionary, language } = useLanguage()
 
   return (
-  <Link href='/creators' className="cursor-pointer">
+  <Link href='/stars' className="cursor-pointer">
     <div
       className='flex flex-row justify-center rounded-lg md:max-w-screen-xl  w-full bg-[#FFF0EC] dark:bg-[#FFF0EC] mx-auto gap-6 pb-1'
     >
@@ -21,13 +21,13 @@ export const AIPromotionComponent: React.FC = () => {
         <div className="flex flex-row">
           <div className="flex flex-col justify-center items-center gap-1 text-sm font-pretendard">
             <p className="text-black text-center font-bold">
-              {/* 투니즈의 크리에이터가 되어보세요! */}
-              {phrase(dictionary, "applyCreator", language)}
+              {/* 투니즈 포스트를 즐겨보세요 */}
+              {phrase(dictionary, "buyStars_promotion", language)}
             </p>
             <button className="flex flex-row justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard self-start">
               <span className="text-sm">
                 {/* 지금 신청하기 */}
-                {phrase(dictionary, "applyCreator_button", language)}
+                {phrase(dictionary, "buyStars", language)}
               </span>
               <ArrowRight className="w-4 h-4 text-black" />
             </button>

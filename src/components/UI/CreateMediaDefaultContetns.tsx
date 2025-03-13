@@ -6,12 +6,13 @@ import { Button } from "@/components/shadcnUI/Button"
 import { ToonyzPost } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
+import PhotoCards from "@/components/UI/PhotoCards";
 
 export default function CreateMediaDefaultContetns() {
   const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
 
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function CreateMediaDefaultContetns() {
         </h1>
         {/* <h2 className="text-3xl md:text-5xl font-medium mb-6">A visual thought partner for ideation & imagination</h2> */}
         <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8">
-        Select text, and let AI generate stunning images, videos, and slideshows.
+          Select text, and let AI generate stunning images, videos, and slideshows.
         </p>
         <Button className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base">
           Watch Tutorial
@@ -72,8 +73,8 @@ export default function CreateMediaDefaultContetns() {
               <h3 className="text-2xl font-bold mb-1">Posts</h3>
               <p className="text-md">Discover posts from Toonyz users.</p>
             </div>
-            <div className="absolute bottom-0 right-0 flex gap-2 h-[180px] overflow-hidden">
-              {randomImages.map((post, index) => (
+            <div className="absolute -bottom-5 right-0 flex gap-2 h-[180px]">
+              {randomImages.slice(0, 3).map((post, index) => (
                 <Image
                   key={post.id}
                   src={getImageUrl(post.image)}
@@ -81,9 +82,12 @@ export default function CreateMediaDefaultContetns() {
                   width={150}
                   height={200}
                   className={`overflow-hidden relative rounded-r-xl ${index !== 0 ? '-ml-10' : ''}`}
-                  style={{ zIndex: randomImages.length - index }}
+                  style={{ zIndex: randomImages.length - index, rotate: '-6deg' }}
                 />
               ))}
+              {/* {randomImages && randomImages.length > 0 && (
+                <PhotoCards posts={randomImages} />
+              )} */}
             </div>
           </div>
         </Link>
@@ -113,10 +117,10 @@ export default function CreateMediaDefaultContetns() {
         </div>
 
         {/* Keyframe Card */}
-        <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-teal-600 to-teal-400 p-6 md:p-8 col-span-1 md:col-span-3 min-h-[200px]">
+        {/* <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-teal-600 to-teal-400 p-6 md:p-8 col-span-1 md:col-span-3 min-h-[200px]">
           <h3 className="text-3xl font-bold mb-1">Create your own</h3>
           <p className="text-xl mb-6">Make videos by giving start/end frames</p>
-        </div>
+        </div> */}
       </div>
     </div >
   )

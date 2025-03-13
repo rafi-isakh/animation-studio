@@ -219,9 +219,9 @@ export default function CreateMediaArea({
                                         <div className="space-y-3">
                                             {/* User message bubble */}
                                             <div className="flex justify-end">
-                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
-                                                    {savedPrompt}
-                                                </div>
+                                                {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                   {savedPrompt}
+                                                </div> }
                                             </div>
 
                                             {/* AI response bubble */}

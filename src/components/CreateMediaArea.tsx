@@ -1,7 +1,9 @@
+'use client'
+import { useEffect, useState } from "react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Skeleton } from "./shadcnUI/Skeleton";
 import { RefreshCw, Video, X } from "lucide-react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "./shadcnUI/Button";
 import GeneratedPicture from "./GeneratedPicture";
 import Link from "next/link"
@@ -9,14 +11,14 @@ import CardStyleButton from "./UI/CardStyleButton";
 import { getImageUrl } from "@/utils/urls";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
-import { useEffect, useState } from "react";
-import { CircularProgress } from "@mui/material";
 import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { ImageOrVideo } from "@/components/Types";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { Webnovel } from "@/components/Types";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import CreateMediaDefaultContents from "@/components/UI/CreateMediaDefaultContents"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 export default function CreateMediaArea({
     isLoading,
@@ -57,7 +59,7 @@ export default function CreateMediaArea({
     const { toast } = useToast();
     const { makeVideo, makeSlideshow, showShareAsPostModal, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
     const { getWebnovelsMetadataByUserId } = useWebnovels();
-    
+    const { dictionary, language } = useLanguage();
     useEffect(() => {
         if (narrations.length == 0) {
             setNarrations(pictures.map(() => ""));
@@ -117,7 +119,6 @@ export default function CreateMediaArea({
                                     <div className="flex flex-col select-none">
 
                                         <div className="space-y-3">
-                                            test
                                         </div>
 
                                         <div className="space-y-3">
@@ -134,7 +135,7 @@ export default function CreateMediaArea({
                                                     <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
                                                 </div>
                                                 <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                    Generating images... {Math.round(progress)}%
+                                                    {phrase(dictionary, "generatingPrompt", language)} {Math.round(progress)}%
                                                 </div>
                                             </div>
                                         </div>
@@ -155,35 +156,19 @@ export default function CreateMediaArea({
                             </div>
                         ) : pictures.length > 0 ? (
                             <div className="flex flex-col select-none">
-                                {(source === 'webnovel' && content) ? (
+                                {(source === 'webnovel') ? (
                                     <div className="my-6 space-y-4">
                                         <div className="space-y-3">
-
                                             {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
-                                            <ul className="flex flex-row gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    className="rounded-full bg-opacity-0 text-black dark:text-white border-2 dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex  shrink-0 shadow-none"
-                                                >
-                                                    {content.title}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="rounded-full bg-opacity-0 text-black dark:text-white border-2 dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex  shrink-0 shadow-none"
-                                                >
-                                                    {content.genre}
-                                                </Button>
-                                            </ul>
 
                                         </div>
-
                                         <div className="space-y-3">
                                             {/* User message bubble */}
-                                            <div className="flex justify-end">
+                                            {savedPrompt && <div className="flex justify-end">
                                                 <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
                                                     {savedPrompt}
                                                 </div>
-                                            </div>
+                                            </div>}
 
                                             {/* AI response bubble */}
                                             <div className="flex justify-start">
@@ -196,13 +181,13 @@ export default function CreateMediaArea({
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                        <div className="h-20 flex items-center justify-start  gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
                                             <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
                                             >
                                                 <RefreshCw className="w-4 h-4" />
-                                                Generate again
+                                                {phrase(dictionary, "generateAgain", language)}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -212,15 +197,38 @@ export default function CreateMediaArea({
                                                     makeVideo();
                                                 }}
                                             >
-                                                {loadingVideoGeneration ? <CircularProgress /> : <Video className="w-4 h-4" />}
-                                                Make a video
+                                                {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
+                                                {phrase(dictionary, "makeVideo", language)}
                                             </Button>
+
+                                            {pictures.length > 0 && (
+                                                <div className='relative'>
+                                                    <Link
+                                                        href="#"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            console.log("making slideshow clicked")
+                                                            makeSlideshow();
+                                                        }}
+                                                        className='w-full'>
+                                                        <CardStyleButton
+                                                            title={phrase(dictionary, "slideshow", language)}
+                                                            subtitle="Watch Ads to make a slideshow"
+                                                            ideaCount={pictures.length}
+                                                            images={pictures}
+                                                            gradientFrom="#DE2B74"
+                                                            gradientTo="#FF6F91"
+                                                            className='w-full'
+                                                            loadingVideoGeneration={loadingVideoGeneration}
+                                                        />
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                ) : (savedPrompt || source === 'webnovel' || source === 'chapter') && (
+                                ) : (savedPrompt && source === 'chapter') && (
                                     <div className="my-6 space-y-4">
                                         <div className="space-y-3">
-                                            
                                             {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
                                         </div>
 
@@ -243,7 +251,7 @@ export default function CreateMediaArea({
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                        <div className="h-20 flex items-center justify-start  gap-2 overflow-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
                                             <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
@@ -251,6 +259,7 @@ export default function CreateMediaArea({
                                                 <RefreshCw className="w-4 h-4" />
                                                 Generate again
                                             </Button>
+
                                             <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
@@ -259,9 +268,32 @@ export default function CreateMediaArea({
                                                     makeVideo();
                                                 }}
                                             >
-                                                {loadingVideoGeneration ? <CircularProgress /> : <Video className="w-4 h-4" />}
+                                                {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
                                                 Make a video
                                             </Button>
+                                            {pictures.length > 0 && (
+                                                <div className='relative'>
+                                                    <Link
+                                                        href="#"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            console.log("making slideshow clicked")
+                                                            makeSlideshow();
+                                                        }}
+                                                        className='w-full'>
+                                                        <CardStyleButton
+                                                            title="Slideshow"
+                                                            subtitle="Watch Ads to make a slideshow"
+                                                            ideaCount={pictures.length}
+                                                            images={pictures}
+                                                            gradientFrom="#DE2B74"
+                                                            gradientTo="#FF6F91"
+                                                            className='w-full'
+                                                            loadingVideoGeneration={loadingVideoGeneration}
+                                                        />
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -292,29 +324,6 @@ export default function CreateMediaArea({
                         ) : (
                             <div className="flex items-center justify-center h-full">
                                 <CreateMediaDefaultContents />
-                            </div>
-                        )}
-
-                        {pictures.length > 0 && (
-                            <div className='flex md:flex-row flex-col gap-4 justify-center mt-1'>
-                                <Link
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        console.log("making slideshow clicked")
-                                        makeSlideshow();
-                                    }}
-                                    className='w-full'>
-                                    <CardStyleButton
-                                        title="Slideshow"
-                                        subtitle="Watch Ads to make a slideshow"
-                                        ideaCount={pictures.length}
-                                        images={pictures}
-                                        gradientFrom="#DE2B74"
-                                        gradientTo="#FF6F91"
-                                        className='w-full'
-                                    />
-                                </Link>
                             </div>
                         )}
                     </div>

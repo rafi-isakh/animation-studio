@@ -103,6 +103,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                                                 muted
                                                 loop
                                                 playsInline
+                                                autoPlay
                                             />
                                             <div className={`absolute inset-0 flex items-center justify-center ${hoveredVideo === 0 ? 'opacity-0' : ''}`}>
                                                 <div className="bg-white bg-opacity-70 rounded-full p-1">

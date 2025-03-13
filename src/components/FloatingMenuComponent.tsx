@@ -1,5 +1,6 @@
 'use Client'
 import React, { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Button } from "@/components/shadcnUI/Button"
@@ -14,16 +15,6 @@ import {
     DialogTrigger,
 } from "@/components/shadcnUI/Dialog"
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@/components/shadcnUI/Drawer"
-import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
@@ -33,7 +24,9 @@ import { ToastAction } from "@/components/shadcnUI/Toast";
 import { Input } from "@/components/shadcnUI/Input"
 import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
+import { phrase } from '@/utils/phrases';
 import { X, Video, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide, MessageSquare, RefreshCw } from 'lucide-react';
+import { MdStars } from 'react-icons/md';
 import { useTheme } from '@/contexts/providers'
 import BlobButton from '@/components/UI/BlobButton';
 import { truncateText } from '@/utils/truncateText';
@@ -41,7 +34,8 @@ import { Webnovel, Chapter, ImageOrVideo } from '@/components/Types';
 import { useToast } from "@/hooks/use-toast";
 import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgressbar';
 import { useCreateMedia } from '@/contexts/CreateMediaContext';
-
+import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
+ 
 type Position = {
     x: number;
     y: number;
@@ -59,6 +53,7 @@ const FloatingMenu: React.FC<{
     chapter: Chapter,
     selectedTextRef: React.MutableRefObject<string>;
 }> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
+    const router = useRouter();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -71,7 +66,7 @@ const FloatingMenu: React.FC<{
     const [authFailed, setAuthFailed] = useState(false);
     const floatingButtonRef = useRef<HTMLButtonElement>(null);
     const shareButtonRef = useRef<HTMLButtonElement>(null);
-    const { 
+    const {
         isLoading,
         setIsLoading,
         progress,
@@ -95,6 +90,9 @@ const FloatingMenu: React.FC<{
         narrations,
         setNarrations,
     } = useCreateMedia();
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const { dictionary, language } = useLanguage();
+
     useEffect(() => {
 
         setChapterId(chapter_id);
@@ -239,12 +237,11 @@ const FloatingMenu: React.FC<{
 
     // image generating
     const generatePictures = async () => {
-        const confirmed = window.confirm("Are you sure you want to generate pictures? This will use your credits.");
-        if (!confirmed) {
-            setIsLoading(false);
-            setOpenDialog(false);
-            return;
-        }
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmGeneration = async () => {
+        setShowConfirmDialog(false);
 
         console.log('generating pictures')
         const initialPrompt = selectedTextRef.current;
@@ -337,117 +334,163 @@ const FloatingMenu: React.FC<{
     };
 
 
-        return (
-            <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
-                {selection && position && (
-                    <div className="absolute z-[100]"
-                        style={{
-                            top: `${position.y + (position.height || 0) + 30}px`,
-                            left: `${position.x - 1}px`,
-                        }}>
-                        <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
-                            <TooltipProvider delayDuration={0}>
-                                <Tooltip>
-                                    <CustomCircularProgressbar
-                                        progress={Math.round(progress)}
-                                        size={50}
-                                        backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
-                                        progressColor="#DE2B74"
-                                        strokeWidth={5}
+    return (
+        <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
+            {selection && position && (
+                <div className="absolute z-[100]"
+                    style={{
+                        top: `${position.y + (position.height || 0) + 30}px`,
+                        left: `${position.x - 1}px`,
+                    }}>
+                    <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <CustomCircularProgressbar
+                                    progress={Math.round(progress)}
+                                    size={50}
+                                    backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                    progressColor="#DE2B74"
+                                    strokeWidth={5}
+                                >
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        ref={floatingButtonRef}
+                                        className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                        disabled={isLoading}
+                                        onClick={() => { setOpenDialog(true); generatePictures() }}
                                     >
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            ref={floatingButtonRef}
-                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
-                                            disabled={isLoading}
-                                            onClick={() => { setOpenDialog(true); generatePictures() }}
-                                        >
-                                            <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
-                                            </div>
-                                            <BlobButton text={
-                                                isLoading ? (
-                                                    <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
-                                                ) : (
-                                                    <Sparkles className="w-24 h-24" strokeWidth={1} />
-                                                )
-                                            } />
-                                        </Button>
-                                    </CustomCircularProgressbar>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            ref={shareButtonRef}
-                                            onClick={() => {
-                                                console.log('share dialog clicked')
-                                                setShowShareDialog(true)
-                                            }
-                                            }
-                                            variant="ghost"
-                                            className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                        <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                        </div>
+                                        <BlobButton text={
+                                            isLoading ? (
+                                                <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                            ) : (
+                                                <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                            )
+                                        } />
+                                    </Button>
+                                </CustomCircularProgressbar>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        ref={shareButtonRef}
+                                        onClick={() => {
+                                            console.log('share dialog clicked')
+                                            setShowShareDialog(true)
+                                        }
+                                        }
+                                        variant="ghost"
+                                        className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
                                                            inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
                                                           bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
-                                        >
-                                            <Share2 size={46} strokeWidth={1} />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Share
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </ul>
+                                    >
+                                        <Share2 size={46} strokeWidth={1} />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Share
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </ul>
+                </div>
+            )
+            }
+            {children}
+            {/* share dialog */}
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+                    <DialogHeader>
+                        <DialogTitle>Share link</DialogTitle>
+                        <DialogDescription>
+                            Share the link with your friends and family.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
+
+                    <div className="flex items-center space-x-2">
+                        <div className="grid flex-1 gap-2">
+                            <Label htmlFor="link" className="sr-only">
+                                Link
+                            </Label>
+                            <Input
+                                id="link"
+                                defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
+                                readOnly
+                                className='select-none bg-transparent'
+                                disabled
+                            />
+                        </div>
+                        <Button
+                            onClick={() => {
+                                const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
+                                const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                copyToClipboard(text);
+                            }}
+                        >
+                            <span className="sr-only">Copy</span>
+                            <Copy />
+                        </Button>
                     </div>
-                )
-                }
-                {children}
-                {/* share dialog */}
-                <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                    <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
-                        <DialogHeader>
-                            <DialogTitle>Share link</DialogTitle>
-                            <DialogDescription>
-                                Share the link with your friends and family.
-                            </DialogDescription>
-                        </DialogHeader>
+                    <DialogFooter className="sm:justify-start">
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">
+                                Close
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {/* Confirmation Dialog */}
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                    <DialogHeader>
+                        <DialogTitle>{phrase(dictionary, "confirmGeneration", language)}</DialogTitle>
+                        <DialogDescription>
+                            {phrase(dictionary, "confirmGenerationDescription", language)}
+                            {/* Your stars  */}
+                            
+                            <AIPromotionComponent />
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex !justify-center">
+                        <div className="flex flex-row justify-center items-center gap-2 mt-4">
 
-                        {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
+                            {/* <Button
+                                variant="outline"
+                                onClick={() => { router.push('/stars') }}
+                                className="bg-[#D92979] hover:bg-[#D92979]/50 text-white"
+                            >
+                                {phrase(dictionary, "buyStars", language)}
+                            </Button> */}
 
-                        <div className="flex items-center space-x-2">
-                            <div className="grid flex-1 gap-2">
-                                <Label htmlFor="link" className="sr-only">
-                                    Link
-                                </Label>
-                                <Input
-                                    id="link"
-                                    defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
-                                    readOnly
-                                    className='select-none bg-transparent'
-                                    disabled
-                                />
-                            </div>
                             <Button
+                                onClick={handleConfirmGeneration}
+                                className="bg-black hover:bg-[#D92979]/50 text-white"
+                            >
+                                <MdStars className="text-xl text-[#D92979]" />
+                                {phrase(dictionary, "deduct", language)}{' '}
+                                {phrase(dictionary, "ok", language)}
+                            </Button>
+                            <Button
+                                variant="outline"
                                 onClick={() => {
-                                    const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
-                                    const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
-                                    copyToClipboard(text);
+                                    setShowConfirmDialog(false);
+                                    setIsLoading(false);
+                                    setOpenDialog(false);
                                 }}
                             >
-                                <span className="sr-only">Copy</span>
-                                <Copy />
+                                <X className="text-xl text-white" />
+                                {phrase(dictionary, "cancel", language)}
                             </Button>
                         </div>
-                        <DialogFooter className="sm:justify-start">
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">
-                                    Close
-                                </Button>
-                            </DialogClose>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </div >
-        );
-    }
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div >
+    );
+}
 
 export { FloatingMenu }
 

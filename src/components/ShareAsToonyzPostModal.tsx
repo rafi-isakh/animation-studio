@@ -216,6 +216,10 @@ export default function ShareAsToonyzPostModal({
                                 // alt={`Generated video ${index + 1}`}
                                 width={200}
                                 height={200}
+                                autoPlay={true}
+                                muted={true}
+                                loop={true}
+                                playsInline
                                 />
                             </>
                         )}

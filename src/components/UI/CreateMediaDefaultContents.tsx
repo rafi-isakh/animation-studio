@@ -7,13 +7,15 @@ import { ToonyzPost } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 import PhotoCards from "@/components/UI/PhotoCards";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/shadcnUI/Tooltip"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
 export default function CreateMediaDefaultContents() {
   const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-
+  const { dictionary, language } = useLanguage();
 
   useEffect(() => {
     fetch('/api/get_toonyz_posts')
@@ -50,18 +52,25 @@ export default function CreateMediaDefaultContents() {
     <div className="min-h-screen bg-gradient-to-r dark:from-black dark:to-transparent from-transparent to-blue-100/50 backdrop-blur-md  p-6 md:p-8">
       {/* Header Section */}
       <div className="max-w-4xl mx-auto mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4 uppercase text-gray-700 dark:text-gray-300">
-          Bring Stories
-          <br />
-          to Life
+        <h1 className="text-2xl md:text-2xl font-bold mb-4 uppercase text-gray-700 dark:text-gray-300 break-words">
+            {phrase(dictionary, "bringStoriesToLife", language)}
         </h1>
         {/* <h2 className="text-3xl md:text-5xl font-medium mb-6">A visual thought partner for ideation & imagination</h2> */}
         <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8">
-          Select text, and let AI generate stunning images, videos, and slideshows.
+          {phrase(dictionary, "selectTextAndLetAI", language)}
         </p>
-        <Button className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base">
-          Watch Tutorial
-        </Button>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base">
+                {phrase(dictionary, "watchTutorial", language)}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{phrase(dictionary, "preparing", language)}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Cards Grid */}
@@ -70,8 +79,8 @@ export default function CreateMediaDefaultContents() {
         <Link href="/toonyz_posts" className="rounded-3xl overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 p-6 md:p-8 col-span-1 md:col-span-3 relative min-h-[300px]">
           <div >
             <div className="w-full">
-              <h3 className="text-2xl font-bold mb-1">Posts</h3>
-              <p className="text-md">Discover posts from Toonyz users.</p>
+              <h3 className="text-2xl font-bold mb-1">{phrase(dictionary, "post", language)}</h3>
+              <p className="text-md">{phrase(dictionary, "discoverPosts", language)}</p>
             </div>
             <div className="absolute -bottom-5 right-0 flex gap-2 h-[180px]">
               {randomImages.slice(0, 3).map((post, index) => (
@@ -81,7 +90,7 @@ export default function CreateMediaDefaultContents() {
                   alt={post.title}
                   width={150}
                   height={200}
-                  className={`overflow-hidden relative rounded-r-xl ${index !== 0 ? '-ml-10' : ''}`}
+                  className={`overflow-hidden relative rounded-xl hover:scale-110 transition-all duration-300 ease-in-out ${index !== 0 ? '-ml-10' : ''}`}
                   style={{ zIndex: randomImages.length - index, rotate: '-6deg' }}
                 />
               ))}
@@ -94,13 +103,13 @@ export default function CreateMediaDefaultContents() {
 
         {/* Share & Remix Card */}
         <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 p-6 md:p-8 col-span-1 md:col-span-3 h-[230px]">
-          <h3 className="text-2xl font-bold mb-1">Make Video</h3>
-          <p className="text-md mb-6">Share your infinite imagination</p>
-          <div className="flex justify-end gap-2 h-[180px] overflow-hidden">
+          <h3 className="text-2xl font-bold mb-1">{phrase(dictionary, "makeVideo", language)}</h3>
+          <p className="text-md mb-6">{phrase(dictionary, "shareYourInfiniteImagination", language)}</p>
+          <div className="flex justify-end gap-2 h-[200px] overflow-hidden">
             {randomVideos.map((post, index) => (
               <div
                 key={post.id}
-                className={`overflow-hidden relative ${index !== 0 ? '-ml-4' : ''}`}
+                className={`overflow-hidden relative ${index !== 0 ? '-ml-8' : ''}`}
                 style={{ zIndex: randomVideos.length - index }}
               >
                 <video
@@ -109,7 +118,7 @@ export default function CreateMediaDefaultContents() {
                   loop
                   autoPlay
                   playsInline
-                  className="rounded-full object-cover w-40 h-40 border-2 border-white"
+                  className="rounded-full object-cover w-40 h-40 border-2 border-white/30 hover:translate-y-[10px] transition-all duration-300 ease-in-out"
                 />
               </div>
             ))}

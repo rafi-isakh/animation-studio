@@ -51,7 +51,7 @@ export default function CreateMediaArea({
         setSelection: (selection: string) => void,
         promotionBannerRef: React.MutableRefObject<React.JSX.Element>,
         source: 'webnovel' | 'chapter',
-        initialNarrations: string[], 
+        initialNarrations: string[],
         content?: Webnovel,
     }) { // Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
@@ -61,7 +61,7 @@ export default function CreateMediaArea({
     const [loadingVideoGeneration, setLoadingVideoGeneration] = useState<boolean>(false);
     const { makeVideo, makeSlideshow } = useCreateMedia();
     const { getWebnovelsMetadataByUserId } = useWebnovels();
-    
+
     useEffect(() => {
         if (narrations.length == 0) {
             setNarrations(pictures.map(() => ""));
@@ -117,23 +117,32 @@ export default function CreateMediaArea({
                     <div className='relative w-full'>
                         {isLoading ? (
                             <div className="flex flex-col gap-4 w-[425px]">
-                                <div className="flex flex-col mb-2">
-                                    <div className="loader-container inline-flex flex-row">
-                                        {/* <LottieLoader width="w-20" centered={false} animationData={animationData} /> */}
-                                        <div className="my-6 space-y-4">
-                                            <p className="text-sm text-muted-foreground self-end">
-                                                Generating images... {Math.round(progress)}%
-                                            </p>
-                                            <div className="space-y-4">
-                                                <div className="flex justify-end">
-                                                    {savedPrompt &&
-                                                        <div className="w-[300px] px-4 py-3 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-sm overflow-hidden break-words">
-                                                            {savedPrompt}
-                                                        </div>
-                                                    }
+                                <div className="flex flex-col my-6 space-y-4 mb-2">
+                                    <div className="flex flex-col select-none">
+
+                                        <div className="space-y-3">
+                                            test
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {/* User message bubble */}
+                                            <div className="flex justify-end">
+                                                {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                    {savedPrompt}
+                                                </div>}
+                                            </div>
+
+                                            {/* AI response bubble */}
+                                            <div className="flex justify-start">
+                                                <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                    <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                </div>
+                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                    Generating images... {Math.round(progress)}%
                                                 </div>
                                             </div>
                                         </div>
+
                                     </div>
                                     <div className="grid grid-cols-2 gap-1">
                                         {[1, 2, 3, 4].map((item) => (
@@ -152,8 +161,9 @@ export default function CreateMediaArea({
                             <div className="flex flex-col select-none">
                                 {(source === 'webnovel' && content) ? (
                                     <div className="my-6 space-y-4">
-                                        <div className="flex gap-2 justify-start items-center">
-                                            <p className="text-sm text-gray-400">Generated a scene with</p>
+                                        <div className="space-y-3">
+
+                                            {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
                                             <ul className="flex flex-row gap-2">
                                                 <Button
                                                     variant="outline"
@@ -168,8 +178,9 @@ export default function CreateMediaArea({
                                                     {content.genre}
                                                 </Button>
                                             </ul>
+
                                         </div>
-                                        
+
                                         <div className="space-y-3">
                                             {/* User message bubble */}
                                             <div className="flex justify-end">
@@ -213,15 +224,16 @@ export default function CreateMediaArea({
                                 ) : (savedPrompt || source === 'webnovel' || source === 'chapter') && (
                                     <div className="my-6 space-y-4">
                                         <div className="space-y-3">
-                                            <p className="text-sm text-gray-400">Generated a scene with</p>
+                                            
+                                            {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
                                         </div>
 
                                         <div className="space-y-3">
                                             {/* User message bubble */}
                                             <div className="flex justify-end">
                                                 {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
-                                                   {savedPrompt}
-                                                </div> }
+                                                    {savedPrompt}
+                                                </div>}
                                             </div>
 
                                             {/* AI response bubble */}

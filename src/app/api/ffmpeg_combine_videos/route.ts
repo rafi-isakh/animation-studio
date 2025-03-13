@@ -1,4 +1,4 @@
-import { ffmpegCombineVideosToSlideshow } from "@/utils/ffmpeg";
+export const maxDuration = 300; // This function can run for a maximum of 300 seconds
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 export async function POST(req: NextRequest) {

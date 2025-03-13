@@ -47,6 +47,7 @@ export default function PurchaseStarsComponent() {
                 </h1>
                 {options.map((stars, index) => (
                     <Button
+                        key={index}
                         onClick={() => {
                             setSelectedPackage(index.toString());
                             setIsEvent(event);

@@ -52,9 +52,9 @@ export default function UploadWebnovelsAdmin() {
             
             // Compare by part first, then by chapter
             if (partA !== partB) {
-                return partA - partB;
+                return partB - partA;
             }
-            return chapterA - chapterB;
+            return chapterB - chapterA;
         });
         if (files) {
             setChapterFiles([...chapterFiles, ...Array.from(files)]);

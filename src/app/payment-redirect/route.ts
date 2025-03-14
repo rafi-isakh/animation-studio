@@ -19,5 +19,5 @@ export async function GET(req: NextRequest, res: NextResponse) {
     if (!completeResponse.ok) {
         console.error("Payment failed: ", completeResponse.statusText, completeResponse.status);
     }
-    redirect(`${process.env.NEXT_PUBLIC_HOST}/stars`);
+    redirect(`${process.env.NEXT_PUBLIC_HOST}/stars/transactions`);
 }

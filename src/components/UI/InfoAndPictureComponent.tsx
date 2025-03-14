@@ -289,7 +289,7 @@ export default function InfoAndPictureComponent({
                                 </div>
                             }
                             {/* writing button */}
-                            {isAuthor() &&
+                            {(isAuthor() || isJongmin()) &&
                                 <>
                                     <div className='flex flex-row gap-4 w-full justify-center items-center pb-5'>
                                         <Button

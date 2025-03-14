@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { ChevronLeft, CornerDownRight, Minus, Plus } from "lucide-react";
+import {  Minus, MoveLeft, Plus } from "lucide-react";
+import { Button } from "@/components/shadcnUI/Button";
+import Image from "next/image";
 import { Transaction, StarUse } from "@/app/stars/page";
 import CustomSkeleton from "@/components/UI/CustomSkeleton";
 import { CircularProgress, Skeleton } from "@mui/material";
@@ -54,9 +56,9 @@ const StarsTransactionComponent = () => {
 
         <div className="flex flex-col md:max-w-screen-md w-full mx-auto">
             <div className="flex flex-col w-full gap-2">
-                <Link href="/stars" className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors mb-3 self-start">
-                    <ChevronLeft size={20} />
-                    <span>{phrase(dictionary, "back", language) || "Back"}</span>
+                <Link href="/stars" className="items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors my-4 self-start md:flex hidden">
+                    <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                    <p className="text-sm font-base">Back</p>
                 </Link>
                 <h1 className="text-2xl font-extrabold text-center">
                     {/* 충전 내역 */}
@@ -67,7 +69,7 @@ const StarsTransactionComponent = () => {
                     {language === 'ko' && <p className="text-sm text-gray-500">현재 보유중인 투니즈 별 <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>}
                     {language === 'en' && <p className="text-sm text-gray-500">You have <span className="font-bold text-[#DE2B74]">{stars}</span> stars </p>}
                 </div>
-                <ul className="flex flex-col w-full gap-2 p-5 text-base text-gray-500">
+                <ul className="flex flex-col w-full gap-2 p-5 text-base text-gray-500 h-screen">
                     {isLoading ? (
                         // Skeleton loader while loading
                         Array(skeletonCount).fill(0).map((_, index) => (
@@ -85,9 +87,12 @@ const StarsTransactionComponent = () => {
                         ))
                     ) : (
                         totalHistory.length === 0 ? (
-                            <li className="flex flex-col w-full gap-1 py-5 text-center">
-                                <p className="text-gray-500">{phrase(dictionary, "noTransactions", language)}</p>
-                            </li>
+                            <div className="flex flex-col justify-center items-center space-y-2">
+                                <Image src="/stelli/stelli_sad.svg" alt="noTransactions" width={150} height={100} />
+                                <p className="pt-3 text-md font-bold"> {phrase(dictionary, "noTransactions", language)} </p>
+                                {/* 구매 내역이 없습니다. */}
+                                <p className="text-md">{phrase(dictionary, "noTransactions_subtitle", language)}</p>
+                            </div>
                         ) : (
                             totalHistory?.map((element, index) => (
                                 <li key={'transaction-' + index}

@@ -24,7 +24,7 @@ export default function PurchaseStarsComponent() {
 
     useEffect(() => {
         if (!isLoggedIn && !loading) {
-            router.push("/login");
+            router.push("/signin");
         }
     }, [isLoggedIn, loading]);
 

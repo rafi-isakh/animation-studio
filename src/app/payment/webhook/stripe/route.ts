@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
                     transaction_pg: 'stripe',
                     email: paymentIntent.metadata.email || '',
                     stars: stars,
-                    price: paymentIntent.amount / 100, // Convert cents to dollars/won
+                    price: paymentIntent.currency == 'usd' ? paymentIntent.amount / 100: paymentIntent.amount, 
                     date: new Date().toISOString()
                 };
 

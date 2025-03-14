@@ -292,7 +292,8 @@ matureContentAndCoverArtViolenceRules,표지 규칙,,Cover Art Rules
 bookCoverMustBeSafeForAllAges,표지는 모든 연령대에 적합해야 합니다. 폭력적\, 성적\, 혐오적 표지는 금지됩니다.,,The cover art must be safe for all ages. Violent\, sexual\, and hateful covers are prohibited.
 doYouNeedAGuideLineForCoverArt,책 표지 가이드라인이 필요하신가요?,,Do you need guidelines for the cover art?
 agree_writing_terms,모든 연재 작품 작품의 저작권은 전적으로 연재 작가에게 속한다는 것에 동의하시나요?,,Do you agree that the copyright of all serialized works including fan fiction and parodies belongs entirely to the serial writer?
-agree_writing_terms_2,작품 등록 안내에 명시되지 않은 사항에 대해서는 'Toonyz 커뮤니티 규칙' '표지 약관' 정책을 따르십시오.,,Do you agree to follow the 'Toonyz Community Rules' and 'Cover Art Policy' for any items not specified in the webnovel registration guide?
+agree_writing_terms_2,투니즈 포스트 2차 저작권 사용 규칙에 동의하시나요?,,Do you agree to follow the 'Toonyz Post 2nd Copyright Usage Rules' in the webnovel registration guide?
+pleaseLoginFirst,서비스를 이용하시려면 로그인을 해주세요,,Please login first and try again.
 userBlocked,차단되었습니다,,User blocked
 userBlocked_subtitle,이 사용자는 차단되었습니다.,,You have blocked this user.
 unblock,차단 해제,,Unblock

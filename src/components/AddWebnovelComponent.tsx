@@ -158,7 +158,7 @@ const AddWebnovelComponent = () => {
                 <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
                     <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
                     <Link
-                        href="/login"
+                        href="/signin"
                         className='px-4 py-2 bg-pink-200 hover:bg-[#DB2777] hover:text-white rounded-md transition-all duration-300 dark:bg-gray-800 dark:hover:bg-gray-700'
                     >
                         {phrase(dictionary, "login", language)}

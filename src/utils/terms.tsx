@@ -890,32 +890,40 @@ Toonyz 플랫폼에 게시된 표지와 이미지는 Google Play Store 및 Apple
 1. AI 활용 번역 동의
 2. 이미지, 영상 생성 동의
 3. 생성한 이미지, 영상 마케팅에 이용 동의
+4. 투니즈 포스트 (이미지/영상/슬라이드쇼) 2차 저작권 사용 규칙 동의
 `
 
 export const WebnovelTerms_en = `1. Toonyz community rules
 
 Any serialized articles that violate the terms and conditions below may be deleted at Toonyz's discretion after notification of the content.
-a. Content that infringes upon the copyrights of others.
-b. Content that includes sensitive personal information.
-c. Content that defames individuals or groups.
-d. Content that is anti-social and harms public order.
-e. Content written solely for commercial gain.
-f. Content containing repetitive phrases, slander, or abusive language that is not characteristic of normal web novels.
-g. Content that directly mentions or is intended to induce users to other sites.
-h. Titles that imply or include any of the above.
+1. Content that infringes upon the copyrights of others.
+2. Content that includes sensitive personal information.
+3. Content that defames individuals or groups.
+4. Content that is anti-social and harms public order.
+5. Content written solely for commercial gain.
+6. Content containing repetitive phrases, slander, or abusive language that is not characteristic of normal web novels.
+7. Content that directly mentions or is intended to induce users to other sites.
+8. Titles that imply or include any of the above.
 
 All responsibility for series that violate these terms and conditions lies with the author of the serialized article in question.
 
 2. Cover Terms and Conditions
 
 The following covers are prohibited. If these conditions are violated, Toonyz may change or delete the cover at its discretion after providing guidance.
-a. Covers whose copyright belongs to another person, unless they are capable of commercial use or permission has been obtained from the original copyright holder.
-b. Covers that are inappropriate for minors under the age of 18.
-c. Covers that defame individuals or groups, or cause discomfort or shame.
-d. Covers that do not accurately and clearly indicate the copyright or source.
-e. Covers that infringe upon the portrait rights of others.
+1. Covers whose copyright belongs to another person, unless they are capable of commercial use or permission has been obtained from the original copyright holder.
+2. Covers that are inappropriate for minors under the age of 18.
+3. Covers that defame individuals or groups, or cause discomfort or shame.
+4. Covers that do not accurately and clearly indicate the copyright or source.
+5. Covers that infringe upon the portrait rights of others.
 
 Covers or Images may be subject to sanctions according to the policies of the Android or Apple App Store, regardless of Toonyz's policies. Toonyz is not responsible for any legal disputes or issues arising in connection with covers and illustrations.
+
+By uploading their work to Toonies, the creator agrees to the following terms:
+
+1. Consent to AI-assisted translation
+2. Consent to image and video generation
+3. Consent to the use of generated images and videos for marketing purposes
+4. Agreement to Toonies' secondary copyright usage rules for posts (images/videos/slideshows)
 `
 
 export const terms_privacy_english = `

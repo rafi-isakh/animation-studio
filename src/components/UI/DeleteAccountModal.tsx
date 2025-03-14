@@ -1,6 +1,7 @@
 'use client'
 import React from 'react';
-import { Modal, Box, Button } from '@mui/material';
+import { Button } from '@/components/shadcnUI/Button';
+import { Modal, Box } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
@@ -41,18 +42,18 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                     </button>
 
                     <div className='flex flex-col space-y-4 items-center justify-center'>
-                        <p className='text-lg font-bold'>
+                        <p className='text-lg font-bold text-black dark:text-black'>
                             {phrase(dictionary, "deleteAccountConfirm", language)}
                         </p>
                         <Button
-                            variant='text'
+                            variant='outline'
                             onClick={onConfirm}
                             className="w-full py-2 bg-[#DE2B74] text-white rounded-full hover:bg-[#DE2B74]/80 transition-colors"
                         >
                             {phrase(dictionary, "yes", language)}
                         </Button>
                         <Button
-                            variant='outlined'
+                            variant='outline'
                             onClick={onClose}
                             className="w-full py-2 border-2 border-gray-200 text-gray-600 rounded-full hover:bg-gray-50 transition-colors"
                         >

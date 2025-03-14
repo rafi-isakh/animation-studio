@@ -248,12 +248,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         setIsMobileMenuOpen(openOrClosed);
     }
 
-    const handleMobileMenuSigninClick = () => {
-        if (isMobileMenuOpen) {
-            handleMobileMenuClick();
-        }
-        router.push('/signin');
-    }
+    // const handleMobileMenuSigninClick = () => {
+    //     if (isMobileMenuOpen) {
+    //         handleMobileMenuClick();
+    //     }
+    //     router.push('/signin');
+    // }
 
     const toggleLanguageDropdown = () => {
         setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
@@ -340,10 +340,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }
 
     const handleLibraryClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        router.push('/library')
-        setIsLanguageDropdownOpen(false);
-        setIsMobileMenuOpen(false);
+        if (isLoggedIn) {
+            event.preventDefault();
+            router.push('/library')
+            setIsLanguageDropdownOpen(false);
+            setIsMobileMenuOpen(false);
+        } else {
+            router.push('/signin')
+        }
     }
 
 
@@ -417,7 +421,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <div ref={hamburgerRef}>
                                 <button
                                     id="mobile-hamburger"
-                                    onClick={isLoggedIn ? () => handleMobileMenuClick() : () => handleMobileMenuSigninClick()}
+                                    onClick={() => handleMobileMenuClick()}
                                     type="button"
                                     className="inline-flex items-center p-2 w-10 h-10 
                                                justify-center text-sm 

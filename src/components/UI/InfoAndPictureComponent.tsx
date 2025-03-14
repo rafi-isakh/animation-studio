@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye } from "lucide-react"
+import { Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -31,7 +31,6 @@ import { useUser } from '@/contexts/UserContext';
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
-
 import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 interface InfoAndPictureProps {
@@ -53,11 +52,11 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email } = useUser();
+    const { id, email, stars } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
-    const { pictures, setPictures, setPrompts, setNarrations, setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration } = useCreateMedia();
+    const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
 
     useEffect(() => {
@@ -99,29 +98,6 @@ export default function InfoAndPictureComponent({
         const userEmailHash = createEmailHash(email);
         const jongminEmailHash = createEmailHash("jongminbaek@stelland.io")
         return userEmailHash == jongminEmailHash
-    }
-
-    const generateTrailer = async (chapter_ids: number[]) => {
-        setIsLoading(true);
-        const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
-            method: 'POST',
-            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
-        })
-        if (!response.ok) {
-            toast({
-                title: "Error",
-                description: "Failed to generate trailer, please try again later",
-                variant: "destructive"
-            })
-            throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
-        }
-        const data = await response.json();
-        console.log('data', data);
-        setPictures(data.images);
-        setPrompts(data.prompts);
-        setNarrations(data.narrations);
-        setIsLoading(false);
-        // Hands off to CreateMediaArea for rest of logic
     }
 
     // TODO: refactor this function as it's copied from FloatingMenuComponent
@@ -172,7 +148,7 @@ export default function InfoAndPictureComponent({
                                 elementType="webnovel"
                                 elementSubtype="title"
                                 classParams="text-2xl font-bold self-center text-center"
-                                />
+                            />
 
                             <p className="text-center">
                                 {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
@@ -213,7 +189,7 @@ export default function InfoAndPictureComponent({
                                     elementType="webnovel"
                                     elementSubtype="description"
                                     classParams="text-sm text-gray-800 dark:text-white"
-                                    />
+                                />
                             </div>
 
                             {/* Action Buttons */}
@@ -287,7 +263,7 @@ export default function InfoAndPictureComponent({
                                             </div>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                   
+
                                 </div>
                             </div>
 
@@ -302,7 +278,7 @@ export default function InfoAndPictureComponent({
                                     }}
                                 >
                                     <p>
-                                        {loadingVideoGeneration ? <CircularProgress size={20} /> : phrase(dictionary, "createVideo", language)}
+                                        {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
                                     </p>
                                 </Button>
                             </div>
@@ -361,6 +337,16 @@ export default function InfoAndPictureComponent({
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </Button>
                             </div>
+
+                            {/* photo cards */}
+                            {/* {pictures && pictures.length > 0 && (
+                                <div className="md:max-w-[360px] w-full">
+                                    {pictures && pictures.length > 0 && (
+                                        <PhotoCards images={pictures} />
+                                    )}
+                                </div>
+                            )} */}
+
                         </div>
                     </div>
                 </div>

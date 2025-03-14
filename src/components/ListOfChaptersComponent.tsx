@@ -83,7 +83,7 @@ const ListOfChaptersComponent = ({
                 method: 'POST',
                 body: JSON.stringify({
                     chapter_id: chapter.id,
-                    price: chapterPrice(language)
+                    price: language === "ko" ? webnovel?.price_korean : webnovel?.price_english // TODO: update this as you add more languages
                 })
             });
             if (!response.ok) {
@@ -152,7 +152,7 @@ const ListOfChaptersComponent = ({
                                     <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
                                         {chapter.free ? phrase(dictionary, "readingForFree", language)
                                             : purchased_webnovel_chapters?.includes(chapter.id) ? <BadgeCheck size={11} />
-                                                : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{chapterPrice(language)}</div>}
+                                                : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}</div>}
                                     </div>
                                 </div>
                             </div>

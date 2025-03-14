@@ -96,6 +96,8 @@ export interface Webnovel {
   tags: string;
   premium: boolean;
   available_languages: string;
+  price_korean: number;
+  price_english: number;
 }
 
 export interface Dictionary {

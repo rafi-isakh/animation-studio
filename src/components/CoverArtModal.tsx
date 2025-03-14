@@ -57,7 +57,7 @@ const CoverArtModal = ({
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className='flex md:flex-row flex-col md:space-x-4 justify-center'>
+                    <DialogDescription className='flex md:flex-row flex-col md:space-x-4 justify-center'>
                         <div className='flex flex-col space-y-4'>
                             <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
                             <Button
@@ -125,7 +125,7 @@ const CoverArtModal = ({
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    </DialogDescription>
                     <DialogFooter className='flex flex-row gap-2 my-5 md:py-0 pb-10 justify-center items-center'>
                         <Button
                             onClick={handleConfirm}

@@ -8,17 +8,18 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 import PhotoCards from "@/components/UI/PhotoCards";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/shadcnUI/Tooltip"
+import { MdStars } from "react-icons/md";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useToast } from "@/hooks/use-toast";
 
-export default function CreateMediaDefaultContents({ source, chapterIds }: { source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
+export default function CreateMediaDefaultContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { dictionary, language } = useLanguage();
-    const { setPictures, setPrompts, setNarrations, setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration } = useCreateMedia();
+    const { setOpenDialog, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
 
     useEffect(() => {
@@ -56,28 +57,6 @@ export default function CreateMediaDefaultContents({ source, chapterIds }: { sou
     const randomImages = shuffledPosts.filter(post => post.image).slice(0, 3);
     const randomVideos = shuffledPosts.filter(post => post.video).slice(0, 2);
 
-    const generateTrailer = async (chapter_ids: number[]) => {
-        setIsLoading(true);
-        const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
-            method: 'POST',
-            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
-        })
-        if (!response.ok) {
-            toast({
-                title: "Error",
-                description: "Failed to generate trailer, please try again later",
-                variant: "destructive"
-            })
-            throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
-        }
-        const data = await response.json();
-        console.log('data', data);
-        setPictures(data.images);
-        setPrompts(data.prompts);
-        setNarrations(data.narrations);
-        setIsLoading(false);
-        // Hands off to CreateMediaArea for rest of logic
-    }
 
     return (
         <div className="min-h-screen bg-gradient-to-r dark:from-black dark:to-transparent from-transparent to-blue-100/50 backdrop-blur-md  p-6 md:p-8">
@@ -112,7 +91,7 @@ export default function CreateMediaDefaultContents({ source, chapterIds }: { sou
                             <Loader2 className="h-4 w-4 animate-spin mr-2" /> : 
                             null
                         }
-                        {phrase(dictionary, "generateButton", language)}
+                        {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />20
                     </Button>
                 }
             </div>

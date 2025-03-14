@@ -52,11 +52,11 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email } = useUser();
+    const { id, email, stars } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
-    const { pictures, setPictures, setPrompts, setNarrations, setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration } = useCreateMedia();
+    const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
 
     useEffect(() => {
@@ -98,29 +98,6 @@ export default function InfoAndPictureComponent({
         const userEmailHash = createEmailHash(email);
         const jongminEmailHash = createEmailHash("jongminbaek@stelland.io")
         return userEmailHash == jongminEmailHash
-    }
-
-    const generateTrailer = async (chapter_ids: number[]) => {
-        setIsLoading(true);
-        const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
-            method: 'POST',
-            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
-        })
-        if (!response.ok) {
-            toast({
-                title: "Error",
-                description: "Failed to generate trailer, please try again later",
-                variant: "destructive"
-            })
-            throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
-        }
-        const data = await response.json();
-        console.log('data', data);
-        setPictures(data.images);
-        setPrompts(data.prompts);
-        setNarrations(data.narrations);
-        setIsLoading(false);
-        // Hands off to CreateMediaArea for rest of logic
     }
 
     // TODO: refactor this function as it's copied from FloatingMenuComponent

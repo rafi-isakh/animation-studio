@@ -376,3 +376,5 @@ confirmGenerationDescription,이 작업은 별을 소모합니다.,,This will us
 generateButton,생성하기,,Generate,,
 shareAsToonyzPost,투니즈 포스트로 공유하기,,Share as Toonyz Post,,
 ICreatedVisualizations,선택하신 내용으로 그림을 그려보았습니다.,,I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.,,
+notEnoughStars,별이 부족합니다.,,You don't have enough stars.,,
+count,개,,,,

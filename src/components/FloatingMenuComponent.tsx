@@ -93,7 +93,7 @@ const FloatingMenu: React.FC<{
     } = useCreateMedia();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
-    const { stars } = useUser();
+    const { stars, setInvokeCheckUser } = useUser();
 
     useEffect(() => {
 
@@ -280,6 +280,7 @@ const FloatingMenu: React.FC<{
             //     method: 'POST',
             //     body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "anime", trailer_type: "A" })
             // })
+            setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
 
             if (!response.ok) {
                 switch (response.status) {

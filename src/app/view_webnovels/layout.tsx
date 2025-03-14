@@ -8,11 +8,12 @@ import PromotionBannerComponent from "@/components/PromotionBannerComponent";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CreateMediaProvider, useCreateMedia } from "@/contexts/CreateMediaContext";
-
+import { useUser } from "@/contexts/UserContext";
 const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
     const searchParams = useSearchParams()
     const id = searchParams.get("id")
+    const { stars } = useUser();
 
     useEffect(() => {
         if (id) {
@@ -68,6 +69,7 @@ const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
                     chapter_id={chapter_id}
                     source={"webnovel"}
                     initialNarrations={[]}
+                    stars={stars}
                 />
             </div>
     )

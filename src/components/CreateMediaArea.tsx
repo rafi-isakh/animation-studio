@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Skeleton } from "./shadcnUI/Skeleton";
-import { RefreshCw, Video, X } from "lucide-react";
+import { RefreshCw, Video, X, RefreshCcw } from "lucide-react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "./shadcnUI/Button";
 import GeneratedPicture from "./GeneratedPicture";
@@ -19,8 +19,11 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import CreateMediaDefaultContents from "@/components/UI/CreateMediaDefaultContents"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { make_video_price, generate_pictures_price, generate_trailer_price } from "@/utils/stars";
+import { MdStars } from "react-icons/md";
 
 export default function CreateMediaArea({
+    // TODO: refactor these props; don't need them, because I can just do useCreateMedia()
     isLoading,
     setIsLoading,
     progress,
@@ -36,6 +39,7 @@ export default function CreateMediaArea({
     promotionBannerRef,
     source,
     initialNarrations,
+    stars,
 }:
     {
         isLoading: boolean,
@@ -53,12 +57,13 @@ export default function CreateMediaArea({
         promotionBannerRef: React.MutableRefObject<React.JSX.Element>,
         source: 'webnovel' | 'chapter',
         initialNarrations: string[],
+        stars: number,
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
-    const { makeVideo, makeSlideshow, showShareAsPostModal, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
+    const { makeVideo, makeSlideshow, showShareAsPostModal, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
     const { getWebnovelById } = useWebnovels();
     const { dictionary, language } = useLanguage();
-    const [ webnovel, setWebnovel ] = useState<Webnovel>();
+    const [webnovel, setWebnovel] = useState<Webnovel>();
     useEffect(() => {
         if (narrations.length == 0) {
             setNarrations(pictures.map(() => ""));
@@ -84,28 +89,41 @@ export default function CreateMediaArea({
                             ${openDialog ? 'block z-[100]' : 'hidden'}`}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className='drag-handle px-2 flex-shrink-0'>
-                    <div className="flex items-center justify-between p-4 border-b">
-                        <div className="flex items-center gap-2">
-                            {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
-                            <div>
-                                <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
+                <div className='drag-handle flex-shrink-0'>
+                    <div className="flex flex-col p-4 justify-center">
+                        <h3 className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <MdStars className="text-lg md:text-xl text-[#D92979]" /> {phrase(dictionary, "star", language)}: {stars}{phrase(dictionary, "count", language)}
+                        </h3>
+                        <div className="flex items-center justify-between border-b pb-2">
+                            <div className="flex items-center">
+                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
+                                <div>
+                                    <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Button> */}
-                            <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation()
-                                    setOpenDialog(false);
-                                    setIsLoading(false);
-                                    setSelection('');
-                                }}>
-                                <X className="h-5 w-5" />
-                            </Button>
+                            <div className="flex items-start gap-2">
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation()
+                                        setIsLoading(false);
+                                        setPictures([]);
+                                        setSelection('');
+                                        setNarrations([]);
+                                    }}>
+                                    <RefreshCcw className="h-5 w-5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation()
+                                        setOpenDialog(false);
+                                        setIsLoading(false);
+                                        setSelection('');
+                                    }}>
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -196,32 +214,27 @@ export default function CreateMediaArea({
                                                 }}
                                             >
                                                 {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
-                                                {phrase(dictionary, "makeVideo", language)}
+                                                {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><MdStars className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
                                             </Button>
-
-                                            {pictures.length > 0 && (
-                                                <div className='relative'>
-                                                    <Link
-                                                        href="#"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            console.log("making slideshow clicked")
-                                                            makeSlideshow();
-                                                        }}
-                                                        className='w-full'>
-                                                        <CardStyleButton
-                                                            title={phrase(dictionary, "slideshow", language)}
-                                                            subtitle="Watch Ads to make a slideshow"
-                                                            ideaCount={pictures.length}
-                                                            images={pictures}
-                                                            gradientFrom="#DE2B74"
-                                                            gradientTo="#FF6F91"
-                                                            className='w-full'
-                                                            loadingVideoGeneration={loadingVideoGeneration}
-                                                        />
-                                                    </Link>
-                                                </div>
-                                            )}
+                                            <div className='relative'>
+                                                <Link href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        makeSlideshow();
+                                                    }}
+                                                    className='w-full'>
+                                                    <CardStyleButton
+                                                        title={phrase(dictionary, "slideshow", language)}
+                                                        subtitle="Watch Ads to make a slideshow"
+                                                        ideaCount={pictures.length}
+                                                        images={pictures}
+                                                        gradientFrom="#DE2B74"
+                                                        gradientTo="#FF6F91"
+                                                        className='w-full'
+                                                        loadingVideoGeneration={loadingVideoGeneration}
+                                                    />
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (savedPrompt && source === 'chapter') && (
@@ -321,7 +334,7 @@ export default function CreateMediaArea({
                             </div>
                         ) : (
                             <div className="flex items-center justify-center h-full">
-                                <CreateMediaDefaultContents source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                                <CreateMediaDefaultContents stars={stars} source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
                             </div>
                         )}
                     </div>

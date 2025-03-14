@@ -36,7 +36,6 @@ export default function CreateMediaArea({
     promotionBannerRef,
     source,
     initialNarrations,
-    content,
 }:
     {
         isLoading: boolean,
@@ -54,12 +53,12 @@ export default function CreateMediaArea({
         promotionBannerRef: React.MutableRefObject<React.JSX.Element>,
         source: 'webnovel' | 'chapter',
         initialNarrations: string[],
-        content?: Webnovel,
-    }) { // Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
+    }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
     const { makeVideo, makeSlideshow, showShareAsPostModal, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
-    const { getWebnovelsMetadataByUserId } = useWebnovels();
+    const { getWebnovelById } = useWebnovels();
     const { dictionary, language } = useLanguage();
+    const [ webnovel, setWebnovel ] = useState<Webnovel>();
     useEffect(() => {
         if (narrations.length == 0) {
             setNarrations(pictures.map(() => ""));
@@ -68,9 +67,8 @@ export default function CreateMediaArea({
 
     useEffect(() => {
         if (webnovel_id) {
-            getWebnovelsMetadataByUserId(webnovel_id).then((webnovels) => {
-                const foundWebnovel = webnovels.find((webnovel) => webnovel.id === Number(webnovel_id));
-                console.log("Fetched webnovel:", foundWebnovel); // Debug log
+            getWebnovelById(webnovel_id).then((webnovel) => {
+                setWebnovel(webnovel);
             });
         }
     }, [webnovel_id]);
@@ -176,19 +174,19 @@ export default function CreateMediaArea({
                                                     <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
                                                 </div>
                                                 <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                    I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
+                                                    {phrase(dictionary, "ICreatedVisualizations", language)}
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="h-20 flex items-center justify-start  gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
                                             >
                                                 <RefreshCw className="w-4 h-4" />
                                                 {phrase(dictionary, "generateAgain", language)}
-                                            </Button>
+                                            </Button> */}
                                             <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
@@ -246,19 +244,19 @@ export default function CreateMediaArea({
                                                     <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
                                                 </div>
                                                 <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                    I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.
+                                                    {phrase(dictionary, "ICreatedVisualizations", language)}
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="h-20 flex items-center justify-start  gap-2 overflow-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                            <Button
+                                            {/* <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
                                             >
                                                 <RefreshCw className="w-4 h-4" />
                                                 Generate again
-                                            </Button>
+                                            </Button> */}
 
                                             <Button
                                                 variant="outline"
@@ -323,7 +321,7 @@ export default function CreateMediaArea({
                             </div>
                         ) : (
                             <div className="flex items-center justify-center h-full">
-                                <CreateMediaDefaultContents />
+                                <CreateMediaDefaultContents source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
                             </div>
                         )}
                     </div>

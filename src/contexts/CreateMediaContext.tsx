@@ -110,6 +110,12 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             return;
         }
         setIsLoading(true);
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (5 * Math.random());
+                return newProgress > 95 ? 95 : newProgress;
+            });
+        }, 300);
         const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
             method: 'POST',
             body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
@@ -124,10 +130,10 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         }
         setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
         const data = await response.json();
-        console.log('data', data);
         setPictures(data.images);
         setPrompts(data.prompts);
         setNarrations(data.narrations);
+        clearInterval(progressInterval);
         setIsLoading(false);
         // Hands off to CreateMediaArea for rest of logic
     }

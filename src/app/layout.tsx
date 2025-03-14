@@ -77,8 +77,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <body className={`antialiased dark`}>
         <RegisterSW />
         <ToastProvider>
-          <WebnovelsProvider>
-            <LanguageProvider>
+          <LanguageProvider>
+            <WebnovelsProvider>
               <LanguageSetter />
               <ThemeProvider>
                 <AuthProvider>
@@ -114,8 +114,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                   </UserProvider>
                 </AuthProvider>
               </ThemeProvider>
-            </LanguageProvider>
-          </WebnovelsProvider>
+            </WebnovelsProvider>
+          </LanguageProvider>
         </ToastProvider>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js" async />
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>

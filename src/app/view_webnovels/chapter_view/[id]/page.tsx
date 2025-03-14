@@ -80,7 +80,12 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const selectedTextRef = useRef<string>("");
     const [posts, setPosts] = useState([]);
 
-
+    useEffect(() => {
+        if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
+            alert(phrase(dictionary, "languageNotAvailable", language));
+            router.push(`/view_webnovels?id=${webnovel?.id}`);
+        }
+    }, [webnovel])
 
     const handleViewSettings = () => {
         setShowIsViewerModal(true);

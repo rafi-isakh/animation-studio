@@ -38,6 +38,13 @@ export interface User {
   created_at: Date;
 }
 
+export interface Author {
+  id: number;
+  email: string;
+  email_hash: string;
+  nickname: string;
+}
+
 export interface UserCreate {
   email: string;
   nickname: string;
@@ -80,6 +87,7 @@ export interface Webnovel {
   description: string;
   genre: string;
   user: User;
+  author: Author;
   upvotes: number;
   language: string;
   views: number;

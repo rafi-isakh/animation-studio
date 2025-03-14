@@ -151,7 +151,7 @@ export default function InfoAndPictureComponent({
                             />
 
                             <p className="text-center">
-                                {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
+                                {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
                             </p>
 
                             {/* Genre and Type */}

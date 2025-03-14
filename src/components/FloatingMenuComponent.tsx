@@ -446,7 +446,7 @@ const FloatingMenu: React.FC<{
             </Dialog>
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
                     <DialogHeader>
                         <DialogTitle>{phrase(dictionary, "confirmGeneration", language)}</DialogTitle>
                         <DialogDescription>
@@ -483,7 +483,7 @@ const FloatingMenu: React.FC<{
                                     setOpenDialog(false);
                                 }}
                             >
-                                <X className="text-xl text-white" />
+                                <X className="text-xl dark:text-white text-black" />
                                 {phrase(dictionary, "cancel", language)}
                             </Button>
                         </div>

@@ -8,13 +8,10 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Webtoon, Comment, Webnovel, Chapter, ToonyzPost } from "@/components/Types";
-import Link from "next/link";
-import WebtoonChapterListSubcomponent from "@/components/WebtoonChapterListSubcomponent";
+import { Webnovel, Chapter, ToonyzPost } from "@/components/Types";
 import { ArrowDownUp, MessageCircle, FileText, AlignLeft, ChevronRightIcon } from "lucide-react";
-import WebtoonRecommendationsComponent from "@/components/WebtoonRecommendationsComponent";
 import Image from "next/image";
-import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import Tooltip from '@mui/material/Tooltip';
 import moment from "moment";
 import {
     FacebookShareButton,
@@ -34,26 +31,18 @@ import { CommentList } from "@/components/CommentList";
 import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
 import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
+import { useUser } from '@/contexts/UserContext';
+
 interface ContentChapterListComponentProps {
-    content: Webtoon | Webnovel;
-    slug?: string;
-    coverArt: string;
-    relatedContent?: (Webtoon | Webnovel)[];
-    coverArtUrls?: string[];
-    isWebtoon?: boolean;
-    onContentUpdate?: (updatedContent: Webtoon | Webnovel) => void;
-    loadingUsersOtherWebnovels?: boolean;
+    content: Webnovel;
+    relatedContent?: Webnovel[];
+    onContentUpdate?: (updatedContent: Webnovel) => void;
     posts?: ToonyzPost[];
 }
 
 const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = ({
     content,
-    slug = "",
-    coverArt,
     relatedContent = [],
-    coverArtUrls = [],
-    isWebtoon = false,
-    loadingUsersOtherWebnovels = false,
     onContentUpdate,
     posts = [],
 }) => {
@@ -61,6 +50,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');
+    const { email, email_hash } = useUser();
     const formattedDate = content?.created_at
         ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
         : '';
@@ -226,27 +216,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <Skeleton variant="rectangular" height={200} width={150} />
                                 </div>
                             )}
-                            {/* Recommendations section * /}
-                            {relatedContent.length > 0 && (
-                                <>
-                                    <h1 className="text-base font-bold">
-                                        {phrase(dictionary, "youMightLikeThis", language)}
-                                    </h1>
-                                    <hr />
-                                    <div className="flex flex-col w-full">
-                                        {isWebtoon ? (
-                                            <WebtoonRecommendationsComponent
-                                                webtoons={relatedContent as Webtoon[]}
-                                                coverArtUrls={coverArtUrls}
-                                            />
-                                        ) : (
-                                            // Add your webnovel recommendations component here
-                                            null
-                                        )}
-                                    </div>
-                                </>
-                            )}
-
                             {/* Comments list */}
                             {content && content.chapters && content.chapters.length > 0 ? (
                                 <CommentList
@@ -375,7 +344,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             <div>
                                 {posts.map((post, index) => (
                                     <div key={index} className="flex flex-col mb-4">
-                                        <ToonyzPostCard post={post} webnovel={content as Webnovel} />
+                                        <ToonyzPostCard post={post} webnovel={content as Webnovel} email={email} user={post.user} />
                                     </div>
                                 ))}
 

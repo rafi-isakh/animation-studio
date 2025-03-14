@@ -82,31 +82,6 @@ export function Pin({ post }: PinProps) {
                         opacity-0 group-hover:opacity-100
                         transition-opacity duration-200
                         bg-gradient-to-t from-black/60 to-transparent ">
-              {/* 
-              {post.id && <div className="absolute right-2 top-2" onClick={(e) => e.stopPropagation()}>
-                <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      className="!no-underline text-white bg-[#DE2B74] hover:bg-[#DE2B74]/90 rounded-full inline-flex items-center gap-2 text-[10px]"
-                      onClick={(e) => { e.stopPropagation(); handleDialogOpen(e) }}
-                    >
-                      <Share2 size={8} className="text-white dark:text-white z-10" />
-                      Share
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent
-                    showCloseButton={true}
-                    className='bg-white dark:bg-[#211F21] max-w-[400px] w-full'
-                  >
-                    <DialogTitle>
-                      Share
-                    </DialogTitle>
-                    <MemoizedShareToSocialMediaCard post={post} />
-                  </DialogContent>
-                </Dialog>
-              </div>
-              } */}
-
               {post.quote && (
                 <p
                   // style={{ paddingBottom: `${aspectRatio * 100}%` }}

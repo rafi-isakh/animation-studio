@@ -1,8 +1,9 @@
 "use client"
 
+import React from "react";
+import { useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
-import { useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
@@ -30,7 +31,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
-import React from "react";
+
 
 function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -78,6 +79,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedTextRef = useRef<string>("");
     const [posts, setPosts] = useState([]);
+
 
 
     const handleViewSettings = () => {
@@ -134,10 +136,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     useEffect(() => {
         if (!viewed.current) {
             if (email) {
-                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}&is_webnovel=true`)
+                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
                 viewed.current = true;
             } else {
-                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}&is_webnovel=true`)
+                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
                 viewed.current = true;
             }
         }
@@ -227,7 +229,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     variant="link"
                     disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
                     className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
-                    <Link href={`/chapter_view/${nextChapter.id}`} className="w-full">
+                    <Link href={`/view_webnovels/chapter_view/${nextChapter.id}`} className="w-full">
                         <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
                             <div className="flex flex-row items-center space-x-4">
                                 <Image
@@ -288,7 +290,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     {webnovel.chapters.map((chapter, index) => (
                                         <MenubarItem
                                             key={chapter.id}
-                                            onClick={() => router.push(`/chapter_view/${chapter.id}`)}
+                                            onClick={() => router.push(`/view_webnovels/chapter_view/${chapter.id}`)}
                                             className={`${chapter.id === Number(id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
                                             disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
@@ -384,7 +386,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         </div>
                         {/* Viewer footer */}
                         <div className="relative" ref={containerRef}>
-                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedTextRef={selectedTextRef} page={page} maxPage={maxPage} />
+                            <ViewerFooter webnovel={webnovel} chapter={chapter} selectedTextRef={selectedTextRef} page={page} maxPage={maxPage} posts={posts} />
                         </div>
                     </div>
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />

@@ -10,7 +10,7 @@ import {
 } from "@/components/shadcnUI/Dialog"
 import { Textarea } from "@/components/shadcnUI/Textarea"
 import { Input } from "@/components/shadcnUI/Input"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { ImageOrVideo } from "@/components/Types";
@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/shadcnUI/ScrollArea"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
+import DictionaryPhrase from "./DictionaryPhrase"
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -72,6 +73,7 @@ export default function ShareAsToonyzPostModal({
                 const fileName = `${index}-${Date.now()}.png`;
                 const fileType = 'image/png';
                 const bucketName = 'toonyzbucket'
+                console.log('chapter_id', chapter_id);
                 const [uploadResponse, createResponse] = await Promise.all([
                     fetch('/api/upload_picture_to_s3', {
                         method: 'POST',
@@ -79,7 +81,7 @@ export default function ShareAsToonyzPostModal({
                     }),
                     fetch('/api/create_toonyz_post', {
                         method: 'POST',
-                        body: JSON.stringify({ title, content, quote, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id }),
+                        body: JSON.stringify({ title, content, quote, fileName, type: "image", tags: tags.toString(), link: `/posts/${fileName}`, webnovel_id, chapter_id: chapter_id ?? "1" }),
                     }),
                 ]);
                 if (!uploadResponse.ok) {
@@ -115,9 +117,11 @@ export default function ShareAsToonyzPostModal({
                     setIsLoading(false);
                     return;
                 }
+                console.log('chapter_id', chapter_id);
+                console.log("chapter_id == null", chapter_id == null);
                 const response = await fetch('/api/create_toonyz_post', {
                     method: 'POST',
-                    body: JSON.stringify({ title, content, quote, fileName: videoFileName, type: "video", tags: tags.toString(), link: `/posts/${videoFileName}`, webnovel_id, chapter_id }),
+                    body: JSON.stringify({ title, content, quote, fileName: videoFileName, type: "video", tags: tags.toString(), link: `/posts/${videoFileName}`, webnovel_id, chapter_id: chapter_id ?? "1" }),
                 });
 
                 if (!response.ok) {
@@ -189,7 +193,7 @@ export default function ShareAsToonyzPostModal({
                 showCloseButton={true}
             >
                 <DialogHeader>
-                    <DialogTitle>Share as Toonyz Post</DialogTitle>
+                    <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
                     <DialogDescription>
                         {image && (<>
                             <Image

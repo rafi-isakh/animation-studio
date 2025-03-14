@@ -1,12 +1,12 @@
 'use client'
-import { Webnovel, Chapter, Webtoon } from "@/components/Types";
+import { Webnovel, Chapter } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { FC, useEffect, useState } from "react";
 import CommentsComponent from "@/components/CommentsComponent";
 
 interface CommentListProps {
-    content: Webnovel | Webtoon;
+    content: Webnovel;
     chapter: Chapter;
 }
 //chapter

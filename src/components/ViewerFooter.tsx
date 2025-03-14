@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Chapter, Webnovel } from '@/components/Types';
+import { Chapter, Webnovel, ToonyzPost } from '@/components/Types';
 import Link from 'next/link';
 import {
     Dialog,
@@ -33,9 +33,10 @@ import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
 import { truncateText } from '@/utils/truncateText';
+import ToonyzPostViewer from './UI/ToonyzPostViewer';
 
-const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
-    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
+    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -123,8 +124,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
         const nextId = getNextChapterId(chapter.id);
         const prevId = getPrevChapterId(chapter.id);
 
-        setNextChapterLink(`/chapter_view/${nextId.toString()}`);
-        setPrevChapterLink(`/chapter_view/${prevId.toString()}`);
+        setNextChapterLink(`/view_webnovels/chapter_view/${nextId.toString()}`);
+        setPrevChapterLink(`/view_webnovels/chapter_view/${prevId.toString()}`);
     }, [webnovel, chapter])
 
 
@@ -171,7 +172,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
 
     return (
         <>
-            <div className={`${isVisible ? 'z-[999] fixed left-0 bottom-0 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
+            <div className={`${isVisible ? 'z-[480] fixed left-0 bottom-0 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
                 <div className="md:w-[350px]  flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
                     {/* bg-background/90 backdrop-blur-md */}
                     <div>
@@ -184,22 +185,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
                     </div>
 
                     {/* middle post button */}
-                    <div className="flex items-center gap-1 z-[150]">
+                    {/* <div className="flex items-center gap-1 z-[150]">
                         <div>
-                            <button onClick={handleToggleMenu} className="border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent">
-                                <div className="relative inline-flex group p-1 w-32 h-12 border-none" >
-                                    <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
-                                    <TooltipProvider delayDuration={0}>
-                                        <Tooltip>
-                                            <BlobButton text={<TooltipTrigger asChild><Sparkles size={20} /></TooltipTrigger>} />
-                                            <TooltipContent>
-                                                post
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </div>
-                            </button>
-                           {/* content area */}
                             <div
                                 className={`border-none fixed inset-0  md:pl-[72px]
                                         bg-transparent dark:bg-transparent hover:bg-transparent
@@ -217,14 +204,13 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage }:
                                             <X size={18} />
                                         </button>
                                         <div className="flex w-full h-full">
-                                            {truncateText(selectedTextRef.current, 100)}
+                                            <ToonyzPostViewer posts={posts} />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
+                    </div> */}
 
                     {/* view next and prev btn */}
                     <div>

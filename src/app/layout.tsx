@@ -20,6 +20,7 @@ import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
 import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
+import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
 interface RootLayoutProps {
   children: ReactNode;
 }
@@ -85,26 +86,28 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     <DeviceProvider>
                       <MobileMenuProvider>
                         <SearchProvider>
-                          <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
-                            <Suspense>
-                              <NavigationEvents />
-                            </Suspense>
-                            <Suspense>
-                              <Header isLoggedIn={isLoggedIn} />
-                            </Suspense>
-                            <Margin>
-                              <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
-                                {children}
+                          <CreateMediaProvider>
+                            <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
+                              <Suspense>
+                                <NavigationEvents />
+                              </Suspense>
+                              <Suspense>
+                                <Header isLoggedIn={isLoggedIn} />
+                              </Suspense>
+                              <Margin>
+                                <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                  {children}
+                                </div>
+                                <Analytics />
+                              </Margin>
+                              <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
+                                <GlobalSidebar />
                               </div>
-                              <Analytics />
-                            </Margin>
-                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
-                              <GlobalSidebar />
+                              <div className="block md:hidden z-[99]">
+                                <BottomNavigationBar />
+                              </div>
                             </div>
-                            <div className="block md:hidden z-[99]">
-                              <BottomNavigationBar />
-                            </div>
-                          </div>
+                          </CreateMediaProvider>
                         </SearchProvider>
                       </MobileMenuProvider>
                     </DeviceProvider>

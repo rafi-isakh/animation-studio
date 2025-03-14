@@ -1,5 +1,5 @@
 "use client"
-import { Webnovel, Webtoon, ToonyzPost } from '@/components/Types'
+import { Webnovel, ToonyzPost } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
@@ -24,13 +24,12 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.user.nickname;
-    const { email } = useUser();
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [content, setContent] = useState<Webtoon | Webnovel | null>(null);
+    const [content, setContent] = useState<Webnovel | null>(null);
     const { invalidateCache } = useWebnovels();
    
-    const handleContentUpdate = (updatedContent: Webtoon | Webnovel) => {
+    const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
     };
 
@@ -142,11 +141,8 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                         <div className='flex-1 md:w-2/3 w-full'>
                             <ContentChapterListComponent
                                 content={webnovel as Webnovel}
-                                coverArt={webnovel?.cover_art || ""}
-                                isWebtoon={false}
                                 relatedContent={webnovels}
                                 onContentUpdate={handleContentUpdate}
-                                loadingUsersOtherWebnovels={loadingUsersOtherWebnovels}
                                 posts={posts}
                             />
                         </div>

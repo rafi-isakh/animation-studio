@@ -6,7 +6,7 @@ export type ImageOrVideo = 'image' | 'video'
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter' | 'toonyz_post'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'toonyz_post'
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other' | 'quote' | 'content'
 
@@ -68,8 +68,6 @@ export interface SlickCarouselItem {
   title: string;
   hook: string;
   webnovel_id: number;
-  webtoon_id: number;
-  webtoon: Webtoon;
   webnovel: Webnovel;
   parsed_tags: string[];
 }
@@ -89,40 +87,6 @@ export interface Webnovel {
   created_at: Date;
   tags: string;
   premium: boolean;
-}
-
-export interface WebtoonImage {
-    url: string;
-}
-
-export interface Webtoon {
-  id: number;
-  root_directory: string;
-  title: string;
-  num_episodes: number;
-  created_at: Date;
-  upvotes: number;
-  user: User;
-  language: string;
-  views: number;
-  chapters: WebtoonChapter[]
-  cover_art: string;
-  wide_cover: string;
-  description: string;
-  genre: string;
-  tags: string;
-  premium: boolean;
-  num_free_chapters: number;
-}
-
-export interface WebtoonChapter {
-  id: number;
-  title: string;
-  comments: Comment[];
-  webtoon_id: number;
-  directory: string;
-  created_at: Date;
-  free: boolean;
 }
 
 export interface Dictionary {

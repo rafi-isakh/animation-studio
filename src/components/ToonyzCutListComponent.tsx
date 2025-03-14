@@ -1,11 +1,6 @@
 'use client'
-import { Webnovel, Webtoon } from '@/components/Types';
-import Image from 'next/image';
+import { Webnovel } from '@/components/Types';
 import { useState } from 'react';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import { Box } from '@mui/material';
 import { Button } from '@mui/material';
 import { Share } from 'lucide-react';

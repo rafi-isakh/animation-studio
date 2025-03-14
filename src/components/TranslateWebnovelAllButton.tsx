@@ -4,15 +4,6 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useEffect, useState } from "react";
 export function TranslateWebnovelAllButton({language, webnovel}: {language: string, webnovel: Webnovel}) {
 
-    const { getWebnovelById } = useWebnovels();
-    const [webnovelWithContent, setWebnovelWithContent] = useState<Webnovel | null>(null);
-
-    useEffect(() => {
-        getWebnovelById(webnovel.id.toString()).then((webnovel) => {
-            setWebnovelWithContent(webnovel!);
-        });
-    }, [webnovel.id]);
-
     const submitContent = async (content: string, chapterId: number) => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
@@ -28,6 +19,7 @@ export function TranslateWebnovelAllButton({language, webnovel}: {language: stri
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('data', data)
                 await startTranslation(data.text_id, chapterId);
             } else {
                 console.error('Failed to submit words');
@@ -51,7 +43,8 @@ export function TranslateWebnovelAllButton({language, webnovel}: {language: stri
 
 
     async function handleTranslateAll() {
-        const sorted = JSON.parse(JSON.stringify(webnovelWithContent as unknown as string)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
+        const sorted = JSON.parse(JSON.stringify(webnovel)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
+        console.log("Sorted chapters", sorted)
         for (const chapter of sorted) {
             const startTime = new Date()
             console.log("Started translation at ", startTime)

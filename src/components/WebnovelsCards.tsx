@@ -22,7 +22,6 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
-        console.log("webnovels cardlist by new before filter", webnovels);
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
@@ -30,7 +29,6 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
             .slice(0, 27)
 
         setWebnovelsToShow(_webnovelsToShow);
-        console.log("webnovels cardlist by new", _webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);
 
     if (typeof genre === 'string') {

@@ -9,6 +9,7 @@ interface WebnovelsContextState {
     chaptersLikelyNeededWebnovel: Webnovel | undefined;
     fetchChaptersLikelyNeededWebnovel: (webnovel: Webnovel) => void;
     getWebnovelById: (id: string) => Promise<Webnovel | undefined>;
+    getWebnovelByIdWithContent: (id: string) => Promise<Webnovel | undefined>;
     getWebnovelsMetadataByUserId: (userId: string) => Promise<Array<Webnovel>>;
     getWebnovelsMetadataByAuthorId: (authorId: string) => Promise<Array<Webnovel>>;
     invalidateCache: () => void;
@@ -41,11 +42,28 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         fetchWebnovelsMetadata();
     }
 
-    // todo: clearly delineate between webnovel metadata and webnovel with content
+    // may or may not have content
     const getWebnovelById = async (id: string) => {
         const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
-        console.log('webnovel', webnovel)
         if (webnovel) {
+            return Promise.resolve(webnovel);
+        } else {
+            const response = await fetch(`/api/get_webnovel_by_id?id=${id}`, {
+                cache: 'no-store',
+            });
+            if (!response.ok) {
+                console.error("Failed to fetch webnovel by id", response.status);
+                return undefined;
+            }
+            const data = await response.json();
+            return data;
+        }
+    };
+
+    // explicitly with content
+    const getWebnovelByIdWithContent = async (id: string) => {
+        const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
+        if (webnovel?.chapters.some((chapter) => chapter.content)) {
             return Promise.resolve(webnovel);
         } else {
             const response = await fetch(`/api/get_webnovel_by_id?id=${id}`, {
@@ -109,7 +127,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     return (
-        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel, invalidateCache }}>
+        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelByIdWithContent, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel, invalidateCache }}>
             {children}
         </WebnovelsContext.Provider>
     );

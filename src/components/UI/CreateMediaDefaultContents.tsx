@@ -23,10 +23,6 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
     const { toast } = useToast();
 
     useEffect(() => {
-        console.log('chapterIds', chapterIds);
-    }, [chapterIds]);
-
-    useEffect(() => {
         fetch('/api/get_toonyz_posts')
             .then(res => {
                 if (!res.ok) {

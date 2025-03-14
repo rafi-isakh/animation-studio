@@ -168,7 +168,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         )}
                     </div>
 
-                    {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} isHoverCard={true} showDetailInfo={true} showEngagementStats={false} showSynopsis={false} showActionButtons={false} />)}
+                    {/* {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} isHoverCard={true} showDetailInfo={true} showEngagementStats={false} showSynopsis={false} showActionButtons={false} />)} */}
 
                     {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
 

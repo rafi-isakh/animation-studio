@@ -99,7 +99,6 @@ const FloatingMenu: React.FC<{
 
         setChapterId(chapter_id);
         setWebnovelId(webnovel_id);
-        console.log('webnovel_id, chapter_id', webnovel_id, chapter_id)
         const handleSelectionChange = () => {
             const activeSelection = document.getSelection()
             if (!activeSelection) return;

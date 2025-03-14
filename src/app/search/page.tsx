@@ -65,7 +65,6 @@ const Search = () => {
       if (query) {
         const response = await fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
         const data = await response.json();
-        console.log('webnovels', data)
         setWebnovels(data);
       }
       setLoading(false);

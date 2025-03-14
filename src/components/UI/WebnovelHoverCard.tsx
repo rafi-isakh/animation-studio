@@ -226,12 +226,7 @@ export function WebnovelHoverCard({
             <div className="flex flex-row gap-2">
                 <HoverCardTrigger asChild>
                     <Button variant="ghost">
-                        <p className="text-sm text-gray-500">Novel: {webnovel.title} &#62;</p>
-                        {post.chapter_id && (
-                            <p className="text-sm text-gray-500">
-                                Chapter {webnovel.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
-                            </p>
-                        )}
+                        <p className="text-sm text-gray-500">{webnovel.title} &#62;</p>
                     </Button>
                 </HoverCardTrigger>
             </div>

@@ -60,7 +60,7 @@ export default function InfoAndPictureComponent({
     const { toast } = useToast();
 
     useEffect(() => {
-        console.log(content)
+        console.log('content', content)
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }

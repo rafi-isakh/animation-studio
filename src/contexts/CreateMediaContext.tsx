@@ -140,23 +140,25 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         try {
             setLoadingVideoGeneration(true);
             const pictureFilenames = [];
-            for (const picture of pictures) {
+            const uploadPromises = pictures.map(async (picture) => {
                 const pictureFilename = uuidv4() + ".png";
                 const uploadResponse = await fetch(`/api/upload_picture_to_s3`, {
                     method: 'POST',
-                    // make just one picture to a video as test.
                     body: JSON.stringify({ fileBufferBase64: picture, fileName: `${pictureFilename}`, fileType: "image/png", bucketName: "toonyzbucket" }),
                 });
                 if (!uploadResponse.ok) {
                     toast({
-                        title: "Error",
+                        title: "Error", 
                         description: "Failed to upload picture to s3, please try again later",
                         variant: "destructive"
                     })
                     throw new Error('Failed to upload picture to s3');
                 }
-                pictureFilenames.push(pictureFilename);
-            }
+                return pictureFilename;
+            });
+
+            const filenames = await Promise.all(uploadPromises);
+            pictureFilenames.push(...filenames);
             const response = await fetch('/api/ffmpeg_combine_pictures_to_slideshow', {
                 method: 'POST',
                 body: JSON.stringify({ picture_urls: pictureFilenames.map(getImageUrl), narrations: narrations }),

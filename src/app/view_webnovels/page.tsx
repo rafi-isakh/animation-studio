@@ -26,7 +26,7 @@ const ViewWebnovels = () => {
     const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
-    const { getWebnovelById, getWebnovelsMetadataByUserId, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
+    const { getWebnovelById, getWebnovelsMetadataByAuthorId, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
     const searchParams = useSearchParams();
     const searchParamsObject = Object.fromEntries(searchParams.entries());
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
@@ -38,10 +38,10 @@ const ViewWebnovels = () => {
             if (webnovel) {
                 setWebnovel(webnovel);
                 setLoading(false);
-                author_id = webnovel.user.id.toString();
+                author_id = webnovel.author.id.toString();
             }
             if (author_id) {
-                const userWebnovels = await getWebnovelsMetadataByUserId(author_id);
+                const userWebnovels = await getWebnovelsMetadataByAuthorId(author_id);
                 setUserWebnovels(userWebnovels);
                 setLoadingUsersOtherWebnovels(false);
             }

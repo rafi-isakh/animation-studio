@@ -3,14 +3,15 @@
 import { parseEpub } from '@gxl/epub-parser'
 import { useState } from 'react';
 import { parseHtmlToText } from '@/utils/stringUtils';
-import { Button, LinearProgress, TextField } from '@mui/material';
+import { Button, Checkbox, LinearProgress, TextField } from '@mui/material';
 import { Input } from '@mui/material';
 
 export default function UploadWebnovelsAdmin() {
     const [file, setFile] = useState<File | null>(null);
-    const [email, setEmail] = useState<string>("");
+    const [user_email, setUserEmail] = useState<string>("");
+    const [author_email, setAuthorEmail] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const [genre, setGenre] = useState<string>("romance");
+    const [genre, setGenre] = useState<string>("bl");
     const [language, setLanguage] = useState<string>("ko");
     const [picture, setPicture] = useState<File | null>(null);
     const [epubObj, setEpubObj] = useState<any>(null);
@@ -25,6 +26,9 @@ export default function UploadWebnovelsAdmin() {
     const [tags, setTags] = useState<string>("");
     const [webnovelTitle, setWebnovelTitle] = useState<string>("");
     const [progress, setProgress] = useState<number>(0);
+    const [userIsAuthor, setUserIsAuthor] = useState<boolean>(false);
+    const [priceKorean, setPriceKorean] = useState<number>(10);
+    const [priceEnglish, setPriceEnglish] = useState<number>(30);
 
     const handleChapterFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []).sort((a, b) => {
@@ -75,21 +79,25 @@ export default function UploadWebnovelsAdmin() {
 
     const handleAddWebnovel = async () => {
         const title = webnovelTitle;
-        const author = epubObj.info?.author;
-        const publisherKoreanName = epubObj.info?.publisher;
+        const author_nickname = epubObj.info?.author;
+        const publisherKoreanName = epubObj.info?.publisher; // assuming this epub is from korea
         const formData = new FormData();
         formData.append('title', title!);
         formData.append('description', description);
         formData.append('genre', genre);
         formData.append('language', language);
         formData.append('coverArt', picture!);
-        formData.append('email', email);
-        formData.append('author', author!);
+        formData.append('user_email', user_email); // publisher email
+        formData.append('user_nickname', publisherKoreanName!);
         formData.append('publisherEnglishName', publisherEnglishName);
         formData.append('publisherKoreanName', publisherKoreanName);
         formData.append('publisherEmail', publisherEmail);
         formData.append('numberOfFreeChapters', numberOfFreeChapters.toString());
         formData.append('tags', tags);
+        formData.append('user_is_author', userIsAuthor.toString()); 
+        formData.append('author_email', author_email); // might not be an actual email
+        formData.append('author_nickname', author_nickname!);
+
         const response = await fetch('/api/add_webnovel_admin', {
             method: 'POST',
             body: formData,
@@ -131,8 +139,14 @@ export default function UploadWebnovelsAdmin() {
     }
 
     return <div className="flex flex-col space-y-4 items-center justify-center max-w-screen-md p-4 mx-auto">
-        <TextField label="Email" type="text" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <TextField className='w-[50%]' label="User (Not Author) Email" type="text" value={user_email} onChange={(e) => setUserEmail(e.target.value)} />
+        <TextField className='w-[50%]' label="Author Email" type="text" value={author_email} onChange={(e) => setAuthorEmail(e.target.value)} />
+        <div className='flex flex-row space-x-4 items-center'>
+            <p>User is Author</p>
+            <Checkbox checked={userIsAuthor} onClick={() => setUserIsAuthor(!userIsAuthor)} />
+        </div>
         <TextField
+            className='w-full'
             label="Description"
             multiline
             rows={4}
@@ -150,13 +164,15 @@ export default function UploadWebnovelsAdmin() {
             <p>Webnovel Epub File</p>
             <input type="file" onChange={handleFileChange} />
         </div>
-        <TextField label="Webnovel ID" type="text" value={webnovelId} onChange={(e) => setWebnovelId(e.target.value)} />
-        <TextField label="Webnovel Title" type="text" value={webnovelTitle} onChange={(e) => setWebnovelTitle(e.target.value)} />
-        <TextField label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(Number(e.target.value))} />
-        <TextField label="Publisher English Name" type="text" value={publisherEnglishName} onChange={(e) => setPublisherEnglishName(e.target.value)} />
-        <TextField label="Publisher Korean Name" type="text" value={publisherKoreanName} onChange={(e) => setPublisherKoreanName(e.target.value)} />
-        <TextField label="Publisher Email" type="text" value={publisherEmail} onChange={(e) => setPublisherEmail(e.target.value)} />
-        <TextField label="Tags" type="text" value={tags} onChange={(e) => setTags(e.target.value)} />
+        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId} onChange={(e) => setWebnovelId(e.target.value)} />
+        <TextField className='w-[50%]' label="Webnovel Title" type="text" value={webnovelTitle} onChange={(e) => setWebnovelTitle(e.target.value)} />
+        <TextField className='w-[50%]' label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(Number(e.target.value))} />
+        <TextField className='w-[50%]' label="Publisher English Name" type="text" value={publisherEnglishName} onChange={(e) => setPublisherEnglishName(e.target.value)} />
+        <TextField className='w-[50%]' label="Publisher Korean Name" type="text" value={publisherKoreanName} onChange={(e) => setPublisherKoreanName(e.target.value)} />
+        <TextField className='w-[50%]' label="Publisher Email" type="text" value={publisherEmail} onChange={(e) => setPublisherEmail(e.target.value)} />
+        <TextField className='w-[50%]' label="Tags" type="text" value={tags} onChange={(e) => setTags(e.target.value)} />
+        <TextField className='w-[50%]' label="Price (Korean)" type="text" value={priceKorean} onChange={(e) => setPriceKorean(Number(e.target.value))} />
+        <TextField className='w-[50%]' label="Price (English)" type="text" value={priceEnglish} onChange={(e) => setPriceEnglish(Number(e.target.value))} />
         <Button color='gray' variant='contained' onClick={handleAddWebnovel}>Add Webnovel</Button>
         <div className='flex flex-row space-x-4'>
             <p>Chapter Epub Files</p>

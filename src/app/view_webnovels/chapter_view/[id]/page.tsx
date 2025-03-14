@@ -116,7 +116,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
             if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
-                router.push('/');
+                router.push(`/view_webnovels?id=${chapter?.webnovel_id}`);
             }
             setUpvotes(chapter?.upvotes || 0)
             const webnovel = await getWebnovelById(chapter?.webnovel_id.toString() || '');

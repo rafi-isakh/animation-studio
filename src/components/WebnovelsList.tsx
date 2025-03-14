@@ -1,7 +1,7 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
 import { useEffect, useState, useRef } from 'react';
-import Slider from 'react-slick';
+import Slider, { LazyLoadTypes } from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import WebnovelComponent from "@/components/WebnovelComponent"
@@ -13,7 +13,6 @@ import { useMediaQuery } from '@mui/material';
 import { getColumnLayout, calculateIndex } from '@/utils/webnovelUtils';
 import { scroll } from '@/utils/scroll'
 import _ from 'lodash';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export const premium = [23, 19, 21, 22, 20, 24]
 
@@ -26,16 +25,19 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const [columns, setColumns] = useState<Webnovel[][]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
-    const isMobile = useMediaQuery('(max-width: 768px)');
     const [mobileGrid, setMobileGrid] = useState('');
-    const chunkedItems = _.chunk(webnovels, 3);
+    // const chunkedItems = _.chunk(webnovels, 3);
+    const chunkedItems = _.chunk(webnovelsToShow.length > 0 ? webnovelsToShow : webnovels, 3);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const slider = useRef<Slider | null>(null);
 
     const settings = {
         dots: false,
+        mobileFirst:true,
         infinite: false,
-        autoplay: false,
+        autoplay: true,
+        autoplaySpeed: 1000,
         slidesToShow: 3,
         slidesToScroll: 1,
         swipeToSlide: true,
@@ -43,14 +45,26 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         className: "center",
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
+        lazyLoad: 'ondemand' as LazyLoadTypes,
+        initialSlide: 0,
         responsive: [
             {
                 breakpoint: 768,
                 settings: {
+                    
                     slidesToShow: 1,
                     slidesToScroll: 1,
                     rows: 1,
+                    arrows: false,
                     centerPadding: '0px',
+                    centerMode: false, 
+                    autoplay: true,
+                    speed: 500,
+                    swipe: true,
+                    touchMove: true,
+                    adaptiveHeight: true,
+                    initialSlide: 0,
+                    lazyLoad: 'ondemand' as LazyLoadTypes,
                 }
             }
         ]
@@ -85,16 +99,11 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         for (const novel of webnovels) {
             novel.version = premium.includes(novel.id) ? "premium" : "free";
         }
-        // const _webnovelsToShow = webnovels
-        //     .filter(item => filter_by_genre(item, genre))
-        //     .filter(item => filter_by_version(item, version))
-        //     .sort((a, b) => sortByFn(a, b, sortBy));
+        const _webnovelsToShow = webnovels
+        .sort((a, b) => sortByFn(a, b, sortBy));
 
-        // setWebnovelsToShow(_webnovelsToShow);
-        // setColumns(getColumnLayout(_webnovelsToShow, 3, isMobile));
-        // const divider = Math.ceil(_webnovelsToShow.length / 3)
-        // const _mobileGrid = `grid-cols-${divider.toString()}`
-        // setMobileGrid(_mobileGrid)
+        setWebnovelsToShow(_webnovelsToShow);   
+
     }, [version, genre, sortBy, webnovels]);
 
 
@@ -125,6 +134,10 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         };
     }, []);
 
+
+
+
+
     return (
         <div className='relative w-full  mx-auto group font-pretendard'>
             <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
@@ -136,13 +149,13 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                 {chunkedItems.map((chunk, chunkIndex) => (
                     <div
                         key={chunkIndex}
-                        className="grid grid-cols-3  gap-4"
+                        className="grid md:grid-cols-3 gap-4"
                     >
                         {chunk.map((item, index) => (
                             <div
                                 key={`${chunkIndex}-${index}`}
-                                className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}
-                                    bg-white dark:bg-black dark:text-white overflow-hidden border-gray-100 
+                                className={`carousel-slide rounded-lg
+                                    bg-white dark:bg-black dark:text-white border-gray-100 
                                     border-b dark:border-gray-700 flex flex-row items-center`}
                             >
                                 <WebnovelComponent
@@ -158,24 +171,46 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             </Slider>
             <style jsx global>
                 {`
-                  .custom-slider {
+                   .custom-slider {
                         width: 100%;
+                        overflow: visible !important;
+                    }
+
+                    .slick-track {
+                        display: flex !important;
+                    }
+
+                    .slick-slide {
+                        height: auto !important;
+                        display: flex !important;
+                    }
+
+                    .slick-slide > div {
+                        width: 100%;
+                        display: flex;
                     }
 
                     .custom-slider .slick-slide {
-                        padding: 0 20px;  /* padding to slides */
+                        padding: 0;  
                     }
 
-                    .active-slide {
-                        opacity: 1;
-                    }
-
-                    .inactive-slide {
-                        opacity: 1;  
-                    }
-
-                    .slick-list {
-                        padding-right: 100px;
+                    @media (max-width: 768px) {
+                        .custom-slider .slick-slide {
+                            padding: 0 !important;
+                            margin: 0 !important;
+                        }
+                        
+                        .slick-list {
+                            overflow: hidden !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
+                        }
+                        
+                        .slick-slide > div {
+                            width: 100%;
+                            padding: 0;
+                            margin: 0;
+                        }
                     }
                  `}
             </style>

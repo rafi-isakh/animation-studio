@@ -23,8 +23,6 @@ const Search = () => {
   const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortBy>('views');
-  const [skeletonHeight, setSkeletonHeight] = useState<number | null>(null);
-  const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [showNoResults, setShowNoResults] = useState(false);
   // Fetch all webnovels on component mount
@@ -72,34 +70,38 @@ const Search = () => {
     asyncSearch();
   }, [query]);
 
-  // useEffect(() => {
-  //   if (webnovels.length === 0) {
-  //     const timer = setTimeout(() => {
-  //       setShowNoResults(true);
-  //     }, 3000); // Show skeleton for 3 seconds before showing "no results"
-
-  //     return () => clearTimeout(timer);
-  //   } else {
-  //     setShowNoResults(false);
-  //   }
-  // }, [webnovels]);
-
+  // Add this useEffect to set showNoResults after a delay when webnovels is empty
+  useEffect(() => {
+    if (query && webnovels.length === 0 && !loading) {
+      // Set a small delay to avoid flickering between loading and no results
+      const timer = setTimeout(() => {
+        setShowNoResults(true);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setShowNoResults(false);
+    }
+  }, [query, webnovels.length, loading]);
 
   const CustomSkeleton = ({
     width = '100%',
     height,
     variant = 'rounded',
-    animation = 'wave'
+    animation = 'wave',
+    className
   }: {
     width: number | string,
     height: number,
     variant?: 'text' | 'rectangular' | 'rounded' | 'circular',
-    animation?: 'pulse' | 'wave' | false
+    animation?: 'pulse' | 'wave' | false,
+    className?: string
   }) => {
     const { theme } = useTheme();
 
     return (
       <Skeleton variant={variant} animation={animation} width={width} height={height}
+        className={className}
         sx={{
           bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)',
           '&::after': {
@@ -112,21 +114,38 @@ const Search = () => {
   }
 
 
+  const SearchResultSkeleton = ({ width = 300, height = 24 }) => (
+    <div className="flex flex-row gap-3 w-full">
+      <CustomSkeleton variant='rounded' animation="wave" width={120} height={90} className="md:w-[300px] md:h-[150px] w-[120px] h-[90px]" />
+      <div className='flex flex-col items-start justify-center gap-2 flex-1'>
+        <CustomSkeleton variant='rounded' animation="wave" width="100%" height={height} />
+        <CustomSkeleton variant='rounded' animation="wave" width="100%" height={height} />
+        <CustomSkeleton variant='rounded' animation="wave" width="80%" height={height} />
+      </div>
+    </div>
+  );
+
+  const SkeletonRow = ({ count = 2, width = 300, height = 24 }) => (
+    <div className='w-full md:flex md:flex-row '>
+      {Array(count).fill(0).map((_, index) => (
+        <div key={index} className="w-full md:w-1/2  py-2 px-4">
+          <SearchResultSkeleton width={width} height={height} />
+        </div>
+      ))}
+    </div>
+  );
+
+
   return (
     <div className='w-full md:max-w-screen-lg mx-auto overflow-hidden no-scrollbar'>
       <SearchComponent mode="page" />
       {loading ? (
-        <div className="flex flex-row gap-2 md:px-2 px-4">
-          <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
-          <div className='flex flex-col items-center justify-center gap-2 w-full'>
-            <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-            <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-            <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-          </div>
+        <div className='w-full flex-shrink-0 mx-auto'>
+          <SkeletonRow count={2} width={300} height={24} />
         </div>
       ) : query ? (
         // Show search results if there's a query
-        <div ref={contentRef} className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0'>
+        <div ref={contentRef} className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0 w-full'>
           {webnovels.length > 0 ? (
             webnovels.map((webnovel, index) => (
               <WebnovelSearchComponent
@@ -137,34 +156,17 @@ const Search = () => {
                 chunkIndex={0}
               />
             ))
-          ) : webnovels.length === 0 ? (
+          ) : (
+            // This will show either the "No results" message or a loading skeleton
             showNoResults ? (
-              <div className='col-span-2 text-center py-8'>
+              <div className='col-span-2 text-center py-8 w-full'>
                 <p>{phrase(dictionary, "noSearchResults", language)}</p>
               </div>
             ) : (
-              <div className='relativeflex flex-col items-center justify-center gap-2 w-full'>
-
-                <div className="flex flex-row gap-2 md:px-2 px-4">
-                  <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
-                  <div className='flex flex-col items-center justify-center gap-2 w-full'>
-                    <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                    <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                    <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                  </div>
-                </div>
+              <div className='col-span-2 w-full flex-shrink-0  mx-auto'>
+                <SkeletonRow count={2} width={300} height={24} />
               </div>
             )
-          ) : (
-            // Show loading skeleton while loading/processing
-            <div className="flex flex-row gap-2 md:px-2 px-4">
-              <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />
-              <div className='flex flex-col items-center justify-center gap-2 w-full'>
-                <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-                <CustomSkeleton variant='rounded' animation="wave" width={skeletonWidth || "100%"} height={skeletonHeight || 18} />
-              </div>
-            </div>
           )}
         </div>
       ) : (

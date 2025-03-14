@@ -33,9 +33,28 @@ export default function UploadWebnovelsAdmin() {
     const handleChapterFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []).sort((a, b) => {
             // Extract numbers from filenames and compare them numerically
-            const numA = parseInt(a.name.match(/\d+/)?.[0] || '0');
-            const numB = parseInt(b.name.match(/\d+/)?.[0] || '0');
-            return numA - numB;
+            // const numA = parseInt(a.name.match(/\d+/)?.[0] || '0');
+            // const numB = parseInt(b.name.match(/\d+/)?.[0] || '0');
+            // return numA - numB;
+            // Extract part number (부) and chapter number (화) from Korean-style chapter naming
+            const partAMatch = a.name.match(/(\d+)부/);
+            const partBMatch = b.name.match(/(\d+)부/);
+            const chapterAMatch = a.name.match(/(\d+)화/);
+            const chapterBMatch = b.name.match(/(\d+)화/);
+            
+            // Get part numbers (default to 0 if not found)
+            const partA = partAMatch ? parseInt(partAMatch[1]) : 0;
+            const partB = partBMatch ? parseInt(partBMatch[1]) : 0;
+            
+            // Get chapter numbers (default to 0 if not found)
+            const chapterA = chapterAMatch ? parseInt(chapterAMatch[1]) : 0;
+            const chapterB = chapterBMatch ? parseInt(chapterBMatch[1]) : 0;
+            
+            // Compare by part first, then by chapter
+            if (partA !== partB) {
+                return partA - partB;
+            }
+            return chapterA - chapterB;
         });
         if (files) {
             setChapterFiles([...chapterFiles, ...Array.from(files)]);

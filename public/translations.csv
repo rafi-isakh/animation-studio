@@ -311,6 +311,7 @@ authorWorkList,작가의 다른 작품,,Author's Other Works
 starShop,별 충전,,Star Shop
 apple_signin,애플로 로그인,,Continue with Apple
 star,별,,Stars
+starShop_title,보유한 별,,Your Stars
 requestAccountDeletion,계정 삭제 요청,,Request Account Deletion
 requestAccountDeletionDescription,계정 삭제를 요청하려면 다음 버튼을 눌러주세요. 로그인 후 사용하실 수 있습니다.,,Request account deletion by clicking the button below. You must be logged in to request account deletion.
 requestAccountDeletionButton,계정 삭제 요청하기,,Request Account Deletion
@@ -338,7 +339,13 @@ recommended,투니즈 추천작,,Recommended Works,,
 selectAtLeastOneGenre,장르를 선택해 주세요,,Please select at least one genre,,
 purchaseChapter,구매하기,,Purchase Chapter
 wouldYouLikeToPurchaseChapter,구매하시겠습니까?,,Would you like to purchase this chapter?
-noTransactions,충전 내역이 없습니다.,,No transactions
+noTransactions,충전 내역이 없습니다.,,No transactions yet
+noTransactions_subtitle,구매 내역을 확인하려면 별을 구매해 주세요.,,Purchase stars to view your transaction history.
+view_transaction_history,구매 내역 확인,,View transaction history
+redeem_code,쿠폰 등록,,Redeem code
+redeem_code_subtitle,쿠폰을 등록해 주세요,,Redeem your code and enjoy!
+apply_code,쿠폰 등록하기,,Apply code
+enter_code,쿠폰 번호를 입력해 주세요,,Enter code
 continueReading,이 읽던 작품이에요,,Continue Reading for,,
 searchResult,검색 결과,,Search results for,,
 shareLink,공유하기,,Share,

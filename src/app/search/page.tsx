@@ -65,6 +65,7 @@ const Search = () => {
       if (query) {
         const response = await fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
         const data = await response.json();
+        console.log('webnovels', data)
         setWebnovels(data);
       }
       setLoading(false);
@@ -72,17 +73,13 @@ const Search = () => {
     asyncSearch();
   }, [query]);
 
-  // useEffect(() => {
-  //   if (webnovels.length === 0) {
-  //     const timer = setTimeout(() => {
-  //       setShowNoResults(true);
-  //     }, 3000); // Show skeleton for 3 seconds before showing "no results"
-
-  //     return () => clearTimeout(timer);
-  //   } else {
-  //     setShowNoResults(false);
-  //   }
-  // }, [webnovels]);
+  useEffect(() => {
+    if (webnovels.length === 0) {
+      setShowNoResults(true);
+    } else {
+      setShowNoResults(false);
+    }
+  }, [webnovels]);
 
 
   const CustomSkeleton = ({
@@ -143,7 +140,7 @@ const Search = () => {
                 <p>{phrase(dictionary, "noSearchResults", language)}</p>
               </div>
             ) : (
-              <div className='relativeflex flex-col items-center justify-center gap-2 w-full'>
+              <div className='relative flex flex-col items-center justify-center gap-2 w-full'>
 
                 <div className="flex flex-row gap-2 md:px-2 px-4">
                   <CustomSkeleton variant='rounded' animation="wave" width={100} height={90} />

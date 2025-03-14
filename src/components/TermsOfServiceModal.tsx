@@ -8,6 +8,7 @@ import { phrase } from '@/utils/phrases';
 import { replaceSmartQuotes } from '@/utils/font';
 import { WebnovelTerms, WebnovelTerms_en } from '@/utils/terms';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { MoveLeft } from 'lucide-react';
 
 interface TermsOfServiceModalProps {
     open: boolean;
@@ -39,9 +40,15 @@ const TermsOfServiceModal = ({
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center w-full md:h-auto h-screen'>
-                <DialogHeader>
+                <DialogHeader className='flex flex-row justify-start items-center my-2 w-full'>
+                    <Button
+                        variant='link'
+                        onClick={() => onClose()}
+                        className={`!no-underline justify-center items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors flex md:hidden !m-0 !p-0`}>
+                        <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                    </Button>
                     <DialogTitle className='text-lg font-bold text-black dark:text-white text-start'>
-                        {phrase(dictionary, "guideToRegisteringYourWork", language)}
+                        <p className='md:ml-0 ml-5'>{phrase(dictionary, "guideToRegisteringYourWork", language)}</p>
                     </DialogTitle>
                 </DialogHeader>
                 <div className='flex flex-col space-y-4 text-[12px]'>

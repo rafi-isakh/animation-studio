@@ -1,11 +1,10 @@
-import { Box, Tooltip } from '@mui/material';
+
 import { Button } from '@/components/shadcnUI/Button';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogDescription } from '@/components/shadcnUI/Dialog';
-import { useCoverArtModalStyle } from '@/styles/ModalStyles';
 import { phrase } from '@/utils/phrases';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Info, X } from 'lucide-react';
+import { Info, X, MoveLeft } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SetStateAction, Dispatch, useState } from 'react';
@@ -50,10 +49,17 @@ const CoverArtModal = ({
         <Dialog open={showCoverArtModal} onOpenChange={setShowCoverArtModal}>
             <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center w-full md:h-auto h-screen'>
                 <ScrollArea className='w-full h-full'>
-                    <DialogHeader className='flex flex-row justify-between items-center my-2 w-full'>
-                        <DialogTitle className='text-lg font-bold text-black dark:text-white'>
+                    <DialogHeader className='flex flex-row justify-start items-center my-2 w-full'>
+                        <Button 
+                        variant='link' 
+                        onClick={() => setShowCoverArtModal(false)} 
+                        className={`!no-underline justify-center items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors flex md:hidden !m-0 !p-0`}>
+                            <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                           
+                        </Button>
+                        <DialogTitle className='text-lg font-bold text-black dark:text-white text-center'>
                             {/* Cover Art Register */}
-                            {phrase(dictionary, "coverArtRegister", language)}
+                            <p className='text-center md:ml-0 ml-5'>{phrase(dictionary, "coverArtRegister", language)}</p>
                         </DialogTitle>
                     </DialogHeader>
 

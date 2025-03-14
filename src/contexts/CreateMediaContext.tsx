@@ -101,7 +101,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
 
 
     const generateTrailer = async (chapter_ids: number[]) => {
-        if (stars < 200) {
+        if (stars < 20) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughStars", language),

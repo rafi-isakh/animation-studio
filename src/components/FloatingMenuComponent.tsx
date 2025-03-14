@@ -244,8 +244,15 @@ const FloatingMenu: React.FC<{
 
     const handleConfirmGeneration = async () => {
         setShowConfirmDialog(false);
+        if (stars < 15) {
+            toast({
+                title: "Error",
+                description: phrase(dictionary, "notEnoughStars", language),
+                variant: "destructive"
+            })
+            return;
+        }
 
-        console.log('generating pictures')
         const initialPrompt = selectedTextRef.current;
         setSavedPrompt(truncateText(initialPrompt, 150));
         if (!initialPrompt) {

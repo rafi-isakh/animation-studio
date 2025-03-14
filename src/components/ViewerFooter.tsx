@@ -172,7 +172,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
 
     return (
         <>
-            <div className={`${isVisible ? 'z-[480] fixed left-0 bottom-0 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
+            <div className={`${isVisible ? 'z-[480] fixed left-0 bottom-1 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
                 <div className="md:w-[350px]  flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
                     {/* bg-background/90 backdrop-blur-md */}
                     <div>
@@ -183,35 +183,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                             </div>
                         </Link>
                     </div>
-
-                    {/* middle post button */}
-                    {/* <div className="flex items-center gap-1 z-[150]">
-                        <div>
-                            <div
-                                className={`border-none fixed inset-0  md:pl-[72px]
-                                        bg-transparent dark:bg-transparent hover:bg-transparent
-                                        transition-all duration-300 ease-in-out shadow-none
-                                        ${openMenu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full pointer-events-none'}`}
-                            >
-                                <div
-                                    ref={menuContentRef}
-                                    className="border-none rounded-none w-full h-full bg-gray-200 dark:bg-[#211F21] ">
-                                    <div className="relative w-full h-full">
-                                        <button
-                                            className="z-[100] absolute top-1 right-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                                            onClick={handleCloseMenu}
-                                        >
-                                            <X size={18} />
-                                        </button>
-                                        <div className="flex w-full h-full">
-                                            <ToonyzPostViewer posts={posts} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> */}
-
                     {/* view next and prev btn */}
                     <div>
                         <Link href={nextChapterLink} onClick={handleNextChapter}>

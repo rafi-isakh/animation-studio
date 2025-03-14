@@ -70,11 +70,11 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                                         </AlertDialogTrigger>
                                         <AlertDialogContent className="dark:bg-[#211F21] bg-white">
                                             <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogTitle>{phrase(dictionary, "deletePost", language)}</AlertDialogTitle>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>
-                                                    Cancel
+                                                  {phrase(dictionary, "cancel", language)}
                                                 </AlertDialogCancel>
                                                 <AlertDialogAction
                                                     onClick={() => {
@@ -120,7 +120,7 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                         <DialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="inline-flex items-center gap-1">
                                 <Share2 className="h-4 w-4" />
-                                Share
+                                {phrase(dictionary, "share", language)}
                             </Button>
                         </DialogTrigger>
                         <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`} description={`Share this post with your friends and family.`} />

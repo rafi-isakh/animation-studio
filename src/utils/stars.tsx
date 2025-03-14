@@ -1,3 +1,7 @@
+export const make_video_price = 35; // per video
+export const generate_pictures_price = 15; // four pictures
+export const generate_trailer_price = 20; // six pictures
+
 interface StarsNameToPrice {
     [key: string]: number;
 }

@@ -73,7 +73,6 @@ const ViewWebnovels = () => {
                     post.webnovel_id === webnovel.id
                 );
                 
-                console.log(filteredPosts, "toonyz posts in view webnovels page?");
                 setPosts(filteredPosts);
             } catch (error) {
                 console.error('Error fetching posts:', error);

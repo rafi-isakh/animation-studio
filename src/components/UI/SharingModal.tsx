@@ -1,8 +1,9 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Button } from '@/components/shadcnUI/Button'
 import { User } from '@/components/Types';
-import { Modal, Box, Button } from '@mui/material';
+import { Modal, } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import {
@@ -10,12 +11,6 @@ import {
     TwitterShareButton,
     FacebookIcon,
     TwitterIcon,
-    EmailShareButton,
-    EmailIcon,
-    LinkedinShareButton,
-    LinkedinIcon,
-    TumblrShareButton,
-    TumblrIcon,
     TelegramShareButton,
     TelegramIcon,
     WhatsappShareButton,
@@ -86,7 +81,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
 
                     {/* Content title */}
                     <div className="text-center">
-                        <p className="text-xl mb-2 font-medium">
+                        <p className="text-xl mb-2 font-medium text-black dark:text-black">
                             {/* Sharing your profile */}
                             {phrase(dictionary, "shareLink", language)}
                         </p>
@@ -117,13 +112,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                     {/* Buttons */}
                     <div className="space-y-3">
                         <Button
-                            sx={{
-                                backgroundColor: '#DE2B74',
-                                color: 'white',
-                                '&:hover': {
-                                    backgroundColor: '#DE2B74/80',
-                                },
-                            }}
+                            variant='outline'
                             onClick={handleCopyLink}
                             className="w-full py-2 bg-[#DE2B74] text-white rounded-full hover:bg-[#DE2B74]/80 transition-colors"
                         >
@@ -134,7 +123,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                             }
                         </Button>
                         <Button
-                            variant="outlined"
+                            variant="outline"
                             onClick={onCancel}
                             className="w-full py-2 border-2 border-gray-200 text-gray-600 rounded-full hover:bg-gray-50 transition-colors"
                         >

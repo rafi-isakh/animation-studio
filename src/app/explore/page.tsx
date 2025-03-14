@@ -26,7 +26,7 @@ const ExplorePage = () => {
     const tabsConfig = [
         {
             label: "All Genres",
-            genre: "allGenres",
+            genre: "allgenres",
             Component: () => (
                 <AllGenres>
                     {/* <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} /> */}

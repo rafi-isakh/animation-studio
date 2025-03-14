@@ -25,6 +25,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import ShareDialog from "@/components/UI/ShareDialog";
 
+
 const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor?: boolean, user: User, postId: string }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { toast } = useToast();
@@ -41,7 +42,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
               <EllipsisVertical size={20} className="dark:text-white text-gray-500" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-24 flex flex-col gap-2">
+          <PopoverContent className="w-28 flex flex-col gap-2 break-keep">
             <Link
               href="#"
               onClick={(e) => {
@@ -51,7 +52,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
               }}
               className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
               <Share2 size={10} className="dark:text-white text-gray-500" />
-              Share
+              {phrase(dictionary, "share", language)}
             </Link>
             <Link
               href="#"
@@ -61,7 +62,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
               //   }}
               className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
               <Flag size={10} className="dark:text-white text-gray-500" />
-              Report
+              {phrase(dictionary, "report", language)}
             </Link>
             {createEmailHash(email) === user.email_hash &&
               <AlertDialog>
@@ -80,18 +81,18 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
                 </AlertDialogTrigger>
                 <AlertDialogContent className="dark:bg-[#211F21] bg-white">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogTitle>{phrase(dictionary, "deletePost", language)}</AlertDialogTitle>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>
-                      Cancel
+                      {phrase(dictionary, "cancel", language)}
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => {
                         // handleDeleteComment(comment.id.toString());
                         setShowDeleteModal(false);
                       }}>
-                      Delete
+                      {phrase(dictionary, "delete", language)}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

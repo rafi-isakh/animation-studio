@@ -91,6 +91,9 @@ stars,별 충전,スター充電,Stars Shop
 curriculum,커리큘럼,,Curriculum
 typeYourComment,댓글을 입력해주세요. 타인을 비방하는 내용은 삼가해주세요.,,Type your comment here. Please be nice to each other.
 typeYourPrompt,프롬프트를 입력해주세요.,ここにプロンプトを入力してください,Type your prompt here..
+generateAgain,다시 생성,,Generate again
+makeVideo,비디오 만들기,,Make a video
+slideshow,슬라이드 쇼,,Slideshow
 generatingPrompt,생성중..,,Making..
 generatePrompt,생성,,Make
 worldviewSetting,세계관 설정,,Worldview Setting
@@ -150,6 +153,7 @@ privacy,개인정보 처리방침,,Privacy policy,
 youth_terms,청소년 보호 정책,,Youth protection policy,
 contact,고객지원,,Contact
 delete,삭제,,Delete
+deletePost,게시글을 삭제하시겠습니까?,投稿を削除しますか?,Are you sure you want to delete this post?
 viewSettings,뷰어 설정,,View Settings
 defaultFont,기본,,Default
 batangFont,바탕체,,Batang
@@ -325,6 +329,8 @@ action,액션,,Action
 orientalFantasy,무협,,Oriental Fantasy
 commentSubmit,등록,,Submit
 buyStars,별 구매하기,,Buy Stars
+buyStars_promotion,투니즈 포스트를 마음껏 즐겨보세요,,Enjoy Toonyz post with no hassle
+deduct,별 소모,,Deduct star
 payment_success,결제가 완료되었습니다.,Payment completed.,Payment completed.
 payment_processing,결제가 처리 중입니다.,Payment is processing.,Payment is processing.
 payment_failed,결제가 실패했습니다.,Payment failed.,Payment failed.
@@ -351,7 +357,7 @@ nextChapterView,다음 화 보기,,Next Chapter,,
 viewnow,보러 가기,,View
 download,다운로드,,Download
 next,다음,,Next
-allGenres,전체 장르,,All Genres,,
+allgenres,전체 장르,,All Genres,,
 title,제목,,Title,,
 content,내용,,Content,,
 tags,태그,,Tags,,
@@ -362,9 +368,23 @@ mode,모드,,Mode,,
 setting,설정,,Setting,,
 helpCenter,도움말,,Help Center,,
 noPosts,투니즈 포스트 게시물이 없습니다,,No Toonyz Posts,,
-createVideo,숏폼 애니매이션 만들기,,Create Short-form Animation,,
+createVideo,숏폼 영상 만들기,,Create Short-form Video,,
 noPosts,투니즈 포스트 게시물이 없습니다,,No Toonyz Posts,,
 ToonyzPost,투니즈 포스트,,Toonyz Posts,,
 special_deal,스페셜 딜,,Special Deal,,
 regular_bundles,일반 번들,,Regular Bundles,,
 shareAsToonyzPost,투니즈 포스트로 공유하기,,Share as Toonyz Post,,
+post,포스트,,Post,,
+discoverPosts,전세계 투니즈 포스트 게시물을 둘러보세요,,Discover Toonyz Posts from other users,,
+shareYourInfiniteImagination,무한한 상상력을 모두와 함께 공유하세요,,Share your infinite imagination to everyone,,
+watchTutorial,튜토리얼 보기,,Watch Tutorial,,
+bringStoriesToLife,이야기를 현실로 만드세요,,Bring Stories to Life,,
+selectTextAndLetAI,텍스트를 드래그해서 선택하고 AI로 멋진 이미지\, 비디오\, 슬라이드쇼를 만들어 보세요,,Drag text to select it and let AI generate stunning images\, videos\, and slideshows,,
+letAIGenerateForFull,투니즈 AI 미스릴을 사용해 웹소설을 멋진 이미지\, 비디오\, 슬라이드쇼로 만들어 보세요.,,Let Toonyz's AI, Mithril, generate stunning images\, videos\, and slideshows of the webnovel.,,
+confirmGeneration,정말로 이미지를 생성하시겠습니까?,,Are you sure you want to generate images?,,
+confirmGenerationDescription,이 작업은 별을 소모합니다.,,This will use your credits.,,
+generateButton,생성하기,,Generate,,
+shareAsToonyzPost,투니즈 포스트로 공유하기,,Share as Toonyz Post,,
+ICreatedVisualizations,선택하신 내용으로 그림을 그려보았습니다.,,I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.,,
+notEnoughStars,별이 부족합니다.,,You don't have enough stars.,,
+count,개,,,,

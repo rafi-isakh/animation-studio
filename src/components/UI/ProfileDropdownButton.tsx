@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { Box, Button, Modal } from "@mui/material";
-import IconButton from '@mui/material/IconButton';
+import { Dialog } from '@/components/shadcnUI/Dialog';
+import { Button } from '@/components/shadcnUI/Button';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcnUI/Popover'
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
-import { Ellipsis, UserRoundX, CircleHelp, Flag } from 'lucide-react';
+import { Ellipsis, UserRoundX, CircleHelp, Flag, EllipsisVertical } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { useState } from "react";
@@ -13,8 +14,7 @@ import { Textarea } from "flowbite-react";
 import { useModalStyle } from "@/styles/ModalStyles";
 import Image from 'next/image';
 import ReportModal from "@/components/UI/ReportModal";
-
-const ITEM_HEIGHT = 48;
+import Link from 'next/link';
 
 export default function ProfileDropdownButton({
     isProfileOwner,
@@ -51,76 +51,60 @@ export default function ProfileDropdownButton({
     }
 
     return (
-        <div>
-            <IconButton
-                aria-label="more"
-                id="long-button"
-                aria-controls={open ? 'long-menu' : undefined}
-                aria-expanded={open ? 'true' : undefined}
-                aria-haspopup="true"
-                onClick={handleClick}
-            >
-                <Ellipsis size={18} />
-            </IconButton>
-            <Menu
-                id="long-menu"
-                MenuListProps={{
-                    'aria-labelledby': 'long-button',
-                }}
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                slotProps={{
-                    paper: {
-                        style: {
-                            maxHeight: ITEM_HEIGHT * 4.5,
-                            width: '20ch',
-                        },
-                    },
-                }}
-            >
-                {isProfileOwner && (
-                    <MenuItem
-                        key="edit"
-                        onClick={() => {
-                            onDeleteAccount();
-                            handleClose();
-                        }}
-                        className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black"
-                    >
-                        <UserRoundX size={20} />
-                        {phrase(dictionary, "deleteAccount", language)}
-                    </MenuItem>
-                )}
-                {!isProfileOwner && (
-                    <MenuItem
-                        key="report"
-                        onClick={() => {
-                            setShowReportModal(true);
-                            handleClose();
-                        }}
-                        className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black"
-                    >
-                        <Flag size={20} />
-                        {phrase(dictionary, "report", language)}
-                    </MenuItem>
-                )}
-                <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                    <MenuItem
-                        key="help"
-                        className="flex items-center gap-2 dark:text-white text-black dark:group-hover/user-dropdown:text-black"
-                    >
-                        <CircleHelp size={20} />
-                        {phrase(dictionary, "help", language)}
-                    </MenuItem>
-                </Tooltip>
-            </Menu>
+        <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
+            <Popover>
+                <PopoverTrigger asChild onClick={(e) => { e.stopPropagation(); }}>
+                    <Button variant="ghost" size="icon" className='!no-underline !bg-transparent'>
+                        <EllipsisVertical size={20} className="dark:text-white text-gray-500" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-30 flex flex-col gap-2 !break-keep items-start justify-start">
+                        {isProfileOwner && (
+                            <Link
+                                href="#"
+                                key="edit"
+                                onClick={() => {
+                                    onDeleteAccount();
+                                    handleClose();
+                                }}
+                                className="flex items-center gap-2 dark:text-white text-black"
+                            >
+                                <UserRoundX size={20} />
+                                {phrase(dictionary, "deleteAccount", language)}
+                            </Link>
+                        )}
+                        {!isProfileOwner && (
+                            <Link
+                                href="#"
+                                key="report"
+                                onClick={() => {
+                                    setShowReportModal(true);
+                                    handleClose();
+                                }}
+                                className="flex items-center gap-2 dark:text-white text-black"
+                            >
+                                <Flag size={20} />
+                                {phrase(dictionary, "report", language)}
+                            </Link>
+                        )}
+                        <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
+                            <Link
+                                href="#"
+                                key="help"
+                                className="flex items-center gap-2 dark:text-white text-black"
+                            >
+                                <CircleHelp size={20} />
+                                {phrase(dictionary, "help", language)}
+                            </Link>
+                        </Tooltip>
+                    </PopoverContent>
+            </Popover>
             <ReportModal
                 isOpen={showReportModal}
                 onClose={() => setShowReportModal(false)}
                 user={user}
                 onSubmit={handleSendReportEmail}
             />
-        </div>
+        </Dialog>
     );
 }

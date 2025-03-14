@@ -67,11 +67,14 @@ export function Pin({ post }: PinProps) {
                   :
                   <div className="relative w-full h-full">
                     <video
-                      ref={videoRef}
-                      src={getVideoUrl(post.video)}
-                      muted
-                      loop
-                      className="w-full h-full object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                    ref={videoRef}
+                    src={getVideoUrl(post.video)}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    className="w-full h-full object-cover max-h-[50vh] md:max-h-none scale-100 md:scale-125 transition-transform duration-200 md:group-hover:scale-[1.35]"
+                    poster="/video-placeholder.jpg" // Optional placeholder image
                     />
                     <Film size={20} className="absolute top-2 left-2 text-white z-50" />
                   </div>

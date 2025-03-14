@@ -60,6 +60,7 @@ export default function InfoAndPictureComponent({
     const { toast } = useToast();
 
     useEffect(() => {
+        console.log(content)
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
@@ -151,7 +152,7 @@ export default function InfoAndPictureComponent({
                             />
 
                             <p className="text-center">
-                                {content.user.nickname === 'Anonymous' ? '' : content.user.nickname}
+                                {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
                             </p>
 
                             {/* Genre and Type */}
@@ -288,7 +289,7 @@ export default function InfoAndPictureComponent({
                                 </div>
                             }
                             {/* writing button */}
-                            {isAuthor() &&
+                            {(isAuthor() || isJongmin()) &&
                                 <>
                                     <div className='flex flex-row gap-4 w-full justify-center items-center pb-5'>
                                         <Button

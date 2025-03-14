@@ -83,7 +83,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                         <p className="font-semibold text-lg text-balck dark:text-black break-keep">
                             <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                         </p>
-                        <p className="text-gray-600">{webnovel.user.nickname}</p>
+                        <p className="text-gray-600">{webnovel.author.nickname}</p>
                         <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
                         <p className="text-sm text-center max-w-[400px] text-balck dark:text-black break-keep">
                             <OtherTranslateComponent content={webnovel.description} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='description' />

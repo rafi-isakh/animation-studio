@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_price } from "@/utils/stars";
+import { stars_name_to_price_krw } from "@/utils/stars";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest, res: NextResponse) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             return NextResponse.json({ message: "Payment failed: invalid amount of stars. Check if the name of the purchased item has a number." }, { status: 400 });
         }
 
-        if (stars_name_to_price[payment.response.name] !== payment.response.amount) {
+        if (stars_name_to_price_krw[payment.response.name] !== payment.response.amount) {
             console.error("Possible forge attempt! Payment failed: invalid payment amount.", payment.response.buyer_email, payment.response.name, payment.response.amount);
             return NextResponse.json({ message: "Payment failed: invalid payment amount." }, { status: 400 });
         }

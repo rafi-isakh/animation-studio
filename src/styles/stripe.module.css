@@ -128,7 +128,7 @@
 
 
 /* Payment status page */
-#payment-status {
+.paymentStatus {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -145,7 +145,7 @@
     animation: fadeInAnimation 1s ease forwards;
 }
 
-#status-icon {
+.statusIcon {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -173,7 +173,7 @@
     filter: contrast(120%);
 }
 
-#details-table {
+.detailsTable {
     overflow-x: auto;
     width: 100%;
 }
@@ -209,11 +209,11 @@
     color: #30313D;
 }
 
-#view-details {
+.viewDetails {
     color: #0055DE;
 }
 
-#retry-button {
+.retryButton {
     text-align: center;
     background: #0055DE;
     color: #ffffff;
@@ -245,7 +245,7 @@
 @media only screen and (max-width: 600px) {
     .stripeForm,
     .statusContainer,
-    #payment-status,
+    .paymentStatus,
     #dpm-annotation {
         width: 80vw;
         min-width: initial;

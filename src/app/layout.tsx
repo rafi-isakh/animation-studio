@@ -14,7 +14,6 @@ import { SearchProvider } from '@/contexts/SearchContext';
 import Margin from '@/components/Margin';
 import RegisterSW from '@/components/RegisterSW';
 import { NavigationEvents } from '@/components/NewUserNavigation';
-import { StripeProvider } from '@/contexts/StripeContext';
 import BottomNavigationBar from '@/components/UI/BottomNavigation';
 import { GlobalSidebar } from '@/components/UI/Sidebar';
 import { WebnovelsProvider } from '@/contexts/WebnovelsContext';
@@ -87,8 +86,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     <DeviceProvider>
                       <MobileMenuProvider>
                         <SearchProvider>
-                          <StripeProvider>
-                            <CreateMediaProvider>
+                          <CreateMediaProvider>
                             <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
                               <Suspense>
                                 <NavigationEvents />
@@ -109,8 +107,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                 <BottomNavigationBar />
                               </div>
                             </div>
-                            </CreateMediaProvider>
-                          </StripeProvider>
+                          </CreateMediaProvider>
                         </SearchProvider>
                       </MobileMenuProvider>
                     </DeviceProvider>

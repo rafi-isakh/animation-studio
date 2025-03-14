@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_price } from "@/utils/stars";
+import { stars_name_to_price_krw } from "@/utils/stars";
 
 export async function POST(req: NextRequest, res: NextResponse) {
     const { imp_uid, merchant_uid } = await req.json();

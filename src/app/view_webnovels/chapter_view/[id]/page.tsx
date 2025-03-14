@@ -116,7 +116,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
             if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
-                router.push('/');
+                router.push(`/view_webnovels?id=${chapter?.webnovel_id}`);
             }
             setUpvotes(chapter?.upvotes || 0)
             const webnovel = await getWebnovelById(chapter?.webnovel_id.toString() || '');
@@ -379,7 +379,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                     <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} context={chapter.content} webnovel_id={webnovel.id.toString()} chapter_id={id}>
-                                        <WebnovelTranslateComponent content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
+                                        <WebnovelTranslateComponent availableLanguages={JSON.parse(webnovel.available_languages)} content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
                             </div>

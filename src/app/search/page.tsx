@@ -63,6 +63,7 @@ const Search = () => {
       if (query) {
         const response = await fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
         const data = await response.json();
+        console.log('webnovels', data)
         setWebnovels(data);
       }
       setLoading(false);
@@ -70,19 +71,14 @@ const Search = () => {
     asyncSearch();
   }, [query]);
 
-  // Add this useEffect to set showNoResults after a delay when webnovels is empty
   useEffect(() => {
-    if (query && webnovels.length === 0 && !loading) {
-      // Set a small delay to avoid flickering between loading and no results
-      const timer = setTimeout(() => {
-        setShowNoResults(true);
-      }, 500);
-      
-      return () => clearTimeout(timer);
+    if (webnovels.length === 0) {
+      setShowNoResults(true);
     } else {
       setShowNoResults(false);
     }
-  }, [query, webnovels.length, loading]);
+  }, [webnovels]);
+
 
   const CustomSkeleton = ({
     width = '100%',

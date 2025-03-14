@@ -85,7 +85,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     {/* <CarouselComponent items={items} searchParams={searchParams} />
                     {largeGap()} */}
-                    <PromotionBannerComponent />
+                    {/* <PromotionBannerComponent /> */}
                 </div>
             </div>
             <Footer />

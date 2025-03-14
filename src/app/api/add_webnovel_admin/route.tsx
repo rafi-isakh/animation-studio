@@ -17,8 +17,11 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const coverArt = formData.get('coverArt') as File
     const genre = formData.get('genre')
     const language = formData.get('language')
-    const email = formData.get('email')
-    const author = formData.get('author')
+    const userEmail = formData.get('user_email')
+    const userNickname = formData.get('user_nickname')
+    const userIsAuthor = formData.get('user_is_author') === 'true'
+    const authorEmail = formData.get('author_email')
+    const authorNickname = formData.get('author_nickname')
     const publisherEnglishName = formData.get('publisherEnglishName')
     const publisherKoreanName = formData.get('publisherKoreanName')
     const publisherEmail = formData.get('publisherEmail')
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const tags = JSON.stringify((formData.get('tags') as string).split(' ').map((tag: string) => tag.replace(",", "").trim()));
     const fileType = coverArt.type;
     const fileContent = Buffer.from(await coverArt.arrayBuffer());
-
+    const availableLanguages = formData.get('available_languages') as string;
     const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
     const fileName = await fileNameResponse.json();
 
@@ -53,13 +56,17 @@ export async function POST(req: NextRequest, res: NextResponse) {
         genre: genre,
         language: language,
         cover_art: fileName,
-        user_email: email,
-        author: author,
+        user_email: userEmail,
+        user_nickname: userNickname,
         publisher_english_name: publisherEnglishName,
         publisher_korean_name: publisherKoreanName,
         publisher_email: publisherEmail,
         num_free_chapters: numberOfFreeChapters,
-        tags: tags
+        tags: tags,
+        user_is_author: userIsAuthor,
+        author_email: authorEmail,
+        author_nickname: authorNickname,
+        available_languages: availableLanguages
     }
 
     console.log(send_data);

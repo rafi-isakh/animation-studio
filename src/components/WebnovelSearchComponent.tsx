@@ -55,7 +55,7 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
                     />
                     <div className="flex flex-col">
                         <p className="text-[10px] md:text-[12px] font-bold w-full truncate text-gray-500">
-                            {webnovel.user.nickname} • {phrase(dictionary, webnovel.genre, language)}
+                            {webnovel.author.nickname} • {phrase(dictionary, webnovel.genre, language)}
                         </p>
                         {/* total chapters and num chapters */}
                         <p className="text-[10px] md:text-[12px] text-gray-500 font-bold dark:text-gray-500 ">

@@ -96,7 +96,7 @@ export function WebnovelCard({
                     <div className="flex-1">
                         <div className="text-gray-700 dark:text-gray-200 text-sm mb-1">{phrase(dictionary, webnovel.genre, language)}</div>
                         <h1 className="text-gray-800 dark:text-white text-xl font-bold mb-1">{webnovel.title}</h1>
-                        <div className="text-gray-600 dark:text-gray-200 mb-2">by {webnovel.user.nickname}</div>
+                        <div className="text-gray-600 dark:text-gray-200 mb-2">by {webnovel.author.nickname}</div>
                         {/* Detail info */}
                         {showDetailInfo && (
                             <div className="text-gray-700 dark:text-gray-200 text-sm mb-1 flex gap-1 items-center">

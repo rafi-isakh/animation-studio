@@ -88,7 +88,7 @@ const WebnovelCard = ({
                             classParams={language === 'ko' ? "text-md md:text-sm w-full break-words" : "text-md md:text-sm w-full break-words"}
                         />
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 break-keep text-center">{webnovel.user.nickname}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 break-keep text-center">{webnovel.author.nickname}</p>
                 </div>
             </div>
         </Link>

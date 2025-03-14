@@ -87,7 +87,7 @@ const WebnovelPictureComponent = React.memo(
                             />
                             {/* Author and Genre */}
                             <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                                {webnovel.user.nickname}
+                                {webnovel.author.nickname}
                                 <span className="hidden md:block"> • </span>
                                 <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                             </p>

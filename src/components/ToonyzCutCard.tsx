@@ -61,7 +61,7 @@ const ToonyzCutCard = ({ webnovel }: { webnovel: Webnovel }) => {
                 <div className='font-semibold truncate w-full text-center text-base'>
                     <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                 </div>
-                <p className='text-gray-600 truncate w-full text-center text-sm'>{webnovel.user.nickname}</p>
+                <p className='text-gray-600 truncate w-full text-center text-sm'>{webnovel.author.nickname}</p>
                 <p className='text-gray-500 truncate w-full text-center text-sm'>
                     {phrase(dictionary, webnovel.genre, language)}
                 </p>

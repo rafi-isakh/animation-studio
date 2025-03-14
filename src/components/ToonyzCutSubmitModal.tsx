@@ -23,7 +23,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
     const [fullDescription, setFullDescription] = useState('');
 
     const handleSubmit = async () => {
-        const message = `Proposal for ${webnovel.title} by ${webnovel.user.nickname}:\n
+        const message = `Proposal for ${webnovel.title} by ${webnovel.author.nickname}:\n
         Company Name: ${companyName}\n
         Full Name: ${fullName}\n
         Email: ${email}\n
@@ -69,7 +69,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                         <p className="font-semibold text-lg text-balck dark:text-black">
                             <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                         </p>
-                        <p className="text-gray-600">{webnovel.user.nickname}</p>
+                        <p className="text-gray-600">{webnovel.author.nickname}</p>
                         <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
                         <p className="text-sm text-center max-w-[400px] text-balck dark:text-black line-clamp-3">
                             <OtherTranslateComponent 

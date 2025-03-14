@@ -58,7 +58,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                             classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-[100px] md:w-[160px]"
                         />
                         <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                            {webnovel.user.nickname}
+                            {webnovel.author.nickname}
                             <span className="hidden md:block"> • </span>
                             <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>

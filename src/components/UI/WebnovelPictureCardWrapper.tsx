@@ -60,7 +60,7 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                                     classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] text-white break-keep korean"
                                 />
                                 <p className="text-[10px] md:text-sm font-bold w-full truncate text-white flex flex-col md:flex-row justify-center">
-                                    {webnovel.user.nickname}
+                                    {webnovel.author.nickname}
                                     <span className="hidden md:block text-white"> • </span>
                                     <span className="text-white">{phrase(dictionary, webnovel.genre, language)}</span>
                                 </p>

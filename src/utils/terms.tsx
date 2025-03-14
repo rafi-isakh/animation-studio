@@ -297,6 +297,12 @@ export const terms = `이용약관
     ③ 이미 사용된 별은 취소 및 환불이 불가능합니다.
 2. 회사의 귀책사유로 결제 오류가 발생한 경우, 결제에 대한 취소 및 환불을 요구할 수 있습니다.
 3. 회사의 귀책사유로 서비스가 중단되는 경우, 결제에 대한 취소 및 환불을 요구할 수 있습니다.
+
+제 6장 저작권 및 콘텐츠
+제 30조 (저작권 및 콘텐츠)
+1. 회사가 작성한 모든 콘텐츠에 대한 저작권은 회사에 있습니다.
+2. 회원은 2차 저작물(투니즈 포스트 이미지/영상/슬라이드쇼)을 상업적 용도로 사용할 수 없습니다.
+3. 부적합 게시물을 게시한 회원에 대한 이용 제한과 게시물 삭제 조치는 회사의 자율적 판단에 의해 결정됩니다.
 `;
 
 export const terms_english = `
@@ -620,6 +626,14 @@ Article 29 (Payment Cancellation & Refund)
    ③ Stars that have already been used cannot be canceled or refunded.
 2. If a payment error occurs due to the company's fault, cancellation and refund of the payment can be requested.
 3. If the service is suspended due to the company's fault, cancellation and refund of the payment can be requested.
+
+Chapter 6 Copyright and Content
+
+Article 30 (Copyright and Content)
+
+1. The copyright for all content created by the company belongs to the company.
+2. Members are not allowed to use derivative works (Tooniz post images/videos/slideshows) for commercial purposes.
+3. Restrictions on usage and deletion of posts containing inappropriate content will be determined at the company's discretion.
 `
 
 // 청소년 이용약관 youth

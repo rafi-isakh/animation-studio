@@ -95,6 +95,7 @@ export interface Webnovel {
   created_at: Date;
   tags: string;
   premium: boolean;
+  available_languages: string;
 }
 
 export interface Dictionary {

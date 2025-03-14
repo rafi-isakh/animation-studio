@@ -29,7 +29,7 @@ export default function UploadWebnovelsAdmin() {
     const [userIsAuthor, setUserIsAuthor] = useState<boolean>(false);
     const [priceKorean, setPriceKorean] = useState<number>(10);
     const [priceEnglish, setPriceEnglish] = useState<number>(30);
-
+    const [availableLanguages, setAvailableLanguages] = useState<string[]>(["ko"]);
     const handleChapterFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []).sort((a, b) => {
             // Extract numbers from filenames and compare them numerically
@@ -97,6 +97,7 @@ export default function UploadWebnovelsAdmin() {
         formData.append('user_is_author', userIsAuthor.toString()); 
         formData.append('author_email', author_email); // might not be an actual email
         formData.append('author_nickname', author_nickname!);
+        formData.append("available_languages", JSON.stringify(availableLanguages));
 
         const response = await fetch('/api/add_webnovel_admin', {
             method: 'POST',
@@ -144,6 +145,14 @@ export default function UploadWebnovelsAdmin() {
         <div className='flex flex-row space-x-4 items-center'>
             <p>User is Author</p>
             <Checkbox checked={userIsAuthor} onClick={() => setUserIsAuthor(!userIsAuthor)} />
+        </div>
+        <div className='flex flex-row space-x-4 items-center'>
+            <p>Available in Korean</p>
+            <Checkbox checked={availableLanguages.includes("ko")} onClick={() => setAvailableLanguages(availableLanguages.includes("ko") ? availableLanguages.filter(lang => lang !== "ko") : [...availableLanguages, "ko"])} />
+        </div>
+        <div className='flex flex-row space-x-4 items-center'>
+            <p>Available in English</p>
+            <Checkbox checked={availableLanguages.includes("en")} onClick={() => setAvailableLanguages(availableLanguages.includes("en") ? availableLanguages.filter(lang => lang !== "en") : [...availableLanguages, "en"])} />
         </div>
         <TextField
             className='w-full'

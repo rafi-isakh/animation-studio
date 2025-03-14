@@ -18,12 +18,14 @@ const WebnovelTranslateComponent = (
         content,
         chapterId,
         webnovelId,
-        sourceLanguage
+        sourceLanguage,
+        availableLanguages
     }: {
         content: string,
         chapterId: string,
         webnovelId: string,
         sourceLanguage: string
+        availableLanguages: string[]
     }) => {
 
     const [text, setText] = useState('');
@@ -68,7 +70,7 @@ const WebnovelTranslateComponent = (
 
         if (sourceLanguage == language) {
             setContentMarked();
-        } else {
+        } else if (availableLanguages.includes(language)) {
             handleTranslate();
         }
     }, [language]);

@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const tags = JSON.stringify((formData.get('tags') as string).split(' ').map((tag: string) => tag.replace(",", "").trim()));
     const fileType = coverArt.type;
     const fileContent = Buffer.from(await coverArt.arrayBuffer());
-
+    const availableLanguages = formData.get('available_languages') as string;
     const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
     const fileName = await fileNameResponse.json();
 
@@ -65,7 +65,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
         tags: tags,
         user_is_author: userIsAuthor,
         author_email: authorEmail,
-        author_nickname: authorNickname
+        author_nickname: authorNickname,
+        available_languages: availableLanguages
     }
 
     console.log(send_data);

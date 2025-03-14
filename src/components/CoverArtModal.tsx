@@ -1,4 +1,6 @@
-import { Modal, Box, Button, Tooltip } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
+import { Button } from '@/components/shadcnUI/Button';
+import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogDescription } from '@/components/shadcnUI/Dialog';
 import { useCoverArtModalStyle } from '@/styles/ModalStyles';
 import { phrase } from '@/utils/phrases';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
@@ -44,33 +46,24 @@ const CoverArtModal = ({
     }
 
     return (
-        <Modal open={showCoverArtModal} onClose={() => setShowCoverArtModal(false)}>
-            <Box sx={useCoverArtModalStyle}>
-                <div className='flex flex-row justify-between items-center my-2'>
-                    <p className='text-lg font-bold text-black dark:text-black'>
+        <Dialog open={showCoverArtModal} onOpenChange={setShowCoverArtModal}>
+            <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center w-full h-screen'>
+                <DialogHeader className='flex flex-row justify-between items-center my-2 w-full'>
+                    <DialogTitle className='text-lg font-bold text-black dark:text-black'>
                         {/* Cover Art Register */}
                         {phrase(dictionary, "coverArtRegister", language)}
-                    </p>
-                    <X size={24} className='text-black hover:text-[#DB2777] cursor-pointer' onClick={handleClose} />
-                </div>
+                    </DialogTitle>
+                    <X size={24} className='text-black hover:text-[#DB2777] cursor-pointer self-end' onClick={handleClose} />
+                </DialogHeader>
+
                 <div className='flex md:flex-row flex-col md:space-x-4 justify-center'>
                     <div className='flex flex-col space-y-4'>
                         <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
                         <Button
-                            variant='outlined'
+                            variant='outline'
                             onClick={handleUploadFile}
-                            sx={{
-                                backgroundColor: '#DB2777',
-                                color: 'white',
-                                width: '200px',
-                                border: 'none',
-                                borderStyle: 'solid',
-                                borderRadius: '4px',
-                                padding: '4px 8px',
-                                fontSize: '12px',
-                            }}
-                            className="border-0"
-                            >
+                            className="border-0 w-[200px] bg-[#DB2777] text-white"
+                        >
                             {/* Upload Cover Art */}
                             {phrase(dictionary, "upload", language)}
                         </Button>
@@ -131,22 +124,22 @@ const CoverArtModal = ({
                             ))}
                         </div>
 
-                        <div className='flex flex-row space-x-4 justify-center items-center'>
-                            <Button color='gray' variant='outlined' className='mt-10 w-32 text-blue-500 dark:text-blue-500' onClick={handleConfirm}>
+                        <DialogFooter className='flex flex-row space-x-4 justify-center items-center'>
+                            <Button variant='outline' className='mt-10 w-32 text-blue-500 dark:text-blue-500' onClick={handleConfirm}>
                                 {phrase(dictionary, "confirm", language)}
                             </Button>
                             <Button
                                 onClick={handleClose}
                                 color='gray'
-                                variant='outlined'
+                                variant='outline'
                                 className='mt-10 w-32 text-[#DB2777] dark:text-[#DB2777] hover:bg-[#DB2777] hover:text-white dark:hover:bg-[#DB2777] dark:hover:text-white'>
                                 {phrase(dictionary, "cancel", language)}
                             </Button>
-                        </div>
+                        </DialogFooter>
                     </div>
                 </div>
-            </Box>
-        </Modal>
+            </DialogContent>
+        </Dialog>
 
     )
 }

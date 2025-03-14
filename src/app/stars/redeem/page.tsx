@@ -8,7 +8,7 @@ import { Label } from '@/components/shadcnUI/Label'
 import { Button } from '@/components/shadcnUI/Button'
 
 
-export const ReedemCodePage = () => {
+export default function RedeemPage () {
     const { dictionary, language } = useLanguage()
 
     return (
@@ -42,5 +42,3 @@ export const ReedemCodePage = () => {
         </div >
     )
 }
-
-export default ReedemCodePage

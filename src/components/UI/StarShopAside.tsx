@@ -54,7 +54,7 @@ export default function StarShopAside({ email }: { email: string }) {
                     <span className="justify-end self-end"> <ChevronRight className="w-4 h-4 ml-1" /></span>
                 </Button>
             </Link>
-            <Link href="/stars/redeem-code">
+            <Link href="/stars/redeem">
                 <Button
                     variant="outline"
                     color="gray"

@@ -46,7 +46,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     onContentUpdate,
     posts = [],
 }) => {
-    const [isSortedByLatest, setIsSortedByLatest] = useState(true);
+    const [isSortedByLatest, setIsSortedByLatest] = useState(false);
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');

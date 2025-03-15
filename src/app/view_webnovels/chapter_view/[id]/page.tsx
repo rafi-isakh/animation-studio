@@ -85,7 +85,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             alert(phrase(dictionary, "languageNotAvailable", language));
             router.push(`/view_webnovels?id=${webnovel?.id}`);
         }
-    }, [webnovel])
+    }, [webnovel, language])
 
     const handleViewSettings = () => {
         setShowIsViewerModal(true);

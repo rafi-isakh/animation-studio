@@ -137,7 +137,7 @@ const CarouselComponentReactSlick = ({
                     text-white/80
                     transform
                     translate-x-0
-                    md:right-80
+                    md:right-5
                 `}>
                     <span className={`${currentIndex == 0 ? 'text-white' : 'text-white/80'}`}>
                         {currentIndex + 1}

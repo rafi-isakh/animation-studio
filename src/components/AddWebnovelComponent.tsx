@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation'
-import { Webnovel } from '@/components//Types';
 import { useUser } from '@/contexts/UserContext';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,19 +11,12 @@ import { phrase } from '@/utils/phrases';
 import { replaceSmartQuotes } from '@/utils/font';
 import { WebnovelTermsInfo, WebnovelTermsInfo_en } from '@/utils/terms';
 import Link from 'next/link';
-import { useModalStyle, useCoverArtModalStyle, useWebnovelSubmitModalStyle } from '@/styles/ModalStyles';
 import {
-    Button,
-    Modal,
-    Box,
-    Typography,
-    ThemeProvider,
     CircularProgress,
     styled,
 } from '@mui/material';
+import { Button } from '@/components/shadcnUI/Button';
 import { HiOutlineExclamationCircle } from "react-icons/hi";
-import AIEditorCharactersComponent from './AIEditorCharactersComponent';
-import { grayTheme, NoCapsButton } from '@/styles/BlackWhiteButtonStyle';
 import { Info, CloudUpload } from 'lucide-react';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import '@/styles/AddWebnovelComponent.css';
@@ -33,6 +24,7 @@ import TermsOfServiceModal from '@/components/TermsOfServiceModal';
 import CoverArtModal from '@/components/CoverArtModal';
 import CoverArtPreview from './CoverArtPreview';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogDescription } from '@/components/shadcnUI/Dialog';
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
@@ -162,259 +154,249 @@ const AddWebnovelComponent = () => {
 
     return (
         <>
-        {!isLoggedInAndRegistered ? (
-            <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
-                <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
-                <Link 
-                    href="/signin" 
-                    className='px-4 py-2 bg-pink-200 hover:bg-[#DB2777] hover:text-white rounded-md transition-all duration-300 dark:bg-gray-800 dark:hover:bg-gray-700'
-                >
-                    {phrase(dictionary, "login", language)}
-                </Link>
-            </div>
-        ) : (
-        <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
-            <div className='flex flex-col md:border md:border-gray-300 md:dark:border-[#2F2F2F] rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
-                {/* Mui dark theme color code : divider [#2F2F2F] */}
-                <form onSubmit={handleAddWebnovel}>
-                    <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
-                    <div className="mt-10 md:w-[500px] w-full">
-                        <>
-                            <label htmlFor="author" className='text-sm ml-2'>
-                                <div className='flex flex-row gap-1 items-center'>
-                                    {/* 커버등록 */}
-                                    {phrase(dictionary, "uploadCoverArt", language)}
-                                    <span className='text-red-500'>*</span>
-                                    <span className='text-gray-500 text-[12px]'>
-                                        {/* 작품의 표지를 등록해 주세요. */}
-                                        {language == 'ko' ? <> {phrase(dictionary, "uploadCoverArtDescription", language)}</> : ''}
-                                    </span>
-                                    <InfoTooltip
-                                        title={
-                                            <div className='flex flex-col gap-2 space-y-2'>
-                                                <p className={`text-sm font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
-                                                    {/* {replaceSmartQuotes(language === 'ko' ? WebnovelTermsInfo : WebnovelTermsInfo_en)} */}
-                                                    {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
-                                                </p>
-                                                <p className={`text-sm ${language == 'ko' ? 'break-keep' : ''}`}>
-                                                    {phrase(dictionary, "coverArtSize", language)}
-                                                </p>
-                                            </div>
-                                        }
-                                    >
-                                        <Link href="" className='p-0'><Info size={12} /></Link>
-                                    </InfoTooltip>
-                                </div>
-                            </label>
-                            <div className='flex flex-col gap-2 mt-2'>
-                                <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
-                                <Button
-                                    sx={{
-                                        backgroundColor: '#DB2777',
-                                        color: 'white',
-                                        width: '200px',
-                                        border: 'none',
-                                        borderStyle: 'solid',
-                                        borderRadius: '4px',
-                                        padding: '4px 8px',
-                                        fontSize: '12px',
-                                    }}
-                                    onClick={handleCoverArtUploadModal}
-                                    variant='outlined'
-                                    color='gray'
-                                    className='bg-[#DB2777] dark:bg-[#DB2777] dark:text-white self-start border-0'>
-                                    {/* Upload Cover Art */}
-                                    {phrase(dictionary, "uploadCoverArt", language)}
-                                </Button>
-                            </div>
-                        </>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            id='coverArtFile'
-                            onChange={handleFileChange}
-                        />
-                    </div>
-
-                    <div className="flex flex-col md:flex-row md:space-x-4 items-center md:items-start">
-                        <div className="md:mr-4 md:mt-4 w-full">
-
-                            <div className="flex flex-col mt-4">
-                                <label htmlFor="title" className='text-sm ml-2'>
-                                    {/* 작품명 */}
-                                    {phrase(dictionary, "webnovelTitle", language)}
-                                    <span className='text-red-500'>* </span>
-                                    <span className='text-gray-500 text-[12px]'>
-                                        {/* 작품명은 30자 이상 입력하실 수 없습니다. */}
-                                        {language == 'ko' ? <> {phrase(dictionary, "webnovelTitleDescription", language)}</> : <></>}
-                                    </span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={title}
-                                    id="title"
-                                    className='input rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:border-[#2F2F2F] dark:bg-black dark:text-white text-black'
-                                    placeholder={phrase(dictionary, "webnovelTitle", language)}
-                                    onChange={(e) => setTitle(trim(e.target.value, 50))}
-                                />
-
-                            </div>
-                            <div className='mt-4'>
-                                <label htmlFor="author" className='text-sm ml-2'>
-                                    {/* 작가명 */}
-                                    {phrase(dictionary, "webnovelAuthor", language)}
-                                    <span className='text-red-500'>* </span>
-                                    <span className='text-gray-500 text-[12px]'>
-                                        {/* 작가명은 가입하셨을 때 닉네임과 동일합니다. */}
-                                        {language == 'ko' ? <> {phrase(dictionary, "webnovelAuthorDescription", language)}</> : <></>}
-                                    </span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={nickname}
-                                    disabled
-                                    id="author"
-                                    className='input rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:border-[#2F2F2F] bg-gray-300 dark:text-black'
-                                    placeholder={nickname}
-                                />
-                            </div>
-                            <div className="mt-4">
-                                <label htmlFor="genre" className='text-sm ml-2'>
-                                    {/* 장르 */}
-                                    {phrase(dictionary, "genre", language)}
-                                    <span className='text-red-500'>* </span>
-                                    <span className='text-gray-500 text-[12px]'>
-                                        {/* 장르를 선택해 주세요. */}
-                                        {language == 'ko' ? <> {phrase(dictionary, "genreDescription", language)}</> : <></>}
-                                    </span>
-                                </label>
-                                <select
-                                    id="genre"
-                                    className='rounded-md focus:ring-[#DB2777] bg-gray-200 w-full border border-gray-300 dark:border-[#2F2F2F] bg-transparent text-gray-500'
-                                    onChange={handleChangeGenre}
-                                >
-                                    <option disabled selected value="">{phrase(dictionary, "genre", language)}</option>
-                                    <option value="romanceFantasy">{phrase(dictionary, "romanceFantasy", language)}</option>
-                                    <option value="romance">{phrase(dictionary, "romance", language)}</option>
-                                    <option value="bl">{phrase(dictionary, "bl", language)}</option>
-                                    <option value="fantasy">{phrase(dictionary, "fantasy", language)}</option>
-                                    <option value="sf">{phrase(dictionary, "sf", language)}</option>
-                                </select>
-                            </div>
-
-                            <div className="mt-4">
-                                <label htmlFor="language" className='text-sm ml-2'>
-                                    {/* 언어선택 */}
-                                    {phrase(dictionary, "language", language)}
-                                    <span className='text-red-500'>* </span>
-                                    <span className='text-gray-500 text-[12px]'>
-                                        {/* 집필 언어를 선택해 주세요. */}
-                                        {language == 'ko' ? <> {phrase(dictionary, "languageDescription", language)}</> : <></>}
-                                    </span>
-                                </label>
-                                <select
-                                    id="language"
-                                    className="rounded-md focus:ring-[#DB2777] bg-gray-200 w-full border border-gray-300 dark:border-[#2F2F2F] bg-transparent text-gray-500"
-                                    onChange={handleChangeLanguage}>
-                                    <option disabled selected value="">{phrase(dictionary, "language", language)}</option>
-                                    <option value="ko">{phrase(dictionary, "korean", language)}</option>
-                                    <option value="en">{phrase(dictionary, "english", language)}</option>
-                                    <option value="ja">{phrase(dictionary, "japanese", language)}</option>
-                                    <option value="zh-CN">{phrase(dictionary, "chineseSimplified", language)}</option>
-                                    <option value="zh-TW">{phrase(dictionary, "chineseTraditional", language)}</option>
-                                    <option value="th">{phrase(dictionary, "thai", language)}</option>
-                                    <option value="id">{phrase(dictionary, "indonesian", language)}</option>
-                                    <option value="vi">{phrase(dictionary, "vietnamese", language)}</option>
-                                    <option value="ar">{phrase(dictionary, "arabic", language)}</option>
-                                </select>
-                            </div>
-                            <br />
-                            <div className="flex flex-row space-x-4">
-                                <div className='flex flex-col w-full'>
-                                    <label htmlFor="description" className='text-sm ml-2'>
-                                        {/* 작품소개 */}
-                                        {phrase(dictionary, "description", language)}
-                                        <span className='text-red-500'>* </span>
-                                        <span className='text-gray-500 text-[12px]'>
-                                            {/* 작품소개는 500자 이상 입력하실 수 없습니다. */}
-                                            {language == 'ko' ? <> {phrase(dictionary, "descriptionDescription", language)}</> : <></>}
-                                        </span>
+            {!isLoggedInAndRegistered ? (
+                <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
+                    <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
+                    <Link
+                        href="/signin"
+                        className='px-4 py-2 bg-pink-200 hover:bg-[#DB2777] hover:text-white rounded-md transition-all duration-300 dark:bg-gray-800 dark:hover:bg-gray-700'
+                    >
+                        {phrase(dictionary, "login", language)}
+                    </Link>
+                </div>
+            ) : (
+                <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
+                    <div className='flex flex-col md:border md:border-gray-300 md:dark:border-[#2F2F2F] rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
+                        {/* Mui dark theme color code : divider [#2F2F2F] */}
+                        <form onSubmit={handleAddWebnovel}>
+                            <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
+                            <div className="mt-10 md:w-[500px] w-full">
+                                <>
+                                    <label htmlFor="author" className='text-sm ml-2'>
+                                        <div className='flex flex-row gap-1 items-center'>
+                                            {/* 커버등록 */}
+                                            {phrase(dictionary, "uploadCoverArt", language)}
+                                            <span className='text-red-500'>*</span>
+                                            <span className='text-gray-500 text-[12px]'>
+                                                {/* 작품의 표지를 등록해 주세요. */}
+                                                {language == 'ko' ? <> {phrase(dictionary, "uploadCoverArtDescription", language)}</> : ''}
+                                            </span>
+                                            <InfoTooltip
+                                                title={
+                                                    <div className='flex flex-col gap-2 space-y-2'>
+                                                        <p className={`text-sm font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
+                                                            {/* {replaceSmartQuotes(language === 'ko' ? WebnovelTermsInfo : WebnovelTermsInfo_en)} */}
+                                                            {phrase(dictionary, "coverArtMustBeInA53AspectRatio", language)}
+                                                        </p>
+                                                        <p className={`text-sm ${language == 'ko' ? 'break-keep' : ''}`}>
+                                                            {phrase(dictionary, "coverArtSize", language)}
+                                                        </p>
+                                                    </div>
+                                                }
+                                            >
+                                                <Link href="" className='p-0'><Info size={12} /></Link>
+                                            </InfoTooltip>
+                                        </div>
                                     </label>
-                                    <textarea
-                                        value={description}
-                                        rows={5}
-                                        id="description"
-                                        className='textarea rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:border-[#2F2F2F] bg-transparent'
-                                        placeholder={phrase(dictionary, "description", language)}
-                                        onChange={(e) => setDescription(trim(e.target.value, 500))}
-                                    />
-                                </div>
+                                    <div className='flex flex-col gap-2 mt-2'>
+                                        <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
+                                        <Button
+                                            onClick={handleCoverArtUploadModal}
+                                            variant='outline'
+                                            className='bg-[#DB2777] dark:bg-[#DB2777] hover:opacity-80  text-white  dark:text-white self-start border-0 w-[200px]'>
+                                            {/* Upload Cover Art */}
+                                            {phrase(dictionary, "uploadCoverArt", language)}
+                                        </Button>
+                                    </div>
+                                </>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    id='coverArtFile'
+                                    onChange={handleFileChange}
+                                />
                             </div>
-                            <br />
-                            {/* submit button */}
-                            <div className='flex justify-center items-center mb-8'>
-                                <NoCapsButton
-                                    color='gray'
-                                    variant='text'
-                                    ref={buttonRef}
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="whitespace-nowrap px-4 py-2 transition-all duration-300
+                            <div className="flex flex-col md:flex-row md:space-x-4 items-center md:items-start">
+                                <div className="md:mr-4 md:mt-4 w-full">
+
+                                    <div className="flex flex-col mt-4">
+                                        <label htmlFor="title" className='text-sm ml-2'>
+                                            {/* 작품명 */}
+                                            {phrase(dictionary, "webnovelTitle", language)}
+                                            <span className='text-red-500'>* </span>
+                                            <span className='text-gray-500 text-[12px]'>
+                                                {/* 작품명은 30자 이상 입력하실 수 없습니다. */}
+                                                {language == 'ko' ? <> {phrase(dictionary, "webnovelTitleDescription", language)}</> : <></>}
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={title}
+                                            id="title"
+                                            className='input rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:border-[#2F2F2F] dark:bg-black dark:text-white text-black'
+                                            placeholder={phrase(dictionary, "webnovelTitle", language)}
+                                            onChange={(e) => setTitle(trim(e.target.value, 50))}
+                                        />
+
+                                    </div>
+                                    <div className='mt-4'>
+                                        <label htmlFor="author" className='text-sm ml-2'>
+                                            {/* 작가명 */}
+                                            {phrase(dictionary, "webnovelAuthor", language)}
+                                            <span className='text-red-500'>* </span>
+                                            <span className='text-gray-500 text-[12px]'>
+                                                {/* 작가명은 가입하셨을 때 닉네임과 동일합니다. */}
+                                                {language == 'ko' ? <> {phrase(dictionary, "webnovelAuthorDescription", language)}</> : <></>}
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={nickname}
+                                            disabled
+                                            id="author"
+                                            className='input rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:border-[#2F2F2F] bg-gray-300 dark:text-black'
+                                            placeholder={nickname}
+                                        />
+                                    </div>
+                                    <div className="mt-4">
+                                        <label htmlFor="genre" className='text-sm ml-2'>
+                                            {/* 장르 */}
+                                            {phrase(dictionary, "genre", language)}
+                                            <span className='text-red-500'>* </span>
+                                            <span className='text-gray-500 text-[12px]'>
+                                                {/* 장르를 선택해 주세요. */}
+                                                {language == 'ko' ? <> {phrase(dictionary, "genreDescription", language)}</> : <></>}
+                                            </span>
+                                        </label>
+                                        <select
+                                            id="genre"
+                                            className='rounded-md focus:ring-[#DB2777] bg-gray-200 w-full border border-gray-300 dark:border-[#2F2F2F] bg-transparent text-gray-500'
+                                            onChange={handleChangeGenre}
+                                        >
+                                            <option disabled selected value="">{phrase(dictionary, "genre", language)}</option>
+                                            <option value="romanceFantasy">{phrase(dictionary, "romanceFantasy", language)}</option>
+                                            <option value="romance">{phrase(dictionary, "romance", language)}</option>
+                                            <option value="bl">{phrase(dictionary, "bl", language)}</option>
+                                            <option value="fantasy">{phrase(dictionary, "fantasy", language)}</option>
+                                            <option value="sf">{phrase(dictionary, "sf", language)}</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <label htmlFor="language" className='text-sm ml-2'>
+                                            {/* 언어선택 */}
+                                            {phrase(dictionary, "language", language)}
+                                            <span className='text-red-500'>* </span>
+                                            <span className='text-gray-500 text-[12px]'>
+                                                {/* 집필 언어를 선택해 주세요. */}
+                                                {language == 'ko' ? <> {phrase(dictionary, "languageDescription", language)}</> : <></>}
+                                            </span>
+                                        </label>
+                                        <select
+                                            id="language"
+                                            className="rounded-md focus:ring-[#DB2777] bg-gray-200 w-full border border-gray-300 dark:border-[#2F2F2F] bg-transparent text-gray-500"
+                                            onChange={handleChangeLanguage}>
+                                            <option disabled selected value="">{phrase(dictionary, "language", language)}</option>
+                                            <option value="ko">{phrase(dictionary, "korean", language)}</option>
+                                            <option value="en">{phrase(dictionary, "english", language)}</option>
+                                            <option value="ja">{phrase(dictionary, "japanese", language)}</option>
+                                            <option value="zh-CN">{phrase(dictionary, "chineseSimplified", language)}</option>
+                                            <option value="zh-TW">{phrase(dictionary, "chineseTraditional", language)}</option>
+                                            <option value="th">{phrase(dictionary, "thai", language)}</option>
+                                            <option value="id">{phrase(dictionary, "indonesian", language)}</option>
+                                            <option value="vi">{phrase(dictionary, "vietnamese", language)}</option>
+                                            <option value="ar">{phrase(dictionary, "arabic", language)}</option>
+                                        </select>
+                                    </div>
+                                    <br />
+                                    <div className="flex flex-row space-x-4">
+                                        <div className='flex flex-col w-full'>
+                                            <label htmlFor="description" className='text-sm ml-2'>
+                                                {/* 작품소개 */}
+                                                {phrase(dictionary, "description", language)}
+                                                <span className='text-red-500'>* </span>
+                                                <span className='text-gray-500 text-[12px]'>
+                                                    {/* 작품소개는 500자 이상 입력하실 수 없습니다. */}
+                                                    {language == 'ko' ? <> {phrase(dictionary, "descriptionDescription", language)}</> : <></>}
+                                                </span>
+                                            </label>
+                                            <textarea
+                                                value={description}
+                                                rows={5}
+                                                id="description"
+                                                className='textarea rounded-md focus:ring-[#DB2777] w-full border border-gray-300 dark:border-[#2F2F2F] bg-transparent'
+                                                placeholder={phrase(dictionary, "description", language)}
+                                                onChange={(e) => setDescription(trim(e.target.value, 500))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <br />
+                                    {/* submit button */}
+                                    <div className='flex justify-center items-center mb-8'>
+                                        <Button
+                                            variant='outline'
+                                            ref={buttonRef}
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="whitespace-nowrap px-4 py-2 transition-all duration-300
                                              bg-pink-200 hover:bg-[#DB2777] hover:text-white
                                              dark:bg-gray-800 border-0
                                              dark:hover:bg-gray-700
                                               ">
-                                    {/*Spinny wheel when submitting*/}
-                                    <CloudUpload size={16} className='mr-2' />
-                                    {isSubmitting ?
-                                        <CircularProgress size="1rem" color='secondary' />
-                                        :
-                                        phrase(dictionary, "save", language)}
-                                </NoCapsButton>
-                            </div>
-                        </div>
-                        {/* modal for input all info */}
-                        <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                            <Box sx={useModalStyle}>
-                                <Typography className="text-center">
-                                    <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-                                    <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-                                        {phrase(dictionary, "inputAllInfo", language)}
-                                    </h3>
-                                    <div className="flex justify-center gap-4">
-                                        <ThemeProvider theme={grayTheme}>
-                                            <Button color='gray' variant='outlined' onClick={() => setOpenModal(false)}>
-                                                {phrase(dictionary, "ok", language)}
-                                            </Button>
-                                        </ThemeProvider>
+                                            {/*Spinny wheel when submitting*/}
+                                            <CloudUpload size={16} className='mr-2' />
+                                            {isSubmitting ?
+                                                <CircularProgress size="1rem" color='secondary' />
+                                                :
+                                                phrase(dictionary, "save", language)}
+                                        </Button>
                                     </div>
-                                </Typography>
-                            </Box>
-                        </Modal>
-                        {/* modal for cover art upload */}
-                        <CoverArtModal
-                            coverArt={coverArt}
-                            setCoverArtFile={setCoverArtFile}
-                            handleCoverArtUploadModal={handleCoverArtUploadModal}
-                            handleUploadFile={handleCoverArtUpload}
-                            handleFileChange={handleFileChange}
-                            showCoverArtModal={showCoverArtModal}
-                            setShowCoverArtModal={setShowCoverArtModal}
-                        />
-                        {/* modal for consent to terms of service */}
-                        <TermsOfServiceModal
-                            open={showTermsOfServiceModal}
-                            onClose={() => setShowTermsOfServiceModal(false)}
-                            onSubmit={handleFinalSubmit}
-                            isSubmitting={isSubmitting}
-                        />
-                    </div>
-                </form>
-              </div>
-             <div className='h-[10vh]' />
-            </div>
-        )}
+                                </div>
+                                {/* modal for input all info */}
+                                <Dialog open={openModal} onOpenChange={setOpenModal}>
+                                    <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center'>
+                                        <DialogHeader>
+                                            <DialogTitle>
+                                                <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200 text-center" />
+                                                <p className='text-2xl font-bold text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                <p className='text-base text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <div className="flex justify-center gap-4">
+                                                <Button color='primary' variant='outline' className='border-0 bg-black text-white dark:text-black dark:bg-white dark:hover:opacity-80' onClick={() => setOpenModal(false)}>
+                                                    {phrase(dictionary, "ok", language)}
+                                                </Button>
+                                            </div>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                                {/* modal for cover art upload */}
+                                <CoverArtModal
+                                    coverArt={coverArt}
+                                    setCoverArtFile={setCoverArtFile}
+                                    handleCoverArtUploadModal={handleCoverArtUploadModal}
+                                    handleUploadFile={handleCoverArtUpload}
+                                    handleFileChange={handleFileChange}
+                                    showCoverArtModal={showCoverArtModal}
+                                    setShowCoverArtModal={setShowCoverArtModal}
+                                />
+                                {/* modal for consent to terms of service */}
+                                <TermsOfServiceModal
+                                    open={showTermsOfServiceModal}
+                                    onClose={() => setShowTermsOfServiceModal(false)}
+                                    onSubmit={handleFinalSubmit}
+                                    isSubmitting={isSubmitting}
+                                />
+                            </div>
+                        </form>
+                    </div >
+                    <div className='h-[10vh]' />
+                </div >
+            )}
         </>
     )
 }

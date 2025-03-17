@@ -44,6 +44,8 @@ interface CreateMediaContextType {
     makeSlideshow: () => Promise<void>;
     makeVideo: () => Promise<void>;
     generateTrailer: (chapter_ids: number[]) => Promise<void>;
+    shareType: ImageOrVideo;
+    setShareType: Dispatch<SetStateAction<ImageOrVideo>>;
 }
 
 // Create context with default values
@@ -69,7 +71,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const [loadingVideoGeneration, setLoadingVideoGeneration] = useState(false);
     const [webnovel_id, setWebnovelId] = useState<string>("");
     const [chapter_id, setChapterId] = useState<string>("");
-
+    const [shareType, setShareType] = useState<ImageOrVideo>("video");
     // Default refs - these would typically be initialized properly in the component using the context
     const defaultDraggableNodeRef = React.useRef<HTMLDivElement>(null);
     const defaultPromotionBannerRef = React.useRef<React.JSX.Element>(<></>);
@@ -304,6 +306,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         makeSlideshow,
         makeVideo,
         generateTrailer,
+        shareType,
+        setShareType,
     };
 
     return <CreateMediaContext.Provider value={value}>{children}</CreateMediaContext.Provider>;

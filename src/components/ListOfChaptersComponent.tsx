@@ -42,6 +42,10 @@ const ListOfChaptersComponent = ({
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
 
+    useEffect(() => {
+        console.log('webnovel?.price_korean', webnovel?.price_korean);
+    }, [webnovel]);
+
     const loadMoreChapters = () => {
         setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
     };

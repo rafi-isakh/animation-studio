@@ -38,6 +38,11 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     useEffect(() => {
+        setWebnovels(allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
+                                                        && novel.available_languages.includes(language)));
+    }, [language])
+
+    useEffect(() => {
         fetchWebnovelsMetadata();
     }, []);
 

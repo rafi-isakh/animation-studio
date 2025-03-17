@@ -64,7 +64,7 @@ const ListOfChaptersComponent = ({
 
     const handleChapterClick = (chapter: Chapter) => {
         if (!webnovel?.available_languages.includes(language)) {
-            alert(phrase(dictionary, "thisChapterIsNotAvailableInYourLanguage", language));
+            alert(phrase(dictionary, "languageNotAvailable", language));
             return;
         }
         if (chapter.free) {

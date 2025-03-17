@@ -2,6 +2,7 @@
 import { Chapter, Language, Webnovel } from '@/components/Types';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useLanguage } from './LanguageContext';
 
 // Define the shape of the context state
 interface WebnovelsContextState {
@@ -22,7 +23,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [allWebnovels, setAllWebnovels] = useState<Array<Webnovel>>([]);
     const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); 
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
-    const [language] = useState<Language>('en');
+    const { language } = useLanguage();
 
     const fetchWebnovelsMetadata = async () => {
         const response = await fetch(`/api/get_webnovels_metadata`, {

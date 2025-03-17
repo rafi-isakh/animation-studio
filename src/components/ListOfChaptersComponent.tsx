@@ -63,6 +63,10 @@ const ListOfChaptersComponent = ({
     }
 
     const handleChapterClick = (chapter: Chapter) => {
+        if (!webnovel?.available_languages.includes(language)) {
+            alert(phrase(dictionary, "thisChapterIsNotAvailableInYourLanguage", language));
+            return;
+        }
         if (chapter.free) {
             router.push(`/view_webnovels/chapter_view/${chapter.id}`);
         } else {

@@ -397,7 +397,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div> 
                             */}
 
-                            {/* app download button for mobile screen */}
+                            {/* app download button for mobile screen
                             <div className="inline-flex">
                                 <div className='items-center md:hidden justify-center ml-1'>
                                     <Button
@@ -416,7 +416,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     </Button>
                                 </div>
 
-                            </div>
+                            </div> */}
                             {/* Top navi menu button persist in mobile screen */}
                             <div ref={hamburgerRef}>
                                 <button

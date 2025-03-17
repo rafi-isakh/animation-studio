@@ -5,12 +5,12 @@ import { useEffect } from "react";
 import { Language } from "./Types";
 
 export default function LanguageSetter() {
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, setLanguageOverride } = useLanguage();
 
     useEffect(() => {
         const setLanguageFromCountry = async () => {
-            if (localStorage.getItem('language-override')) {
-                setLanguage(localStorage.getItem('language-override')! as Language);
+            if (localStorage.getItem('language_override')) {
+                setLanguageOverride(localStorage.getItem('language_override')! as Language);
                 return;
             }
             const userCountry = await getCountryFromIP();

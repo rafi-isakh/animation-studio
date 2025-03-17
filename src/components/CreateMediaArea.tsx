@@ -60,7 +60,7 @@ export default function CreateMediaArea({
         stars: number,
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
-    const { makeVideo, makeSlideshow, showShareAsPostModal, setLoadingVideoGeneration,setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
+    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration,setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
     const { getWebnovelById } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -350,7 +350,7 @@ export default function CreateMediaArea({
                 </div>
             </div>
             <ShareAsToonyzPostModal
-                imageOrVideo={'video' as ImageOrVideo}
+                imageOrVideo={shareType as ImageOrVideo}
                 showShareAsPostModal={showShareAsPostModal}
                 setShowShareAsPostModal={setShowShareAsPostModal}
                 index={0}

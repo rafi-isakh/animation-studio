@@ -457,7 +457,7 @@ const FloatingMenu: React.FC<{
                     <DialogHeader>
                         <DialogTitle>{phrase(dictionary, "confirmGeneration", language)}</DialogTitle>
                         <DialogDescription>
-                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription", language)}</p>
+                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
                             {/* Your stars  */}
 
                             <AIPromotionComponent />

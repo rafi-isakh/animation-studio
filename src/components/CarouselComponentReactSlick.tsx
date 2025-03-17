@@ -43,7 +43,6 @@ const CarouselComponentReactSlick = ({
     const getCenterPadding = (padding?: string | PaddingConfig) => {
         if (typeof window === 'undefined') return '0px';
 
-        // If padding is a string, use it for both desktop and mobile
         if (typeof padding === 'string') {
             return padding;
         }
@@ -52,7 +51,7 @@ const CarouselComponentReactSlick = ({
         const paddingConfig = padding as PaddingConfig;
         return isMediumScreen
             ? (paddingConfig?.desktop || '20px')
-            : (paddingConfig?.mobile || '10px');
+            : (paddingConfig?.mobile || '20px');
     };
 
     function SampleNextArrow(props: any) {
@@ -118,6 +117,7 @@ const CarouselComponentReactSlick = ({
         autoplay: true,
         className: "center",
         centerMode: true,
+        centerPadding: getCenterPadding(centerPadding),
         dots: showDots,
         dotsClass: "slick-dots",
         appendDots: (dots: any) => (
@@ -149,7 +149,6 @@ const CarouselComponentReactSlick = ({
                 </span>
             </div>
         ),
-        centerPadding: getCenterPadding(centerPadding),
         spacing: 0,
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
@@ -256,6 +255,7 @@ const CarouselComponentReactSlick = ({
                  .slider-container {
                     padding-top: 0;
                   }
+
                  .slick-slide {
                     padding: 0 2px;  
                   }   
@@ -271,10 +271,7 @@ const CarouselComponentReactSlick = ({
                   .slide-content img {
                     margin-right: 0;
                   }
-                   .active-slide img {
-                     
-                   }
-
+          
                   .active-slide {        
                       opacity: 1;
                       z-index: 2;
@@ -296,15 +293,7 @@ const CarouselComponentReactSlick = ({
                   .active-slide:hover .slide-content {
                       opacity: 1;
                   }
-                  .outlined-text {
-                      text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
-                  }
-                  .no-outlined-text {
-                      text-shadow: none;
-                  }
-
-
-                
+              
               `}
             </style>
         </div>

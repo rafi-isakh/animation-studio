@@ -88,7 +88,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {/* <PromotionBannerComponent /> */}
                 </div>
             </div>
-            <Footer />
         </div>
     );
 }

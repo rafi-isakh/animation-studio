@@ -1,5 +1,5 @@
 "use client"
-import { Chapter, Webnovel } from '@/components/Types';
+import { Chapter, Language, Webnovel } from '@/components/Types';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
@@ -19,8 +19,10 @@ interface WebnovelsContextState {
 const WebnovelsContext = createContext<WebnovelsContextState | undefined>(undefined);
 // Create a provider component
 export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [allWebnovels, setAllWebnovels] = useState<Array<Webnovel>>([]);
     const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); 
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
+    const [language] = useState<Language>('en');
 
     const fetchWebnovelsMetadata = async () => {
         const response = await fetch(`/api/get_webnovels_metadata`, {
@@ -30,8 +32,9 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
             console.error("Failed to fetch webnovels metadata", response.status);
         }
         const data = await response.json();
-        console.log('data', data[0])
-        setWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id)));
+        setAllWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id)));
+        setWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
+                                                        && novel.available_languages.includes(language)));
     }
 
     useEffect(() => {

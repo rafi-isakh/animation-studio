@@ -34,7 +34,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         const data = await response.json();
         setAllWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id)));
         setWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
-                                                        && novel.available_languages.includes(language)));
+                                                        && !novel.available_languages.includes(language)));
     }
 
     useEffect(() => {

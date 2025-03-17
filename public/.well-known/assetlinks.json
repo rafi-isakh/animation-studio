@@ -1,8 +1,8 @@
 [{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "app.vercel.toonyz_frontend_git_app_stelland.twa",
-    "sha256_cert_fingerprints": ["CA:BD:73:8F:B6:3D:32:80:15:A5:1B:D7:F8:BF:07:5C:32:85:D9:D9:3F:3A:27:DD:7D:3B:E0:CC:E3:3C:70:22"]
-  }
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.toonyz_frontend_git_pwa_stelland.twa",
+        "sha256_cert_fingerprints": ["CA:6E:FC:C0:BD:63:B5:5D:56:C1:17:DD:BC:BD:B0:D3:F9:7D:B7:45:17:65:8C:0F:9A:3B:EC:06:89:BD:67:F7"]
+    }
 }]

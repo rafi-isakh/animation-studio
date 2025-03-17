@@ -83,6 +83,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
                     {smallGap()}
+                    {largeGap()}
                     {/* <CarouselComponent items={items} searchParams={searchParams} />
                     {largeGap()} */}
                     {/* <PromotionBannerComponent /> */}

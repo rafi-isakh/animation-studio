@@ -123,7 +123,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         }, 300);
         const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
             method: 'POST',
-            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
+            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B", language: language })
         })
         if (!response.ok) {
             toast({

@@ -291,7 +291,7 @@ const FloatingMenu: React.FC<{
         try {
             const response = await fetch(`/api/generate_pictures`, {
                 method: 'POST',
-                body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
+                body: JSON.stringify({ text: initialPrompt, n: 4, context: chapter.content, language: language })
             })
 
             // const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)

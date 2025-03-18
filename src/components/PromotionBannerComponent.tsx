@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,6 +13,29 @@ export const AIPromotionComponent: React.FC = () => {
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
   const { dictionary, language } = useLanguage()
   const { stars } = useUser();
+
+  const handleImageLoad = useCallback(() => {
+    console.log('Image loaded successfully');
+  }, []);
+
+  const optimizedImage = useMemo(() => (
+    <Image
+      src='/stelli/stelli_8.svg'
+      alt='Toonyz event banner'
+      loading="eager"
+      priority={true}
+      sizes="cover"
+      width={0}
+      height={0}
+      className='relative -bottom-1 mx-auto z-10'
+      style={{
+        width: isDesktop ? '100px' : '70px',
+        height: 'auto'
+      }}
+      onLoad={handleImageLoad}
+    />
+  ), [isDesktop, handleImageLoad]); 
+
 
   return (
     <Link href='/stars' className="cursor-pointer">
@@ -41,18 +64,7 @@ export const AIPromotionComponent: React.FC = () => {
                 </button>
               </div>
             </div>
-            <Image
-              src='/stelli/stelli_8.svg'
-              alt='Toonyz event banner'
-              sizes="cover"
-              width={0}
-              height={0}
-              className='relative -bottom-1 mx-auto z-10'
-              style={{
-                width: isDesktop ? '100px' : '70px',
-                height: 'auto'
-              }}
-            />
+            {optimizedImage}
           </div>
         </div>
       </div>

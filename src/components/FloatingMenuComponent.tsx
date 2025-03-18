@@ -36,7 +36,9 @@ import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgres
 import { useCreateMedia } from '@/contexts/CreateMediaContext';
 import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
 import { useUser } from '@/contexts/UserContext';
- 
+import WatermarkedImage from '@/utils/watermark';
+import { getImageUrl } from '@/utils/urls';
+
 type Position = {
     x: number;
     y: number;
@@ -415,7 +417,20 @@ const FloatingMenu: React.FC<{
                         </DialogDescription>
                     </DialogHeader>
 
-                    {selectedTextRef.current && <span> {truncateText(selectedTextRef.current, 197)}</span>}
+                    <WatermarkedImage
+                        imageUrl={getImageUrl(webnovel.cover_art)}
+                        watermarkUrl="/toonyz_logo_white.svg"
+                        webnovelTitle={webnovel?.title}
+                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === chapter_id)?.title || chapter_id}
+                        quote={truncateText(selectedTextRef.current, 100)}
+                        watermarkOpacity={0.9}
+                        width={400}
+                        height={400}
+                        watermarkPosition="centerRight"
+                        titlePosition="centerLeft"
+                        titleColor="white"
+                        className="object-cover h-full w-full overflow-hidden scale-100 transition-all duration-300 opacity-30"
+                    />
 
                     <div className="flex items-center space-x-2">
                         <div className="grid flex-1 gap-2">
@@ -458,26 +473,18 @@ const FloatingMenu: React.FC<{
                         <DialogDescription>
                             <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
                             {/* Your stars  */}
-                            {useMemo(() => <AIPromotionComponent />, [])}
+                            <AIPromotionComponent />
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex !justify-center">
                         <div className="flex flex-row justify-center items-center gap-2 mt-4">
-
-                            {/* <Button
-                                variant="outline"
-                                onClick={() => { router.push('/stars') }}
-                                className="bg-[#D92979] hover:bg-[#D92979]/50 text-white"
-                            >
-                                {phrase(dictionary, "buyStars", language)}
-                            </Button> */}
 
                             <Button
                                 onClick={handleConfirmGeneration}
                                 className="bg-black hover:bg-[#D92979]/50 text-white"
                             >
                                 <MdStars className="text-xl text-[#D92979]" />
-                                {phrase(dictionary, "deduct", language)}{' '}
+                                15 {phrase(dictionary, "deduct", language)}{' '}
                                 {phrase(dictionary, "ok", language)}
                             </Button>
                             <Button

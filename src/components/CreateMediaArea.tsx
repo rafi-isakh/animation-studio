@@ -83,7 +83,7 @@ export default function CreateMediaArea({
         <div>
             <div
                 ref={draggableNodeRef}
-                className={`sm:max-w-[360px] md:max-w-[425px] w-full max-h-screen h-screen select-none fixed top-0 right-1 p-0  
+                className={`max-[360px]:w-full md:max-w-[425px] w-full max-h-screen h-screen select-none fixed top-0 right-1 p-0  
                             bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
                             rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
                             ${openDialog ? 'block z-[100]' : 'hidden'}`}

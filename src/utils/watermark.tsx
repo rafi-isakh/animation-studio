@@ -171,11 +171,11 @@ export default function WatermarkedImage({
             ctx.fillText(webnovelTitle, x, y - (titlePosition === "bottom" ? 30 : (titlePosition === "centerLeft" || titlePosition === "centerRight") ? 15 : 0))
           }
 
-          if (chapterTitle) {
-            ctx.font = `${chapterFontSize}px Arial`
-            ctx.fillText(chapterTitle, x, (titlePosition === "top") ? y + 30 : 
-                                         (titlePosition === "centerLeft" || titlePosition === "centerRight") ? y + 15 : y)
-          }
+          // if (chapterTitle) {
+          //   ctx.font = `${chapterFontSize}px Arial`
+          //   ctx.fillText(chapterTitle, x, (titlePosition === "top") ? y + 30 : 
+          //                                (titlePosition === "centerLeft" || titlePosition === "centerRight") ? y + 15 : y)
+          // }
         }
 
         // Convert canvas to data URL

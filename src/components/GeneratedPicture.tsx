@@ -1,12 +1,9 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { ImageOrVideo } from "./Types";
-import ShareAsToonyzPostModal from "./ShareAsToonyzPostModal";
 import { Button } from "@/components/shadcnUI/Button";
-// import { CardContent } from "@/components/shadcnUI/Card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
-import { Share, Image as ImageIcon, Clapperboard, Sparkles, ArrowLeft, Download, Heart, MoreHorizontal, Edit, Video, BookMarked } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { Share } from "lucide-react";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 
 export default function GeneratedPicture({

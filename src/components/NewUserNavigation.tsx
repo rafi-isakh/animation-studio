@@ -18,6 +18,7 @@ export function NavigationEvents() {
             logout(false, '/');
         }
     }
+    // This obviously isn't new user navigation. probably should rename this file.
     if (pathname !== '/view_webnovels') {
       setOpenDialog(false);
     }

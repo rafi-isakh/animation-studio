@@ -68,7 +68,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <div className='flex-1 w-full md:max-w-screen-xl overflow-hidden'>
                 {/*    The side bar width is 72px  md:pl-[72px]  */}
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
-                <CarouselComponentReactSlick items={items} centerMode={true} slidesToShow={2} showDots={true} centerPadding={{ desktop: '10px', mobile: '30px' }} />
+                <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} />
                 {smallGap()}
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}

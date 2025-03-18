@@ -83,7 +83,7 @@ export default function CreateMediaArea({
         <div>
             <div
                 ref={draggableNodeRef}
-                className={`sm:max-w-[425px] max-h-screen h-screen select-none fixed top-0 right-1 p-0  
+                className={`sm:max-w-[360px] md:max-w-[425px] w-full max-h-screen h-screen select-none fixed top-0 right-1 p-0  
                             bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
                             rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
                             ${openDialog ? 'block z-[100]' : 'hidden'}`}
@@ -91,18 +91,19 @@ export default function CreateMediaArea({
             >
                 <div className='drag-handle flex-shrink-0'>
                     <div className="flex flex-col p-4 justify-center">
-                        <h3 className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                            <MdStars className="text-lg md:text-xl text-[#D92979]" /> {phrase(dictionary, "star", language)}: {stars}{phrase(dictionary, "count", language)}
-                        </h3>
+                        
                         <div className="flex items-center justify-between border-b pb-2">
                             <div className="flex items-center">
                                 {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
-                                <div>
+                                <div className="flex items-center justify-center gap-2">
                                     <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
+                                    <h1 className="text-lg md:text-xl text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                        <MdStars className="text-lg md:text-xl text-[#D92979]" /> {phrase(dictionary, "star", language)} {stars}{phrase(dictionary, "count", language)}
+                                    </h1>
                                 </div>
                             </div>
                             <div className="flex items-start gap-2">
-                                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation()
@@ -113,7 +114,7 @@ export default function CreateMediaArea({
                                         setNarrations([]);
                                     }}>
                                     <RefreshCcw className="h-5 w-5" />
-                                </Button>
+                                </Button> */}
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                     onClick={(e) => {
                                         e.preventDefault();

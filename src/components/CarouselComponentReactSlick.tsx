@@ -220,10 +220,10 @@ const CarouselComponentReactSlick = ({
                 ))}
 
             </CarouselContent>
-            {showControls && (
+            {showControls && isDesktop && (
                 <>
-                    <CarouselPrevious className="left-2 md:left-4" />
-                    <CarouselNext className="right-2 md:right-4" />
+                    <CarouselPrevious className="left-2 md:left-4 dark:border-gray-400 text-gray-400" />
+                    <CarouselNext className="right-2 md:right-4 dark:border-gray-400 text-gray-400" />
                 </>
             )}
             <div className="absolute bottom-0 left-0 right-0 py-2 text-center">

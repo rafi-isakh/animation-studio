@@ -97,53 +97,55 @@ const FloatingMenu: React.FC<{
     const { stars, setInvokeCheckUser } = useUser();
     const [context, setContext] = useState<string>("");
 
+    const [isSelecting, setIsSelecting] = useState(false);
+
+    // Listen for touch events to mark selection start/end
+    useEffect(() => {
+        const handleTouchStart = () => setIsSelecting(true);
+        const handleTouchEnd = () => setIsSelecting(false);
+
+        document.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, []);
+
+    const handleSelectionChange = () => {
+        const activeSelection = document.getSelection();
+        if (!activeSelection) return;
+        const text = activeSelection.toString().trim()
+        if (!text) return;
+        const rect = activeSelection.getRangeAt(0).getBoundingClientRect()
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+            setPosition({
+                x: rect.left - containerRect.left + (rect.width / 2) - (100 / 2),
+                y: rect.top + 20 - containerRect.top - 25,
+                width: rect.width,
+                height: rect.height,
+            })
+            setSelection(text)
+            selectedTextRef.current = text
+            //setTestText(text)
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            handleCloseFloatingButton();
+            setOpenDialog(false);
+        }
+    };
+
     useEffect(() => {
 
         setChapterId(chapter_id);
         setWebnovelId(webnovel_id);
-        const handleSelectionChange = () => {
-            const activeSelection = document.getSelection();
-            // const contextRange = activeSelection?.getRangeAt(0).cloneRange();
-            // if (contextRange) {
-            //     const startContainer = contextRange.startContainer;
-            //     const startOffset = Math.max(0, contextRange.startOffset - 200);
-                
-            //     // Get the maximum valid offset for the end container
-            //     const maxLength = startContainer.textContent?.length || 0;
-            //     const endOffset = Math.min(maxLength, contextRange.endOffset + 200);
-                
-            //     contextRange.setStart(startContainer, startOffset);
-            //     contextRange.setEnd(startContainer, endOffset);
-            //     setContext(contextRange.toString());
-            // }
-            if (!activeSelection) return;
-            const text = activeSelection.toString().trim()
-            if (!text) return;
-            const rect = activeSelection.getRangeAt(0).getBoundingClientRect()
-            const containerRect = containerRef.current?.getBoundingClientRect();
-            if (containerRect) {
-                setPosition({
-                    x: rect.left - containerRect.left + (rect.width / 2) - (100 / 2),
-                    y: rect.top - containerRect.top - 25,
-                    width: rect.width,
-                    height: rect.height,
-                })
-                setSelection(text)
-                selectedTextRef.current = text
-                //setTestText(text)
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-            }
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                handleCloseFloatingButton();
-                setOpenDialog(false);
-            }
-        };
-
         document.addEventListener('selectionchange', handleSelectionChange);
         document.addEventListener('keydown', handleKeyDown);
 

@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Plus, Video, Loader2 } from "lucide-react"
+import { Plus, Video, Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/shadcnUI/Button"
 import { ToonyzPost } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
@@ -61,35 +61,43 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                 <h1 className="text-2xl md:text-2xl font-bold mb-4 uppercase text-gray-700 dark:text-gray-300 break-words">
                     {phrase(dictionary, "bringStoriesToLife", language)}
                 </h1>
-                {/* <h2 className="text-3xl md:text-5xl font-medium mb-6">A visual thought partner for ideation & imagination</h2> */}
                 <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8">
                     {source === 'webnovel' ? phrase(dictionary, "letAIGenerateForFull", language) : phrase(dictionary, "selectTextAndLetAI", language)}
                 </p>
-                {
-                    source == 'webnovel' &&
-                    <Button 
-                        className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base"
-                        disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
-                        onClick={() => {
-                            if (chapterIds && chapterIds.length > 0) {
-                                setOpenDialog(true);
-                                generateTrailer(chapterIds);
-                            } else {
-                                toast({
-                                    title: "Error",
-                                    description: "No chapters available to generate trailer",
-                                    variant: "destructive"
-                                });
+
+                <div className="flex flex-row gap-2">
+                    {
+                        source == 'webnovel' &&
+                        <Button
+                            className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base"
+                            disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
+                            onClick={() => {
+                                if (chapterIds && chapterIds.length > 0) {
+                                    setOpenDialog(true);
+                                    generateTrailer(chapterIds);
+                                } else {
+                                    toast({
+                                        title: "Error",
+                                        description: "No chapters available to generate trailer",
+                                        variant: "destructive"
+                                    });
+                                }
+                            }}
+                        >
+                            {loadingVideoGeneration ?
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" /> :
+                                null
                             }
-                        }}
-                    >
-                        {loadingVideoGeneration ? 
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" /> : 
-                            null
-                        }
-                        {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />20
+                            {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />15
+                        </Button>
+                    }
+
+                    <Button className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base">
+                        <Link href="/stars" className="flex items-center gap-1">
+                            {phrase(dictionary, "stars", language)} <ArrowRight className="text-lg md:text-xl text-black" />
+                        </Link>
                     </Button>
-                }
+                </div>
             </div>
 
             {/* Cards Grid */}
@@ -113,8 +121,8 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                                 />
                             ))}
                             {/* {randomImages && randomImages.length > 0 && (
-                <PhotoCards posts={randomImages} />
-              )} */}
+                                <PhotoCards posts={randomImages} />
+                            )} */}
                         </div>
                     </div>
                 </Link>

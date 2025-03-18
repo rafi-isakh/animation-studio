@@ -45,13 +45,11 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         className: "center",
         nextArrow: <SampleNextArrow />,
         prevArrow: <SamplePrevArrow />,
-        lazyLoad: 'ondemand' as LazyLoadTypes,
         initialSlide: 0,
         responsive: [
             {
                 breakpoint: 768,
                 settings: {
-                    
                     slidesToShow: 1,
                     slidesToScroll: 1,
                     rows: 1,
@@ -64,7 +62,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     touchMove: true,
                     adaptiveHeight: true,
                     initialSlide: 0,
-                    lazyLoad: 'ondemand' as LazyLoadTypes,
                 }
             }
         ]
@@ -169,51 +166,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     </div>
                 ))}
             </Slider>
-            <style jsx global>
-                {`
-                   .custom-slider {
-                        width: 100%;
-                        overflow: visible !important;
-                    }
-
-                    .slick-track {
-                        display: flex !important;
-                    }
-
-                    .slick-slide {
-                        height: auto !important;
-                        display: flex !important;
-                    }
-
-                    .slick-slide > div {
-                        width: 100%;
-                        display: flex;
-                    }
-
-                    .custom-slider .slick-slide {
-                        padding: 0;  
-                    }
-
-                    @media (max-width: 768px) {
-                        .custom-slider .slick-slide {
-                            padding: 0 !important;
-                            margin: 0 !important;
-                        }
-                        
-                        .slick-list {
-                            overflow: hidden !important;
-                            padding: 0 !important;
-                            margin: 0 !important;
-                        }
-                        
-                        .slick-slide > div {
-                            width: 100%;
-                            padding: 0;
-                            margin: 0;
-                        }
-                    }
-                 `}
-            </style>
+         
         </div>
     )
 };

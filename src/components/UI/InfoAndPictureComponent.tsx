@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2 } from "lucide-react"
+import { Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";

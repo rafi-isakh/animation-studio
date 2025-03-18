@@ -227,7 +227,7 @@ export default function CreateMediaArea({
                                                 {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
                                                 {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><MdStars className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
                                             </Button>
-                                            <div className='relative'>
+                                            {/* <div className='relative'>
                                                 <Link href="#"
                                                     onClick={(e) => {
                                                         e.preventDefault();
@@ -245,7 +245,7 @@ export default function CreateMediaArea({
                                                         loadingVideoGeneration={loadingVideoGeneration}
                                                     />
                                                 </Link>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                 ) : (savedPrompt && source === 'chapter') && (

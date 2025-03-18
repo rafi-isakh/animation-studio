@@ -103,19 +103,19 @@ const FloatingMenu: React.FC<{
         setWebnovelId(webnovel_id);
         const handleSelectionChange = () => {
             const activeSelection = document.getSelection();
-            const contextRange = activeSelection?.getRangeAt(0).cloneRange();
-            if (contextRange) {
-                const startContainer = contextRange.startContainer;
-                const startOffset = Math.max(0, contextRange.startOffset - 200);
+            // const contextRange = activeSelection?.getRangeAt(0).cloneRange();
+            // if (contextRange) {
+            //     const startContainer = contextRange.startContainer;
+            //     const startOffset = Math.max(0, contextRange.startOffset - 200);
                 
-                // Get the maximum valid offset for the end container
-                const maxLength = startContainer.textContent?.length || 0;
-                const endOffset = Math.min(maxLength, contextRange.endOffset + 200);
+            //     // Get the maximum valid offset for the end container
+            //     const maxLength = startContainer.textContent?.length || 0;
+            //     const endOffset = Math.min(maxLength, contextRange.endOffset + 200);
                 
-                contextRange.setStart(startContainer, startOffset);
-                contextRange.setEnd(startContainer, endOffset);
-                setContext(contextRange.toString());
-            }
+            //     contextRange.setStart(startContainer, startOffset);
+            //     contextRange.setEnd(startContainer, endOffset);
+            //     setContext(contextRange.toString());
+            // }
             if (!activeSelection) return;
             const text = activeSelection.toString().trim()
             if (!text) return;

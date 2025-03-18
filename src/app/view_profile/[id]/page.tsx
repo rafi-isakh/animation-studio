@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 
 async function getUser(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?user_id=${id}`);
     if (!response.ok) {
         const errorData = await response.json();
         console.error(errorData);

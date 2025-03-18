@@ -38,7 +38,7 @@ export default function CardStyleButton({
         <Button
             variant="outline"
             className={cn(
-                "!w-[150px] rounded-full overflow-hidden text-left transition-transform duration-300 ease-out !text-sm",
+                "!w-[150px] rounded-full overflow-hidden text-left transition-transform duration-300 ease-out !text-sm p-3 md:p-2",
                 // "bg-gradient-to-b from-pink-600 to-pink-500",
                 "bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none",
                 isHovered ? "" : "",

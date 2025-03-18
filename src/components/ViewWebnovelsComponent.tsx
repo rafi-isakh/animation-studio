@@ -11,6 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { MoveLeft } from 'lucide-react';
 
 const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     searchParams: { [key: string]: string | string[] | undefined },
@@ -28,7 +29,7 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [content, setContent] = useState<Webnovel | null>(null);
     const { invalidateCache } = useWebnovels();
-   
+
     const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
     };
@@ -128,7 +129,11 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
                 <div className='md:max-w-screen-xl mx-auto w-full min-h-screen'>
                     <div className="flex md:flex-row flex-col justify-between items-start">
                         <div className="md:w-1/3 max-auto w-full flex-grow-0">
-                            <div className="md:max-w-[360px] w-full  mx-auto mt-4">
+                            <div className="md:max-w-[360px] w-full mx-auto mt-4">
+                                <Link href="/" className={`items-center gap-1 text-black hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden z-[999]`}>
+                                    <MoveLeft size={20} className='dark:text-white text-black' />
+                                    <p className="text-sm font-base">Back</p>
+                                </Link>
                                 <AuthorAndWebnovelsAsideComponent
                                     webnovel={webnovel!}
                                     nickname={nickname}

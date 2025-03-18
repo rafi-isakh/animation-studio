@@ -1,4 +1,6 @@
 tsx,ko,ja,en,zh-TW,zh-CN,th,id,vi,ar
+ko,한국어,한국어,Korean,한국어,한국어,한국어,한국어,한국어,한국어
+en,영어,英語,English,英語,英语,ภาษาอังกฤษ,Bahasa Inggris,Tiếng Anh,الإنجليزية
 nickname,닉네임,ニックネーム,Nickname,暱稱,昵称,ชื่อเล่น,Nama panggilan,Tên người dùng,الاسم المستعار
 intro,소개를 입력하세요.,紹介,Type your bio here.,介紹,介绍,แนะนำ,Perkenalan,Giới thiệu,مقدمة
 register,등록,登録,Register,註冊,注册,สมัครสมาชิก,Daftar,Đăng ký,تسجيل
@@ -383,10 +385,11 @@ bringStoriesToLife,이야기를 현실로 만드세요,,Bring Stories to Life,,
 selectTextAndLetAI,텍스트를 드래그해서 선택하고 AI로 멋진 이미지\, 비디오\, 슬라이드쇼를 만들어 보세요,,Drag text to select it and let AI generate stunning images\, videos\, and slideshows,,
 letAIGenerateForFull,투니즈 AI 미스릴을 사용해 웹소설을 멋진 이미지\, 비디오\, 슬라이드쇼로 만들어 보세요.,,Let Toonyz's AI\, Mithril\, generate stunning images\, videos\, and slideshows of the webnovel.,,
 confirmGeneration,정말로 이미지를 생성하시겠습니까?,,Are you sure you want to generate images?,,
-confirmGenerationDescription,이 작업은 별을 소모합니다.,,This will use your credits.,,
+confirmGenerationDescription20Stars,이 작업은 별 15개를 소모합니다.,,This will use 15 stars.,,
 generateButton,생성하기,,Generate,,
 shareAsToonyzPost,투니즈 포스트로 공유하기,,Share as Toonyz Post,,
 ICreatedVisualizations,선택하신 내용으로 그림을 그려보았습니다.,,I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.,,
 notEnoughStars,별이 부족합니다.,,You don't have enough stars.,,
 count,개,,,,
 languageNotAvailable,이 웹소설은 이 언어로 제공되지 않습니다.,,This webnovel is not available in this language.,,
+engaged,참여 합니다,,engaged,,

@@ -375,7 +375,8 @@ const CommentsComponent = ({
                                                         className='flex flex-row gap-2 items-center hover:opacity-80 transition duration-150 ease-in-out'>
                                                         <Redo2 size={16} className='text-gray-600' />
                                                         {/* Reply */}
-                                                        <span className='text-gray-600 text-sm'>  {phrase(dictionary, "reply", language)}</span>
+                                                        {/* <span className='text-gray-600 text-sm'>  {phrase(dictionary, "reply", language)}</span> */}
+                                                        <span className='text-gray-600 text-sm'>  {comment.replies?.length > 0 ? comment.replies?.length : "0"}</span>
                                                     </Link>
                                                 </div>
 

@@ -44,6 +44,10 @@ interface CreateMediaContextType {
     makeSlideshow: () => Promise<void>;
     makeVideo: () => Promise<void>;
     generateTrailer: (chapter_ids: number[]) => Promise<void>;
+    shareType: ImageOrVideo;
+    setShareType: Dispatch<SetStateAction<ImageOrVideo>>;
+    picture: string;
+    setPicture: Dispatch<SetStateAction<string>>;
 }
 
 // Create context with default values
@@ -69,7 +73,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const [loadingVideoGeneration, setLoadingVideoGeneration] = useState(false);
     const [webnovel_id, setWebnovelId] = useState<string>("");
     const [chapter_id, setChapterId] = useState<string>("");
-
+    const [shareType, setShareType] = useState<ImageOrVideo>("video");
     // Default refs - these would typically be initialized properly in the component using the context
     const defaultDraggableNodeRef = React.useRef<HTMLDivElement>(null);
     const defaultPromotionBannerRef = React.useRef<React.JSX.Element>(<></>);
@@ -78,6 +82,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const { toast } = useToast();
     const { stars, setInvokeCheckUser } = useUser();
     const { dictionary, language } = useLanguage();
+    const [picture, setPicture] = useState<string>("");
 
     useEffect(() => {
         if (pictures.length > 0) {
@@ -112,13 +117,13 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         setIsLoading(true);
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                const newProgress = prev + (5 * Math.random());
+                const newProgress = prev + (2 * Math.random());
                 return newProgress > 95 ? 95 : newProgress;
             });
         }, 300);
         const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
             method: 'POST',
-            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B" })
+            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B", language: language })
         })
         if (!response.ok) {
             toast({
@@ -304,6 +309,10 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         makeSlideshow,
         makeVideo,
         generateTrailer,
+        shareType,
+        setShareType,
+        picture,
+        setPicture,
     };
 
     return <CreateMediaContext.Provider value={value}>{children}</CreateMediaContext.Provider>;

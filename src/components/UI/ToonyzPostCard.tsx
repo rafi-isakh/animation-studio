@@ -145,7 +145,7 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
 
                         )}
                         {post.video && (
-                            <video src={getVideoUrl(post.video)} autoPlay muted loop className="w-full h-auto object-cover" />
+                            <video src={getVideoUrl(post.video)} autoPlay playsInline muted loop className="w-full h-auto object-cover" />
                         )}
                     </Link>
                 </div>

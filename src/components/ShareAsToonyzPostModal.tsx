@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import DictionaryPhrase from "./DictionaryPhrase"
+import { useCreateMedia } from "@/contexts/CreateMediaContext"
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -53,12 +54,13 @@ export default function ShareAsToonyzPostModal({
     const displayQuote = quote.length > 200 ? quote.slice(0, 200) + "..." : quote;
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const { picture } = useCreateMedia();
 
     const handleShareAsPost = async () => {
         try {
             setIsLoading(true);
             if (imageOrVideo === 'image') {
-                if (!image) {
+                if (!picture) {
                     console.error('Image is undefined');
                     toast({
                         variant: "destructive",
@@ -69,7 +71,7 @@ export default function ShareAsToonyzPostModal({
                     setIsLoading(false);
                     return;
                 }
-                const fileBufferBase64 = Buffer.from(image, 'base64').toString('base64');
+                const fileBufferBase64 = Buffer.from(picture, 'base64').toString('base64');
                 const fileName = `${index}-${Date.now()}.png`;
                 const fileType = 'image/png';
                 const bucketName = 'toonyzbucket'

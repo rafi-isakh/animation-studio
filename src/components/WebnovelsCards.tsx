@@ -11,6 +11,7 @@ import { filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { filter_by_genre } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
+
 const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;

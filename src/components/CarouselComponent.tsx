@@ -162,7 +162,7 @@ const CarouselComponent = ({ searchParams, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    showDots={false} 
+                   
                     centerPadding='0px' 
                 />
             </div>
@@ -172,7 +172,7 @@ const CarouselComponent = ({ searchParams, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    showDots={false} 
+                  
                     centerPadding='0px' 
                 />
             </div>
@@ -182,7 +182,7 @@ const CarouselComponent = ({ searchParams, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    showDots={false} 
+                   
                     centerPadding='0px' 
                 />
             </div>
@@ -193,7 +193,7 @@ const CarouselComponent = ({ searchParams, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    showDots={false} 
+                    
                     centerPadding='0px' 
                 />
             </div>
@@ -203,7 +203,7 @@ const CarouselComponent = ({ searchParams, items }: {
                 <CarouselComponentReactSlick 
                     items={items} 
                     slidesToShow={3} 
-                    showDots={false} 
+                     
                     centerPadding='0px' 
                 />
             </div>

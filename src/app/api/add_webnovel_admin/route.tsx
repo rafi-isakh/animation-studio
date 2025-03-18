@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     const title = formData.get('title')
     const description = formData.get('description')
-    const coverArt = formData.get('coverArt') as File
+    const coverArt = formData.get('cover_art') as File
     const genre = formData.get('genre')
     const language = formData.get('language')
     const userEmail = formData.get('user_email')
@@ -22,10 +22,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const userIsAuthor = formData.get('user_is_author') === 'true'
     const authorEmail = formData.get('author_email')
     const authorNickname = formData.get('author_nickname')
-    const publisherEnglishName = formData.get('publisherEnglishName')
-    const publisherKoreanName = formData.get('publisherKoreanName')
-    const publisherEmail = formData.get('publisherEmail')
-    const numberOfFreeChapters = formData.get('numberOfFreeChapters')
+    const publisherEnglishName = formData.get('publisher_english_name')
+    const publisherKoreanName = formData.get('publisher_korean_name')
+    const publisherEmail = formData.get('publisher_email')
+    const priceKorean = formData.get('price_korean')
+    const priceEnglish = formData.get('price_english')
+    const numberOfFreeChapters = formData.get('num_free_chapters')
     const tags = JSON.stringify((formData.get('tags') as string).split(' ').map((tag: string) => tag.replace(",", "").trim()));
     const fileType = coverArt.type;
     const fileContent = Buffer.from(await coverArt.arrayBuffer());
@@ -66,7 +68,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
         user_is_author: userIsAuthor,
         author_email: authorEmail,
         author_nickname: authorNickname,
-        available_languages: availableLanguages
+        available_languages: availableLanguages,
+        price_korean: priceKorean,
+        price_english: priceEnglish
     }
 
     console.log(send_data);

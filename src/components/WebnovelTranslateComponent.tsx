@@ -156,7 +156,9 @@ const WebnovelTranslateComponent = (
         height: scrollType === 'horizontal' ? '100vh' : 'auto',
         overflowY: scrollType === 'horizontal' ? 'hidden' : 'auto',
         overflowX: scrollType === 'horizontal' ? 'auto' : 'hidden',
-        touchAction: scrollType === 'horizontal' ? 'pan-x' : 'auto',
+        touchAction: scrollType === 'horizontal' ? 'pan-x pinch-zoom' : 'pan-y pinch-zoom',
+        WebkitUserSelect: 'text',
+        userSelect: 'text',
     };
 
     useEffect(() => {
@@ -261,13 +263,19 @@ const WebnovelTranslateComponent = (
         <div
             style={paragraphStyle}
             className={`relative mb-16
-                       ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
+                       ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}
+            onTouchStart={(e) => e.stopPropagation()}>
                     {text &&
                      <>
                     {scrollType === 'vertical' &&
                         <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
-                            style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
+                            style={{ 
+                                whiteSpace: 'pre-wrap', 
+                                direction: `${isRtl}` as Direction,
+                                WebkitUserSelect: 'text',
+                                userSelect: 'text',
+                            }}
                             onContextMenu={(e) => e.preventDefault()}
                             className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
                             >
@@ -303,10 +311,17 @@ const WebnovelTranslateComponent = (
                                 <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-1'>
                                     <div
                                         id='first-half'
-                                        className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
-                                        style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                                        className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase select-text'
+                                        style={{ 
+                                            direction: `${isRtl}` as Direction, 
+                                            whiteSpace: 'pre-wrap',
+                                            WebkitUserSelect: 'text',
+                                            userSelect: 'text',
+                                            touchAction: 'manipulation',
+                                        }}
                                         dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords) }}
-                                        onContextMenu={(e) => e.preventDefault()}>
+                                        onContextMenu={(e) => e.preventDefault()}
+                                        onTouchStart={(e) => e.stopPropagation()}>
                                     </div>
                                 </div>
                                 <div className='w-[4rem]'>
@@ -314,10 +329,17 @@ const WebnovelTranslateComponent = (
                                 <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-2'>
                                     <div
                                         id='second-half'
-                                        className='w-full'
-                                        style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                                        className='w-full select-text'
+                                        style={{ 
+                                            direction: `${isRtl}` as Direction, 
+                                            whiteSpace: 'pre-wrap',
+                                            WebkitUserSelect: 'text',
+                                            userSelect: 'text',
+                                            touchAction: 'manipulation',
+                                        }}
                                         dangerouslySetInnerHTML={{ __html: textPostProcess(secondPageWords) }}
-                                        onContextMenu={(e) => e.preventDefault()}>
+                                        onContextMenu={(e) => e.preventDefault()}
+                                        onTouchStart={(e) => e.stopPropagation()}>
                                     </div>
                                 </div>
                             </div>

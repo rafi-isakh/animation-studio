@@ -22,6 +22,7 @@ import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import DictionaryPhrase from "./DictionaryPhrase"
 import { useCreateMedia } from "@/contexts/CreateMediaContext"
+import { useRouter } from "next/navigation";
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -55,8 +56,9 @@ export default function ShareAsToonyzPostModal({
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const { picture } = useCreateMedia();
-
+    const router = useRouter();
     const handleShareAsPost = async () => {
+        let postResponseData;
         try {
             setIsLoading(true);
             if (imageOrVideo === 'image') {
@@ -106,6 +108,7 @@ export default function ShareAsToonyzPostModal({
 
                     return;
                 }
+                postResponseData = await createResponse.json();
             }
             else if (imageOrVideo === 'video') {
                 console.log(videoFileName)
@@ -136,6 +139,7 @@ export default function ShareAsToonyzPostModal({
 
                     return;
                 }
+                postResponseData = await response.json();
             }
             toast({
                 title: "Success",
@@ -151,6 +155,7 @@ export default function ShareAsToonyzPostModal({
                 description: "An unexpected error occurred"
             });
         } finally {
+            router.push(`/toonyz_posts/${postResponseData.id}`);
             setIsLoading(false);
         }
     };

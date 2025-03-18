@@ -51,11 +51,10 @@ const FloatingMenu: React.FC<{
     webnovel_id: string;
     chapter_id:
     string;
-    context: string,
     webnovel: Webnovel,
     chapter: Chapter,
     selectedTextRef: React.MutableRefObject<string>;
-}> = ({ children, webnovel_id, chapter_id, context, webnovel, chapter, selectedTextRef }) => {
+}> = ({ children, webnovel_id, chapter_id, webnovel, chapter, selectedTextRef }) => {
     const router = useRouter();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -96,13 +95,27 @@ const FloatingMenu: React.FC<{
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
     const { stars, setInvokeCheckUser } = useUser();
+    const [context, setContext] = useState<string>("");
 
     useEffect(() => {
 
         setChapterId(chapter_id);
         setWebnovelId(webnovel_id);
         const handleSelectionChange = () => {
-            const activeSelection = document.getSelection()
+            const activeSelection = document.getSelection();
+            const contextRange = activeSelection?.getRangeAt(0).cloneRange();
+            if (contextRange) {
+                const startContainer = contextRange.startContainer;
+                const startOffset = Math.max(0, contextRange.startOffset - 200);
+                
+                // Get the maximum valid offset for the end container
+                const maxLength = startContainer.textContent?.length || 0;
+                const endOffset = Math.min(maxLength, contextRange.endOffset + 200);
+                
+                contextRange.setStart(startContainer, startOffset);
+                contextRange.setEnd(startContainer, endOffset);
+                setContext(contextRange.toString());
+            }
             if (!activeSelection) return;
             const text = activeSelection.toString().trim()
             if (!text) return;
@@ -271,7 +284,7 @@ const FloatingMenu: React.FC<{
 
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                const newProgress = prev + (5 * Math.random());
+                const newProgress = prev + (2 * Math.random());
                 return newProgress > 95 ? 95 : newProgress;
             });
         }, 300);
@@ -279,7 +292,7 @@ const FloatingMenu: React.FC<{
         try {
             const response = await fetch(`/api/generate_pictures`, {
                 method: 'POST',
-                body: JSON.stringify({ text: initialPrompt, n: 4, context: context })
+                body: JSON.stringify({ text: initialPrompt, n: 4, context: chapter.content, language: language })
             })
 
             // const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)

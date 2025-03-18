@@ -9,13 +9,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { text, context, n} = await request.json();
+    const { text, context, n, language } = await request.json();
     if (!text || !context) {
         return NextResponse.json({ error: 'Text and context are required' }, { status: 400 });
     }
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/generate_pictures`, {
         method: 'POST',
-        body: JSON.stringify({ text, context, n }),
+        body: JSON.stringify({ text, context, n, language }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.accessToken}`,

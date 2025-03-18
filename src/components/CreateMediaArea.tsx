@@ -19,6 +19,7 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import CreateMediaDefaultContents from "@/components/UI/CreateMediaDefaultContents"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip"
 import { make_video_price, generate_pictures_price, generate_trailer_price } from "@/utils/stars";
 import { MdStars } from "react-icons/md";
 
@@ -60,7 +61,7 @@ export default function CreateMediaArea({
         stars: number,
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
-    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration,setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
+    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
     const { getWebnovelById } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -91,7 +92,7 @@ export default function CreateMediaArea({
             >
                 <div className='drag-handle flex-shrink-0'>
                     <div className="flex flex-col p-4 justify-center">
-                        
+
                         <div className="flex items-center justify-between border-b pb-2">
                             <div className="flex items-center">
                                 {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
@@ -103,18 +104,27 @@ export default function CreateMediaArea({
                                 </div>
                             </div>
                             <div className="flex items-start gap-2">
-                                {/* <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation()
-                                        setIsLoading(false);
-                                        setLoadingVideoGeneration(false);
-                                        setPictures([]);
-                                        setSelection('');
-                                        setNarrations([]);
-                                    }}>
-                                    <RefreshCcw className="h-5 w-5" />
-                                </Button> */}
+                                <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation()
+                                                    setIsLoading(false);
+                                                    setLoadingVideoGeneration(false);
+                                                    setPictures([]);
+                                                    setSelection('');
+                                                    setNarrations([]);
+                                                }}>
+                                                <RefreshCcw className="h-5 w-5" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            Reset
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -131,7 +141,7 @@ export default function CreateMediaArea({
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
                     <div className='relative w-full'>
                         {isLoading ? (
-                            <div className="flex flex-col gap-4 w-[425px]">
+                            <div className="flex flex-col gap-4 max-[360px]:w-full md:max-w-[425px] w-full">
                                 <div className="flex flex-col my-6 space-y-4 mb-2">
                                     <div className="flex flex-col select-none">
 

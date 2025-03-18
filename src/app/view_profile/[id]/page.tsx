@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 
 async function getUser(id: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?user_id=${id}`,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`,
         {
             cache: 'no-store',
         }

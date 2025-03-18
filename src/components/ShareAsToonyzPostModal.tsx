@@ -201,9 +201,9 @@ export default function ShareAsToonyzPostModal({
                             <Image
                                 src={`data:image/png;base64,${image}`}
                                 alt={`image ${index + 1}`}
-                                width={200}
-                                height={200}
-                                className="object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
+                                width={250}
+                                height={250}
+                                className="self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
                             />
                             <div
                                 className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
@@ -217,12 +217,13 @@ export default function ShareAsToonyzPostModal({
                             <video
                                 src={getVideoUrl(videoFileName)}
                                 // alt={`Generated video ${index + 1}`}
-                                width={200}
-                                height={200}
+                                width={250}
+                                height={250}
                                 autoPlay={true}
                                 muted={true}
                                 loop={true}
                                 playsInline
+                                className='self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300'
                                 />
                             </>
                         )}

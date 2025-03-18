@@ -115,7 +115,6 @@ const FloatingMenu: React.FC<{
                 })
                 setSelection(text)
                 selectedTextRef.current = text
-
                 //setTestText(text)
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
@@ -416,7 +415,7 @@ const FloatingMenu: React.FC<{
                         </DialogDescription>
                     </DialogHeader>
 
-                    {/* {selection && <span> {truncateText(selection, 197)}</span>} */}
+                    {selectedTextRef.current && <span> {truncateText(selectedTextRef.current, 197)}</span>}
 
                     <div className="flex items-center space-x-2">
                         <div className="grid flex-1 gap-2">

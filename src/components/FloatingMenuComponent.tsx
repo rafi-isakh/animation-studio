@@ -269,7 +269,7 @@ const FloatingMenu: React.FC<{
         }
 
         const initialPrompt = selectedTextRef.current;
-        setSavedPrompt(truncateText(initialPrompt, 150));
+        setSavedPrompt(initialPrompt);
         if (!initialPrompt) {
             toast({
                 title: "Error",

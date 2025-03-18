@@ -93,7 +93,9 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                     }
 
                     <Button className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base">
-                        {phrase(dictionary, "stars", language)} <ArrowRight className="text-lg md:text-xl text-black" />
+                        <Link href="/stars" className="flex items-center gap-1">
+                            {phrase(dictionary, "stars", language)} <ArrowRight className="text-lg md:text-xl text-black" />
+                        </Link>
                     </Button>
                 </div>
             </div>

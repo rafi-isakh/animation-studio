@@ -56,62 +56,17 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                         <div className="absolute inset-0" />
                         <div className="absolute inset-0 flex flex-col items-center justify-end p-4 opacity-100 transition-all duration-300 z-10">
                             <div className="flex flex-col items-center text-center">
-                                {isHovered && (
-                                    <div className="absolute inset-0 flex flex-col bg-white dark:bg-[#211F21]">
-                                        <Image 
-                                            src={getImageUrl(webnovel.cover_art) || "/placeholder.svg"} 
-                                            alt={webnovel.title} 
-                                            width={isMobile ? 100 : 170}
-                                            height={isMobile ? 70 : 150}
-                                            className={`md:h-[170px] h-[100px] w-full object-cover `} />
-                                        <div className="flex flex-1 flex-col p-3">
-                                            <div className="mb-2 flex items-center justify-between">
-                                                <div className="flex gap-2">
-
-                                                {/* <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black hover:bg-white/90">
-                                                    <Play className="h-4 w-4" />
-                                                </button> */}
-                                                <div className="flex flex-wrap gap-2">
-                                                    {webnovel.available_languages
-                                                        .replace(/[\"\[\]]/g, '')
-                                                        .split(',')
-                                                        .map((language, index) => (
-                                                            <span key={index} className="md:text-sm text-[10px] font-bold bg-gray-200 dark:bg-gray-700 text-black dark:text-white px-2 py-1 rounded-md">
-                                                                {phrase(dictionary, language.trim(), language as Language)}
-                                                            </span>
-                                                        ))}
-                                                </div>
-                                                </div>
-                                               
-                                                <button className="flex md:h-8 md:w-8 w-6 h-6 items-center justify-center rounded-full border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
-                                                    <Heart className="md:h-4 md:w-4 w-3 h-3" />
-                                                </button>
-
-
-                                            </div>
-                                            {/* <div className="mb-2 flex items-center gap-2 text-sm">
-                                                <span className="text-white font-semibold">{phrase(dictionary, webnovel.genre, language)}</span>
-                                            </div> */}
-
-                                            <OtherTranslateComponent
-                                                content={webnovel.title}
-                                                elementId={webnovel.id.toString()}
-                                                elementType="webnovel"
-                                                elementSubtype="title"
-                                                classParams="text-[10px] md:text-base font-medium line-clamp-2 w-full text-black dark:text-white break-keep korean truncate"
-                                            />
-                                            <p className="text-[10px] md:text-sm font-bold w-full truncate text-black dark:text-white flex flex-col md:flex-row justify-center">
-                                                {webnovel.author.nickname}
-                                                <span className="hidden md:block text-black dark:text-white"> • </span>
-                                                <span className="text-black dark:text-white">{phrase(dictionary, webnovel.genre, language)}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* {isHovered && (
+                                    <OtherTranslateComponent
+                                        content={webnovel.title}
+                                        elementId={webnovel.id.toString()}
+                                        elementType="webnovel"
+                                        elementSubtype="title"
+                                        classParams="text-[10px] md:text-base font-medium line-clamp-2 w-full text-white dark:text-white break-keep korean truncate"
+                                    />
+                                )} */}
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>

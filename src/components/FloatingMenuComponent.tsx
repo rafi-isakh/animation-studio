@@ -1,5 +1,5 @@
 'use Client'
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -458,8 +458,7 @@ const FloatingMenu: React.FC<{
                         <DialogDescription>
                             <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
                             {/* Your stars  */}
-
-                            <AIPromotionComponent />
+                            {useMemo(() => <AIPromotionComponent />, [])}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex !justify-center">

@@ -13,6 +13,8 @@ import { MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar";
 import useMediaQuery from '@mui/material/useMediaQuery';
 import CardsScroll from "@/components/CardsScroll";
+import { phrase } from "@/utils/phrases";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionCardProps {
     id: string
@@ -39,6 +41,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
     const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const firstImageWidth = images.length > 1 ? "w-1/2" : "w-full";
+    const { language, dictionary } = useLanguage();
 
     // Replace useState with useRef for video elements
     const videoRefs = [
@@ -191,7 +194,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                         <span className="mx-1">•</span>
                         <span>{formatRelativeTime(created_at)}</span>
                         <span className="mx-1"><MessageCircle className="w-4 h-4" /></span>
-                        <span>{commentCount} Comments</span>
+                        <span>{commentCount} {phrase(dictionary, 'comments', language)}</span>
                     </div>
                     {commentedBy.length > 0 && (
                         <div className="flex items-center">
@@ -210,8 +213,8 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                                     {commentedBy.length > 3
                                         ? `+${commentedBy.length - 3} more`
                                         : commentedBy.length === 1
-                                            ? `${commentedBy[0].nickname} engaged`
-                                            : `${commentedBy.length} engaged`}
+                                            ? `${commentedBy[0].nickname} ${phrase(dictionary, 'engaged', language)}`
+                                            : `${commentedBy.length} ${phrase(dictionary, 'engaged', language)}`}
                                 </span>
                             )}
                         </div>

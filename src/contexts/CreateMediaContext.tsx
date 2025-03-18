@@ -115,31 +115,38 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             return;
         }
         setIsLoading(true);
+        setSavedPrompt("");
+        setProgress(0);
         const progressInterval = setInterval(() => {
             setProgress(prev => {
                 const newProgress = prev + (2 * Math.random());
                 return newProgress > 95 ? 95 : newProgress;
             });
         }, 300);
-        const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
-            method: 'POST',
-            body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B", language: language })
-        })
-        if (!response.ok) {
+        try {
+            const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+                method: 'POST',
+                body: JSON.stringify({ chapter_ids: chapter_ids, trailer_style: "default", trailer_type: "B", language: language })
+            })
+            if (!response.ok) {
+                throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
+            }
+            const data = await response.json();
+            setPictures(data.images);
+            setPrompts(data.prompts);
+            setNarrations(data.narrations);
+        } catch (error) {
+            console.error('Trailer generation error:', error);
             toast({
                 title: "Error",
-                description: "Failed to generate trailer, please try again later",
+                description: error instanceof Error ? error.message : "An unexpected error occurred generating trailer",
                 variant: "destructive"
-            })
-            throw new Error('Failed to generate trailer: generate_trailer_prompts_and_pictures');
+            });
+        } finally {
+            setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
+            clearInterval(progressInterval);
+            setIsLoading(false);
         }
-        setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
-        const data = await response.json();
-        setPictures(data.images);
-        setPrompts(data.prompts);
-        setNarrations(data.narrations);
-        clearInterval(progressInterval);
-        setIsLoading(false);
         // Hands off to CreateMediaArea for rest of logic
     }
 
@@ -159,7 +166,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
                 });
                 if (!uploadResponse.ok) {
                     toast({
-                        title: "Error", 
+                        title: "Error",
                         description: "Failed to upload picture to s3, please try again later",
                         variant: "destructive"
                     })

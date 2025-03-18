@@ -107,10 +107,6 @@ export default function InfoAndPictureComponent({
                         bg-gradient-to-b from-transparent to-transparent 
                         justify-start self-start rounded-xl mx-auto ">
             {/* Blurred background */}
-            <Link href="/" className={`items-center gap-1 text-black hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden z-[999]`}>
-                <MoveLeft size={20} className='dark:text-white text-black' />
-                <p className="text-sm font-base">Back</p>
-            </Link>
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-10 rounded-xl md:h-screen h-full"
                 style={{

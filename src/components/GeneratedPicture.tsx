@@ -30,7 +30,7 @@ export default function GeneratedPicture({
     }) {
     const [showImageModal, setShowImageModal] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
-    const { setChapterId, setShowShareAsPostModal } = useCreateMedia();
+    const { setChapterId, setShowShareAsPostModal, setShareType, setPicture } = useCreateMedia();
 
     useEffect(() => {
         setChapterId(chapter_id);
@@ -41,7 +41,11 @@ export default function GeneratedPicture({
             id: 'post',
             icon: <Share size={10} />,
             tooltipText: 'Post to Toonyz',
-            onClick: () => setShowShareAsPostModal(true),
+            onClick: () => {
+                setShareType('image');
+                setShowShareAsPostModal(true);
+                setPicture(image);
+            },
             className: 'bg-[#DE2B74] hover:bg-pink-400'
         },
         // {

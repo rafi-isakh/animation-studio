@@ -270,7 +270,7 @@ const FloatingMenu: React.FC<{
 
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                const newProgress = prev + (5 * Math.random());
+                const newProgress = prev + (2 * Math.random());
                 return newProgress > 95 ? 95 : newProgress;
             });
         }, 300);

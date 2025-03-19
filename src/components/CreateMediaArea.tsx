@@ -218,7 +218,7 @@ export default function CreateMediaArea({
                                             </Button> */}
                                             <Button
                                                 variant="outline"
-                                                className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                className="p-4 md:p-3 min-h-[48px] rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
                                                 disabled={loadingVideoGeneration}
                                                 onClick={() => {
                                                     makeVideo();

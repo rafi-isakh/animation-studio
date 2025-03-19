@@ -9,6 +9,7 @@ import SearchComponent from '@/components/SearchComponent';
 import WebnovelsList from '@/components/WebnovelsList';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
+import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 // import WebnovelCard from '@/components/UI/WebnovelCard';
 
 const Search = () => {
@@ -63,7 +64,7 @@ const Search = () => {
       if (query) {
         const response = await fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
         const data = await response.json();
-        setWebnovels(data);
+        setWebnovels(data.filter((wenbnovel: Webnovel) => !temporarilyUnpublished.includes(wenbnovel.id)));
       }
       setLoading(false);
     }

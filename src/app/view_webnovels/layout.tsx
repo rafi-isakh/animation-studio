@@ -1,6 +1,6 @@
 'use client'
 import { Button } from "@/components/shadcnUI/Button";
-import { Sparkles } from "lucide-react";
+import { Router, Sparkles } from "lucide-react";
 import CreateMediaArea from "@/components/CreateMediaArea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import BlobButton from "@/components/UI/BlobButton";
@@ -9,17 +9,23 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CreateMediaProvider, useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useUser } from "@/contexts/UserContext";
+import { temporarilyUnpublished } from "@/utils/webnovelUtils";
+import { useRouter } from "next/navigation";
 const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
     const searchParams = useSearchParams()
     const id = searchParams.get("id")
     const { stars } = useUser();
-
+    const router = useRouter();
     useEffect(() => {
         if (id) {
             setWebnovelId(id);
+            if (temporarilyUnpublished.includes(parseInt(id))) {
+                router.push('/?premium=true')
+            }
         }
     }, [id]);
+
 
     const {
         isLoading,

@@ -45,7 +45,7 @@ const CarouselComponentReactSlick = ({
     const { language, dictionary } = useLanguage()
     const { webnovels } = useWebnovels()
     const plugin = useRef(
-        Autoplay({ delay: 2000, stopOnInteraction: true })
+        Autoplay({ delay: 3000, stopOnInteraction: true })
       )
     
 

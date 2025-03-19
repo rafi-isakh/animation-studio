@@ -106,6 +106,7 @@ const FloatingMenu: React.FC<{
 
         document.addEventListener('touchstart', handleTouchStart);
         document.addEventListener('touchend', handleTouchEnd);
+        document.addEventListener('contextmenu', (e) => {e.preventDefault()});
 
         return () => {
             document.removeEventListener('touchstart', handleTouchStart);
@@ -128,6 +129,7 @@ const FloatingMenu: React.FC<{
                 height: rect.height,
             })
             setSelection(text)
+            setSavedPrompt(text)
             selectedTextRef.current = text
             //setTestText(text)
             if (timeoutRef.current) {
@@ -269,7 +271,7 @@ const FloatingMenu: React.FC<{
         }
 
         const initialPrompt = selectedTextRef.current;
-        setSavedPrompt(truncateText(initialPrompt, 150));
+        setSavedPrompt(initialPrompt);
         if (!initialPrompt) {
             toast({
                 title: "Error",

@@ -136,7 +136,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
                             ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
                 <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
-                    <div className="relative flex justify-center md:-top-[2rem] -top-[2.1rem]">
+                    <div className="relative flex justify-center">
                         {/* user hover card */}
                         <UserInfoCard post={post} />
                     </div>

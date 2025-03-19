@@ -88,7 +88,7 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" /> :
                                 null
                             }
-                            {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />15
+                            {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />20
                         </Button>
                     }
 

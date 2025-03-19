@@ -94,6 +94,7 @@ const ListOfChaptersComponent = ({
                     price: language === "ko" ? webnovel?.price_korean : webnovel?.price_english // TODO: update this as you add more languages
                 })
             });
+            // TODO: tell user if there's not enough stars
             if (!response.ok) {
                 console.error('Failed to purchase chapter');
                 alert("Failed to purchase chapter");

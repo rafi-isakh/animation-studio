@@ -114,9 +114,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             })
             return;
         }
-        setIsLoading(true);
         setSavedPrompt("");
-        setProgress(0);
+        setIsLoading(true);
         const progressInterval = setInterval(() => {
             setProgress(prev => {
                 const newProgress = prev + (2 * Math.random());
@@ -144,6 +143,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             });
         } finally {
             setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
+            setProgress(0);
             clearInterval(progressInterval);
             setIsLoading(false);
         }

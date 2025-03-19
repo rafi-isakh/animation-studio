@@ -128,6 +128,7 @@ const FloatingMenu: React.FC<{
                 height: rect.height,
             })
             setSelection(text)
+            setSavedPrompt(text)
             selectedTextRef.current = text
             //setTestText(text)
             if (timeoutRef.current) {

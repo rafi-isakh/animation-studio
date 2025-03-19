@@ -56,7 +56,7 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     arrows: false,
                     centerPadding: '0px',
                     centerMode: false, 
-                    autoplay: true,
+                    autoplay: false,
                     speed: 500,
                     swipe: true,
                     touchMove: true,

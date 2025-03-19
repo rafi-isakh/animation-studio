@@ -106,6 +106,7 @@ const FloatingMenu: React.FC<{
 
         document.addEventListener('touchstart', handleTouchStart);
         document.addEventListener('touchend', handleTouchEnd);
+        document.addEventListener('contextmenu', (e) => {e.preventDefault()});
 
         return () => {
             document.removeEventListener('touchstart', handleTouchStart);

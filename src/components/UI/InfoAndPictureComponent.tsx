@@ -201,7 +201,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                 >
                                     <Link
-                                        href={content.chapters_length > 0 ? `/view_webnovels/chapter_view/${content.chapters[content.chapters_length - 1]?.id}` : `#`}
+                                        href={content.chapters_length > 0 ? `/view_webnovels/${content.id}/chapter_view/${content.chapters[content.chapters_length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
                                         {phrase(dictionary, "start_to_read_episode_1", language)}

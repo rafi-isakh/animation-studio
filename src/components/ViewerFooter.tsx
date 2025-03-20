@@ -124,8 +124,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         const nextId = getNextChapterId(chapter.id);
         const prevId = getPrevChapterId(chapter.id);
 
-        setNextChapterLink(`/view_webnovels/chapter_view/${nextId.toString()}`);
-        setPrevChapterLink(`/view_webnovels/chapter_view/${prevId.toString()}`);
+        setNextChapterLink(`/view_webnovels/${webnovel.id}/chapter_view/${nextId.toString()}`);
+        setPrevChapterLink(`/view_webnovels/${webnovel.id}/chapter_view/${prevId.toString()}`);
     }, [webnovel, chapter])
 
 

@@ -48,10 +48,7 @@ export default function BottomNavigationBar() {
     };
 
     const hideBottomNavigationInPages = () => {
-        if (pathname.startsWith('/view_webnovels')) { // hide bottom navigation in chapter view
-            return "hidden"
-        }
-        if (pathname.startsWith('/view_webnovels/chapter_view')) { // hide bottom navigation in chapter view
+        if (/^\/view_webnovels\/\d+\/chapter_view/.test(pathname)) { // hide bottom navigation in chapter view
             return "hidden"
         }
         return ""

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Language } from '@/components/Types';
+import { Language, Webnovel } from '@/components/Types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
@@ -30,6 +30,7 @@ import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -65,6 +66,15 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
+    const { getWebnovelById } = useWebnovels();
+    const [webnovel, setWebnovel] = useState<Webnovel>();
+
+    useEffect(() => {
+        if (pathname.startsWith("/view_webnovels")) {
+            const id = pathname.split("/")[2]; // /view_webnovels/1/chapter_view/1
+            getWebnovelById(id).then(setWebnovel);
+        }
+    }, [pathname]);
 
     useEffect(() => {
         if (searchParams.get("version") == "premium") {
@@ -72,25 +82,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         } else if (searchParams.get("version") == "free") {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
-            const id = searchParams.get("id");
-            if (premiumWebnovelIds.includes(parseInt(id!))) {
+            if (webnovel?.premium) {
                 setActiveTab('premium');
             } else {
                 setActiveTab('free');
             }
-        } else if (pathname.startsWith("/view_webnovels/chapter_view")) {
-            const id = pathname.split("/")[2];
-            if (premiumWebnovelIds.includes(parseInt(id))) {
-                setActiveTab('premium');
-            } else {
-                setActiveTab('free');
-            }
-        } else if (pathname.startsWith("/webtoons")) {
-            setActiveTab('webtoons');
-        } else if (pathname.startsWith("/toonyzcut")) {
-            setActiveTab('toonyzCut');
         }
-    }, [pathname, searchParams, premiumWebnovelIds])
+    }, [pathname, searchParams, premiumWebnovelIds, webnovel])
 
     useEffect(() => {
         if (pathname == "/") {
@@ -180,17 +178,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         }
     }
 
-    // // special handling for new_user page
-    // const inNewUser = () => {
-    //     return pathname == '/new_user'
-    // }
-
-    const handleSignOut = async (event: React.FormEvent) => {
-        event.preventDefault();
-        logout(true, '/');
-    };
-
-
     const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, language: Language) => {
         event.preventDefault();
         setLanguageOverride(language);
@@ -260,43 +247,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         setIsUserDropdownOpen(false);
     }
 
-    const isNovelPath = (pathname: string) => {
-        return pathname === '/' || pathname.startsWith('/webnovel') || pathname.startsWith('/view_webnovels')
-            || pathname.startsWith('/view_profile') || pathname.startsWith('/new_webnovel') || pathname.startsWith('/new_chapter')
-            || pathname.startsWith('/my_profile') || pathname.startsWith('/my_webnovels') || pathname.startsWith("/library")
-            || pathname.startsWith("/view_webnovels/chapter_view") || pathname.startsWith("/view_webnovels")
-    }
-    // Add this function to determine the active category
-    const isActive = (path: string) => {
-        if (path === '/?version=premium') {
-            return activeTab === 'premium';
-        } else if (path === '/?version=free') {
-            return activeTab === 'free';
-        }
-        return pathname.startsWith(path);
-    };
-
-    const highlightFree = () => {
-        return searchParams.get("version") == "free"
-    }
-
-    const highlightPremium = () => {
-        return searchParams.get("version") == "premium"
-    }
-
-    const highlightRomance = () => {
-        return searchParams.get("genre") == "romance"
-    }
-
-    const highlightToonyzCut = () => {
-        return searchParams.get("") == "toonyzCut"
-    }
-
-    const getFreePremiumUrl = (version: string) => {
-        return getUrlWithParams('version', version, pathname, searchParams);
-    };
-
-
     useEffect(() => {
         if (!searchRemember) {
             setRecentQueriesBackup(recentQueries)
@@ -306,10 +256,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         }
     }, [searchRemember])
 
-
-    const toggleDrawer = (newOpen: boolean) => () => {
-        setOpen(newOpen);
-    }
 
     const hideHeaderInPages = () => {
         if (pathname.startsWith('/mockup')) {

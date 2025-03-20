@@ -176,7 +176,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
             </Link >
 
             <div className="p-4">
-                <Link href={webnovel_id ? `/view_webnovels?id=${webnovel_id}` : "#"}>
+                <Link href={webnovel_id ? `/view_webnovels/${webnovel_id}` : "#"}>
                     <h2 className="text-2xl font-bold mb-1 text-black dark:text-white">
                         {/* {webnovel?.title} */}
                         <OtherTranslateComponent

@@ -40,7 +40,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                                 </span>
                             </div>
                             {/* Card content */}
-                            <Link href={`/view_webnovels?id=${webnovel.id}`}>
+                            <Link href={`/view_webnovels/${webnovel.id}`}>
                                 <div
                                     className={`relative overflow-hidden rounded-lg transition-all duration-300 pt-1 
                                                 hover:scale-105 

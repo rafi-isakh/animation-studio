@@ -24,7 +24,7 @@ const AuthorWorkListComponent = ({ webnovels, nickname }:
                 {webnovels?.map((webnovel, index) => (
                     <div key={index} className="flex-shrink-1">
                         <Link
-                            href={`/view_webnovels?id=${webnovel.id}`}
+                            href={`/view_webnovels/${webnovel.id}`}
                             className="cursor-pointer block py-2 min-w-[150px] max-w-[150px] mx-2 first:ml-0 last:mr-0"
                         >
                             <div className="flex flex-col dark:text-white hover:opacity-80 transition duration-150 ease-in-out rounded-sm h-full">

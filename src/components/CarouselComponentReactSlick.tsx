@@ -86,7 +86,7 @@ const CarouselComponentReactSlick = ({
     const effectiveSlidesToShow = isDesktop ? slidesToShow : 1
 
     function getHref(webnovel_id: number) {
-        return `/view_webnovels?id=${webnovel_id}`
+        return `/view_webnovels/${webnovel_id}`
     }
 
     function getGenre(index: number) {

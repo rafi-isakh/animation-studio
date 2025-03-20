@@ -56,7 +56,7 @@ const ListOfChaptersComponent = ({
             if (res.ok) {
                 setShowDeleteModal(false);
                 setTimeout(() => {
-                    window.location.href = `/view_webnovels?id=${webnovel?.id}`;
+                    window.location.href = `/view_webnovels/${webnovel?.id}`;
                 }, 100);
             } else {
                 console.error('Failed to delete chapter');

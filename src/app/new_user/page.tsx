@@ -109,7 +109,9 @@ export default function NewUser() {
             method: 'POST',
             body: formDataToSend,
         });
-        console.log(res);
+        if (!res.ok) {
+            throw new Error(`Failed to update user: ${res.statusText} ${res.status}`);
+        }
         router.push('/welcome');
     }
 

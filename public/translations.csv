@@ -393,4 +393,7 @@ ICreatedVisualizations,선택하신 내용으로 그림을 그려보았습니다
 notEnoughStars,별이 부족합니다.,,You don't have enough stars.,,
 count,개,,,,
 languageNotAvailable,이 웹소설은 이 언어로 제공되지 않습니다.,,This webnovel is not available in this language.,,
-engaged,참여 합니다,,engaged,,
+engaged,반응,,engaged,,
+invalid_promo_code,유효하지 않은 쿠폰 코드입니다.,,Invalid promo code,,
+promo_code_applied,쿠폰이 적용되었습니다.,,Promo code applied,,
+already_applied_promo_code,이미 적용된 쿠폰 코드입니다.,,Already applied promo code,,

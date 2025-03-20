@@ -27,7 +27,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
     }, [isMediumScreen])
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`} className="w-full">
+        <Link href={`/view_webnovels/${webnovel.id}`} className="w-full">
             <div className='flex flex-shrink-0 flex-nowrap justify-center items-center space-x-4 w-full p-2 text-sm font-pretendard'>
                 <div className="relative w-[45px] h-[65px] md:w-[75px] md:h-[105px] flex-shrink-0 rounded-lg">
                     <Image

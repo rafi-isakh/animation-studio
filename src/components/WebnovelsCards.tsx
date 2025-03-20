@@ -27,7 +27,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
-            .slice(0, 27)
+            .slice(0, 18)
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

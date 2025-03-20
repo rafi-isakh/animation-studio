@@ -59,12 +59,12 @@ export function WebnovelCard({
     const copyToClipboard = useCopyToClipboard();
 
     function getWebnovelUrl(webnovelId: string) {
-        return `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovelId}`;
+        return `${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovelId}`;
     }
 
     return (
         <div className="w-full mx-auto dark:bg-transparent backdrop-blur-sm bg-white rounded-xl overflow-hidden">
-        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+        <Link href={`/view_webnovels/${webnovel.id}`}>
             <div className="relative bg-gradient-to-r from-pink-300 to-pink-200/10 dark:from-pink-800 dark:to-purple-900/10 p-6 rounded-t-xl" >
                 <div className="z-10 flex items-start gap-6">
                     {/* Book Cover */}
@@ -125,19 +125,19 @@ export function WebnovelCard({
                                         <DropdownMenuSeparator />
                                         <div className="flex flex-col items-center gap-2">
                                             <div className="flex flex-row gap-2">
-                                                <TwitterShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels?id=${webnovel.id}`}>
+                                                <TwitterShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels/${webnovel.id}`}>
                                                     <TwitterIcon size={22} round={true} />
                                                 </TwitterShareButton>
-                                                <WhatsappShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels?id=${webnovel.id}`}>
+                                                <WhatsappShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels/${webnovel.id}`}>
                                                     <WhatsappIcon size={22} round={true} />
                                                 </WhatsappShareButton>
-                                                <TelegramShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels?id=${webnovel.id}`}>
+                                                <TelegramShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels/${webnovel.id}`}>
                                                     <TelegramIcon size={22} round={true} />
                                                 </TelegramShareButton>
-                                                <PinterestShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels?id=${webnovel.id}`} media={getImageUrl(webnovel.cover_art)}>
+                                                <PinterestShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels/${webnovel.id}`} media={getImageUrl(webnovel.cover_art)}>
                                                     <PinterestIcon size={22} round={true} />
                                                 </PinterestShareButton>
-                                                <LinkedinShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels?id=${webnovel.id}`}>
+                                                <LinkedinShareButton url={`${process.env.NEXT_PUBLIC_APP_URL}/view_webnovels/${webnovel.id}`}>
                                                     <LinkedinIcon size={22} round={true} />
                                                 </LinkedinShareButton>
                                             </div>
@@ -159,7 +159,7 @@ export function WebnovelCard({
                             </div>
                         )}
                     </div>
-                    <Link href={`/view_webnovels?id=${webnovel.id}`} className="flex self-center">
+                    <Link href={`/view_webnovels/${webnovel.id}`} className="flex self-center">
                         <ChevronRight className="w-5 h-5 dark:text-white text-gray-300 " />
                     </Link>
                 </div>
@@ -192,7 +192,7 @@ export function WebnovelCard({
                     <div className="p-6">
                         <p className="text-gray-600 leading-relaxed">
                             {truncateText(webnovel.description, 200)}
-                            <Link href={`/view_webnovels?id=${webnovel.id}`} className="">
+                            <Link href={`/view_webnovels/${webnovel.id}`} className="">
                                 ...Read more
                             </Link>
                         </p>

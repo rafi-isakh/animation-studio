@@ -217,7 +217,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 </div>
                             )}
                             {/* Comments list */}
-                            {content && content.chapters && content.chapters.length > 0 ? (
+                            {content && content.chapters_length > 0 ? (
                                 <CommentList
                                     content={content}
                                     chapter={content.chapters[0] as Chapter}

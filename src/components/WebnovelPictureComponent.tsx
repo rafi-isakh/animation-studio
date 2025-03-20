@@ -98,7 +98,7 @@ const WebnovelPictureComponent = React.memo(
                                     <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-500 ">
                                         <span>
                                             {" "}
-                                            {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length}{" "}
+                                            {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length}{" "}
                                         </span>
                                         <span>{phrase(dictionary, "numchapters", language)}</span>
                                     </p>

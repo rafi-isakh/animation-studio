@@ -99,6 +99,8 @@ export interface Webnovel {
   price_korean: number;
   price_english: number;
   okay_to_create_videos: boolean;
+  chapters_length: number;
+  last_update: Date;
 }
 
 export interface Dictionary {

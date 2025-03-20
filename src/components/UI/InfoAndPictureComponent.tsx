@@ -64,7 +64,7 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        setChapterId(content.chapters[content.chapters.length - 1]?.id.toString());
+        setChapterId(-1);
     }, []);
 
     useEffect(() => {
@@ -201,7 +201,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                 >
                                     <Link
-                                        href={content.chapters.length > 0 ? `/view_webnovels/chapter_view/${content.chapters[content.chapters.length - 1]?.id}` : `#`}
+                                        href={content.chapters_length > 0 ? `/view_webnovels/chapter_view/${content.chapters[content.chapters_length - 1]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
                                         {phrase(dictionary, "start_to_read_episode_1", language)}

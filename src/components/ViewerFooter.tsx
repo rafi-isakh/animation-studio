@@ -131,7 +131,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
 
     const getNextChapterId = (currentChapterId: number) => {
         const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
-        if (index === webnovel.chapters.length - 1) {
+        if (index === webnovel.chapters_length - 1) {
             return currentChapterId; // Stay on the same chapter if it's the last one
         }
         return chapters[index + 1].id;
@@ -146,7 +146,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     }
 
     const handleNextChapter = () => {
-        if (chapterId === webnovel.chapters[webnovel.chapters.length - 1].id) {
+        if (chapterId === webnovel.chapters[webnovel.chapters_length - 1].id) {
             setShowIsLastChapterModal(true);
         }
     }

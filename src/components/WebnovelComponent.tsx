@@ -57,7 +57,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                         </p>
                         {/* total chapters and num chapters */}
                         <div className="flex flex-row gap-1 text-[10px] md:text-sm text-gray-500 font-bold dark:text-gray-500 ">
-                            <p> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} {phrase(dictionary, "numchapters", language)}</p>
+                            <p> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length} {phrase(dictionary, "numchapters", language)}</p>
                             <p className="flex flex-row gap-1 items-center text-gray-500 dark:text-gray-500">
                                 <FavoriteIcon sx={{ fontSize: 12 }} />
                                 {webnovel.upvotes}

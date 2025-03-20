@@ -67,7 +67,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                             // Total Chapters and Views
                             <div className="flex flex-row justify-center font-bold">
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
-                                    <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
+                                    <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length} </span>
                                     <span>{phrase(dictionary, "numchapters", language)}</span>
                                 </p>
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">

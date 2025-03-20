@@ -220,7 +220,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
         const currentIndex = webnovel.chapters.findIndex(ch => ch.id === chapter.id);
-        const nextChapter = currentIndex > -1 && currentIndex < webnovel.chapters.length - 1
+        const nextChapter = currentIndex > -1 && currentIndex < webnovel.chapters_length - 1
             ? webnovel.chapters[currentIndex + 1]
             : null;
 

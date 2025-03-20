@@ -64,7 +64,7 @@ export default function InfoAndPictureComponent({
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        setChapterId(-1);
+        setChapterId("-1");
     }, []);
 
     useEffect(() => {

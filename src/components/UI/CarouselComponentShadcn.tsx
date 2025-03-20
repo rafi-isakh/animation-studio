@@ -45,7 +45,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
   }, [api])
 
   function getHref(webnovel_id: number) {
-    return `/view_webnovels?id=${webnovel_id}`
+    return `/view_webnovels/${webnovel_id}`
   }
 
   function getGenre(index: number) {

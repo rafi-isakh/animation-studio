@@ -31,14 +31,16 @@ export default function UploadWebnovelsAdmin() {
     const [priceEnglish, setPriceEnglish] = useState<number>(30);
     const [availableLanguages, setAvailableLanguages] = useState<string[]>(["ko"]);
     const [fileType, setFileType] = useState<'epub' | 'docx' | 'txt'>("epub");
-    
+    const [okayToCreateVideos, setOkayToCreateVideos] = useState<boolean>(false);
+    const [titleEnglish, setTitleEnglish] = useState<string>("");
+
     const parseTxt = async (file: File) => {
         // Read the text content from the file
         const text = await file.text();
-        
+
         // Extract title from filename (remove extension)
         let title = file.name.replace(/\.txt$/, '').replace("_", " ")
-        
+
         return {
             text,
             title
@@ -56,6 +58,7 @@ export default function UploadWebnovelsAdmin() {
         const title = webnovelTitle;
         const formData = new FormData();
         formData.append('title', title!);
+        formData.append('title_english', titleEnglish);
         formData.append('description', description);
         formData.append('genre', genre);
         formData.append('language', language);
@@ -73,6 +76,7 @@ export default function UploadWebnovelsAdmin() {
         formData.append("available_languages", JSON.stringify(availableLanguages));
         formData.append("price_korean", priceKorean.toString());
         formData.append("price_english", priceEnglish.toString());
+        formData.append("okay_to_create_videos", okayToCreateVideos.toString());
 
         const response = await fetch('/api/add_webnovel_admin', {
             method: 'POST',
@@ -89,31 +93,33 @@ export default function UploadWebnovelsAdmin() {
     }
 
     const handleChapterFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files ?? []).sort((a, b) => {
-            // Extract numbers from filenames and compare them numerically
-            const numA = parseInt(a.name.match(/\d+/)?.[0] || '0');
-            const numB = parseInt(b.name.match(/\d+/)?.[0] || '0');
-            return numA - numB;
-            // Extract part number (부) and chapter number (화) from Korean-style chapter naming
-            // const partAMatch = a.name.match(/(\d+)부/);
-            // const partBMatch = b.name.match(/(\d+)부/);
-            // const chapterAMatch = a.name.match(/(\d+)화/);
-            // const chapterBMatch = b.name.match(/(\d+)화/);
+        // const files = Array.from(e.target.files ?? []).sort((a, b) => {
+        //     // Extract numbers from filenames and compare them numerically
+        //     const numA = parseInt(a.name.match(/\d+/)?.[0] || '0');
+        //     const numB = parseInt(b.name.match(/\d+/)?.[0] || '0');
+        //     return numA - numB;
+        //     // Extract part number (부) and chapter number (화) from Korean-style chapter naming
+        //     // const partAMatch = a.name.match(/(\d+)부/);
+        //     // const partBMatch = b.name.match(/(\d+)부/);
+        //     // const chapterAMatch = a.name.match(/(\d+)화/);
+        //     // const chapterBMatch = b.name.match(/(\d+)화/);
 
-            // // Get part numbers (default to 0 if not found)
-            // const partA = partAMatch ? parseInt(partAMatch[1]) : 0;
-            // const partB = partBMatch ? parseInt(partBMatch[1]) : 0;
+        //     // // Get part numbers (default to 0 if not found)
+        //     // const partA = partAMatch ? parseInt(partAMatch[1]) : 0;
+        //     // const partB = partBMatch ? parseInt(partBMatch[1]) : 0;
 
-            // // Get chapter numbers (default to 0 if not found)
-            // const chapterA = chapterAMatch ? parseInt(chapterAMatch[1]) : 0;
-            // const chapterB = chapterBMatch ? parseInt(chapterBMatch[1]) : 0;
+        //     // // Get chapter numbers (default to 0 if not found)
+        //     // const chapterA = chapterAMatch ? parseInt(chapterAMatch[1]) : 0;
+        //     // const chapterB = chapterBMatch ? parseInt(chapterBMatch[1]) : 0;
 
-            // // Compare by part first, then by chapter
-            // if (partA !== partB) {
-            //     return partA - partB;
-            // }
-            // return chapterA - chapterB;
-        });
+        //     // // Compare by part first, then by chapter
+        //     // if (partA !== partB) {
+        //     //     return partA - partB;
+        //     // }
+        //     // return chapterA - chapterB;
+        // });
+        const files = Array.from(e.target.files ?? []);
+        console.log(files);
         if (files) {
             setChapterFiles([...chapterFiles, ...Array.from(files)]);
         }
@@ -160,45 +166,72 @@ export default function UploadWebnovelsAdmin() {
         } else if (fileType === "txt") {
             maxProgress = chapterTxtObjs.length;
         }
-        
+
         let progressCount = 0;
-        
+
+        const chapters = []
+        let text;
+        let title;
         if (fileType === "epub") {
-            for (const epubObj of chapterEpubObjs) {
+            for (let i = 0; i < chapterEpubObjs.length; i++) {
+                const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                for (const section of epubObj.sections.slice(3) ?? []) {
-                    htmlString += section.htmlString;
+                htmlString += epubObj.sections[1].htmlString;
+                text = parseHtmlToText(htmlString!);
+                title = epubObj.info?.title;
+                if (!title) {
+                    title = `${webnovelTitle} ${i + 1}화`;
                 }
-                const text = parseHtmlToText(htmlString!);
-                const title = epubObj.info?.title;
-                
+                const chapter = { title: "", content: "", webnovel_id: webnovelId }
+                chapter.title = title;
+                chapter.content = text;
+                chapter.webnovel_id = webnovelId;
+                chapters.push(chapter);
                 await addSingleChapter(title, text);
-                progressCount++;
-                setProgress((progressCount / maxProgress) * 100);
             }
         } else if (fileType === "docx") {
             for (const docxObj of chapterDocxObjs) {
-                const text = docxObj.text;
-                const title = docxObj.title;
-                
+                text = docxObj.text;
+                title = docxObj.title;
+                const chapter = { title: "", content: "", webnovel_id: webnovelId }
+                chapter.title = title;
+                chapter.content = text;
+                chapter.webnovel_id = webnovelId;
+                chapters.push(chapter);
                 await addSingleChapter(title, text);
-                progressCount++;
-                setProgress((progressCount / maxProgress) * 100);
             }
         } else if (fileType === "txt") {
             for (const txtObj of chapterTxtObjs) {
-                const text = txtObj.text;
-                const title = txtObj.title;
-                
+                text = txtObj.text;
+                title = txtObj.title;
+                const chapter = { title: "", content: "", webnovel_id: webnovelId }
+                chapter.title = title;
+                chapter.content = text;
+                chapter.webnovel_id = webnovelId;
+                chapters.push(chapter);
                 await addSingleChapter(title, text);
-                progressCount++;
-                setProgress((progressCount / maxProgress) * 100);
             }
         }
 
         alert("All chapters added successfully");
     }
-    
+
+    const addAllChapters = async (chapters: { title: string, content: string, webnovel_id: string }[]) => {
+        const response = await fetch('/api/add_chapters_admin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chapters: chapters,
+            }),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to add chapters");
+        }
+        return response.json();
+    }
+
     const addSingleChapter = async (title: string, text: string) => {
         const response = await fetch('/api/add_chapter_admin', {
             method: 'POST',
@@ -211,11 +244,11 @@ export default function UploadWebnovelsAdmin() {
                 content: text || "",
             }),
         });
-        
+
         if (!response.ok) {
             throw new Error("Failed to add chapter");
         }
-        
+
         return response.json();
     }
 
@@ -252,6 +285,7 @@ export default function UploadWebnovelsAdmin() {
         </div>
         <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => setWebnovelId(e.target.value)} />
         <TextField className='w-[50%]' label="Webnovel Title" type="text" value={webnovelTitle} onChange={(e) => setWebnovelTitle(e.target.value)} />
+        <TextField className='w-[50%]' label="Webnovel Title English" type="text" value={titleEnglish} onChange={(e) => setTitleEnglish(e.target.value)} />
         <TextField className='w-[50%]' label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(Number(e.target.value))} />
         <TextField className='w-[50%]' label="Publisher English Name" type="text" value={publisherEnglishName} onChange={(e) => setPublisherEnglishName(e.target.value)} />
         <TextField className='w-[50%]' label="Publisher Korean Name" type="text" value={publisherKoreanName} onChange={(e) => setPublisherKoreanName(e.target.value)} />
@@ -259,6 +293,10 @@ export default function UploadWebnovelsAdmin() {
         <TextField className='w-[50%]' label="Tags" type="text" value={tags} onChange={(e) => setTags(e.target.value)} />
         <TextField className='w-[50%]' label="Price (Korean)" type="text" value={priceKorean} onChange={(e) => setPriceKorean(Number(e.target.value))} />
         <TextField className='w-[50%]' label="Price (English)" type="text" value={priceEnglish} onChange={(e) => setPriceEnglish(Number(e.target.value))} />
+        <div className='flex flex-row space-x-4 items-center'>
+            <p>Okay to Create Videos</p>
+            <Checkbox checked={okayToCreateVideos} onClick={() => setOkayToCreateVideos(!okayToCreateVideos)} />
+        </div>
         <Button color='gray' variant='contained' onClick={handleAddWebnovel}>Add Webnovel</Button>
         <div className='flex flex-row space-x-4'>
             <p>Chapter Files</p>

@@ -34,6 +34,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const availableLanguages = formData.get('available_languages') as string;
     const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
     const fileName = await fileNameResponse.json();
+    const titleEnglish = formData.get('title_english')
+    const okayToCreateVideos = formData.get('okay_to_create_videos') === 'true'
 
     try {
         await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
@@ -70,7 +72,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
         author_nickname: authorNickname,
         available_languages: availableLanguages,
         price_korean: priceKorean,
-        price_english: priceEnglish
+        price_english: priceEnglish,
+        okay_to_create_videos: okayToCreateVideos,
+        title_english: titleEnglish
     }
 
     console.log(send_data);

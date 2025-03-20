@@ -98,6 +98,7 @@ export interface Webnovel {
   available_languages: string;
   price_korean: number;
   price_english: number;
+  okay_to_create_videos: boolean;
 }
 
 export interface Dictionary {

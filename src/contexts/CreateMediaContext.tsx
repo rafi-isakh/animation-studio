@@ -6,8 +6,9 @@ import { getImageUrl } from '@/utils/urls';
 import { v4 as uuidv4 } from 'uuid';
 import { truncateText } from '@/utils/truncateText';
 import { phrase } from '@/utils/phrases';
-import { useUser } from './UserContext';
-import { useLanguage } from './LanguageContext';
+import { useUser } from '@/contexts/UserContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 // Define the type for the context data
 interface CreateMediaContextType {
     isLoading: boolean;

@@ -269,19 +269,21 @@ export default function InfoAndPictureComponent({
                             </div>
 
                             <div className="pb-5 w-full">
-                                <Button
-                                    variant="default"
-                                    className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                    disabled={loadingVideoGeneration}
-                                    onClick={() => {
-                                        setOpenDialog(true);
-                                        generateTrailer(content.chapters.map(chapter => chapter.id));
-                                    }}
-                                >
-                                    <p>
-                                        {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
-                                    </p>
-                                </Button>
+                                {content.okay_to_create_videos &&
+                                    <Button
+                                        variant="default"
+                                        className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                        disabled={loadingVideoGeneration}
+                                        onClick={() => {
+                                            setOpenDialog(true);
+                                            generateTrailer(content.chapters.map(chapter => chapter.id));
+                                        }}
+                                    >
+                                        <p>
+                                            {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
+                                        </p>
+                                    </Button>
+                                }
                             </div>
                             {isJongmin() &&
                                 <div className="pb-5 w-full">

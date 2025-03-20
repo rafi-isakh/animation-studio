@@ -264,7 +264,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/search')) {
             return "hidden"
         }
-        if (pathname.startsWith('/view_webnovels/chapter_view')) {
+        if (/^\/view_webnovels\/\d+\/chapter_view/.test(pathname)) { // if it starts with, like, /view_webnovels/{webnovel_id}/chapter_view
             return "hidden"
         }
         if (pathname.startsWith('/toonyz_posts/')) {

@@ -72,7 +72,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     // explicitly with content
     const getWebnovelByIdWithContent = async (id: string) => {
         const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
-        if (webnovel?.chapters.some((chapter) => chapter.content)) {
+        if (webnovel?.chapters) {
             return Promise.resolve(webnovel);
         } else {
             const response = await fetch(`/api/get_webnovel_by_id?id=${id}`, {

@@ -48,7 +48,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelByIdWithContent } = useWebnovels();
     const {
         fontSize,
         fontFamily = 'default',
@@ -124,7 +124,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                 router.push(`/view_webnovels?id=${chapter?.webnovel_id}`);
             }
             setUpvotes(chapter?.upvotes || 0)
-            const webnovel = await getWebnovelById(chapter?.webnovel_id.toString() || '');
+            const webnovel = await getWebnovelByIdWithContent(chapter?.webnovel_id.toString() || '');
             setWebnovel(webnovel);
         }
         fetchChapter();

@@ -86,11 +86,10 @@ export default function InfoAndPictureComponent({
     }, [coverArt]);
 
     useEffect(() => {
-        console.log('content', content)
         if (window !== undefined) {
             setCurrentPageUrl(window.location.href);
         }
-        setChapterId("-1");
+        setChapterId(content.chapters[0]?.id.toString());
     }, []);
 
     useEffect(() => {

@@ -196,9 +196,19 @@ export default function InfoAndPictureComponent({
                             <p className="text-center">
                                 {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
                             </p>
+
+                            {/*TEMPORARY FIX FOR SHOWING THE NAME OF THE PUBLISHER. DOING THIS BECAUSE
+                            THE USER IS THE CONTENT PROVIDER, BUT THE CP MAY HAVE MANY DIFFERENT PUBLISHERS*/}
                             {content.user.nickname && content.user.email_hash !== content.author.email_hash &&
                                 <p className="text-center">
-                                    {content.user.nickname}
+                                    {content.title == '여주와 남주의 아이들은' || content.title == '맛있는 스캔들' || content.title == "마성의 신입사원" ?
+                                        language == 'ko' ?
+                                            "피앙세"
+                                            :
+                                            "fiance"
+                                    :
+                                        content.user.nickname
+                                    }
                                 </p>
                             }
 
@@ -248,7 +258,7 @@ export default function InfoAndPictureComponent({
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                 >
                                     <Link
-                                        href={content.chapters_length > 0 ? `/view_webnovels/${content.id}/chapter_view/${content.chapters[content.chapters_length - 1]?.id}` : `#`}
+                                        href={content.chapters_length > 0 ? `/view_webnovels/${content.id}/chapter_view/${content.chapters[0]?.id}` : `#`}
                                         className="text-center flex flex-row items-center"
                                     >
                                         {phrase(dictionary, "start_to_read_episode_1", language)}

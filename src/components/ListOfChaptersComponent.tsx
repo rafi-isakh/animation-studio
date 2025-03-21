@@ -16,6 +16,7 @@ import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
 import { chapterPrice } from "@/utils/webnovelUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -34,13 +35,15 @@ const ListOfChaptersComponent = ({
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter | null>(null);
     const date = new Date();
     const router = useRouter();
-    const { purchased_webnovel_chapters, setInvokeCheckUser } = useUser();
+    const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
+    const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
     const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
 
     const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
 
     useEffect(() => {
         console.log('webnovel?.price_korean', webnovel?.price_korean);
@@ -85,13 +88,21 @@ const ListOfChaptersComponent = ({
 
     const handleChapterPurchase = async (chapter: Chapter) => {
         if (!chapter) return;
+        if (!isLoggedIn) {
+            router.push("/signin");
+        }
         else {
             setShowPurchaseModal(false);
+            const price = language === "ko" ? webnovel?.price_korean : webnovel?.price_english;
+            if (stars < price!) {
+                setShowNotEnoughStarsModal(true);
+                return;
+            }
             const response = await fetch(`/api/purchase_chapter`, {
                 method: 'POST',
                 body: JSON.stringify({
                     chapter_id: chapter.id,
-                    price: language === "ko" ? webnovel?.price_korean : webnovel?.price_english // TODO: update this as you add more languages
+                    price: price
                 })
             });
             // TODO: tell user if there's not enough stars
@@ -215,8 +226,32 @@ const ListOfChaptersComponent = ({
                             color="gray"
                             onClick={() => handleChapterPurchase(chapterToPurchase!)}
                         >
-                            {phrase(dictionary, "purchase", language)}
+                            <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english} {phrase(dictionary, "purchase", language)}
                         </Button>
+                    </div>
+                </Box>
+            </Modal>
+            <Modal open={showNotEnoughStarsModal} onClose={() => setShowNotEnoughStarsModal(false)}>
+                <Box sx={useModalStyle}>
+                    <div className="flex flex-col space-y-4 items-center justify-center">
+                        <p className="text-lg font-bold">
+                            {phrase(dictionary, "notEnoughStarsWouldYouLikeToPurchase", language)}
+                        </p>
+                        <div className="flex flex-row gap-2">
+                        <Button
+                            variant="outlined"
+                            color="gray"
+                            onClick={() => setShowNotEnoughStarsModal(false)}
+                        >
+                            {phrase(dictionary, "no", language)}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => router.push("/stars")}
+                        >
+                            {phrase(dictionary, "yes", language)}
+                        </Button>
+                        </div>
                     </div>
                 </Box>
             </Modal>

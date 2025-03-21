@@ -129,19 +129,20 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                 <div className="mt-4 rounded-md overflow-hidden">
                     <Link href={`/toonyz_posts/${post.id}`} >
                         {post.image && (
-                            <WatermarkedImage
-                                imageUrl={getImageUrl(post.image)}
-                                watermarkUrl="/toonyz_logo_white.svg"
-                                webnovelTitle={webnovel?.title}
-                                chapterTitle={webnovel?.chapters.find((chapter: { id: number, title: string }) =>
-                                    chapter.id.toString() === post.chapter_id
-                                )?.title || post.chapter_id}
-                                watermarkOpacity={0.2}
-                                watermarkPosition="centerRight"
-                                titlePosition="centerLeft"
-                                titleColor="white"
-                                className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
-                            />
+                            <Image src={getImageUrl(post.image)} alt={post.title} width={800} height={600} className="w-full h-auto object-cover" />
+                            // <WatermarkedImage
+                            //     imageUrl={getImageUrl(post.image)}
+                            //     watermarkUrl="/toonyz_logo_white.svg"
+                            //     webnovelTitle={webnovel?.title}
+                            //     chapterTitle={webnovel?.chapters.find((chapter: { id: number, title: string }) =>
+                            //         chapter.id.toString() === post.chapter_id
+                            //     )?.title || post.chapter_id}
+                            //     watermarkOpacity={0.2}
+                            //     watermarkPosition="centerRight"
+                            //     titlePosition="centerLeft"
+                            //     titleColor="white"
+                            //     className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
+                            // />
 
                         )}
                         {post.video && (

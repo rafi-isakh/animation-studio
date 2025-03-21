@@ -24,6 +24,7 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/N_logo_with_heart.json';
+import { getImageDimensions } from "@/utils/imageDimensions";
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
@@ -36,6 +37,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const isDesktop = useMediaQuery('(min-width: 768px)');
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [chapterTitle, setChapterTitle] = useState<string | undefined>(undefined);
+    const [imageDimensions, setImageDimensions] = useState<{ width: number, height: number }>();
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -58,8 +60,16 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 setChapterTitle(chapter?.title);
             }
         };
+        const fetchImageDimensions = async () => {
+            if (post?.image) {
+                const { width, height } = await fetch(`/api/get_image_dimensions?imageUrl=${getImageUrl(post.image)}`).then(res => res.json());
+                console.log('width, height', width, height);
+                setImageDimensions({ width: width ?? 1280, height: height ?? 1280 });
+            }
+        }
         if (post) {
             fetchWebnovel();
+            fetchImageDimensions();
         }
     }, [post]);
 
@@ -92,7 +102,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Image/Video Container - simplified for mobile */}
-            <div className={`relative max-w-screen-md mx-auto w-full group
+            <div className={`relative max-w-screen-lg mx-auto w-full group
                             ${post.image
                             ? 'md:h-full h-[40vh] top-8 mt-8'
                             : 'md:h-full md:top-16 md:mt-16'}`}>
@@ -104,6 +114,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             watermarkUrl="/toonyz_logo_white.svg"
                             webnovelTitle={webnovel?.title}
                             chapterTitle={chapterTitle}
+                            width={imageDimensions?.width}
+                            height={imageDimensions?.height}
                             watermarkOpacity={0.2}
                             watermarkPosition="bottomRight"
                             titlePosition="top"

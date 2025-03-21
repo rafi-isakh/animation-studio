@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft } from "lucide-react"
+import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -25,7 +25,7 @@ import {
     PinterestShareButton,
     PinterestIcon,
 } from "react-share";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { createEmailHash } from '@/utils/cryptography'
 import { useUser } from '@/contexts/UserContext';
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
+import { isPlainObject } from "lodash";
 interface InfoAndPictureProps {
     content: Webnovel;
     coverArt: string;
@@ -58,6 +59,31 @@ export default function InfoAndPictureComponent({
     const copyToClipboard = useCopyToClipboard();
     const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
+    const [coverArtIsImage, setCoverArtIsImage] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
+
+    const handleUnmute = () => {
+        const videoElement = document.getElementById('videoElement');
+        if (videoElement) {
+            setIsMuted(prev => !prev);
+        }
+    };
+
+    useEffect(() => {
+        async function checkCoverArtType() {
+            try {
+                const response = await fetch(`/api/check_if_image?url=${coverArt}`);
+                const data = await response.json();
+                setCoverArtIsImage(data.isImage);
+            } catch (error) {
+                console.error('Error fetching coverArt:', error);
+            }
+        }
+
+        if (coverArt) {
+            checkCoverArtType();
+        }
+    }, [coverArt]);
 
     useEffect(() => {
         console.log('content', content)
@@ -123,18 +149,34 @@ export default function InfoAndPictureComponent({
                 <div className="flex flex-col space-y-2 ">
                     <div className="md:px-4 md:p-2 px-4">
                         {/* Cover Image */}
-                        <div className="min-w-[300px] h-[350px] md:h-[450px] w-full rounded-xl mx-auto md:pt-1 pt-0">
-                            <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[350px] rounded-xl">
+                        <div className="min-w-[300px] h-[550px] w-full rounded-xl mx-auto md:pt-1 pt-0">
+                            <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                                 {coverArt ?
-                                    <Image
-                                        src={getImageUrl(coverArt)}
-                                        alt={content.title}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 300px"
-                                        className="object-cover rounded-xl"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                    />
+                                    coverArtIsImage ?
+                                        <Image
+                                            src={getImageUrl(coverArt)}
+                                            alt={content.title}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 300px"
+                                            className="object-cover rounded-xl"
+                                            placeholder="blur"
+                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                        />
+                                        :
+                                        <div>
+                                            <video
+                                                id="videoElement"
+                                                src={getVideoUrl(coverArt)}
+                                                autoPlay
+                                                style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
+                                                className="object-cover rounded-xl"
+                                                muted={isMuted}
+                                                loop
+                                            />
+                                            <button onClick={handleUnmute} className="play-button">
+                                                {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
+                                            </button>
+                                        </div>
                                     :
                                     <Skeleton variant="rectangular" width="100%" height="100%" />
                                 }

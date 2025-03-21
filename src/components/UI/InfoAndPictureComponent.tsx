@@ -151,31 +151,40 @@ export default function InfoAndPictureComponent({
                         <div className="min-w-[300px] h-[550px] w-full rounded-xl mx-auto md:pt-1 pt-0">
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                                 {coverArt ?
-                                    coverArtIsImage ?
-                                        <Image
-                                            src={getImageUrl(coverArt)}
-                                            alt={content.title}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 300px"
-                                            className="object-cover rounded-xl"
-                                            placeholder="blur"
-                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                        />
-                                        :
-                                        <div>
-                                            <video
-                                                id="videoElement"
-                                                src={getVideoUrl(coverArt)}
-                                                autoPlay
-                                                style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
-                                                className="object-cover rounded-xl"
-                                                muted={isMuted}
-                                                loop
-                                            />
-                                            <button onClick={handleUnmute} className="play-button">
-                                                {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
-                                            </button>
-                                        </div>
+                                    <Image
+                                        src={getImageUrl(coverArt)}
+                                        alt={content.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 300px"
+                                        className="object-cover rounded-xl"
+                                        placeholder="blur"
+                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    />
+                                    // coverArtIsImage ?
+                                    //     <Image
+                                    //         src={getImageUrl(coverArt)}
+                                    //         alt={content.title}
+                                    //         fill
+                                    //         sizes="(max-width: 768px) 100vw, 300px"
+                                    //         className="object-cover rounded-xl"
+                                    //         placeholder="blur"
+                                    //         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    //     />
+                                    //     :
+                                    //     <div>
+                                    //         <video
+                                    //             id="videoElement"
+                                    //             src={getVideoUrl(coverArt)}
+                                    //             autoPlay
+                                    //             style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
+                                    //             className="object-cover rounded-xl"
+                                    //             muted={isMuted}
+                                    //             loop
+                                    //         />
+                                    //         <button onClick={handleUnmute} className="play-button">
+                                    //             {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
+                                    //         </button>
+                                    //     </div>
                                     :
                                     <Skeleton variant="rectangular" width="100%" height="100%" />
                                 }
@@ -205,7 +214,7 @@ export default function InfoAndPictureComponent({
                                             "피앙세"
                                             :
                                             "fiance"
-                                    :
+                                        :
                                         content.user.nickname
                                     }
                                 </p>

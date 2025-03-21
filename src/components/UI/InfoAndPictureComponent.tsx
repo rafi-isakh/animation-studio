@@ -154,6 +154,11 @@ export default function InfoAndPictureComponent({
                             <p className="text-center">
                                 {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
                             </p>
+                            {content.user.nickname && content.user.email_hash !== content.author.email_hash &&
+                                <p className="text-center">
+                                    {content.user.nickname}
+                                </p>
+                            }
 
                             {/* Genre and Type */}
                             <ul className="flex flex-row justify-center items-center">

@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft } from "lucide-react"
+import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft, Pause, Play } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -59,22 +59,36 @@ export default function InfoAndPictureComponent({
     const copyToClipboard = useCopyToClipboard();
     const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
-    const [coverArtIsImage, setCoverArtIsImage] = useState(false);
+    const [videoExists, setVideoExists] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [showPlayButton, setShowPlayButton] = useState(false);
 
-    const handleUnmute = () => {
+    const handleToggleMute = () => {
         const videoElement = document.getElementById('videoElement');
         if (videoElement) {
             setIsMuted(prev => !prev);
         }
     };
 
+    const handleTogglePlayVideo = () => {
+        const videoElement = document.getElementById('videoElement') as HTMLVideoElement;
+        if (videoElement) {
+            if (isPlaying) {
+                videoElement.pause();
+            } else {
+                videoElement.play();
+            }
+            setIsPlaying(prev => !prev);
+        }
+    };
+
     useEffect(() => {
         async function checkCoverArtType() {
             try {
-                const response = await fetch(`/api/check_if_image?url=${coverArt}`);
+                const response = await fetch(`/api/check_if_video_exists?url=${coverArt}`);
                 const data = await response.json();
-                setCoverArtIsImage(data.isImage);
+                setVideoExists(data.videoExists);
             } catch (error) {
                 console.error('Error fetching coverArt:', error);
             }
@@ -151,40 +165,42 @@ export default function InfoAndPictureComponent({
                         <div className="min-w-[300px] h-[550px] w-full rounded-xl mx-auto md:pt-1 pt-0">
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                                 {coverArt ?
-                                    <Image
-                                        src={getImageUrl(coverArt)}
-                                        alt={content.title}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 300px"
-                                        className="object-cover rounded-xl"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                    />
-                                    // coverArtIsImage ?
-                                    //     <Image
-                                    //         src={getImageUrl(coverArt)}
-                                    //         alt={content.title}
-                                    //         fill
-                                    //         sizes="(max-width: 768px) 100vw, 300px"
-                                    //         className="object-cover rounded-xl"
-                                    //         placeholder="blur"
-                                    //         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                    //     />
-                                    //     :
-                                    //     <div>
-                                    //         <video
-                                    //             id="videoElement"
-                                    //             src={getVideoUrl(coverArt)}
-                                    //             autoPlay
-                                    //             style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
-                                    //             className="object-cover rounded-xl"
-                                    //             muted={isMuted}
-                                    //             loop
-                                    //         />
-                                    //         <button onClick={handleUnmute} className="play-button">
-                                    //             {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
-                                    //         </button>
-                                    //     </div>
+                                    !videoExists ?
+                                        <Image
+                                            src={getImageUrl(coverArt)}
+                                            alt={content.title}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 300px"
+                                            className="object-cover rounded-xl"
+                                            placeholder="blur"
+                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                        />
+                                        :
+                                        <div>
+                                            <div className="relative">
+                                                <video
+                                                    id="videoElement"
+                                                    src={getVideoUrl(coverArt)}
+                                                    autoPlay
+                                                    onMouseEnter={() => setShowPlayButton(true)}
+                                                    onMouseLeave={() => setShowPlayButton(false)}
+                                                    onClick={handleTogglePlayVideo}
+                                                    style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
+                                                    className="object-cover rounded-xl"
+                                                    muted={isMuted}
+                                                    loop
+                                                />
+                                                <button
+                                                    className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButton ? 'block' : 'hidden'}`}
+                                                    onClick={handleTogglePlayVideo}
+                                                >
+                                                    {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                                                </button>
+                                            </div>
+                                            <button onClick={handleToggleMute} className="mute-button absolute bottom-2 right-2">
+                                                {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
+                                            </button>
+                                        </div>
                                     :
                                     <Skeleton variant="rectangular" width="100%" height="100%" />
                                 }
@@ -209,12 +225,12 @@ export default function InfoAndPictureComponent({
                             THE USER IS THE CONTENT PROVIDER, BUT THE CP MAY HAVE MANY DIFFERENT PUBLISHERS*/}
                             {content.user.nickname && content.user.email_hash !== content.author.email_hash &&
                                 <p className="text-center">
-                                    {content.title == '여주와 남주의 아이들은' || content.title == '맛있는 스캔들' || content.title == "마성의 신입사원" ?
+                                    {content.title == '여주와 남주의 아이들을 키우게 되었습니다' || content.title == '맛있는 스캔들' || content.title == "마성의 신입사원" ?
                                         language == 'ko' ?
                                             "피앙세"
                                             :
                                             "fiance"
-                                        :
+                                    :
                                         content.user.nickname
                                     }
                                 </p>

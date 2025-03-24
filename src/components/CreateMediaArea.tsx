@@ -227,7 +227,7 @@ export default function CreateMediaArea({
                                                 {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
                                                 {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><MdStars className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
                                             </Button>
-                                            {/* <div className='relative'>
+                                            <div className='relative'>
                                                 <Link href="#"
                                                     onClick={(e) => {
                                                         e.preventDefault();
@@ -245,7 +245,7 @@ export default function CreateMediaArea({
                                                         loadingVideoGeneration={loadingVideoGeneration}
                                                     />
                                                 </Link>
-                                            </div> */}
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (savedPrompt && source === 'chapter') && (
@@ -281,7 +281,7 @@ export default function CreateMediaArea({
                                                 <RefreshCw className="w-4 h-4" />
                                                 Generate again
                                             </Button> */}
-
+{/* 
                                             <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
@@ -292,7 +292,7 @@ export default function CreateMediaArea({
                                             >
                                                 {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
                                                 Make a video
-                                            </Button>
+                                            </Button> */}
                                             {pictures.length > 0 && (
                                                 <div className='relative'>
                                                     <Link

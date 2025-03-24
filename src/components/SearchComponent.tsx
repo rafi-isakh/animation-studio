@@ -233,7 +233,7 @@ export default function SearchComponent({
                                             borderBottomRightRadius: '15px',
                                             backgroundColor: theme === 'dark' ? '#1A1A1A' : 'white',
                                             height: {
-                                                md: '60%'     // Desktop height
+                                                md: '40%'     // Desktop height
                                             },
                                             width: {
                                                 md: '60%'     // 60% width on desktop

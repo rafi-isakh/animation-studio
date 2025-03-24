@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from 'react';
 import { phrase } from '@/utils/phrases';
 import { useRouter, useSearchParams } from 'next/navigation'
 import SearchComponent from '@/components/SearchComponent';
-import WebnovelsList from '@/components/WebnovelsList';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';

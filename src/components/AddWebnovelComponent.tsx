@@ -100,7 +100,7 @@ const AddWebnovelComponent = () => {
             }
             const data = await res.json();
             invalidateCache();
-            router.push(`/view_webnovels?id=${data["id"]}`);
+            router.push(`/view_webnovels/${data["id"]}`);
         } catch (error) {
             // Handle error
             setIsSubmitting(false);

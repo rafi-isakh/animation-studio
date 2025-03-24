@@ -24,36 +24,27 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/N_logo_with_heart.json';
-
-function getRandomDimensions() {
-    const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]
-    return {
-        width: widths[Math.floor(Math.random() * widths.length)],
-        height: heights[Math.floor(Math.random() * heights.length)],
-    }
-}
+import { getImageDimensions } from "@/utils/imageDimensions";
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
     const [lastPostId, setLastPostId] = useState<string | null>(null);
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelByIdWithContent } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const { email: currentUserEmail } = useUser();
     const { dictionary, language } = useLanguage();
     const isDesktop = useMediaQuery('(min-width: 768px)');
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [chapterTitle, setChapterTitle] = useState<string | undefined>(undefined);
+    const [imageDimensions, setImageDimensions] = useState<{ width: number, height: number }>();
 
     useEffect(() => {
         const fetchPost = async () => {
-            fetch('/api/get_toonyz_posts')
+            fetch(`/api/get_toonyz_post_by_id?id=${params.id}`)
                 .then(res => res.json())
                 .then(data => {
-                    const post = data.find((post: ToonyzPost) => post.id.toString() === params.id);
-                    if (post) {
-                        setPost(post);
-                    }
+                    setPost(data);
                     setIsLoading(false);
                 });
         };
@@ -63,12 +54,24 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     useEffect(() => {
         const fetchWebnovel = async () => {
             if (post?.webnovel_id) {
-                const novel = await getWebnovelById(post.webnovel_id);
+                const novel = await getWebnovelByIdWithContent(post.webnovel_id);
                 setWebnovel(novel);
+                const chapter = novel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id.toString());
+                setChapterTitle(chapter?.title);
             }
         };
-        fetchWebnovel();
-    }, [post?.webnovel_id, getWebnovelById]);
+        const fetchImageDimensions = async () => {
+            if (post?.image) {
+                const { width, height } = await fetch(`/api/get_image_dimensions?imageUrl=${getImageUrl(post.image)}`).then(res => res.json());
+                console.log('width, height', width, height);
+                setImageDimensions({ width: width ?? 1280, height: height ?? 1280 });
+            }
+        }
+        if (post) {
+            fetchWebnovel();
+            fetchImageDimensions();
+        }
+    }, [post]);
 
     if (isLoading) {
         return (<div className="loader-container"> <LottieLoader width="w-40" animationData={animationData} /></div>)
@@ -105,17 +108,19 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             : 'md:h-full md:top-16 md:mt-16'}`}>
                 {post.image ? (
                     <div className="group h-full w-full">
-                        {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" fill className="object-cover h-full w-full overflow-hidden md:scale-125 scale-100 transition-all duration-300 group-hover:blur-sm" /> */}
+                        {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" width={300} height={300} className="object-cover overflow-hidden md:scale-125 scale-100 transition-all duration-300" /> */}
                         <WatermarkedImage
                             imageUrl={getImageUrl(post.image)}
                             watermarkUrl="/toonyz_logo_white.svg"
                             webnovelTitle={webnovel?.title}
-                            chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id)?.title || post.chapter_id}
+                            chapterTitle={chapterTitle}
+                            width={imageDimensions?.width}
+                            height={imageDimensions?.height}
                             watermarkOpacity={0.2}
-                            watermarkPosition="centerRight"
-                            titlePosition="centerLeft"
+                            watermarkPosition="bottomRight"
+                            titlePosition="top"
                             titleColor="white"
-                            className="object-cover h-full w-full overflow-hidden scale-100 transition-all duration-300"
+                            className="object-cover overflow-hidden transition-all duration-300"
                         />
                     </div>
                 ) : (

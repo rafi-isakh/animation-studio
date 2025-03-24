@@ -11,7 +11,7 @@ import animationData from '@/assets/N_logo_with_heart.json';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useSearchParams } from "next/navigation";
 
-const ViewWebnovels = () => {
+const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
     const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ const ViewWebnovels = () => {
 
     useEffect(() => {
         const setData = async () => {
-            const webnovel = await getWebnovelByIdWithContent(searchParams.get("id")!);
+            const webnovel = await getWebnovelByIdWithContent(webnovel_id);
             let author_id = "";
             if (webnovel) {
                 setWebnovel(webnovel);
@@ -50,7 +50,7 @@ const ViewWebnovels = () => {
             setPosts(filteredPosts);
             setLoading(false);
             if (isLoggedIn) {
-                fetch(`/api/add_to_library?webnovel_id=${searchParams.get("id")}`)
+                fetch(`/api/add_to_library?webnovel_id=${webnovel_id}`)
             }
         }
         setData();
@@ -68,7 +68,7 @@ const ViewWebnovels = () => {
                     />
                 </div>
             ) : (
-                <ViewWebnovelsComponent searchParams={searchParamsObject} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
+                <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
             )
             }
         </>

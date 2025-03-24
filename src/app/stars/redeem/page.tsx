@@ -6,10 +6,39 @@ import { ChevronLeft, MoveLeft } from 'lucide-react'
 import { Input } from '@/components/shadcnUI/Input'
 import { Label } from '@/components/shadcnUI/Label'
 import { Button } from '@/components/shadcnUI/Button'
+import { useState } from 'react'
+import { useUser } from '@/contexts/UserContext'
 
 
 export default function RedeemPage () {
     const { dictionary, language } = useLanguage()
+    const [code, setCode] = useState("")
+    const { setInvokeCheckUser } = useUser()
+
+    const handleApplyCode = async () => {
+        const checkResponse = await fetch(`/api/check_promo_code`, {
+            method: "POST",
+            body: JSON.stringify({ code }),
+        });
+        if (!checkResponse.ok) {
+            throw new Error(`Failed to check promo code: ${checkResponse.statusText} ${checkResponse.status}`);
+        }
+        const checkData = await checkResponse.json();
+        if (!checkData) { // invalid promo code
+            alert(phrase(dictionary, "invalid_promo_code", language))
+            return
+        }
+        const res = await fetch(`/api/apply_promo_code`, {
+            method: "POST",
+            body: JSON.stringify({ code }),
+        });
+        if (!res.ok) {
+            alert(phrase(dictionary, "already_applied_promo_code", language))
+            return
+        }
+        setInvokeCheckUser(prev => !prev)
+        alert(phrase(dictionary, "promo_code_applied", language))
+    }
 
     return (
         <div className="flex flex-col md:max-w-screen-md w-full mx-auto">
@@ -31,8 +60,10 @@ export default function RedeemPage () {
                         <Input 
                             placeholder={phrase(dictionary, "enter_code", language)}
                             className='w-full'
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
                         />
-                        <Button variant='outline' disabled className='w-full'>
+                        <Button variant='outline' onClick={handleApplyCode} className='w-full'>
                             {phrase(dictionary, "apply_code", language)}
                         </Button>
                     </div>

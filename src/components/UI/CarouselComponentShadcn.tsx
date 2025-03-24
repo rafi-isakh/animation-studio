@@ -45,7 +45,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
   }, [api])
 
   function getHref(webnovel_id: number) {
-    return `/view_webnovels?id=${webnovel_id}`
+    return `/view_webnovels/${webnovel_id}`
   }
 
   function getGenre(index: number) {
@@ -92,9 +92,11 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                         className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"
                         src={getImageUrl(item.image) || "/placeholder.svg"}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         alt={item.title}
                         placeholder="blur"
                         blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                        priority
                       />
                       {/* Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 md:p-8 rounded-md overflow-hidden">

@@ -13,15 +13,17 @@ import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { MoveLeft } from 'lucide-react';
 
-const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
-    searchParams: { [key: string]: string | string[] | undefined },
-    webnovel: Webnovel | null, userWebnovels: Webnovel[] | null, loadingUsersOtherWebnovels: boolean, posts: ToonyzPost[]
+const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
+    webnovel_id: string,
+    webnovel: Webnovel | null,
+    userWebnovels: Webnovel[] | null,
+    loadingUsersOtherWebnovels: boolean,
+    posts: ToonyzPost[]
 }) => {
     const [webnovelLoading, setWebnovelLoading] = useState(true);
     const [userWebnovelsLoading, setUserWebnovelsLoading] = useState(true);
     const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
     const [atLeastOneWebnovel, setAtLeastOneWebnovel] = useState(false);
-    const id = searchParams.id;
     const [refreshKey, setRefreshKey] = useState(0);
     const { language, dictionary, setLanguage } = useLanguage();
     const nickname = webnovel?.author.nickname;
@@ -45,11 +47,6 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
         window.scrollTo(0, 0);
     }, [pathname]);
 
-    if (typeof id === 'string') {
-    } else if (Array.isArray(id)) {
-        throw new Error("there should be only one id param")
-    } else {
-    }
     const router = useRouter();
 
     useEffect(() => {
@@ -67,47 +64,47 @@ const ViewWebnovelsComponent = ({ searchParams, webnovel, userWebnovels, loading
     }, [webnovel, userWebnovels, deletedWebnovelId]);
 
     const handleNewChapter = () => {
-        router.push(`/new_chapter?id=${id}&novelLanguage=${webnovel?.language}`);
+        router.push(`/new_chapter?id=${webnovel_id}&novelLanguage=${webnovel?.language}`);
     }
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`/api/delete_webnovel?id=${id}`);
+            const response = await fetch(`/api/delete_webnovel?id=${webnovel_id}`);
             if (!response.ok) {
                 console.error("Delete webnovel failed");
                 return;
             }
             invalidateCache();
             // Filter out the deleted webnovel
-            const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != id)
+            const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id)
             setWebnovels(webnovels_after_deletion)
-            setDeletedWebnovelId(id);
+            setDeletedWebnovelId(webnovel_id);
             setShowDeleteModal(false);
 
             // Navigate to appropriate page
             if (webnovels_after_deletion.length > 0) {
                 const ids = webnovels_after_deletion.map((w: Webnovel) => w.id);
                 const first = Math.min(...ids);
-                await router.push(`/view_webnovels?id=${first.toString()}`);
+                await router.push(`/view_webnovels/${first.toString()}`);
             } else {
                 await router.push('/view_webnovels');
                 router.refresh();
             }
         } catch (error) {
-            console.error(`Couldn't delete webnovel ${id}`, error)
+            console.error(`Couldn't delete webnovel ${webnovel_id}`, error)
         }
     }
 
     const handleAIEditor = () => {
-        router.push(`/ai_editor?id=${id}`)
+        router.push(`/ai_editor?id=${webnovel_id}`)
     }
 
-    if (language === 'ja' && (id == '19' || id == '20')) {
+    if (language === 'ja' && (webnovel_id == '19' || webnovel_id == '20')) {
         alert("이 웹소설은 아직 일본어로 서비스되지 않습니다.");
         setLanguage('ko');
     }
 
-    if (id === undefined) {
+    if (webnovel_id === undefined) {
         return (
             <div className='md:max-w-screen-xl w-full flex flex-row justify-center mx-auto h-screen md:mt-[-96px] mt-[-80px]'>
                 <div className="flex flex-col justify-center items-center space-y-2">

@@ -101,7 +101,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             }
             Promise.resolve(resPromise).then(() => {
                 invalidateCache();
-                router.push(`/view_webnovels?id=${webnovelId}`)
+                router.push(`/view_webnovels/${webnovelId}`)
                 router.refresh();
             })
         }

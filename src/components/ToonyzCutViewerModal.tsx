@@ -104,7 +104,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 }}
                                 variant="outlined"
                                 className="mt-4">
-                                <Link href={`/view_webnovels?id=${webnovel.id}`}>
+                                <Link href={`/view_webnovels/${webnovel.id}`}>
                                     {/* Read More */}
                                     {phrase(dictionary, 'readmore', language)}
                                 </Link>

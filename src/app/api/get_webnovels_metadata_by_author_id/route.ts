@@ -8,6 +8,5 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: 'Failed to get webnovels by author id: ' + response.statusText }, { status: response.status, statusText: response.statusText });
     }
     const data = await response.json();
-    console.log(data);
     return NextResponse.json(data);
 }

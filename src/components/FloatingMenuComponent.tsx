@@ -456,7 +456,7 @@ const FloatingMenu: React.FC<{
                             </Label>
                             <Input
                                 id="link"
-                                defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`}
+                                defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}`}
                                 readOnly
                                 className='select-none bg-transparent'
                                 disabled
@@ -464,7 +464,7 @@ const FloatingMenu: React.FC<{
                         </div>
                         <Button
                             onClick={() => {
-                                const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels?id=${webnovel_id}`;
+                                const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}`;
                                 const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
                                 copyToClipboard(text);
                             }}

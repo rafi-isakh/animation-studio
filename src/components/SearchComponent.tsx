@@ -13,6 +13,7 @@ import { Drawer, Box } from "@mui/material";
 import { useTheme } from '@/contexts/providers'
 import WebnovelsList from "@/components/WebnovelsList";
 import CircularProgress from '@mui/material/CircularProgress';
+import { useWebnovels } from "@/contexts/WebnovelsContext";
 
 
 function GradientCircularProgress() {
@@ -56,29 +57,7 @@ export default function SearchComponent({
     const [open, setOpen] = useState(false);
     const searchParams = useSearchParams();
     const searchParamsObject = Object.fromEntries(searchParams.entries());
-    const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchAllWebnovels = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch('/api/get_webnovels_metadata');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch webnovels');
-                }
-                const data = await response.json();
-                setAllWebnovels(data);
-            } catch (error) {
-                console.error('Error fetching webnovels:', error);
-                setAllWebnovels([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAllWebnovels();
-    }, []);
+    const { webnovels } = useWebnovels();
 
     useEffect(() => {
         if (triggerSearch) {
@@ -290,23 +269,17 @@ export default function SearchComponent({
                                             </div>
                                         </div>
                                         {/* webnovel list here */}
-                                        {loading ? (
-                                            <div className="flex justify-center items-center">
-                                                <GradientCircularProgress />
-                                            </div>
-                                        ) : (
-                                            <div
-                                                onClick={toggleDrawer(false)}
-                                                className='flex md:max-w-screen-xl w-full mx-auto'>
-                                                {allWebnovels && (
-                                                    <WebnovelsList
-                                                        webnovels={allWebnovels}
-                                                        searchParams={searchParamsObject}
-                                                        sortBy='views'
-                                                    />
-                                                )}
-                                            </div>
-                                        )}
+                                        <div
+                                            onClick={toggleDrawer(false)}
+                                            className='flex md:max-w-screen-xl w-full mx-auto'>
+                                            {webnovels && (
+                                                <WebnovelsList
+                                                    webnovels={webnovels}
+                                                    searchParams={searchParamsObject}
+                                                    sortBy='views'
+                                                />
+                                            )}
+                                        </div>
                                     </Box>
                                 </Drawer>
                             </div>

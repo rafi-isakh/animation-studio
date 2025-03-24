@@ -11,20 +11,18 @@ import { CreateMediaProvider, useCreateMedia } from "@/contexts/CreateMediaConte
 import { useUser } from "@/contexts/UserContext";
 import { temporarilyUnpublished } from "@/utils/webnovelUtils";
 import { useRouter } from "next/navigation";
-const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
+const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { webnovel_id: string }, children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
-    const searchParams = useSearchParams()
-    const id = searchParams.get("id")
     const { stars } = useUser();
     const router = useRouter();
     useEffect(() => {
-        if (id) {
-            setWebnovelId(id);
-            if (temporarilyUnpublished.includes(parseInt(id))) {
+        if (webnovel_id) {
+            setWebnovelId(webnovel_id);
+            if (temporarilyUnpublished.includes(parseInt(webnovel_id))) {
                 router.push('/?premium=true')
             }
         }
-    }, [id]);
+    }, [webnovel_id]);
 
 
     const {
@@ -40,7 +38,6 @@ const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
         promotionBannerRef,
         draggableNodeRef,
         chapter_id,
-        webnovel_id,
         setWebnovelId,
     } = useCreateMedia();
 
@@ -71,7 +68,7 @@ const ViewWebnovelsLayout = ({ children }: { children: React.ReactNode }) => {
                     setSelection={setSelection}
                     promotionBannerRef={promotionBannerRef}
                     draggableNodeRef={draggableNodeRef}
-                    webnovel_id={webnovel_id!}
+                    webnovel_id={webnovel_id}
                     chapter_id={chapter_id}
                     source={"webnovel"}
                     initialNarrations={[]}

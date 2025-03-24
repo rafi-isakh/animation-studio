@@ -1,6 +1,6 @@
 "use client"
 import React, { createContext, useContext, useState, ReactNode, useEffect, Dispatch, SetStateAction } from 'react';
-import { ImageOrVideo } from '@/components/Types';
+import { ImageOrVideo, Webnovel } from '@/components/Types';
 import { useToast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/utils/urls';
 import { v4 as uuidv4 } from 'uuid';
@@ -84,6 +84,14 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const { stars, setInvokeCheckUser } = useUser();
     const { dictionary, language } = useLanguage();
     const [picture, setPicture] = useState<string>("");
+    const { getWebnovelById } = useWebnovels();
+    const [webnovel, setWebnovel] = useState<Webnovel>();
+
+    useEffect(() => {
+        if (webnovel_id) {
+            getWebnovelById(webnovel_id).then(w => setWebnovel(w));
+        }
+    }, [webnovel_id]);
 
     useEffect(() => {
         if (pictures.length > 0) {
@@ -107,6 +115,14 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
 
 
     const generateTrailer = async (chapter_ids: number[]) => {
+        if (webnovel && !webnovel.okay_to_create_videos) {
+            toast({
+                title: "Error",
+                description: phrase(dictionary, "cantCreateVideosForThisOne", language),
+                variant: "destructive"
+            })
+            return;
+        }
         if (stars < 20) {
             toast({
                 title: "Error",

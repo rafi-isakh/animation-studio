@@ -16,7 +16,7 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
     const [isHovered, setIsHovered] = useState(false)
     const isMobile = useMediaQuery('(max-width: 768px)')
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`} className="relative w-full">
+        <Link href={`/view_webnovels/${webnovel.id}`} className="relative w-full">
             <div className="relative aspect-[180/257] overflow-hidden rounded-xl"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}

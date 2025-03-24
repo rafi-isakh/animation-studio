@@ -33,7 +33,7 @@ import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
 
 
-function ChapterView({ params: { id }, }: { params: { id: string } }) {
+function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
     const [upvotes, setUpvotes] = useState(0);
@@ -83,7 +83,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
             alert(phrase(dictionary, "languageNotAvailable", language));
-            router.push(`/view_webnovels?id=${webnovel?.id}`);
+            router.push(`/view_webnovels/${webnovel?.id}`);
         }
     }, [webnovel, language])
 
@@ -95,7 +95,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
         const fetchData = async () => {
             const response = await fetch(`/api/get_upvoted_chapters?email=${email}`);
             const data = await response.json();
-            if (data.includes(id)) {
+            if (data.includes(chapter_id)) {
                 setLikeToggle(true);
             }
         }
@@ -110,18 +110,18 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
 
     useEffect(() => {
         const fetchChapter = async () => {
-            let chapter = chaptersLikelyNeededWebnovel?.chapters.find(chapter => chapter.id == Number(id));
+            let chapter = chaptersLikelyNeededWebnovel?.chapters.find(chapter => chapter.id == Number(chapter_id));
             if (chapter?.content) {
                 setChapter(chapter);
             }
             else {
-                const response = await fetch(`/api/get_chapter_by_id?id=${id}`)
+                const response = await fetch(`/api/get_chapter_by_id?id=${chapter_id}`)
                 chapter = await response.json();
                 setChapter(chapter);
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
-            if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(id))) {
-                router.push(`/view_webnovels?id=${chapter?.webnovel_id}`);
+            if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(chapter_id))) {
+                router.push(`/view_webnovels/${chapter?.webnovel_id}`);
             }
             setUpvotes(chapter?.upvotes || 0)
             const webnovel = await getWebnovelByIdWithContent(chapter?.webnovel_id.toString() || '');
@@ -141,10 +141,10 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     useEffect(() => {
         if (!viewed.current) {
             if (email) {
-                fetch(`/api/increase_views?chapter_id=${id}&user_email=${email}`)
+                fetch(`/api/increase_views?chapter_id=${chapter_id}&user_email=${email}`)
                 viewed.current = true;
             } else {
-                fetch(`/api/increase_views_not_logged_in?chapter_id=${id}`)
+                fetch(`/api/increase_views_not_logged_in?chapter_id=${chapter_id}`)
                 viewed.current = true;
             }
         }
@@ -155,7 +155,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             if (likeToggle) {
                 setUpvotes(prev => prev - 1); // optimistic update
                 setLikeToggle(false);
-                const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}&undo=set`)
+                const res = await fetch(`/api/upvote_chapter?chapter_id=${chapter_id}&user_email=${email}&undo=set`)
                 const data = await res.json();
                 if (data.status === 200) {
                     setUpvotes(data.upvotes);
@@ -165,7 +165,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
             else {
                 setUpvotes(prev => prev + 1);
                 setLikeToggle(true);
-                const res = await fetch(`/api/upvote_chapter?chapter_id=${id}&user_email=${email}`)
+                const res = await fetch(`/api/upvote_chapter?chapter_id=${chapter_id}&user_email=${email}`)
                 const data = await res.json();
                 if (data.status === 200) {
                     setUpvotes(data.upvotes);
@@ -178,9 +178,9 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
     }
 
     const handleDelete = async (chapterId: number) => {
-        const res = await fetch(`/api/delete_chapter?id=${id}`);
+        const res = await fetch(`/api/delete_chapter?id=${chapter_id}`);
         if (res.ok) {
-            router.push(`/view_webnovels?id=${webnovel?.id}`);
+            router.push(`/view_webnovels/${webnovel?.id}`);
         }
     }
 
@@ -234,7 +234,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     variant="link"
                     disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
                     className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
-                    <Link href={`/view_webnovels/chapter_view/${nextChapter.id}`} className="w-full">
+                    <Link href={`/view_webnovels/${webnovel.id}/chapter_view/${nextChapter.id}`} className="w-full">
                         <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
                             <div className="flex flex-row items-center space-x-4">
                                 <Image
@@ -274,7 +274,7 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                     bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
                     <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
-                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels?id=${webnovel.id}`)}>
+                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}>
                             <div className="flex flex-row space-x-1 items-center">
                                 <ChevronLeft size={18} />
                                 <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
@@ -295,8 +295,8 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                                     {webnovel.chapters.map((chapter, index) => (
                                         <MenubarItem
                                             key={chapter.id}
-                                            onClick={() => router.push(`/view_webnovels/chapter_view/${chapter.id}`)}
-                                            className={`${chapter.id === Number(id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
+                                            onClick={() => router.push(`/view_webnovels/${webnovel.id}/chapter_view/${chapter.id}`)}
+                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
                                             disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
                                             <p className="text-sm">{index + 1}.</p>
@@ -380,11 +380,11 @@ function ChapterView({ params: { id }, }: { params: { id: string } }) {
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
                                 <div className='flex justify-between px-4'>
-                                    <OtherTranslateComponent content={chapter.title} elementId={id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
+                                    <OtherTranslateComponent content={chapter.title} elementId={chapter_id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
-                                    <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} webnovel_id={webnovel.id.toString()} chapter_id={id}>
-                                        <WebnovelTranslateComponent availableLanguages={JSON.parse(webnovel.available_languages)} content={chapter.content} chapterId={id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
+                                    <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} webnovel_id={webnovel.id.toString()} chapter_id={chapter_id}>
+                                        <WebnovelTranslateComponent availableLanguages={JSON.parse(webnovel.available_languages)} content={chapter.content} chapterId={chapter_id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />
                                     </FloatingMenu>
                                 </div>
                             </div>

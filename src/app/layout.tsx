@@ -27,13 +27,13 @@ interface RootLayoutProps {
 
 export const metadata: Metadata = {
   title: '투니즈 Toonyz',
-  description: "웹소설, 웹툰 글로벌 스토리 플랫폼, 전세계 이야기가 이곳에",
+    description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
   manifest: '/manifest.json',
   openGraph: {
     type: 'website',
     url: 'https://toonyz.com',
     title: '투니즈 Toonyz',
-    description: "웹소설, 웹툰 글로벌 스토리 플랫폼",
+    description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
     images: [
       {
         url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: '투니즈 toonyz',
-    description: '웹소설, 웹툰 글로벌 스토리 플랫폼',
+    description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
     images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
   },
   alternates: {

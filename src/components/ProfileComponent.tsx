@@ -309,7 +309,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             <div className='flex flex-col gap-2 w-full order-2 md:m-6 m-0'>
                 {
                     novels.length > 0 ? (
-                        <Button color='gray' onClick={() => router.push(`/view_webnovels?id=${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
+                        <Button color='gray' onClick={() => router.push(`/view_webnovels/${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
                             <div className='flex flex-row gap-1 justify-center items-center'>
                                 <OtherTranslateComponent
                                     content={getRecentNovel().title}

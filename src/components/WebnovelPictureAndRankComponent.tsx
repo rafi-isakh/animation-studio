@@ -16,7 +16,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
     const imageSrc = getImageUrl(webnovel.cover_art)
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+        <Link href={`/view_webnovels/${webnovel.id}`}>
             <div className="group relative flex flex-col items-center w-full">
                 {/* Image Container - Reduced sizes */}
                 <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257]">

@@ -8,6 +8,108 @@ import { useMediaQuery } from 'react-responsive';
 import { useTheme } from '@/contexts/providers';
 import { ArrowRight } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { Button } from '@/components/shadcnUI/Button';
+
+
+
+export const LibraryPromotionComponent: React.FC = () => {
+  const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
+  const { dictionary, language } = useLanguage()
+  const { stars } = useUser();
+
+  const handleImageLoad = useCallback(() => {
+    console.log('Image loaded successfully');
+  }, []);
+
+  const optimizedImage = useMemo(() => (
+    <Image
+      src='/stelli/stelli_8.svg'
+      alt='Toonyz event banner'
+      loading="eager"
+      priority={true}
+      sizes="cover"
+      width={0}
+      height={0}
+      className='relative -bottom-1 mx-auto z-10'
+      style={{
+        width: isDesktop ? '100px' : '70px',
+        height: 'auto'
+      }}
+      onLoad={handleImageLoad}
+    />
+  ), [isDesktop, handleImageLoad]);
+
+
+  return (
+    <Link href='https://open.spotify.com/show/4OKQmgzsWeNV3YO5dC2uMm?si=c199561a571b4e5c' className="cursor-pointer">
+      <div
+        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl w-full h-[100px]  mx-auto gap-6 pb-1 bg-purple-500'
+      >
+        <div className="flex items-center justify-between h-full">
+          <div className="flex flex-row">
+            <div className="flex flex-col justify-center items-start gap-1 text-sm font-pretendard">
+              <p className="text-black text-center font-bold">
+                {phrase(dictionary, "findYourFavoriteWebnovelsAudiobookAndMore", language)}
+                {/* Find your favorite webnovels audiobook and more */}
+              </p>
+
+              <div className='flex flex-row gap-2 items-start justify-start' >
+
+                <button className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
+                  <span className="text-sm">
+
+                    {phrase(dictionary, "goToSpotify", language)}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-black" />
+                </button>
+
+
+              </div>
+            </div>
+            <div className="flex -space-x-1 ml-5">
+              <Image
+                src="/images/N_logo.svg"
+                alt="Toonyz Logo"
+                width={0}
+                height={0}
+                sizes="100vh"
+                style={{
+                  height: '30px',
+                  width: '30px',
+                  padding: '2px',
+                  backgroundColor: 'white',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  borderRadius: '25%',
+                  border: '1px solid #eee'
+                }}
+                className='z-10'
+              />
+              <Image
+                src='/icons/spotify_logo.svg'
+                alt='Spotify logo'
+                loading="eager"
+                priority={true}
+                sizes="cover"
+                width={0}
+                height={0}
+                className='relative -bottom-1 mx-auto -z-1'
+                style={{
+                  width: isDesktop ? '30px' : '30px',
+                  height: 'auto'
+                }}
+                onLoad={handleImageLoad}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+
+
 
 export const AIPromotionComponent: React.FC = () => {
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
@@ -34,7 +136,7 @@ export const AIPromotionComponent: React.FC = () => {
       }}
       onLoad={handleImageLoad}
     />
-  ), [isDesktop, handleImageLoad]); 
+  ), [isDesktop, handleImageLoad]);
 
 
   return (

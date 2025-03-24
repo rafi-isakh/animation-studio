@@ -9,15 +9,21 @@ import { Button } from "@/components/shadcnUI/Button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
+import { LibraryPromotionComponent } from "@/components/PromotionBannerComponent";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import { truncateText } from "@/utils/truncateText";
+import { Skeleton } from "@/components/shadcnUI/Skeleton";
 
 // Add a helper function for image URLs if it doesn't exist elsewhere
-const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
+const LibraryComponent = ({ library, nickname }: { library: Webnovel[], nickname: string }) => {
     const { dictionary, language } = useLanguage();
     const [toonyzPosts, setToonyzPosts] = useState<ToonyzPost[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchAndSortToonyzPosts = async () => {
             try {
+                setIsLoading(true);
                 const response = await fetch(`/api/get_toonyz_posts`);
                 if (!response.ok) throw new Error('Failed to fetch toonyz posts');
                 const data = await response.json();
@@ -39,6 +45,7 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
                 });
 
                 setToonyzPosts(sortedPosts);
+                setIsLoading(false);
             } catch (error) {
                 console.error('Error fetching and sorting posts:', error);
             }
@@ -61,11 +68,28 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
         new Map(library.map(item => [item.author.id, item.author])).values()
     );
 
+
+    const largeGap = () => {
+        return (
+            <div className='md:h-[3rem] h-[2rem]' />
+        )
+    }
+
+    const smallGap = () => {
+        return (
+            <div className='md:h-[2rem] h-[1rem]' />
+        )
+    }
+
+
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
             <div className="flex flex-col justify-start">
-                <p className="text-2xl font-bold !text-start mb-3">Your Library</p>
-
+                <LibraryPromotionComponent />
+                {smallGap()}
+                <p className="text-2xl font-bold !text-start mb-3">
+                    {phrase(dictionary, "myLibrary", language)}
+                </p>
                 {library.length > 0 ?
                     <div className="w-full overflow-x-auto no-scrollbar">
                         <div className="flex gap-2">
@@ -88,40 +112,66 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
                             ))}
                         </div>
                     </div>
-                    : (<div className="flex flex-col justify-center items-center h-screen space-y-2">
-                        {/* <Image src="/stelli/stelli_3.png" alt="noWebnovelsFound" width={150} height={100} />
-                        <p className="pt-3 text-md font-bold"> {phrase(dictionary, "noViewingWebnovelsFound", language)} </p>
-                        <p className="text-md"> {phrase(dictionary, "noViewingWebnovelsFound_subtitle", language)} </p>
-                        <Button className="bg-[#8A2BE2] text-md text-white px-4 py-2 rounded-md mb-10 ">
-                            <Link href="/">
-                                {phrase(dictionary, "discoverStories", language)}
-                            </Link>
-                        </Button> */}
-                    </div>)
+                    : (isLoading ?
+                        <div className="flex flex-row justify-start items-start space-x-2">
+                            <Skeleton className="w-[165px] h-[250px] rounded-lg" />
+                            <Skeleton className="w-[165px] h-[250px] rounded-lg" />
+                            <Skeleton className="w-[165px] h-[250px] rounded-lg" />
+                        </div>
+                        : <div className="flex flex-col justify-center items-center space-y-2">
+                            <Image src="/stelli/stelli_3.png" alt="noWebnovelsFound" width={150} height={100} />
+                            <p className="pt-3 text-md font-bold"> {phrase(dictionary, "noViewingWebnovelsFound", language)} </p>
+                            <p className="text-md"> {phrase(dictionary, "noViewingWebnovelsFound_subtitle", language)} </p>
+                            <Button className="bg-[#8A2BE2] text-md text-white px-4 py-2 rounded-md mb-10 ">
+                                <Link href="/">
+                                    {phrase(dictionary, "discoverStories", language)}
+                                </Link>
+                            </Button>
+                        </div>
+                    )
                 }
             </div>
-
-
-            <div className="flex flex-col justify-start py-5">
-                <p className="text-2xl font-bold !text-start mb-3">Favorite Authors</p>
-
-                {/* Container with fixed height for two rows */}
+            {smallGap()}
+            <div className="flex flex-col justify-start">
+                <p className="text-2xl font-bold !text-start mb-3">
+                    {phrase(dictionary, "favoriteAuthors", language)}
+                </p>
+                
                 <div className="overflow-x-auto no-scrollbar">
                     <div className="flex flex-row flex-nowrap gap-2" >
-                        {uniqueAuthors.slice(0, 20).map(author => (
+                       {uniqueAuthors.length > 0 ? uniqueAuthors.slice(0, 20).map(author => (
                             <div
                                 key={author.id}
-                                className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-1 w-fit"
+                                className="flex flex-row gap-1 justify-center items-center border border-zinc-200 dark:border-zinc-700 rounded-lg p-1 w-fit"
                             >
+                                <Avatar key={author.id} className="relative w-6 h-6 rounded-full border border-white overflow-hidden">
+                                    <AvatarFallback className="bg-gray-300 flex items-center justify-center text-xs text-black dark:text-black">
+                                        {author.nickname.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
                                 <p className="text-center text-sm truncate">{author.nickname}</p>
                             </div>
-                        ))}
+                        )) : (isLoading ? <div className="flex flex-row justify-start items-start space-x-2"> 
+                                            <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
+                                            <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
+                                            <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
+                                        </div> : <>No Favorite Authors Yet</>)}
                     </div>
                 </div>
             </div>
+            {largeGap()}
+            <div className="flex flex-col justify-start">
 
-            <div className="flex flex-col justify-start py-5 ">
-                <p className="text-2xl font-bold !text-start mb-3">Recently Added Toonyz Posts in your reading list</p>
+                {library.length > 0 ?
+                    <div className="flex flex-row justify-between">
+                        <h1 className="text-2xl font-bold mb-3 text-black dark:text-white">
+                            {/* Continue Reading */}
+                            {language === "ko" && <span className="text-black dark:text-white">{nickname}님</span>}
+                            {phrase(dictionary, "newToonyzPostsFromYourLibrary", language)}
+                        </h1>
+                    </div>
+                    : <></>
+                }
 
                 <div className="overflow-x-auto no-scrollbar ">
                     <div className="flex flex-row flex-nowrap gap-2">
@@ -137,28 +187,8 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
                                 //     backgroundPosition: 'center'
                                 // }}
                                 >
-                                    <div key={libraryItem.id} className="h-[200px]">
-                                        <div className="flex gap-1 overflow-x-auto no-scrollbar">
-                                            {matchingPosts.map(post => (
-                                                <Link href={`/toonyz_posts/${post.id}`}>
-                                                    <div key={post.id} className="flex-nowrap flex-shrink-0 w-32">
-                                                        {post.image ? <Image
-                                                            src={getImageUrl(post.image)}
-                                                            alt={post.title}
-                                                            width={130}
-                                                            height={130}
-                                                            className="rounded-lg mx-auto"
-                                                        /> : post.video ? <video src={getVideoUrl(post.video)} playsInline autoPlay muted loop className="rounded-lg mx-auto" /> : <></>
 
-                                                        }
-                                                        <p className="relative mt-2 text-center text-sm">{post.title || `Post #${post.id}`}</p>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black text-black dark:text-white w-full p-2 text-center flex flex-row items-center gap-2">
+                                    <div className="relative w-full p-2 text-center flex flex-row items-center gap-2">
                                         <Avatar key={libraryItem.author.id} className="relative w-6 h-6 rounded-full border border-white overflow-hidden">
                                             <AvatarImage src={getImageUrl(libraryItem.cover_art) || ""} alt={libraryItem.title} />
                                             <AvatarFallback className="bg-gray-300 flex items-center justify-center text-xs text-black dark:text-black">
@@ -166,19 +196,49 @@ const LibraryComponent = ({ library }: { library: Webnovel[] }) => {
                                             </AvatarFallback>
                                         </Avatar>
 
-                                        <p className="text-sm font-bold truncate">
-                                            {libraryItem.title}
-                                            <span className="text-xs text-gray-500 text-right">
+                                        <div className="w-full flex text-sm font-bold truncate justify-between">
+                                            <span className="">
+                                                {/* {libraryItem.title} */}
+                                                <OtherTranslateComponent
+                                                    content={truncateText(libraryItem.title, 15)}
+                                                    elementId={libraryItem.id.toString()}
+                                                    elementType='webnovel'
+                                                    elementSubtype="title"
+                                                    classParams={language === 'ko'
+                                                        ? "text-md md:text-base w-full break-keep korean truncate text-center"
+                                                        : "text-md md:text-base w-full break-words truncate text-center"}
+                                                />
+
+                                            </span>
+                                            <span className="text-xs text-gray-500 self-end">
                                                 {matchingPosts.length} Pins
                                             </span>
-                                        </p>
+                                        </div>
 
                                     </div>
-
+                                    <div key={libraryItem.id} className="h-[200px]">
+                                        <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                                            {matchingPosts.map(post => (
+                                                <div key={post.id} className="flex-nowrap  w-32  flex-shrink-0">
+                                                    <Link href={`/toonyz_posts/${post.id}`}>
+                                                        {post.image ?
+                                                            (<Image
+                                                                src={getImageUrl(post.image)}
+                                                                alt={post.title}
+                                                                width={130}
+                                                                height={130}
+                                                                className="rounded-lg mx-auto"
+                                                            />)
+                                                            : (<video src={getVideoUrl(post.video)} playsInline autoPlay muted loop className="rounded-lg mx-auto" />
+                                                            )}
+                                                        <p className="relative mt-2 text-center text-sm">{post.title || `Post #${post.id}`}</p>
+                                                    </Link>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-
                             ) : <></>;
-
                         })}
                     </div>
                 </div>

@@ -9,8 +9,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Library = () => {
     const {language, dictionary} = useLanguage();
-    const {email} = useUser();
+    const {email, nickname} = useUser();
     const [library, setLibrary] = useState<Webnovel[]>([])
+    const { isLoggedIn } = useAuth();
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -28,7 +30,7 @@ const Library = () => {
 
     return (
         <div className="max-w-screen-xl flex mx-auto justify-center">
-            <LibraryComponent library={library}/>
+            <LibraryComponent library={library} nickname={nickname}/>
         </div>
     )
 }

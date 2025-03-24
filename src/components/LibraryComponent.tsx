@@ -84,7 +84,7 @@ const LibraryComponent = ({ library, nickname }: { library: Webnovel[], nickname
 
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
-            <div className="flex flex-col justify-start">
+            <div className="flex flex-col justify-start md:p-0 p-2">
                 <LibraryPromotionComponent />
                 {smallGap()}
                 <p className="text-2xl font-bold !text-start mb-3">
@@ -132,7 +132,7 @@ const LibraryComponent = ({ library, nickname }: { library: Webnovel[], nickname
                 }
             </div>
             {smallGap()}
-            <div className="flex flex-col justify-start">
+            <div className="flex flex-col justify-start md:p-0 p-2">
                 <p className="text-2xl font-bold !text-start mb-3">
                     {phrase(dictionary, "favoriteAuthors", language)}
                 </p>
@@ -160,7 +160,7 @@ const LibraryComponent = ({ library, nickname }: { library: Webnovel[], nickname
                 </div>
             </div>
             {largeGap()}
-            <div className="flex flex-col justify-start">
+            <div className="flex flex-col justify-start md:p-0 p-2">
 
                 {library.length > 0 ?
                     <div className="flex flex-row justify-between">

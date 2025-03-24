@@ -46,27 +46,23 @@ export const LibraryPromotionComponent: React.FC = () => {
         className='flex flex-row justify-center rounded-lg md:max-w-screen-xl w-full h-[100px]  mx-auto gap-6 pb-1 bg-purple-500'
       >
         <div className="flex items-center justify-between h-full">
-          <div className="flex flex-row">
-            <div className="flex flex-col justify-center items-start gap-1 text-sm font-pretendard">
-              <p className="text-black text-center font-bold">
+          <div className="flex flex-row md:p-0 p-2">
+            <div className="flex flex-col justify-start items-start gap-1 text-sm font-pretendard">
+              <p className="text-black text-start font-bold">
                 {phrase(dictionary, "findYourFavoriteWebnovelsAudiobookAndMore", language)}
                 {/* Find your favorite webnovels audiobook and more */}
               </p>
 
               <div className='flex flex-row gap-2 items-start justify-start' >
-
                 <button className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
-                  <span className="text-sm">
-
+                  <span className="md:text-sm text-[10px]">
                     {phrase(dictionary, "goToSpotify", language)}
                   </span>
                   <ArrowRight className="w-4 h-4 text-black" />
                 </button>
-
-
               </div>
             </div>
-            <div className="flex -space-x-1 ml-5">
+            <div className="flex -space-x-1 md:ml-5 ml-0">
               <Image
                 src="/images/N_logo.svg"
                 alt="Toonyz Logo"

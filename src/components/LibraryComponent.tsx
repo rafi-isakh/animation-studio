@@ -155,7 +155,7 @@ const LibraryComponent = ({ library, nickname }: { library: Webnovel[], nickname
                                             <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
                                             <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
                                             <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
-                                        </div> : <>No Favorite Authors Yet</>)}
+                                        </div> : <>{phrase(dictionary, "noFavoriteAuthorsYet", language)}</>)}
                     </div>
                 </div>
             </div>

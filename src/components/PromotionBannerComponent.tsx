@@ -62,7 +62,7 @@ export const LibraryPromotionComponent: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="flex -space-x-1 md:ml-5 ml-0">
+            <div className="flex -space-x-1 md:ml-5 ml-1">
               <Image
                 src="/images/N_logo.svg"
                 alt="Toonyz Logo"

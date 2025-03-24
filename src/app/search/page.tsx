@@ -10,6 +10,22 @@ import WebnovelsList from '@/components/WebnovelsList';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
+import WebnovelPictureCardWrapper from '@/components/UI/WebnovelPictureCardWrapper';
+import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
+import {
+  GenresTabs,
+  AllGenres,
+  RomanceGenres,
+  FantasyGenres,
+  SciFiGenres,
+  BLGenres,
+  DramaGenres,
+  RomanceFantasyGenres,
+  LoveComedyGenres
+} from '@/components/UI/GenresTabs';
+import WebnovelListGrid from '@/components/UI/WebnovelListGrid';
+
 // import WebnovelCard from '@/components/UI/WebnovelCard';
 
 const Search = () => {
@@ -26,6 +42,7 @@ const Search = () => {
   const [sortBy, setSortBy] = useState<SortBy>('views');
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [showNoResults, setShowNoResults] = useState(false);
+
   // Fetch all webnovels on component mount
   useEffect(() => {
     const fetchAllWebnovels = async () => {
@@ -80,6 +97,98 @@ const Search = () => {
   }, [webnovels]);
 
 
+
+
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // let { webnovels } = useWebnovels();
+  const filteredAllWebnovels = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+
+  const tabsConfig = [
+    {
+      label: "All Genres",
+      genre: "allgenres",
+      Component: () => (
+        <AllGenres>
+          {/* <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} /> */}
+          <WebnovelsAllCardWrapper
+            title={''}
+            webnovels={filteredAllWebnovels}
+            scrollRef={scrollRef}
+            renderItem={(item: Webnovel, index: number) => (
+              <WebnovelPictureCardWrapper
+                webnovel={item}
+                index={index + 1}
+                ranking={false}
+                details={false}
+                up={false}
+                isOriginal={false}
+              />
+            )}
+          />
+        </AllGenres>
+      ),
+      color: "#F9B294"
+    },
+    {
+      label: "Romance",
+      genre: "romance",
+      Component: () => (
+        <RomanceGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F2727F"
+    },
+    {
+      label: "Fantasy",
+      genre: "fantasy",
+      Component: () => (
+        <FantasyGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F89E8D"
+    },
+    {
+      label: "Sci-Fi",
+      genre: "sf",
+      Component: () => (
+        <SciFiGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F78A86"
+    },
+    {
+      label: "BL",
+      genre: "bl",
+      Component: () => (
+        <BLGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F2727F"
+    },
+    {
+      label: "Drama",
+      genre: "drama",
+      Component: () => (
+        <DramaGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#0C34F0"
+    },
+    {
+      label: "Romance Fantasy",
+      genre: "romanceFantasy",
+      Component: () => (
+        <RomanceFantasyGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F0BA18"
+    },
+    {
+      label: "Love Comedy",
+      genre: "loveComedy",
+      Component: () => (
+        <LoveComedyGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F0183C"
+    },
+  ];
+
+
   const CustomSkeleton = ({
     width = '100%',
     height,
@@ -108,6 +217,8 @@ const Search = () => {
       />
     )
   }
+
+
 
 
   const SearchResultSkeleton = ({ width = 300, height = 24 }) => (
@@ -168,11 +279,14 @@ const Search = () => {
       ) : (
         // Show default view 
         <div className='space-y-8 md:px-2 px-4'>
-          <WebnovelsList
+          <WebnovelListGrid
             searchParams={searchParamsObject}
             webnovels={allWebnovels}
             sortBy={sortBy}
           />
+          <div className='relative w-full mx-auto'>
+            <GenresTabs tabs={tabsConfig} type="tabs" orientation="horizontal" />
+          </div>
         </div>
       )}
     </div>

@@ -113,24 +113,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
         throw new Error("there should be only one genre param")
     }
 
-    function scroll(e: any) {
-        if (!slider.current) return;
-
-        e.wheelDelta > 0 ? (
-            slider.current.slickNext()
-        ) : (
-            slider.current.slickPrev()
-        );
-    };
-
-    useEffect(() => {
-        window.addEventListener("wheel", scroll, true);
-
-        return () => {
-            window.removeEventListener("wheel", scroll, true);
-        };
-    }, []);
-
 
 
 

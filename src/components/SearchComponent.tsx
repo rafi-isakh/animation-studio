@@ -120,6 +120,14 @@ export default function SearchComponent({
         setOpen(open);
     };
 
+    useEffect(() => {
+        if (open) {
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 100);
+        }
+    }, [open]);
+
     const renderSearchInput = () => (
         <div className="relative max-w-screen-xl flex-1 h-12 mx-auto">
             <Search
@@ -191,7 +199,10 @@ export default function SearchComponent({
                                         <Search size={20} className='dark:text-white text-black' />
                                     </div>
                                     <input
-                                        onClick={toggleDrawer(true)}
+                                        onClick={(e) => {
+                                            toggleDrawer(true)(e);
+                                            inputRef.current?.focus();
+                                        }}
                                         type="text"
                                         id="search-navbar"
                                         value={query}

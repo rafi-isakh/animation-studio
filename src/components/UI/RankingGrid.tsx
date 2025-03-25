@@ -14,6 +14,8 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState<number | null>(null)
+
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
             <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>

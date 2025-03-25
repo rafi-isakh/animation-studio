@@ -1,5 +1,5 @@
 import Footer from '@/components/Footer';
-import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
+import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategory';
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { cookies } from 'next/headers';
@@ -29,7 +29,7 @@ async function getLibrary() {
     if (!email) {
         return [];
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`, {
         cache: 'no-store',
         headers: {
             'Cookie': cookies().toString(),
@@ -77,11 +77,17 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <ToonyzPostCards />
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
-                    {smallGap()}
-                    <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
+                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommended" />
                     {smallGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
+                    {largeGap()}
+                    <WebnovelsCardListByCategory searchParams={searchParams} sortBy='date' title="newReleasesWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "romance" }} sortBy='date' title="romanceWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "fantasy" }} sortBy='date' title="fantasyWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "bl" }} sortBy='date' title="BLWebnovels" />
                     {smallGap()}
                 </div>
             </div>

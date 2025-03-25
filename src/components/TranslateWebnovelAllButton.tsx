@@ -45,7 +45,8 @@ export function TranslateWebnovelAllButton({language, webnovel}: {language: stri
     async function handleTranslateAll() {
         const sorted = JSON.parse(JSON.stringify(webnovel)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
         console.log("Sorted chapters", sorted)
-        for (const chapter of sorted) {
+        const howMany = prompt("How many chapters do you want to translate?")
+        for (const chapter of sorted.slice(0, howMany)) {
             const startTime = new Date()
             console.log("Started translation at ", startTime)
             if (chapter.content) {

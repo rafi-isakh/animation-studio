@@ -28,7 +28,7 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
     return (
         <div className={`relative  w-full mx-auto group overflow-hidden ${className}`}>
             <div>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
                     {title}
                 </h1>
 
@@ -78,7 +78,7 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
 
                     {/* Mobile horizontal scroll */}
                     {isMobile && (
-                        <div className="md:hidden flex flex-nowrap overflow-x-auto no-scrollbar scroll-smooth gap-1">
+                        <div className="md:hidden grid  grid-cols-3 overflow-x-auto no-scrollbar  gap-1">
                             {webnovels.map((item, index) => (
                                 <div key={item.id || index} className="">
                                     {renderItem(item, index)}

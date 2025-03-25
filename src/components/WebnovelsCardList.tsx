@@ -32,7 +32,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     return (
         <div className={`relative w-full group ${className} `}>
             <div>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
                     {title}
                 </h1>
 

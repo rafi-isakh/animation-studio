@@ -37,7 +37,7 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
             <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "ToonyzPost", language)}</h2>
             <div className="relative group">
                 <div ref={scrollRef} className="overflow-x-auto no-scrollbar">
-                    <div className="flex w-full space-x-4 py-1">
+                    <div className="flex w-full space-x-4">
                         {collections.map((collection) => (
                             <CollectionCard
                                 key={collection.id}

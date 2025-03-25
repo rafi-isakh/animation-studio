@@ -7,8 +7,9 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from '@/utils/phrases'
-import { Skeleton, useMediaQuery } from "@mui/material"
-import { ChevronDown, ChevronLeft, ChevronRight, Heart, Pause, Play, Plus, ThumbsUp, TrendingUp, Volume2, VolumeOff } from "lucide-react"
+import { Skeleton } from "@/components/shadcnUI/Skeleton"
+import { useMediaQuery } from "@mui/material"
+import { Pause, Play, Volume2, VolumeOff } from "lucide-react"
 
 const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
@@ -103,7 +104,7 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                                 </button>
                             </div>
                         :
-                        <Skeleton variant="rectangular" width="100%" height="100%" />
+                        <Skeleton className="w-full h-full" />
                     }
 
                     {/* Overlay */}

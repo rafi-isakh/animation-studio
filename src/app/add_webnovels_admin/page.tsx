@@ -156,6 +156,7 @@ export default function UploadWebnovelsAdmin() {
             setChapterTxtObjs(newChapterTxtObjs);
             setFileType("txt");
         }
+        alert("Loaded files");
     }
     const handleAddChapter = async () => {
         let maxProgress = 0;
@@ -187,7 +188,6 @@ export default function UploadWebnovelsAdmin() {
                 chapter.content = text;
                 chapter.webnovel_id = webnovelId;
                 chapters.push(chapter);
-                await addSingleChapter(title, text);
             }
         } else if (fileType === "docx") {
             for (const docxObj of chapterDocxObjs) {
@@ -198,7 +198,6 @@ export default function UploadWebnovelsAdmin() {
                 chapter.content = text;
                 chapter.webnovel_id = webnovelId;
                 chapters.push(chapter);
-                await addSingleChapter(title, text);
             }
         } else if (fileType === "txt") {
             for (const txtObj of chapterTxtObjs) {
@@ -209,10 +208,9 @@ export default function UploadWebnovelsAdmin() {
                 chapter.content = text;
                 chapter.webnovel_id = webnovelId;
                 chapters.push(chapter);
-                await addSingleChapter(title, text);
             }
         }
-
+        await addAllChapters(chapters);
         alert("All chapters added successfully");
     }
 

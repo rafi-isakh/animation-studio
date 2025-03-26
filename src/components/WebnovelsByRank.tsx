@@ -25,6 +25,7 @@ export default function WebnovelsByRank({ searchParams, sortBy }: { searchParams
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
+            .filter(item => new Date(item.created_at) > new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)) // recent 30 days
             .sort((a, b) => sortByFn(a, b, sortBy))
             .slice(0, 7)
 

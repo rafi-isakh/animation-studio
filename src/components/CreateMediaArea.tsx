@@ -62,7 +62,7 @@ export default function CreateMediaArea({
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
     const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
-    const { getWebnovelByIdWithContent } = useWebnovels();
+    const { getWebnovelIdWithChapterMetadata } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
     useEffect(() => {
@@ -73,7 +73,7 @@ export default function CreateMediaArea({
 
     useEffect(() => {
         if (webnovel_id) {
-            getWebnovelByIdWithContent(webnovel_id).then((webnovel) => {
+            getWebnovelIdWithChapterMetadata(webnovel_id).then((webnovel) => {
                 setWebnovel(webnovel);
             });
         }

@@ -30,7 +30,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
     const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
     const [lastPostId, setLastPostId] = useState<string | null>(null);
-    const { getWebnovelByIdWithContent } = useWebnovels();
+    const { getWebnovelIdWithChapterMetadata } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const { email: currentUserEmail } = useUser();
     const { dictionary, language } = useLanguage();
@@ -54,7 +54,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     useEffect(() => {
         const fetchWebnovel = async () => {
             if (post?.webnovel_id) {
-                const novel = await getWebnovelByIdWithContent(post.webnovel_id);
+                const novel = await getWebnovelIdWithChapterMetadata(post.webnovel_id);
                 setWebnovel(novel);
                 const chapter = novel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id.toString());
                 setChapterTitle(chapter?.title);

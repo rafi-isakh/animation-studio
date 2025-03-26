@@ -8,9 +8,8 @@ import { useLanguage } from './LanguageContext';
 interface WebnovelsContextState {
     webnovels: Array<Webnovel>; // Replace 'any' with a more specific type if available
     chaptersLikelyNeededWebnovel: Webnovel | undefined;
-    fetchChaptersLikelyNeededWebnovel: (webnovel: Webnovel) => void;
     getWebnovelById: (id: string) => Promise<Webnovel | undefined>;
-    getWebnovelByIdWithContent: (id: string) => Promise<Webnovel | undefined>;
+    getWebnovelIdWithChapterMetadata: (id: string) => Promise<Webnovel | undefined>;
     getWebnovelsMetadataByUserId: (userId: string) => Promise<Array<Webnovel>>;
     getWebnovelsMetadataByAuthorId: (authorId: string) => Promise<Array<Webnovel>>;
     invalidateCache: () => void;
@@ -49,13 +48,13 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         fetchWebnovelsMetadata();
     }
 
-    // may or may not have content
+    // may or may not have chapter metadata
     const getWebnovelById = async (id: string) => {
         const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
         if (webnovel) {
             return Promise.resolve(webnovel);
         } else {
-            const response = await fetch(`/api/get_webnovel_by_id?id=${id}`);
+            const response = await fetch(`/api/get_webnovel_with_chapter_metadata_by_id?id=${id}`);
             if (!response.ok) {
                 console.error("Failed to fetch webnovel by id", response.status);
                 return undefined;
@@ -65,13 +64,13 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     };
 
-    // explicitly with content
-    const getWebnovelByIdWithContent = async (id: string) => {
+    // explicitly with chapter metadata
+    const getWebnovelIdWithChapterMetadata = async (id: string) => {
         const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
         if (webnovel?.chapters) {
             return Promise.resolve(webnovel);
         } else {
-            const response = await fetch(`/api/get_webnovel_by_id?id=${id}`);
+            const response = await fetch(`/api/get_webnovel_with_chapter_metadata_by_id?id=${id}`);
             if (!response.ok) {
                 console.error("Failed to fetch webnovel by id", response.status);
                 return undefined;
@@ -112,15 +111,8 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     };
 
-    const fetchChaptersLikelyNeededWebnovel = async (webnovel: Webnovel) => {
-        const response = await fetch(`/api/get_webnovel_by_id?id=${webnovel.id}`);
-        const data = await response.json();
-        setWebnovels([...webnovels.filter((w) => w.id !== Number(data.id)), data]);
-        setChaptersLikelyNeededWebnovel(webnovel);
-    };
-
     return (
-        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelByIdWithContent, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, fetchChaptersLikelyNeededWebnovel, invalidateCache }}>
+        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, invalidateCache }}>
             {children}
         </WebnovelsContext.Provider>
     );

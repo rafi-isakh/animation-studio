@@ -102,7 +102,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Image/Video Container - simplified for mobile */}
-            <div className={`relative max-w-screen-lg mx-auto w-full group
+            <div className={`relative max-w-screen-sm mx-auto group
                             ${post.image
                             ? 'md:h-full h-[40vh] top-8 mt-8'
                             : 'md:h-full md:top-16 md:mt-16'}`}>
@@ -124,7 +124,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         />
                     </div>
                 ) : (
-                    <div className="relative group h-full w-full">
+                    <div className="relative group h-full">
                         <video
                             src={getVideoUrl(post.video)}
                             muted

@@ -478,7 +478,14 @@ export default function InfoAndPictureComponent({
                             </div>
 
                             {/* Purchase Modal */}
-                            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={content} stars={stars} />
+                            <ChapterPurchaseDialog 
+                                showPurchaseModal={showPurchaseModal} 
+                                setShowPurchaseModal={setShowPurchaseModal} 
+                                handleChapterPurchase={handleChapterPurchase} 
+                                content={content} 
+                                stars={stars} 
+                                chapter={content.chapters[0]}
+                            />
 
                             {/* Not Enough Stars Modal */}
                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} />

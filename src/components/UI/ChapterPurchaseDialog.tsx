@@ -10,13 +10,15 @@ const ChapterPurchaseDialog = ({
     setShowPurchaseModal,
     handleChapterPurchase,
     content,
-    stars
+    stars,
+    chapter
 }: {
     showPurchaseModal: boolean,
     setShowPurchaseModal: (showPurchaseModal: boolean) => void,
     handleChapterPurchase: (chapter: Chapter) => void, 
     content: any, 
-    stars: number
+    stars: number,
+    chapter: Chapter
 }) => {
     const { dictionary, language } = useLanguage();
 
@@ -38,7 +40,7 @@ const ChapterPurchaseDialog = ({
                     <div className="flex flex-row justify-center items-center gap-2 mt-4">
                         <Button
                             variant="outline"
-                            onClick={() => handleChapterPurchase(content.chapters[0])}
+                            onClick={() => handleChapterPurchase(chapter)}
                             className="bg-black hover:bg-[#D92979]/50 text-white border"
                         >
                             <MdStars className="text-xl text-[#D92979]" />

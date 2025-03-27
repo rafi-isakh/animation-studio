@@ -37,7 +37,6 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             fill
                             sizes="150px"
                             className="object-cover rounded-md"
-                            priority
                         />
                         <div className="absolute bottom-0 left-0 w-full 
                             bg-gradient-to-t from-black/50 to-transparent

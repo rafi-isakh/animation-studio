@@ -121,7 +121,6 @@ export const AIPromotionComponent: React.FC = () => {
       src='/stelli/stelli_8.svg'
       alt='Toonyz event banner'
       loading="eager"
-      priority={true}
       sizes="cover"
       width={0}
       height={0}

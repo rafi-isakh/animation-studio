@@ -193,7 +193,6 @@ export function ToonyzPlatform() {
                 alt="Toonyz"
                 width={300}
                 height={300}
-                priority
               />
             </div>
           </FadeUp>
@@ -205,7 +204,6 @@ export function ToonyzPlatform() {
               alt="Toonyz app frame"
               width={300}
               height={300}
-              priority
             />
           </FadeUp>
 
@@ -218,7 +216,6 @@ export function ToonyzPlatform() {
                 alt="Toonyz"
                 width={300}
                 height={300}
-                priority
               />
             </div>
           </FadeUp>

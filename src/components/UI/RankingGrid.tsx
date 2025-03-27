@@ -56,7 +56,6 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                                             sizes="(max-width: 768px) 120px, 180px"
                                             placeholder="blur"
                                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                            priority={index < 2}
                                         />
                                     </div>
                                     {/* Gradient overlay */}

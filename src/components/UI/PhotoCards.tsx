@@ -32,7 +32,6 @@ const PhotoCards = ({ images, posts }: PhotoCardsProps) => {
                 fill
                 sizes="(max-width: 768px) 100vw, 256px"
                 className="object-cover"
-                priority
               />
             </div>
           </div>
@@ -50,7 +49,6 @@ const PhotoCards = ({ images, posts }: PhotoCardsProps) => {
                 fill
                 sizes="(max-width: 768px) 100vw, 256px"
                 className="object-cover"
-                priority
               />
             </div>
           </div>
@@ -68,7 +66,6 @@ const PhotoCards = ({ images, posts }: PhotoCardsProps) => {
                 fill
                 sizes="(max-width: 768px) 100vw, 256px"
                 className="object-cover"
-                priority
               />
             </div>
           </div>
@@ -86,7 +83,6 @@ const PhotoCards = ({ images, posts }: PhotoCardsProps) => {
                 fill
                 sizes="(max-width: 768px) 100vw, 256px"
                 className="object-cover"
-                priority
               />
             </div>
           </div>

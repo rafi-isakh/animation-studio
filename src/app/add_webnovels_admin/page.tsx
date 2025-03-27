@@ -33,6 +33,8 @@ export default function UploadWebnovelsAdmin() {
     const [fileType, setFileType] = useState<'epub' | 'docx' | 'txt'>("epub");
     const [okayToCreateVideos, setOkayToCreateVideos] = useState<boolean>(false);
     const [titleEnglish, setTitleEnglish] = useState<string>("");
+    const [filesLoaded, setFilesLoaded] = useState<boolean>(false);
+    const [uploading, setUploading] = useState<boolean>(false);
 
     const parseTxt = async (file: File) => {
         // Read the text content from the file
@@ -93,31 +95,7 @@ export default function UploadWebnovelsAdmin() {
     }
 
     const handleChapterFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        // const files = Array.from(e.target.files ?? []).sort((a, b) => {
-        //     // Extract numbers from filenames and compare them numerically
-        //     const numA = parseInt(a.name.match(/\d+/)?.[0] || '0');
-        //     const numB = parseInt(b.name.match(/\d+/)?.[0] || '0');
-        //     return numA - numB;
-        //     // Extract part number (부) and chapter number (화) from Korean-style chapter naming
-        //     // const partAMatch = a.name.match(/(\d+)부/);
-        //     // const partBMatch = b.name.match(/(\d+)부/);
-        //     // const chapterAMatch = a.name.match(/(\d+)화/);
-        //     // const chapterBMatch = b.name.match(/(\d+)화/);
-
-        //     // // Get part numbers (default to 0 if not found)
-        //     // const partA = partAMatch ? parseInt(partAMatch[1]) : 0;
-        //     // const partB = partBMatch ? parseInt(partBMatch[1]) : 0;
-
-        //     // // Get chapter numbers (default to 0 if not found)
-        //     // const chapterA = chapterAMatch ? parseInt(chapterAMatch[1]) : 0;
-        //     // const chapterB = chapterBMatch ? parseInt(chapterBMatch[1]) : 0;
-
-        //     // // Compare by part first, then by chapter
-        //     // if (partA !== partB) {
-        //     //     return partA - partB;
-        //     // }
-        //     // return chapterA - chapterB;
-        // });
+        setFilesLoaded(false);
         const files = Array.from(e.target.files ?? []);
         console.log(files);
         if (files) {
@@ -156,6 +134,8 @@ export default function UploadWebnovelsAdmin() {
             setChapterTxtObjs(newChapterTxtObjs);
             setFileType("txt");
         }
+        alert("Files loaded")
+        setFilesLoaded(true);
     }
     const handleAddChapter = async () => {
         let maxProgress = 0;
@@ -176,7 +156,11 @@ export default function UploadWebnovelsAdmin() {
             for (let i = 0; i < chapterEpubObjs.length; i++) {
                 const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                htmlString += epubObj.sections[1].htmlString;
+                for (const section of epubObj.sections) {
+                    if (section.id.startsWith('Section')) {
+                        htmlString += section.htmlString;
+                    }
+                }
                 text = parseHtmlToText(htmlString!);
                 title = epubObj.info?.title;
                 if (!title) {
@@ -187,7 +171,6 @@ export default function UploadWebnovelsAdmin() {
                 chapter.content = text;
                 chapter.webnovel_id = webnovelId;
                 chapters.push(chapter);
-                await addSingleChapter(title, text);
             }
         } else if (fileType === "docx") {
             for (const docxObj of chapterDocxObjs) {
@@ -198,7 +181,6 @@ export default function UploadWebnovelsAdmin() {
                 chapter.content = text;
                 chapter.webnovel_id = webnovelId;
                 chapters.push(chapter);
-                await addSingleChapter(title, text);
             }
         } else if (fileType === "txt") {
             for (const txtObj of chapterTxtObjs) {
@@ -209,14 +191,14 @@ export default function UploadWebnovelsAdmin() {
                 chapter.content = text;
                 chapter.webnovel_id = webnovelId;
                 chapters.push(chapter);
-                await addSingleChapter(title, text);
             }
         }
-
+        await addAllChapters(chapters);
         alert("All chapters added successfully");
     }
 
     const addAllChapters = async (chapters: { title: string, content: string, webnovel_id: string }[]) => {
+        setUploading(true);
         const response = await fetch('/api/add_chapters_admin', {
             method: 'POST',
             headers: {
@@ -229,6 +211,7 @@ export default function UploadWebnovelsAdmin() {
         if (!response.ok) {
             throw new Error("Failed to add chapters");
         }
+        setUploading(false);
         return response.json();
     }
 
@@ -283,7 +266,6 @@ export default function UploadWebnovelsAdmin() {
             <p>Cover Art</p>
             <input type="file" accept="image/*" onChange={handlePictureChange} />
         </div>
-        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => setWebnovelId(e.target.value)} />
         <TextField className='w-[50%]' label="Webnovel Title" type="text" value={webnovelTitle} onChange={(e) => setWebnovelTitle(e.target.value)} />
         <TextField className='w-[50%]' label="Webnovel Title English" type="text" value={titleEnglish} onChange={(e) => setTitleEnglish(e.target.value)} />
         <TextField className='w-[50%]' label="Number of Free Chapters" type="text" value={numberOfFreeChapters} onChange={(e) => setNumberOfFreeChapters(Number(e.target.value))} />
@@ -298,12 +280,13 @@ export default function UploadWebnovelsAdmin() {
             <Checkbox checked={okayToCreateVideos} onClick={() => setOkayToCreateVideos(!okayToCreateVideos)} />
         </div>
         <Button color='gray' variant='contained' onClick={handleAddWebnovel}>Add Webnovel</Button>
+        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => setWebnovelId(e.target.value)} />
         <div className='flex flex-row space-x-4'>
             <p>Chapter Files</p>
             <input type="file" multiple accept=".epub,.docx,.txt" onChange={handleChapterFilesChange} />
         </div>
         <div className="py-4"></div>
-        <Button color='gray' variant='contained' onClick={handleAddChapter}>Add Chapters</Button>
+        <Button color='gray' variant='contained' onClick={handleAddChapter} disabled={!filesLoaded || uploading}>Add Chapters</Button>
         <LinearProgress value={progress} />
     </div>
 }

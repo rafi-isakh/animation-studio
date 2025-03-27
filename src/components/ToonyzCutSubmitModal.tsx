@@ -61,7 +61,6 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             fill
                             sizes="150px"
                             className="object-cover rounded-md"
-                            priority
                         />
                     </div>
 

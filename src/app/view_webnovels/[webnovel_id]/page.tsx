@@ -17,14 +17,13 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
     const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
-    const { getWebnovelByIdWithContent, getWebnovelsMetadataByAuthorId, fetchChaptersLikelyNeededWebnovel } = useWebnovels();
+    const { getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByAuthorId } = useWebnovels();
     const searchParams = useSearchParams();
-    const searchParamsObject = Object.fromEntries(searchParams.entries());
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
 
     useEffect(() => {
         const setData = async () => {
-            const webnovel = await getWebnovelByIdWithContent(webnovel_id);
+            const webnovel = await getWebnovelIdWithChapterMetadata(webnovel_id);
             let author_id = "";
             if (webnovel) {
                 setWebnovel(webnovel);

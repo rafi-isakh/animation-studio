@@ -59,8 +59,8 @@ const WebnovelTranslateComponent = (
                 setText(await marked(data.text))
             }
             if (!data.done) {
-                setText("");
-                submitContent(data.text);
+                setText("This content is not available yet. Please check back later.");
+                //submitContent(data.text);
             }
         }
         const setContentMarked = async () => {

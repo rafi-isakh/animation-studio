@@ -23,7 +23,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library?email=${email}`, {
-        cache: 'no-store',
         headers: {
             'Authorization': `Bearer ${session.accessToken}`,
             'Provider': session.provider

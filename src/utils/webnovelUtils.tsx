@@ -2,7 +2,7 @@ import { Webnovel, SortBy, Chapter, Comment, ToonyzPost } from '@/components/Typ
 import moment from 'moment';
 
 
-export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130, 103];
+export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130, 103 ]
 
 export const chapterPrice = (language: string) => {
     if (language === "ko") {
@@ -29,7 +29,21 @@ export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
     if (sortBy === 'recommendation') {
         return Math.random() - 0.5;
     } else if (sortBy === 'views') {
-        return b.views - a.views;
+        // Calculate time difference in days
+        const daysSinceCreation = (date: Date) => {
+            const now = new Date();
+            return (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+        };
+
+        // Score = views * decay factor based on age
+        // Using a soft decay that reduces score by ~50% after 1 month
+        const getScore = (webnovel: Webnovel) => {
+            const days = daysSinceCreation(new Date(webnovel.created_at));
+            const decayFactor = 1 / (1 + days/30); // 30 days = 1 month
+            return webnovel.views * decayFactor;
+        };
+
+        return getScore(b) - getScore(a);
     } else if (sortBy === 'likes') {
         return b.upvotes - a.upvotes;
     } else if (sortBy === 'date') {

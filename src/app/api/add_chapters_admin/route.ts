@@ -22,8 +22,9 @@ export async function POST(req: Request) {
         body: JSON.stringify(data),
     });
     if (!response.ok) {
+        const error = await response.text();
         return NextResponse.json({
-            message: "Failed to add chapters",
+            message: error
         }, {
             status: response.status
         });

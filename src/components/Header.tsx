@@ -77,9 +77,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }, [pathname]);
 
     useEffect(() => {
-        if (searchParams.get("version") == "premium") {
-            setActiveTab('premium');
-        } else if (searchParams.get("version") == "free") {
+        setActiveTab('premium');
+        if (searchParams.get("version") == "free") {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
             if (webnovel?.premium) {
@@ -91,12 +90,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }, [pathname, searchParams, premiumWebnovelIds, webnovel])
 
     useEffect(() => {
-        if (pathname == "/") {
-            router.push(pathname + "?version=premium")
-            setPathnameLoading(false)
-        } else {
-            setPathnameLoading(false)
-        }
+        // if (pathname == "/") {
+        //     router.push(pathname + "?version=premium")
+        //     setPathnameLoading(false)
+        // } else {
+        //     setPathnameLoading(false)
+        // }
         const fetchPremiumWebnovelIds = async () => {
             const response = await fetch('/api/get_premium_webnovel_ids');
             const data = await response.json();
@@ -320,11 +319,11 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 />
                             </Link>
                             <div className="flex flex-row gap-4 items-center justify-center font-pretendard md:text-md text-sm">
-                                <Link href="/?version=premium" >
+                                <Link href="/?version=premium" prefetch={false} >
                                     <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>
                                 </Link>
-                                <Link href="/?version=free" >
+                                <Link href="/?version=free" prefetch={false} >
                                     <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "free", language)}</p>  {/* community */}
                                 </Link>
@@ -523,11 +522,11 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                     </div>
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
                     <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-3">
-                        <Link href="/?version=premium">
+                        <Link href="/?version=premium" prefetch={false} >
                             <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
-                        <Link href="/?version=free" >
+                        <Link href="/?version=free" prefetch={false} >
                             <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>

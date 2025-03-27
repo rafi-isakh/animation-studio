@@ -139,6 +139,7 @@ export default function SearchComponent({
                 type="text"
                 id="search-navbar"
                 value={query}
+                autoFocus
                 onChange={handleChange}
                 placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
                 className="w-full h-full p-2 pl-10 text-sm border-0 

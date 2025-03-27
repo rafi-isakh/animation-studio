@@ -29,24 +29,19 @@ import { useUser } from '@/contexts/UserContext';
 
 export default function Setting({isLoggedInAndRegistered, expanded, }
     : {isLoggedInAndRegistered: boolean, expanded: boolean,  }) {
-    const { language, dictionary, setLanguage } = useLanguage();
+    const { language, dictionary, setLanguageOverride } = useLanguage();
     const { theme, toggleTheme } = useTheme()
     const { logout } = useAuth();
     const { email, nickname } = useUser();
     const [popoverAnchor, setPopoverAnchor] = useState<HTMLButtonElement | null>(null);
     const [openLanguageDialog, setOpenLanguageDialog] = useState(false);
-    const [value, setValue] = useState(langPairList.find(langPair => langPair.code === language)?.name || 'English');
 
     const handleClickLanguageDialog = () => {
         setOpenLanguageDialog(true);
     };
 
-    const handleCloseLanguageDialog = (newValue?: string) => {
+    const handleCloseLanguageDialog = () => {
         setOpenLanguageDialog(false);
-
-        if (newValue) {
-            setValue(newValue);
-        }
     };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -138,7 +133,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                         >
                             <ListItemText
                                 primary={phrase(dictionary, 'language', language)}
-                                secondary={value}
+                                secondary={langPairList.find(langPair => langPair.code === language)?.name || 'English'}
                                 sx={{
                                     '& .MuiListItemText-secondary': {
                                         color: 'dark:text-gray-500'
@@ -175,7 +170,6 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                             keepMounted
                             open={openLanguageDialog}
                             onClose={handleCloseLanguageDialog}
-                            value={value}
                             onPopoverClose={handlePopoverClose}
                         />
                     </List>
@@ -189,22 +183,13 @@ export function LanguageSettingDialogRaw(props: {
     id: string,
     keepMounted: boolean,
     open: boolean,
-    onClose: (value?: string) => void,
-    value: string,
+    onClose: () => void,
     onPopoverClose: () => void
 }) {
     const radioGroupRef = useRef<HTMLElement>(null);
-    const { dictionary, language, setLanguage } = useLanguage();
+    const { dictionary, language, setLanguageOverride } = useLanguage();
     const { theme } = useTheme();
-    const [selectedValue, setValue] = useState(props.value);
-    const { onClose, value: valueProp, open, ...other } = props;
-
-    useEffect(() => {
-        if (!props.open) {
-            setValue(props.value);
-        }
-    }, [props.value, props.open]);
-
+    const { onClose, open, ...other } = props;
 
     const handleEntering = () => {
         if (radioGroupRef.current != null) {
@@ -217,9 +202,7 @@ export function LanguageSettingDialogRaw(props: {
     };
 
     const handleOk = () => {
-        onClose(selectedValue);
-        const langCode = langPairList.find(langPair => langPair.name === selectedValue)?.code;
-        setLanguage(langCode as Language);
+        onClose();
         props.onPopoverClose();
     };
 
@@ -241,8 +224,8 @@ export function LanguageSettingDialogRaw(props: {
                     ref={radioGroupRef}
                     aria-label="Language"
                     name="Language"
-                    value={selectedValue}
-                    onChange={(event, value) => setValue(value)}
+                    value={langPairList.find(langPair => langPair.code === language)?.name || 'English'}
+                    onChange={(event, value) => setLanguageOverride(langPairList.find(langPair => langPair.name === value)?.code as Language)}
                     className='dark:text-white'
                 >
                     {langPairList.map((langPair) => (

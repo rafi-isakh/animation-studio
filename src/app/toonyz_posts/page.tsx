@@ -1,81 +1,70 @@
 "use client"
-import { useEffect, useState } from "react";
-import { Pin } from "@/components/UI/Pin";
-import Masonry from "react-masonry-css"
+import { useEffect, useState, useCallback } from "react";
+import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
+import { ToonyzPost } from "@/components/Types";
+import dynamic from "next/dynamic";
+const LottieLoader = dynamic(() => import("@/components/LottieLoader"), {
+    ssr: false,
+});
+import animationData from "@/assets/N_logo_with_heart.json";
 
-interface Post {
-    id: number;
-    width: number;
-    height: number;
-    [key: string]: any;
-}
 
 function getRandomDimensions() {
     const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
+    const heights = [1000, 1200, 1400, 1600]
     return {
         width: widths[Math.floor(Math.random() * widths.length)],
         height: heights[Math.floor(Math.random() * heights.length)],
     }
 }
 
+
 export default function ToonyzPosts() {
-    const [posts, setPosts] = useState([]);
+    const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
+    const [additionalPosts, setAdditionalPosts] = useState<ToonyzPost[]>([]);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('/api/get_toonyz_posts')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+                return res.json();
+            })
             .then(data => {
                 // Add random dimensions to each post
-                const postsWithDimensions = data.map((post: Post) => ({
+                const postsWithDimensions = data.map((post: ToonyzPost) => ({
                     ...post,
                     ...getRandomDimensions()
                 }));
-                setPosts(postsWithDimensions);
+                setInitialPosts(postsWithDimensions);
+                setInitialLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching posts:', error);
+                setError('Failed to load posts. Please try again later.');
+                setInitialLoading(false);
             });
     }, []);
 
 
-    const breakpointColumnsObj = {
-        default: 5,
-        1280: 4,
-        1024: 3,
-        768: 2,
-        640: 1,
-    }
-
     return (
         <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-
             <main className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
-                <Masonry
-                    breakpointCols={breakpointColumnsObj}
-                    className="my-masonry-grid flex w-auto -ml-4 gap-5"
-                    columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
-                >
-                    {posts.map((post: any) => (
-                        <Pin key={post.id} post={post} />
-                    ))}
-                </Masonry>
+                {initialLoading ? (
+                    <div className="loader-container flex justify-center items-center h-48">
+                        <LottieLoader width="w-40" centered={true} animationData={animationData} />
+                    </div>
+                ) : error ? (
+                    <div className="text-center text-red-500 py-8">
+                        {error}
+                    </div>
+                ) : (
+                    <ToonyzPostGrid posts={initialPosts} />
+                )}
             </main>
         </div>
-    )
+    );
 }
-
-
-// <style>{`
-//     .my-masonry-grid {
-//         display: flex;
-//         margin-left: -30px;  /* gutter size offset */
-//         width: auto;
-//     }
-//     .my-masonry-grid_column {
-//         padding-left: 30px; /* gutter size */
-//         background-clip: padding-box;
-//     }
-
-//     /* Optional: Add vertical gap between items */
-//     .my-masonry-grid_column > div {
-//         margin-bottom: 16px; /* Adjust this value to control vertical spacing */
-//     }
-//   `}</style>

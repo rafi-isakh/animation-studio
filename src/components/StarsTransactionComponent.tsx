@@ -2,17 +2,22 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { CornerDownRight, Minus, Plus } from "lucide-react";
+import {  Minus, MoveLeft, Plus } from "lucide-react";
+import { Button } from "@/components/shadcnUI/Button";
+import Image from "next/image";
 import { Transaction, StarUse } from "@/app/stars/page";
 import CustomSkeleton from "@/components/UI/CustomSkeleton";
 import { CircularProgress, Skeleton } from "@mui/material";
 import { useTheme } from "@/contexts/providers";
+import { useUser } from "@/contexts/UserContext";
+import Link from "next/link";
 
 const StarsTransactionComponent = () => {
     const { dictionary, language } = useLanguage();
     const [totalHistory, setTotalHistory] = useState<(Transaction | StarUse)[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { theme } = useTheme();
+    const { stars } = useUser();
     const skeletonCount = 3;
     useEffect(() => {
         const fetchTotalHistory = async () => {
@@ -35,7 +40,7 @@ const StarsTransactionComponent = () => {
                     _transactions = data;
                 } catch (error) {
                     console.error("Error fetching transactions:", error);
-                } 
+                }
             };
             await fetchTransactions();
             await fetchStarUse();
@@ -51,13 +56,20 @@ const StarsTransactionComponent = () => {
 
         <div className="flex flex-col md:max-w-screen-md w-full mx-auto">
             <div className="flex flex-col w-full gap-2">
+                <Link href="/stars" className="items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors my-4 self-start md:flex hidden">
+                    <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                    <p className="text-sm font-base">Back</p>
+                </Link>
                 <h1 className="text-2xl font-extrabold text-center">
                     {/* 충전 내역 */}
                     {phrase(dictionary, "starsTransaction", language)}
                 </h1>
-
-
-                <ul className="flex flex-col w-full gap-2 p-5 text-base text-gray-500">
+                <div className="flex flex-col mx-auto justify-center items-center w-full gap-2 pt-5">
+                    {/* top padding 5 */}
+                    {language === 'ko' && <p className="text-sm text-gray-500">현재 보유중인 투니즈 별 <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>}
+                    {language === 'en' && <p className="text-sm text-gray-500">You have <span className="font-bold text-[#DE2B74]">{stars}</span> stars </p>}
+                </div>
+                <ul className="flex flex-col w-full gap-2 p-5 text-base text-gray-500 h-screen">
                     {isLoading ? (
                         // Skeleton loader while loading
                         Array(skeletonCount).fill(0).map((_, index) => (
@@ -75,32 +87,35 @@ const StarsTransactionComponent = () => {
                         ))
                     ) : (
                         totalHistory.length === 0 ? (
-                            <li className="flex flex-col w-full gap-1 py-5 text-center">
-                                <p className="text-gray-500">{phrase(dictionary, "noTransactions", language)}</p>
-                            </li>
+                            <div className="flex flex-col justify-center items-center space-y-2">
+                                <Image src="/stelli/stelli_sad.svg" alt="noTransactions" width={150} height={100} />
+                                <p className="pt-3 text-md font-bold"> {phrase(dictionary, "noTransactions", language)} </p>
+                                {/* 구매 내역이 없습니다. */}
+                                <p className="text-md">{phrase(dictionary, "noTransactions_subtitle", language)}</p>
+                            </div>
                         ) : (
-                        totalHistory?.map((element, index) => (
-                            <li key={'transaction-' + index}
-                                className="flex flex-col w-full gap-1 py-5 border-b border-gray-200">
-                                {'price' in element ?
-                                    <div className="flex flex-row items-center gap-2">
-                                        <Plus className="text-gray-500 w-4 h-4" />
-                                        <p className="text-gray-500 font-bold">{element.stars}</p>
-                                        <p className="text-gray-500 font-bold">{phrase(dictionary, "star", language)}</p>
-                                        {'price' in element && <p className="text-gray-500">{(element as Transaction).price} {(element as Transaction).currency}</p>}
-                                    </div>
-                                    :
-                                    <div className="flex flex-row items-center gap-2">
-                                        <Minus className="text-gray-500 w-4 h-4" />
-                                        <p className="text-gray-500 font-bold">{element.stars}</p>
-                                        <p className="text-gray-500 font-bold">{phrase(dictionary, "star", language)}</p>
-                                    </div>
-                                }
-                                <p className="text-gray-500">{new Date(element.date).toLocaleDateString()}</p>
-                            </li>
-                        ))
-                    ))}
-                    
+                            totalHistory?.map((element, index) => (
+                                <li key={'transaction-' + index}
+                                    className="flex flex-col w-full gap-1 py-5 border-b border-gray-200">
+                                    {'price' in element ?
+                                        <div className="flex flex-row items-center gap-1">
+                                            <Plus className="text-gray-500 w-4 h-4" />
+                                            <p className="text-gray-500 font-bold">{element.stars}</p>
+                                            <p className="text-gray-500 font-bold">{phrase(dictionary, "star", language)}</p>
+                                            {'price' in element && <p className="text-gray-500">{(element as Transaction).price} {(element as Transaction).currency}</p>}
+                                        </div>
+                                        :
+                                        <div className="flex flex-row items-center gap-2">
+                                            <Minus className="text-gray-500 w-4 h-4" />
+                                            <p className="text-gray-500 font-bold">{element.stars}</p>
+                                            <p className="text-gray-500 font-bold">{phrase(dictionary, "star", language)}</p>
+                                        </div>
+                                    }
+                                    <p className="text-gray-500">{new Date(element.date).toLocaleDateString()}</p>
+                                </li>
+                            ))
+                        ))}
+
                 </ul>
             </div>
         </div >

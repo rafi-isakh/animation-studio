@@ -18,12 +18,14 @@ const WebnovelTranslateComponent = (
         content,
         chapterId,
         webnovelId,
-        sourceLanguage
+        sourceLanguage,
+        availableLanguages
     }: {
         content: string,
         chapterId: string,
         webnovelId: string,
         sourceLanguage: string
+        availableLanguages: string[]
     }) => {
 
     const [text, setText] = useState('');
@@ -37,7 +39,8 @@ const WebnovelTranslateComponent = (
     const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const { theme } = useTheme();
-    const { fontSize,
+    const { 
+        fontSize,
         fontFamily = 'default',
         lineHeight,
         margin,
@@ -56,14 +59,18 @@ const WebnovelTranslateComponent = (
                 setText(await marked(data.text))
             }
             if (!data.done) {
-                setText("");
-                submitContent(data.text);
+                setText("This content is not available yet. Please check back later.");
+                //submitContent(data.text);
             }
         }
-        if (sourceLanguage == language) {
-            setText(content);
+        const setContentMarked = async () => {
+            setText(await marked(content));
             setFinished(true);
-        } else {
+        }
+
+        if (sourceLanguage == language) {
+            setContentMarked();
+        } else if (availableLanguages.includes(language)) {
             handleTranslate();
         }
     }, [language]);
@@ -149,7 +156,9 @@ const WebnovelTranslateComponent = (
         height: scrollType === 'horizontal' ? '100vh' : 'auto',
         overflowY: scrollType === 'horizontal' ? 'hidden' : 'auto',
         overflowX: scrollType === 'horizontal' ? 'auto' : 'hidden',
-        touchAction: scrollType === 'horizontal' ? 'pan-x' : 'auto',
+        touchAction: scrollType === 'horizontal' ? 'pan-x pinch-zoom' : 'pan-y pinch-zoom',
+        WebkitUserSelect: 'text',
+        userSelect: 'text',
     };
 
     useEffect(() => {
@@ -254,23 +263,31 @@ const WebnovelTranslateComponent = (
         <div
             style={paragraphStyle}
             className={`relative mb-16
-                       ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}>
+                       ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}
+            onTouchStart={(e) => e.stopPropagation()}>
                     {text &&
                      <>
                     {scrollType === 'vertical' &&
                         <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
-                            style={{ whiteSpace: 'pre-wrap', direction: `${isRtl}` as Direction }}
-                            onContextMenu={(e) => e.preventDefault()}>
+                            style={{ 
+                                whiteSpace: 'pre-wrap', 
+                                direction: `${isRtl}` as Direction,
+                                WebkitUserSelect: 'text',
+                                userSelect: 'text',
+                            }}
+                            onContextMenu={(e) => e.preventDefault()}
+                            className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
+                            >
                         </div>
                     }
                     {scrollType === 'horizontal' &&
                         <div className='relative flex flex-col'>
                             {/* Navigation buttons - positioned absolutely on the sides */}
-                            <div className="fixed top-1/2 left-5 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 left-20 transform -translate-y-1/2 z-[999]">
                                 <button
                                     onClick={prevPage}
-                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90  transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors duration-300 opacity-[0.4] hover:opacity-[1]"
                                     aria-label="Previous page"
                                 >
                                     <ChevronLeft size={68} />
@@ -278,10 +295,10 @@ const WebnovelTranslateComponent = (
                                 </button>
                             </div>
 
-                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 ">
+                            <div className="fixed top-1/2 right-5 transform -translate-y-1/2 z-[999]">
                                 <button
                                     onClick={nextPage}
-                                    className="p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors opacity-[0.4] hover:opacity-[1]"
+                                    className="p-2 rounded-full bg-gray-200 dark:bg-black/80 hover:bg-white/90 dark:hover:bg-black/90 transition-colors opacity-[0.4] hover:opacity-[1]"
                                     aria-label="Next page"
                                 >
                                     <ChevronRight size={68} />
@@ -294,10 +311,17 @@ const WebnovelTranslateComponent = (
                                 <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-1'>
                                     <div
                                         id='first-half'
-                                        className='w-full'
-                                        style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                                        className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase select-text'
+                                        style={{ 
+                                            direction: `${isRtl}` as Direction, 
+                                            whiteSpace: 'pre-wrap',
+                                            WebkitUserSelect: 'text',
+                                            userSelect: 'text',
+                                            touchAction: 'manipulation',
+                                        }}
                                         dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords) }}
-                                        onContextMenu={(e) => e.preventDefault()}>
+                                        onContextMenu={(e) => e.preventDefault()}
+                                        onTouchStart={(e) => e.stopPropagation()}>
                                     </div>
                                 </div>
                                 <div className='w-[4rem]'>
@@ -305,10 +329,17 @@ const WebnovelTranslateComponent = (
                                 <div className='flex flex-col w-[calc(50%-1rem)]' id='pageview-hidden-parent-2'>
                                     <div
                                         id='second-half'
-                                        className='w-full'
-                                        style={{ direction: `${isRtl}` as Direction, whiteSpace: 'pre-wrap' }}
+                                        className='w-full select-text'
+                                        style={{ 
+                                            direction: `${isRtl}` as Direction, 
+                                            whiteSpace: 'pre-wrap',
+                                            WebkitUserSelect: 'text',
+                                            userSelect: 'text',
+                                            touchAction: 'manipulation',
+                                        }}
                                         dangerouslySetInnerHTML={{ __html: textPostProcess(secondPageWords) }}
-                                        onContextMenu={(e) => e.preventDefault()}>
+                                        onContextMenu={(e) => e.preventDefault()}
+                                        onTouchStart={(e) => e.stopPropagation()}>
                                     </div>
                                 </div>
                             </div>

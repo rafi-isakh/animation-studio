@@ -101,7 +101,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             }
             Promise.resolve(resPromise).then(() => {
                 invalidateCache();
-                router.push(`/view_webnovels?id=${webnovelId}`)
+                router.push(`/view_webnovels/${webnovelId}`)
                 router.refresh();
             })
         }
@@ -136,7 +136,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                             <p className='text-sm'>
                                 {/* 총 .. 화 : total */}
                                 {phrase(dictionary, "total", language)}
-                                {' '}{webnovel?.chapters.length}
+                                {' '}{webnovel?.chapters_length}
                                 {language == 'ko' ? <>{' '}화</> : <></>}
                             </p>
                         </div>

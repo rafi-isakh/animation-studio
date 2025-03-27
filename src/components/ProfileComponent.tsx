@@ -30,7 +30,6 @@ import {
     ChevronRight,
     Copy
 } from 'lucide-react';
-import { createEmailHash } from '@/utils/cryptography';
 
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
@@ -54,7 +53,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false);
-    const { email } = useUser();
+    const { id, email } = useUser();
     const { isLoggedIn } = useAuth();
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
@@ -105,55 +104,14 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     });
 
     // implementing utils function
-    const isProfileOwner = (): boolean => {
-        // if (!email || !user.email) return false;
-        const userEmailHash = createEmailHash(email);
-        const profileEmailHash = user.email_hash
-        return userEmailHash === profileEmailHash;
-    };
-
-    const handleIntroClick = () => {
-        setIntroActive(true);
-        setViewActive(false);
-        const intro = document.getElementById('intro');
-        intro?.classList.add('font-bold');
-        intro?.classList.add('border-[#142448]')
-        intro?.classList.remove('border-gray')
-        const view = document.getElementById('view');
-        view?.classList.remove('font-bold');
-        view?.classList.remove('border-[#142448]')
-        view?.classList.add('border-gray')
-        const bio = document.getElementById('bio');
-        bio?.classList.remove('hidden');
-        const works = document.getElementById('works');
-        works?.classList.add('hidden');
-    }
-
-    const handleViewClick = () => {
-        setIntroActive(false);
-        setViewActive(true);
-        const intro = document.getElementById('intro');
-        intro?.classList.remove('font-bold');
-        intro?.classList.remove('border-[#142448]')
-        intro?.classList.add('border-gray')
-        const view = document.getElementById('view');
-        view?.classList.add('font-bold');
-        view?.classList.add('border-[#142448]')
-        view?.classList.remove('border-gray')
-        const bio = document.getElementById('bio');
-        bio?.classList.add('hidden');
-        const works = document.getElementById('works');
-        works?.classList.remove('hidden');
-    }
-
     const handleProfilePictureUpload = () => {
-        if (user.email_hash == createEmailHash(email)) {
+        if (id === user.id.toString()) {
             document.getElementById('profilePicture')?.click();
         }
     }
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (user.email_hash != createEmailHash(email)) {
+        if (id !== user.id.toString()) {
             return;
         }
         if (e.target.files && e.target.files[0]) {
@@ -181,7 +139,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
     };
 
     const handleDeleteAccount = async () => {
-        if (!isProfileOwner()) {
+        if (id !== user.id.toString()) {
             console.error("Deleting account failed");
             return
         }
@@ -202,14 +160,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
         }
     }
 
-    const getNumberOfChapters = () => {
-        let chapters = 0;
-        for (let i = 0; i < novels.length; i++) {
-            chapters += novels[i].chapters.length;
-        }
-        return chapters;
-    }
-
     const getNumberOfLikes = () => {
         let likes = 0;
         for (let i = 0; i < novels.length; i++) {
@@ -223,12 +173,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
         return novels.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
     }
 
-    const toggleUserDropdown = () => {
-        setIsUserDropdownOpen(prev => !prev);
-    }
-    const toggleShareDropdown = () => {
-        setIsShareDropdownOpen(prev => !prev);
-    }
     if (loading) {
         return <div className="loader-container">
             <LottieLoader width="w-40" animationData={animationData} />
@@ -254,7 +198,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                     {/* profile picture */}
                     <div className='z-20 flex md:flex-row flex-col w-full justify-center items-center gap-6'>
                         <div className="w-[80px] h-[80px] overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex items-center justify-center">
-                            <Link href={createEmailHash(email) == user.email_hash ? "#" : ""}>
+                            <Link href={id == user.id.toString() ? "#" : ""}>
                                 {profilePicturePreview || user.picture ?
                                     <div>
                                         {profilePicturePreview ?
@@ -302,7 +246,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 </span>}
                                 <p className="text-base">{user.nickname}</p>
                                 <ProfileDropdownButton
-                                    isProfileOwner={isProfileOwner()}
+                                    isProfileOwner={id === user.id.toString()}
                                     onDeleteAccount={() => setShowDeleteAccountModal(true)}
                                     user={user}
                                 />
@@ -343,42 +287,18 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                                 </div>
                             </div>
                             <div className='flex flex-row gap-4 text-gray-600'>
+                                {/* share */}
                                 <Button
                                     color='gray'
                                     variant='outlined'
                                     onClick={() => setIsModalOpen(true)}
-                                    className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-28 flex flex-row justify-center items-center gap-1'>
-                                    {/* share */}
+                                    className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
                                     <ExternalLink size={10} />
-                                    <span className='text-sm'>{phrase(dictionary, "share", language)}</span>
                                 </Button>
+                                {/* report */}
                                 <ReportButton user={user} />
+                                {/* block */}
                                 {isLoggedIn && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
-                                {/* {isShareDropdownOpen && (
-                                    <div id="share-dropdown" ref={shareDropdownRef} className={`absolute rounded-md md:border-0 border border-gray-400 mt-10 ml-24 z-10 font-normal bg-white dark:bg-black dark:text-white shadow w-44`}>
-                                        <p className='text-center font-bold text-sm m-1'> SHARE PROFILE </p>
-                                        <ul className="flex flex-row gap-2 justify-center items-center m-2 text-sm text-gray-700 dark:text-black" aria-labelledby="dropdownLargeButton">
-                                            <li className="hover:opacity-80 transition duration-150 ease-in-out">
-                                                <Link href="#" className="flex items-center dark:text-white text-black">
-                                                    <Facebook size={30} className="dark:text-white text-white bg-blue-900 rounded-full p-1" />
-
-                                                </Link>
-                                            </li>
-                                            <li className="hover:opacity-80 transition duration-150 ease-in-out">
-                                                <Link href="#" className="flex items-center dark:text-white text-black">
-                                                    <Twitter size={30} className="dark:text-white text-white bg-blue-500 rounded-full p-1" />
-
-                                                </Link>
-                                            </li>
-                                            <li className="hover:opacity-80 transition duration-150 ease-in-out">
-                                                <Link href="#" className="flex items-center dark:text-white text-black">
-                                                    <Copy size={30} className="dark:text-white text-white bg-gray-500 rounded-full p-1" />
-
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                )} */}
                             </div>
                         </div>
                     </div>
@@ -389,7 +309,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             <div className='flex flex-col gap-2 w-full order-2 md:m-6 m-0'>
                 {
                     novels.length > 0 ? (
-                        <Button color='gray' onClick={() => router.push(`/view_webnovels?id=${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
+                        <Button color='gray' onClick={() => router.push(`/view_webnovels/${getRecentNovel().id}`)} variant='outlined' className='border-b border-gray-300 rounded-sm px-4 py-2'>
                             <div className='flex flex-row gap-1 justify-center items-center'>
                                 <OtherTranslateComponent
                                     content={getRecentNovel().title}
@@ -404,12 +324,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
                     </p>
                 }
-                {/*    {isPremium ? <button className='border-2 border-gray-300 rounded-sm px-4 py-2'>
-                            {phrase(dictionary, "unlockNextEpisode", language)}
-                        </button> 
-                        : <><button className='border-b-2 border-gray-300 rounded-sm px-4 py-2'>
-                            {phrase(dictionary, "viewAnotherWorks", language)}
-                        </button></> } */}
             </div>
 
             <div className='flex flex-col w-full justify-center items-center order-2'>
@@ -483,7 +397,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
 
             </div>
             <SharingModal
-                isProfileOwner={isProfileOwner()}
+                isProfileOwner={id === user.id.toString()}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 user={user}
@@ -495,7 +409,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 onClose={() => setShowDeleteAccountModal(false)}
                 onConfirm={handleDeleteAccount}
             />
-           
+
         </div>
     );
 }

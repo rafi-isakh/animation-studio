@@ -11,6 +11,7 @@ import { filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { filter_by_genre } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
+
 const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
@@ -22,15 +23,13 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
-        console.log("webnovels cardlist by new before filter", webnovels);
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .sort((a, b) => sortByFn(a, b, sortBy))
-            .slice(0, 27)
+            .slice(0, 18)
 
         setWebnovelsToShow(_webnovelsToShow);
-        console.log("webnovels cardlist by new", _webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);
 
     if (typeof genre === 'string') {
@@ -41,13 +40,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
 
     return (
         <div className='relative md:max-w-screen-xl group font-pretendard'>
-            <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
-                <span className='text-black dark:text-white'>
-                    {phrase(dictionary, "recommended", language)}
-                </span>
-            </h1>
             <WebnovelsAllCardWrapper
-                title={''}
+                title={phrase(dictionary, "recommended", language)}
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
                 renderItem={(item: Webnovel, index: number) => (

@@ -1,313 +1,261 @@
 "use client"
-// components/CarouselComponent.tsx
-import React, { useEffect, useState } from 'react';
-import Slider from 'react-slick';
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import Image from 'next/image'
-import styles from '@/styles/CarouselComponent.module.css';
-import { SlickCarouselItem } from '@/components/Types'
-import { Webnovel } from '@/components/Types'
-import { phrase } from '@/utils/phrases';
-import { useLanguage } from '@/contexts/LanguageContext';
-import OtherTranslateComponent from '@/components/OtherTranslateComponent';
-import Link from 'next/link';
-import { useMediaQuery } from '@mui/material';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { useRef, useEffect, useState } from "react"
+import { Card, CardContent } from "@/components/shadcnUI/Card"
+import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/shadcnUI/Carousel"
+import Image from "next/image"
+import type { SlickCarouselItem } from "@/components/Types"
+import type { Webnovel } from "@/components/Types"
+import { phrase } from "@/utils/phrases"
+import { useLanguage } from "@/contexts/LanguageContext"
+import OtherTranslateComponent from "@/components/OtherTranslateComponent"
+import Link from "next/link"
+import { useMediaQuery } from "@mui/material"
+import { useWebnovels } from "@/contexts/WebnovelsContext"
+import { getImageUrl } from "@/utils/urls"
+import Autoplay from "embla-carousel-autoplay"
+
+
 interface PaddingConfig {
-    desktop?: string;
-    mobile?: string;
+    desktop?: string
+    mobile?: string
+}
+
+interface CarouselProps {
+    items: SlickCarouselItem[]
+    showControls?: boolean
+    slidesToShow?: number
+    centerPadding?: string | PaddingConfig
+    centerMode?: boolean
+    aspectRatio?: "square" | "landscape" | "portrait"
 }
 
 const CarouselComponentReactSlick = ({
     items,
     slidesToShow = 3,
-    showDots = true,
-    centerPadding = { desktop: '20px', mobile: '10px' }
-}: {
-    items: SlickCarouselItem[],
-    slidesToShow: number,
-    showDots: boolean,
-    centerPadding?: string | PaddingConfig
-}) => {
+    showControls = true,
+    centerPadding,
+    centerMode = true,
+    aspectRatio = "landscape",
+}: CarouselProps) => {
+    const [api, setApi] = useState<CarouselApi>()
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [count, setCount] = useState(0)
+    const [nextIndex, setNextIndex] = useState(1)
+    const isDesktop = useMediaQuery("(min-width:768px)")
+    const { language, dictionary } = useLanguage()
+    const { webnovels } = useWebnovels()
+    const plugin = useRef(
+        Autoplay({ delay: 3000, stopOnInteraction: true })
+      )
+    
 
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [nextIndex, setNextIndex] = useState(1);
-    const isMediumScreen = useMediaQuery('(min-width:768px)')
-    const { language, dictionary } = useLanguage();
-    const {webnovels } = useWebnovels();
-
-    const getCenterPadding = (padding?: string | PaddingConfig) => {
-        if (typeof window === 'undefined') return '0px';
-
-        // If padding is a string, use it for both desktop and mobile
-        if (typeof padding === 'string') {
-            return padding;
+    useEffect(() => {
+        if (!api) {
+            return
         }
 
-        // If padding is an object with desktop/mobile values
-        const paddingConfig = padding as PaddingConfig;
-        return isMediumScreen
-            ? (paddingConfig?.desktop || '20px')
-            : (paddingConfig?.mobile || '10px');
-    };
+        setCount(api.scrollSnapList().length)
+        setCurrentIndex(api.selectedScrollSnap())
 
-    function SampleNextArrow(props: any) {
-        const { onClick } = props;
-        return (
-            <>
-                {
-                    isMediumScreen ?
-                        <button
-                            className='absolute md:right-0 right-8 top-1/2 -translate-y-1/2 z-1 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 group-hover:bg-black/20 transition-opacity duration-300 -translate-x-1/2 hidden md:block'
-                            onClick={onClick}
-                        >
-                            <ChevronRight className="w-6 h-6 text-white" />
-                        </button>
-                        :
-                        <></>
-                }
-            </>
-        );
+        const handleSelect = () => {
+            setCurrentIndex(api.selectedScrollSnap())
+        }
+
+        api.on("select", handleSelect)
+
+        // Cleanup
+        return () => {
+            api.off("select", handleSelect)
+        }
+    }, [api])
+
+
+    // Improved function to get center padding
+    function getCenterPadding(): string {
+        if (!centerPadding) return "0px"
+        if (typeof centerPadding === "number") return `${centerPadding}px`
+        if (typeof centerPadding === "string") return centerPadding
+
+        return isDesktop ? centerPadding.desktop || "10px" : centerPadding.mobile || "20px"
     }
-    function SamplePrevArrow(props: any) {
-        const { onClick } = props;
-        return (
-            <>
-                {
-                    isMediumScreen ?
-                        <button
-                            onClick={onClick}
-                            className="absolute md:left-8 left-8 top-1/2 -translate-y-1/2 z-10 rounded-full md:p-2 p-1 opacity-0 group-hover:opacity-80 group-hover:bg-black/20 transition-opacity duration-300 -translate-x-1/2 hidden md:block"
-                        >
-                            <ChevronLeft className="w-6 h-6 text-white" />
-                        </button>
-                        :
-                        <></>
-                }
-            </>
-        );
-    }
+
+    // Calculate the actual padding value
+    const actualPadding = getCenterPadding()
+
+    // Calculate slides to show based on screen size
+    const effectiveSlidesToShow = isDesktop ? slidesToShow : 1
 
     function getHref(webnovel_id: number) {
-        return `/view_webnovels?id=${webnovel_id}`;
+        return `/view_webnovels/${webnovel_id}`
     }
 
     function getGenre(index: number) {
-        return [webnovels.find((novel: Webnovel) => novel.id == items[index].webnovel_id)?.genre || '']
+        return [webnovels.find((novel: Webnovel) => novel.id == items[index].webnovel_id)?.genre || ""]
     }
 
     function breakKeepOrNot() {
-        if (language == 'ko' || language == "ar" || language == "th" || language == "vi" || language == 'en' || language == 'id') {
-            return 'break-keep ';
-        } else if (language == 'ja' || language == 'zh-CN' || language == 'zh-TW') {
-            return '';
+        if (
+            language == "ko" ||
+            language == "ar" ||
+            language == "th" ||
+            language == "vi" ||
+            language == "en" ||
+            language == "id"
+        ) {
+            return "break-keep "
+        } else if (language == "ja" || language == "zh-CN" || language == "zh-TW") {
+            return ""
         }
-        return '';
+        return ""
     }
 
-    const settings = {
-        slidesToShow: slidesToShow,
-        swipeToSlide: true,
-        infinite: true,
-        speed: 300,
-        autoplaySpeed: 5000,
-        autoplay: true,
-        className: "center",
-        centerMode: true,
-        dots: showDots,
-        dotsClass: "slick-dots",
-        appendDots: (dots: any) => (
-            <div>
+    const getAspectRatio = () => {
+        switch (aspectRatio) {
+            case "square":
+                return "aspect-square"
+            case "portrait":
+                return "aspect-[3/4]"
+            case "landscape":
+            default:
+                return "aspect-video"
+        }
+    }
+
+    return (
+        <Carousel
+            plugins={[plugin.current]}
+            className="max-w-screen-xl items-center mx-auto w-full group"
+            opts={{
+                align: centerMode ? "center" : "start",
+                slidesToScroll: 1,
+                skipSnaps: false,
+                containScroll: "trimSnaps",
+                loop: true,
+            }}
+            onSelect={() => {
+                if (api) {
+                    const index = api.selectedScrollSnap()
+                    setCurrentIndex(index);
+                    setNextIndex((index + 1) % items.length);
+                }
+            }}
+            setApi={setApi}
+        >
+            <CarouselContent style={centerMode ? { marginLeft: `-${actualPadding}` } : {}}>
+                {items.map((item, index) => (
+                    <CarouselItem
+                        key={item.id}
+                        className={` ${currentIndex == index ? "opacity-100" : "opacity-10"}`}
+                        style={{
+                            paddingLeft: centerMode ? actualPadding : "0px",
+                            flex: isDesktop ? "0 0 calc(16/9 * 40vh)" : "0 0 100%", 
+                            maxWidth: isDesktop ? "calc(16/9 * 40vh)" : "100%", // Calculate width based on height for 16:9
+                            width: isDesktop ? "calc(16/9 * 40vh)" : "100%"
+                        }}
+                    >
+                        <div className="p-1">
+                            <Card>
+                                <CardContent className="flex flex-col overflow-hidden p-0">
+                                    <Link href={getHref(item.webnovel_id)}>
+                                        <div className="relative w-full aspect-[16/9] h-[400px] md:h-[400px] pb-[56.25%] md:pb-[56.25%]">
+                                            <Image
+                                                className="object-cover object-center transition-all duration-300 rounded-xl absolute inset-0 w-full h-full"
+                                                src={getImageUrl(item.image) || "/placeholder.svg"}
+                                                fill
+                                                alt={item.title}
+                                                placeholder="blur"
+                                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                            />
+                                            {/* Overlay */}
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 md:p-8 rounded-xl overflow-hidden">
+                                                <div className="flex flex-col justify-end">
+                                                    <OtherTranslateComponent
+                                                        key={`title-${index}-${language}`}
+                                                        content={item.title}
+                                                        elementId={item.id.toString()}
+                                                        classParams={`${breakKeepOrNot()} text-lg md:text-xl lg:text-2xl font-extrabold`}
+                                                        elementType={"carouselItem"}
+                                                        elementSubtype="title"
+                                                        showLoading={false}
+                                                    />
+
+                                                    <div className="flex flex-wrap gap-2 mt-1">
+                                                        {getGenre(index).map((el: string, idx: number) => (
+                                                            <span
+                                                                key={idx}
+                                                                className="
+                                                                bg-white/20 
+                                                                px-2 py-1 
+                                                                rounded-xl
+                                                                text-xs 
+                                                                uppercase 
+                                                                tracking-wider
+                                                            "
+                                                            >
+                                                                {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="text-sm md:text-base line-clamp-2 mt-2">
+                                                        <OtherTranslateComponent
+                                                            key={`hook-${index}-${language}`}
+                                                            content={item.hook}
+                                                            elementId={item.id.toString()}
+                                                            classParams={`${breakKeepOrNot()}`}
+                                                            elementType={"carouselItem"}
+                                                            elementSubtype="hook"
+                                                            showLoading={false}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </CarouselItem>
+                ))}
+
+            </CarouselContent>
+            {showControls && isDesktop && (
+                <>
+                    <CarouselPrevious className="left-2 md:left-4 dark:border-gray-400 text-gray-400" />
+                    <CarouselNext className="right-2 md:right-4 dark:border-gray-400 text-gray-400" />
+                </>
+            )}
+            <div className="absolute bottom-0 left-0 right-0 py-2 text-center">
                 <span className={`
                     absolute 
-                    bottom-10   
-                    right-8    
+                    md:bottom-10
+                    bottom-5
+                    right-5    
                     z-10
                     transition-all 
                     duration-300
-                    bg-white/20 
                     backdrop-blur-sm 
                     px-2 py-1 
                     rounded-xl
                     text-[10px]
-                    text-white/80
                     transform
                     translate-x-0
-                    md:right-80
+                    md:right-5
+                    text-gray-400
                 `}>
-                    <span className={`${currentIndex == 0 ? 'text-white' : 'text-white/80'}`}>
+                    <span className={``}>
                         {currentIndex + 1}
                     </span>
                     /
-                    <span className={`text-white/40`}>
-                        {items.length}
+                    <span className={``}>
+                        {count}
                     </span>
                 </span>
             </div>
-        ),
-        centerPadding: getCenterPadding(centerPadding),
-        spacing: 0,
-        nextArrow: <SampleNextArrow />,
-        prevArrow: <SamplePrevArrow />,
-        beforeChange: (current: number, next: number) => {
-            setNextIndex(next);
-        },
-        afterChange: (current: number) => {
-            setCurrentIndex(current);
-            setNextIndex((current + 1) % items.length);
-        },
-        responsive: [
-            {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: Math.max(1, slidesToShow - 1),
-                    dots: showDots,
-                }
-            },
-            {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 1,
-                    dots: showDots,
-                }
-            }
-        ]
-    };
-
-    return (
-        <div className={`slider-container max-w-screen-xl items-center mx-auto w-full group`}>
-            <div className='flex flex-col relative '>
-                <Slider {...settings}>
-                    {items.map((item, index) => (
-                        <div key={index} className={`carousel-slide ${index === currentIndex ? 'active-slide' : 'inactive-slide'}`}>
-                            <div className="relative h-[380px]">
-                                {/*  */}
-                                <Link href={getHref(item.webnovel_id)}>
-                                    <div className="slide-content w-96 h-64 md:max-w-screen-xl md:h-[400px]">
-                                        {/* max-w-screen-lg */}
-                                        <Image
-                                            className="object-cover object-center transition-all duration-300 rounded-xl"
-                                            src={item.image}
-                                            fill
-                                            alt={item.image}
-                                            placeholder="blur"
-                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                        />
-                                        {/* Overlay */}
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-8 rounded-xl overflow-hidden ">
-                                            <div className="flex flex-col justify-end ">
-
-                                                <OtherTranslateComponent
-                                                    key={`title-${index}-${language}`}
-                                                    content={item.title}
-                                                    elementId={item.id.toString()}
-                                                    classParams={`${breakKeepOrNot()} md:text-2xl lg:text-2xl text-xl !min-[400px]:text-[12px] font-extrabold`}
-                                                    elementType={'carouselItem'}
-                                                    elementSubtype="title"
-                                                    showLoading={false}
-                                                />
-
-
-                                                <div className='flex space-x-2 '>
-                                                    {getGenre(index).map((el: string, idx: number) => (
-                                                        <span
-                                                            key={idx}
-                                                            className="
-                                                            bg-white/20 
-                                                            px-2 py-1 
-                                                            rounded-xl
-                                                            text-xs 
-                                                            uppercase 
-                                                            tracking-wider
-                                                         ">
-                                                            {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
-                                                        </span>
-                                                    ))}
-                                                </div>
-
-                                                <div className="text-sm md:text-lg line-clamp-2 mb-3">
-                                                    {/* md:mt-3 mt-2 */}
-                                                    <OtherTranslateComponent
-                                                        key={`hook-${index}-${language}`}
-                                                        content={item.hook}
-                                                        elementId={item.id.toString()}
-                                                        classParams={`${breakKeepOrNot()} md:text-sm lg:text-xl !min-[400px]:text-[12px]`}
-                                                        elementType={'carouselItem'}
-                                                        elementSubtype="hook"
-                                                        showLoading={false}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            </div>
-                        </div>
-                    ))}
-                </Slider>
-            </div>
-            <style jsx global>
-                {`
-
-                 .slider-container {
-                    padding-top: 0;
-                  }
-                 .slick-slide {
-                    padding: 0 2px;  
-                  }   
-
-                  .carousel-slide {
-                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-                  }
-
-                  .slide-content {
-                    margin-left: 1rem;
-                  }
-
-                  .slide-content img {
-                    margin-right: 0;
-                  }
-                   .active-slide img {
-                     
-                   }
-
-                  .active-slide {        
-                      opacity: 1;
-                      z-index: 2;
-
-                  }
-
-                  .inactive-slide {
-                      opacity: 0.3;
-                  } 
-
-                  .slide-content {
-                      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-
-                  }
-
-                  .carousel-slide:hover .slide-content {
-                      opacity: 0.8;
-                  }
-                  .active-slide:hover .slide-content {
-                      opacity: 1;
-                  }
-                  .outlined-text {
-                      text-shadow: 2px 0 2px black, -2px 0 2px black, 0 2px 2px black, 0 -2px 2px black;
-                  }
-                  .no-outlined-text {
-                      text-shadow: none;
-                  }
-
-
-                
-              `}
-            </style>
-        </div>
-    );
+        </Carousel>
+    )
 }
 
-export default CarouselComponentReactSlick;
+export default CarouselComponentReactSlick
+

@@ -23,7 +23,7 @@ const WebnovelPictureComponent = React.memo(
         const imageSrc = getImageUrl(webnovel.cover_art)
 
         return (
-            <Link href={`/view_webnovels?id=${webnovel.id}`} className="block w-full">
+            <Link href={`/view_webnovels/${webnovel.id}`} className="block w-full">
                 <div className="relative flex flex-col items-center w-full">
                     {/* Image Container - Reduced sizes */}
                     <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] ">
@@ -87,7 +87,7 @@ const WebnovelPictureComponent = React.memo(
                             />
                             {/* Author and Genre */}
                             <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                                {webnovel.user.nickname}
+                                {webnovel.author.nickname}
                                 <span className="hidden md:block"> • </span>
                                 <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                             </p>
@@ -98,7 +98,7 @@ const WebnovelPictureComponent = React.memo(
                                     <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-500 ">
                                         <span>
                                             {" "}
-                                            {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length}{" "}
+                                            {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length}{" "}
                                         </span>
                                         <span>{phrase(dictionary, "numchapters", language)}</span>
                                     </p>

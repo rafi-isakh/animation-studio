@@ -1,71 +1,236 @@
-import { User, ToonyzPost } from "@/components/Types";
+"use client"
+import { User, ToonyzPost, Webnovel } from "@/components/Types";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
+import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy, Bookmark } from "lucide-react";
+import { useWebnovels } from '@/contexts/WebnovelsContext';
+import CommentsComponent from "@/components/CommentsComponent";
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import WatermarkedImage from "@/utils/watermark";
+import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
+import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
+import { WebnovelHoverCard, WebnovelCard } from "@/components/UI/WebnovelHoverCard";
+import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
+import { useUser } from '@/contexts/UserContext';
+import UserInfoCard from "@/components/UI/UserInfoCard";
+import { truncateText } from "@/utils/truncateText";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { useMediaQuery } from "@mui/material";
+import dynamic from 'next/dynamic';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
+import animationData from '@/assets/N_logo_with_heart.json';
+import { getImageDimensions } from "@/utils/imageDimensions";
 
-async function getPost(id: string) {
-    // get_toonyz_post_by_id?id=${id}
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_toonyz_post_by_id?id=${id}`);
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error(errorData);
-        return null;
+const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
+    const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
+    const [allPosts, setAllPosts] = useState<ToonyzPost[] | undefined>(undefined);
+    const [lastPostId, setLastPostId] = useState<string | null>(null);
+    const { getWebnovelIdWithChapterMetadata } = useWebnovels();
+    const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
+    const { email: currentUserEmail } = useUser();
+    const { dictionary, language } = useLanguage();
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [chapterTitle, setChapterTitle] = useState<string | undefined>(undefined);
+    const [imageDimensions, setImageDimensions] = useState<{ width: number, height: number }>();
+
+    useEffect(() => {
+        const fetchPost = async () => {
+            fetch(`/api/get_toonyz_post_by_id?id=${params.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setPost(data);
+                    setIsLoading(false);
+                });
+        };
+        fetchPost();
+    }, [params.id]);
+
+    useEffect(() => {
+        const fetchWebnovel = async () => {
+            if (post?.webnovel_id) {
+                const novel = await getWebnovelIdWithChapterMetadata(post.webnovel_id);
+                setWebnovel(novel);
+                const chapter = novel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id.toString());
+                setChapterTitle(chapter?.title);
+            }
+        };
+        const fetchImageDimensions = async () => {
+            if (post?.image) {
+                const { width, height } = await fetch(`/api/get_image_dimensions?imageUrl=${getImageUrl(post.image)}`).then(res => res.json());
+                console.log('width, height', width, height);
+                setImageDimensions({ width: width ?? 1280, height: height ?? 1280 });
+            }
+        }
+        if (post) {
+            fetchWebnovel();
+            fetchImageDimensions();
+        }
+    }, [post]);
+
+    if (isLoading) {
+        return (<div className="loader-container"> <LottieLoader width="w-40" animationData={animationData} /></div>)
     }
-    const post: ToonyzPost = await response.json();
-    return post;
-}
 
-const ToonyzPostPage = async ({ params }: { params: { id: string } }) => {
-    const post = await getPost(params.id);
     if (!post) {
-        return <div>Post not found</div>
+        return <div className="flex items-center justify-center min-h-screen">Post not found</div>;
     }
+
+    const isAuthor = currentUserEmail === post.user.email_hash;
 
     return (
-        <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-            <p>No.{params.id}</p>
-            <Link href={`/view_profile/${post.user.id}`}>
-                {post.user.picture ? (
-                    <Image
-                        src={getImageUrl(post.user.picture)}
-                        alt={post.user.nickname || 'User'}
-                        width={30}
-                        height={30}
-                        className='rounded-full'
+        <div className="flex flex-col mx-auto w-full min-h-screen pb-20 ">
+            {/* header fixed */}
+            <div className="fixed top-0 z-[99] w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
+                <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
+                    <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
+                        <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                        <p className="text-sm text-gray-500 font-bold font-base">{phrase(dictionary, "back", language)}</p>
+                    </Link>
+                    <TopNavigationMenu
+                        email={currentUserEmail}
+                        isAuthor={isAuthor ?? false}
+                        user={post.user}
+                        postId={post.id.toString()}
                     />
+                </div>
+            </div>
+
+            {/* Image/Video Container - simplified for mobile */}
+            <div className={`relative max-w-screen-sm mx-auto group
+                            ${post.image
+                            ? 'md:h-full h-[40vh] top-8 mt-8'
+                            : 'md:h-full md:top-16 md:mt-16'}`}>
+                {post.image ? (
+                    <div className="group h-full w-full">
+                        {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" width={300} height={300} className="object-cover overflow-hidden md:scale-125 scale-100 transition-all duration-300" /> */}
+                        <WatermarkedImage
+                            imageUrl={getImageUrl(post.image)}
+                            watermarkUrl="/toonyz_logo_white.svg"
+                            webnovelTitle={webnovel?.title}
+                            chapterTitle={chapterTitle}
+                            width={imageDimensions?.width}
+                            height={imageDimensions?.height}
+                            watermarkOpacity={0.2}
+                            watermarkPosition="bottomRight"
+                            titlePosition="top"
+                            titleColor="white"
+                            className="object-cover overflow-hidden transition-all duration-300"
+                        />
+                    </div>
                 ) : (
-                    <div className="bg-gray-400 rounded-full w-8 h-8 flex items-center justify-center">
-                        <svg
-                            className="w-8 h-8 text-gray-100 rounded-full"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                        </svg>
+                    <div className="relative group h-full">
+                        <video
+                            src={getVideoUrl(post.video)}
+                            muted
+                            loop
+                            autoPlay
+                            playsInline
+                            className="w-full h-full object-cover md:scale-110 scale-100 transition-transform duration-200 overflow-hidden"
+                        />
                     </div>
                 )}
-            </Link>
+            </div>
 
-            <p className="text-sm text-gray-500">Webnovel ID: {post.webnovel_id}</p>
-            <p className="text-sm text-gray-500">Chapter ID: {post.chapter_id}</p>
+            {/* Description Container - simplified for mobile */}
+            <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
+                            ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
+                <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
+                    <div className="relative flex justify-center">
+                        {/* user hover card */}
+                        <UserInfoCard post={post} />
+                    </div>
+                    <p className="text-center text-xl md:text-4xl font-bold">
+                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
+                    </p>
+
+                    {/* views, comments likes and date */}
+                    <div className='flex flex-row flex-wrap gap-2 justify-center'>
+                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                            <Eye size={16} className="mr-2" />
+                            <span>{post.views}</span>
+                        </div>
+
+                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                            <MessageCircle size={16} className="mr-2" />
+                            <span>{post.comments.length}</span>
+                        </div>
+
+                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                            <Heart size={16} className="mr-2" />
+                            <span>{post.upvotes}</span>
+                        </div>
+
+                        {post.created_at && (
+                            <p className="text-sm text-gray-500 flex flex-row items-center">
+                                <Clock4 size={16} className="mr-2" />   {new Date(post.created_at).toLocaleDateString()}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} isHoverCard={true} showDetailInfo={true} showEngagementStats={false} showSynopsis={false} showActionButtons={false} />)} */}
+
+                    {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
+
+                    {/* quote toggle */}
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
 
 
-            <p className="text-2xl font-bold">{post.title}</p>
+                    {post.tags && (
+                        <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
+                            <span className="text-sm font-bold">Tags: </span>
+                            {(typeof post.tags === 'string'
+                                ? post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+                                : Array.isArray(post.tags)
+                                    ? post.tags
+                                    : []
+                            ).map((tag, index) => {
+                                const colors = [
+                                    'bg-pink-200',
+                                    'bg-blue-200',
+                                    'bg-green-200',
+                                    'bg-purple-200',
+                                    'bg-yellow-200',
+                                    'bg-orange-200',
+                                    'bg-red-200',
+                                    'bg-indigo-200',
+                                ];
+                                const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-            {post.content && (<p className="dark:text-white whitespace-pre-wrap mb-2">{post.content}</p>)}
+                                return (
+                                    <span
+                                        key={index}
+                                        className={`text-sm font-base text-gray-500 dark:text-gray-500 rounded-lg border border-gray-500 ${randomColor} px-2 py-1`}
+                                    >
+                                        {tag}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    )}
 
-            {post.quote && (
-                <p className="text-white whitespace-pre-wrap mb-2">
-                    {post.quote}
-                </p>
-            )}
+                    {/* card for the webnovel */}
+                    {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
 
-
-
-
-
+                    <hr className="w-full border-gray-200" />
+                    <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
+                </div>
+                <div className="h-[10vh]" />
+                <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+                    {/* reusable component for the feed */}
+                    {/* {allPosts && (
+                        <ToonyzPostGrid
+                            key={post.id.toString()}
+                            className="w-full"
+                            initialPosts={allPosts}
+                        />)} */}
+                </div>
+            </div>
         </div>
     )
 }

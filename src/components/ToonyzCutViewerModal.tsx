@@ -1,5 +1,5 @@
 'use client'
-import { Webnovel, Webtoon } from "@/components/Types"
+import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 import TextField from '@mui/material/TextField';
 import { Button, Modal, Box, Typography, Radio, RadioGroup, FormControlLabel, FormLabel, FormControl } from "@mui/material"
@@ -37,7 +37,6 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             fill
                             sizes="150px"
                             className="object-cover rounded-md"
-                            priority
                         />
                         <div className="absolute bottom-0 left-0 w-full 
                             bg-gradient-to-t from-black/50 to-transparent
@@ -83,7 +82,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                         <p className="font-semibold text-lg text-balck dark:text-black break-keep">
                             <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                         </p>
-                        <p className="text-gray-600">{webnovel.user.nickname}</p>
+                        <p className="text-gray-600">{webnovel.author.nickname}</p>
                         <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
                         <p className="text-sm text-center max-w-[400px] text-balck dark:text-black break-keep">
                             <OtherTranslateComponent content={webnovel.description} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='description' />
@@ -104,7 +103,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 }}
                                 variant="outlined"
                                 className="mt-4">
-                                <Link href={`/view_webnovels?id=${webnovel.id}`}>
+                                <Link href={`/view_webnovels/${webnovel.id}`}>
                                     {/* Read More */}
                                     {phrase(dictionary, 'readmore', language)}
                                 </Link>

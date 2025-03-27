@@ -8,14 +8,15 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import CardsScroll from '@/components/CardsScroll';
+
 export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnovel[], isMobile: boolean }) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
-            <h2 className="text-2xl font-bold mb-6">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
+            <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
             <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 {/* Auto-cols-[190px] will define the column width */}
                 <div
@@ -39,7 +40,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                                 </span>
                             </div>
                             {/* Card content */}
-                            <Link href={`/view_webnovels?id=${webnovel.id}`}>
+                            <Link href={`/view_webnovels/${webnovel.id}`}>
                                 <div
                                     className={`relative overflow-hidden rounded-lg transition-all duration-300 pt-1 
                                                 hover:scale-105 
@@ -55,7 +56,6 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                                             sizes="(max-width: 768px) 120px, 180px"
                                             placeholder="blur"
                                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                            priority={index < 2}
                                         />
                                     </div>
                                     {/* Gradient overlay */}
@@ -74,24 +74,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
             </div>
 
             {!isMobile && (
-                <>
-                    <button
-                        onClick={() => scroll('left', scrollRef)}
-                        className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
-                            duration-300 absolute h-20
-                            left-0 top-[55%] -translate-y-1/2 z-50 p-1 opacity-0 rounded-sm"
-                    >
-                        <ChevronLeft className="w-6 h-6 text-gray-700" />
-                    </button>
-                    <button
-                        onClick={() => scroll('right', scrollRef)}
-                        className="bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 
-                            duration-300 absolute h-20
-                            right-0 top-[55%] -translate-y-1/2 z-50 p-1 opacity-0 rounded-sm"
-                    >
-                        <ChevronRight className="w-6 h-6 text-gray-700" />
-                    </button>
-                </>
+                <CardsScroll scrollRef={scrollRef} shift={true} />
             )}
 
         </div>

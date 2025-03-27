@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const webnovelOrWebtoon = searchParams.get('webnovel_or_webtoon');
-    
     const startTime = Date.now();
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_by_id?id=${id}&webnovel_or_webtoon=${webnovelOrWebtoon}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_by_id?id=${id}`);
     const elapsedTime = Date.now() - startTime;
     console.log('start time', startTime);
     console.log('end time', Date.now());

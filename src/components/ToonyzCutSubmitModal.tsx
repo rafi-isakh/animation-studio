@@ -1,12 +1,11 @@
 'use client'
-import { Webnovel, Webtoon } from "@/components/Types"
+import { Webnovel } from "@/components/Types"
 import Image from "next/image"
 import TextField from '@mui/material/TextField';
 import { Button, Modal, Box, Radio, RadioGroup, FormControlLabel, FormLabel, FormControl } from "@mui/material"
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from "@/utils/phrases"
 import { useState } from "react"
-import Link from "next/link"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useToonyzCutSubmitModalStyle } from "@/styles/ModalStyles"
 import OtherTranslateComponent from "./OtherTranslateComponent";
@@ -24,7 +23,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
     const [fullDescription, setFullDescription] = useState('');
 
     const handleSubmit = async () => {
-        const message = `Proposal for ${webnovel.title} by ${webnovel.user.nickname}:\n
+        const message = `Proposal for ${webnovel.title} by ${webnovel.author.nickname}:\n
         Company Name: ${companyName}\n
         Full Name: ${fullName}\n
         Email: ${email}\n
@@ -62,7 +61,6 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             fill
                             sizes="150px"
                             className="object-cover rounded-md"
-                            priority
                         />
                     </div>
 
@@ -70,7 +68,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                         <p className="font-semibold text-lg text-balck dark:text-black">
                             <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                         </p>
-                        <p className="text-gray-600">{webnovel.user.nickname}</p>
+                        <p className="text-gray-600">{webnovel.author.nickname}</p>
                         <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
                         <p className="text-sm text-center max-w-[400px] text-balck dark:text-black line-clamp-3">
                             <OtherTranslateComponent 

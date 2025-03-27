@@ -1,6 +1,6 @@
 
 const PICTURES_S3 = process.env.NEXT_PUBLIC_PICTURES_S3
-const VIDEOS_S3 = process.env.NEXT_PUBLIC_VIDEOS_S3
+const VIDEOS_S3 = process.env.NEXT_PUBLIC_VIDEOS_CLOUDFRONT
 
 export const getLocalImageUrl = (fileName: string | undefined) => {
     const image_src = `/${fileName}`;

@@ -4,15 +4,6 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useEffect, useState } from "react";
 export function TranslateWebnovelAllButton({language, webnovel}: {language: string, webnovel: Webnovel}) {
 
-    const { getWebnovelById } = useWebnovels();
-    const [webnovelWithContent, setWebnovelWithContent] = useState<Webnovel | null>(null);
-
-    useEffect(() => {
-        getWebnovelById(webnovel.id.toString()).then((webnovel) => {
-            setWebnovelWithContent(webnovel!);
-        });
-    }, [webnovel.id]);
-
     const submitContent = async (content: string, chapterId: number) => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/send_content`, {
@@ -28,6 +19,7 @@ export function TranslateWebnovelAllButton({language, webnovel}: {language: stri
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('data', data)
                 await startTranslation(data.text_id, chapterId);
             } else {
                 console.error('Failed to submit words');
@@ -51,15 +43,17 @@ export function TranslateWebnovelAllButton({language, webnovel}: {language: stri
 
 
     async function handleTranslateAll() {
-        const sorted = JSON.parse(JSON.stringify(webnovelWithContent as unknown as string)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
-        for (const chapter of sorted) {
+        const sorted = JSON.parse(JSON.stringify(webnovel)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
+        const startFrom = parseInt(prompt("Start from which chapter?") ?? "1") - 1
+        const upTo = parseInt(prompt("Up to what chapter do you want to translate?") ?? "0") + 1
+        for (const chapter of sorted.slice(startFrom, upTo)) {
             const startTime = new Date()
-            console.log("Started translation at ", startTime)
-            if (chapter.content) {
-                await submitContent(chapter.content, chapter.id)
-            }
+            console.log("Started translation of chapter ", chapter.id, " at ", startTime)
+            const response = await fetch(`/api/get_chapter_by_id?id=${chapter.id}`)
+            const data = await response.json()
+            await submitContent(data.content, chapter.id)
             const endTime = new Date()
-            console.log("Ended translation at ", endTime)
+            console.log("Ended translation of chapter ", chapter.id, " at ", endTime)
             console.log("Time taken: ", (endTime.getTime() - startTime.getTime()) / 1000, " seconds")
         }
     }

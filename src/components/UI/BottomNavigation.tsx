@@ -1,17 +1,16 @@
 "use client"
 
-import Box from '@mui/material/Box';
-import CssBaseline from '@mui/material/CssBaseline';
+import { useEffect, useRef, useState } from 'react';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
-import { useRef, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { Home, LibraryBig, LayoutGrid, Gift, Search, CircleUserRound, Star } from "lucide-react"
+import { Home, LayoutGrid, Gift, Search, Star } from "lucide-react"
 import { useRouter } from 'next/navigation';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
+import { usePathname } from 'next/navigation';
 
 export default function BottomNavigationBar() {
     const { theme } = useTheme();
@@ -20,6 +19,7 @@ export default function BottomNavigationBar() {
     const router = useRouter();
     const { dictionary, language } = useLanguage();
     const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
+    const pathname = usePathname();
 
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
@@ -47,6 +47,13 @@ export default function BottomNavigationBar() {
         }
     };
 
+    const hideBottomNavigationInPages = () => {
+        if (/^\/view_webnovels\/\d+\/chapter_view/.test(pathname)) { // hide bottom navigation in chapter view
+            return "hidden"
+        }
+        return ""
+    }
+
     return (
         <Paper
             sx={{
@@ -58,6 +65,7 @@ export default function BottomNavigationBar() {
                 bgcolor: theme === 'dark' ? '#211F21' : 'white' // darkmode bg-[#211F21]
             }}
             elevation={3}
+            className={hideBottomNavigationInPages()}
         >
             <BottomNavigation
                 showLabels

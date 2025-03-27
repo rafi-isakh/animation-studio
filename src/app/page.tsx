@@ -1,7 +1,6 @@
-import CarouselComponentReactSlick from '@/components/CarouselComponentReactSlick';
 import Footer from '@/components/Footer';
 import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
-import CarouselComponent from '@/components/CarouselComponent';
+import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
@@ -10,13 +9,10 @@ import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
+import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`,
-        {
-            cache: 'no-store',
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
@@ -30,7 +26,6 @@ async function getLibrary() {
         return [];
     }
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
-        cache: 'no-store',
         headers: {
             'Cookie': cookies().toString(),
         }
@@ -67,22 +62,22 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <div className='flex-1 w-full md:max-w-screen-xl overflow-hidden'>
                 {/*    The side bar width is 72px  md:pl-[72px]  */}
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
-                <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} />
+                {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
+                <CarouselComponentShadcn items={items} />
                 {smallGap()}
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {smallGap()}
                     <MyReadingListComponent library={library} />
                     {smallGap()}
+                    <ToonyzPostCards />
+                    {smallGap()}
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
                     {smallGap()}
                     <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
-                    {largeGap()}
+                    {smallGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
-                    {largeGap()}
-                    <CarouselComponent items={items} searchParams={searchParams} />
-                    {/* {largeGap()}
-                    <PromotionBannerComponent /> */}
+                    {smallGap()}
                 </div>
             </div>
             <Footer />

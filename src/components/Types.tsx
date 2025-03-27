@@ -6,9 +6,9 @@ export type ImageOrVideo = 'image' | 'video'
 
 export type Language = 'en' | 'ko' | 'ja' | 'ar' | 'zh-CN' | 'zh-TW' | 'id' | 'vi' | 'th' | 'fr' | 'es'
 
-export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'webtoon' | 'webtoon_chapter'
+export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouselItem' | 'other' | 'toonyz_post'
 
-export type ElementSubtype = 'title' | 'description' | 'hook' | 'other'
+export type ElementSubtype = 'title' | 'description' | 'hook' | 'other' | 'quote' | 'content'
 
 export type SortBy = 'views' | 'likes' | 'date' | 'recommendation'
 
@@ -35,6 +35,14 @@ export interface User {
   marketing: string;
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
+  created_at: Date;
+}
+
+export interface Author {
+  id: number;
+  email: string;
+  email_hash: string;
+  nickname: string;
 }
 
 export interface UserCreate {
@@ -56,6 +64,7 @@ export interface Comment {
   chapter_id: string;
   replies: Comment[];
   created_at: Date;
+  post_id: number;
 }
 
 export interface SlickCarouselItem {
@@ -66,8 +75,6 @@ export interface SlickCarouselItem {
   title: string;
   hook: string;
   webnovel_id: number;
-  webtoon_id: number;
-  webtoon: Webtoon;
   webnovel: Webnovel;
   parsed_tags: string[];
 }
@@ -80,6 +87,7 @@ export interface Webnovel {
   description: string;
   genre: string;
   user: User;
+  author: Author;
   upvotes: number;
   language: string;
   views: number;
@@ -87,40 +95,12 @@ export interface Webnovel {
   created_at: Date;
   tags: string;
   premium: boolean;
-}
-
-export interface WebtoonImage {
-    url: string;
-}
-
-export interface Webtoon {
-  id: number;
-  root_directory: string;
-  title: string;
-  num_episodes: number;
-  created_at: Date;
-  upvotes: number;
-  user: User;
-  language: string;
-  views: number;
-  chapters: WebtoonChapter[]
-  cover_art: string;
-  wide_cover: string;
-  description: string;
-  genre: string;
-  tags: string;
-  premium: boolean;
-  num_free_chapters: number;
-}
-
-export interface WebtoonChapter {
-  id: number;
-  title: string;
-  comments: Comment[];
-  webtoon_id: number;
-  directory: string;
-  created_at: Date;
-  free: boolean;
+  available_languages: string;
+  price_korean: number;
+  price_english: number;
+  okay_to_create_videos: boolean;
+  chapters_length: number;
+  last_update: Date;
 }
 
 export interface Dictionary {

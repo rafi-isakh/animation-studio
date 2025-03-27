@@ -193,7 +193,6 @@ export function ToonyzPlatform() {
                 alt="Toonyz"
                 width={300}
                 height={300}
-                priority
               />
             </div>
           </FadeUp>
@@ -205,7 +204,6 @@ export function ToonyzPlatform() {
               alt="Toonyz app frame"
               width={300}
               height={300}
-              priority
             />
           </FadeUp>
 
@@ -218,7 +216,6 @@ export function ToonyzPlatform() {
                 alt="Toonyz"
                 width={300}
                 height={300}
-                priority
               />
             </div>
           </FadeUp>
@@ -382,7 +379,7 @@ export const CreatorsPageWrapper = () => {
                 <p className="md:text-2xl text-xl text-center md:p-0 -mt-2">
                   Be a Toonyz Creator!
                 </p>
-                : <p className="md:text-2xl text-sm font-bold text-center break-keep break-keep md:p-0 nanum-gothic-extrabold">
+                : <p className="md:text-2xl text-sm font-bold text-center break-keep md:p-0 nanum-gothic-extrabold">
                   투니즈 크리에이터 상시 모집!
                 </p>
               }

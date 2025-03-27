@@ -1,4 +1,6 @@
 import ffmpeg from "fluent-ffmpeg";
+
+// Set the paths from the installed packages
 import fs from "fs-extra";
 import path from "path";
 import { NextRequest } from "next/server";
@@ -110,11 +112,116 @@ export const ffmpegCombineToSlideshow = async (pictures: string[], request: Next
             // Read the video and convert it to base64 for uploading
             const fileBuffer = fs.readFileSync(outputVideo);
             const fileType = "video/mp4";
-            uploadFile(fileBuffer, videoFileName, fileType, request);
+            uploadFile("toonyzvideosbucket", fileBuffer, videoFileName, fileType, request);
             // Optionally remove temporary images:
             fs.removeSync(tempDir);
         })
         .on("error", err => console.error("Error:", err))
         .run();
+    return videoFileName;
+};
+
+export const ffmpegCombineVideosToSlideshow = async (videos: string[], durations: number[], request: NextRequest) => {
+    // videos is an array of base64 encoded video files
+    const tempDir = path.join(__dirname, "temp_videos");
+    fs.ensureDirSync(tempDir);
+    const videoFiles: string[] = [];
+    videos.forEach((base64, index) => {
+        // Assuming input videos are in MP4 format
+        const filePath = path.join(tempDir, `video${index + 1}.mp4`);
+        fs.writeFileSync(filePath, Buffer.from(base64, "base64"));
+        videoFiles.push(filePath);
+    });
+    if (videoFiles.length === 0) {
+        console.error("No valid videos to process.");
+        process.exit(1);
+    }
+
+    // Get durations for each video
+    // Configuration: duration of transition effect (fade) in seconds
+    const transitionDuration = 1; // seconds
+
+    // Build filter_complex parts for fade effects on each video stream.
+    const filterParts: string[] = [];
+    for (let i = 0; i < videoFiles.length; i++) {
+        const duration = durations[i];
+        if (videoFiles.length === 1) {
+            // If only one video, simply apply a fade-in at the beginning.
+            filterParts.push(`[${i}:v]fade=t=in:st=0:d=${transitionDuration}[v${i}]`);
+        } else {
+            if (i === 0) {
+                // First video: apply fade-out at the end
+                filterParts.push(
+                    `[${i}:v]fade=t=out:st=${duration - transitionDuration}:d=${transitionDuration}[v${i}]`
+                );
+            } else if (i === videoFiles.length - 1) {
+                // Last video: apply fade-in at the beginning
+                filterParts.push(
+                    `[${i}:v]fade=t=in:st=0:d=${transitionDuration}[v${i}]`
+                );
+            } else {
+                // Middle videos: apply both fade-in at the start and fade-out at the end
+                filterParts.push(
+                    `[${i}:v]fade=t=in:st=0:d=${transitionDuration},fade=t=out:st=${duration - transitionDuration}:d=${transitionDuration}[v${i}]`
+                );
+            }
+        }
+    }
+
+    // Chain the videos together using xfade transitions.
+    // The offset for each xfade is computed as the cumulative duration of all previous videos minus transitionDuration.
+    let xfadeChain = "";
+    let cumulativeOffset = 0;
+    if (videoFiles.length > 1) {
+        cumulativeOffset = durations[0] - transitionDuration;
+        xfadeChain += `[v0][v1]xfade=transition=fade:duration=${transitionDuration}:offset=${cumulativeOffset}[x1]`;
+        for (let i = 2; i < videoFiles.length; i++) {
+            cumulativeOffset += durations[i - 1] - transitionDuration;
+            xfadeChain += `;[x${i - 1}][v${i}]xfade=transition=fade:duration=${transitionDuration}:offset=${cumulativeOffset}[x${i}]`;
+        }
+    }
+
+    // Combine all filter parts into one filter_complex string.
+    let filterComplex = filterParts.join(";");
+    if (xfadeChain) {
+        filterComplex += ";" + xfadeChain;
+    }
+    console.log("Filter complex:", filterComplex);
+
+    // Define output video filename and path
+    const videoFileName = `slideshow-${Date.now()}.mp4`;
+    const outputVideo = path.join(__dirname, videoFileName);
+
+    // Create the ffmpeg command and add each video file as an input.
+    const command = ffmpeg();
+    videoFiles.forEach(file => {
+        command.input(file);
+    });
+
+    // The final output stream label is the last xfade result (if multiple videos) or the only fade filter label.
+    const finalStreamLabel = videoFiles.length > 1 ? `x${videoFiles.length - 1}` : "v0";
+
+    command
+        .complexFilter(filterComplex, finalStreamLabel)
+        .outputOptions([
+            "-c:v libx264",      // Use H.264 codec
+            "-pix_fmt yuv420p",  // Ensure compatibility
+            "-r 30"              // Set output frame rate
+        ])
+        .output(outputVideo)
+        .on("start", commandLine => console.log("FFmpeg command:", commandLine))
+        .on("progress", progress => console.log(`Processing: ${progress.percent}% done`))
+        .on("end", () => {
+            console.log("Slideshow video created successfully!");
+            // Read the video file and upload it (for example, to S3)
+            const fileBuffer = fs.readFileSync(outputVideo);
+            const fileType = "video/mp4";
+            uploadFile("toonyzvideosbucket", fileBuffer, videoFileName, fileType, request);
+            // Optionally remove the temporary video files
+            fs.removeSync(tempDir);
+        })
+        .on("error", err => console.error("Error:", err))
+        .run();
+
     return videoFileName;
 };

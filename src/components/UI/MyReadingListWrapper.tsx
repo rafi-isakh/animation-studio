@@ -1,7 +1,6 @@
 'use client'
 import { useRef } from "react";
 import { Webnovel } from "@/components/Types";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { scroll } from '@/utils/scroll'
@@ -10,6 +9,7 @@ import { Button, useMediaQuery } from "@mui/material";
 import Link from "next/link";
 import WebnovelsCardList from "@/components/WebnovelsCardList";
 import WebnovelPictureComponent from "@/components/WebnovelPictureComponent";
+import CardsScroll from "@/components/CardsScroll";
 
 const MyReadingListWrapper = ({ library, nickname }: { library: Webnovel[], nickname: string }) => {
     const { dictionary, language } = useLanguage();
@@ -70,20 +70,7 @@ const MyReadingListWrapper = ({ library, nickname }: { library: Webnovel[], nick
                     </div>
 
                     {!isMobile && (
-                        <>
-                            <button
-                                onClick={() => scroll('left', scrollRef)}
-                                className="group-hover:opacity-80 transition-opacity duration-300 absolute left-0 top-[45%] -translate-y-1/2 z-10 bg-transparent rounded-full p-2 opacity-0"
-                            >
-                                <ChevronLeft className="w-6 h-6 text-gray-700" />
-                            </button>
-                            <button
-                                onClick={() => scroll('right', scrollRef)}
-                                className="group-hover:opacity-80 transition-opacity duration-300 absolute right-0 top-[45%] -translate-y-1/2 z-10 bg-transparent rounded-full p-2 opacity-0"
-                            >
-                                <ChevronRight className="w-6 h-6 text-gray-700" />
-                            </button>
-                        </>
+                        <CardsScroll scrollRef={scrollRef} />
                     )}
                 </div>
             </div>

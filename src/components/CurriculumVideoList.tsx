@@ -9,12 +9,9 @@ import { scroll } from '@/utils/scroll'
 interface CurriculumVideoListProps {
     title: string;
     contents: CurriculumContent[];
-    language: string;
-    onVideoClick: (video: JSX.Element) => void;
-    imageType: 'webtoon' | 'webnovel';
 }
 
-const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, contents, language, onVideoClick, imageType }) => {
+const CurriculumVideoList: React.FC<CurriculumVideoListProps> = ({ title, contents }) => {
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [currentVideo, setCurrentVideo] = useState<JSX.Element | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);

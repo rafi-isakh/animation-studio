@@ -20,7 +20,7 @@ const WebnovelCard = ({
     const { dictionary, language } = useLanguage();
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`} className="">
+        <Link href={`/view_webnovels/${webnovel.id}`} className="">
             <div className="group p-1 ">
                 <div className="group-hover:scale-105 transition-all duration-500 relative  preserve-3d group-hover:rotate-y-[15deg]">
                     {/* Book Cover */}
@@ -88,7 +88,7 @@ const WebnovelCard = ({
                             classParams={language === 'ko' ? "text-md md:text-sm w-full break-words" : "text-md md:text-sm w-full break-words"}
                         />
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 break-keep text-center">{webnovel.user.nickname}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 break-keep text-center">{webnovel.author.nickname}</p>
                 </div>
             </div>
         </Link>

@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    console.log(chapter_id);
     let bodyToSend = { title, content, quote, tags, image: "", video: "", link, webnovel_id: parseInt(webnovel_id), chapter_id: parseInt(chapter_id) }
     console.log(quote);
     console.log(bodyToSend);

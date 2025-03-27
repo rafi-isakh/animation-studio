@@ -1,18 +1,27 @@
+"use client";
+
+import styles from "@/styles/stripe.module.css";
 import { useState } from "react";
 import {
     PaymentElement,
     useStripe,
-    useElements
-} from "@stripe/react-stripe-js";
-import { StripePaymentElementOptions } from "@stripe/stripe-js";
-import styles from "@/styles/stripe.module.css";
+    useElements,
+    Elements
+} from '@stripe/react-stripe-js'
+import { loadStripe, StripeElementsOptions, StripePaymentElementOptions } from '@stripe/stripe-js'
 
-export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: string }) {
+// Make sure to call loadStripe outside of a component’s render to avoid
+// recreating the Stripe object on every render.
+// This is your test publishable API key.
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+function PaymentForm() {
     const stripe = useStripe();
     const elements = useElements();
 
+
     const [message, setMessage] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -29,7 +38,7 @@ export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: strin
             elements,
             confirmParams: {
                 // Make sure to change this to your payment completion page
-                return_url: `${process.env.NEXT_PUBLIC_HOST}/stars?complete=true`,
+                return_url: `${process.env.NEXT_PUBLIC_HOST}/stars/transactions`,
             },
         });
 
@@ -39,7 +48,7 @@ export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: strin
         // be redirected to an intermediate site first to authorize the payment, then
         // redirected to the `return_url`.
         if (error.type === "card_error" || error.type === "validation_error") {
-            setMessage(error.message ?? "An unexpected error occurred.");
+            setMessage(error.message || "Unspecified error");
         } else {
             setMessage("An unexpected error occurred.");
         }
@@ -48,21 +57,31 @@ export default function CheckoutForm({ dpmCheckerLink }: { dpmCheckerLink: strin
     };
 
     const paymentElementOptions = {
-        layout: "tabs",
+        layout: "auto",
     };
 
     return (
-        <div className={`${styles.stripeContainer} space-y-4`}>
-            <form id="payment-form" onSubmit={handleSubmit} className={styles.stripeForm}>
-                <PaymentElement id="payment-element" options={paymentElementOptions as StripePaymentElementOptions} />
-                <button className={styles.stripeButton} disabled={isLoading || !stripe || !elements} id="submit">
-                    <span id="button-text">
-                        {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
-                    </span>
-                </button>
-                {/* Show any error or success messages */}
-                {message && <div id="payment-message">{message}</div>}
-            </form>
-        </div>
+        <form id="payment-form" className={styles.stripeForm} onSubmit={handleSubmit}>
+            <PaymentElement id="payment-element" options={paymentElementOptions as StripePaymentElementOptions} />
+            <button disabled={isLoading || !stripe || !elements} id="submit" className={styles.stripeButton}>
+                <span id="button-text">
+                    {isLoading ? <div className={styles.spinner} id="spinner"></div> : "Pay now"}
+                </span>
+            </button>
+            {/* Show any error or success messages */}
+            {message && <div id="payment-message" className={styles.paymentMessage}>{message}</div>}
+        </form>
     );
+}
+
+export default function CheckoutForm({ clientSecret }: { clientSecret: string }) {
+    console.log(clientSecret);
+    const appearance = {
+        theme: 'stripe',
+    };
+    return (
+        <Elements stripe={stripePromise} options={{ appearance, clientSecret } as StripeElementsOptions}>
+            <PaymentForm />
+        </Elements>
+    )
 }

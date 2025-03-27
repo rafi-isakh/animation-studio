@@ -109,7 +109,9 @@ export default function NewUser() {
             method: 'POST',
             body: formDataToSend,
         });
-        console.log(res);
+        if (!res.ok) {
+            throw new Error(`Failed to update user: ${res.statusText} ${res.status}`);
+        }
         router.push('/welcome');
     }
 
@@ -315,6 +317,7 @@ export default function NewUser() {
                                 />
 
                                 <div className="flex flex-col space-y-4 items-center">
+                                    <NewUserSubmitComponent />
                                     <button
                                         type="button"
                                         onClick={handlePrevStep}
@@ -322,7 +325,6 @@ export default function NewUser() {
                                     >
                                         {phrase(dictionary, "back", language)}
                                     </button>
-                                    <NewUserSubmitComponent />
                                 </div>
                             </div>
                         )}

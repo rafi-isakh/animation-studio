@@ -9,10 +9,10 @@ export const langPairList = [
         code: 'en',
         name: 'English'
     },
-    {
-        code: 'ja',
-        name: '日本語'
-    },
+    // {
+    //     code: 'ja',
+    //     name: '日本語'
+    // },
     // {
     //     code: 'zh-CN',
     //     name: '中国语（简体）'
@@ -21,10 +21,10 @@ export const langPairList = [
     //     code: 'zh-TW',
     //     name: '中國語（繁體）'
     // },
-    {
-        code: 'th',
-        name: 'ภาษาไทย'
-    },
+    // {
+    //     code: 'th',
+    //     name: 'ภาษาไทย'
+    // },
     // {
     //     code: 'fr',
     //     name: 'Français'
@@ -47,7 +47,10 @@ const phrases = async (): Promise<Dictionary> => {
         const languageCodes = rows[0].split(",");
         
         for (let i = 1; i < rows.length; i++) {
-            const row = rows[i].split(/(?<!\\),/); // split by comma, except for escaped commas
+            const row = rows[i]
+                .replace(/\\,/g, '{{COMMA}}')
+                .split(',')
+                .map(item => item.replace(/{{COMMA}}/g, '\\,'));
             if (row.length === 0) continue;
             
             const tsx = row[0];
@@ -64,7 +67,7 @@ const phrases = async (): Promise<Dictionary> => {
         return dictionary;
     } catch (error) {
         console.error("Error retrieving dictionary", error);
-        throw new Error("Error retrieving dictionary");
+        throw new Error(`Error retrieving dictionary, ${error}`);
     }
 }
 

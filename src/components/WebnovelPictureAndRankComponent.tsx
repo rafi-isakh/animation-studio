@@ -16,7 +16,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
     const imageSrc = getImageUrl(webnovel.cover_art)
 
     return (
-        <Link href={`/view_webnovels?id=${webnovel.id}`}>
+        <Link href={`/view_webnovels/${webnovel.id}`}>
             <div className="group relative flex flex-col items-center w-full">
                 {/* Image Container - Reduced sizes */}
                 <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257]">
@@ -58,7 +58,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                             classParams="text-[12px] md:text-sm font-medium line-clamp-2 w-[100px] md:w-[160px]"
                         />
                         <p className="text-[10px] md:text-[11px] font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                            {webnovel.user.nickname}
+                            {webnovel.author.nickname}
                             <span className="hidden md:block"> • </span>
                             <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>
@@ -67,7 +67,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                             // Total Chapters and Views
                             <div className="flex flex-row justify-center font-bold">
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 ">
-                                    <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters.length} </span>
+                                    <span> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length} </span>
                                     <span>{phrase(dictionary, "numchapters", language)}</span>
                                 </p>
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">

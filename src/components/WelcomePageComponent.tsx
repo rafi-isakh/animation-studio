@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-
+import { MdStars } from 'react-icons/md';
 import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
 
@@ -51,7 +51,7 @@ export default function WelcomePageComponent() {
                 {language == 'ko' ? '님' : ''}
             </h1>
             <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'welcome_to_toonyz', language)}</p>
-            <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'enjoy_variety_of_stories', language)}</p>
+            <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'complementary_stars_added', language)}</p>
         </div>
 
         <div className='flex flex-col items-center justify-center gap-3 mt-6'>
@@ -80,7 +80,7 @@ export default function WelcomePageComponent() {
                 }} size="large"
                 variant="outlined">
 
-                <Link href="/" className='flex w-full '>
+                <Link href="/?version=premium" className='flex w-full '>
                     {/* Toonyz 작품 확인하러 가기 &gt; */}
                     <div className="w-6 flex justify-center">
                         <ToonyzLogo className="w-5 h-5 self-center" />

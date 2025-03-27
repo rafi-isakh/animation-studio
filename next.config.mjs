@@ -22,7 +22,7 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: process.env.NEXT_PUBLIC_VIDEOS_S3 || 'localhost',
+                hostname: process.env.NEXT_PUBLIC_VIDEOS_CLOUDFRONT || 'localhost',
                 pathname: '/**',
             },
             {

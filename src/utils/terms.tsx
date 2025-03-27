@@ -297,6 +297,12 @@ export const terms = `이용약관
     ③ 이미 사용된 별은 취소 및 환불이 불가능합니다.
 2. 회사의 귀책사유로 결제 오류가 발생한 경우, 결제에 대한 취소 및 환불을 요구할 수 있습니다.
 3. 회사의 귀책사유로 서비스가 중단되는 경우, 결제에 대한 취소 및 환불을 요구할 수 있습니다.
+
+제 6장 저작권 및 콘텐츠
+제 30조 (저작권 및 콘텐츠)
+1. 회사가 작성한 모든 콘텐츠에 대한 저작권은 회사에 있습니다.
+2. 회원은 2차 저작물(투니즈 포스트 이미지/영상/슬라이드쇼)을 상업적 용도로 사용할 수 없습니다.
+3. 부적합 게시물을 게시한 회원에 대한 이용 제한과 게시물 삭제 조치는 회사의 자율적 판단에 의해 결정됩니다.
 `;
 
 export const terms_english = `
@@ -305,7 +311,7 @@ Terms of Service
 Chapter 1 General Provisions
 
 Article 1 (Purpose)
-These terms and conditions aim to regulate the conditions of use, rights, obligations, and responsibilities between "members" and "the company" related to Toonies (including web, mobile site, app services, and future developed content, hereinafter referred to as "Toonies") operated by Stella& Co., Ltd. (hereinafter referred to as "the company").
+These terms and conditions aim to regulate the conditions of use, rights, obligations, and responsibilities between "members" and "the company" related to Toonyz (including web, mobile site, app services, and future developed content, hereinafter referred to as "Toonyz") operated by Stella& Co., Ltd. (hereinafter referred to as "the company").
 
 Article 2 (Definition of Terms)
 The definitions of terms used in these terms and conditions are as follows. For terms not defined in each item, the definitions shall follow the relevant laws and regulations and service guidelines.
@@ -320,7 +326,7 @@ The definitions of terms used in these terms and conditions are as follows. For 
 8. Payment: Refers to paying a certain amount to "the company" or a third party designated by "the company" through various payment methods to use the "Paid Service" provided by "the company".
 9. Regular Subscription: Refers to a "Paid Service" usage method where usage fees for monthly/yearly usage periods are regularly charged through a pre-registered payment method for "members" to use the "Paid Service", and the usage period is automatically renewed. When canceling a "Regular Subscription", the "Paid Service" can be used normally during the remaining usage period for which payment has been made, and automatic payment will not be made from the next usage period.
 10. Subscription and Coupon (or Gift Certificate): Refers to a usage right for "the company's" "Paid Service" and can be issued online or offline.
-11. Star: Refers to virtual data required for users to use Toonies' content or services.
+11. Star: Refers to virtual data required for users to use Toonyz's content or services.
 12. Point (Mileage): Refers to virtual data that the company can arbitrarily set, provide, or adjust for efficient use of the service.
 
 Article 3 (Compliance with Laws)
@@ -620,6 +626,14 @@ Article 29 (Payment Cancellation & Refund)
    ③ Stars that have already been used cannot be canceled or refunded.
 2. If a payment error occurs due to the company's fault, cancellation and refund of the payment can be requested.
 3. If the service is suspended due to the company's fault, cancellation and refund of the payment can be requested.
+
+Chapter 6 Copyright and Content
+
+Article 30 (Copyright and Content)
+
+1. The copyright for all content created by the company belongs to the company.
+2. Members are not allowed to use derivative works (Tooniz post images/videos/slideshows) for commercial purposes.
+3. Restrictions on usage and deletion of posts containing inappropriate content will be determined at the company's discretion.
 `
 
 // 청소년 이용약관 youth
@@ -872,32 +886,44 @@ Toonyz는 다음과 같은 특성을 지닌 표지 이미지의 사용을 명확
 외부 출처의 이미지를 사용할 경우, 반드시 작품 소개 섹션에 해당 이미지의 출처를 명확하게 명시해야 합니다. 아울러, 
 Toonyz 플랫폼에 게시된 표지와 이미지는 Google Play Store 및 Apple App Store의 정책에 따라 추가적인 제재를 받을 수 있음을 유의하시기 바랍니다. Toonyz는 이와 관련된 어떠한 법적 문제에 대해서도 책임을 지지 않음을 명확히 밝힙니다.
 
+투니즈에 작품을 업로드함으로써 작성자는 다음 사항에 동의합니다.
+1. AI 활용 번역 동의
+2. 이미지, 영상 생성 동의
+3. 생성한 이미지, 영상 마케팅에 이용 동의
+4. 투니즈 포스트 (이미지/영상/슬라이드쇼) 2차 저작권 사용 규칙 동의
 `
 
 export const WebnovelTerms_en = `1. Toonyz community rules
 
 Any serialized articles that violate the terms and conditions below may be deleted at Toonyz's discretion after notification of the content.
-a. Content that infringes upon the copyrights of others.
-b. Content that includes sensitive personal information.
-c. Content that defames individuals or groups.
-d. Content that is anti-social and harms public order.
-e. Content written solely for commercial gain.
-f. Content containing repetitive phrases, slander, or abusive language that is not characteristic of normal web novels.
-g. Content that directly mentions or is intended to induce users to other sites.
-h. Titles that imply or include any of the above.
+1. Content that infringes upon the copyrights of others.
+2. Content that includes sensitive personal information.
+3. Content that defames individuals or groups.
+4. Content that is anti-social and harms public order.
+5. Content written solely for commercial gain.
+6. Content containing repetitive phrases, slander, or abusive language that is not characteristic of normal web novels.
+7. Content that directly mentions or is intended to induce users to other sites.
+8. Titles that imply or include any of the above.
 
 All responsibility for series that violate these terms and conditions lies with the author of the serialized article in question.
 
 2. Cover Terms and Conditions
 
 The following covers are prohibited. If these conditions are violated, Toonyz may change or delete the cover at its discretion after providing guidance.
-a. Covers whose copyright belongs to another person, unless they are capable of commercial use or permission has been obtained from the original copyright holder.
-b. Covers that are inappropriate for minors under the age of 18.
-c. Covers that defame individuals or groups, or cause discomfort or shame.
-d. Covers that do not accurately and clearly indicate the copyright or source.
-e. Covers that infringe upon the portrait rights of others.
+1. Covers whose copyright belongs to another person, unless they are capable of commercial use or permission has been obtained from the original copyright holder.
+2. Covers that are inappropriate for minors under the age of 18.
+3. Covers that defame individuals or groups, or cause discomfort or shame.
+4. Covers that do not accurately and clearly indicate the copyright or source.
+5. Covers that infringe upon the portrait rights of others.
 
 Covers or Images may be subject to sanctions according to the policies of the Android or Apple App Store, regardless of Toonyz's policies. Toonyz is not responsible for any legal disputes or issues arising in connection with covers and illustrations.
+
+By uploading their work to Toonyz, the creator agrees to the following terms:
+
+1. Consent to AI-assisted translation
+2. Consent to image and video generation
+3. Consent to the use of generated images and videos for marketing purposes
+4. Agreement to Toonyz's secondary copyright usage rules for posts (images/videos/slideshows)
 `
 
 export const terms_privacy_english = `
@@ -1009,7 +1035,6 @@ export const terms_purchase_stars_ko = `
    - 환불 신청은 dami@stelland.io로 이메일을 보내 진행할 수 있습니다.
    - 이용약관에 따라 500원 또는 잔액의 10% 중 큰 금액을 환급 수수료로 공제합니다.
    - 잔액이 500원 이하인 경우 환불이 불가능합니다.
-   - 환불 조건을 충족한 경우, 영업일 기준 5일 이내에 지정된 계좌로 환불 금액이 입금됩니다.
    - 환불 신청 후 포인트를 사용하면 환불이 불가능할 수 있습니다.
    - 환불은 원래 결제한 수단으로만 가능합니다.
 
@@ -1047,7 +1072,6 @@ Refund Procedure and Method
 - Refund requests can be made by sending an email to dami@stelland.io.
 - As per the terms of service, a refund fee of 500 won or 10% of the balance, whichever is greater, will be deducted.
 - Refunds are not possible if the balance is 500 won or less.
-- If refund conditions are met, the refund amount will be deposited into the designated account within 5 business days.
 - Refunds may not be possible if points are used after submitting a refund request.
 - Refunds are only possible through the original payment method.
 

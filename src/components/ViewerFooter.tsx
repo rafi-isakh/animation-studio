@@ -1,19 +1,42 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
-import { Chapter, Webnovel } from '@/components/Types';
+import React, { useEffect, useState, useRef } from 'react';
+import { Chapter, Webnovel, ToonyzPost } from '@/components/Types';
 import Link from 'next/link';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogTrigger,
+    DialogClose
+} from "@/components/shadcnUI/Dialog";
+import { Button } from "@/components/shadcnUI/Button";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import { Box, Button, Modal } from '@mui/material';
-import { useModalStyle, useViewSettingsStyle } from '@/styles/ModalStyles';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
 import { useTheme } from '@/contexts/providers'
+import {
+    ChevronLeft,
+    ChevronRight,
+    Sparkles,
+    X,
+    BookOpen,
+} from 'lucide-react';
+import { Slider } from '@/components/shadcnUI/Slider';
+import { Switch } from '@/components/shadcnUI/Switch';
+import { Label } from '@/components/shadcnUI/Label';
+import BlobButton from '@/components/UI/BlobButton';
+import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { MessageCircle, Settings, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
+import { truncateText } from '@/utils/truncateText';
+import ToonyzPostViewer from './UI/ToonyzPostViewer';
 
-const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chapter }) => {
+const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
+    { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
     const [webnovelId, setWebnovelId] = useState(0);
     const [chapterId, setChapterId] = useState(0);
     const { language, dictionary } = useLanguage();
@@ -24,18 +47,37 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     const chapters = webnovel.chapters.sort((a, b) => a.id - b.id);
     const [isVisible, setIsVisible] = useState(true); // State to track visibility
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
-    const [showIsViewerModal, setShowIsViewerModal] = useState(false);
-    const viewSettingsStyle = useViewSettingsStyle();
-    const { toggleTheme, theme } = useTheme();
-    const { fontSize,
-        setFontSize,
-        fontFamily = 'default',
-        setFontFamily,
-        lineHeight,
-        setLineHeight,
-        scrollType,
-        setScrollType,
-        setPage } = useReader();
+    const { scrollType, setPage } = useReader();
+    const [openMenu, setOpenMenu] = useState(false)
+    const menuContentRef = useRef<HTMLDivElement>(null);
+    const [allowClose, setAllowClose] = useState(false);
+    const [scrollPercent, setScrollPercent] = useState(0);
+
+    useEffect(() => {
+        if (scrollType === 'horizontal') {
+            // Handle horizontal pagination
+            if (page && maxPage) {
+                setScrollPercent(Math.floor((page / maxPage) * 100));
+            }
+        } else {
+            // Handle vertical scrolling
+            const handleScroll = () => {
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight - windowHeight;
+                const scrolled = window.scrollY;
+                const percent = Math.floor((scrolled / documentHeight) * 100);
+                setScrollPercent(percent);
+            };
+
+            // Add scroll event listener
+            window.addEventListener('scroll', handleScroll);
+            // Initial calculation
+            handleScroll();
+
+            return () => window.removeEventListener('scroll', handleScroll);
+        }
+    }, [page, maxPage, scrollType]);
+
 
     useEffect(() => {
         setPage(1);
@@ -44,27 +86,25 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
-        // If scrollType is horizontal, always show the footer
-        if (scrollType === 'horizontal') {
-            setIsVisible(true);
-            return; // Exit early, no need to add scroll listener
-        }
-
         const handleScroll = () => {
-            if (scrollType === 'vertical') {
+            if (scrollType === 'vertical' || scrollType === 'horizontal') {
                 const currentScrollY = window.scrollY;
-                if (currentScrollY < lastScrollY) {
-                    setIsVisible(true);
-                } else {
-                    setIsVisible(false);
+
+                // Check if the menu is open
+                if (!openMenu) {
+                    if (currentScrollY < lastScrollY) {
+                        setIsVisible(true);
+                    } else {
+                        setIsVisible(false);
+                    }
+
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        setIsVisible(false);
+                    }, 2000);
                 }
 
                 setLastScrollY(currentScrollY);
-
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                    setIsVisible(false); // Hide after a delay when scrolling stops
-                }, 2000);
             }
         };
 
@@ -72,9 +112,9 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         window.addEventListener('scroll', handleScroll);
         return () => {
             window.removeEventListener('scroll', handleScroll);
-            clearTimeout(timeoutId); // Clear timeout when component unmounts
+            clearTimeout(timeoutId); 
         };
-    }, [scrollType, lastScrollY]);
+    }, [scrollType, lastScrollY, openMenu]);
 
 
     useEffect(() => {
@@ -84,14 +124,14 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         const nextId = getNextChapterId(chapter.id);
         const prevId = getPrevChapterId(chapter.id);
 
-        setNextChapterLink(`/chapter_view/${nextId.toString()}`);
-        setPrevChapterLink(`/chapter_view/${prevId.toString()}`);
+        setNextChapterLink(`/view_webnovels/${webnovel.id}/chapter_view/${nextId.toString()}`);
+        setPrevChapterLink(`/view_webnovels/${webnovel.id}/chapter_view/${prevId.toString()}`);
     }, [webnovel, chapter])
 
 
     const getNextChapterId = (currentChapterId: number) => {
         const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
-        if (index === webnovel.chapters.length - 1) {
+        if (index === webnovel.chapters_length - 1) {
             return currentChapterId; // Stay on the same chapter if it's the last one
         }
         return chapters[index + 1].id;
@@ -106,7 +146,7 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
     }
 
     const handleNextChapter = () => {
-        if (chapterId === webnovel.chapters[webnovel.chapters.length - 1].id) {
+        if (chapterId === webnovel.chapters[webnovel.chapters_length - 1].id) {
             setShowIsLastChapterModal(true);
         }
     }
@@ -117,196 +157,89 @@ const ViewerFooter = ({ webnovel, chapter }: { webnovel: Webnovel, chapter: Chap
         }
     }
 
-    const handleViewSettings = () => {
-        setShowIsViewerModal(true);
+
+    const handleToggleMenu = () => {
+        setOpenMenu(prevState => !prevState);
+        setAllowClose(!openMenu); 
+    }    
+
+    // Function to close the menu
+    const handleCloseMenu = () => {
+        setAllowClose(true);
+        setOpenMenu(false);
     }
 
+
     return (
-        <div className="fixed w-full md:max-w-screen-sm md:pl-[72px] bottom-[3.5rem] md:bottom-0 left-1/2 -translate-x-1/2 md:z-[1250] z-[99] select-none">
-            <div className={`w-full justify-center  rounded-t-lg
-                            ${theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                            ${theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'bg-white text-black'}
-                             text-black  dark:text-white 
-                             bottom-0 left-0 pt-2 pb-2 mr-0 ml-0 
-                             transition-transform duration-300 
-                             ${scrollType === 'horizontal' ? 'translate-y-0' : ''}
-                             ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-
-                <div className={`"max-w-md text-black dark:text-white flex flex-wrap items-center justify-evenly mx-auto p-2 z-[1150]`}>
-                {/* className='md:mr-0 mr-[15px]' */}
-                    <Link href={prevChapterLink} onClick={handlePrevChapter} className='z-[1250]' >
-                        <div className='group hover:text-[#DB2777] flex flex-row'>
-                            <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
-
-                            {phrase(dictionary, "prevChapter", language)}
-                        </div>
-                    </Link>
-                    <Link 
-                        href={``}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleViewSettings();
-                        }}
-                        className='z-[1250]'
-                         >
-                        <p className='hover:text-[#DB2777] relative' >
-                            <Settings size={16} />
-                            <span className='p-[0.8px] self-center bg-[#DB2777] group-hover:bg-[#DB2777]/50 absolute -top-[1px] -right-2 text-[12px] text-white rounded-full'>
-                                <Languages size={10} />
-                            </span>
-                        </p>
-                    </Link>
+        <>
+            <div className={`${isVisible ? 'z-[480] fixed left-0 bottom-1 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
+                <div className="md:w-[350px]  flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
+                    {/* bg-background/90 backdrop-blur-md */}
+                    <div>
+                        <Link href={prevChapterLink} onClick={handlePrevChapter} >
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
+                                <ChevronLeft size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                                <span className='uppercase text-sm'>{phrase(dictionary, "prevChapter", language)}</span>
+                            </div>
+                        </Link>
+                    </div>
                     {/* view next and prev btn */}
-                    <Link href={nextChapterLink} onClick={handleNextChapter} > 
-                        <div className='group hover:text-[#DB2777] flex flex-row'>
-                            {phrase(dictionary, "nextChapter", language)}
-                            <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777] mr-4' />
-                        </div>
-                    </Link>
+                    <div>
+                        <Link href={nextChapterLink} onClick={handleNextChapter}>
+                            <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>
+                                <span className="uppercase text-sm">{phrase(dictionary, "nextChapter", language)}</span>
+                                <ChevronRight size={16} className='text-gray-500 self-center group-hover:text-[#DB2777]' />
+                            </div>
+                        </Link>
+                    </div>
+
                 </div >
-            </div >
-            <Modal open={showIsLastChapterModal} onClose={() => setShowIsLastChapterModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4'>
-                        <p>{phrase(dictionary, "isLastChapter", language)}</p>
-                        <Button color="gray" variant="outlined" onClick={() => setShowIsLastChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
-            <Modal open={showIsFirstChapterModal} onClose={() => setShowIsFirstChapterModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className='flex flex-col space-y-4'>
-                        <p>{phrase(dictionary, "isFirstChapter", language)}</p>
-                        <Button color="gray" variant="outlined" onClick={() => setShowIsFirstChapterModal(false)}>{phrase(dictionary, "ok", language)}</Button>
-                    </div>
-                </Box>
-            </Modal>
-            {/* view settings modal */}
-            <Modal open={showIsViewerModal} onClose={() => setShowIsViewerModal(false)}
-            >
-                <Box sx={viewSettingsStyle}>
-                    <div className='flex flex-col space-y-4 text-black dark:text-black'>
-                        <p className='flex justify-between'>
-                            {/* View Settings */}
-                            {phrase(dictionary, "viewSettings", language)}
-                            <button onClick={() => setShowIsViewerModal(false)}>
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </p>
-                        <hr className='my-2 border-gray-200' />
 
-                        <div className='text-sm justify-between md:flex hidden'>
-                            {/* 넘김 방식 */}
-                            {phrase(dictionary, "scrollType", language)}
-                            <div className='flex flex-row gap-2'>
-                                <Link href='' className='text-gray-300' onClick={() => setScrollType('vertical')}>
-                                    {/* 스크롤 */}
-                                    {phrase(dictionary, "viewSettings_scroll", language)}
-                                </Link>
-                                <Link href='' className='text-gray-500' onClick={() => setScrollType('horizontal')}>
-                                    {/* 페이지 */}
-                                    {phrase(dictionary, "viewSettings_page", language)}
-                                </Link>
-                            </div>
+            </div>
+            {/* Dialogs for last and first chapter */}
+            < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
+                <DialogContent
+                    className="sm:max-w-[425px] select-none dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
+                    onClick={(e) => e.stopPropagation()}
+                    showCloseButton={true}
+                >
+                    <DialogHeader>
+                        <DialogTitle>
+                            {phrase(dictionary, "isLastChapter", language)}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        <div className='flex flex-col space-y-4'>
+                            <p>{phrase(dictionary, "isLastChapter", language)}</p>
+                            <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsLastChapterModal(false)}>
+                                {phrase(dictionary, "ok", language)}
+                            </Button>
                         </div>
-                        <div className='text-sm flex justify-between'>
-                            {/* 테마  */}
-                            {phrase(dictionary, "theme", language)}
-                            <div className='flex flex-row gap-2'>
-                                <Link
-                                    href=''
-                                    onClick={() => toggleTheme('light')}
-                                    className='text-[10px] bg-white text-black rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
-                                    Aa
-                                </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => toggleTheme('dark')}
-                                    className='text-[10px] bg-black text-white rounded-full border border-gray-400 px-2 py-1 self-center text-center'>
-                                    Aa
-                                </Link>
-                            </div>
+                    </DialogDescription>
+                </DialogContent>
+            </Dialog >
+            <Dialog open={showIsFirstChapterModal} onOpenChange={setShowIsFirstChapterModal}>
+                <DialogContent
+                    className="sm:max-w-[425px] select-none dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
+                    onClick={(e) => e.stopPropagation()}
+                    showCloseButton={true}
+                >
+                    <DialogHeader>
+                        <DialogTitle>
+                            {phrase(dictionary, "isFirstChapter", language)}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        <div className='flex flex-col space-y-4'>
+                            <p>{phrase(dictionary, "isFirstChapter", language)}</p>
+                            <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsFirstChapterModal(false)}>
+                                {phrase(dictionary, "ok", language)}
+                            </Button>
                         </div>
-
-                        <div className='text-sm flex justify-between'>
-                            {/* 글꼴  */}
-                            {phrase(dictionary, "font", language)}
-                            <div className='flex flex-row gap-2'>
-                                <Link
-                                    href=''
-                                    onClick={() => {
-                                        setFontFamily('default');
-                                        console.log('Font family set to:', 'default');
-                                    }}
-                                    className={`${fontFamily === 'default' ? 'text-gray-300' : 'text-gray-500'}`}
-                                >
-                                    {/* 기본 */}
-                                    {phrase(dictionary, "defaultFont", language)}
-                                </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => setFontFamily('gowun-batang')}
-                                    className={`${fontFamily === 'gowun-batang' ? 'text-gray-300 gowun-batang' : 'text-gray-500'}`}
-                                >
-                                    {/* 바탕체 */}
-                                    <span className='gowun-batang text-[12px]'> {phrase(dictionary, "batangFont", language)} </span>
-                                </Link>
-                                <Link
-                                    href=''
-                                    onClick={() => {
-                                        setFontFamily('nanum-gothic');
-                                        console.log('Font family set to:', 'nanum-gothic');
-                                    }} className={`${fontFamily === 'nanum-gothic' ? 'text-gray-300 nanum-gothic' : 'text-gray-500'}`}
-                                >
-                                    {/* 고딕체 */}
-                                    <span className='nanum-gothic text-[12px]'> {phrase(dictionary, "gothicFont", language)} </span>
-                                </Link>
-                            </div>
-                        </div>
-                        <div className='text-sm flex justify-between'>
-                            {/* 글자 크기 */}
-                            {phrase(dictionary, "fontSize", language)}
-                            <div className='flex flex-row gap-2 justify-evenly'>
-                                <Link
-                                    href=''
-                                    onClick={() => setFontSize(fontSize + 2)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-plus"></i>
-                                </Link>
-                                <p className='w-7 self-center text-center'>{fontSize} </p>
-                                <Link
-                                    href=''
-                                    onClick={() => setFontSize(fontSize - 2)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-minus"></i>
-                                </Link>
-                            </div>
-                        </div>
-                        <div className='text-sm flex justify-between'>
-                            {/* 줄 간격 */}
-                            {phrase(dictionary, "lineHeight", language)}
-                            <div className='flex flex-row gap-2 justify-evenly'>
-                                <Link
-                                    href=''
-                                    onClick={(e) => setLineHeight(lineHeight + 0.1)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-plus"></i>
-                                </Link>
-                                <p> {Math.round(lineHeight * 10)}% </p>
-                                <Link
-                                    href=''
-                                    onClick={(e) => setLineHeight(lineHeight - 0.1)}
-                                    className='text-gray-400 rounded-full border border-gray-400 px-2 self-center text-center'>
-                                    <i className="fas fa-minus"></i>
-                                </Link>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </Box>
-            </Modal>
-        </div >
+                    </DialogDescription>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 

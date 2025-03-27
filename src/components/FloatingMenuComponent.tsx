@@ -1,384 +1,527 @@
 'use Client'
-import React, { useEffect, useState, useRef } from 'react';
-import { Global } from '@emotion/react';
-import { styled } from '@mui/material/styles';
-import { Box, Button, Modal, Skeleton, Typography, SwipeableDrawer, Link, Alert } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-import Collapse from '@mui/material/Collapse';
-import CloseIcon from '@mui/icons-material/Close';
-import Tab from '@mui/material/Tab';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import TabContext from '@mui/lab/TabContext';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { cn } from "@/lib/utils"
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { Button } from "@/components/shadcnUI/Button"
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/shadcnUI/Dialog"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/shadcnUI/Tooltip"
+import { ToastAction } from "@/components/shadcnUI/Toast";
+import { Input } from "@/components/shadcnUI/Input"
+import { Label } from "@/components/shadcnUI/Label"
 import { useLanguage } from '@/contexts/LanguageContext';
-import { phrase } from '@/utils/phrases'
-import PictureGenerator from '@/components/PictureGeneratorComponent';
-import dynamic from 'next/dynamic';
-import animationData from '@/assets/shinny.json';
-import { X, ArrowRight, Home, WandSparkles, Compass, Clapperboard, Image } from 'lucide-react';
-import { Language } from '@/components/Types';
+import { phrase } from '@/utils/phrases';
+import { X, Video, Copy, Image, Share2, Sparkles, MoreVertical, Maximize2, Loader2, ArrowRight, ChevronDownSquare, Divide, MessageSquare, RefreshCw } from 'lucide-react';
+import { MdStars } from 'react-icons/md';
 import { useTheme } from '@/contexts/providers'
-
-
-const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
-    ssr: false,
-});
+import BlobButton from '@/components/UI/BlobButton';
+import { truncateText } from '@/utils/truncateText';
+import { Webnovel, Chapter, ImageOrVideo } from '@/components/Types';
+import { useToast } from "@/hooks/use-toast";
+import { CustomCircularProgressbar } from '@/components/UI/CustomCircularProgressbar';
+import { useCreateMedia } from '@/contexts/CreateMediaContext';
+import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
+import { useUser } from '@/contexts/UserContext';
+import WatermarkedImage from '@/utils/watermark';
+import { getImageUrl } from '@/utils/urls';
 
 type Position = {
     x: number;
     y: number;
     width: number;
     height: number;
-    window?: () => Window;
 };
 
-const Puller = styled('div')(({ theme }) => ({
-    width: 30,
-    height: 6,
-    backgroundColor: theme.palette.mode === 'light' ? '#4b5563 ' : '#4b5563 ',  // gray-600 #4b5563 
-    borderRadius: 3,
-    position: 'absolute',
-    top: 8,
-    left: 'calc(50% - 15px)',
-    zIndex: 5,
-}));
-
-const StyledBox = styled('div')(() => ({
-    position: 'relative',
-    height: '100%',
-    overflow: 'auto',
-}));
-
-
-export function TransitionAlerts({ dictionary, language }: { dictionary: any; language: Language }) {
-    const [open, setOpen] = useState(true);
-
-    return (
-        <Box sx={{ width: '100%', mb: 2 }}>
-            <Collapse in={true}>
-                <Alert
-                    variant="outlined"
-                    sx={{ borderColor: '#eeeee4' }}
-                    severity="info"
-                >
-                    {phrase(dictionary, "toonyzStudioPlay", language)}
-                </Alert>
-            </Collapse>
-        </Box>
-    );
-}
-
-
-
-
-interface FloatingMenuNavItem {
-    icon: React.ReactNode;
-    label: string;
-    href: string;
-}
-
-const FloatingMenuNavItems: FloatingMenuNavItem[] = [
-    { icon: <WandSparkles size={18} />, label: 'Home', href: '/' },
-    // { icon: <Image size={18} />, label: 'Explore', href: '/explore' },
-    { icon: <Clapperboard size={18} />, label: 'Search', href: '/search' },
-];
-
-
-
-const FloatingMenuNav: React.FC<{ toggleDrawer: (newOpen: boolean) => () => void }> = ({ toggleDrawer }) => {
-
-    return (
-        <div className="relative max-w-[200px] mx-auto z-150">
-            {/* Style 1: Hover with background */}
-            <div className="px-2 bg-white shadow-lg rounded-2xl mb-5">
-                <div className="flex">
-                    {FloatingMenuNavItems.map((item) => (
-                        <div key={item.label} className="flex-auto hover:w-full group">
-                            <Link href="#" onClick={toggleDrawer(true)} className="!no-underline flex items-center justify-center text-center mx-auto px-2 py-2 group-hover:w-full text-[#DE2B74]">
-                                <span className="flex flex-row px-1 py-1 group-hover:bg-indigo-100 rounded-full group-hover:flex-grow">
-                                    {item.icon}
-                                    {/* <span className="hidden group-hover:inline-flex justify-center items-center ml-3 pb-1 text-[10px] no-underline">
-                                        {item.label}
-                                    </span> */}
-                                </span>
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-
-    );
-};
-
-
-const FloatingMenu: React.FC<{ children: React.ReactNode; window?: () => Window; webnovel_id: string; chapter_id: string }> = ({ children, window, webnovel_id, chapter_id }) => {
-    const [selection, setSelection] = useState<string>()
-    const [position, setPosition] = useState<Position | undefined>();
-    const [selectedText, setSelectedText] = useState<string>('');
+const FloatingMenu: React.FC<{
+    children: React.ReactNode;
+    webnovel_id: string;
+    chapter_id:
+    string;
+    webnovel: Webnovel,
+    chapter: Chapter,
+    selectedTextRef: React.MutableRefObject<string>;
+}> = ({ children, webnovel_id, chapter_id, webnovel, chapter, selectedTextRef }) => {
+    const router = useRouter();
     const [showMessage, setShowMessage] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [showIsModal, setShowIsModal] = useState(false);
-    const { language, dictionary } = useLanguage();
-    const [open, setOpen] = useState(false);
-    const drawerBleeding = 56
-    const [showPleaseLogin, setShowPleaseLogin] = useState(false);
-    const [isGeneratingPictures, setIsGeneratingPictures] = useState(false);
-    const [showError, setShowError] = useState(false);
-    const [prompt, setPrompt] = useState("");
-    const [pictures, setPictures] = useState([]);
-    const [value, setValue] = React.useState('1');
-    const drawerRef = useRef<HTMLDivElement>(null);
+    const [error, setError] = useState<string | null>(null);
     const { theme } = useTheme();
+    const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
+    const [initialDialogPositionSet, setInitialDialogPositionSet] = useState(false);
+    const [showShareDialog, setShowShareDialog] = useState(false);
+    const { toast } = useToast();
+    const [authFailed, setAuthFailed] = useState(false);
+    const floatingButtonRef = useRef<HTMLButtonElement>(null);
+    const shareButtonRef = useRef<HTMLButtonElement>(null);
+    const {
+        isLoading,
+        setIsLoading,
+        progress,
+        setProgress,
+        savedPrompt,
+        setSavedPrompt,
+        prompts,
+        setPrompts,
+        pictures,
+        setPictures,
+        draggableNodeRef,
+        openDialog,
+        setOpenDialog,
+        selection,
+        setSelection,
+        position,
+        setPosition,
+        promotionBannerRef,
+        setChapterId,
+        setWebnovelId,
+        narrations,
+        setNarrations,
+    } = useCreateMedia();
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const { dictionary, language } = useLanguage();
+    const { stars, setInvokeCheckUser } = useUser();
+    const [context, setContext] = useState<string>("");
 
+    const [isSelecting, setIsSelecting] = useState(false);
+
+    // Listen for touch events to mark selection start/end
     useEffect(() => {
-        const handleSelectionChange = () => {
-            const activeSelection = document.getSelection()
-            if (!activeSelection) return;
-            const text = activeSelection.toString().trim()
-            if (!text) return;
-            const rect = activeSelection.getRangeAt(0).getBoundingClientRect()
-            const containerRect = containerRef.current?.getBoundingClientRect();
+        const handleTouchStart = () => setIsSelecting(true);
+        const handleTouchEnd = () => setIsSelecting(false);
 
-            if (containerRect) {
-                setSelection(text)
-                setPosition({
-                    x: rect.left - containerRect.left + (rect.width / 2) - (30 / 2),
-                    y: rect.top - containerRect.top - 30,
-                    width: rect.width,
-                    height: rect.height,
-                })
-                setSelectedText(text)
-
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-
-                timeoutRef.current = setTimeout(() => {
-                    handleClose();
-                }, 8000);
-            }
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                handleClose();
-                setOpen(false);
-            }
-        };
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target as Node) &&
-                drawerRef.current &&
-                !drawerRef.current.contains(event.target as Node)
-            ) {
-                // Close floating menu only and clear timeout
-                setSelection(undefined);
-                setPosition(undefined);
-                setSelectedText('');
-                setShowMessage(false);
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-            }
-        };
-
-        document.addEventListener('selectionchange', handleSelectionChange);
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchend', handleTouchEnd);
+        document.addEventListener('contextmenu', (e) => {e.preventDefault()});
 
         return () => {
-            document.removeEventListener('selectionchange', handleSelectionChange);
-            document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, []);
+
+    const handleSelectionChange = () => {
+        const activeSelection = document.getSelection();
+        if (!activeSelection) return;
+        const text = activeSelection.toString().trim()
+        if (!text) return;
+        const rect = activeSelection.getRangeAt(0).getBoundingClientRect()
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+            setPosition({
+                x: rect.left - containerRect.left + (rect.width / 2) - (100 / 2),
+                y: rect.top + 20 - containerRect.top - 25,
+                width: rect.width,
+                height: rect.height,
+            })
+            setSelection(text)
+            setSavedPrompt(text)
+            selectedTextRef.current = text
+            //setTestText(text)
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
         }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            handleCloseFloatingButton();
+            setOpenDialog(false);
+        }
+    };
+
+    useEffect(() => {
+
+        setChapterId(chapter_id);
+        setWebnovelId(webnovel_id);
+        document.addEventListener('selectionchange', handleSelectionChange);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('selectionchange', handleSelectionChange);
+            document.removeEventListener('keydown', handleKeyDown);
+        }
     }, []);
 
-    const truncateText = (text: string, maxLength: number): string => {
-        if (text.length <= maxLength) return text;
-        return text.slice(0, maxLength) + '...';
-    };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent | TouchEvent) => {
 
-    const handleOpenModal = () => {
-        // open drawer 
-        setOpen(true);
-        setShowIsModal(true);
+            const isClickOutsideFloatingButton = floatingButtonRef.current && !floatingButtonRef.current.contains(event.target as Node);
+            const isClickShareButton = shareButtonRef.current && !shareButtonRef.current.contains(event.target as Node);
+
+            if (isClickOutsideFloatingButton && isClickShareButton) {
+                handleCloseFloatingButton();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [position]);
+
+    const handleCloseFloatingButton = () => {
+        setSelection("");
+        setPosition({ x: 0, y: 0, width: 0, height: 0 });
+        setShowMessage(false);
     }
-
-    const toggleDrawer = (newOpen: boolean) => (event?: React.MouseEvent | React.KeyboardEvent) => {
-        if (event) {
-            event.preventDefault();
-        }
-        setOpen(newOpen);
-        setShowIsModal(true);
-    };
 
     const handlePicturesGenerated = (newPictures: string[]) => {
-        setOpen(true);
+        setOpenDialog(true);
     };
 
-    const handleDrawerClose = () => {
-        setOpen(false);
-    };
+    useEffect(() => {
+        if (!initialDialogPositionSet && draggableNodeRef.current) {
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            const dialogWidth = 425; // sm:max-w-[425px]
 
-    const handleClose = () => {
-        setSelection(undefined);
-        setPosition(undefined);
-        setSelectedText('');
-        setShowMessage(false);
-        // setOpen(false);
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
+            // Position within visible area of screen
+            const xPos = Math.max(20, Math.min(viewportWidth - dialogWidth - 20, viewportWidth / 2));
+            const yPos = Math.max(20, Math.min(viewportHeight - 100, viewportHeight / 4));
+
+            setDialogPosition({
+                x: xPos,
+                y: yPos,
+            });
+            setInitialDialogPositionSet(true);
         }
-    }
+    }, [initialDialogPositionSet]);
 
-    // This is used only for the example
-    const container = window !== undefined ? () => window().document.body : undefined;
+    const copyToClipboard = async (text: string) => {
+        try {
+            // Use the modern Clipboard API if available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+                toast({
+                    variant: "success",
+                    title: "Link copied to clipboard!",
+                    description: "You can now paste it anywhere you want.",
+                });
+            } else {
+                // Fallback for browsers (like Safari) that may not support Clipboard API
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.setAttribute("readonly", ""); // Prevent iOS keyboard from appearing
+                textArea.style.position = "absolute";
+                textArea.style.left = "-9999px"; // Move element off-screen
+                document.body.appendChild(textArea);
+                textArea.select();
 
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-        setValue(newValue);
+                // Execute the copy command
+                const successful = document.execCommand("copy");
+                document.body.removeChild(textArea);
+
+                if (successful) {
+                    toast({
+                        variant: "success",
+                        title: "Link copied to clipboard!",
+                        description: "You can now paste it anywhere you want.",
+                    });
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: "Failed to copy",
+                        description: "Please try selecting and copying the text manually.",
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Failed to copy text: ", err);
+            toast({
+                variant: "destructive",
+                title: "Failed to copy",
+                description: "Please try selecting and copying the text manually.",
+            });
+        }
     };
+
+
+    // image generating
+    const generatePictures = async () => {
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmGeneration = async () => {
+        setShowConfirmDialog(false);
+        if (stars < 15) {
+            toast({
+                title: "Error",
+                description: phrase(dictionary, "notEnoughStars", language),
+                variant: "destructive"
+            })
+            return;
+        }
+
+        const initialPrompt = selectedTextRef.current;
+        setSavedPrompt(initialPrompt);
+        if (!initialPrompt) {
+            toast({
+                title: "Error",
+                description: "Please provide a prompt",
+                variant: "destructive"
+            })
+            setError('Please provide a prompt');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+        setProgress(0);
+
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (2 * Math.random());
+                return newProgress > 95 ? 95 : newProgress;
+            });
+        }, 300);
+
+        try {
+            const response = await fetch(`/api/generate_pictures`, {
+                method: 'POST',
+                body: JSON.stringify({ text: initialPrompt, n: 4, context: chapter.content, language: language })
+            })
+
+            // const all_chapter_ids = webnovel.chapters.map(chapter => chapter.id)
+            // const response = await fetch(`/api/generate_trailer_prompts_and_pictures`, {
+            //     method: 'POST',
+            //     body: JSON.stringify({ chapter_ids: all_chapter_ids, trailer_style: "anime", trailer_type: "A" })
+            // })
+            setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
+
+            if (!response.ok) {
+                switch (response.status) {
+                    case 401:
+                        setAuthFailed(true); // Set auth failed state
+                        toast({
+                            title: "Error",
+                            description: "Please login to generate pictures",
+                            variant: "destructive",
+                            action: <ToastAction altText="Try again">Try again</ToastAction>,
+                            altText: "Try again"
+                        })
+                        throw new Error('Please login to generate pictures');
+                    case 429:
+                        toast({
+                            title: "Error",
+                            description: "Too many requests. Please try again later.",
+                            variant: "destructive"
+                        })
+                        throw new Error('Too many requests. Please try again later.');
+                    default:
+                        toast({
+                            title: "Error",
+                            description: "Error: Failed to generate pictures",
+                            variant: "destructive"
+                        })
+                        throw new Error('Failed to generate pictures');
+                }
+            }
+
+            const data = await response.json();
+
+            if (!data.images || !Array.isArray(data.images)) {
+                toast({
+                    title: "Error",
+                    description: "Invalid response format from server",
+                    variant: "destructive"
+                })
+                throw new Error('Invalid response format from server');
+            }
+            setPictures(data.images);
+            setPrompts(data.prompts);
+            setNarrations(data.narrations);
+            handlePicturesGenerated(data.images);
+            setProgress(100);
+            clearInterval(progressInterval);
+        } catch (err) {
+            clearInterval(progressInterval);
+            setProgress(0);
+            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
 
     return (
-        <div className='relative' ref={containerRef} >
+        <div ref={containerRef} className='relative selection:underline selection:bg-fuchsia-300 selection:text-fuchsia-900 selection:decoration-[#DE2B74] selection:decoration-4' >
             {selection && position && (
-                <div
-                    className="absolute z-10 w-30"
+                <div className="absolute z-[100]"
                     style={{
-                        top: `${position.y}px`,
-                        left: `${position.x}px`,
-                    }}
-                    onClick={handleClose}
-                >
-                {/* 
-                ${readerTheme === 'light' && theme === 'light' ? 'bg-white text-black' : 'dark:bg-[#211F21] bg-[#211F21]'}
-                ${readerTheme === 'dark' && theme === 'dark' ? 'dark:bg-[#211F21] dark:text-white' : 'dark:bg-[#211F21] bg-[#211F21]'} 
-                ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
-               background-color: ${readerTheme === 'dark' && theme === 'dark' ? 'rgba(25, 118, 210, 0.1)' : '#FEF0D4'} 
-                */}
-                    <style jsx global>{`
-                        ::selection {
-                             @apply ${theme === 'light' && theme === 'light' ? 'bg-[#FEF0D4]' : 'dark:bg-[rgba(25,118,210,0.1)] bg-[rgba(25,118,210,0.1)]'}
-                             @apply ${theme === 'dark' && theme === 'dark' ? 'bg-[rgba(25,118,210,0.1)]' : 'bg-[#FEF0D4]'};
-                            text-decoration: underline;
-                            text-decoration-color: #DE2B74;
-                            text-decoration-thickness: 2px;
-                            text-decoration-style: solid;
-                        }
-                        `}</style>
-                    <FloatingMenuNav toggleDrawer={toggleDrawer} />
-                </div>
-            )}
-            {children}
-            <div ref={drawerRef}>
-                <Global
-                    styles={{
-                        '.MuiDrawer-root > .MuiPaper-root': {
-                            zIndex: 1,
-                            height: `calc(50% - ${drawerBleeding}px)`,
-                        },
-                    }}
-                />
-                <SwipeableDrawer
-                    container={container}
-                    anchor="bottom"
-                    open={open}
-                    onOpen={handleOpenModal}
-                    onClose={handleDrawerClose}
-                    swipeAreaWidth={drawerBleeding}
-                    disableSwipeToOpen={false}
-                    ModalProps={{
-                        keepMounted: true,
-                    }}
-                    sx={{
-                        '& .MuiDrawer-paper': {
-                            backgroundColor: theme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
-                            height: {
-                                xs: '70%',    // Mobile height
-                                sm: '70%',    // Tablet height
-                                md: '50%'     // Desktop height
-                            },
-                            width: {
-                                xs: '100%',   // Full width on mobile
-                                sm: '80%',    // 80% width on tablet
-                                md: '50%'     // 60% width on desktop
-                            },
-                            margin: 'auto',   // Center the drawer
-                            overflow: 'hidden',
-                            border: '0px',
-                            borderTopLeftRadius: '15px',
-                            borderTopRightRadius: '15px',
-                            boxShadow: 'none'
-                        },
-                    }}
-                >
-                    {/* Puller */}
-                    <Puller />
-                    {/* Content */}
-                    <StyledBox
-                        sx={{
-                            backgroundColor: theme === 'dark' && theme === 'dark' ? '#211F21' : '#fff',
-                            color: theme === 'dark' ? '#ffffff' : '#000000',  // Match the drawer background
-                            borderTopLeftRadius: '5px',
-                            borderTopRightRadius: '5px',
-                            boxShadow: 'none'
-                        }}
-                    >
-                        <div className='md:max-w-screen-lg w-full mx-auto text-center z-50 md:mt-10 mt-5 select-none'>
-                            <TabContext value={value}>
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                    <TabList
-                                        onChange={handleChange}
-                                        aria-label="Toonyz Studio"
-                                        sx={{
-                                            borderColor: '#D62A79',
-                                            color: '#D62A79',
-                                            '& .MuiTabs-indicator': {
-                                                color: '#D62A79',
-                                                backgroundColor: '#D62A79',
-                                            },
-                                            '& .Mui-selected': {  // Styles for active tab
-                                                color: '#D62A79 !important',
-                                            },
-                                            '& .MuiTab-root': {  // Styles for all tabs
-                                                color: 'grey',
-                                                '&:hover': {
-                                                    color: '#D62A79',
-                                                    opacity: 0.7,
-                                                }
-                                            }
-                                        }}
+                        top: `${position.y + (position.height || 0) + 30}px`,
+                        left: `${position.x - 1}px`,
+                    }}>
+                    <ul className='flex flex-row gap-1 relative rounded-full items-center justify-center dark:bg-black/50 backdrop-blur-sm'>
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <CustomCircularProgressbar
+                                    progress={Math.round(progress)}
+                                    size={50}
+                                    backgroundColor={theme === 'dark' ? '#000000' : '#ffffff'}
+                                    progressColor="#DE2B74"
+                                    strokeWidth={5}
+                                >
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        ref={floatingButtonRef}
+                                        className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative inline-flex group w-10 h-10 hover:bg-transparent border-none"
+                                        disabled={isLoading}
+                                        onClick={() => { setOpenDialog(true); generatePictures() }}
                                     >
-                                        <Tab label="Image Studio" value="1" />
-                                        {/* <Tab label="Storyboard" value="2" /> */}
-                                    </TabList>
+                                        <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
+                                        </div>
+                                        <BlobButton text={
+                                            isLoading ? (
+                                                <Loader2 className="h-24 w-24 animate-spin text-pink-600" />
+                                            ) : (
+                                                <Sparkles className="w-24 h-24" strokeWidth={1} />
+                                            )
+                                        } />
+                                    </Button>
+                                </CustomCircularProgressbar>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        ref={shareButtonRef}
+                                        onClick={() => {
+                                            console.log('share dialog clicked')
+                                            setShowShareDialog(true)
+                                        }
+                                        }
+                                        variant="ghost"
+                                        className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
+                                                           inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
+                                                          bg-gray-200/20 dark:bg-gray-500/10 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/10"
+                                    >
+                                        <Share2 size={46} strokeWidth={1} />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Share
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </ul>
+                </div>
+            )
+            }
+            {children}
+            {/* share dialog */}
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
+                    <DialogHeader>
+                        <DialogTitle>Share link</DialogTitle>
+                        <DialogDescription>
+                            Share the link with your friends and family.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                                    <TabPanel value="1">
-                                        <TransitionAlerts dictionary={dictionary} language={language} />
-                                        <PictureGenerator
-                                            prompt={selectedText}
-                                            onComplete={handlePicturesGenerated}
-                                            webnovel_id={webnovel_id}
-                                            chapter_id={chapter_id}
-                                        />
+                    <WatermarkedImage
+                        imageUrl={getImageUrl(webnovel.cover_art)}
+                        watermarkUrl="/toonyz_logo_white.svg"
+                        webnovelTitle={webnovel?.title}
+                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === chapter_id)?.title || chapter_id}
+                        quote={truncateText(selectedTextRef.current, 100)}
+                        watermarkOpacity={0.9}
+                        width={400}
+                        height={400}
+                        watermarkPosition="centerRight"
+                        titlePosition="centerLeft"
+                        titleColor="white"
+                        className="object-cover h-full w-full overflow-hidden scale-100 transition-all duration-300 opacity-30"
+                    />
 
-                                    </TabPanel>
-                                </Box>
-                            </TabContext>
-
+                    <div className="flex items-center space-x-2">
+                        <div className="grid flex-1 gap-2">
+                            <Label htmlFor="link" className="sr-only">
+                                Link
+                            </Label>
+                            <Input
+                                id="link"
+                                defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}`}
+                                readOnly
+                                className='select-none bg-transparent'
+                                disabled
+                            />
                         </div>
+                        <Button
+                            onClick={() => {
+                                const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}`;
+                                const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
+                                copyToClipboard(text);
+                            }}
+                        >
+                            <span className="sr-only">Copy</span>
+                            <Copy />
+                        </Button>
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">
+                                Close
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {/* Confirmation Dialog */}
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                    <DialogHeader>
+                        <DialogTitle>{phrase(dictionary, "confirmGeneration", language)}</DialogTitle>
+                        <DialogDescription>
+                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
+                            {/* Your stars  */}
+                            <AIPromotionComponent />
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex !justify-center">
+                        <div className="flex flex-row justify-center items-center gap-2 mt-4">
 
-                    </StyledBox>
-                </SwipeableDrawer>
-            </div>
+                            <Button
+                                onClick={handleConfirmGeneration}
+                                className="bg-black hover:bg-[#D92979]/50 text-white"
+                            >
+                                <MdStars className="text-xl text-[#D92979]" />
+                                15 {phrase(dictionary, "deduct", language)}{' '}
+                                {phrase(dictionary, "ok", language)}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowConfirmDialog(false);
+                                    setIsLoading(false);
+                                    setOpenDialog(false);
+                                }}
+                            >
+                                <X className="text-xl dark:text-white text-black" />
+                                {phrase(dictionary, "cancel", language)}
+                            </Button>
+                        </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div >
     );
-};
+}
 
 export { FloatingMenu }
+

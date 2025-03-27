@@ -13,6 +13,7 @@ import { Drawer, Box } from "@mui/material";
 import { useTheme } from '@/contexts/providers'
 import WebnovelsList from "@/components/WebnovelsList";
 import CircularProgress from '@mui/material/CircularProgress';
+import { useWebnovels } from "@/contexts/WebnovelsContext";
 
 
 function GradientCircularProgress() {
@@ -56,29 +57,7 @@ export default function SearchComponent({
     const [open, setOpen] = useState(false);
     const searchParams = useSearchParams();
     const searchParamsObject = Object.fromEntries(searchParams.entries());
-    const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchAllWebnovels = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch('/api/get_webnovels_metadata');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch webnovels');
-                }
-                const data = await response.json();
-                setAllWebnovels(data);
-            } catch (error) {
-                console.error('Error fetching webnovels:', error);
-                setAllWebnovels([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAllWebnovels();
-    }, []);
+    const { webnovels } = useWebnovels();
 
     useEffect(() => {
         if (triggerSearch) {
@@ -141,6 +120,12 @@ export default function SearchComponent({
         setOpen(open);
     };
 
+    useEffect(() => {
+        if (open) {
+            inputRef.current?.focus();
+        }
+    }, [open])
+
     const renderSearchInput = () => (
         <div className="relative max-w-screen-xl flex-1 h-12 mx-auto">
             <Search
@@ -152,6 +137,7 @@ export default function SearchComponent({
                 type="text"
                 id="search-navbar"
                 value={query}
+                autoFocus
                 onChange={handleChange}
                 placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
                 className="w-full h-full p-2 pl-10 text-sm border-0 
@@ -290,23 +276,17 @@ export default function SearchComponent({
                                             </div>
                                         </div>
                                         {/* webnovel list here */}
-                                        {loading ? (
-                                            <div className="flex justify-center items-center">
-                                                <GradientCircularProgress />
-                                            </div>
-                                        ) : (
-                                            <div
-                                                onClick={toggleDrawer(false)}
-                                                className='flex md:max-w-screen-xl w-full mx-auto'>
-                                                {allWebnovels && (
-                                                    <WebnovelsList
-                                                        webnovels={allWebnovels}
-                                                        searchParams={searchParamsObject}
-                                                        sortBy='views'
-                                                    />
-                                                )}
-                                            </div>
-                                        )}
+                                        <div
+                                            onClick={toggleDrawer(false)}
+                                            className='flex md:max-w-screen-xl w-full mx-auto'>
+                                            {webnovels && (
+                                                <WebnovelsList
+                                                    webnovels={webnovels}
+                                                    searchParams={searchParamsObject}
+                                                    sortBy='views'
+                                                />
+                                            )}
+                                        </div>
                                     </Box>
                                 </Drawer>
                             </div>
@@ -320,7 +300,7 @@ export default function SearchComponent({
                             {/* my-4 md:px-2 px-4 for the margin top and padding of the search bar */}
                             <div className="flex flex-row justify-center items-center min-h-[80px]">
                                 <div className="self-center mr-5">
-                                    <Link href="/">
+                                    <Link href="/?version=premium">
                                         <MoveLeft size={20} className='dark:text-white text-black' />
                                     </Link>
                                 </div>

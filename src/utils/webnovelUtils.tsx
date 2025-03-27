@@ -1,8 +1,8 @@
-import { Webnovel, SortBy } from '@/components/Types';
+import { Webnovel, SortBy, Chapter, Comment, ToonyzPost } from '@/components/Types';
 import moment from 'moment';
 
 
-export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79];
+export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130, 103 ]
 
 export const chapterPrice = (language: string) => {
     if (language === "ko") {
@@ -20,26 +20,42 @@ export const filter_by_genre = (item: Webnovel, genre: string | null | undefined
 };
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
-    return version === (item.premium ? "premium" : "free");
+    if (!version) return (item.premium ? "premium" : "free");
+    else if (version === "free") return !item.premium;
+    else return version === (item.premium ? "premium" : "free");
 };
 
 export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
     if (sortBy === 'recommendation') {
         return Math.random() - 0.5;
     } else if (sortBy === 'views') {
-        return b.views - a.views;
+        // Calculate time difference in days
+        const daysSinceCreation = (date: Date) => {
+            const now = new Date();
+            return (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+        };
+
+        // Score = views * decay factor based on age
+        // Using a soft decay that reduces score by ~50% after 1 month
+        const getScore = (webnovel: Webnovel) => {
+            const days = daysSinceCreation(new Date(webnovel.created_at));
+            const decayFactor = 1 / (1 + days/30); // 30 days = 1 month
+            return webnovel.views * decayFactor;
+        };
+
+        return getScore(b) - getScore(a);
     } else if (sortBy === 'likes') {
         return b.upvotes - a.upvotes;
     } else if (sortBy === 'date') {
         let latestDateA = new Date(0);
         let latestDateB = new Date(0);
 
-        for (let i = 0; i < a.chapters.length; i++) {
-            let dateA = moment(a.chapters[i].created_at).toDate();
+        for (let i = 0; i < a.chapters_length; i++) {
+            let dateA = moment(a.last_update).toDate();
             if (dateA > latestDateA) latestDateA = dateA;
         }
-        for (let i = 0; i < b.chapters.length; i++) {
-            let dateB = moment(b.chapters[i].created_at).toDate();
+        for (let i = 0; i < b.chapters_length; i++) {
+            let dateB = moment(b.last_update).toDate();
             if (dateB > latestDateB) latestDateB = dateB;
         }
         return latestDateB.getTime() - latestDateA.getTime();
@@ -91,3 +107,4 @@ export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMob
             return columns;
         }
     }
+

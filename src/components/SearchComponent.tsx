@@ -120,6 +120,12 @@ export default function SearchComponent({
         setOpen(open);
     };
 
+    useEffect(() => {
+        if (open) {
+            inputRef.current?.focus();
+        }
+    }, [open])
+
     const renderSearchInput = () => (
         <div className="relative max-w-screen-xl flex-1 h-12 mx-auto">
             <Search
@@ -131,6 +137,7 @@ export default function SearchComponent({
                 type="text"
                 id="search-navbar"
                 value={query}
+                autoFocus
                 onChange={handleChange}
                 placeholder={query ? query : phrase(dictionary, "searchPlaceholder", language)}
                 className="w-full h-full p-2 pl-10 text-sm border-0 

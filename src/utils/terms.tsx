@@ -311,7 +311,7 @@ Terms of Service
 Chapter 1 General Provisions
 
 Article 1 (Purpose)
-These terms and conditions aim to regulate the conditions of use, rights, obligations, and responsibilities between "members" and "the company" related to Toonies (including web, mobile site, app services, and future developed content, hereinafter referred to as "Toonies") operated by Stella& Co., Ltd. (hereinafter referred to as "the company").
+These terms and conditions aim to regulate the conditions of use, rights, obligations, and responsibilities between "members" and "the company" related to Toonyz (including web, mobile site, app services, and future developed content, hereinafter referred to as "Toonyz") operated by Stella& Co., Ltd. (hereinafter referred to as "the company").
 
 Article 2 (Definition of Terms)
 The definitions of terms used in these terms and conditions are as follows. For terms not defined in each item, the definitions shall follow the relevant laws and regulations and service guidelines.
@@ -326,7 +326,7 @@ The definitions of terms used in these terms and conditions are as follows. For 
 8. Payment: Refers to paying a certain amount to "the company" or a third party designated by "the company" through various payment methods to use the "Paid Service" provided by "the company".
 9. Regular Subscription: Refers to a "Paid Service" usage method where usage fees for monthly/yearly usage periods are regularly charged through a pre-registered payment method for "members" to use the "Paid Service", and the usage period is automatically renewed. When canceling a "Regular Subscription", the "Paid Service" can be used normally during the remaining usage period for which payment has been made, and automatic payment will not be made from the next usage period.
 10. Subscription and Coupon (or Gift Certificate): Refers to a usage right for "the company's" "Paid Service" and can be issued online or offline.
-11. Star: Refers to virtual data required for users to use Toonies' content or services.
+11. Star: Refers to virtual data required for users to use Toonyz's content or services.
 12. Point (Mileage): Refers to virtual data that the company can arbitrarily set, provide, or adjust for efficient use of the service.
 
 Article 3 (Compliance with Laws)
@@ -918,12 +918,12 @@ The following covers are prohibited. If these conditions are violated, Toonyz ma
 
 Covers or Images may be subject to sanctions according to the policies of the Android or Apple App Store, regardless of Toonyz's policies. Toonyz is not responsible for any legal disputes or issues arising in connection with covers and illustrations.
 
-By uploading their work to Toonies, the creator agrees to the following terms:
+By uploading their work to Toonyz, the creator agrees to the following terms:
 
 1. Consent to AI-assisted translation
 2. Consent to image and video generation
 3. Consent to the use of generated images and videos for marketing purposes
-4. Agreement to Toonies' secondary copyright usage rules for posts (images/videos/slideshows)
+4. Agreement to Toonyz's secondary copyright usage rules for posts (images/videos/slideshows)
 `
 
 export const terms_privacy_english = `

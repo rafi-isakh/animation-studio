@@ -12,11 +12,7 @@ import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`,
-        {
-            cache: 'no-store',
-        }
-    )
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
@@ -29,8 +25,7 @@ async function getLibrary() {
     if (!email) {
         return [];
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`, {
-        cache: 'no-store',
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
         headers: {
             'Cookie': cookies().toString(),
         }

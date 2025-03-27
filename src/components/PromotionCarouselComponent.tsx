@@ -83,7 +83,6 @@ const CarouselComponent = ({ searchParams, webnovels, items }: {
                   sizes="(max-width: 768px) 33vw, 25vw"
                   alt={item.image}
                   className="object-cover rounded-xl"
-                  priority={slideIndex === 0}
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
                   <h2 className="text-white text-lg font-bold">{item.title}</h2>

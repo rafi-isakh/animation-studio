@@ -83,6 +83,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter>();
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
+
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -290,7 +292,6 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
             <div className={`${screenWidth} mx-auto w-full pb-5`}>
                 <Button
                     variant="link"
-                    // disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
                     onClick={() => {
                         if (!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)) {
                             setChapterToPurchase(nextChapter);
@@ -360,12 +361,20 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         Table of Contents
                                     </MenubarItem>
                                     <MenubarSeparator />
-                                    {webnovel.chapters.map((chapter, index) => (
+                                    {sortedChapters?.map((chapter, index) => (
                                         <MenubarItem
                                             key={chapter.id}
-                                            onClick={() => router.push(`/view_webnovels/${webnovel.id}/chapter_view/${chapter.id}`)}
-                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
-                                            disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                                            onClick={() => {
+                                                if (!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)) {
+                                                    setChapterToPurchase(chapter);
+                                                    setShowPurchaseModal(true);
+                                                } else {
+                                                    handleChapterClick(chapter);
+                                                }
+                                            }}
+                                            
+                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) ? "opacity-50" : ""}`}
+                                            // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
                                             <p className="text-sm">{index + 1}.</p>
                                             <MenubarShortcut>

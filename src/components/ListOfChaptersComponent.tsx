@@ -15,8 +15,9 @@ import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
-import { chapterPrice } from "@/utils/webnovelUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
+import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -212,50 +213,11 @@ const ListOfChaptersComponent = ({
                     </div>
                 </Box>
             </Modal>
-            <Modal open={showPurchaseModal} onClose={() => setShowPurchaseModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
-                        <p className="text-lg font-bold">
-                            {phrase(dictionary, "purchaseChapter", language)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}
-                        </p>
-                        <Button
-                            variant="outlined"
-                            color="gray"
-                            onClick={() => handleChapterPurchase(chapterToPurchase!)}
-                        >
-                            <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
-                             {phrase(dictionary, "purchase", language)}
-                        </Button>
-                    </div>
-                </Box>
-            </Modal>
-            <Modal open={showNotEnoughStarsModal} onClose={() => setShowNotEnoughStarsModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
-                        <p className="text-lg font-bold">
-                            {phrase(dictionary, "notEnoughStarsWouldYouLikeToPurchase", language)}
-                        </p>
-                        <div className="flex flex-row gap-2">
-                        <Button
-                            variant="outlined"
-                            color="gray"
-                            onClick={() => setShowNotEnoughStarsModal(false)}
-                        >
-                            {phrase(dictionary, "no", language)}
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            onClick={() => router.push("/stars")}
-                        >
-                            {phrase(dictionary, "yes", language)}
-                        </Button>
-                        </div>
-                    </div>
-                </Box>
-            </Modal>
+
+            {/* Purchase Modal */}
+            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} />
+            {/* Not Enough Stars Modal */}
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
         </>
     )
 };

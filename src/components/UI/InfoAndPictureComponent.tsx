@@ -34,9 +34,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
-import { isPlainObject } from "lodash";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
+import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -57,7 +58,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars, setInvokeCheckUser } = useUser();
+    const { id, email, stars, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
@@ -330,7 +331,10 @@ export default function InfoAndPictureComponent({
                                         const firstChapter = content.chapters[0];
                                         if (!firstChapter) return;
 
-                                        if (content.premium && !firstChapter.free) {
+                                        // Check if user has already purchased the chapter
+                                        const hasPurchased = purchased_webnovel_chapters?.includes(firstChapter.id);
+
+                                        if (content.premium && !firstChapter.free && !hasPurchased) {
                                             setShowPurchaseModal(true);
                                         } else {
                                             router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
@@ -474,87 +478,10 @@ export default function InfoAndPictureComponent({
                             </div>
 
                             {/* Purchase Modal */}
-                            <Dialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-                                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            <p className="text-lg font-bold text-center">
-                                                {phrase(dictionary, "purchaseChapter", language)}
-                                            </p>
-                                        </DialogTitle>
-                                        <DialogDescription className="flex flex-col justify-center items-center">
-                                            <p className='text-sm text-gray-500 py-2'> {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}</p>
-                                            <p>{ language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter className="flex !justify-center">
-                                        <div className="flex flex-row justify-center items-center gap-2 mt-4">
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => handleChapterPurchase(content.chapters[0])}
-                                                className="bg-black hover:bg-[#D92979]/50 text-white border"
-                                            >
-                                                <MdStars className="text-xl text-[#D92979]" />
-                                                {language === "ko" ? content.price_korean : content.price_english} {phrase(dictionary, "purchase", language)}
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowPurchaseModal(false)}
-                                            >
-                                                {phrase(dictionary, "cancel", language)}
-                                            </Button>
-                                        </div>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={content} stars={stars} />
 
                             {/* Not Enough Stars Modal */}
-                            <Dialog open={showNotEnoughStarsModal} onOpenChange={setShowNotEnoughStarsModal}>
-                                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            <p className="text-lg font-bold text-center">
-                                                {phrase(dictionary, "notEnoughStars", language)}
-                                            </p>
-                                        </DialogTitle>
-                                        <DialogDescription className="flex flex-col justify-center items-center">
-                                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "notEnoughStarsDescription", language)}</p>
-                                            <div className="flex flex-col items-center gap-2 mt-2">
-                                                <p>{ language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> 
-                                                                       : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
-                                                {(() => {
-                                                    const price = language === "ko" ? content.price_korean : content.price_english;
-                                                    return (
-                                                        <p>{ language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">필요한 별 <MdStars className="text-xl text-[#D92979]" /> {price} </span> 
-                                                                               : <span className="text-black dark:text-white inline-flex gap-1">Required stars <MdStars className="text-xl text-[#D92979]" /> {price} </span>}</p>
-                                                    );
-                                                })()}
-                                            </div>
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter className="flex !justify-center">
-                                        <div className="flex flex-row justify-center items-center gap-2 mt-4">
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => {
-                                                    setShowNotEnoughStarsModal(false);
-                                                    router.push('/stars');
-                                                }}
-                                                className="bg-black hover:bg-[#D92979]/50 text-white border"
-                                            >
-                                                <MdStars className="text-xl text-[#D92979]" />
-                                                {phrase(dictionary, "buyStars", language)}
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowNotEnoughStarsModal(false)}
-                                            >
-                                                {phrase(dictionary, "cancel", language)}
-                                            </Button>
-                                        </div>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                           <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} />
 
                         </div>
                     </div>

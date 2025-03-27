@@ -44,16 +44,16 @@ export function TranslateWebnovelAllButton({language, webnovel}: {language: stri
 
     async function handleTranslateAll() {
         const sorted = JSON.parse(JSON.stringify(webnovel)).chapters.sort((a: Chapter, b: Chapter) => a.id - b.id)
+        const startFrom = parseInt(prompt("Start from which chapter?") ?? "1") - 1
         const upTo = parseInt(prompt("Up to what chapter do you want to translate?") ?? "0") + 1
-        const startFrom = parseInt(prompt("Start from which chapter?") ?? "0") + 1
         for (const chapter of sorted.slice(startFrom, upTo)) {
             const startTime = new Date()
-            console.log("Started translation at ", startTime)
-            if (chapter.content) {
-                await submitContent(chapter.content, chapter.id)
-            }
+            console.log("Started translation of chapter ", chapter.id, " at ", startTime)
+            const response = await fetch(`/api/get_chapter_by_id?id=${chapter.id}`)
+            const data = await response.json()
+            await submitContent(data.content, chapter.id)
             const endTime = new Date()
-            console.log("Ended translation at ", endTime)
+            console.log("Ended translation of chapter ", chapter.id, " at ", endTime)
             console.log("Time taken: ", (endTime.getTime() - startTime.getTime()) / 1000, " seconds")
         }
     }

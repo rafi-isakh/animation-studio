@@ -44,6 +44,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             fetch(`/api/get_toonyz_post_by_id?id=${params.id}`)
                 .then(res => res.json())
                 .then(data => {
+                    console.log('data', data);
                     setPost(data);
                     setIsLoading(false);
                 });

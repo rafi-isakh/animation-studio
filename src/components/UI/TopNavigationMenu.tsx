@@ -107,6 +107,54 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
     }
   };
 
+
+  const handleEditPost = async (postId: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('postId', postId);
+      formData.append('title', title);
+      formData.append('content', content);
+      formData.append('tags', tags.join(',')); // Convert tags array to comma-separated string
+
+      const response = await fetch(`/api/update_toonyz_post`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update post');
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      const sessionKey2 = `toonyz_post.${postId}.${language}.title`;
+      console.log(localStorage.getItem(sessionKey2)); 
+      localStorage.removeItem(sessionKey2);
+      console.log(localStorage.getItem(sessionKey2)); 
+
+
+
+      toast({
+        title: "Post edited",
+        description: "Your post has been edited",
+        variant: "success",
+      });
+
+      setShowEditModal(false);
+      router.push(`/toonyz_posts/${postId}`);
+      router.refresh();
+      
+    } catch (error) {
+      console.error("Error editing post", error);
+      toast({
+        title: "Error editing post",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  }
+
   return (
     <>
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
@@ -230,8 +278,8 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
                           {phrase(dictionary, "title", language)}
                         </Label>
                         <Input
-                          placeholder={phrase(dictionary, "title", language)}
-                          value={post.title}
+                          placeholder={post.title}
+                          value={title}
                           onChange={(e) => setTitle(e.target.value)}
                           className="col-span-3"
                         />
@@ -257,7 +305,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
                             ))
                           ) : null}
                           <Input
-                            placeholder={tags.length === 0 ? phrase(dictionary, "tags_placeholder", language) : ""}
+                            placeholder={phrase(dictionary, "tags_placeholder", language)}
                             value={tagInput}
                             onChange={handleTagInput}
                             onKeyDown={handleTagKeyDown}
@@ -270,7 +318,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
                           {phrase(dictionary, "content", language)}
                         </Label>
                         <Textarea
-                          placeholder={phrase(dictionary, "content", language)}
+                          placeholder={post.content}
                           value={content}
                           onChange={(e) => setContent(e.target.value)}
                           className=""
@@ -284,10 +332,10 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
                       </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => {
-                          handleDeletePost(postId);
-                          setShowDeleteModal(false);
+                          handleEditPost(postId);
+                          setShowEditModal(false);
                         }}>
-                        {phrase(dictionary, "delete", language)}
+                        {phrase(dictionary, "edit", language)}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

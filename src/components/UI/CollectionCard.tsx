@@ -123,7 +123,6 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                                                 alt={images[0]?.image || "Collection image"}
                                                 fill
                                                 className="object-cover rounded-tl-xl"
-                                                priority
                                             />
                                         </HoverWrapper>
                                     )}

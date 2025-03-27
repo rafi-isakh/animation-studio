@@ -88,7 +88,6 @@ const PromotionModal = ({ handleClose, handleClosePermanently }: { handleClose: 
                                 alt="promotion banner"
                                 width={300}
                                 height={350}
-                                priority
                                 className="object-cover"
                             />
                         </div>

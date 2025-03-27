@@ -24,6 +24,7 @@ import { User } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import ShareDialog from "@/components/UI/ShareDialog";
+import { useRouter } from "next/navigation";
 
 
 const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, isAuthor?: boolean, user: User, postId: string }) => {
@@ -32,7 +33,39 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
   const { language, dictionary } = useLanguage();
   const { id, email_hash } = useUser();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
- 
+  const router = useRouter();
+
+
+  const handleDeletePost = async (postId: string) => {
+   try {
+    const response = await fetch(`/api/delete_toonyz_post?id=${postId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      toast({
+        title: "Error deleting post",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      console.error("Error deleting comment");
+    }
+    toast({
+      title: "Post deleted",
+      description: "Your post has been deleted",
+        variant: "success",
+      });
+      router.push("/feeds");
+    } catch (error) {
+      console.error("Error deleting post", error);
+      toast({
+        title: "Error deleting post",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  }
+
+
   return (
     <>
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
@@ -71,7 +104,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
                     href="#"
                     key="delete"
                     onClick={(e) => {
-                     e.preventDefault
+                      e.preventDefault
                       setShowDeleteModal(true);
                     }}
                     className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
@@ -89,7 +122,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId }: { email: string, i
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => {
-                        // handleDeleteComment(comment.id.toString());
+                        handleDeletePost(postId);
                         setShowDeleteModal(false);
                       }}>
                       {phrase(dictionary, "delete", language)}

@@ -122,11 +122,9 @@ export default function SearchComponent({
 
     useEffect(() => {
         if (open) {
-            setTimeout(() => {
-                inputRef.current?.focus();
-            }, 100);
+            inputRef.current?.focus();
         }
-    }, [open]);
+    }, [open])
 
     const renderSearchInput = () => (
         <div className="relative max-w-screen-xl flex-1 h-12 mx-auto">

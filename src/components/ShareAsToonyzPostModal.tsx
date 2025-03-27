@@ -278,7 +278,7 @@ export default function ShareAsToonyzPostModal({
                             {phrase(dictionary, "content", language)}
                         </Label>
                         <Textarea
-                            placeholder={phrase(dictionary, "content", language)}
+                            placeholder={phrase(dictionary, "content_placeholder", language)}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             className=""

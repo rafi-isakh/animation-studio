@@ -265,7 +265,7 @@ export default function ShareAsToonyzPostModal({
                                 </span>
                             ))}
                             <Input
-                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags", language)}
+                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags_placeholder", language)}
                                 value={tagInput}
                                 onChange={handleTagInput}
                                 onKeyDown={handleTagKeyDown}

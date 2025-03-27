@@ -77,9 +77,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }, [pathname]);
 
     useEffect(() => {
-        if (searchParams.get("version") == "premium") {
-            setActiveTab('premium');
-        } else if (searchParams.get("version") == "free") {
+        setActiveTab('premium');
+        if (searchParams.get("version") == "free") {
             setActiveTab('free');
         } else if (pathname.startsWith("/view_webnovels")) {
             if (webnovel?.premium) {
@@ -91,12 +90,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     }, [pathname, searchParams, premiumWebnovelIds, webnovel])
 
     useEffect(() => {
-        if (pathname == "/") {
-            router.push(pathname + "?version=premium")
-            setPathnameLoading(false)
-        } else {
-            setPathnameLoading(false)
-        }
+        // if (pathname == "/") {
+        //     router.push(pathname + "?version=premium")
+        //     setPathnameLoading(false)
+        // } else {
+        //     setPathnameLoading(false)
+        // }
         const fetchPremiumWebnovelIds = async () => {
             const response = await fetch('/api/get_premium_webnovel_ids');
             const data = await response.json();

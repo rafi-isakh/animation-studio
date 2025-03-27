@@ -1,9 +1,10 @@
 "use client"
 import { useState, useEffect, useRef } from "react";
-import { Webnovel, ImageOrVideo } from "@/components/Types";
+import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
 import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -34,6 +35,9 @@ import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { isPlainObject } from "lodash";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+
 interface InfoAndPictureProps {
     content: Webnovel;
     coverArt: string;
@@ -53,7 +57,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars } = useUser();
+    const { id, email, stars, setInvokeCheckUser } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
@@ -63,6 +67,10 @@ export default function InfoAndPictureComponent({
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
     const [showPlayButton, setShowPlayButton] = useState(false);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const { isLoggedIn } = useAuth();
+    const router = useRouter();
 
     const handleToggleMute = () => {
         const videoElement = document.getElementById('videoElement');
@@ -82,6 +90,43 @@ export default function InfoAndPictureComponent({
             setIsPlaying(prev => !prev);
         }
     };
+
+
+    const handleChapterPurchase = async (chapter: Chapter) => {
+        if (!chapter) return;
+        if (!isLoggedIn) {
+            router.push("/signin");
+        }
+        else {
+            setShowPurchaseModal(false);
+            const price = language === "ko" ? content.price_korean : content.price_english;
+            if (stars < price!) {
+                setShowNotEnoughStarsModal(true);
+                return;
+            }
+            const response = await fetch(`/api/purchase_chapter`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    chapter_id: chapter.id,
+                    price: price
+                })
+            });
+            // TODO: tell user if there's not enough stars
+            if (!response.ok) {
+                console.error('Failed to purchase chapter');
+                alert("Failed to purchase chapter");
+            } else {
+                const data = await response.json();
+                if (data.success) {
+                    setInvokeCheckUser(prev => !prev);
+                    router.push(`/view_webnovels/${content.id}/chapter_view/${chapter.id}`);
+                } else {
+                    alert(data.message);
+                }
+            }
+        }
+    }
+
 
     useEffect(() => {
         async function checkCoverArtType() {
@@ -230,7 +275,7 @@ export default function InfoAndPictureComponent({
                                             "피앙세"
                                             :
                                             "fiance"
-                                    :
+                                        :
                                         content.user.nickname
                                     }
                                 </p>
@@ -254,12 +299,12 @@ export default function InfoAndPictureComponent({
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     <Eye size={11} /> {content.views}
                                 </div>
-                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '> 
+                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     {/* heart icon - gray #6B7280 */}
                                     <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
-                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" 
-                                        fill="#DE2B74" />
-                                    </svg>                                    
+                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
+                                            fill="#DE2B74" />
+                                    </svg>
                                     {content.upvotes}
                                 </div>
                             </div>
@@ -281,13 +326,18 @@ export default function InfoAndPictureComponent({
                                 <Button
                                     variant="default"
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                    onClick={() => {
+                                        const firstChapter = content.chapters[0];
+                                        if (!firstChapter) return;
+
+                                        if (content.premium && !firstChapter.free) {
+                                            setShowPurchaseModal(true);
+                                        } else {
+                                            router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
+                                        }
+                                    }}
                                 >
-                                    <Link
-                                        href={content.chapters_length > 0 ? `/view_webnovels/${content.id}/chapter_view/${content.chapters[0]?.id}` : `#`}
-                                        className="text-center flex flex-row items-center"
-                                    >
-                                        {phrase(dictionary, "start_to_read_episode_1", language)}
-                                    </Link>
+                                    {phrase(dictionary, "start_to_read_episode_1", language)}
                                 </Button>
 
                                 {/* Like Button */}
@@ -423,14 +473,88 @@ export default function InfoAndPictureComponent({
                                 </Button>
                             </div>
 
-                            {/* photo cards */}
-                            {/* {pictures && pictures.length > 0 && (
-                                <div className="md:max-w-[360px] w-full">
-                                    {pictures && pictures.length > 0 && (
-                                        <PhotoCards images={pictures} />
-                                    )}
-                                </div>
-                            )} */}
+                            {/* Purchase Modal */}
+                            <Dialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
+                                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            <p className="text-lg font-bold text-center">
+                                                {phrase(dictionary, "purchaseChapter", language)}
+                                            </p>
+                                        </DialogTitle>
+                                        <DialogDescription className="flex flex-col justify-center items-center">
+                                            <p className='text-sm text-gray-500 py-2'> {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}</p>
+                                            <p>{ language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="flex !justify-center">
+                                        <div className="flex flex-row justify-center items-center gap-2 mt-4">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => handleChapterPurchase(content.chapters[0])}
+                                                className="bg-black hover:bg-[#D92979]/50 text-white border"
+                                            >
+                                                <MdStars className="text-xl text-[#D92979]" />
+                                                {language === "ko" ? content.price_korean : content.price_english} {phrase(dictionary, "purchase", language)}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowPurchaseModal(false)}
+                                            >
+                                                {phrase(dictionary, "cancel", language)}
+                                            </Button>
+                                        </div>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Not Enough Stars Modal */}
+                            <Dialog open={showNotEnoughStarsModal} onOpenChange={setShowNotEnoughStarsModal}>
+                                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            <p className="text-lg font-bold text-center">
+                                                {phrase(dictionary, "notEnoughStars", language)}
+                                            </p>
+                                        </DialogTitle>
+                                        <DialogDescription className="flex flex-col justify-center items-center">
+                                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "notEnoughStarsDescription", language)}</p>
+                                            <div className="flex flex-col items-center gap-2 mt-2">
+                                                <p>{ language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> 
+                                                                       : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
+                                                {(() => {
+                                                    const price = language === "ko" ? content.price_korean : content.price_english;
+                                                    return (
+                                                        <p>{ language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">필요한 별 <MdStars className="text-xl text-[#D92979]" /> {price} </span> 
+                                                                               : <span className="text-black dark:text-white inline-flex gap-1">Required stars <MdStars className="text-xl text-[#D92979]" /> {price} </span>}</p>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter className="flex !justify-center">
+                                        <div className="flex flex-row justify-center items-center gap-2 mt-4">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setShowNotEnoughStarsModal(false);
+                                                    router.push('/stars');
+                                                }}
+                                                className="bg-black hover:bg-[#D92979]/50 text-white border"
+                                            >
+                                                <MdStars className="text-xl text-[#D92979]" />
+                                                {phrase(dictionary, "buyStars", language)}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowNotEnoughStarsModal(false)}
+                                            >
+                                                {phrase(dictionary, "cancel", language)}
+                                            </Button>
+                                        </div>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
 
                         </div>
                     </div>

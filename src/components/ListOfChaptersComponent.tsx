@@ -226,7 +226,8 @@ const ListOfChaptersComponent = ({
                             color="gray"
                             onClick={() => handleChapterPurchase(chapterToPurchase!)}
                         >
-                            <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english} {phrase(dictionary, "purchase", language)}
+                            <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                             {phrase(dictionary, "purchase", language)}
                         </Button>
                     </div>
                 </Box>

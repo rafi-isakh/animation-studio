@@ -96,15 +96,13 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                                     {images[0]?.type === 'video' ? (
                                         <div
                                             className="relative w-full h-full aspect-video"
-                                            style={{ minHeight: '200px' }}
                                             onMouseEnter={() => handleMouseEnter(0)}
                                             onMouseLeave={() => handleMouseLeave(0)}
                                         >
-                                            <div className="absolute inset-0 bg-gray-100 animate-pulse" />
                                             <video
                                                 ref={videoRefs[0]}
                                                 src={getVideoUrl(images[0]?.image) || ""}
-                                                className="absolute inset-0 object-cover rounded-tl-xl w-full h-full"
+                                                className="object-cover rounded-tl-xl w-full h-full"
                                                 muted
                                                 loop
                                                 playsInline

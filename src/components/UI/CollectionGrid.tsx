@@ -61,14 +61,7 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
 
 
 
-export const ToonyzPostCards = () => {
-    const [posts, setPosts] = useState<ToonyzPost[]>([]);
-
-    useEffect(() => {
-        fetch('/api/get_toonyz_posts')
-            .then(res => res.json())
-            .then(data => setPosts(data));
-    }, []);
+export const ToonyzPostCards = ({ posts }: { posts: ToonyzPost[] }) => {
 
     // Group posts by webnovel_id
     const groupedPosts = posts.reduce((acc, post) => {

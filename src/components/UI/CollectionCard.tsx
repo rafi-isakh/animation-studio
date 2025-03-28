@@ -40,7 +40,8 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const firstImageWidth = images.length > 1 ? "w-1/2" : "w-full";
+    // Should abolish this in favor of just using one image later, but for now, use this to show just one image
+    const firstImageWidth = "w-full";
     const { language, dictionary } = useLanguage();
 
     // Replace useState with useRef for video elements

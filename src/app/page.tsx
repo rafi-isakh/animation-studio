@@ -38,9 +38,18 @@ async function getLibrary() {
     return data.library;
 }
 
+async function getToonyzPosts() {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_toonyz_posts`)
+    if (!response.ok) {
+        throw new Error("Failed to fetch toonyz posts", { cause: response.status });
+    }
+    return response.json();
+}
+
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
     let library = await getLibrary() || [];
+    const posts = await getToonyzPosts();
     library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
@@ -70,7 +79,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <MyReadingListComponent library={library} />
                     {smallGap()}
-                    <ToonyzPostCards />
+                    <ToonyzPostCards posts={posts} />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
                     {smallGap()}

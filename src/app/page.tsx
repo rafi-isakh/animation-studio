@@ -10,6 +10,16 @@ import { auth } from '@/auth';
 import MyReadingListComponent from '@/components/MyReadingListComponent';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
+import { Suspense } from 'react';
+
+// Create a loading component for each section
+const SectionLoading = () => (
+    <div className="animate-pulse">
+        <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+    </div>
+);
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
@@ -63,20 +73,32 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {/*    The side bar width is 72px  md:pl-[72px]  */}
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
                 {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
-                <CarouselComponentShadcn items={items} />
+                <Suspense fallback={<SectionLoading />}>
+                    <CarouselComponentShadcn items={items} />
+                </Suspense>
                 {smallGap()}
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {smallGap()}
-                    <MyReadingListComponent library={library} />
+                    <Suspense fallback={<SectionLoading />}>
+                        <MyReadingListComponent library={library} />
+                    </Suspense>
                     {smallGap()}
-                    <ToonyzPostCards />
+                    <Suspense fallback={<SectionLoading />}>
+                        <ToonyzPostCards />
+                    </Suspense>
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
+                    <Suspense fallback={<SectionLoading />}>
+                        <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
+                    </Suspense>
                     {smallGap()}
-                    <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
+                    <Suspense fallback={<SectionLoading />}>
+                        <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
+                    </Suspense>
                     {smallGap()}
-                    <WebnovelsByRank searchParams={searchParams} sortBy='views' />
+                    <Suspense fallback={<SectionLoading />}>
+                        <WebnovelsByRank searchParams={searchParams} sortBy='views' />
+                    </Suspense>
                     {smallGap()}
                 </div>
             </div>

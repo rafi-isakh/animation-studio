@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Webnovel, ImageOrVideo } from "@/components/Types";
 import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
@@ -63,25 +63,33 @@ export default function InfoAndPictureComponent({
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
     const [showPlayButton, setShowPlayButton] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const showPlayButtonRef = useRef(false);
 
-    const handleToggleMute = () => {
-        const videoElement = document.getElementById('videoElement');
-        if (videoElement) {
-            setIsMuted(prev => !prev);
-        }
-    };
+    const handleMouseEnter = useCallback(() => {
+        showPlayButtonRef.current = true;
+    }, []);
 
-    const handleTogglePlayVideo = () => {
-        const videoElement = document.getElementById('videoElement') as HTMLVideoElement;
-        if (videoElement) {
+    const handleMouseLeave = useCallback(() => {
+        showPlayButtonRef.current = false;
+    }, []);
+
+    const handleTogglePlayVideo = useCallback(() => {
+        if (videoRef.current) {
             if (isPlaying) {
-                videoElement.pause();
+                videoRef.current.pause();
             } else {
-                videoElement.play();
+                videoRef.current.play();
             }
             setIsPlaying(prev => !prev);
         }
-    };
+    }, [isPlaying]);
+
+    const handleToggleMute = useCallback(() => {
+        if (videoRef.current) {
+            setIsMuted(prev => !prev);
+        }
+    }, []);
 
     useEffect(() => {
         async function checkCoverArtType() {
@@ -179,19 +187,20 @@ export default function InfoAndPictureComponent({
                                         <div>
                                             <div className="relative">
                                                 <video
-                                                    id="videoElement"
+                                                    ref={videoRef}
                                                     src={getVideoUrl(coverArt)}
                                                     autoPlay
-                                                    onMouseEnter={() => setShowPlayButton(true)}
-                                                    onMouseLeave={() => setShowPlayButton(false)}
+                                                    onMouseEnter={handleMouseEnter}
+                                                    onMouseLeave={handleMouseLeave}
                                                     onClick={handleTogglePlayVideo}
-                                                    style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
+                                                    style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }}
                                                     className="object-cover rounded-xl"
                                                     muted={isMuted}
+                                                    playsInline
                                                     loop
                                                 />
                                                 <button
-                                                    className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButton ? 'block' : 'hidden'}`}
+                                                    className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButtonRef.current ? 'block' : 'hidden'}`}
                                                     onClick={handleTogglePlayVideo}
                                                 >
                                                     {isPlaying ? <Pause size={20} /> : <Play size={20} />}

@@ -129,21 +129,16 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                 <div className="mt-4 rounded-md overflow-hidden">
                     <Link href={`/toonyz_posts/${post.id}`} >
                         {post.image && (
-                            <Image src={getImageUrl(post.image)} alt={post.title} width={800} height={600} className="w-full h-auto object-cover" />
-                            // <WatermarkedImage
-                            //     imageUrl={getImageUrl(post.image)}
-                            //     watermarkUrl="/toonyz_logo_white.svg"
-                            //     webnovelTitle={webnovel?.title}
-                            //     chapterTitle={webnovel?.chapters.find((chapter: { id: number, title: string }) =>
-                            //         chapter.id.toString() === post.chapter_id
-                            //     )?.title || post.chapter_id}
-                            //     watermarkOpacity={0.2}
-                            //     watermarkPosition="centerRight"
-                            //     titlePosition="centerLeft"
-                            //     titleColor="white"
-                            //     className="object-cover overflow-hidden scale-125 transition-all duration-300 group-hover:blur-sm"
-                            // />
-
+                            <Image 
+                                src={getImageUrl(post.image)} 
+                                alt={post.title} 
+                                width={800} 
+                                height={600} 
+                                className="w-full h-auto object-cover"
+                                placeholder="blur"
+                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSAyVC08MTY3LjIyOUFTRjo/Tj4yMkhiSk46NjU1VkZFRkpLUlVWV1b/2wBDARUXFx4aHjshITtBNkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUH/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                                priority={false}
+                            />
                         )}
                         {post.video && (
                             <video src={getVideoUrl(post.video)} autoPlay playsInline muted loop className="w-full h-auto object-cover" />

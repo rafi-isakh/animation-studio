@@ -75,7 +75,7 @@ export default function InfoAndPictureComponent({
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const showPlayButtonRef = useRef(false);
-
+    const [createMediaPrice, setCreateMediaPrice] = useState(0);
     const handleMouseEnter = useCallback(() => {
         showPlayButtonRef.current = true;
     }, []);
@@ -197,7 +197,9 @@ export default function InfoAndPictureComponent({
 
     const handleGenerateTrailer = () => {
         if (stars < 20) {
+            setCreateMediaPrice(20)
             setShowNotEnoughStarsModal(true);
+            return;
         }
         setOpenDialog(true);
         generateTrailer(content.chapters.map(chapter => chapter.id));
@@ -503,7 +505,7 @@ return (
                         />
 
                         {/* Not Enough Stars Modal */}
-                        <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} />
+                        <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
 
                     </div>
                 </div>

@@ -5,11 +5,15 @@ import { MdStars } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-
+import { Webnovel } from "@/components/Types";
 {/* Not Enough Stars Modal */ }
-const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsModal, stars, content }: { showNotEnoughStarsModal: boolean, setShowNotEnoughStarsModal: (showNotEnoughStarsModal: boolean) => void, stars: number, content?: any }) => {
+const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsModal, stars, content, createMediaPrice }: { showNotEnoughStarsModal: boolean, setShowNotEnoughStarsModal: (showNotEnoughStarsModal: boolean) => void, stars: number, content?: Webnovel, createMediaPrice?: number }) => {
     const router = useRouter();
     const { dictionary, language } = useLanguage();
+
+    const price = language === "ko" 
+        ? content?.price_korean 
+        : (content?.price_english ?? "Price not available"); // Fallback for undefined price_english
 
     return (
         <Dialog open={showNotEnoughStarsModal} onOpenChange={setShowNotEnoughStarsModal}>
@@ -26,10 +30,33 @@ const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsMo
                             <p>{language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span>
                                 : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
                             {(() => {
-                                const price = language === "ko" ? content.price_korean : content.price_english;
+                                if (createMediaPrice) {
+                                    return (
+                                        <p>
+                                            {language === "ko" ? 
+                                                <span className="text-black dark:text-white inline-flex gap-1">
+                                                    필요한 별 <MdStars className="text-xl text-[#D92979]" /> {createMediaPrice} 
+                                                </span>
+                                            : 
+                                            <span className="text-black dark:text-white inline-flex gap-1">
+                                                Required stars <MdStars className="text-xl text-[#D92979]" /> {createMediaPrice} 
+                                            </span>
+                                        }
+                                    </p>
+                                    )
+                                 }
                                 return (
-                                    <p>{language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">필요한 별 <MdStars className="text-xl text-[#D92979]" /> {price} </span>
-                                        : <span className="text-black dark:text-white inline-flex gap-1">Required stars <MdStars className="text-xl text-[#D92979]" /> {price} </span>}</p>
+                                    <p>
+                                        {language === "ko" ? 
+                                            <span className="text-black dark:text-white inline-flex gap-1">
+                                                필요한 별 <MdStars className="text-xl text-[#D92979]" /> {price} 
+                                            </span>
+                                            : 
+                                            <span className="text-black dark:text-white inline-flex gap-1">
+                                                Required stars <MdStars className="text-xl text-[#D92979]" /> {price} 
+                                            </span>
+                                        }
+                                    </p>
                                 );
                             })()}
                         </div>

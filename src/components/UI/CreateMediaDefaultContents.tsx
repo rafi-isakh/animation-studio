@@ -13,6 +13,7 @@ import { phrase } from "@/utils/phrases";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/shadcnUI/Toast";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 
 export default function CreateMediaDefaultContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
@@ -21,6 +22,8 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
     const { dictionary, language } = useLanguage();
     const { setOpenDialog, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [createMediaPrice, setCreateMediaPrice] = useState(0);
 
     useEffect(() => {
         fetch('/api/get_toonyz_posts')
@@ -72,25 +75,20 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                             className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base"
                             disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
                             onClick={() => {
+                                if (stars < 20) {
+                                    setCreateMediaPrice(20)
+                                    setShowNotEnoughStarsModal(true);
+                                    return;
+                                }
                                 if (chapterIds && chapterIds.length > 0) {
                                     setOpenDialog(true);
                                     generateTrailer(chapterIds);
-                                } else {
+                                }
+                                else {
                                     toast({
                                         title: "Error",
                                         description: "No chapters available to generate trailer",
                                         variant: "destructive",
-                                        action: (
-                                            <ToastAction 
-                                                altText='Buy Stars'
-                                                onClick={() => {
-                                                    
-                                                    // setStarPurchaseModalOpen(true);  // Example modal open
-                                                }}
-                                            >
-                                                Buy Stars
-                                            </ToastAction>
-                                        ),
                                     });
                                 }
                             }}
@@ -162,6 +160,7 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                     </div>
                 </div>
             </div>
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
         </div >
     )
 }

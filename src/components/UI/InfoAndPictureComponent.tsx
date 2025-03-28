@@ -243,6 +243,7 @@ export default function InfoAndPictureComponent({
                                                     style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }}
                                                     className="object-cover rounded-xl"
                                                     muted={isMuted}
+                                                    playsInline
                                                     loop
                                                 />
                                                 <button

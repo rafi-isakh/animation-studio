@@ -9,6 +9,7 @@ import { phrase } from '@/utils/phrases';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { ToastAction } from '@/components/shadcnUI/Toast';
 // Define the type for the context data
 interface CreateMediaContextType {
     isLoading: boolean;
@@ -127,7 +128,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughStars", language),
-                variant: "destructive"
+                variant: "destructive",
+                action: <ToastAction altText='Buy Stars'>Buy Stars</ToastAction>
             })
             return;
         }
@@ -232,7 +234,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughStars", language),
-                variant: "destructive"
+                variant: "destructive",
+                action: <ToastAction altText='Buy Stars'>Buy Stars</ToastAction>
             })
             return;
         }

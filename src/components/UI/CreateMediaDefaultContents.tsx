@@ -7,12 +7,12 @@ import { ToonyzPost } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 import PhotoCards from "@/components/UI/PhotoCards";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/shadcnUI/Tooltip"
 import { MdStars } from "react-icons/md";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/shadcnUI/Toast";
 
 export default function CreateMediaDefaultContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
@@ -79,7 +79,18 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                                     toast({
                                         title: "Error",
                                         description: "No chapters available to generate trailer",
-                                        variant: "destructive"
+                                        variant: "destructive",
+                                        action: (
+                                            <ToastAction 
+                                                altText='Buy Stars'
+                                                onClick={() => {
+                                                    
+                                                    // setStarPurchaseModalOpen(true);  // Example modal open
+                                                }}
+                                            >
+                                                Buy Stars
+                                            </ToastAction>
+                                        ),
                                     });
                                 }
                             }}

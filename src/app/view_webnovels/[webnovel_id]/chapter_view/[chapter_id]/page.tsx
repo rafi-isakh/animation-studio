@@ -31,7 +31,8 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
-
+import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 
 function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
@@ -61,7 +62,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { purchased_webnovel_chapters, checking } = useUser();
+    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
     const { chaptersLikelyNeededWebnovel } = useWebnovels();
     const readerStyle = {
@@ -79,6 +80,11 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedTextRef = useRef<string>("");
     const [posts, setPosts] = useState([]);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [chapterToPurchase, setChapterToPurchase] = useState<Chapter>();
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
+
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -216,6 +222,60 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [webnovel?.id]);
 
 
+    const handleChapterClick = (chapter: Chapter) => {
+        if (!webnovel?.available_languages.includes(language)) {
+            alert(phrase(dictionary, "languageNotAvailable", language));
+            return;
+        }
+        if (chapter.free) {
+            router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
+        } else {
+            if (purchased_webnovel_chapters.includes(chapter.id)) {
+                router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
+                return;
+            }
+            setChapterToPurchase(chapter);
+            setShowPurchaseModal(true);
+        }
+    }
+
+    const handleChapterPurchase = async (chapter: Chapter) => {
+        if (!chapter) return;
+        if (!isLoggedIn) {
+            router.push("/signin");
+        }
+        else {
+            setShowPurchaseModal(false);
+            const price = language === "ko" ? webnovel?.price_korean : webnovel?.price_english;
+            if (stars < price!) {
+                setShowNotEnoughStarsModal(true);
+                return;
+            }
+            const response = await fetch(`/api/purchase_chapter`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    chapter_id: chapter.id,
+                    price: price
+                })
+            });
+            // TODO: tell user if there's not enough stars
+            if (!response.ok) {
+                console.error('Failed to purchase chapter');
+                alert("Failed to purchase chapter");
+            } else {
+                const data = await response.json();
+                if (data.success) {
+                    setInvokeCheckUser(prev => !prev);
+                    router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
+                } else {
+                    alert(data.message);
+                }
+            }
+        }
+    }
+
+
+
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
@@ -232,21 +292,30 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
             <div className={`${screenWidth} mx-auto w-full pb-5`}>
                 <Button
                     variant="link"
-                    disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
+                    onClick={() => {
+                        if (!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)) {
+                            setChapterToPurchase(nextChapter);
+                            setShowPurchaseModal(true);
+                        } else {
+                            handleChapterClick(nextChapter);
+                        }
+                    }}
                     className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
-                    <Link href={`/view_webnovels/${webnovel.id}/chapter_view/${nextChapter.id}`} className="w-full">
-                        <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
-                            <div className="flex flex-row items-center space-x-4">
-                                <Image
-                                    src={getImageUrl(webnovel.cover_art)}
-                                    alt={webnovel.title}
-                                    width={50} height={50}
-                                    className="rounded-lg"
-                                />
-                                <div className="flex flex-col">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
-                                        {phrase(dictionary, "nextChapterView", language)}
-                                    </p>
+                    <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
+                        <div className="flex flex-row items-center space-x-4">
+                            <Image
+                                src={getImageUrl(webnovel.cover_art)}
+                                alt={webnovel.title}
+                                width={50} height={50}
+                                className="rounded-lg"
+                            />
+                            <div className="flex flex-col justify-start items-start">
+                                <span>{phrase(dictionary, "nextChapterView", language)}</span>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 font-bold flex flex-row items-center justify-start">
+
+                                    {!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) && (
+                                        <span className="mr-2">🔒</span>
+                                    )}
                                     <OtherTranslateComponent
                                         content={nextChapter.title}
                                         elementId={nextChapter.id.toString()}
@@ -256,9 +325,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                     />
                                 </div>
                             </div>
-                            <ChevronRight size={18} className="" />
                         </div>
-                    </Link>
+                        <ChevronRight size={18} className="" />
+                    </div>
                 </Button>
             </div>
         );
@@ -292,12 +361,20 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         Table of Contents
                                     </MenubarItem>
                                     <MenubarSeparator />
-                                    {webnovel.chapters.map((chapter, index) => (
+                                    {sortedChapters?.map((chapter, index) => (
                                         <MenubarItem
                                             key={chapter.id}
-                                            onClick={() => router.push(`/view_webnovels/${webnovel.id}/chapter_view/${chapter.id}`)}
-                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
-                                            disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                                            onClick={() => {
+                                                if (!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)) {
+                                                    setChapterToPurchase(chapter);
+                                                    setShowPurchaseModal(true);
+                                                } else {
+                                                    handleChapterClick(chapter);
+                                                }
+                                            }}
+                                            
+                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) ? "opacity-50" : ""}`}
+                                            // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
                                             <p className="text-sm">{index + 1}.</p>
                                             <MenubarShortcut>
@@ -425,6 +502,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 </div>
                 <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
+                <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
+                <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
             </div>
         )
     }

@@ -77,7 +77,7 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     }
                 }}
             >
-                <div className="w-80 h-80 p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
+                <div className="w-80 h-fit p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
                     <div className="flex flex-row justify-between items-center">
                         <h3 className="text-lg font-semibold mb-2 self-center text-center">
                             <Link href="/my_profile">
@@ -108,12 +108,6 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                                 <Link href="/stars" onClick={() => handleClose()} >
                                     <Sparkles size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "stars", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/videos" onClick={() => handleClose()} >
-                                    <Video size={20} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "curriculum", language)}</span>
                                 </Link>
                             </li>
                             <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">

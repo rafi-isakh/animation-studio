@@ -193,13 +193,13 @@ export default function ShareAsToonyzPostModal({
 
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
-            <ScrollArea className="relative flex flex-col h-screen">
-                <DialogContent
-                    className={`select-none no-scrollbar backdrop-blur-md z-[9999] 
-                     ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
-                    onClick={(e) => e.stopPropagation()}
-                    showCloseButton={true}
-                >
+            <DialogContent
+                className={`select-none no-scrollbar backdrop-blur-md z-[9999] max-h-screen
+                           ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
+                onClick={(e) => e.stopPropagation()}
+                showCloseButton={true}
+            >
+                <ScrollArea className="relative flex flex-col h-screen">
                     <DialogHeader>
                         <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
                         <DialogDescription>
@@ -305,9 +305,9 @@ export default function ShareAsToonyzPostModal({
                         </Button>
                         <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
                     </DialogFooter>
-                </DialogContent>
-            </ScrollArea>
-            <div className='h-[10vh]' />
+                    <div className='h-[10vh]' />
+                </ScrollArea>
+            </DialogContent>
         </Dialog>
     )
 }

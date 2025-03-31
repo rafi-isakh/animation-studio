@@ -27,6 +27,7 @@ import {
 } from "@/components/shadcnUI/Popover"
 import { make_video_price, generate_pictures_price, generate_trailer_price } from "@/utils/stars";
 import { MdStars } from "react-icons/md";
+import CreateMediaHistoryContents from "@/components/UI/CreateMediaHistoryContents";
 
 export default function CreateMediaArea({
     // TODO: refactor these props; don't need them, because I can just do useCreateMedia()
@@ -70,6 +71,7 @@ export default function CreateMediaArea({
     const { getWebnovelIdWithChapterMetadata } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
+    const [openHistory, setOpenHistory] = useState(false);
     useEffect(() => {
         // if (narrations.length == 0) {
         //     setNarrations(pictures.map(() => ""));
@@ -84,6 +86,9 @@ export default function CreateMediaArea({
         }
     }, [webnovel_id]);
 
+    const handleClickHistory = () => {
+        setOpenHistory(true);
+    }
 
     return (
         <div className="relative z-[500]">
@@ -130,22 +135,17 @@ export default function CreateMediaArea({
                                                                 setPictures([]);
                                                                 setSelection('');
                                                                 setNarrations([]);
+                                                                setOpenHistory(false);
                                                             }}>
                                                             <RefreshCcw className="h-5 w-5" />
-                                                             <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "reset", language)}</span>
+                                                            <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "reset", language)}</span>
                                                         </Button>
-                                                        <Button variant="ghost" className="w-full flex flex-row justify-start items-center"
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation()
-                                                                setIsLoading(false);
-                                                                setLoadingVideoGeneration(false);
-                                                                setPictures([]);
-                                                                setSelection('');
-                                                                setNarrations([]);
-                                                            }}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="w-full flex flex-row justify-start items-center"
+                                                            onClick={handleClickHistory}>
                                                             <History className="h-5 w-5" />
-                                                             <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "history", language)}</span>
+                                                            <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "history", language)}</span>
                                                         </Button>
                                                     </ul>
                                                 </PopoverContent>
@@ -171,147 +171,100 @@ export default function CreateMediaArea({
                     </div>
                 </div>
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar z-[500]'>
-                    <div className='relative w-full p-1'>
-                        {isLoading ? (
-                            <div className="flex flex-col gap-4 xs:w-full sm:w-full md:max-w-[425px] w-full">
-                                <div className="flex flex-col my-6 space-y-4 mb-2">
-                                    <div className="flex flex-col select-none">
+                    {openHistory ? (
+                        <CreateMediaHistoryContents stars={stars} source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                    ) : (
+                        <div className='relative w-full p-1'>
+                            {isLoading ? (
+                                <div className="flex flex-col gap-4 xs:w-full sm:w-full md:max-w-[425px] w-full">
+                                    <div className="flex flex-col my-6 space-y-4 mb-2">
+                                        <div className="flex flex-col select-none">
 
-                                        <div className="space-y-3">
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            {/* User message bubble */}
-                                            <div className="flex justify-end">
-                                                {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
-                                                    {savedPrompt}
-                                                </div>}
+                                            <div className="space-y-3">
                                             </div>
 
-                                            {/* AI response bubble */}
-                                            <div className="flex justify-start">
-                                                <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
-                                                    <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                            <div className="space-y-3">
+                                                {/* User message bubble */}
+                                                <div className="flex justify-end">
+                                                    {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                        {savedPrompt}
+                                                    </div>}
                                                 </div>
-                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                    {phrase(dictionary, "generatingPrompt", language)} {Math.round(progress)}%
+
+                                                {/* AI response bubble */}
+                                                <div className="flex justify-start">
+                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                    </div>
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                        {phrase(dictionary, "generatingPrompt", language)} {Math.round(progress)}%
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-1">
-                                        {[1, 2, 3, 4].map((item) => (
-                                            <div
-                                                key={item}
-                                                className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
-                                                style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
-                                            >
-                                                <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
-                                            </div>
-                                        ))}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1">
+                                            {[1, 2, 3, 4].map((item) => (
+                                                <div
+                                                    key={item}
+                                                    className={`animate-ping relative aspect-square rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden opacity-0 animate-fadeIn`}
+                                                    style={{ animationDelay: `${(item - 1) * 300}ms`, animationFillMode: 'forwards' }}
+                                                >
+                                                    <Skeleton className="animate-ping  absolute inset-0 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent animate-shimmer" />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : pictures.length > 0 ? (
-                            <div className="flex flex-col select-none">
-                                {(source === 'webnovel') ? (
-                                    <div className="my-6 space-y-4">
-                                        <div className="space-y-3">
-                                            {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
+                            ) : pictures.length > 0 ? (
+                                <div className="flex flex-col select-none">
+                                    {(source === 'webnovel') ? (
+                                        <div className="my-6 space-y-4">
+                                            <div className="space-y-3">
+                                                {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
 
-                                        </div>
-                                        <div className="space-y-3">
-                                            {/* User message bubble */}
-                                            {savedPrompt && <div className="flex justify-end">
-                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
-                                                    {savedPrompt}
-                                                </div>
-                                            </div>}
-
-                                            {/* AI response bubble */}
-                                            <div className="flex justify-start">
-                                                <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
-                                                    <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
-                                                </div>
-                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                    {phrase(dictionary, "ICreatedVisualizations", language)}
-                                                </div>
                                             </div>
-                                        </div>
-
-                                        <div className="h-20 flex items-center justify-start  gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-
-                                            <Button
-                                                variant="outline"
-                                                className="p-4 md:p-3 min-h-[48px] rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                                disabled={loadingVideoGeneration}
-                                                onClick={() => {
-                                                    makeVideo();
-                                                }}
-                                            >
-                                                {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
-                                                {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><MdStars className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
-                                            </Button>
-                                            <div className='relative'>
-                                                <Link href="#"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        makeSlideshow();
-                                                    }}
-                                                    className='w-full'>
-                                                    <CardStyleButton
-                                                        title={phrase(dictionary, "slideshow", language)}
-                                                        subtitle="Watch Ads to make a slideshow"
-                                                        ideaCount={pictures.length}
-                                                        images={pictures}
-                                                        gradientFrom="#DE2B74"
-                                                        gradientTo="#FF6F91"
-                                                        className='w-full min-h-[48px] bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white'
-                                                        loadingVideoGeneration={loadingVideoGeneration}
-                                                    />
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (savedPrompt && source === 'chapter') && (
-                                    <div className="my-6 space-y-4">
-                                        <div className="space-y-3">
-                                            {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            {/* User message bubble */}
-                                            <div className="flex justify-end">
-                                                {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
-                                                    {savedPrompt}
+                                            <div className="space-y-3">
+                                                {/* User message bubble */}
+                                                {savedPrompt && <div className="flex justify-end">
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                        {savedPrompt}
+                                                    </div>
                                                 </div>}
+
+                                                {/* AI response bubble */}
+                                                <div className="flex justify-start">
+                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                    </div>
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                        {phrase(dictionary, "ICreatedVisualizations", language)}
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            {/* AI response bubble */}
-                                            <div className="flex justify-start">
-                                                <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
-                                                    <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
-                                                </div>
-                                                <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
-                                                    {phrase(dictionary, "ICreatedVisualizations", language)}
-                                                </div>
-                                            </div>
-                                        </div>
+                                            <div className="h-20 flex items-center justify-start  gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
 
-                                        <div className="h-20 flex items-center justify-start  gap-2 overflow-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                            {pictures.length > 0 && (
+                                                <Button
+                                                    variant="outline"
+                                                    className="p-4 md:p-3 min-h-[48px] rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
+                                                    disabled={loadingVideoGeneration}
+                                                    onClick={() => {
+                                                        makeVideo();
+                                                    }}
+                                                >
+                                                    {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
+                                                    {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><MdStars className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
+                                                </Button>
                                                 <div className='relative'>
-                                                    <Link
-                                                        href="#"
+                                                    <Link href="#"
                                                         onClick={(e) => {
                                                             e.preventDefault();
-                                                            console.log("making slideshow clicked")
                                                             makeSlideshow();
                                                         }}
                                                         className='w-full'>
                                                         <CardStyleButton
-                                                            title="Slideshow"
+                                                            title={phrase(dictionary, "slideshow", language)}
                                                             subtitle="Watch Ads to make a slideshow"
                                                             ideaCount={pictures.length}
                                                             images={pictures}
@@ -322,41 +275,92 @@ export default function CreateMediaArea({
                                                         />
                                                     </Link>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="grid grid-cols-2 gap-1">
-                                    {pictures.map((picture, index) => {
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="opacity-0 animate-fadeIn"
-                                                style={{
-                                                    animationDelay: `${index * 300}ms`,
-                                                    animationFillMode: 'forwards'
-                                                }}
-                                            >
-                                                <GeneratedPicture
-                                                    key={index}
-                                                    index={index}
-                                                    image={picture}
-                                                    webnovel_id={webnovel_id}
-                                                    chapter_id={chapter_id}
-                                                    quote={savedPrompt}
-                                                />
                                             </div>
-                                        )
-                                    })}
-                                    <div className='h-[10vh]' />
+                                        </div>
+                                    ) : (savedPrompt && source === 'chapter') && (
+                                        <div className="my-6 space-y-4">
+                                            <div className="space-y-3">
+                                                {/* <p className="text-sm text-gray-400">Generated a scene with</p> */}
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {/* User message bubble */}
+                                                <div className="flex justify-end">
+                                                    {savedPrompt && <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tr-sm bg-pink-600 text-white text-sm">
+                                                        {savedPrompt}
+                                                    </div>}
+                                                </div>
+
+                                                {/* AI response bubble */}
+                                                <div className="flex justify-start">
+                                                    <div className="h-8 w-8 rounded-full bg-pink-600 flex items-center justify-center text-white shrink-0 mr-1">
+                                                        <span className="text-xs font-medium"> <Sparkles className="w-4 h-4" /></span>
+                                                    </div>
+                                                    <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-tl-sm bg-gray-300 dark:bg-[#1a1b1f] border dark:border-[#2a2b2f] text-black dark:text-white text-sm">
+                                                        {phrase(dictionary, "ICreatedVisualizations", language)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="h-20 flex items-center justify-start  gap-2 overflow-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                {pictures.length > 0 && (
+                                                    <div className='relative'>
+                                                        <Link
+                                                            href="#"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                console.log("making slideshow clicked")
+                                                                makeSlideshow();
+                                                            }}
+                                                            className='w-full'>
+                                                            <CardStyleButton
+                                                                title="Slideshow"
+                                                                subtitle="Watch Ads to make a slideshow"
+                                                                ideaCount={pictures.length}
+                                                                images={pictures}
+                                                                gradientFrom="#DE2B74"
+                                                                gradientTo="#FF6F91"
+                                                                className='w-full min-h-[48px] bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white'
+                                                                loadingVideoGeneration={loadingVideoGeneration}
+                                                            />
+                                                        </Link>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-1">
+                                        {pictures.map((picture, index) => {
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className="opacity-0 animate-fadeIn"
+                                                    style={{
+                                                        animationDelay: `${index * 300}ms`,
+                                                        animationFillMode: 'forwards'
+                                                    }}
+                                                >
+                                                    <GeneratedPicture
+                                                        key={index}
+                                                        index={index}
+                                                        image={picture}
+                                                        webnovel_id={webnovel_id}
+                                                        chapter_id={chapter_id}
+                                                        quote={savedPrompt}
+                                                    />
+                                                </div>
+                                            )
+                                        })}
+                                        <div className='h-[10vh]' />
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center h-full">
-                                <CreateMediaDefaultContents stars={stars} source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
-                            </div>
-                        )}
-                    </div>
+                            ) : (
+                                <div className="flex items-center justify-center h-full">
+                                    <CreateMediaDefaultContents stars={stars} source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </ScrollArea>
                 {/* Footer input */}
                 <div className="flex flex-col space-y-3 backdrop-blur-md bg-gradient-to-r from-blue-50/90 to-gray-50/90 dark:from-black/10 dark:to-gray-900/20 rounded-b-lg flex-shrink-0">

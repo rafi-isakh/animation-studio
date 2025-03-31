@@ -193,9 +193,9 @@ export default function ShareAsToonyzPostModal({
 
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
-            <ScrollArea className="flex flex-col">
+            <ScrollArea className="relative flex flex-col h-screen">
                 <DialogContent
-                    className={`select-none no-scrollbar backdrop-blur-md z-[9999]
+                    className={`select-none no-scrollbar backdrop-blur-md z-[9999] 
                      ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
                     onClick={(e) => e.stopPropagation()}
                     showCloseButton={true}
@@ -307,6 +307,7 @@ export default function ShareAsToonyzPostModal({
                     </DialogFooter>
                 </DialogContent>
             </ScrollArea>
+            <div className='h-[10vh]' />
         </Dialog>
     )
 }

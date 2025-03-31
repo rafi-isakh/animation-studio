@@ -1,206 +1,156 @@
 'use client'
+import type React from "react"
 import Link from "next/link"
-import Accordion from "@/components/UI/Accordion"
-import { useLanguage } from "@/contexts/LanguageContext"
+import { ChevronRight, MessageSquare, Star } from "lucide-react"
+import { MdStars } from "react-icons/md";
+import { useAuth, logout } from "@/contexts/AuthContext";
 
-const readByGenreData = [
-  {
-    title: "Read By Genres",
-    subtitles: [
-      "Fantasy",
-      "Romance",
-      "Action",
-      "Mystery",
-      "Sci-Fi",
-      "Horror",
-      "Comedy"
-    ]
-  },
-]
+const handleSignOut = async (event: React.FormEvent) => {
+  event.preventDefault();
+  logout(true, '/');
+};
 
-export default function Sitemap() {
-  const { dictionary, language } = useLanguage()
+export default function Home() {
+  const { isLoggedIn } = useAuth();
   return (
-    <div className="w-full min-h-screen bg-white dark:bg-black">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-12">Site Map</h1>
+    <div className="md:max-w-screen-md w-full mx-auto flex flex-col min-h-screen bg-white dark:bg-[#121212] text-black dark:text-white p-4">
+      {/* Header */}
+      <header className="p-4">
+        <h1 className="text-2xl font-bold">더보기</h1>
+      </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-          {/* About Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About Toonyz</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/creators" className="text-gray-500 hover:underline">
-                  Be a Toonyz Creators
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms/privacy" className="text-gray-500 hover:underline">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-gray-500 hover:underline">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms/youth" className="text-gray-500 hover:underline">
-                  Youth Protection Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-500 hover:underline">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
+      {/* Banner */}
+      { !isLoggedIn ? <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+        <Link href="/signin">
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Bitcoin icons as decorative elements */}
+            <div className="absolute top-2 left-2 w-12 h-12 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute bottom-4 left-8 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute top-4 right-4 w-10 h-10 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute bottom-8 right-2 w-6 h-6 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute right-16 top-2 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
           </div>
-
-          {/* Webnovels Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Webnovels & Community</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/?version=premium" className="text-gray-500 hover:underline">
-                  Read Webnovels
-                </Link>
-              </li>
-              <li>
-                <Accordion
-                  data={readByGenreData.map(genre => ({
-                    title: genre.title,
-                    subtitle: genre.subtitles.map((sub, index) => (
-                      <span key={index}>
-                        {sub}
-                        {index < genre.subtitles.length - 1 && <br />}
-                      </span>
-                    ))
-                  }))}
-                  className="md:max-w-screen-sm w-full mx-auto"
-                  titleClassName="!p-0 !text-gray-500"
-                  subtitleClassName=""
-                />
-              </li>
-              <li>
-                <Link href="/search" className="text-gray-500 hover:underline">
-                  Find a Webnovel
-                </Link>
-              </li>
-              <li>
-                <Link href="/?version=free" className="text-gray-500 hover:underline">
-                  Community
-                </Link>
-              </li>
-              <li>
-                <Link href="/feeds" className="text-gray-500 hover:underline">
-                  Feeds
-                </Link>
-              </li>
-            </ul>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+            <p className="text-lg mb-1">회원 가입 하고 무료로 별 받아가세요!</p>
+            <h2 className="text-2xl font-bold">
+              투니즈{" "}
+              <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-8 h-8 rounded-full mx-1">
+                <MdStars className="text-lg md:text-xl text-white" />
+              </span>{" "}
+              회원가입하기
+            </h2>
           </div>
-
-          {/* Account Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/my_profile" className="text-gray-500 hover:underline">
-                  Manage Your Account
-                </Link>
-              </li>
-              <li>
-                <Link href="/my_profile" className="text-gray-500 hover:underline">
-                  Your Profile
-                </Link>
-              </li>
-              <li>
-                <Link href="/stars" className="text-gray-500 hover:underline">
-                  Stars Shop
-                </Link>
-              </li>
-            </ul>
+        </Link>
+      </div> : <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+        <Link href="/signin">
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Bitcoin icons as decorative elements */}
+            <div className="absolute top-2 left-2 w-12 h-12 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute bottom-4 left-8 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute top-4 right-4 w-10 h-10 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute bottom-8 right-2 w-6 h-6 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+            <div className="absolute right-16 top-2 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
           </div>
-
-          {/* For Business Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">For Business</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  Business Solutions
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  Business Support
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  IP Licensing
-                </Link>
-              </li>
-            </ul>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+            <p className="text-lg mb-1">회원 가입 하고 무료로 별 받아가세요!</p>
+            <h2 className="text-2xl font-bold">
+              별 충전{" "}
+              <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-8 h-8 rounded-full mx-1">
+                <MdStars className="text-lg md:text-xl text-white" />
+              </span>{" "}
+              하러가기
+            </h2>
           </div>
+        </Link>
+      </div>}
 
-          {/* Services Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Services</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/toonyzcut" className="text-gray-500 hover:underline">
-                  Toonyz Cut
-                </Link>
-              </li>
-              <li>
-                <Link href="/toonyz_posts" className="text-gray-500 hover:underline">
-                  Toonyz Post
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  Toonyz Echo
-                </Link>
-              </li>
-              <li>
-                <Link href="/studio/novel" className="text-gray-500 hover:underline">
-                  Writing Assistant
-                </Link>
-              </li>
-            </ul>
+      {/* Menu Items */}
+      <nav className="flex-1">
+        <MenuItem
+          icon={
+            <div className="bg-[#D92979] w-6 h-6 rounded-full flex items-center justify-center text-white font-bold">
+              <MdStars className="text-lg md:text-xl text-white" />
+            </div>
+          }
+          label="별 충전하기"
+        />
+        {/* <MenuItem label="이벤트" />
+        <MenuItem label="게임" /> */}
+        <MenuItem label="쿠폰등록" />
+        <MenuItem label="공지사항" />
+        <MenuItem label="고객센터" />
+        {/* Footer */}
+        { !isLoggedIn ? <footer className="p-4 border-none text-black dark:text-white">
+          <div className="flex items-center justify-center">
+            <Link href="/signin" className="text-[#D92979]">
+              로그인 · 회원가입
+            </Link>
           </div>
+        </footer> : <footer className="p-4 border-none text-black dark:text-white">
+          <div className="flex items-center justify-center">
+            <Link href="#" onClick={handleSignOut} className="text-[#D92979]">
+              로그아웃
+            </Link>
+          </div>
+        </footer>}
+      </nav>
 
-          {/* Values Section */}
-          {/* <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Values</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/environment" className="text-gray-500 hover:underline">
-                  Environment
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="text-gray-500 hover:underline">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/supplier-responsibility" className="text-gray-500 hover:underline">
-                  Supplier Responsibility
-                </Link>
-              </li>
-              <li>
-                <Link href="/accessibility" className="text-gray-500 hover:underline">
-                  Accessibility
-                </Link>
-              </li>
-            </ul> 
-          </div> */}
-        </div>
-      </div>
+
+      {/* Bottom Buttons */}
+      {/* <div className="grid grid-cols-2 gap-4 p-4">
+        <Link href="#" className="flex items-center justify-center gap-2 bg-zinc-800 rounded-lg p-4">
+          <span>연재문의</span>
+          <MessageSquare size={20} />
+        </Link>
+        <Link href="#" className="flex items-center justify-center gap-2 bg-zinc-800 rounded-lg p-4">
+          <span>공모전</span>
+          <Star size={20} />
+        </Link>
+      </div> */}
+
+
     </div>
+  )
+}
+
+interface MenuItemProps {
+  label: string
+  icon?: React.ReactNode
+  highlighted?: boolean
+}
+
+function MenuItem({ label, icon, highlighted = false }: MenuItemProps) {
+  return (
+    <Link
+      href="#"
+      className={`flex items-center justify-between p-4 border-b border-zinc-800 ${highlighted ? "bg-zinc-900" : ""}`}
+    >
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className={highlighted ? "font-bold" : ""}>{label}</span>
+      </div>
+      <ChevronRight size={20} className="text-zinc-500" />
+    </Link>
   )
 }
 

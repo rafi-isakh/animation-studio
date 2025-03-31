@@ -236,7 +236,7 @@ export default function ShareAsToonyzPostModal({
                         </DialogDescription>
                     </DialogHeader>
                     <div className="items-center">
-                        <Label htmlFor="name" className="text-right text-sm">
+                        <Label htmlFor="name" className="text-left text-sm">
                             {phrase(dictionary, "title", language)}
                         </Label>
                         <Input
@@ -247,7 +247,7 @@ export default function ShareAsToonyzPostModal({
                         />
                     </div>
                     <div className="items-center">
-                        <Label htmlFor="tags" className="text-right text-sm">
+                        <Label htmlFor="tags" className="text-left text-sm">
                             {phrase(dictionary, "tags", language)}
                         </Label>
                         <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 col-span-3">
@@ -274,7 +274,7 @@ export default function ShareAsToonyzPostModal({
                         </div>
                     </div>
                     <div className="items-center">
-                        <Label htmlFor="content" className="text-right text-sm">
+                        <Label htmlFor="content" className="text-left text-sm">
                             {phrase(dictionary, "content", language)}
                         </Label>
                         <Textarea

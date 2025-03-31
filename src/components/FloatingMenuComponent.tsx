@@ -255,7 +255,6 @@ const FloatingMenu: React.FC<{
         }
     };
 
-
     // image generating
     const generatePictures = async () => {
         setShowConfirmDialog(true);

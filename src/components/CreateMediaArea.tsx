@@ -66,9 +66,9 @@ export default function CreateMediaArea({
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
     useEffect(() => {
-        if (narrations.length == 0) {
-            setNarrations(pictures.map(() => ""));
-        }
+        // if (narrations.length == 0) {
+        //     setNarrations(pictures.map(() => ""));
+        // }
     }, [pictures]);
 
     useEffect(() => {
@@ -81,21 +81,20 @@ export default function CreateMediaArea({
 
 
     return (
-        <div>
+        <div className="relative">
             <div
                 ref={draggableNodeRef}
-                className={`max-[360px]:w-full md:max-w-[425px] w-full max-h-screen h-screen select-none fixed top-0 right-1 p-0  
-                            bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
+                className={`md:max-w-[425px] sm:w-full xs:w-full w-full h-screen select-none fixed top-0 md:right-1 p-0  
+                           dark:bg-[#2C2C2C] bg-[#F5F5F5]
                             rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
                             ${openDialog ? 'block z-[100]' : 'hidden'}`}
+                            //  bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className='drag-handle flex-shrink-0'>
                     <div className="flex flex-col p-4 justify-center">
-
                         <div className="flex items-center justify-between border-b pb-2">
-                            <div className="flex items-center">
-                                {/* <Sparkles className="h-5 w-5 text-black dark:text-white" /> */}
+                            <div className="flex items-center">               
                                 <div className="flex items-center justify-center gap-2">
                                     <h1 className="text-xl font-medium uppercase">Toonyz Post</h1>
                                     <h1 className="text-lg md:text-xl text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -139,7 +138,7 @@ export default function CreateMediaArea({
                     </div>
                 </div>
                 <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar'>
-                    <div className='relative w-full'>
+                    <div className='relative w-full p-1'>
                         {isLoading ? (
                             <div className="flex flex-col gap-4 max-[360px]:w-full md:max-w-[425px] w-full">
                                 <div className="flex flex-col my-6 space-y-4 mb-2">
@@ -209,13 +208,7 @@ export default function CreateMediaArea({
                                         </div>
 
                                         <div className="h-20 flex items-center justify-start  gap-2 overflow-x-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                            {/* <Button
-                                                variant="outline"
-                                                className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                            >
-                                                <RefreshCw className="w-4 h-4" />
-                                                {phrase(dictionary, "generateAgain", language)}
-                                            </Button> */}
+                                          
                                             <Button
                                                 variant="outline"
                                                 className="p-4 md:p-3 min-h-[48px] rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
@@ -241,7 +234,7 @@ export default function CreateMediaArea({
                                                         images={pictures}
                                                         gradientFrom="#DE2B74"
                                                         gradientTo="#FF6F91"
-                                                        className='w-full'
+                                                        className='w-full min-h-[48px] bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white'
                                                         loadingVideoGeneration={loadingVideoGeneration}
                                                     />
                                                 </Link>
@@ -281,7 +274,7 @@ export default function CreateMediaArea({
                                                 <RefreshCw className="w-4 h-4" />
                                                 Generate again
                                             </Button> */}
-{/* 
+                                            {/* 
                                             <Button
                                                 variant="outline"
                                                 className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
@@ -310,7 +303,7 @@ export default function CreateMediaArea({
                                                             images={pictures}
                                                             gradientFrom="#DE2B74"
                                                             gradientTo="#FF6F91"
-                                                            className='w-full'
+                                                            className='w-full min-h-[48px] bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white'
                                                             loadingVideoGeneration={loadingVideoGeneration}
                                                         />
                                                     </Link>

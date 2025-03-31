@@ -93,6 +93,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <WebnovelsCardListByCategory searchParams={{ genre: "bl" }} sortBy='date' title="BLWebnovels" />
                     {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "orientalFantasy" }} sortBy='date' title="orientalFantasyWebnovels" />
+                    {smallGap()}
                 </div>
             </div>
             <Footer />

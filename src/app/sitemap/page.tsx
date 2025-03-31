@@ -1,135 +1,140 @@
 'use client'
 import type React from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { ChevronRight, MessageSquare, Star } from "lucide-react"
 import { MdStars } from "react-icons/md";
-import { useAuth, logout } from "@/contexts/AuthContext";
-
-const handleSignOut = async (event: React.FormEvent) => {
-  event.preventDefault();
-  logout(true, '/');
-};
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/shadcnUI/Button";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
 
 export default function Home() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
+  const { dictionary, language } = useLanguage();
+  const [inquiryDialogOpen, setInquiryDialogOpen] = useState(false);
+  const handleSignOut = async (event: React.FormEvent) => {
+    event.preventDefault();
+    logout(true, '/');
+  };
+
   return (
-    <div className="md:max-w-screen-md w-full mx-auto flex flex-col min-h-screen bg-white dark:bg-[#121212] text-black dark:text-white p-4">
-      {/* Header */}
-      <header className="p-4">
-        <h1 className="text-2xl font-bold">더보기</h1>
-      </header>
+    <TooltipProvider delayDuration={0}>
+      <div className="md:max-w-screen-md w-full mx-auto flex flex-col bg-white dark:bg-[#121212] text-black dark:text-white p-4">
+        {/* Header */}
+        <header className="p-4">
+          <h1 className="text-2xl font-bold">{phrase(dictionary, "moreOptions", language)}</h1>
+        </header>
 
-      {/* Banner */}
-      { !isLoggedIn ? <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
-        <Link href="/signin">
-          <div className="absolute inset-0 overflow-hidden">
-            {/* Bitcoin icons as decorative elements */}
-            <div className="absolute top-2 left-2 w-12 h-12 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
+        {/* Banner */}
+        {!isLoggedIn ? <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+          <Link href="/signin">
+            <div className="absolute inset-0 overflow-hidden">
             </div>
-            <div className="absolute bottom-4 left-8 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+              <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "signup_description", language)}</p>
+              <h2 className="md:text-2xl text-lg font-bold">
+                {phrase(dictionary, "toonyz", language)}{" "}
+                <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-6 h-6 rounded-full mx-1">
+                  <MdStars className="text-lg md:text-xl text-white" />
+                </span>{" "}
+                {phrase(dictionary, "do_signup", language)}
+              </h2>
             </div>
-            <div className="absolute top-4 right-4 w-10 h-10 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
+          </Link>
+        </div> : <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+          <Link href="/signin">
+            <div className="absolute inset-0 overflow-hidden">
             </div>
-            <div className="absolute bottom-8 right-2 w-6 h-6 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+              <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "charge_stars_description", language)}</p>
+              <h2 className="md:text-2xl text-lg font-bold">
+                {phrase(dictionary, "charge_stars", language)}{" "}
+                <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-6 h-6 rounded-full mx-1">
+                  <MdStars className="text-lg md:text-xl text-white" />
+                </span>{" "}
+                {phrase(dictionary, "go_to_charge", language)}
+              </h2>
             </div>
-            <div className="absolute right-16 top-2 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-          </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
-            <p className="text-lg mb-1">회원 가입 하고 무료로 별 받아가세요!</p>
-            <h2 className="text-2xl font-bold">
-              투니즈{" "}
-              <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-8 h-8 rounded-full mx-1">
+          </Link>
+        </div>}
+
+        {/* Menu Items */}
+        <nav className="flex-1">
+          <MenuItem
+            icon={
+              <div className="bg-[#D92979] w-6 h-6 rounded-full flex items-center justify-center text-white font-bold">
                 <MdStars className="text-lg md:text-xl text-white" />
-              </span>{" "}
-              회원가입하기
-            </h2>
-          </div>
-        </Link>
-      </div> : <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
-        <Link href="/signin">
-          <div className="absolute inset-0 overflow-hidden">
-            {/* Bitcoin icons as decorative elements */}
-            <div className="absolute top-2 left-2 w-12 h-12 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-            <div className="absolute bottom-4 left-8 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-            <div className="absolute top-4 right-4 w-10 h-10 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-            <div className="absolute bottom-8 right-2 w-6 h-6 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-            <div className="absolute right-16 top-2 w-8 h-8 bg-[#D92979] rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-          </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
-            <p className="text-lg mb-1">회원 가입 하고 무료로 별 받아가세요!</p>
-            <h2 className="text-2xl font-bold">
-              별 충전{" "}
-              <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-8 h-8 rounded-full mx-1">
-                <MdStars className="text-lg md:text-xl text-white" />
-              </span>{" "}
-              하러가기
-            </h2>
-          </div>
-        </Link>
-      </div>}
-
-      {/* Menu Items */}
-      <nav className="flex-1">
-        <MenuItem
-          icon={
-            <div className="bg-[#D92979] w-6 h-6 rounded-full flex items-center justify-center text-white font-bold">
-              <MdStars className="text-lg md:text-xl text-white" />
-            </div>
-          }
-          label="별 충전하기"
-        />
-        {/* <MenuItem label="이벤트" />
-        <MenuItem label="게임" /> */}
-        <MenuItem label="쿠폰등록" />
-        <MenuItem label="공지사항" />
-        <MenuItem label="고객센터" />
-        {/* Footer */}
-        { !isLoggedIn ? <footer className="p-4 border-none text-black dark:text-white">
-          <div className="flex items-center justify-center">
-            <Link href="/signin" className="text-[#D92979]">
-              로그인 · 회원가입
-            </Link>
-          </div>
-        </footer> : <footer className="p-4 border-none text-black dark:text-white">
-          <div className="flex items-center justify-center">
-            <Link href="#" onClick={handleSignOut} className="text-[#D92979]">
-              로그아웃
-            </Link>
-          </div>
-        </footer>}
-      </nav>
+              </div>
+            }
+            label={phrase(dictionary, "stars", language)}
+            href="/stars"
+          />
+          {/* <MenuItem label="이벤트" /> */}
+          <MenuItem label={phrase(dictionary, "profile", language)} href="/my_profile" />
+          <MenuItem label={phrase(dictionary, "redeem_code", language)} href="/stars/redeem" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <MenuItem label={phrase(dictionary, "notice", language)} href="#" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" >
+              <p>{phrase(dictionary, "preparing", language)}</p>
+            </TooltipContent>
+          </Tooltip>
+          <MenuItem label={phrase(dictionary, "contact", language)} href="/contact" />
+          {/* Footer */}
+          {!isLoggedIn ? (
+            <footer className="w-full py-4">
+              <Button variant="outline" className="w-full flex items-center justify-center  border text-black hover:text-[#D92979] dark:text-white shadow-none">
+                <Link href="/signin">
+                  {phrase(dictionary, "login", language)} · {phrase(dictionary, "signup", language)}
+                </Link>
+              </Button>
+            </footer>
+          ) : (
+            <footer className="w-full py-4">
+              <Button variant="outline" className="w-full flex items-center justify-center text-black hover:text-[#D92979]  dark:text-white shadow-none" onClick={handleSignOut}>
+                {phrase(dictionary, "logout", language)}
+              </Button>
+            </footer>
+          )}
+        </nav>
 
 
-      {/* Bottom Buttons */}
-      {/* <div className="grid grid-cols-2 gap-4 p-4">
-        <Link href="#" className="flex items-center justify-center gap-2 bg-zinc-800 rounded-lg p-4">
-          <span>연재문의</span>
-          <MessageSquare size={20} />
-        </Link>
-        <Link href="#" className="flex items-center justify-center gap-2 bg-zinc-800 rounded-lg p-4">
-          <span>공모전</span>
-          <Star size={20} />
-        </Link>
-      </div> */}
-
-
-    </div>
+        {/* Bottom Buttons */}
+        <div className="w-full gap-4">
+          <Dialog open={inquiryDialogOpen} onOpenChange={setInquiryDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full flex items-center justify-center dark:bg-zinc-800 hover:text-[#D92979] shadow-none ">
+                <span>{phrase(dictionary, "inquiry", language)}</span>
+                <MessageSquare size={20} />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white dark:bg-black" showCloseButton={true}>
+              <DialogHeader>
+                <DialogTitle>{phrase(dictionary, "inquiry", language)}</DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                <p>{phrase(dictionary, "inquiry_description", language)}</p>
+              </DialogDescription>
+              <DialogFooter>
+                <Button variant="outline" className="w-full" onClick={() => setInquiryDialogOpen(false)}>
+                  {phrase(dictionary, "close", language)}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {/* <Button variant="outline" className="flex items-center justify-center gap-2  dark:bg-zinc-800 rounded-lg py-4 w-full">
+            <span>공모전</span>
+            <Star size={20} />
+          </Button> */}
+        </div>
+      </div>
+    </TooltipProvider>
   )
 }
 
@@ -137,17 +142,18 @@ interface MenuItemProps {
   label: string
   icon?: React.ReactNode
   highlighted?: boolean
+  href?: string
 }
 
-function MenuItem({ label, icon, highlighted = false }: MenuItemProps) {
+function MenuItem({ label, icon, highlighted = false, href = "#" }: MenuItemProps) {
   return (
     <Link
-      href="#"
+      href={href}
       className={`flex items-center justify-between p-4 border-b border-zinc-800 ${highlighted ? "bg-zinc-900" : ""}`}
     >
       <div className="flex items-center gap-2">
-        {icon}
         <span className={highlighted ? "font-bold" : ""}>{label}</span>
+        {icon}
       </div>
       <ChevronRight size={20} className="text-zinc-500" />
     </Link>

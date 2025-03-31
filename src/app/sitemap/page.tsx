@@ -10,11 +10,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { useTheme } from '@/contexts/providers'
+import { Moon, Sun } from "lucide-react";
+import { Label } from "@/components/shadcnUI/Label";
+import { Switch } from "@/components/shadcnUI/Switch";
 
 export default function Home() {
   const { isLoggedIn, logout } = useAuth();
   const { dictionary, language } = useLanguage();
   const [inquiryDialogOpen, setInquiryDialogOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+
   const handleSignOut = async (event: React.FormEvent) => {
     event.preventDefault();
     logout(true, '/');
@@ -86,6 +92,22 @@ export default function Home() {
             </TooltipContent>
           </Tooltip>
           <MenuItem label={phrase(dictionary, "contact", language)} href="/contact" />
+          {/* {phrase(dictionary, "theme", language)} */}
+          <div className="flex flex-row items-center justify-between gap-x-3 p-4 text-base font-normal">
+            <div className="flex items-center gap-1">
+              <Label htmlFor="dark-mode">
+                {theme === 'dark' ? <span className="text-base font-normal">{phrase(dictionary, "DarkMode", language)}</span> : <span className="text-base font-normal">{phrase(dictionary, "LightMode", language)}</span>}
+              </Label>
+              {theme === 'dark' ? <Moon className=" w-6 h-6" /> : <Sun className=" w-6 h-6" />}
+            </div>
+            <Switch
+              id="dark-mode"
+              checked={theme === 'dark'}
+              onCheckedChange={() => toggleTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="data-[state=checked]:bg-pink-800 data-[state=unchecked]:bg-gray-200"
+            />
+          </div>
+
           {/* Footer */}
           {!isLoggedIn ? (
             <footer className="w-full py-4">
@@ -149,7 +171,7 @@ function MenuItem({ label, icon, highlighted = false, href = "#" }: MenuItemProp
   return (
     <Link
       href={href}
-      className={`flex items-center justify-between p-4 border-b border-zinc-800 ${highlighted ? "bg-zinc-900" : ""}`}
+      className={`flex items-center justify-between p-4 border-b border-zinc-800 text-base font-normal ${highlighted ? "bg-zinc-900" : ""}`}
     >
       <div className="flex items-center gap-2">
         <span className={highlighted ? "font-bold" : ""}>{label}</span>

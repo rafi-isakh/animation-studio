@@ -42,16 +42,13 @@ export default function Home() {
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
               <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "signup_description", language)}</p>
               <h2 className="md:text-2xl text-lg font-bold">
-                {phrase(dictionary, "toonyz", language)}{" "}
-                <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-6 h-6 rounded-full mx-1">
-                  <MdStars className="text-lg md:text-xl text-white" />
-                </span>{" "}
+                {/* {phrase(dictionary, "toonyz", language)}{" "} */}   
                 {phrase(dictionary, "do_signup", language)}
               </h2>
             </div>
           </Link>
         </div> : <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
-          <Link href="/signin">
+          <Link href="/stars">
             <div className="absolute inset-0 overflow-hidden">
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">

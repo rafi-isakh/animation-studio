@@ -364,7 +364,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 <li className="relative hidden md:inline-flex mx-2">
                                     {/* Site map icon */}
                                     <button onClick={handleSitemapClick}>
-                                        <Ellipsis size={20} className='dark:text-white text-gray-500' />
+                                        <Grip size={20} className='dark:text-white text-gray-500' />
                                     </button>
                                 </li>
                                 <li className="relative">

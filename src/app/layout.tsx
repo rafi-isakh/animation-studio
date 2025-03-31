@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const isLoggedIn = !!session?.user;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" translate="no" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"

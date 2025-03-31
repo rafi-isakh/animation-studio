@@ -132,7 +132,7 @@ export default function CreateMediaArea({
                                                                 setNarrations([]);
                                                             }}>
                                                             <RefreshCcw className="h-5 w-5" />
-                                                             <span className="text-gray-700 dark:text-gray-300">Reset</span>
+                                                             <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "reset", language)}</span>
                                                         </Button>
                                                         <Button variant="ghost" className="w-full flex flex-row justify-start items-center"
                                                             onClick={(e) => {
@@ -145,7 +145,7 @@ export default function CreateMediaArea({
                                                                 setNarrations([]);
                                                             }}>
                                                             <History className="h-5 w-5" />
-                                                             <span className="text-gray-700 dark:text-gray-300">History</span>
+                                                             <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "history", language)}</span>
                                                         </Button>
                                                     </ul>
                                                 </PopoverContent>

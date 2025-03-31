@@ -161,6 +161,7 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                     </div>
                 </div>
             </div>
+            <div className='h-[10vh]' />
             <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
         </div >
     )

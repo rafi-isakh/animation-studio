@@ -285,7 +285,7 @@ export default function ShareAsToonyzPostModal({
                             rows={4}
                         />
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className='flex md:flex-row flex-col gap-2'>
                         <Button
                             disabled={isLoading}
                             variant="outline"

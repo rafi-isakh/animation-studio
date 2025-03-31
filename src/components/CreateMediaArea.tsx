@@ -86,7 +86,7 @@ export default function CreateMediaArea({
 
 
     return (
-        <div className="relative">
+        <div className="relative z-[500]">
             <div
                 ref={draggableNodeRef}
                 className={`md:max-w-[425px] sm:w-full xs:w-full w-full h-screen select-none fixed top-0 md:right-1 p-0  
@@ -170,10 +170,10 @@ export default function CreateMediaArea({
                         </div>
                     </div>
                 </div>
-                <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar z-[100]'>
+                <ScrollArea className='drag-handle flex-1 overflow-auto no-scrollbar z-[500]'>
                     <div className='relative w-full p-1'>
                         {isLoading ? (
-                            <div className="flex flex-col gap-4 max-[360px]:w-full md:max-w-[425px] w-full">
+                            <div className="flex flex-col gap-4 xs:w-full sm:w-full md:max-w-[425px] w-full">
                                 <div className="flex flex-col my-6 space-y-4 mb-2">
                                     <div className="flex flex-col select-none">
 
@@ -300,25 +300,6 @@ export default function CreateMediaArea({
                                         </div>
 
                                         <div className="h-20 flex items-center justify-start  gap-2 overflow-auto w-full no-scrollbar scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                            {/* <Button
-                                                variant="outline"
-                                                className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                            >
-                                                <RefreshCw className="w-4 h-4" />
-                                                Generate again
-                                            </Button> */}
-                                            {/* 
-                                            <Button
-                                                variant="outline"
-                                                className="rounded-full bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none"
-                                                disabled={loadingVideoGeneration}
-                                                onClick={() => {
-                                                    makeVideo();
-                                                }}
-                                            >
-                                                {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
-                                                Make a video
-                                            </Button> */}
                                             {pictures.length > 0 && (
                                                 <div className='relative'>
                                                     <Link
@@ -367,6 +348,7 @@ export default function CreateMediaArea({
                                             </div>
                                         )
                                     })}
+                                    <div className='h-[10vh]' />
                                 </div>
                             </div>
                         ) : (

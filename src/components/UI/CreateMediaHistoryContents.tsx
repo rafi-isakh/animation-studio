@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Plus, Video, Loader2, ArrowRight, RefreshCcw } from "lucide-react"
+import { Plus, Video, Loader2, ArrowRight, RefreshCcw, RotateCw, Share } from "lucide-react"
 import { Button } from "@/components/shadcnUI/Button"
 import { ToonyzPost, Webnovel } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
@@ -21,20 +21,24 @@ import MyToonyzPostsList from "@/components/UI/MyToonyzPostsList";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import Masonry from "react-masonry-css"
 import { Pin } from "@/components/UI/Pin";
-import moment from "moment";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
+import { Textarea } from "@/components/shadcnUI/Textarea";
+import GeneratedPicture from "@/components/GeneratedPicture";
+
 
 export default function CreateMediaHistoryContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     // const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { dictionary, language } = useLanguage();
-    const { setOpenDialog, loadingVideoGeneration, generateTrailer } = useCreateMedia();
+    const { setOpenDialog, loadingVideoGeneration, generateTrailer, setShareType, setShowShareAsPostModal, setPicture } = useCreateMedia();
     const { toast } = useToast();
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
     const { webnovels } = useWebnovels();
     const { isLoggedIn } = useAuth();
     const { nickname, email } = useUser();
+    const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
 
     // useEffect(() => {
@@ -127,10 +131,33 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
 
     const breakpointCols = {
         default: 2,
-        // 1100: 3,
-        // 700: 2,
-        // 500: 1
     }
+
+    const buttonList = [
+        {
+            id: 'post',
+            icon: <Share size={10} />,
+            tooltipText: 'Post to Toonyz',
+            onClick: (post: any) => {
+                setShareType('image');
+                setShowShareAsPostModal(true);
+                setPicture(post.image);
+            },
+            className: 'bg-[#DE2B74] hover:bg-pink-400'
+        },
+        {
+            id: 'edit',
+            icon: <RotateCw size={10} />,
+            tooltipText: 'Edit Prompt',
+            onClick: (postId?: number) => {
+                if (postId !== undefined) {
+                    setEditingPostId(postId);
+                }
+            },
+            className: 'bg-[#4B5563] hover:bg-gray-500'
+        }
+    ]
+
 
     return (
         <div className="min-h-screen md:px-2">
@@ -172,14 +199,25 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                     </TabsContent>
                     <TabsContent value="all_media">
                         {isLoggedIn ? <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
+                            {/* {initialPosts.map((post, index) => (
+                                <GeneratedPicture
+                                    key={index}
+                                    index={index}
+                                    image={post.image}
+                                    webnovel_id={post.webnovel_id}
+                                    chapter_id={post.chapter_id}
+                                    quote={post.quote}
+                                />
+                            ))} */}
+                            {/* dummy data */}
                             <Masonry
                                 breakpointCols={breakpointCols}
                                 className="my-masonry-grid flex w-auto -ml-4 gap-5"
                                 columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
                             >
                                 {initialPosts.map((post, index) => (
-                                    <div key={post.id} className="mb-4">
-                                        <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
+                                    <div key={post.id} className="mb-4 relative">
+                                        <div className="relative aspect-[2/3] overflow-hidden rounded-xl group">
                                             <Link href={`/toonyz_posts/${post.id}`}>
                                                 <Image
                                                     src={post.image}
@@ -189,8 +227,51 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                 />
                                             </Link>
-                                        </div>
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            <div className="absolute inset-0 flex justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <TooltipProvider delayDuration={0}>
+                                                    {buttonList.map((button, index) => (
+                                                        <Tooltip key={button.id}>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    onClick={() => button.id === 'edit' ? button.onClick(post.id) : button.onClick()}
+                                                                    variant="outline"
+                                                                    className={`rounded-full text-white border-0 
+                                                                            ${button.className} ${index > 0 ? 'ml-2' : ''}`}
+                                                                >
+                                                                    {button.icon}
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                {button.tooltipText}
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    ))}
+                                                </TooltipProvider>
 
+                                            </div>
+                                        </div>
+                                        {editingPostId === post.id && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
+                                                <div className="flex flex-col gap-1">
+                                                    <Textarea
+                                                        value={post.quote}
+                                                        placeholder={post.quote}
+                                                        rows={4}
+                                                        onChange={(e) => (e.target.value)}
+                                                        className="w-full"
+                                                    />
+                                                    <div className="flex flex-row gap-2 justify-end">
+                                                        <Button variant="outline" color="gray" onClick={() => setEditingPostId(null)}>
+                                                            {phrase(dictionary, "cancel", language)}
+                                                        </Button>
+                                                        <Button variant="outline" color="gray" >
+                                                            Edit
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </Masonry>

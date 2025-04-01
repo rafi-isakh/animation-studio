@@ -3,9 +3,12 @@ import React, { useEffect, useState } from "react";
 import { ImageOrVideo } from "./Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
-import { Share, RotateCw } from "lucide-react";
+import { Share, RotateCw, X, Sparkles } from "lucide-react";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { Input } from "@mui/material";
+import { phrase } from "@/utils/phrases";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Textarea } from "@/components/shadcnUI/Textarea";
 
 export default function GeneratedPicture({
     index,
@@ -25,11 +28,12 @@ export default function GeneratedPicture({
     makeSlideshow?: () => void,
     makeVideo?: () => void,
     key: number
-    }) {
+}) {
     const [showImageModal, setShowImageModal] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const { setChapterId, setShowShareAsPostModal, setShareType, setPicture } = useCreateMedia();
     const [isEditing, setIsEditing] = useState(false);
+    const { dictionary, language } = useLanguage();
 
     useEffect(() => {
         setChapterId(chapter_id);
@@ -61,14 +65,15 @@ export default function GeneratedPicture({
     return (
         <div key={key} className="relative">
             <TooltipProvider delayDuration={0}>
-                <div className="relative group border-0 flex aspect-square items-center justify-center ">
-                    <div className="relative aspect-square w-full h-full group overflow-hidden rounded-xl">
+                <div className="relative group border-0 flex items-center justify-center ">
+                    <div className="relative aspect-[2/3] overflow-hidden rounded-xl w-full h-full group">
                         <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                             onClick={() => setShowImageModal(true)}>
                             <Image
                                 src={`data:image/png;base64,${image}`}
                                 alt={`Generated image ${index + 1}`}
                                 fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className={`object-cover rounded-xl group-hover:scale-105 transition-all duration-300`}
                             />
                         </Button>
@@ -96,11 +101,31 @@ export default function GeneratedPicture({
             </TooltipProvider>
             {isEditing && (
                 <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
-                    <Input
-                        value={quote}
-                        placeholder={quote}
-                        onChange={(e) => (e.target.value)}
-                    />
+                    <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg -z-10" />
+                    <div className="flex flex-col gap-1 z-50">
+                        <Textarea
+                            value={quote}
+                            placeholder={quote}
+                            rows={11}
+                            onChange={(e) => (e.target.value)}
+                            className="w-full bg-white dark:bg-black text-black dark:text-white !select-none"
+                        />
+                        <div className="flex flex-row gap-2 justify-end">
+                            <Button variant="outline"
+                                onClick={() => setIsEditing(false)}
+                                className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+                            >
+                                {phrase(dictionary, "cancel", language)}
+                            </Button>
+                            <Button variant="outline"
+                                onClick={() => setIsEditing(false)}
+                                className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+                            >
+                                <Sparkles size={10} />
+                                {phrase(dictionary, "edit", language)}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

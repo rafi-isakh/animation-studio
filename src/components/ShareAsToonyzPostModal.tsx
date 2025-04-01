@@ -194,12 +194,12 @@ export default function ShareAsToonyzPostModal({
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
-                className={`select-none no-scrollbar backdrop-blur-md z-[9999] max-h-screen
-                           ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
+                className={`select-none no-scrollbar backdrop-blur-md z-[9999]
+                           ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21] max-h-screen'}`}
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >
-                <ScrollArea className="relative flex flex-col h-screen">
+                <ScrollArea className="relative flex flex-col md:h-full h-screen">
                     <DialogHeader>
                         <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
                         <DialogDescription>

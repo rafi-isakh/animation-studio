@@ -129,11 +129,11 @@ export function Pin({ post }: PinProps) {
                   <div className="flex flex-row space-x-2 text-gray-500">
                     <div className="flex flex-row items-center space-x-2 text-sm">
                       <Heart size={14} className="" />
-                      <span>{post.upvotes}</span>
+                      <span>{post.upvotes ? post.upvotes : 0}</span>
                     </div>
                     <div className="flex flex-row items-center space-x-2 text-sm">
                       <MessageCircle size={14} className="" />
-                      <span>{post.comments.length}</span>
+                      <span>{post.comments ? post.comments.length : 0}</span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500">{post.user.nickname}</p>

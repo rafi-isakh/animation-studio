@@ -18,9 +18,13 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext"
 import MyToonyzPostsList from "@/components/UI/MyToonyzPostsList";
+import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
+import Masonry from "react-masonry-css"
+import { Pin } from "@/components/UI/Pin";
+import moment from "moment";
 
 export default function CreateMediaHistoryContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
-    const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
+    // const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { dictionary, language } = useLanguage();
@@ -52,7 +56,81 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
     //         });
     // }, []);
 
+    const initialPosts = [
+        {
+            id: 1,
+            title: "Toonyz Post 1",
+            image: "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739847713252.png",
+            user: {
+                id: 1,
+                name: "John Doe",
+                email: "john.doe@example.com",
 
+            },
+            webnovel_id: "1",
+            chapter_id: "1",
+            created_at: new Date(),
+            views: 100,
+            quote: "This is the first Toonyz Post",
+        },
+        {
+            id: 2,
+            title: "Toonyz Post 2",
+            image: "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739848305012.png",
+            user: {
+                id: 1,
+                name: "John Doe",
+                email: "john.doe@example.com",
+
+            },
+            webnovel_id: "1",
+            chapter_id: "1",
+            created_at: new Date(),
+            views: 100,
+            quote: "This is the first Toonyz Post",
+        },
+        {
+            id: 3,
+            title: "Toonyz Post 3",
+            description: "This is the third Toonyz Post",
+            image: "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739850897741.png",
+            user: {
+                id: 1,
+                name: "John Doe",
+                email: "john.doe@example.com",
+
+            },
+            webnovel_id: "1",
+            chapter_id: "1",
+            created_at: new Date(),
+            views: 100,
+            quote: "This is the first Toonyz Post",
+        },
+        {
+            id: 4,
+            title: "Toonyz Post 4",
+            description: "This is the fourth Toonyz Post",
+            image: "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739858132577.png",
+            user: {
+                id: 1,
+                name: "John Doe",
+                email: "john.doe@example.com",
+
+            },
+            webnovel_id: "1",
+            chapter_id: "1",
+            created_at: new Date(),
+            views: 100,
+            quote: "This is the first Toonyz Post",
+        },
+    ]
+
+    const breakpointCols = {
+        default: 2,
+        // 1100: 3,
+        // 700: 2,
+        // 500: 1
+    }
 
     return (
         <div className="min-h-screen md:px-2">
@@ -92,12 +170,65 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                         }
 
                     </TabsContent>
-                    <TabsContent value="all_media">Change your password here.</TabsContent>
+                    <TabsContent value="all_media">
+                        {isLoggedIn ? <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
+                            <Masonry
+                                breakpointCols={breakpointCols}
+                                className="my-masonry-grid flex w-auto -ml-4 gap-5"
+                                columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
+                            >
+                                {initialPosts.map((post, index) => (
+                                    <div key={post.id} className="mb-4">
+                                        <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
+                                            <Link href={`/toonyz_posts/${post.id}`}>
+                                                <Image
+                                                    src={post.image}
+                                                    alt={post.title}
+                                                    className="rounded-lg object-cover"
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                />
+                                            </Link>
+                                        </div>
+
+                                    </div>
+                                ))}
+                            </Masonry>
+                        </div> : <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
+                            <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg">
+                                <p className="text-center text-black dark:text-white flex items-center justify-center">
+                                    {phrase(dictionary, "pleaseLogin_all_contents", language)}
+                                </p>
+                            </div>
+                            <Masonry
+                                breakpointCols={breakpointCols}
+                                className="my-masonry-grid flex w-auto -ml-4 gap-5"
+                                columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
+                            >
+                                {initialPosts.map((post, index) => (
+                                    <div key={post.id} className="mb-4">
+                                        <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
+                                            <Link href={`/toonyz_posts/${post.id}`}>
+                                                <Image
+                                                    src={post.image}
+                                                    alt={post.title}
+                                                    className="rounded-lg object-cover"
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                />
+                                            </Link>
+                                        </div>
+
+                                    </div>
+                                ))}
+                            </Masonry>
+                        </div>}
+                    </TabsContent>
                 </Tabs>
                 <div className='h-[10vh]' />
             </div>
             <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
-        </div >
+        </div>
     )
 }
 

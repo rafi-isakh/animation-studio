@@ -39,7 +39,7 @@ const WebnovelTranslateComponent = (
     const [pageToFirstPageWords, setPageToFirstPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const [pageToSecondPageWords, setPageToSecondPageWords] = useState<{ [key: number]: string }>({ 1: "" })
     const { theme } = useTheme();
-    const { 
+    const {
         fontSize,
         fontFamily = 'default',
         lineHeight,
@@ -50,6 +50,14 @@ const WebnovelTranslateComponent = (
         setPage,
         setMaxPage,
     } = useReader();
+
+    useEffect(() => {
+        const webnovelTranslateComponent = document.getElementById('webnovel-translate-component');
+
+        webnovelTranslateComponent?.addEventListener('copy', (e) => {
+            e.preventDefault();
+        });
+    }, []);
 
     useEffect(() => {
         const handleTranslate = async () => {
@@ -150,7 +158,7 @@ const WebnovelTranslateComponent = (
 
     type Direction = 'ltr' | 'rtl';
 
-    const paragraphStyle: React.CSSProperties =  {
+    const paragraphStyle: React.CSSProperties = {
         margin: `${margin}px`,
         padding: `${padding}px`,
         height: scrollType === 'horizontal' ? '100vh' : 'auto',
@@ -261,24 +269,26 @@ const WebnovelTranslateComponent = (
 
     return (
         <div
+            id='webnovel-translate-component'
             style={paragraphStyle}
             className={`relative mb-16
                        ${scrollType === 'horizontal' ? 'overflow-y-hidden' : ''}`}
-            onTouchStart={(e) => e.stopPropagation()}>
-                    {text &&
-                     <>
+            onTouchStart={(e) => e.stopPropagation()}
+        >
+            {text &&
+                <>
                     {scrollType === 'vertical' &&
                         <div
                             dangerouslySetInnerHTML={{ __html: textPostProcess(text) }}
-                            style={{ 
-                                whiteSpace: 'pre-wrap', 
+                            style={{
+                                whiteSpace: 'pre-wrap',
                                 direction: `${isRtl}` as Direction,
                                 WebkitUserSelect: 'text',
                                 userSelect: 'text',
                             }}
                             onContextMenu={(e) => e.preventDefault()}
-                            // className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
-                            >
+                        // className='first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase'
+                        >
                         </div>
                     }
                     {scrollType === 'horizontal' &&
@@ -312,8 +322,8 @@ const WebnovelTranslateComponent = (
                                     <div
                                         id='first-half'
                                         className='w-full first-letter:float-left first-letter:mr-3 first-letter:text-7xl first-letter:font-bold first-letter:text-gray-500 first-line:tracking-widest first-line:uppercase select-text'
-                                        style={{ 
-                                            direction: `${isRtl}` as Direction, 
+                                        style={{
+                                            direction: `${isRtl}` as Direction,
                                             whiteSpace: 'pre-wrap',
                                             WebkitUserSelect: 'text',
                                             userSelect: 'text',
@@ -330,8 +340,8 @@ const WebnovelTranslateComponent = (
                                     <div
                                         id='second-half'
                                         className='w-full select-text'
-                                        style={{ 
-                                            direction: `${isRtl}` as Direction, 
+                                        style={{
+                                            direction: `${isRtl}` as Direction,
                                             whiteSpace: 'pre-wrap',
                                             WebkitUserSelect: 'text',
                                             userSelect: 'text',
@@ -344,27 +354,27 @@ const WebnovelTranslateComponent = (
                                 </div>
                             </div>
                         </div>
-                        }
-                     </>
+                    }
+                </>
             }
             {!text &&
                 <Box sx={{ width: '100%' }}>
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
-                    <Skeleton   sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
+                    <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} />
                 </Box>
             }
         </div >

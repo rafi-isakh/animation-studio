@@ -57,7 +57,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
           description: "Please try again",
           variant: "destructive",
         });
-        console.error("Error deleting comment");
+        console.error("Error deleting post, try again", response);
       }
       toast({
         title: "Post deleted",

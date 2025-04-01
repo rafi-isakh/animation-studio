@@ -80,7 +80,7 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
                     description: "Please try again",
                     variant: "destructive",
                 });
-                console.error("Error deleting comment");
+                console.error("Error deleting post, try again", response);
             }
             toast({
                 title: "Post deleted",
@@ -104,8 +104,8 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
             <div className="flex flex-col gap-3 min-w-full p-1 md:p-0">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <Skeleton className="w-full h-[20px]" />
                         <Skeleton className="w-full h-[300px]" />
+                        <Skeleton className="w-full h-[20px]" />
                     </div>
                 ) : posts.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full">
@@ -144,7 +144,7 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
                                             src={getVideoUrl(item.video)}
                                             className="rounded-lg object-cover w-full h-full"
                                             controls
-                                            autoPlay={false}
+                                            autoPlay={true}
                                             playsInline={true}
                                             muted={true}
                                             loop={true}

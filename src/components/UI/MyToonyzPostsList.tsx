@@ -236,7 +236,7 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
                                                             </AlertDialogCancel>
                                                             <AlertDialogAction
                                                                 onClick={() => {
-                                                                    handleDeletePost(item.id);
+                                                                    handleDeletePost(item.id.toString());
                                                                     setShowDeleteModal(false);
                                                                 }}>
                                                                 {phrase(dictionary, "delete", language)}

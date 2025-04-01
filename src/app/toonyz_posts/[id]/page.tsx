@@ -44,6 +44,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             fetch(`/api/get_toonyz_post_by_id?id=${params.id}`)
                 .then(res => res.json())
                 .then(data => {
+                    console.log('data', data);
                     setPost(data);
                     setIsLoading(false);
                 });
@@ -97,6 +98,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         isAuthor={isAuthor ?? false}
                         user={post.user}
                         postId={post.id.toString()}
+                        post={post}
                     />
                 </div>
             </div>

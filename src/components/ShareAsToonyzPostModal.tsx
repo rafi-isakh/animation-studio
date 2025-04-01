@@ -222,7 +222,6 @@ export default function ShareAsToonyzPostModal({
                                 <>
                                     <video
                                         src={getVideoUrl(videoFileName)}
-                                        // alt={`Generated video ${index + 1}`}
                                         width={250}
                                         height={250}
                                         autoPlay={true}

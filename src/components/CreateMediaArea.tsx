@@ -67,11 +67,11 @@ export default function CreateMediaArea({
         stars: number,
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
-    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations } = useCreateMedia();
+    const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations, openHistory, setOpenHistory } = useCreateMedia();
     const { getWebnovelIdWithChapterMetadata } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
-    const [openHistory, setOpenHistory] = useState(false);
+
     useEffect(() => {
         // if (narrations.length == 0) {
         //     setNarrations(pictures.map(() => ""));
@@ -347,6 +347,7 @@ export default function CreateMediaArea({
                                                         webnovel_id={webnovel_id}
                                                         chapter_id={chapter_id}
                                                         quote={savedPrompt}
+                                                      
                                                     />
                                                 </div>
                                             )

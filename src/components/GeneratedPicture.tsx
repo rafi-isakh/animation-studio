@@ -5,6 +5,7 @@ import { Button } from "@/components/shadcnUI/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import { Share, RotateCw } from "lucide-react";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
+import { Input } from "@mui/material";
 
 export default function GeneratedPicture({
     index,
@@ -28,6 +29,7 @@ export default function GeneratedPicture({
     const [showImageModal, setShowImageModal] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const { setChapterId, setShowShareAsPostModal, setShareType, setPicture } = useCreateMedia();
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         setChapterId(chapter_id);
@@ -49,7 +51,9 @@ export default function GeneratedPicture({
             id: 'edit',
             icon: <RotateCw size={10} />,
             tooltipText: 'Edit Prompt',
-            onClick: () => {/* Your download handler */ },
+            onClick: () => {
+                setIsEditing(true);
+            },
             className: 'bg-[#4B5563] hover:bg-gray-500'
         }
     ]
@@ -90,6 +94,15 @@ export default function GeneratedPicture({
                     </div>
                 </div>
             </TooltipProvider>
+            {isEditing && (
+                <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
+                    <Input
+                        value={quote}
+                        placeholder={quote}
+                        onChange={(e) => (e.target.value)}
+                    />
+                </div>
+            )}
         </div>
     )
 }

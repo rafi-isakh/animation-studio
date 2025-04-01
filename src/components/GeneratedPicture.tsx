@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ImageOrVideo } from "./Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
-import { Share } from "lucide-react";
+import { Share, RotateCw } from "lucide-react";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 
 export default function GeneratedPicture({
@@ -45,13 +45,13 @@ export default function GeneratedPicture({
             },
             className: 'bg-[#DE2B74] hover:bg-pink-400'
         },
-        // {
-        //     id: 'download',
-        //     icon: <Download size={10} />,
-        //     tooltipText: 'Download',
-        //     onClick: () => {/* Your download handler */ },
-        //     className: 'bg-[#4B5563] hover:bg-gray-500'
-        // }
+        {
+            id: 'edit',
+            icon: <RotateCw size={10} />,
+            tooltipText: 'Edit Prompt',
+            onClick: () => {/* Your download handler */ },
+            className: 'bg-[#4B5563] hover:bg-gray-500'
+        }
     ]
 
     return (

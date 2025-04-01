@@ -103,7 +103,7 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
         <div className={cn("w-full scrollbar-none flex flex-col gap-3", className)}>
             <div className="flex flex-col gap-3 min-w-full p-1 md:p-0">
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3">
+                    <div className="flex flex-col items-center justify-center h-full gap-1">
                         <Skeleton className="w-full h-[300px]" />
                         <Skeleton className="w-full h-[20px]" />
                     </div>

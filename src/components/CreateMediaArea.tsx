@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Skeleton } from "./shadcnUI/Skeleton";
-import { RefreshCw, Video, X, RefreshCcw, EllipsisVertical, History } from "lucide-react";
+import { RefreshCw, Video, X, RefreshCcw, EllipsisVertical, History, House } from "lucide-react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "./shadcnUI/Button";
 import GeneratedPicture from "./GeneratedPicture";
@@ -137,8 +137,8 @@ export default function CreateMediaArea({
                                                                 setNarrations([]);
                                                                 setOpenHistory(false);
                                                             }}>
-                                                            <RefreshCcw className="h-5 w-5" />
-                                                            <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "reset", language)}</span>
+                                                            <House  className="h-5 w-5" />
+                                                            <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "home", language)}</span>
                                                         </Button>
                                                         <Button
                                                             variant="ghost"

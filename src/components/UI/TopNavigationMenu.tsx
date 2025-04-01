@@ -222,14 +222,14 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
                 </AlertDialogContent>
 
                 {/* edit modal */}
-                <AlertDialog open={showEditModal} onOpenChange={setShowEditModal}>
+                {/* <AlertDialog open={showEditModal} onOpenChange={setShowEditModal}>
                   <AlertDialogTrigger asChild>
                     <Link
                       href="#"
                       key="edit"
                       onClick={(e) => {
-                        e.preventDefault
-                        setShowEditModal(true);
+                        // e.preventDefault
+                        // setShowEditModal(true);
                       }}
                       className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
                       <Pencil size={10} className="dark:text-white text-gray-500" />
@@ -339,7 +339,7 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
-                </AlertDialog>
+                </AlertDialog> */}
               </AlertDialog>
             }
           </PopoverContent>

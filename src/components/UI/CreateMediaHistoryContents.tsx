@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Plus, Video, Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/shadcnUI/Button"
-import { ToonyzPost } from "@/components/Types"
+import { ToonyzPost, Webnovel } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 import PhotoCards from "@/components/UI/PhotoCards";
@@ -14,6 +14,10 @@ import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useToast } from "@/hooks/use-toast";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/shadcnUI/Tabs";
+import { useWebnovels } from "@/contexts/WebnovelsContext";
+import { useUser } from "@/contexts/UserContext";
+import { useAuth } from "@/contexts/AuthContext"
+import MyToonyzPostsList from "@/components/UI/MyToonyzPostsList";
 
 export default function CreateMediaHistoryContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
@@ -24,30 +28,29 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
     const { toast } = useToast();
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
+    const { webnovels } = useWebnovels();
+    const { isLoggedIn } = useAuth();
+    const { nickname, email } = useUser();
 
-    useEffect(() => {
-        fetch('/api/get_toonyz_posts')
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('Failed to fetch posts');
-                }
-                return res.json();
-            })
-            .then(data => {
-                setInitialPosts(data);
-                setInitialLoading(false);
-            })
-            .catch(error => {
-                console.error('Error fetching posts:', error);
-                setError('Failed to load posts. Please try again later.');
-                setInitialLoading(false);
-            });
-    }, []);
 
-    // Function to shuffle the array
-    const shuffleArray = (array: ToonyzPost[]) => {
-        return array.sort(() => Math.random() - 0.5);
-    };
+    // useEffect(() => {
+    //     fetch('/api/get_toonyz_posts')
+    //         .then(res => {
+    //             if (!res.ok) {
+    //                 throw new Error('Failed to fetch posts');
+    //             }
+    //             return res.json();
+    //         })
+    //         .then(data => {
+    //             setInitialPosts(data);
+    //             setInitialLoading(false);
+    //         })
+    //         .catch(error => {
+    //             console.error('Error fetching posts:', error);
+    //             setError('Failed to load posts. Please try again later.');
+    //             setInitialLoading(false);
+    //         });
+    // }, []);
 
 
 
@@ -63,7 +66,11 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                             All Contents
                         </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="toonyz_post">Make changes to your account here.</TabsContent>
+                    <TabsContent value="toonyz_post">
+                    {isLoggedIn ? <MyToonyzPostsList webnovels={webnovels} nickname={nickname} email={email} />
+                                : "Login to see your Toonyz Posts"}
+
+                    </TabsContent>
                     <TabsContent value="all_media">Change your password here.</TabsContent>
                 </Tabs>
                 <div className='h-[10vh]' />

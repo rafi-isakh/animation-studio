@@ -284,7 +284,9 @@ return (
                         />
 
                         <p className="text-center">
-                            {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
+                            <Link href={`/profile/${content.author.id}`}>
+                                {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
+                            </Link>
                         </p>
 
                         {/*TEMPORARY FIX FOR SHOWING THE NAME OF THE PUBLISHER. DOING THIS BECAUSE

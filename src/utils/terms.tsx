@@ -782,7 +782,8 @@ export const terms_privacy = `
 회원가입 시 수집하는 개인정보:
 이메일 회원가입: [필수] 아이디, 이메일, 비밀번호
 SNS 계정 로그인: [필수] SNS 계정 주소, [선택] 닉네임
-본인인증: [필수] 이름, 생년월일, 성별, 휴대전화번호, 본인인증 값(CI/DI)
+본인인증: [필수] 이름, 생년월일, 성별, 휴대전화번호, 암호화된 이용자 확인값(CI/DI)
+법정대리인 동의: [필수] 법정대리인 이름, 법정대리인 관계, 법정대리인 연락처, 암호화된 이용자 확인값(CI/DI)
 
 서비스 이용 과정에서 자동으로 수집되는 정보:
 IP 주소, 쿠키, 서비스 이용 기록, 기기 정보, 위치정보 등
@@ -947,7 +948,7 @@ Personal information collected during membership registration:
 Email registration: [Required] ID, email, password
 SNS account login: [Required] SNS account address, [Optional] nickname
 Identity verification: [Required] Name, date of birth, gender, mobile phone number, identity verification value (CI/DI)
-
+Legal representative consent: [Required] Legal representative's name, legal representative's relationship, legal representative's contact information, identity verification value (CI/DI)
 Information automatically collected during service use:
 IP address, cookies, service usage records, device information, location information, etc.
 When using search functions utilizing images and voice, the corresponding data may be collected

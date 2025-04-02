@@ -199,17 +199,8 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                     </TabsContent>
                     <TabsContent value="all_media">
                         {isLoggedIn ? <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-                            {/* {initialPosts.map((post, index) => (
-                                <GeneratedPicture
-                                    key={index}
-                                    index={index}
-                                    image={post.image}
-                                    webnovel_id={post.webnovel_id}
-                                    chapter_id={post.chapter_id}
-                                    quote={post.quote}
-                                />
-                            ))} */}
-                            {/* dummy data */}
+                            <p className="text-center text-black dark:text-white">{phrase(dictionary, "preparing", language)}</p>
+                         {/*                             
                             <Masonry
                                 breakpointCols={breakpointCols}
                                 className="my-masonry-grid flex w-auto -ml-4 gap-5"
@@ -274,7 +265,7 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                                         )}
                                     </div>
                                 ))}
-                            </Masonry>
+                            </Masonry> */}
                         </div> : <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
                             <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg">
                                 <p className="text-center text-black dark:text-white flex items-center justify-center">

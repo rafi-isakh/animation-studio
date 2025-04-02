@@ -9,7 +9,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
+const WebnovelsCardListByCategory = ({ searchParams, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
@@ -36,8 +36,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
 
     return (
         <WebnovelsCardList
-            //New Releases
-            title={phrase(dictionary, "newReleasesWebnovels", language)}
+            title={phrase(dictionary, title, language)}
             subtitle={phrase(dictionary, "more", language)}
             webnovels={webnovelsToShow}
             scrollRef={scrollRef}
@@ -56,4 +55,4 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     )
 };
 
-export default WebnovelsCardListByNew;
+export default WebnovelsCardListByCategory;

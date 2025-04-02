@@ -90,7 +90,6 @@ export default function BottomNavigationBar() {
                 }}
             >
                 <BottomNavigationAction label={phrase(dictionary, "home", language)} icon={<Home />} />
-                <BottomNavigationAction label={phrase(dictionary, "features", language)} icon={<Star />} />
                 <BottomNavigationAction label={phrase(dictionary, "feeds", language)} icon={<LayoutGrid />} />
                 <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
                 <BottomNavigationAction label={phrase(dictionary, "shop", language)} icon={<Gift />} />

@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const isLoggedIn = !!session?.user;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" translate="no" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -118,6 +118,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </LanguageProvider>
         </ToastProvider>
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6123598702567464"
+                crossOrigin="anonymous"></script>
       </body>
     </html >
   );

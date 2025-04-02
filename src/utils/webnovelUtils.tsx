@@ -2,7 +2,7 @@ import { Webnovel, SortBy, Chapter, Comment, ToonyzPost } from '@/components/Typ
 import moment from 'moment';
 
 
-export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130, 103 ]
+export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130 ]
 
 export const chapterPrice = (language: string) => {
     if (language === "ko") {
@@ -20,9 +20,9 @@ export const filter_by_genre = (item: Webnovel, genre: string | null | undefined
 };
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
-    if (!version) return item.premium
-    else if (version === "free") return !item.premium
-    else return true
+    if (!version) return item.premium;
+    else if (version === "free") return !item.premium;
+    else return item.premium;
 };
 
 export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {

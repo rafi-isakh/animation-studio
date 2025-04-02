@@ -12,7 +12,7 @@ import { filter_by_genre } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
+const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
@@ -41,9 +41,10 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     return (
         <div className='relative md:max-w-screen-xl group font-pretendard'>
             <WebnovelsAllCardWrapper
-                title={phrase(dictionary, "recommended", language)}
+                title={phrase(dictionary, title, language)}
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
+                isMobile={isMobile}
                 renderItem={(item: Webnovel, index: number) => (
                     <WebnovelPictureCardWrapper
                         webnovel={item}

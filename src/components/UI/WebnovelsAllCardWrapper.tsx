@@ -1,7 +1,9 @@
-import React from 'react';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { scroll } from '@/utils/scroll'
+import React, { useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
+import { Card, CardContent } from '@/components/shadcnUI/Card';
+import OtherTranslateComponent from '@/components/OtherTranslateComponent';
+import { Button } from '@/components/shadcnUI/Button';
+import { Heart, Bookmark } from 'lucide-react';
 
 interface WebnovelsCardListProps {
     title: string;
@@ -9,6 +11,7 @@ interface WebnovelsCardListProps {
     renderItem: (item: any, index: number) => JSX.Element;
     scrollRef: React.RefObject<HTMLDivElement>;
     className?: string;
+    isMobile?: boolean;
 }
 
 const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
@@ -17,42 +20,73 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
     renderItem,
     scrollRef,
     className = '',
+    isMobile
 }) => {
-    const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
+    // const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
+    const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
     return (
         <div className={`relative  w-full mx-auto group overflow-hidden ${className}`}>
-            {/* <div className={`relative md:max-w-screen-lg w-full mx-auto group overflow-hidden ${className}`}> */}
             <div>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
+                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
                     {title}
                 </h1>
-                
+
                 <div className="relative">
                     {/* Desktop layout with fixed 6 cards */}
-                    <div 
+                    <div
                         ref={scrollRef}
-                        className="grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1"
-                    > 
+                        className="hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 py-8"
+                    >
                         {webnovels.map((item, index) => (
-                            <div 
-                                key={item.id || index} 
-                                className="w-full"
+                            <div
+                                key={item.id || index}
+                                className="w-full relative"
+                                style={{
+                                    transformOrigin: "center center",
+                                    zIndex: activeIndex === index ? 10 : 1,
+                                }}
+                                onMouseEnter={() => setActiveIndex(index)}
+                                onMouseLeave={() => setActiveIndex(null)}
+
                             >
-                                {renderItem(item, index)}
+                                <Card
+                                    className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none ${activeIndex === index ? "shadow-none scale-110" : ""
+                                        }`}
+                                >
+                                    {activeIndex === index && (
+                                        <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-1 text-white h-[50px] z-50 justify-between items-center">
+                                            <h3 className="dark:text-white text-black font-medium text-sm text-center">
+                                                <OtherTranslateComponent
+                                                    content={item.title}
+                                                    elementId={item.id.toString()}
+                                                    elementType="webnovel"
+                                                    elementSubtype="title"
+                                                    classParams="text-sm md:text-base text-center font-medium line-clamp-2 break-keep korean"
+                                                />
+                                            </h3>
+                                            <div className="flex flex-row gap-2">
+                                                <p className="text-xs text-gray-500">{item.author.nickname}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {renderItem(item, index)}
+                                </Card>
                             </div>
                         ))}
                     </div>
 
                     {/* Mobile horizontal scroll */}
-                    <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth">
-                        {webnovels.map((item, index) => (
-                            <div key={item.id || index} className="flex-none">
-                                {renderItem(item, index)}
-                            </div>
-                        ))}
-                    </div>
-                    
+                    {isMobile && (
+                        <div className="md:hidden grid  grid-cols-3 overflow-x-auto no-scrollbar  gap-1">
+                            {webnovels.map((item, index) => (
+                                <div key={item.id || index} className="">
+                                    {renderItem(item, index)}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                 </div>
             </div>
         </div>

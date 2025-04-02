@@ -1,5 +1,5 @@
 import Footer from '@/components/Footer';
-import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
+import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategory';
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { cookies } from 'next/headers';
@@ -81,11 +81,19 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <ToonyzPostCards posts={posts} />
                     {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
-                    {smallGap()}
-                    <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
-                    {smallGap()}
+                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommended" />
+                    {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={searchParams} sortBy='date' title="newReleasesWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "romance" }} sortBy='date' title="romanceWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "fantasy" }} sortBy='date' title="fantasyWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "bl" }} sortBy='date' title="BLWebnovels" />
+                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={{ genre: "orientalFantasy" }} sortBy='date' title="orientalFantasyWebnovels" />
                     {smallGap()}
                 </div>
             </div>

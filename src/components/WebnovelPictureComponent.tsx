@@ -40,7 +40,6 @@ const WebnovelPictureComponent = React.memo(
                                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                             />
 
-
                             {/* Overlay for hover effect */}
                             <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 hover:opacity-50 flex items-center justify-center gap-2 z-10">
                                 <p className="text-white text-center text-sm">{phrase(dictionary, "viewnow", language)}</p>
@@ -59,8 +58,6 @@ const WebnovelPictureComponent = React.memo(
                             </div>
 
                         </div>
-
-
 
                         {/* UP Badge */}
                         {up && <span className="absolute top-0 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">UP</span>}

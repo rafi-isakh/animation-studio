@@ -284,7 +284,7 @@ return (
                         />
 
                         <p className="text-center">
-                            <Link href={`/profile/${content.author.id}`}>
+                            <Link href={`/view_profile/${content.author.id}`}>
                                 {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
                             </Link>
                         </p>

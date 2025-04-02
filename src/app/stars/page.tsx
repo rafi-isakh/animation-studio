@@ -26,11 +26,6 @@ export interface StarUse {
 export default async function Stars({ searchParams }: { searchParams: { event?: string, package?: string } }) {
     const session = await auth();
     const email = session?.user?.email;
-    return (
-        <div className="flex flex-col items-center justify-center h-screen">
-            Currently not available for maintenance. Please check back later.
-        </div>
-    )
 
     if (!email) {
         redirect("/signin");

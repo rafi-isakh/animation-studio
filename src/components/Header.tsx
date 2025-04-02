@@ -19,6 +19,7 @@ import {
     Sun,
     Search,
     Grip,
+    Ellipsis,
     Globe,
     Menu,
     User,
@@ -334,35 +335,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <div className="relative hidden md:inline-flex w-[400px] mr-3">
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
                             </div>
-                            {/* Globe icon (md:hidden) */}
-                            {/* <div ref={searchRef} className="hidden">
-                                <button id='mobile-search' type="button" onClick={handleMobileMenuClick} aria-controls="navbar-search" aria-expanded="false" className="md:hidden text-black dark:text-white rounded-xl hover:bg-gray-100 md:dark:hover:bg-gray-600 dark:hover:teb focus:outline-none text-sm p-2.5 me-1">
-                                    <Globe size={20} className='dark:text-white text-gray-500 ' />
-                                </button>
-                            </div> 
-                            */}
-
-                            {/* app download button for mobile screen
-                            <div className="inline-flex">
-                                <div className='items-center md:hidden justify-center ml-1'>
-                                    <Button
-                                        variant="text"
-                                        onClick={() => router.push('/pre-launch')}
-                                        sx={{
-                                            backgroundColor: '#DB2777',
-                                            color: 'white',
-                                            '&:hover': {
-                                                color: 'white',
-                                            }
-                                        }}
-                                        className='capitalize rounded-lg'
-                                    >
-                                        {phrase(dictionary, "download", language)}
-                                    </Button>
-                                </div>
-
-                            </div> */}
-                            {/* Top navi menu button persist in mobile screen */}
+                           
                             <div ref={hamburgerRef}>
                                 <button
                                     id="mobile-hamburger"

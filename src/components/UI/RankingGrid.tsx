@@ -1,7 +1,6 @@
 "use client"
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { scroll } from '@/utils/scroll'
 import { Webnovel } from '@/components/Types';
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from '@/utils/phrases';
@@ -9,24 +8,76 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link';
 import CardsScroll from '@/components/CardsScroll';
+import { getVideoUrl } from '@/utils/urls';
+import { Pause, Play, VolumeOff, Volume2 } from 'lucide-react';
+import { Skeleton } from '@/components/shadcnUI/Skeleton';
+import { Card } from '@/components/shadcnUI/Card';
+import { useMediaQuery } from '@mui/material';
 
 export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnovel[], isMobile: boolean }) {
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [videoStates, setVideoStates] = useState<{ [key: number]: boolean }>({});
+    const [isMuted, setIsMuted] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [showPlayButton, setShowPlayButton] = useState(false);
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+
+    useEffect(() => {
+        async function checkCoverArtType(index: number) {
+            if (!webnovels?.[index]?.cover_art) return;
+
+            try {
+                const response = await fetch(`/api/check_if_video_exists?url=${webnovels[index].cover_art}`);
+                const data = await response.json();
+                setVideoStates(prev => ({
+                    ...prev,
+                    [index]: data.videoExists
+                }));
+            } catch (error) {
+                console.error('Error fetching coverArt:', error);
+            }
+        }
+
+        // Check for hovered or active webnovel
+        if (activeIndex !== null) {
+            checkCoverArtType(activeIndex);
+        }
+    }, [activeIndex, webnovels]);
+
+    const handleToggleMute = () => {
+        const videoElement = document.getElementById('videoElement');
+        if (videoElement) {
+            setIsMuted(prev => !prev);
+        }
+    };
+
+    const handleTogglePlayVideo = () => {
+        const videoElement = document.getElementById('videoElement') as HTMLVideoElement;
+        if (videoElement) {
+            if (isPlaying) {
+                videoElement.pause();
+            } else {
+                videoElement.play();
+            }
+            setIsPlaying(prev => !prev);
+        }
+    };
+
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
-            <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
-            <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
-                {/* Auto-cols-[190px] will define the column width */}
+            <h2 className="text-xl font-bold">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
+            <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden no-scrollbar">
                 <div
-                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
+                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] py-8">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
                             className="relative group"
-                            onMouseEnter={() => setHoveredIndex(index)}
-                            onMouseLeave={() => setHoveredIndex(null)}
+                            onMouseEnter={() => setActiveIndex(index)}
+                            onMouseLeave={() => setActiveIndex(null)}
+
                         >
                             {/* Ranking number */}
                             <div className="absolute md:-left-[90px] md:-bottom-8 -left-[55px] -bottom-[15px] select-none pointer-events-none -z-10">
@@ -41,42 +92,96 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                             </div>
                             {/* Card content */}
                             <Link href={`/view_webnovels/${webnovel.id}`}>
-                                <div
-                                    className={`relative overflow-hidden rounded-lg transition-all duration-300 pt-1 
-                                                hover:scale-105 
-                                                ${hoveredIndex === index ? 'transform scale-100' : ''}`}
+                                <Card
+                                    className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none ${activeIndex === index ? "shadow-none scale-110" : ""
+                                        }`}
                                 >
                                     {/* Image container - now using full width of the grid column */}
                                     <div className="relative w-[120px] md:w-[160px] aspect-[2/3] bg-gray-900 rounded-lg ">
-                                        <Image
-                                            fill
-                                            src={getImageUrl(webnovel.cover_art)}
-                                            alt={webnovel.title}
-                                            className="object-cover w-full rounded-lg "
-                                            sizes="(max-width: 768px) 120px, 180px"
-                                            placeholder="blur"
-                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                        />
+                                        {webnovel.cover_art ? (
+                                            (!videoStates[index] || activeIndex !== index) ? (
+                                                <Image
+                                                    src={getImageUrl(webnovel.cover_art)}
+                                                    alt={webnovel.title}
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 300px"
+                                                    className="object-cover rounded-xl"
+                                                    placeholder="blur"
+                                                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                                    priority={index < 2}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full">
+                                                    <div className="relative w-full h-full">
+                                                        <video
+                                                            id={`videoElement-${index}`}
+                                                            src={getVideoUrl(webnovel.cover_art)}
+                                                            autoPlay
+                                                            playsInline
+                                                            onMouseEnter={() => setShowPlayButton(true)}
+                                                            onMouseLeave={() => setShowPlayButton(false)}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleTogglePlayVideo();
+                                                            }}
+                                                            className="w-full h-full object-cover rounded-xl"
+                                                            muted={isMuted}
+                                                            loop
+                                                        />
+                                                        <button
+                                                            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButton ? 'block' : 'hidden'}`}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleTogglePlayVideo();
+                                                            }}
+                                                        >
+                                                            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleToggleMute();
+                                                            }}
+                                                            className="mute-button absolute bottom-2 right-2 text-white"
+                                                        >
+                                                            {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        ) : (
+                                            <Skeleton className="w-full h-full" />
+                                        )}
                                     </div>
-                                    {/* Gradient overlay */}
-                                    <div className="w-[120px] md:w-[180px] absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
-                                    {/* Title and badge */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="text-white font-semibold line-clamp-2 text-base break-keep">
-                                            <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
-                                        </h3>
-                                    </div>
-                                </div>
+                            
+                                    {activeIndex === index && isDesktop && (
+                                        <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-3 text-white h-[50px] z-50 justify-between items-center">
+                                            <h3 className="dark:text-white text-black font-medium text-sm">
+                                                <OtherTranslateComponent
+                                                    content={webnovel.title}
+                                                    elementId={webnovel.id.toString()}
+                                                    elementType="webnovel"
+                                                    elementSubtype="title"
+                                                    classParams="text-xs font-medium text-center line-clamp-2 break-keep korean"
+                                                />
+                                            </h3>
+                                            <div className="flex flex-row gap-2">
+                                                <p className="text-xs text-gray-500">{webnovel.author.nickname}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </Card>
                             </Link>
                         </div>
                     ))}
                 </div>
-            </div>
+            </div >
 
             {!isMobile && (
                 <CardsScroll scrollRef={scrollRef} shift={true} />
-            )}
+            )
+            }
 
-        </div>
+        </div >
     )
 }

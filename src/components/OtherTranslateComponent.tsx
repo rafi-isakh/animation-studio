@@ -75,11 +75,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 setLoading(false)
             }
             else {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`, )
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
                 const data = await response.json();
                 if (data.text) {
                     setText(data.text);
-                    console.log('data.text', data.text);
                     setMarkedText(await marked(data.text));
                     setLoading(false)
                     localStorage.setItem(sessionKey, data.text)

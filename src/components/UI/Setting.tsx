@@ -26,9 +26,10 @@ import { Language } from '@/components/Types';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
+import { Moon, Sun } from 'lucide-react';
 
-export default function Setting({isLoggedInAndRegistered, expanded, }
-    : {isLoggedInAndRegistered: boolean, expanded: boolean,  }) {
+export default function Setting({ isLoggedInAndRegistered, expanded, }
+    : { isLoggedInAndRegistered: boolean, expanded: boolean, }) {
     const { language, dictionary, setLanguageOverride } = useLanguage();
     const { theme, toggleTheme } = useTheme()
     const { logout } = useAuth();
@@ -55,7 +56,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
     const handleSignOut = async (event: React.FormEvent) => {
         event.preventDefault();
         logout(true, '/');
-      };
+    };
 
     const open = Boolean(popoverAnchor);
     const id = open ? 'simple-popover' : undefined;
@@ -121,6 +122,7 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                             onClick={() => toggleTheme(theme == 'dark' ? 'light' : 'dark')}
                             className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'
                         >
+                            {theme === 'dark' ? <Moon className=" w-6 h-6 mr-1" /> : <Sun className=" w-6 h-6 mr-1" />}{'  '}
                             <ListItemText primary={phrase(dictionary, theme === 'dark' ? 'LightMode' : 'DarkMode', language)} />
                         </ListItemButton>
                         <ListItemButton
@@ -155,14 +157,14 @@ export default function Setting({isLoggedInAndRegistered, expanded, }
                             <ListItemButton
                                 color='gray'
                             >
-                            <ListItemText primary={phrase(dictionary, 'login', language)} />
-                        </ListItemButton>
+                                <ListItemText primary={phrase(dictionary, 'login', language)} />
+                            </ListItemButton>
                         </Link>) : (<Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
                             <ListItemButton
                                 color='gray'
                             >
-                            <ListItemText primary={phrase(dictionary, 'logout', language)} />
-                        </ListItemButton>
+                                <ListItemText primary={phrase(dictionary, 'logout', language)} />
+                            </ListItemButton>
                         </Link>)
                         }
                         <LanguageSettingDialogRaw
@@ -233,8 +235,8 @@ export function LanguageSettingDialogRaw(props: {
                             value={langPair.name}
                             key={langPair.code}
                             control={
-                                <Radio 
-                                    sx={{ 
+                                <Radio
+                                    sx={{
                                         color: `${theme === 'dark' ? 'rgb(156 163 175)' : 'rgb(229 231 235)'}`,  // gray-400 in light mode
                                         '&.Mui-checked': {
                                             color: `${theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(156 163 175)'}`,  // gray-200 in dark mode

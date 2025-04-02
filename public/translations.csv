@@ -183,6 +183,7 @@ popularWebnovels,인기작 추천,,Popular Webnovels
 newReleasesWebnovels,투니즈 최신작,,New Releases
 more,더 보기,,More
 less,닫기,,Less
+toonyz,투니즈,,Toonyz
 toonyzHot,실시간 베스트,,BEST on Toonyz,
 currentPromotion,진행중인 이벤트,,Current Event
 ranking,투니즈 인기작,Toonyz's Top Series
@@ -192,8 +193,8 @@ up,UP,,UP
 new,NEW,,NEW
 ongoing,연재중,,ONGOING
 promotionApp,앱으로도 투니즈를 즐겨보세요!,,Begin exploring with the app today!
-LightMode,🌞 라이트모드,,🌞 Light Mode
-DarkMode,🌙 다크모드,,🌙 Dark Mode
+LightMode,라이트 모드,,Light Mode
+DarkMode,다크 모드,,Dark Mode
 viewSettings_scroll,스크롤,,Scroll
 viewSettings_page,페이지,,Page
 webnovelCurriculum,웹소설 커리큘럼,Webnovel カリキュラム,Webnovel Curriculum
@@ -404,7 +405,20 @@ promo_code_applied,쿠폰이 적용되었습니다.,,Promo code applied,,
 already_applied_promo_code,이미 적용된 쿠폰 코드입니다.,,Already applied promo code,,
 cantCreateVideosForThisOne,이 작품은 비디오 생성을 허용하지 않습니다.,,This webnovel does not allow video generation,,
 notEnoughStarsWouldYouLikeToPurchase,별이 부족합니다. 별을 구매하시겠습니까?,,You don't have enough stars. Would you like to purchase more?
+romanceWebnovels,💘 요즘 제일 핫한 로맨스,,💘 Hottest Romance Picks
+fantasyWebnovels,🐉 인기 판타지 모음,,🐉 Top Fantasy Reads
+BLWebnovels,🌈 뜨는 BL 화제작,,🌈 Rising BL Hits
+Sci-FiWebnovels,🚀 인기 SF 추천작,,🚀 Best Sci-Fi Now
+orientalFantasyWebnovels,⚔️ 요즘 뜨는 무협,,⚔️ Trending Wuxia
 complementary_stars_added,가입 축하 별 50개를 받으셨습니다. 웹소설을 구매하거나 이미지로 만들어보세요!,,You have received 50 stars as a welcome gift. Purchase a webnovel or create an image!,,,
 reset,초기화,,Reset,,
 history,지난 기록 확인,,History,,
 signup_description,회원 가입 하고 무료로 별 받아가세요!,,Sign up and get 50 stars for free!
+moreOptions,더보기,,More Options
+notice,공지사항,,Notice
+inquiry,연재문의,,Inquiry
+inquiry_description,연재문의 및 IP 라이선스에 관한 자세한 내용은 lisa@stelland.io 로 이메일 해 주세요. 그 외 문의는 hello@stelland.io 로 이메일 해 주세요. ,,If you have an inquiry about serializing or IP licensing\, please email lisa@stelland.io. For other inquiries\, please email hello@stelland.io.
+signup_description,회원 가입 하고 무료로 별 받아가세요!,,Sign up and get 50 stars for free!
+charge_stars_description,더 푸짐한 혜택이 기다려요!,,More generous benefits are waiting for you!
+charge_stars,별 충전,,Charge stars
+go_to_charge,하러가기,,and enjoy!

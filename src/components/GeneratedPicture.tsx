@@ -66,7 +66,7 @@ export default function GeneratedPicture({
         <div key={key} className="relative">
             <TooltipProvider delayDuration={0}>
                 <div className="relative group border-0 flex items-center justify-center ">
-                    <div className="relative aspect-[2/3] overflow-hidden rounded-xl w-full h-full group">
+                    <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
                         <Button variant="ghost" size="icon" className="rounded-full h-9 w-9"
                             onClick={() => setShowImageModal(true)}>
                             <Image

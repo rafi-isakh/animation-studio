@@ -23,7 +23,7 @@ import {
   RomanceFantasyGenres,
   LoveComedyGenres
 } from '@/components/UI/GenresTabs';
-import WebnovelListGrid from '@/components/UI/WebnovelListGrid';
+import SearchPageWebnovelsList from '@/components/UI/SearchPageWebnovelsList';
 
 // import WebnovelCard from '@/components/UI/WebnovelCard';
 
@@ -278,7 +278,7 @@ const Search = () => {
       ) : (
         // Show default view 
         <div className='space-y-8 md:px-2 px-4'>
-          <WebnovelListGrid
+          <SearchPageWebnovelList
             searchParams={searchParamsObject}
             webnovels={allWebnovels}
             sortBy={sortBy}

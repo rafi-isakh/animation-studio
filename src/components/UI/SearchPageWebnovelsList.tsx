@@ -14,11 +14,7 @@ import { useMediaQuery } from "@mui/material"
 import { phrase } from "@/utils/phrases"
 import { useLanguage } from "@/contexts/LanguageContext"
 
-export const premium = [23, 19, 21, 22, 20, 24]
-
-export const free = [29, 28, 25]
-
-export default function WebnovelListGrid({ searchParams, webnovels, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, webnovels: Webnovel[], sortBy: SortBy }) {
+export default function SearchPageWebnovelsList({ searchParams, webnovels, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, webnovels: Webnovel[], sortBy: SortBy }) {
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const [count, setCount] = useState(0)
@@ -55,9 +51,6 @@ export default function WebnovelListGrid({ searchParams, webnovels, sortBy }: { 
 
 
     useEffect(() => {
-        for (const novel of webnovels) {
-            novel.version = premium.includes(novel.id) ? "premium" : "free";
-        }
         const _webnovelsToShow = webnovels
             .sort((a, b) => sortByFn(a, b, sortBy));
 

@@ -11,7 +11,7 @@ import { useSearch } from "@/contexts/SearchContext";
 import Link from "next/link";
 import { Drawer, Box } from "@mui/material";
 import { useTheme } from '@/contexts/providers'
-import WebnovelsList from "@/components/WebnovelsList";
+import SearchComponentWebnovelsList from "@/components/SearchComponentWebnovelsList";
 import CircularProgress from '@mui/material/CircularProgress';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 
@@ -280,10 +280,9 @@ export default function SearchComponent({
                                         </div>
                                         {/* webnovel list here */}
                                         <div
-                                            onClick={toggleDrawer(false)}
                                             className='flex md:max-w-screen-xl w-full mx-auto'>
                                             {webnovels && (
-                                                <WebnovelsList
+                                                <SearchComponentWebnovelsList
                                                     webnovels={webnovels}
                                                     searchParams={searchParamsObject}
                                                     sortBy='views'

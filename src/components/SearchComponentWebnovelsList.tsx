@@ -23,11 +23,7 @@ import Autoplay from "embla-carousel-autoplay"
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { Heart } from 'lucide-react';
 
-export const premium = [23, 19, 21, 22, 20, 24]
-
-export const free = [29, 28, 25]
-
-const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
+const SearchComponentWebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, webnovels: Webnovel[] }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
@@ -42,9 +38,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const [count, setCount] = useState(0)
-    const plugin = useRef(
-        Autoplay({ delay: 2000, stopOnInteraction: true })
-    )
 
 
     useEffect(() => {
@@ -61,9 +54,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     }, [api])
 
     useEffect(() => {
-        for (const novel of webnovels) {
-            novel.version = premium.includes(novel.id) ? "premium" : "free";
-        }
         const _webnovelsToShow = webnovels
             .sort((a, b) => sortByFn(a, b, sortBy));
 
@@ -92,7 +82,6 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
             </h1>
             <Carousel
                 setApi={setApi}
-                plugins={[plugin.current]}
             >
                 <CarouselContent className="-ml-0">
                     {webnovelsToShow.map((webnovel, index) => (
@@ -141,11 +130,11 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
                     ))}
                 </CarouselContent>
                 <div className="absolute -top-10 right-0 flex items-center justify-end gap-2">
-                    <CarouselPrevious className="static transform-none" />
+                    <CarouselPrevious className="static transform-none text-black dark:text-white" />
                     <span className="text-sm text-muted-foreground">
                         {current} / {webnovelsToShow.length}
                     </span>
-                    <CarouselNext className="static transform-none" />
+                    <CarouselNext className="static transform-none text-black dark:text-white" />
                 </div>
             </Carousel>
 
@@ -153,4 +142,4 @@ const WebnovelsList = ({ searchParams, sortBy, webnovels }: { searchParams: { [k
     )
 };
 
-export default WebnovelsList;
+export default SearchComponentWebnovelsList;

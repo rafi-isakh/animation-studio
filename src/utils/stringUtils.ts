@@ -21,7 +21,7 @@ export function parseHtmlToText(htmlString: string) {
     let textContent = doc.body.textContent || doc.body.innerText;
 
     // Remove excessive new lines and trim spaces
-    textContent = textContent.replace(/\s{2,}/g, "\n").trim();
+    textContent = textContent.replace(/\s{3,}/g, "\n").trim();
 
     return textContent;
 }

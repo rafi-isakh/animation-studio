@@ -9,8 +9,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const WebnovelsCardListByCategory = ({ searchParams, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string }) => {
-    const genre = searchParams.genre as string | undefined;
+const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, genre: string | undefined, sortBy: SortBy, title: string }) => {
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
@@ -34,7 +33,12 @@ const WebnovelsCardListByCategory = ({ searchParams, sortBy, title }: { searchPa
     } else {
     }
 
+    if (webnovelsToShow.length === 0) {
+        return <></>
+    }
+
     return (
+        <>
         <WebnovelsCardList
             title={phrase(dictionary, title, language)}
             subtitle={phrase(dictionary, "more", language)}
@@ -52,6 +56,8 @@ const WebnovelsCardListByCategory = ({ searchParams, sortBy, title }: { searchPa
                 />
             )}
         />
+        <div className='md:h-[2rem] h-[1rem]' />
+        </>
     )
 };
 

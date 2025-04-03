@@ -49,7 +49,8 @@ async function getToonyzPosts() {
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
     let library = await getLibrary() || [];
-    const posts = await getToonyzPosts();
+    let posts = await getToonyzPosts();
+    posts = posts.slice(0, 10);
     library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
@@ -79,22 +80,17 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <MyReadingListComponent library={library} />
                     {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={searchParams} sortBy='date' title="newReleasesWebnovels" />
-                    {smallGap()}
+                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommended" />
                     {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
                     {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={{ genre: "romance" }} sortBy='date' title="romanceWebnovels" />
-                    {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={{ genre: "fantasy" }} sortBy='date' title="fantasyWebnovels" />
-                    {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={{ genre: "bl" }} sortBy='date' title="BLWebnovels" />
-                    {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={{ genre: "orientalFantasy" }} sortBy='date' title="orientalFantasyWebnovels" />
-                    {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={{ genre: "romanceFantasy" }} sortBy='date' title="romanceFantasyWebnovels" />
-                    {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
                     <ToonyzPostCards posts={posts} />
                     {smallGap()}
                 </div>

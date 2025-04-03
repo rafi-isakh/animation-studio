@@ -33,7 +33,7 @@ const ChapterPurchaseDialog = ({
                     </DialogTitle>
                     <DialogDescription className="flex flex-col justify-center items-center">
                         <p className='text-sm text-gray-500 py-2'> {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}</p>
-                        <p>{language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
+                        <p>{language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="flex !justify-center">

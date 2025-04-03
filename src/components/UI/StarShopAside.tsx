@@ -10,7 +10,7 @@ import { phrase } from "@/utils/phrases";
 import { usePathname } from "next/navigation";
 
 export default function StarShopAside({ email }: { email: string }) {
-    const { stars, free_stars, email_hash } = useUser();
+    const { stars, email_hash } = useUser();
     const { dictionary, language } = useLanguage();
     const pathname = usePathname();
 
@@ -36,8 +36,8 @@ export default function StarShopAside({ email }: { email: string }) {
                 <CardContent>
                     <div className="text-sm font-pretendard">
                         {/* <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>} */}
-                        {language === 'ko' ? email ? <>별 <span className="font-bold text-[#DE2B74]">{(stars + free_stars).toLocaleString()}</span> 개</> : "로그인 하세요"
-                            : email ? <><span className="font-bold text-[#DE2B74]">{(stars + free_stars).toLocaleString()}</span> Stars</> : "Please Login"}
+                        {language === 'ko' ? email ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
+                            : email ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</> : "Please Login"}
                     </div>
                 </CardContent>
             </Card>

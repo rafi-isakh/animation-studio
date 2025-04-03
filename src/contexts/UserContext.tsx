@@ -11,7 +11,6 @@ interface UserContextProps {
     bio: string;
     setBio: (bio: string) => void;
     stars: number;
-    free_stars: number;
     picture: string;
     purchased_webnovel_chapters: number[];
     setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
@@ -42,7 +41,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const { isLoggedIn, loading } = useAuth();
     const [email_hash, setEmailHash] = useState<string>("");
     const [id, setId] = useState<string>("");
-    const [free_stars, setFreeStars] = useState<number>(0);
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -56,8 +54,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);
-                setStars(data.stars);
-                setFreeStars(data.free_stars);
+                console.log(data)
+                setStars(data.stars + data.free_stars);
                 setPicture(data.picture);
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
                 setChecking(false);
@@ -84,7 +82,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             setInvokeCheckUser,
             checking,
             upvotedComments, setUpvotedComments,
-            free_stars,
             email_hash,
             id
         }}>

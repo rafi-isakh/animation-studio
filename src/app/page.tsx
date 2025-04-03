@@ -50,7 +50,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     let items = await getCarouselItems();
     let library = await getLibrary() || [];
     let posts = await getToonyzPosts();
-    posts = posts.slice(0, 10);
     library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));

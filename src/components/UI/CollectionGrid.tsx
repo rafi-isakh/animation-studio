@@ -38,7 +38,7 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
             <div className="relative group">
                 <div ref={scrollRef} className="overflow-x-auto no-scrollbar">
                     <div className="flex w-full space-x-4">
-                        {collections.map((collection) => (
+                        {collections.slice(0, 10).map((collection) => (
                             <CollectionCard
                                 key={collection.id}
                                 id={collection.id}

@@ -95,7 +95,7 @@ export default function Home() {
               <Label htmlFor="dark-mode">
                 {theme === 'dark' ? <span className="text-base font-normal">{phrase(dictionary, "DarkMode", language)}</span> : <span className="text-base font-normal">{phrase(dictionary, "LightMode", language)}</span>}
               </Label>
-              {theme === 'dark' ? <Moon className=" w-6 h-6" /> : <Sun className=" w-6 h-6" />}
+              {theme === 'dark' ? <Sun className=" w-6 h-6" /> : <Moon className=" w-6 h-6" />}
             </div>
             <Switch
               id="dark-mode"

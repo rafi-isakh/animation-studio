@@ -79,13 +79,11 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {smallGap()}
                     <MyReadingListComponent library={library} />
                     {smallGap()}
-                    <ToonyzPostCards posts={posts} />
+                    <WebnovelsCardListByCategory searchParams={searchParams} sortBy='date' title="newReleasesWebnovels" />
                     {smallGap()}
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommended" />
                     {largeGap()}
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' />
-                    {smallGap()}
-                    <WebnovelsCardListByCategory searchParams={searchParams} sortBy='date' title="newReleasesWebnovels" />
                     {smallGap()}
                     <WebnovelsCardListByCategory searchParams={{ genre: "romance" }} sortBy='date' title="romanceWebnovels" />
                     {smallGap()}
@@ -96,6 +94,8 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     <WebnovelsCardListByCategory searchParams={{ genre: "orientalFantasy" }} sortBy='date' title="orientalFantasyWebnovels" />
                     {smallGap()}
                     <WebnovelsCardListByCategory searchParams={{ genre: "romanceFantasy" }} sortBy='date' title="romanceFantasyWebnovels" />
+                    {smallGap()}
+                    <ToonyzPostCards posts={posts} />
                     {smallGap()}
                 </div>
             </div>

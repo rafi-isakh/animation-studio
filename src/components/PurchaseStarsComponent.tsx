@@ -92,11 +92,6 @@ export default function PurchaseStarsComponent() {
             </div>
         )
     }
-    return (
-        <div className="flex flex-col items-center justify-center h-screen">
-            <h1>Not available for maintenance. Please check back later.</h1>
-        </div>
-    )
 
     return (
         <div className="relative flex flex-col max-w-screen-md w-full space-y-4 items-center justify-center m-auto">

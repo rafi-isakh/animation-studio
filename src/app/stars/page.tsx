@@ -21,6 +21,8 @@ export interface StarUse {
     user_id: number;
     stars: number;
     date: string;
+    purchase_type: string;
+    free_use: boolean;
 }
 
 export default async function Stars({ searchParams }: { searchParams: { event?: string, package?: string } }) {

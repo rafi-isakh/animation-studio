@@ -28,11 +28,13 @@ export async function POST(req: NextRequest) {
         }
     );
 
-    const data = await response.json();
 
     if (!response.ok) {
-        return NextResponse.json({ success: false, message: data.detail }, { status: response.status });
+        const error = await response.text();
+        console.error('Failed to purchase chapter', error);
+        return NextResponse.json({ success: false, message: error }, { status: response.status });
     }
 
+    const data = await response.json();
     return NextResponse.json({ success: true, message: data }, { status: 200 });
 }

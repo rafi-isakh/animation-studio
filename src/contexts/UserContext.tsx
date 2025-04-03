@@ -54,7 +54,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);
-                setStars(data.stars);
+                setStars(data.stars + data.free_stars);
                 setPicture(data.picture);
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
                 setChecking(false);

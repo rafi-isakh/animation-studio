@@ -2,14 +2,12 @@ import { phrase } from "@/utils/phrases";
 
 import { Box, Button, Modal } from "@mui/material";
 import { SetStateAction, Dispatch, useState } from "react";
-import { User } from "./Types";
+import { UserStripped } from "./Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useModalStyle } from "@/styles/ModalStyles";
 import { UserRoundX } from "lucide-react";
-import router from "next/router";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-export default function BlockButton({ user, setRefreshBlockedUsers }: { user: User, setRefreshBlockedUsers: Dispatch<SetStateAction<boolean>> }) {
+export default function BlockButton({ user, setRefreshBlockedUsers }: { user: UserStripped, setRefreshBlockedUsers: Dispatch<SetStateAction<boolean>> }) {
     const [showBlockModal, setShowBlockModal] = useState(false);
     const [showBlockSuccessModal, setShowBlockSuccessModal] = useState(false);
     const { language, dictionary } = useLanguage();

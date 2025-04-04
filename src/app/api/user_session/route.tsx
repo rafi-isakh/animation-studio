@@ -12,8 +12,14 @@ export async function GET(request: NextRequest) {
             if (!email) {
                 return NextResponse.json({ loggedIn: false, error: 'User email not in session' }, { status: 500 });
             }
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_by_email?email=${email}`)
-
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_session_user`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${session.accessToken}`,
+                        'Provider': session.provider
+                    }
+                }
+            )
             if (!response.ok) {
                 console.error(`Error fetching user by email: ${email}`, response.statusText);
                 return NextResponse.json({ loggedIn: false, error: 'Failed to fetch user' }, { status: response.status });

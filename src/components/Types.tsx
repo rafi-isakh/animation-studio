@@ -40,6 +40,13 @@ export interface User {
   genres: string;
 }
 
+export interface UserStripped {
+  id: number;
+  nickname: string;
+  picture: string;
+  bio: string;
+}
+
 export interface Author {
   id: number;
   email: string;

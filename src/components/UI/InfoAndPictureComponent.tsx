@@ -76,6 +76,10 @@ export default function InfoAndPictureComponent({
     const videoRef = useRef<HTMLVideoElement>(null);
     const showPlayButtonRef = useRef(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
+
+    const view_profile_href = content.user.email_hash == content.author.email_hash?
+        `/view_profile/${content.user.id}` : '#';
+
     const handleMouseEnter = useCallback(() => {
         showPlayButtonRef.current = true;
     }, []);
@@ -284,7 +288,7 @@ return (
                         />
 
                         <p className="text-center">
-                            <Link href={`/view_profile/${content.author.id}`}>
+                            <Link href={view_profile_href}>
                                 {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
                             </Link>
                         </p>

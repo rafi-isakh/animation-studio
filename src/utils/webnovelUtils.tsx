@@ -35,8 +35,8 @@ const genre_recommendation_score = (a: Webnovel, b: Webnovel, genres: { [key: st
     return score;
 }
 
-export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [key: string]: boolean }): number => {
-    if (sortBy === 'recommendation') {
+export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [key: string]: boolean } | null = null): number => {
+    if (sortBy === 'recommendation' && genres) {
         return genre_recommendation_score(a, b, genres)
     } else if (sortBy === 'views') {
         // Calculate time difference in days

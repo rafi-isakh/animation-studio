@@ -28,6 +28,8 @@ async function getLibrary() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library?email=${email}`,{
         headers: {
             'Cookie': cookies().toString(),
+            'Authorization': `Bearer ${session?.accessToken}`,
+            'Provider': session?.provider
         }
     }
     )

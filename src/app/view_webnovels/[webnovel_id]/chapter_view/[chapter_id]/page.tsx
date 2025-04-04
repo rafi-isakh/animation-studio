@@ -144,8 +144,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [email, webnovel])
 
     useEffect(() => {
-        fetch(`/api/increase_views?chapter_id=${chapter_id}&user_email=${email}`)
-    }, [email])
+        fetch(`/api/increase_views?chapter_id=${chapter_id}`)
+    }, [chapter_id])
 
     const handleLikeClick = async () => {
         if (isLoggedIn) {

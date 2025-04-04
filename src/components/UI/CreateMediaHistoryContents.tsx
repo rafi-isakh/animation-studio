@@ -165,10 +165,10 @@ export default function CreateMediaHistoryContents({ stars, source, chapterIds }
                 <Tabs defaultValue="toonyz_post">
                     <TabsList className="relative w-full bg-gray-200 dark:bg-black rounded-lg gap-1">
                         <TabsTrigger value="toonyz_post" className="w-full data-[state=active]:bg-white dark:data-[state=active]:bg-[#222225] rounded-md ">
-                            My Toonyz Posts
+                            {phrase(dictionary, "my_posts", language)}
                         </TabsTrigger>
                         <TabsTrigger value="all_media" className="w-full data-[state=active]:bg-white dark:data-[state=active]:bg-[#222225] rounded-md ">
-                            All Contents
+                            {phrase(dictionary, "posts_history", language)}
                         </TabsTrigger>
                     </TabsList>
                     <TabsContent value="toonyz_post">

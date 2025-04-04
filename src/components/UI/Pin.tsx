@@ -94,7 +94,7 @@ export function Pin({ post }: PinProps) {
                 </p>
               )}
 
-              <div className="absolute left-1/2 bottom-[5.0rem] -translate-x-1/2 z-50">
+              <div className="absolute right-5 bottom-[4.3rem] z-50">
                 {post.user.picture ? (
                   <div className="dark:bg-[#211F21] bg-white rounded-full w-8 h-8 flex items-center justify-center overflow-hidden">
                     <div className="relative w-full h-full">
@@ -129,11 +129,11 @@ export function Pin({ post }: PinProps) {
                   <div className="flex flex-row space-x-2 text-gray-500">
                     <div className="flex flex-row items-center space-x-2 text-sm">
                       <Heart size={14} className="" />
-                      <span>{post.upvotes}</span>
+                      <span>{post.upvotes ? post.upvotes : 0}</span>
                     </div>
                     <div className="flex flex-row items-center space-x-2 text-sm">
                       <MessageCircle size={14} className="" />
-                      <span>{post.comments.length}</span>
+                      <span>{post.comments ? post.comments.length : 0}</span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500">{post.user.nickname}</p>

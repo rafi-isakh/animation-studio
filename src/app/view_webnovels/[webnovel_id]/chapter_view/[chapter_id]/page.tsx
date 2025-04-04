@@ -12,7 +12,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/shadcnUI/Dialog";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List, Type  } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -352,7 +352,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
 
                         <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
                             <MenubarMenu>
-                                <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent">
+                                <MenubarTrigger  className="rounded-full p-2 data-[state=open]:bg-accent cursor-pointer">
                                     <List className="h-5 w-5" />
                                     <span className="sr-only">Table of Contents</span>
                                 </MenubarTrigger>
@@ -391,13 +391,13 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                             <MenubarMenu>
                                 <Button
                                     variant="ghost"
-                                    className="rounded-full p-2"
+                                    className="rounded-full"
                                     size="icon"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         handleViewSettings();
                                     }}>
-                                    <Settings className="h-5 w-5" />
+                                    <Type className="h-12 w-12" />
                                 </Button>
                             </MenubarMenu>
                             {/* like button */}
@@ -422,7 +422,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                                 padding: '0px !important'
                                             }}
                                             onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            <Heart className="h-5 w-5" />
+                                            <Heart className="h-6 w-6" />
                                         </Link>
                                     )
                                     }
@@ -439,7 +439,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                     setDeleteChapterId(chapter.id);
                                     //    handleChapterDelete(Number(id))
                                 }}>
-                                <Trash2 size={18} className="mr-2 text-gray-500" />
+                                <Trash2 className="h-6 w-6 mr-2 text-gray-500" />
                                 <span className="text-sm self-center">
                                     {phrase(dictionary, "delete", language)}
                                 </span>

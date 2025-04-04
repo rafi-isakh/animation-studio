@@ -50,6 +50,8 @@ interface CreateMediaContextType {
     setShareType: Dispatch<SetStateAction<ImageOrVideo>>;
     picture: string;
     setPicture: Dispatch<SetStateAction<string>>;
+    openHistory: boolean;
+    setOpenHistory: Dispatch<SetStateAction<boolean>>;
 }
 
 // Create context with default values
@@ -87,6 +89,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const [picture, setPicture] = useState<string>("");
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
+    const [openHistory, setOpenHistory] = useState(false);
 
     useEffect(() => {
         if (webnovel_id) {
@@ -340,6 +343,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         setShareType,
         picture,
         setPicture,
+        openHistory,
+        setOpenHistory,
     };
 
     return <CreateMediaContext.Provider value={value}>{children}</CreateMediaContext.Provider>;

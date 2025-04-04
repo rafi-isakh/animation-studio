@@ -92,6 +92,8 @@ const FloatingMenu: React.FC<{
         setWebnovelId,
         narrations,
         setNarrations,
+        openHistory,
+        setOpenHistory,
     } = useCreateMedia();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
@@ -187,6 +189,7 @@ const FloatingMenu: React.FC<{
 
     const handlePicturesGenerated = (newPictures: string[]) => {
         setOpenDialog(true);
+        setOpenHistory(false);
     };
 
     useEffect(() => {
@@ -255,7 +258,6 @@ const FloatingMenu: React.FC<{
         }
     };
 
-
     // image generating
     const generatePictures = async () => {
         setShowConfirmDialog(true);
@@ -263,6 +265,7 @@ const FloatingMenu: React.FC<{
 
     const handleConfirmGeneration = async () => {
         setShowConfirmDialog(false);
+        setOpenHistory(false);
         if (stars < 15) {
             setCreateMediaPrice(15);
             setShowNotEnoughStarsModal(true);

@@ -193,13 +193,13 @@ export default function ShareAsToonyzPostModal({
 
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
-            <ScrollArea className="flex flex-col">
-                <DialogContent
-                    className={`select-none no-scrollbar backdrop-blur-md z-[9999]
-                     ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
-                    onClick={(e) => e.stopPropagation()}
-                    showCloseButton={true}
-                >
+            <DialogContent
+                className={`select-none no-scrollbar backdrop-blur-md z-[9999]
+                           ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21] max-h-screen'}`}
+                onClick={(e) => e.stopPropagation()}
+                showCloseButton={true}
+            >
+                <ScrollArea className="relative flex flex-col md:h-full h-screen">
                     <DialogHeader>
                         <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
                         <DialogDescription>
@@ -222,7 +222,6 @@ export default function ShareAsToonyzPostModal({
                                 <>
                                     <video
                                         src={getVideoUrl(videoFileName)}
-                                        // alt={`Generated video ${index + 1}`}
                                         width={250}
                                         height={250}
                                         autoPlay={true}
@@ -236,7 +235,7 @@ export default function ShareAsToonyzPostModal({
                         </DialogDescription>
                     </DialogHeader>
                     <div className="items-center">
-                        <Label htmlFor="name" className="text-right text-sm">
+                        <Label htmlFor="name" className="text-left text-sm">
                             {phrase(dictionary, "title", language)}
                         </Label>
                         <Input
@@ -247,7 +246,7 @@ export default function ShareAsToonyzPostModal({
                         />
                     </div>
                     <div className="items-center">
-                        <Label htmlFor="tags" className="text-right text-sm">
+                        <Label htmlFor="tags" className="text-left text-sm">
                             {phrase(dictionary, "tags", language)}
                         </Label>
                         <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 col-span-3">
@@ -265,7 +264,7 @@ export default function ShareAsToonyzPostModal({
                                 </span>
                             ))}
                             <Input
-                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags", language)}
+                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags_placeholder", language)}
                                 value={tagInput}
                                 onChange={handleTagInput}
                                 onKeyDown={handleTagKeyDown}
@@ -274,18 +273,18 @@ export default function ShareAsToonyzPostModal({
                         </div>
                     </div>
                     <div className="items-center">
-                        <Label htmlFor="content" className="text-right text-sm">
+                        <Label htmlFor="content" className="text-left text-sm">
                             {phrase(dictionary, "content", language)}
                         </Label>
                         <Textarea
-                            placeholder={phrase(dictionary, "content", language)}
+                            placeholder={phrase(dictionary, "content_placeholder", language)}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             className=""
                             rows={4}
                         />
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className='flex md:flex-row flex-col gap-2'>
                         <Button
                             disabled={isLoading}
                             variant="outline"
@@ -305,8 +304,9 @@ export default function ShareAsToonyzPostModal({
                         </Button>
                         <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
                     </DialogFooter>
-                </DialogContent>
-            </ScrollArea>
+                    <div className='h-[10vh]' />
+                </ScrollArea>
+            </DialogContent>
         </Dialog>
     )
 }

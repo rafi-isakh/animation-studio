@@ -146,3 +146,10 @@ export interface ToonyzPost {
   views: number;
   quote?: string;
 }
+
+export interface ToonyzPostUpdate {
+  id: number;
+  title: string;
+  content: string;
+  tags: string;
+}

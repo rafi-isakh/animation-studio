@@ -1,4 +1,4 @@
-import { Webnovel, SortBy, Chapter, Comment, ToonyzPost } from '@/components/Types';
+import { Webnovel, SortBy} from '@/components/Types';
 import moment from 'moment';
 
 
@@ -25,9 +25,19 @@ export const filter_by_version = (item: Webnovel, version: string | null | undef
     else return item.premium;
 };
 
-export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
+const genre_recommendation_score = (a: Webnovel, b: Webnovel, genres: { [key: string]: boolean }): number => {
+    const a_genre = a.genre;
+    const b_genre = b.genre;
+    const a_score = genres[a_genre] ? Math.random() : 0;
+    const b_score = genres[b_genre] ? Math.random() : 0;
+    const noise = Math.random() * 0.01 - 0.005; // add random noise for discovery
+    const score = b_score - a_score + noise;
+    return score;
+}
+
+export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [key: string]: boolean }): number => {
     if (sortBy === 'recommendation') {
-        return Math.random() - 0.5;
+        return genre_recommendation_score(a, b, genres)
     } else if (sortBy === 'views') {
         // Calculate time difference in days
         const daysSinceCreation = (date: Date) => {

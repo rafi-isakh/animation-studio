@@ -37,6 +37,7 @@ export interface User {
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
   created_at: Date;
+  genres: string;
 }
 
 export interface Author {

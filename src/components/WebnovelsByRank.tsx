@@ -14,10 +14,8 @@ export const free = [29, 28, 25];
 export default function WebnovelsByRank({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
-    const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const newAndTrendingRef = useRef<HTMLDivElement>(null);
     const { webnovels } = useWebnovels();
     
 

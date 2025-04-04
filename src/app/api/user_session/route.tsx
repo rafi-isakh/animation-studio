@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
             }
 
             const user: User = data;
-            console.log(user);
 
             return NextResponse.json({
                 loggedIn: true,
@@ -41,6 +40,7 @@ export async function GET(request: NextRequest) {
                 picture: user.picture,
                 purchased_webnovel_chapters: user.purchased_webnovel_chapters,
                 upvoted_comments: user.upvoted_comments,
+                genres: user.genres,
             });
         } else {
             return NextResponse.json({
@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
                 picture: "",
                 purchased_webnovel_chapters: "[]",
                 upvoted_comments: "",
+                genres: "",
             });
         }
     } catch (error) {

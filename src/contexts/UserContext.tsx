@@ -19,6 +19,7 @@ interface UserContextProps {
     email_hash: string;
     setUpvotedComments: (upvotedComments: string[]) => void;
     id: string;
+    genres: { [key: string]: boolean };
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -41,6 +42,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const { isLoggedIn, loading } = useAuth();
     const [email_hash, setEmailHash] = useState<string>("");
     const [id, setId] = useState<string>("");
+    const [genres, setGenres] = useState<{ [key: string]: boolean }>({});
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -61,6 +63,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setUpvotedComments(data.upvoted_comments);
                 setEmailHash(data.email_hash);
                 setId(data.id);
+                setGenres(JSON.parse(data.genres));
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -82,7 +85,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             checking,
             upvotedComments, setUpvotedComments,
             email_hash,
-            id
+            id,
+            genres,
         }}>
             {children}
         </userContext.Provider>

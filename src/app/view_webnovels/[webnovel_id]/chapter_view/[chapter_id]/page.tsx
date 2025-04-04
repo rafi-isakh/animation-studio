@@ -45,7 +45,6 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const { dictionary, language } = useLanguage();
     const router = useRouter();
     const pathname = usePathname();
-    const viewed = useRef(false);
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
@@ -145,15 +144,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [email, webnovel])
 
     useEffect(() => {
-        if (!viewed.current) {
-            if (email) {
-                fetch(`/api/increase_views?chapter_id=${chapter_id}&user_email=${email}`)
-                viewed.current = true;
-            } else {
-                fetch(`/api/increase_views_not_logged_in?chapter_id=${chapter_id}`)
-                viewed.current = true;
-            }
-        }
+        fetch(`/api/increase_views?chapter_id=${chapter_id}&user_email=${email}`)
     }, [email])
 
     const handleLikeClick = async () => {

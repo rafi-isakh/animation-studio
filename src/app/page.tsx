@@ -21,11 +21,10 @@ async function getCarouselItems() {
 
 async function getLibrary() {
     const session = await auth();
-    const email = session?.user?.email;
-    if (!email) {
+    if (!session) {
         return [];
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library?email=${email}`,{
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library`,{
         headers: {
             'Cookie': cookies().toString(),
             'Authorization': `Bearer ${session?.accessToken}`,

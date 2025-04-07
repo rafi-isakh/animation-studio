@@ -74,14 +74,14 @@ export function GlobalSidebar() {
         href="/stars"
         type="link"
       />
-      <SidebarItem
+      {/* <SidebarItem
         icon={<Clapperboard />}
         text="ToonyzCut"
         active={pathname.startsWith('/toonyzcut')} 
         alert={false}
         href="/toonyzcut"
         type="link"
-      />
+      /> */}
       <SidebarItem
         icon={<Bell />}
         text="Notifications"

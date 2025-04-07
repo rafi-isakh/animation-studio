@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_metadata`,
         {
-            cache: 'no-store'
+            cache: 'no-cache'
         }
     )
     if (!response.ok) {

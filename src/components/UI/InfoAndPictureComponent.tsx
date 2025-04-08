@@ -39,6 +39,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
+import { videoDisallowedForKorean } from "@/utils/webnovelUtils";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -234,7 +235,7 @@ return (
                     <div className="min-w-[300px] h-[550px] w-full rounded-xl mx-auto md:pt-1 pt-0">
                         <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                             {coverArt ?
-                                !videoExists ?
+                                !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
                                     <Image
                                         src={getImageUrl(coverArt)}
                                         alt={content.title}

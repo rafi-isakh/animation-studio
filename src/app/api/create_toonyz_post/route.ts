@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log(chapter_id);
     let bodyToSend = { title, content, quote, tags, image: "", video: "", link, webnovel_id: parseInt(webnovel_id), chapter_id: parseInt(chapter_id) }
-    console.log(quote);
-    console.log(bodyToSend);
 
     if (type === "image") {
         bodyToSend.image = fileName;
@@ -19,7 +16,6 @@ export async function POST(request: NextRequest) {
         bodyToSend.video = fileName;
     }
 
-    console.log(JSON.stringify(bodyToSend));
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/create_toonyz_post`, {
         method: 'POST',
         body: JSON.stringify(bodyToSend),

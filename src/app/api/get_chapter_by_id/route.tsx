@@ -6,9 +6,6 @@ export async function GET(request: NextRequest) {
     const startTime = Date.now();
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_chapter_by_id?id=${id}`);
     const elapsedTime = Date.now() - startTime;
-    console.log('start time', startTime);
-    console.log('end time', Date.now());
-    console.log(`Backend request took ${elapsedTime}ms`);
 
     if (!response.ok) {
         return NextResponse.json({ error: "Failed to fetch chapter" }, { status: response.status });

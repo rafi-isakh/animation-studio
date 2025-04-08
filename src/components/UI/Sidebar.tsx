@@ -37,9 +37,6 @@ const SidebarContext = createContext<SidebarContextType>({
 export function GlobalSidebar() {
   const pathname = usePathname();
 
-  useEffect(() => {
-    console.log(pathname)
-  }, [pathname])
   return (
     <Sidebar>
       <SidebarItem

@@ -10,7 +10,7 @@ import { phrase } from '@/utils/phrases'
 import { Skeleton } from "@/components/shadcnUI/Skeleton"
 import { useMediaQuery } from "@mui/material"
 import { Pause, Play, Volume2, VolumeOff } from "lucide-react"
-
+import { videoDisallowedForKorean } from "@/utils/webnovelUtils"
 const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
     const imageSrc = getImageUrl(webnovel.cover_art)
@@ -66,7 +66,7 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                 <div className={`absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out 
                                 ${isHovered ? "scale-110 shadow-xl duration-500 transition-all" : ""}`}>
                     {webnovel.cover_art ?
-                        (!videoExists || !isHovered) ?
+                        (!videoExists || !isHovered || (videoDisallowedForKorean.includes(webnovel.id) && language === "ko")) ?
                             <Image
                                 src={getImageUrl(webnovel.cover_art)}
                                 alt={webnovel.title}

@@ -101,7 +101,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         if (pictures.length > 0) {
             let i = 0;
             for (const picture of pictures) {
-                console.log(`picture from [] ${i}`, truncateText(picture, 150));
                 i++;
             }
         }
@@ -111,7 +110,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         if (pictures.length > 0) {
             let i = 0;
             for (const picture of pictures) {
-                console.log(`picture ${i}`, truncateText(picture, 150));
                 i++;
             }
         }
@@ -212,7 +210,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
                 throw new Error('Failed to make slideshow, please try again later');
             }
             const data = await response.json();
-            console.log(data);
             setVideoFileName(data.video_filename);
             toast({
                 title: "Success",
@@ -274,7 +271,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
             const data = await response.json();
             const url = data.video_url;
-            console.log(`video ${i} url: `, url);
             return url;
         });
 

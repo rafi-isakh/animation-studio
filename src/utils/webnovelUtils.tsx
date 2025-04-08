@@ -3,7 +3,7 @@ import moment from 'moment';
 
 
 export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130 ]
-
+export const videoDisallowedForKorean = [134, 135, 136, 133, 139, 140, 141, 143, 144]
 export const chapterPrice = (language: string) => {
     if (language === "ko") {
         return "10";

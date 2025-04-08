@@ -47,9 +47,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         const checkUser = async () => {
             try {
                 setChecking(true);
-                console.log("pathname", pathname);
-                console.log("loading", loading);
-                console.log("invokeCheckUser", invokeCheckUser);
                 let data: any;
                 const response = await fetch('/api/user_session');
                 if (!response.ok) {

@@ -42,6 +42,8 @@ async function getLibrary() {
 async function getToonyzPosts() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_posts`)
     if (!response.ok) {
+        const error = await response.text();
+        console.error("Failed to fetch toonyz posts", error);
         throw new Error("Failed to fetch toonyz posts", { cause: response.status });
     }
     return response.json();

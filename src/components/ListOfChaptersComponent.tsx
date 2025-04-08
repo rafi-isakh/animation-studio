@@ -163,7 +163,14 @@ const ListOfChaptersComponent = ({
                                     </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row">
-                                            <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" />
+                                            {
+                                                language == 'en' ?
+                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">Episode {index + 1}</p>
+                                                    :
+                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1} 화</p>
+
+                                            }
+                                            {/* <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" /> */}
                                         </div>
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">

@@ -110,6 +110,7 @@ export interface Webnovel {
   okay_to_create_videos: boolean;
   chapters_length: number;
   last_update: Date;
+  en_published_up_to_chapter: number;
 }
 
 export interface Dictionary {

@@ -39,17 +39,32 @@ const ListOfChaptersComponent = ({
     const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
-    const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+    const CHAPTERS_PER_PAGE = 100; // Number of chapters to show per click
 
     const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(0); // for switching back and forth between languages
 
 
     const loadMoreChapters = () => {
-        setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
+        if (language == 'en') {
+            setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0)));
+        } else {
+            setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
+        }
     };
+
+    useEffect(() => {
+        if (language == 'en') {
+            setSavedValueOfVisibleChapters(visibleChapters);
+            setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, prev));
+        } else {
+            setVisibleChapters(savedValueOfVisibleChapters);
+            setSavedValueOfVisibleChapters(visibleChapters);
+        }
+    }, [language])
 
     const handleChapterDelete = async (id: number) => {
         try {

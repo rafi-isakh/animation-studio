@@ -118,3 +118,18 @@ export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMob
         }
     }
 
+    // AUTHOR ENGLISH NAME SHOULD BE IN DATABASE, BUT SINCE IT ISN'T AND IT'S GOING TO TAKE SOME TIME, HERE'S A TEMP FIX
+export const koreanToEnglishAuthorName : { [key: string]: string } = {
+    "독연":	"dok yeon",
+    "온리온":	"OnlyOn",
+    "다원나린":	"DawonNarin",
+    "김호섭":	"hoseup",
+    "언정이":	"eonjeong",
+    "거북수염":	"Turtlebeard",
+    "후두마루":	"Hudumaru",
+    "홍삼더덕":	"Hongsamdeodeok",
+    "차우렌즈":	"CHAWOOLENS",
+    "이르스":	"Irusu",
+    "성상영":	"Sangyoung Seong",
+    "데카스펠":	"deca spell"
+}

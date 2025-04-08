@@ -167,7 +167,7 @@ const ListOfChaptersComponent = ({
                                                 language == 'en' ?
                                                     <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">Episode {index + 1}</p>
                                                     :
-                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1} 화</p>
+                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
 
                                             }
                                             {/* <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" /> */}

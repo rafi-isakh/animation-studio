@@ -24,23 +24,19 @@ export default function BottomNavigationBar() {
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
         switch (newValue) {
-            case 0: // menu 1
+            case 0:
                 router.push('/?version=premium');
                 setIsMobileMenuOpen(false);
                 break;
-            case 1: // menu 2
-                router.push('/explore');
-                setIsMobileMenuOpen(false);
-                break;
-            case 2: // menu 3
+            case 1:
                 router.push('/feeds');
                 setIsMobileMenuOpen(false);
                 break;
-            case 3: // menu 4
+            case 2:
                 router.push('/search');
                 setIsMobileMenuOpen(false);
                 break;
-            case 4: // menu 5
+            case 3:
                 router.push('/stars');
                 setIsMobileMenuOpen(false);
                 break;

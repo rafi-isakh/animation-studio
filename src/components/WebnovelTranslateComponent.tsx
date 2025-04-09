@@ -54,9 +54,9 @@ const WebnovelTranslateComponent = (
     useEffect(() => {
         const webnovelTranslateComponent = document.getElementById('webnovel-translate-component');
 
-        // webnovelTranslateComponent?.addEventListener('copy', (e) => {
-        //     e.preventDefault();
-        // });
+        webnovelTranslateComponent?.addEventListener('copy', (e) => {
+            e.preventDefault();
+        });
     }, []);
 
     useEffect(() => {

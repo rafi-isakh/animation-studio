@@ -11,7 +11,7 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 export const premium = [23, 19, 21, 22, 20, 24];
 export const free = [29, 28, 25];
 
-export default function WebnovelsByRank({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) {
+export default function WebnovelsByRank({ searchParams, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string }) {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([]);
@@ -31,7 +31,7 @@ export default function WebnovelsByRank({ searchParams, sortBy }: { searchParams
 
     return (
         <div className='md:w-max-screen-xl w-full mx-auto h-full no-scrollbar'>
-            <RankingGrid webnovels={webnovelsToShow} isMobile={isMobile} />
+            <RankingGrid webnovels={webnovelsToShow} isMobile={isMobile} title={title}/>
         </div>
     )
 }

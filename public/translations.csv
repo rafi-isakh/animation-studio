@@ -181,7 +181,6 @@ searchTurnOff,최근 검색어 끄기,,Turn off search history
 searchTurnOn,최근 검색어 켜기,,Turn on search history
 searchPlaceholder,작품 제목으로 검색하세요,,Search by title 
 popularWebnovels,인기작 추천,,Popular Webnovels
-newReleasesWebnovels,투니즈 최신작,,New Releases
 more,더 보기,,More
 less,닫기,,Less
 toonyz,투니즈,,Toonyz
@@ -223,7 +222,6 @@ peopleAlsoLike,추천 작품,,People Also Like
 episodes,에피소드,,Episodes
 start_to_read_episode_1,첫 화 보기,,Read Episode 1
 readingForFree,무료,,Free
-recommendedWebnovels,추천 웹소설,,Recommended Webnovels
 toonyzOnly,오리지널,,Toonyz Only
 event,이벤트,,Event
 toonyzCut,투니즈컷,,TOONYZ CUT 
@@ -313,7 +311,6 @@ mostLiked,좋아요순,,Likes
 mostSubscribed,구독순,,Subscribe
 applyCreator,투니즈의 크리에이터가 되어보세요!,,Join Toonyz as an Author!
 applyCreator_button,지금 신청하기,,Apply Now
-TOP_SEVEN_WEBNOVELS,TOP 7,,TOP 7
 starsTransaction,충전 내역,,Transactions
 purchase,구매하기,,Purchase,
 binge_with_bulk_unlock,모든 에피소드를 한번에 구매하세요,,Binge – Unlock All & Enjoy!
@@ -347,7 +344,6 @@ payment_failed,결제가 실패했습니다.,Payment failed.,Payment failed.
 payment_error,결제 오류가 발생했습니다.,Payment error.,Payment error.
 back,돌아가기,,Back
 dontShowAgain,다시 보지 않기,,Don't show again,,
-recommended,투니즈 추천작,,Recommended Works,,
 selectAtLeastOneGenre,장르를 선택해 주세요,,Please select at least one genre,,
 purchaseChapter,구매하기,,Purchase Chapter
 wouldYouLikeToPurchaseChapter,해당 챕터를 구매하시겠습니까?,,Would you like to purchase this chapter?
@@ -406,12 +402,16 @@ promo_code_applied,쿠폰이 적용되었습니다.,,Promo code applied,,
 already_applied_promo_code,이미 적용된 쿠폰 코드입니다.,,Already applied promo code,,
 cantCreateVideosForThisOne,이 작품은 비디오 생성을 허용하지 않습니다.,,This webnovel does not allow video generation,,
 notEnoughStarsWouldYouLikeToPurchase,별이 부족합니다. 별을 구매하시겠습니까?,,You don't have enough stars. Would you like to purchase more?
-romanceWebnovels,💘 요즘 제일 핫한 로맨스,,💘 Hottest Romance Picks
-fantasyWebnovels,🐉 인기 판타지 모음,,🐉 Top Fantasy Reads
-BLWebnovels,🌈 뜨는 BL 화제작,,🌈 Rising BL Hits
+newReleasesWebnovels,🚀 위클리 데뷔작 ,,🚀 New Stars Rising – Weekly Launches
+recommendedWebnovels,🏆 몰입감 순삭 인기작,,🏆 Best Reads – Chapters of Pure Momentum
+TOP_SEVEN_WEBNOVELS,⭐ TOP 7,,⭐ TOP 7
+romanceWebnovels,💘 설렘가득 로맨스,,💘 Hi-teen Romance – Drama\, Laughs & Catfights
+fantasyWebnovels,⚠️ 무적의 판타지,,⚠️ Sci-Fi & Fantasy
+BLWebnovels,🌈 경계없는 사랑,,🌈 Love Without Borders – BL/GL/LGBTQ+
 Sci-FiWebnovels,🚀 인기 SF 추천작,,🚀 Best Sci-Fi Now
-orientalFantasyWebnovels,⚔️ 요즘 뜨는 무협,,⚔️ Trending Wuxia
-romanceFantasyWebnovels,🦄 요즘 인기 로판 모음,,🦄 Trending Romance Fantasy Picks
+orientalFantasyWebnovels,⚔️ 고독한 무림,,⚔️ Blades\, Blood & Fallen Sects – Lonesome Paths
+romanceFantasyWebnovels,💐 운명의 로맨스 판타지,,💐 Romance Fantasy
+toonyzPost_title,투니즈 포스트 쇼케이스,,Starburst- TOONYZ Post,
 complementary_stars_added,가입 축하 별 50개를 받으셨습니다. 웹소설을 구매하거나 이미지로 만들어보세요!,,You have received 50 stars as a welcome gift. Purchase a webnovel or create an image!,,,
 reset,초기화,,Reset,,
 history,지난 기록 확인,,History,,

@@ -45,12 +45,12 @@ const ListOfChaptersComponent = ({
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
-    const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(0); // for switching back and forth between languages
+    const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
 
 
     const loadMoreChapters = () => {
         if (language == 'en') {
-            console.log("Language is english, setting visible chapters to en_published_up_to_chapter")
+            console.log("Language is english, setting visible chapters to en_published_up_to_chapter, which is")
             setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0)));
         } else {
             console.log("Language is not english, setting visible chapters to prev + CHAPTERS_PER_PAGE")

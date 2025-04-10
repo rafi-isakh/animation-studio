@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Webnovel, UserStripped } from '@/components/Types';
+import { Webnovel, UserStripped, ToonyzPost } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -42,7 +42,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false);
-    const { id, email, nickname } = useUser();
+    const { id, email, nickname, email_hash } = useUser();
     const { isLoggedIn } = useAuth();
     const router = useRouter();
     const { logout } = useAuth();
@@ -53,6 +53,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
     const pathname = usePathname();
     const [displayNickname, setDisplayNickname] = useState<string>(user.nickname);
+    const [posts, setPosts] = useState<ToonyzPost[]>([]);
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -89,12 +90,38 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
         ssr: false,
     });
 
-
-
     useEffect(() => {
         setDisplayNickname(nickname);
     }, [nickname]);
 
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await fetch('/api/get_toonyz_posts');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+
+                const data = await response.json();
+                if (id === user.id.toString()) {
+                    const filteredMyPosts = data.filter((post: ToonyzPost) =>
+                        post.user.email_hash === email_hash
+                    );
+                    setPosts(filteredMyPosts);
+                } else {
+                    const filteredPosts = data.filter((post: ToonyzPost) =>
+                        post.user.id === user.id
+                    );
+                    setPosts(filteredPosts);
+                }
+
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+        };
+        fetchPosts();
+    }, [email_hash]);
 
 
     // implementing utils function
@@ -256,7 +283,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 p-1 mr-1">
                                             {phrase(dictionary, "author", language)}
                                         </span>}
-                                        <p className="text-xl">{user.nickname}</p>
+                                        <p className="text-xl">{displayNickname}</p>
                                         <div className='flex flex-row gap-0 text-gray-600 dark:text-white'>
                                             {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} />}
                                             <ProfileShareButton user={user} id={id} />
@@ -317,9 +344,9 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
 
                     <div className='flex flex-col w-full justify-center items-center order-2'>
                         <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-6'>
-                            <p className='text-lg border-b-1 border-gray-500 font-bold w-full uppercase'>
+                            <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
                                 {phrase(dictionary, "userBio", language)}
-                            </p>
+                            </h1>
                             <div>
                                 {user.bio ? (
                                     <>
@@ -336,16 +363,11 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 }
                             </div>
 
-
-                            <p className='text-lg border-b-1 border-gray-500 w-full uppercase font-bold'>
-                                {phrase(dictionary, "viewWebnovels", language)}
-                            </p>
-
                             {novels.length > 0 ? (
-                                <div className={`w-full flex flex-row gap-x-2 gap-y-4 flex-wrap `}>
+                                <div className={`w-full flex`}>
                                     {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                                     <WebnovelsCardList
-                                        title=""
+                                        title={phrase(dictionary, "viewWebnovels", language)}
                                         subtitle=""
                                         webnovels={novels}
                                         scrollRef={scrollRef}
@@ -367,6 +389,41 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                     <p>{phrase(dictionary, "noNovelsYet", language)} </p>
                                 </div>
                             )}
+
+                            <div className='w-full'>
+                                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
+                                    {phrase(dictionary, "ToonyzPost", language)}
+                                </h1>
+
+                                <div className="relative">
+                                    {posts.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center h-full">
+                                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                                {phrase(dictionary, "noPosts", language)}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            ref={scrollRef}
+                                            className="hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 py-8"
+                                        >
+                                            {posts.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className='flex flex-row flex-wrap gap-2 w-full'
+                                                >
+                                                    <div className="flex flex-col w-full">
+                                                        <div className='relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] '>
+                                                            <Image src={getImageUrl(item.image)} alt={item.title} fill quality={85}  sizes="(max-width: 768px) 180px, 257px" className='object-cover ' />
+                                                        </div>
+                                                        <p>{item.title}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

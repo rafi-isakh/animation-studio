@@ -77,6 +77,7 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                         <span className="justify-end self-end"><ChevronRight className="w-4 h-4 ml-1" /></span>
                     </Button>
                 </Link>
+                {children}
             </aside>
         )
     }

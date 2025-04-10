@@ -66,12 +66,12 @@ export function EditProfileButton({ nickname, setDisplayNickname }: { nickname: 
       const data = await response.json();
       console.log(data);
 
-      setChangedNickname(value.trim());
-      setDisplayNickname(value.trim());
+      setChangedNickname(data.nickname);
+      setDisplayNickname(data.nickname);
       setError('');
       setIsLoading(false);
       setOpen(false);
-     
+      
     } catch (error) {
       console.error("Error updating nickname:", error);
     } finally {

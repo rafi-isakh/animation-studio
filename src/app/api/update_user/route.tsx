@@ -77,10 +77,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     }
 
     const data = await response.json();
-
-    return NextResponse.json(
-        { message: "User updated successfully" },
-        { status: 200 }
-    );
+    console.log(data);
+    return NextResponse.json(data);
 }
 

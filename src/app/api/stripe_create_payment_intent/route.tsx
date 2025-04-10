@@ -34,7 +34,6 @@ export async function POST(request: Request) {
                 enabled: true,
             },
         });
-        console.log(paymentIntent.client_secret);
         return NextResponse.json({
             clientSecret: paymentIntent.client_secret,
             // [DEV]: For demo purposes only, you should avoid exposing the PaymentIntent ID in the client-side code.

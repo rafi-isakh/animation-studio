@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import type { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
@@ -20,7 +20,17 @@ const WebnovelPictureComponent = React.memo(
         isOriginal,
     }: { webnovel: Webnovel; index: number; ranking: boolean; details: boolean; up: boolean; isOriginal: boolean }) => {
         const { language, dictionary } = useLanguage()
-        const imageSrc = getImageUrl(webnovel.cover_art)
+        const [imageSrc, setImageSrc] = useState<string | null>(null)
+        useEffect(() => {
+            console.log(webnovel.en_cover_art)
+            if (language === "en" && webnovel.en_cover_art) {
+                const imageSrc = getImageUrl(webnovel.en_cover_art)
+                setImageSrc(imageSrc)
+            } else {
+                const imageSrc = getImageUrl(webnovel.cover_art)
+                setImageSrc(imageSrc)
+            }
+        }, [language])
 
         return (
             <Link href={`/view_webnovels/${webnovel.id}`} className="block w-full">
@@ -31,7 +41,7 @@ const WebnovelPictureComponent = React.memo(
                         <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
                             <Image
                                 src={imageSrc || "/placeholder.svg"}
-                                alt={webnovel.cover_art}
+                                alt={webnovel.title}
                                 fill
                                 sizes="(max-width: 768px) 100px, 160px"
                                 quality={85}

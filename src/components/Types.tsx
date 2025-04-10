@@ -92,6 +92,7 @@ export interface Webnovel {
   id: number;
   title: string;
   cover_art: string;
+  en_cover_art: string;
   chapters: Chapter[];
   description: string;
   genre: string;

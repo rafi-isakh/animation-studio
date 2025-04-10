@@ -13,13 +13,23 @@ import { Pause, Play, Volume2, VolumeOff } from "lucide-react"
 import { videoDisallowedForKorean } from "@/utils/webnovelUtils"
 const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, details, up, isOriginal }: { webnovel: Webnovel, index: number, ranking: boolean, details: boolean, up: boolean, isOriginal: boolean }) => {
     const { language, dictionary } = useLanguage();
-    const imageSrc = getImageUrl(webnovel.cover_art)
     const [isHovered, setIsHovered] = useState(false)
     const isMobile = useMediaQuery('(max-width: 768px)')
     const [videoExists, setVideoExists] = useState(false)
     const [isMuted, setIsMuted] = useState(true)
     const [isPlaying, setIsPlaying] = useState(true)
     const [showPlayButton, setShowPlayButton] = useState(false)
+    const [imageSrc, setImageSrc] = useState<string | null>(null)
+    useEffect(() => {
+        console.log(webnovel.en_cover_art)
+        if (language === "en" && webnovel.en_cover_art) {
+            const imageSrc = getImageUrl(webnovel.en_cover_art)
+            setImageSrc(imageSrc)
+        } else {
+            const imageSrc = getImageUrl(webnovel.cover_art)
+            setImageSrc(imageSrc)
+        }
+    }, [language])
 
     useEffect(() => {
         async function checkCoverArtType() {
@@ -68,7 +78,7 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                     {webnovel.cover_art ?
                         (!videoExists || !isHovered || (videoDisallowedForKorean.includes(webnovel.id) && language === "ko")) ?
                             <Image
-                                src={getImageUrl(webnovel.cover_art)}
+                                src={imageSrc || "/placeholder.svg"}
                                 alt={webnovel.title}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 300px"

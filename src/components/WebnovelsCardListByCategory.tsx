@@ -21,6 +21,7 @@ const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title }: { s
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
+            .filter(item => item.chapters_length > 0)
             .sort((a, b) => sortByFn(a, b, sortBy))
             .slice(0, 9)
 

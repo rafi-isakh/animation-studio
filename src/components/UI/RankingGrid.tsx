@@ -101,7 +101,11 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                                         {webnovel.cover_art ? (
                                             (!videoStates[index] || activeIndex !== index) ? (
                                                 <Image
-                                                    src={getImageUrl(webnovel.cover_art)}
+                                                    src={
+                                                        language === "en" && webnovel.en_cover_art ?
+                                                            getImageUrl(webnovel.en_cover_art) :
+                                                            getImageUrl(webnovel.cover_art)
+                                                    }
                                                     alt={webnovel.title}
                                                     fill
                                                     sizes="(max-width: 768px) 100vw, 300px"

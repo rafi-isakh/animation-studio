@@ -48,9 +48,9 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm font-pretendard">
-                       
+
                             {language === 'ko' ? isLoggedIn ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
-                                               : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</> : "Please Login"}
+                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</> : "Please Login"}
                         </div>
                     </CardContent>
                 </Card>
@@ -75,22 +75,20 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                         {/* Redeem Code  */}
                         <span className="inline-flex items-center">  <TicketPercent className="w-4 h-4 mr-2" /> {phrase(dictionary, "redeem_code", language)}</span>
                         <span className="justify-end self-end"><ChevronRight className="w-4 h-4 ml-1" /></span>
-                            </Button>
-                        </Link>
-                {children}
+                    </Button>
+                </Link>
             </aside>
         )
     }
 
     if (mode === "starShop") {
-        return <StarShopAsideLayout children={<></>}/>
+        return <StarShopAsideLayout><></></StarShopAsideLayout>
     }
 
     if (mode === "viewProfile") {
         return (
             id.toString() === user?.id.toString() && (
-                <>
-               {StarShopAsideLayout({children: <>
+                <StarShopAsideLayout>
                     <Link href="/dashboard">
                         <Button
                             variant="outline"
@@ -115,9 +113,7 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                             <span className="justify-end self-end"><ChevronRight className="w-4 h-4 ml-1" /></span>
                         </Button>
                     </Link>
-                </>
-                })}
-                </>
+                </StarShopAsideLayout>
             )
         )
     }

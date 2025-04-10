@@ -71,7 +71,7 @@ export function EditProfileButton({ nickname, setDisplayNickname }: { nickname: 
       setError('');
       setIsLoading(false);
       setOpen(false);
-      router.refresh();
+     
     } catch (error) {
       console.error("Error updating nickname:", error);
     } finally {

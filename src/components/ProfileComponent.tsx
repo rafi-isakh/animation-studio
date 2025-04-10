@@ -202,7 +202,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                     <div className='w-full flex md:flex-row flex-col gap-6 justify-center items-center order-1 mb-10 md:mb-0 relative'>
                         {/* Existing content container */}
                         <div className="relative rounded-xl p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
-                            <div className="absolute bg-white dark:bg-black inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
+                            <div className="absolute rounded-xl bg-white dark:bg-black inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
                                 style={{ backgroundImage: `url(${getImageUrl(user.picture)})`, backgroundColor: 'white', backgroundSize: 'cover', backgroundPosition: 'center', }}>
                             </div>
                             {/* profile picture */}
@@ -308,7 +308,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         {/* report */}
                                         <ReportButton user={user} />
                                         {/* block */}
-                                        {isLoggedIn && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
+                                        {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
                                     </div>
                                 </div>
                             </div>

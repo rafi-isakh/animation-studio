@@ -1,33 +1,16 @@
 "use client"
-import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Alert, AlertTitle, Button, Snackbar, SnackbarCloseReason } from "@mui/material";
+import { Button } from "@mui/material";
 import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { useRouter, useSearchParams } from "next/navigation";
 import { starsOptions, starsEventOptions, discount_factors, discount_factors_event } from "@/utils/stars";
 
 export default function PurchaseStarsKGInicisComponent() {
     const { dictionary, language } = useLanguage();
     const { email, nickname, stars } = useUser();
-    const searchParams = useSearchParams();
-    // true if reaching the page with this component after completion of payment
-    const complete = searchParams.get('complete');
-    // const { enqueueSnackbar } = useSnackbar();
-    const [isOpen, setIsOpen] = useState(true);
-
-    const handleCloseSnackbar = (
-        event?: React.SyntheticEvent | Event,
-        reason?: SnackbarCloseReason,
-    ) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setIsOpen(false);
-    };
 
     const onClickPaymentInicis = (numStars: number, discount: number) => {
         if (!window.IMP) return;
@@ -83,18 +66,6 @@ export default function PurchaseStarsKGInicisComponent() {
         <div className="relative flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto">
             {/*  tall:h-[calc(100vh-16rem)]  */}
             <div className="flex flex-col w-full items-center justify-center">
-                <Snackbar
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    open={isOpen}
-                    autoHideDuration={5000}
-                    onClose={handleCloseSnackbar}
-                    key="error"
-                >
-                    <Alert severity="error" onClose={() => setIsOpen(false)}>
-                        <AlertTitle>별 구입 서비스는 테스트 중입니다. 테스트 목적으로만 구매하세요.</AlertTitle>
-                    </Alert>
-                </Snackbar>
-
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
                 {/* <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1> */}
                 <h1 className="text-2xl font-extrabold text-center">
@@ -116,7 +87,7 @@ export default function PurchaseStarsKGInicisComponent() {
                 {starsEventOptions.map((stars, index) => (
                     <Button
                         key={index}
-                        onClick={() => onClickPaymentInicis(stars, discount_factors[index])}
+                        onClick={() => onClickPaymentInicis(stars, discount_factors_event[index])}
                         variant="text"
                         sx={{
                             borderBottom: 1,
@@ -142,13 +113,13 @@ export default function PurchaseStarsKGInicisComponent() {
                                         {language === 'ko' ? <>별{' '}</> : ''}
                                         {stars.toLocaleString()}
                                         {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
-                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
+                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors_event[index] * 100}%</span>
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 10) * discount_factors[index]).toLocaleString()}원
+                                    {((stars * 10) * discount_factors_event[index]).toLocaleString()}원
                                     {/* { language === 'ko' &&  <>&#8361;</> } */}
                                 </h1>
                             </div>

@@ -9,6 +9,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import { TrendingUp } from "lucide-react"
+import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 
 const WebnovelPictureComponent = React.memo(
     ({
@@ -94,7 +95,8 @@ const WebnovelPictureComponent = React.memo(
                             />
                             {/* Author and Genre */}
                             <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                                {webnovel.author.nickname}
+                                {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
+                                {koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname}
                                 <span className="hidden md:block"> • </span>
                                 <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                             </p>

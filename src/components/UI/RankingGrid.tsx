@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/shadcnUI/Skeleton';
 import { Card } from '@/components/shadcnUI/Card';
 import { useMediaQuery } from '@mui/material';
 
-export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnovel[], isMobile: boolean }) {
+export default function RankingGrid({ webnovels, isMobile, title }: { webnovels: Webnovel[], isMobile: boolean, title: string }) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -67,7 +67,7 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
 
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
-            <h2 className="text-xl font-bold">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
+            <h2 className="text-xl font-bold">{phrase(dictionary, title, language)}</h2>
             <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden no-scrollbar">
                 <div
                     className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] py-8">

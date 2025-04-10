@@ -414,7 +414,8 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                                 >
                                                     <div className="flex flex-col w-full">
                                                         <div className='relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] '>
-                                                            <Image src={getImageUrl(item.image)} alt={item.title} fill quality={85}  sizes="(max-width: 768px) 180px, 257px" className='object-cover ' />
+                                                         {post.imaage ? <Image src={getImageUrl(item.image)} alt={item.title} fill quality={85}  sizes="(max-width: 768px) 180px, 257px" className='object-cover ' /> :
+                                                          posts.video ? <video src={getVideoUrl(item.video)} className='' /> }
                                                         </div>
                                                         <p>{item.title}</p>
                                                     </div>

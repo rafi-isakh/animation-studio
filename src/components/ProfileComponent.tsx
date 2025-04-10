@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Webnovel, UserStripped, User } from '@/components/Types';
+import { Webnovel, UserStripped } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -9,40 +9,28 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useUser } from '@/contexts/UserContext';
 import { getImageUrl } from '@/utils/urls';
 import Image from 'next/image'
-import '@/styles/globals.css'
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/shadcnUI/Button';
 import { useMediaQuery } from '@mui/material';
-import { MdStars } from 'react-icons/md';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/shadcnUI/Card';
 import {
     Book,
     Heart,
-    ExternalLink,
-    Ellipsis,
     Eye,
-    CircleHelp,
-    Flag,
-    UserRoundX,
     ChevronRight,
-    ReceiptText,
-    MoveLeft,
-    LayoutDashboard,
-    Power,
 } from 'lucide-react';
 
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import WebnovelPictureComponent from '@/components/WebnovelPictureComponent';
-import ReportButton from '@/components/ReportButton';
-import BlockButton from '@/components/BlockButton';
+import ReportButton from '@/components/UI/ReportButton';
+import BlockButton from '@/components/UI/BlockButton';
 import dynamic from 'next/dynamic';
 import animationData from '@/assets/N_logo_with_heart.json';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
 import ProfileDropdownButton from '@/components/UI/ProfileDropdownButton';
-import SharingModal from '@/components/UI/SharingModal';
 import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
 import { usePathname } from 'next/navigation';
+import ProfileShareButton from '@/components/UI/ProfileShareButton';
 
 const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
@@ -60,10 +48,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const { isLoggedIn } = useAuth();
     const router = useRouter();
     const { setIsLoggedIn, logout } = useAuth();
-    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-    const userDropdownRef = useRef<HTMLDivElement>(null);
-    const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
-    const shareDropdownRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [blockedUsers, setBlockedUsers] = useState<number[]>([]);
@@ -297,17 +281,11 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         </div>
                                     </div>
                                     <div className='flex flex-row gap-4 text-gray-600'>
-                                        {/* share */}
-                                        <Button
-                                            color='gray'
-                                            variant='outline'
-                                            onClick={() => setIsModalOpen(true)}
-                                            className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
-                                            <ExternalLink size={10} />
-                                        </Button>
-                                        {/* report */}
+                                      
+                                       <ProfileShareButton user={user} id={id} />
+                                   
                                         <ReportButton user={user} />
-                                        {/* block */}
+                                   
                                         {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
                                     </div>
                                 </div>
@@ -397,14 +375,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                     </div>
                 </div>
             </div>
-            <SharingModal
-                isProfileOwner={id === user.id.toString()}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                user={user}
-                onConfirm={() => { setIsModalOpen(false) }}
-                onCancel={() => { setIsModalOpen(false) }}
-            />
+      
             <DeleteAccountModal
                 isOpen={showDeleteAccountModal}
                 onClose={() => setShowDeleteAccountModal(false)}

@@ -3,7 +3,7 @@ import { Button } from "@/components/shadcnUI/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import { SetStateAction, Dispatch, useState } from "react";
-import { UserStripped } from "./Types";
+import { UserStripped } from "../Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { UserRoundX } from "lucide-react";
 

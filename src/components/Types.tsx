@@ -112,6 +112,7 @@ export interface Webnovel {
   chapters_length: number;
   last_update: Date;
   en_published_up_to_chapter: number;
+  other_translations: OtherTranslation[];
 }
 
 export interface Dictionary {
@@ -162,4 +163,14 @@ export interface ToonyzPostUpdate {
   title: string;
   content: string;
   tags: string;
+}
+
+export type OtherTranslation = {
+  id: string
+  text: string
+  language: string
+  webnovel_id: string | null
+  element_type: string
+  element_subtype: string
+  done: boolean
 }

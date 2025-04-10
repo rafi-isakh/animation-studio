@@ -20,6 +20,7 @@ const WebnovelPictureComponent = React.memo(
         up,
         isOriginal,
     }: { webnovel: Webnovel; index: number; ranking: boolean; details: boolean; up: boolean; isOriginal: boolean }) => {
+        console.log(webnovel.other_translations)
         const { language, dictionary } = useLanguage()
         const [imageSrc, setImageSrc] = useState<string | null>(null)
         useEffect(() => {
@@ -86,17 +87,28 @@ const WebnovelPictureComponent = React.memo(
                     <div className="mt-2 w-full">
                         <div className="flex flex-col items-center text-center">
                             {/* Title */}
-                            <OtherTranslateComponent
-                                content={webnovel.title}
-                                elementId={webnovel.id.toString()}
-                                elementType="webnovel"
-                                elementSubtype="title"
-                                classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] break-keep korean"
-                            />
+
+                            {
+                                // If translation exists, use it; if it doesn't, invoke OtherTranslateComponent
+                                webnovel.other_translations?.find(
+                                    translation => translation.language === language
+                                        && translation.element_type === "webnovel"
+                                        && translation.element_subtype === "title"
+                                        && translation.webnovel_id == webnovel.id.toString()
+                                )?.text 
+                                || 
+                                <OtherTranslateComponent
+                                    content={webnovel.title}
+                                    elementId={webnovel.id.toString()}
+                                    elementType="webnovel"
+                                    elementSubtype="title"
+                                    classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] break-keep korean"
+                                />
+                            }
                             {/* Author and Genre */}
                             <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                                 {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
-                                {koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname}
+                                {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}
                                 <span className="hidden md:block"> • </span>
                                 <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                             </p>

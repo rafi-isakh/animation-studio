@@ -21,13 +21,14 @@ import LanguageSetter from "@/components/LanguageSetter";
 import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
 import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 interface RootLayoutProps {
   children: ReactNode;
 }
 
 export const metadata: Metadata = {
   title: '투니즈 Toonyz',
-    description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
+  description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
   manifest: '/manifest.json',
   openGraph: {
     type: 'website',
@@ -75,7 +76,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`antialiased dark`}>
+        <GoogleAnalytics />
         <RegisterSW />
+
         <ToastProvider>
           <LanguageProvider>
             <WebnovelsProvider>
@@ -119,7 +122,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         </ToastProvider>
         <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6123598702567464"
-                crossOrigin="anonymous"></script>
+          crossOrigin="anonymous"></script>
       </body>
     </html >
   );

@@ -10,8 +10,8 @@ import DictionaryPhrase from "@/components/DictionaryPhrase";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { starsOptions, starsEventOptions, discount_factors_event, discount_factors, getStarsAndDiscount, calculateOrderAmount } from "@/utils/stars";
-
+import { starsOptions, starsEventOptions, discount_factors_event, discount_factors, getStarsAndDiscount, calculateOrderAmount, starsString, starsPriceWithCurrencyString } from "@/utils/stars";
+import { useLanguage } from "@/contexts/LanguageContext";
 export default function PurchaseStarsStripeComponent() {
     const router = useRouter();
     const { isLoggedIn, loading } = useAuth();
@@ -20,6 +20,7 @@ export default function PurchaseStarsStripeComponent() {
     const [isPaying, setIsPaying] = useState<boolean>(false);
     const [starsToBuy, setStarsToBuy] = useState<number>(0);
     const [totalPrice, setTotalPrice] = useState<number>(0);
+    const { language } = useLanguage();
 
     useEffect(() => {
         if (!isLoggedIn && !loading) {
@@ -74,15 +75,14 @@ export default function PurchaseStarsStripeComponent() {
                                 <div className="flex flex-row items-center justify-center space-x-2">
                                     <MdStars className="text-xl text-[#D92979]" />
                                     <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
-                                        별{stars.toLocaleString()}{' '}개
+                                        {starsString(stars, language)}
                                         {event && <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors_used[index] * 100}%</span>}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 10) * discount_factors_used[index]).toLocaleString()}원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                    {starsPriceWithCurrencyString(stars, language)}
                                 </h1>
                             </div>
                         </div>

@@ -27,9 +27,7 @@ export function getStarsAndDiscount(selectedPackage: string, isEvent: boolean) {
     let discount = 1; // Default value
 
     if (selectedPackage) {
-        console.log('selectedPackage is', selectedPackage, 'isEvent', isEvent)
         const packageIndex = parseInt(selectedPackage);
-        console.log('packageIndex is', packageIndex)
         if (!isNaN(packageIndex) && packageIndex >= 0) {
             if (isEvent && packageIndex < starsEventOptions.length) {
                 stars = starsEventOptions[packageIndex];
@@ -41,7 +39,6 @@ export function getStarsAndDiscount(selectedPackage: string, isEvent: boolean) {
         }
     }
 
-    console.log('stars', stars, 'discount', discount)
     return { stars, discount };
 }
 
@@ -51,3 +48,56 @@ export const calculateOrderAmount = (numStars: number, discount: number) => {
     // people from directly manipulating the amount on the client
     return numStars * 10 * discount;
 };
+
+export const starsString = (numStars: number, language: string) => {
+    if (language === 'ko') {
+        return `별 ${numStars}개`;
+    } else {
+        return `${numStars} stars`;
+    }
+}
+
+export const starsPriceWithCurrencyString = (numStars: number, language: string) => {
+    if (language === 'ko') {
+        if (numStars === 100) {
+            return "1,000원"
+        } else if (numStars === 300) {
+            return "3,000원"
+        } else if (numStars === 500) {
+            return "5,000원"
+        } else if (numStars === 1000) {
+            return "10,000원"
+        }
+
+        if (numStars === 150) {
+            return "1,400원"
+        } else if (numStars === 350) {
+            return "3,100원"
+        } else if (numStars === 550) {
+            return "4,600원"
+        } else if (numStars === 1100) {
+            return "8,800원"
+        }
+    }
+    else if (language === 'en') {
+        if (numStars === 100) {
+            return "$0.75"
+        } else if (numStars === 300) {
+            return "$2.25"
+        } else if (numStars === 500) {
+            return "$3.75"
+        } else if (numStars === 1000) {
+            return "$7.50"
+        }
+
+        if (numStars === 150) {
+            return "$1"
+        } else if (numStars === 350) {
+            return "$2.50"
+        } else if (numStars === 550) {
+            return "$3.80"
+        } else if (numStars === 1100) {
+            return "$6.20"
+        }
+    }
+}

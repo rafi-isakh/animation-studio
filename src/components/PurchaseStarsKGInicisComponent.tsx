@@ -6,7 +6,8 @@ import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { starsOptions, starsEventOptions, discount_factors, discount_factors_event } from "@/utils/stars";
+import { starsOptions, starsEventOptions, discount_factors, discount_factors_event, starsString, starsPriceWithCurrencyString } from "@/utils/stars";
+import { useCallback } from "react";
 
 export default function PurchaseStarsKGInicisComponent() {
     const { dictionary, language } = useLanguage();
@@ -35,6 +36,7 @@ export default function PurchaseStarsKGInicisComponent() {
 
         /* 4. 결제 창 호출하기 */
         IMP.request_pay(data, callback);
+        console.log("IMP", IMP);
 
         async function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;
@@ -110,17 +112,14 @@ export default function PurchaseStarsKGInicisComponent() {
                                 <div className="flex flex-row items-center justify-center space-x-2">
                                     <MdStars className="text-xl text-[#D92979]" />
                                     <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
-                                        {language === 'ko' ? <>별{' '}</> : ''}
-                                        {stars.toLocaleString()}
-                                        {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                        {starsString(stars, language)}
                                         <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors_event[index] * 100}%</span>
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 10) * discount_factors_event[index]).toLocaleString()}원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                    {starsPriceWithCurrencyString(stars, language)}
                                 </h1>
                             </div>
                         </div>
@@ -157,15 +156,12 @@ export default function PurchaseStarsKGInicisComponent() {
                             <div className="flex items-center space-x-2 ">
                                 <MdStars className="text-xl text-[#D92979]" />
                                 <div className="text-xl">
-                                    {language === 'ko' ? <>별{' '}</> : ''}
-                                    {stars.toLocaleString()}
-                                    {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                    {starsString(stars, language)}
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {(stars * 10).toLocaleString()} 원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                    {starsPriceWithCurrencyString(stars, language)} 
                                 </h1>
                             </div>
                         </div>

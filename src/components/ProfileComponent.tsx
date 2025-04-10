@@ -31,6 +31,7 @@ import UserBlockedComponent from '@/components/UserBlockedComponent';
 import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
 import { usePathname } from 'next/navigation';
 import ProfileShareButton from '@/components/UI/ProfileShareButton';
+import { EditProfileButton } from '@/components/UI/EditProfileButton';
 
 const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
@@ -41,7 +42,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false);
-    const { id, email } = useUser();
+    const { id, email, nickname } = useUser();
     const { isLoggedIn } = useAuth();
     const router = useRouter();
     const { logout } = useAuth();
@@ -51,6 +52,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
     const pathname = usePathname();
+    const [displayNickname, setDisplayNickname] = useState<string>(user.nickname);
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -86,6 +88,14 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
         ssr: false,
     });
+
+
+
+    useEffect(() => {
+        setDisplayNickname(nickname);
+    }, [nickname]);
+
+
 
     // implementing utils function
     const handleProfilePictureUpload = () => {
@@ -248,6 +258,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         </span>}
                                         <p className="text-xl">{user.nickname}</p>
                                         <div className='flex flex-row gap-0 text-gray-600 dark:text-white'>
+                                            {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} />}
                                             <ProfileShareButton user={user} id={id} />
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}

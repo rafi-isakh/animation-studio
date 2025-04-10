@@ -208,7 +208,7 @@ help,도움말,,Help
 follow,팔로우,,Follow
 share,공유,,Share
 report,신고,,Report
-wouldYouLikeToReport,,신고하시겠습니까?,,Would you like to report this user?
+wouldYouLikeToReport,신고하시겠습니까?,,Would you like to report this user?
 reportReason,신고 사유,,Report Reason
 reportSuccess,신고가 접수되었습니다.,,Report has been submitted.
 block,차단,,Block
@@ -427,3 +427,4 @@ go_to_charge,하러가기,,and enjoy!
 stars_free,무료,,Free
 my_posts,내가 올린 포스트,,My Posts
 posts_history,기록,,Full History
+go_to_dashboard,대시보드 가기,,Go to Dashboard,,

@@ -28,7 +28,7 @@ import {
     ChevronRight,
     ReceiptText,
     MoveLeft,
-    TicketPercent,
+    LayoutDashboard,
     Power,
 } from 'lucide-react';
 
@@ -44,7 +44,7 @@ import SharingModal from '@/components/UI/SharingModal';
 import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
 import { usePathname } from 'next/navigation';
 
-const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
+const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
     const [introActive, setIntroActive] = useState<boolean>(true);
     const [viewActive, setViewActive] = useState<boolean>(false);
@@ -193,86 +193,16 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
         return "";
     }
 
-    const handleSignOut = async (event: React.FormEvent) => {
-        event.preventDefault();
-        logout(true, '/');
-    };
 
     return (
-        <div className='md:max-w-screen-xl w-full mx-auto  p-4 flex flex-col my-auto justify-center items-center'>
-
+        <div className='md:max-w-screen-xl w-full mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
             <div className="flex flex-col md:flex-row w-full">
-                {id === user.id.toString() && (
-                    <aside className="relative flex flex-col gap-4 w-full md:w-1/4 md:p-0 p-1 flex-grow-0">
-                        <Link href="/" className={`${hideManuInPages()} items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden`}>
-                            <MoveLeft size={20} className='dark:text-white text-gray-500' />
-                            <p className="text-sm font-base">Back</p>
-                        </Link>
-                        <Card className="flex flex-col shadow-none bg-gray-200 dark:bg-[#211F21] dark:border-[#211F21]">
-                            <CardHeader>
-                                <CardTitle>
-                                    {phrase(dictionary, "starShop_title", language)}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-row justify-between text-sm font-pretendard">
-                                    {/* <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>} */}
-                                    <div className="flex flex-row gap-2 self-center">
-                                        {language === 'ko' ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</>
-                                            : <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</>}
-                                    </div>
-                                    <Button variant="link" className="!no-underline p-0 inline-flex items-center  w-fit justify-between text-black shadow-none">
-                                        <MdStars className="text-xl text-[#D92979]" />  Go to shop
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Link href="/dashboard">
-                            <Button
-                                variant="outline"
-                                color="gray"
-                                className="px-4 py-2 w-full justify-between border-none shadow-none"
-                               >
-                            
-                                <span className="inline-flex items-center"><ReceiptText className="w-4 h-4 mr-2" /> {phrase(dictionary, "view_transaction_history", language)}</span>
-                                <span className="justify-end self-end"> <ChevronRight className="w-4 h-4 ml-1" /></span>
-                            </Button>
-                        </Link>
-                        <Link href="/stars/transactions">
-                            <Button
-                                variant="outline"
-                                color="gray"
-                                className="px-4 py-2 w-full justify-between border-none shadow-none"
-                               >
-                            
-                                <span className="inline-flex items-center"><ReceiptText className="w-4 h-4 mr-2" /> {phrase(dictionary, "view_transaction_history", language)}</span>
-                                <span className="justify-end self-end"> <ChevronRight className="w-4 h-4 ml-1" /></span>
-                            </Button>
-                        </Link>
-                        <Link href="#">
-                            <Button
-                                variant="outline"
-                                color="gray"
-                                className="px-4 py-2 w-full justify-between border-none shadow-none"
-                                onClick={(e) => {
-                                    handleSignOut(e);
-                                }}
-                            >
-                                <span className="inline-flex items-center"> <Power className="w-4 h-4 mr-2" /> {phrase(dictionary, "logout", language)} </span>
-                                <span className="justify-end self-end"><ChevronRight className="w-4 h-4 ml-1" /></span>
-                            </Button>
-                        </Link>
-                    </aside>
-                )}
-
-                <div className={`${id === user.id.toString() ? 'md:w-3/4 w-full' : 'w-full'} flex flex-col gap-4 md:px-2`}>
+                <div className={`w-full flex flex-col gap-4 md:px-2`}>
                     {/*The side bar width is 72px  md:pl-[72px]  */}
                     <div className='w-full flex md:flex-row flex-col gap-6 justify-center items-center order-1 mb-10 md:mb-0 relative'>
-
                         {/* Existing content container */}
-                        <div className="relative p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
-                            <div className="absolute bg-white dark:bg-black rounded-md inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
+                        <div className="relative rounded-xl p-10 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
+                            <div className="absolute bg-white dark:bg-black inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
                                 style={{ backgroundImage: `url(${getImageUrl(user.picture)})`, backgroundColor: 'white', backgroundSize: 'cover', backgroundPosition: 'center', }}>
                             </div>
                             {/* profile picture */}

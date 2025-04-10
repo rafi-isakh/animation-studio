@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_price_krw } from "@/utils/stars";
+import { stars_name_to_price_krw, stars_name_to_price_usd } from "@/utils/stars";
 import crypto from "crypto";
 import Stripe from "stripe";
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
                 }
 
                 // Verify payment amount matches expected price
-                const expectedAmount = stars_name_to_price_krw[`투니즈 별 ${stars}개`] || 0;
+                let expectedAmount = stars_name_to_price_krw[`투니즈 별 ${stars}개`] || 0;
                 if (paymentIntent.currency == 'krw') {
                     if (expectedAmount !== paymentIntent.amount) { // Stripe amounts are in cents
                         console.error("Possible forge attempt! Payment amount does not match stars.",
@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
                         );
                     }
                 } else if (paymentIntent.currency == 'usd') {
+                    expectedAmount = stars_name_to_price_usd[`투니즈 별 ${stars}개`] || 0;
                     if (expectedAmount !== paymentIntent.amount) { // Stripe amounts are in cents
                         console.error("Possible forge attempt! Payment amount does not match stars.",
                             paymentIntent.receipt_email, stars, paymentIntent.amount);

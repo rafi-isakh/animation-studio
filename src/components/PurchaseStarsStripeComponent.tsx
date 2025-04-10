@@ -2,12 +2,10 @@
 import { Alert, AlertTitle, Button, Snackbar, SnackbarCloseReason } from "@mui/material";
 
 import { MdStars } from "react-icons/md";
-import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import Image from 'next/image';
 import StripeComponent from "@/components/StripeComponent";
 import { useRouter } from "next/navigation";
 import DictionaryPhrase from "@/components/DictionaryPhrase";
-import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { starsOptions, starsEventOptions, discount_factors_event, discount_factors, getStarsAndDiscount, calculateOrderAmount, starsString, starsPriceWithCurrencyString } from "@/utils/stars";

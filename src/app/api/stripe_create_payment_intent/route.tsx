@@ -22,6 +22,7 @@ export async function POST(request: Request) {
         const { stars, discount } = getStarsAndDiscount(selectedPackage, isEvent);
 
         // Create a PaymentIntent with the order amount and currency
+        // TODO: Add support for USD
         const paymentIntent = await stripe.paymentIntents.create({
             amount: calculateOrderAmount(stars, discount),
             metadata: {

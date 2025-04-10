@@ -59,7 +59,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent showCloseButton={false} className="bg-transparent border-none flex items-center justify-center">
+            <DialogContent showCloseButton={false} className="!bg-transparent !border-none shadow-none flex items-center justify-center">
             <div className="flex flex-col items-center justify-center w-[350px]">
                 <div className="relative top-[10px]">
                     <div className="w-24 h-24 bg-pink-200 rounded-full flex items-center justify-center">

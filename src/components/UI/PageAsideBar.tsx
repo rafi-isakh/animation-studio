@@ -33,11 +33,10 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
         logout(true, '/');
     };
 
-
-    if (mode === "starShop") {
+    const StarShopAsideLayout = ({ children }: { children: React.ReactNode }) => {
         return (
-            <aside className="relative flex flex-col gap-4 w-full md:w-1/4 my-5 md:p-0 p-1 flex-grow-0">
-                <Link href="/stars" className={`${hideManuInPages()} items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden`}>
+            <aside className="relative flex flex-col gap-4 w-full md:w-1/4 md:my-0 my-5 flex-grow-0">
+                <Link href={`${mode === "starShop" ? "/stars" : mode === "viewProfile" ? "/" : ""}`} className={`${hideManuInPages()} items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden`}>
                     <MoveLeft size={20} className='dark:text-white text-gray-500' />
                     <p className="text-sm font-base">Back</p>
                 </Link>
@@ -49,13 +48,12 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm font-pretendard">
-                            {/* <span className="font-bold text-[#DE2B74]">{stars}</span> 개 </p>} */}
-                            {language === 'ko' ? email ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
-                                : email ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</> : "Please Login"}
+                       
+                            {language === 'ko' ? isLoggedIn ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
+                                               : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</> : "Please Login"}
                         </div>
                     </CardContent>
                 </Card>
-
                 <Link href="/stars/transactions">
                     <Button
                         variant="outline"
@@ -77,59 +75,22 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                         {/* Redeem Code  */}
                         <span className="inline-flex items-center">  <TicketPercent className="w-4 h-4 mr-2" /> {phrase(dictionary, "redeem_code", language)}</span>
                         <span className="justify-end self-end"><ChevronRight className="w-4 h-4 ml-1" /></span>
-                    </Button>
-                </Link>
+                            </Button>
+                        </Link>
+                {children}
             </aside>
         )
+    }
+
+    if (mode === "starShop") {
+        return <StarShopAsideLayout children={<></>}/>
     }
 
     if (mode === "viewProfile") {
         return (
             id.toString() === user?.id.toString() && (
-                <aside className="relative flex flex-col gap-4 w-full md:w-1/4 md:p-0 p-1 flex-grow-0">
-                    <Link href="/" className={`${hideManuInPages()} items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden`}>
-                        <MoveLeft size={20} className='dark:text-white text-gray-500' />
-                        <p className="text-sm font-base">Back</p>
-                    </Link>
-                    <Card className="flex flex-col shadow-none bg-gray-200 dark:bg-[#211F21] dark:border-[#211F21]">
-                        <CardHeader>
-                            <CardTitle>
-                                {phrase(dictionary, "starShop_title", language)}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-row justify-between text-sm font-pretendard">
-
-                                <div className="flex flex-row gap-2 self-center">
-                                    {language === 'ko' ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</>
-                                        : <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</>}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Link href="/stars">
-                        <Button
-                            variant="outline"
-                            color="gray"
-                            className="px-4 py-2 w-full justify-between border-none shadow-none"
-                        >
-
-                            <span className="inline-flex items-center"><MdStars className="text-[#D92979] w-4 h-4 mr-2" /> {phrase(dictionary, "stars", language)}</span>
-                            <span className="justify-end self-end"> <ChevronRight className="w-4 h-4 ml-1" /></span>
-                        </Button>
-                    </Link>
-                    <Link href="/stars/transactions">
-                        <Button
-                            variant="outline"
-                            color="gray"
-                            className="px-4 py-2 w-full justify-between border-none shadow-none"
-                        >
-
-                            <span className="inline-flex items-center"><ReceiptText className="w-4 h-4 mr-2" /> {phrase(dictionary, "view_transaction_history", language)}</span>
-                            <span className="justify-end self-end"> <ChevronRight className="w-4 h-4 ml-1" /></span>
-                        </Button>
-                    </Link>
+                <>
+               {StarShopAsideLayout({children: <>
                     <Link href="/dashboard">
                         <Button
                             variant="outline"
@@ -154,7 +115,9 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                             <span className="justify-end self-end"><ChevronRight className="w-4 h-4 ml-1" /></span>
                         </Button>
                     </Link>
-                </aside>
+                </>
+                })}
+                </>
             )
         )
     }

@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useState } from "react";
 import { UserStripped } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ExternalLink } from "lucide-react";
+import { Share2 } from "lucide-react";
 import SharingModal from '@/components/UI/SharingModal';
 
 export default function ProfileShareButton({ user, id }: { user: UserStripped, id: string }) {
@@ -16,8 +16,8 @@ export default function ProfileShareButton({ user, id }: { user: UserStripped, i
             <TooltipProvider delayDuration={0}>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button color='gray' variant='outline' onClick={() => setShowShareModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
-                            <ExternalLink size={10} />
+                        <Button variant="ghost" size="icon" className="!no-underline rounded-full" onClick={() => setShowShareModal(true)}>
+                            <Share2 className='cursor-pointer' size={20} />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>

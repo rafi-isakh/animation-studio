@@ -28,8 +28,8 @@ export default function ReportButton({ user }: { user: UserStripped }) {
             <TooltipProvider delayDuration={0}>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button color='gray' variant='outline' onClick={() => setShowReportModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
-                            <Flag size={10} />
+                        <Button variant="ghost" size="icon" className="!no-underline rounded-full" onClick={() => setShowReportModal(true)}>
+                            <Flag className='cursor-pointer' size={20} />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>

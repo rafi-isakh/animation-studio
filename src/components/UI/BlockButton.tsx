@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SetStateAction, Dispatch, useState } from "react";
 import { UserStripped } from "../Types";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { UserRoundX } from "lucide-react";
+import { Ban } from "lucide-react";
 
 export default function BlockButton({ user, setRefreshBlockedUsers }: { user: UserStripped, setRefreshBlockedUsers: Dispatch<SetStateAction<boolean>> }) {
     const [showBlockModal, setShowBlockModal] = useState(false);
@@ -26,8 +26,8 @@ export default function BlockButton({ user, setRefreshBlockedUsers }: { user: Us
             <TooltipProvider delayDuration={0}>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button color='gray' variant='outline' onClick={() => setShowBlockModal(true)} className='border-2 bg-white border-gray-300 rounded-sm px-4 py-2 w-16 flex flex-row justify-center items-center gap-1'>
-                            <UserRoundX size={10} />
+                        <Button variant="ghost" size="icon" className="!no-underline rounded-full" onClick={() => setShowBlockModal(true)}>
+                            <Ban className='cursor-pointer' size={20} />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>

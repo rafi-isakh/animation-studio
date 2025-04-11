@@ -113,6 +113,8 @@ export interface Webnovel {
   last_update: Date;
   en_published_up_to_chapter: number;
   other_translations: OtherTranslation[];
+  video_cover: string;
+  en_video_cover: string;
 }
 
 export interface Dictionary {

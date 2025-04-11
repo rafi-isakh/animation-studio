@@ -20,32 +20,27 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
     const [isPlaying, setIsPlaying] = useState(true)
     const [showPlayButton, setShowPlayButton] = useState(false)
     const [imageSrc, setImageSrc] = useState<string | null>(null)
+    const [videoSrc, setVideoSrc] = useState<string | null>(null)
+
     useEffect(() => {
-        console.log(webnovel.en_cover_art)
         if (language === "en" && webnovel.en_cover_art) {
             const imageSrc = getImageUrl(webnovel.en_cover_art)
+            const videoSrc = getVideoUrl(webnovel.en_video_cover)
             setImageSrc(imageSrc)
+            setVideoSrc(videoSrc)
         } else {
             const imageSrc = getImageUrl(webnovel.cover_art)
+            const videoSrc = getVideoUrl(webnovel.video_cover)
             setImageSrc(imageSrc)
+            setVideoSrc(videoSrc)
         }
     }, [language])
 
     useEffect(() => {
-        async function checkCoverArtType() {
-            try {
-                const response = await fetch(`/api/check_if_video_exists?url=${webnovel.cover_art}`);
-                const data = await response.json();
-                setVideoExists(data.videoExists);
-            } catch (error) {
-                console.error('Error fetching coverArt:', error);
-            }
+        if (videoSrc) {
+            setVideoExists(true)
         }
-
-        if (webnovel.cover_art) {
-            checkCoverArtType();
-        }
-    }, [webnovel.cover_art]);
+    }, [videoSrc])
 
     const handleToggleMute = () => {
         const videoElement = document.getElementById('videoElement');
@@ -91,7 +86,7 @@ const WebnovelPictureCardWrapper = React.memo(({ webnovel, index, ranking, detai
                                 <div className="relative aspect-[2/3]">
                                     <video
                                         id="videoElement"
-                                        src={getVideoUrl(webnovel.cover_art)}
+                                        src={videoSrc!}
                                         autoPlay
                                         playsInline
                                         onMouseEnter={() => setShowPlayButton(true)}

@@ -362,14 +362,9 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                             webnovels={novels}
                             scrollRef={scrollRef}
                             isMobile={isMobile}
-                            renderItem={(item: Webnovel, index: number) => (
+                            renderItem={(item: Webnovel) => (
                                 <WebnovelPictureComponent
                                     webnovel={item}
-                                    index={index}
-                                    ranking={false}
-                                    details={false}
-                                    up={false}
-                                    isOriginal={false}
                                 />
                             )}
                         />

@@ -5,7 +5,6 @@ import WebnovelPictureCardWrapper from "@/components/UI/WebnovelPictureCardWrapp
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import Link from 'next/link';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
 import { filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { filter_by_genre } from '@/utils/webnovelUtils';
@@ -47,14 +46,9 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams:
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
                 isMobile={isMobile}
-                renderItem={(item: Webnovel, index: number) => (
+                renderItem={(item: Webnovel) => (
                     <WebnovelPictureCardWrapper
                         webnovel={item}
-                        index={index + 1}
-                        ranking={false}
-                        details={false}
-                        up={false}
-                        isOriginal={false}
                     />
                 )}
             />

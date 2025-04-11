@@ -14,7 +14,7 @@ import { useMediaQuery } from "@mui/material"
 import { phrase } from "@/utils/phrases"
 import { useLanguage } from "@/contexts/LanguageContext"
 
-export default function SearchPageWebnovelsList({ searchParams, webnovels, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, webnovels: Webnovel[], sortBy: SortBy }) {
+export default function SearchPageWebnovelsList({ searchParams, webnovels, sortBy, mode }: { searchParams: { [key: string]: string | string[] | undefined }, webnovels: Webnovel[], sortBy: SortBy, mode: "page" | "component" }) {
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
     const [count, setCount] = useState(0)
@@ -58,7 +58,6 @@ export default function SearchPageWebnovelsList({ searchParams, webnovels, sortB
 
     }, [version, genre, sortBy, webnovels]);
 
-
     return (
         <div className="w-full">
             <h1 className="flex flex-row justify-between text-xl font-extrabold mb-3">
@@ -76,20 +75,37 @@ export default function SearchPageWebnovelsList({ searchParams, webnovels, sortB
             >
                 <CarouselContent>
                     {pages.map((page, pageIndex) => (
-                        <CarouselItem key={pageIndex} className="w-full">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                                {page.map((webnovel, index) => (
-                                    <div key={webnovel.id} className="flex items-start">
-                                        <WebnovelComponent
-                                            webnovel={webnovel}
-                                            index={calculateIndex(index, pageIndex, pages)}
-                                            ranking={true}
-                                            chunkIndex={pageIndex}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </CarouselItem>
+                        mode === "page" ? (
+                            <CarouselItem key={pageIndex} className="w-full">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                                    {page.map((webnovel, index) => (
+                                        <div key={webnovel.id} className="flex items-start">
+                                            <WebnovelComponent
+                                                webnovel={webnovel}
+                                                index={calculateIndex(index, pageIndex, pages)}
+                                                ranking={true}
+                                                chunkIndex={pageIndex}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </CarouselItem>
+                        ) : mode === "component" ? (
+                            <CarouselItem key={pageIndex} className="w-full">
+                                <div className="grid grid-cols-3 gap-4">
+                                    {page.slice(0, 3).map((webnovel, index) => (
+                                        <div key={webnovel.id} className="flex items-start">
+                                            <WebnovelComponent 
+                                                webnovel={webnovel} 
+                                                index={pageIndex * 3 + index + 1} 
+                                                ranking={true} 
+                                                chunkIndex={pageIndex} 
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </CarouselItem>
+                        ) : <></>
                     ))}
                 </CarouselContent>
                 <div className="absolute -top-10 right-0 flex items-center justify-end gap-2">

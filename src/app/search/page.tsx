@@ -278,7 +278,7 @@ const Search = () => {
       ) : (
         // Show default view 
         <div className='space-y-8 md:px-2 px-4'>
-          <SearchPageWebnovelList
+          <SearchPageWebnovelsList
             searchParams={searchParamsObject}
             webnovels={allWebnovels}
             sortBy={sortBy}

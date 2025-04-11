@@ -12,7 +12,8 @@ import {
   Bell,
   Gift,
   ChevronFirst,
-  Home
+  Home,
+  Clapperboard
 } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
@@ -36,9 +37,6 @@ const SidebarContext = createContext<SidebarContextType>({
 export function GlobalSidebar() {
   const pathname = usePathname();
 
-  useEffect(() => {
-    console.log(pathname)
-  }, [pathname])
   return (
     <Sidebar>
       <SidebarItem
@@ -47,14 +45,6 @@ export function GlobalSidebar() {
         active={pathname === '/'}
         alert={false}
         href="/?version=premium"
-        type="link"
-      />
-      <SidebarItem
-        icon={<LibraryBig />}
-        text="Explore"
-        active={pathname.startsWith('/explore')}
-        alert={false}
-        href="/explore"
         type="link"
       />
       <SidebarItem
@@ -76,18 +66,26 @@ export function GlobalSidebar() {
       <SidebarItem
         icon={<Gift />}
         text="Shop"
-        active={pathname.startsWith('/stars')} // This will match /library and its subpaths
+        active={pathname.startsWith('/stars')} 
         alert={false}
         href="/stars"
         type="link"
       />
+      {/* <SidebarItem
+        icon={<Clapperboard />}
+        text="ToonyzCut"
+        active={pathname.startsWith('/toonyzcut')} 
+        alert={false}
+        href="/toonyzcut"
+        type="link"
+      /> */}
       <SidebarItem
-        type="component"
-        alert={true}
         icon={<Bell />}
         text="Notifications"
         active={pathname.startsWith('#')}
+        alert={true}
         href="#"
+        type="component"
       />
     </Sidebar>
   )

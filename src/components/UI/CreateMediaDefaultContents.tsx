@@ -7,12 +7,13 @@ import { ToonyzPost } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import Link from "next/link";
 import PhotoCards from "@/components/UI/PhotoCards";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/shadcnUI/Tooltip"
 import { MdStars } from "react-icons/md";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/shadcnUI/Toast";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 
 export default function CreateMediaDefaultContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
@@ -21,6 +22,8 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
     const { dictionary, language } = useLanguage();
     const { setOpenDialog, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [createMediaPrice, setCreateMediaPrice] = useState(0);
 
     useEffect(() => {
         fetch('/api/get_toonyz_posts')
@@ -55,9 +58,8 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-r dark:from-black dark:to-transparent from-transparent to-blue-100/50 backdrop-blur-md  p-6 md:p-8">
-            {/* Header Section */}
-            <div className="max-w-4xl mx-auto mb-12">
+        <div className="min-h-screen p-6 md:p-8">
+            <div className="w-full mx-auto mb-12">
                 <h1 className="text-2xl md:text-2xl font-bold mb-4 uppercase text-gray-700 dark:text-gray-300 break-words">
                     {phrase(dictionary, "bringStoriesToLife", language)}
                 </h1>
@@ -72,14 +74,20 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                             className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base"
                             disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
                             onClick={() => {
+                                if (stars < 20) {
+                                    setCreateMediaPrice(20)
+                                    setShowNotEnoughStarsModal(true);
+                                    return;
+                                }
                                 if (chapterIds && chapterIds.length > 0) {
                                     setOpenDialog(true);
                                     generateTrailer(chapterIds);
-                                } else {
+                                }
+                                else {
                                     toast({
                                         title: "Error",
                                         description: "No chapters available to generate trailer",
-                                        variant: "destructive"
+                                        variant: "destructive",
                                     });
                                 }
                             }}
@@ -151,6 +159,8 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                     </div>
                 </div>
             </div>
+            <div className='h-[10vh]' />
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
         </div >
     )
 }

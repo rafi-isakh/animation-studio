@@ -10,9 +10,9 @@ import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
 import { filter_by_version, sortByFn } from '@/utils/webnovelUtils';
 import { filter_by_genre } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { useUser } from '@/contexts/UserContext';
 
-
-const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
+const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string }) => {
     const genre = searchParams.genre as string | undefined;
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
@@ -20,13 +20,15 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const { webnovels } = useWebnovels();
+    const { genres } = useUser();
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
-            .sort((a, b) => sortByFn(a, b, sortBy))
+            .filter(item => item.chapters_length > 0)
+            .sort((a, b) => sortByFn(a, b, sortBy, genres))
             .slice(0, 18)
 
         setWebnovelsToShow(_webnovelsToShow);
@@ -41,9 +43,10 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     return (
         <div className='relative md:max-w-screen-xl group font-pretendard'>
             <WebnovelsAllCardWrapper
-                title={phrase(dictionary, "recommended", language)}
+                title={phrase(dictionary, title, language)}
                 webnovels={webnovelsToShow}
                 scrollRef={scrollRef}
+                isMobile={isMobile}
                 renderItem={(item: Webnovel, index: number) => (
                     <WebnovelPictureCardWrapper
                         webnovel={item}

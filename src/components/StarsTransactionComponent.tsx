@@ -108,7 +108,7 @@ const StarsTransactionComponent = () => {
                                         <div className="flex flex-row items-center gap-2">
                                             <Minus className="text-gray-500 w-4 h-4" />
                                             <p className="text-gray-500 font-bold">{element.stars}</p>
-                                            <p className="text-gray-500 font-bold">{phrase(dictionary, "star", language)}</p>
+                                            <p className="text-gray-500 font-bold">{element.free_use? phrase(dictionary, 'stars_free', language): ''} {phrase(dictionary, "star", language)}</p>
                                         </div>
                                     }
                                     <p className="text-gray-500">{new Date(element.date).toLocaleDateString()}</p>

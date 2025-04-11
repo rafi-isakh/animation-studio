@@ -3,7 +3,7 @@ import { Box, Button, Modal } from "@mui/material";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { useState } from "react";
-import { User } from "@/components/Types";
+import { UserStripped } from "@/components/Types";
 import { Textarea } from "flowbite-react";
 import Image from 'next/image';
 import { useModalStyle } from "@/styles/ModalStyles";
@@ -16,7 +16,7 @@ export default function ReportModal({
 }: {
     isOpen: boolean,
     onClose: () => void,
-    user: User,
+    user: UserStripped,
     onSubmit: () => void,
 }) {
     const { language, dictionary } = useLanguage();
@@ -26,7 +26,7 @@ export default function ReportModal({
 
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname} - ${user.email}\n\nReport message: ${reportMessage}`;
+        const message = `Reported user: ${user.nickname}\nUser ID: ${user.id}\n\nReport message: ${reportMessage}`;
         await fetch('/api/send_email', {
             method: 'POST',
             body: JSON.stringify({ message: message })

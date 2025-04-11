@@ -9,8 +9,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy }) => {
-    const genre = searchParams.genre as string | undefined;
+const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, genre: string | undefined, sortBy: SortBy, title: string }) => {
     const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
@@ -22,6 +21,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
+            .filter(item => item.chapters_length > 0)
             .sort((a, b) => sortByFn(a, b, sortBy))
             .slice(0, 9)
 
@@ -34,10 +34,14 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
     } else {
     }
 
+    if (webnovelsToShow.length === 0) {
+        return <></>
+    }
+
     return (
+        <>
         <WebnovelsCardList
-            //New Releases
-            title={phrase(dictionary, "newReleasesWebnovels", language)}
+            title={phrase(dictionary, title, language)}
             subtitle={phrase(dictionary, "more", language)}
             webnovels={webnovelsToShow}
             scrollRef={scrollRef}
@@ -53,7 +57,9 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy }: { searchParams: { [key
                 />
             )}
         />
+        <div className='md:h-[2rem] h-[1rem]' />
+        </>
     )
 };
 
-export default WebnovelsCardListByNew;
+export default WebnovelsCardListByCategory;

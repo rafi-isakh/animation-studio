@@ -9,6 +9,7 @@ import { phrase } from '@/utils/phrases';
 import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { ToastAction } from '@/components/shadcnUI/Toast';
 // Define the type for the context data
 interface CreateMediaContextType {
     isLoading: boolean;
@@ -49,6 +50,8 @@ interface CreateMediaContextType {
     setShareType: Dispatch<SetStateAction<ImageOrVideo>>;
     picture: string;
     setPicture: Dispatch<SetStateAction<string>>;
+    openHistory: boolean;
+    setOpenHistory: Dispatch<SetStateAction<boolean>>;
 }
 
 // Create context with default values
@@ -86,6 +89,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const [picture, setPicture] = useState<string>("");
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
+    const [openHistory, setOpenHistory] = useState(false);
 
     useEffect(() => {
         if (webnovel_id) {
@@ -97,7 +101,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         if (pictures.length > 0) {
             let i = 0;
             for (const picture of pictures) {
-                console.log(`picture from [] ${i}`, truncateText(picture, 150));
                 i++;
             }
         }
@@ -107,7 +110,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         if (pictures.length > 0) {
             let i = 0;
             for (const picture of pictures) {
-                console.log(`picture ${i}`, truncateText(picture, 150));
                 i++;
             }
         }
@@ -127,7 +129,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughStars", language),
-                variant: "destructive"
+                variant: "destructive",
+                action: <ToastAction altText='Buy Stars'>Buy Stars</ToastAction>
             })
             return;
         }
@@ -207,7 +210,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
                 throw new Error('Failed to make slideshow, please try again later');
             }
             const data = await response.json();
-            console.log(data);
             setVideoFileName(data.video_filename);
             toast({
                 title: "Success",
@@ -232,7 +234,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughStars", language),
-                variant: "destructive"
+                variant: "destructive",
+                action: <ToastAction altText='Buy Stars'>Buy Stars</ToastAction>
             })
             return;
         }
@@ -268,7 +271,6 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             setInvokeCheckUser(prev => !prev); // invoke to update stars after generating pictures
             const data = await response.json();
             const url = data.video_url;
-            console.log(`video ${i} url: `, url);
             return url;
         });
 
@@ -337,6 +339,8 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
         setShareType,
         picture,
         setPicture,
+        openHistory,
+        setOpenHistory,
     };
 
     return <CreateMediaContext.Provider value={value}>{children}</CreateMediaContext.Provider>;

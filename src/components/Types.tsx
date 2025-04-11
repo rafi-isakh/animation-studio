@@ -32,10 +32,19 @@ export interface User {
   bio: string;
   picture: string;
   stars: number;
+  free_stars: number;
   marketing: string;
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
   created_at: Date;
+  genres: string;
+}
+
+export interface UserStripped {
+  id: number;
+  nickname: string;
+  picture: string;
+  bio: string;
 }
 
 export interface Author {
@@ -83,6 +92,7 @@ export interface Webnovel {
   id: number;
   title: string;
   cover_art: string;
+  en_cover_art: string;
   chapters: Chapter[];
   description: string;
   genre: string;
@@ -101,6 +111,8 @@ export interface Webnovel {
   okay_to_create_videos: boolean;
   chapters_length: number;
   last_update: Date;
+  en_published_up_to_chapter: number;
+  other_translations: OtherTranslation[];
 }
 
 export interface Dictionary {
@@ -144,4 +156,21 @@ export interface ToonyzPost {
   created_at: Date;
   views: number;
   quote?: string;
+}
+
+export interface ToonyzPostUpdate {
+  id: number;
+  title: string;
+  content: string;
+  tags: string;
+}
+
+export type OtherTranslation = {
+  id: string
+  text: string
+  language: string
+  webnovel_id: string | null
+  element_type: string
+  element_subtype: string
+  done: boolean
 }

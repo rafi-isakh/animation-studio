@@ -22,18 +22,18 @@ export async function POST(request: Request) {
         const { stars, discount } = getStarsAndDiscount(selectedPackage, isEvent);
 
         // Create a PaymentIntent with the order amount and currency
+        const amount = calculateOrderAmount(stars, discount) * 100;
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: calculateOrderAmount(stars, discount),
+            amount: amount,
             metadata: {
                 stars: stars.toString(),
                 email: email
             },
-            currency: "krw",
+            currency: "usd",
             automatic_payment_methods: {
                 enabled: true,
             },
         });
-        console.log(paymentIntent.client_secret);
         return NextResponse.json({
             clientSecret: paymentIntent.client_secret,
             // [DEV]: For demo purposes only, you should avoid exposing the PaymentIntent ID in the client-side code.

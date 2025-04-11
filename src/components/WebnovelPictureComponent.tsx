@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import type { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
@@ -9,6 +9,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import { TrendingUp } from "lucide-react"
+import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 
 const WebnovelPictureComponent = React.memo(
     ({
@@ -19,8 +20,19 @@ const WebnovelPictureComponent = React.memo(
         up,
         isOriginal,
     }: { webnovel: Webnovel; index: number; ranking: boolean; details: boolean; up: boolean; isOriginal: boolean }) => {
+        console.log(webnovel.other_translations)
         const { language, dictionary } = useLanguage()
-        const imageSrc = getImageUrl(webnovel.cover_art)
+        const [imageSrc, setImageSrc] = useState<string | null>(null)
+        useEffect(() => {
+            console.log(webnovel.en_cover_art)
+            if (language === "en" && webnovel.en_cover_art) {
+                const imageSrc = getImageUrl(webnovel.en_cover_art)
+                setImageSrc(imageSrc)
+            } else {
+                const imageSrc = getImageUrl(webnovel.cover_art)
+                setImageSrc(imageSrc)
+            }
+        }, [language])
 
         return (
             <Link href={`/view_webnovels/${webnovel.id}`} className="block w-full">
@@ -31,7 +43,7 @@ const WebnovelPictureComponent = React.memo(
                         <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
                             <Image
                                 src={imageSrc || "/placeholder.svg"}
-                                alt={webnovel.cover_art}
+                                alt={webnovel.title}
                                 fill
                                 sizes="(max-width: 768px) 100px, 160px"
                                 quality={85}
@@ -39,7 +51,6 @@ const WebnovelPictureComponent = React.memo(
                                 placeholder="blur"
                                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                             />
-
 
                             {/* Overlay for hover effect */}
                             <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 hover:opacity-50 flex items-center justify-center gap-2 z-10">
@@ -60,8 +71,6 @@ const WebnovelPictureComponent = React.memo(
 
                         </div>
 
-
-
                         {/* UP Badge */}
                         {up && <span className="absolute top-0 left-0 text-[10px] text-white bg-[#DB2777] px-1 py-1">UP</span>}
 
@@ -78,16 +87,28 @@ const WebnovelPictureComponent = React.memo(
                     <div className="mt-2 w-full">
                         <div className="flex flex-col items-center text-center">
                             {/* Title */}
-                            <OtherTranslateComponent
-                                content={webnovel.title}
-                                elementId={webnovel.id.toString()}
-                                elementType="webnovel"
-                                elementSubtype="title"
-                                classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] break-keep korean"
-                            />
+
+                            {
+                                // If translation exists, use it; if it doesn't, invoke OtherTranslateComponent
+                                webnovel.other_translations?.find(
+                                    translation => translation.language === language
+                                        && translation.element_type === "webnovel"
+                                        && translation.element_subtype === "title"
+                                        && translation.webnovel_id == webnovel.id.toString()
+                                )?.text 
+                                || 
+                                <OtherTranslateComponent
+                                    content={webnovel.title}
+                                    elementId={webnovel.id.toString()}
+                                    elementType="webnovel"
+                                    elementSubtype="title"
+                                    classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] break-keep korean"
+                                />
+                            }
                             {/* Author and Genre */}
                             <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
-                                {webnovel.author.nickname}
+                                {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
+                                {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}
                                 <span className="hidden md:block"> • </span>
                                 <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                             </p>

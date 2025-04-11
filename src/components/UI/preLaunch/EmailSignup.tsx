@@ -9,7 +9,6 @@ export default function EmailSignup() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Here you would typically send the email to your backend or email service
-    console.log("Email submitted:", email)
     // Reset the form
     setEmail("")
   }

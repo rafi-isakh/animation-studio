@@ -12,7 +12,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/shadcnUI/Dialog";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List, Type  } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -31,8 +31,9 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 });
 import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
-
-
+import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
+import { isPurchasedChapter } from "@/utils/webnovelUtils";
 function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -44,7 +45,6 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const { dictionary, language } = useLanguage();
     const router = useRouter();
     const pathname = usePathname();
-    const viewed = useRef(false);
     const [showPleaseLogin, setShowPleaseLogin] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteChapterId, setDeleteChapterId] = useState<number | null>(null);
@@ -61,7 +61,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [screenWidth, setScreenWidth] = useState('max-w-screen-sm');
     const webnovelViewRef = useRef<HTMLDivElement>(null);
-    const { purchased_webnovel_chapters, checking } = useUser();
+    const { purchased_webnovel_chapters, checking, stars, setInvokeCheckUser } = useUser();
     const [upvotedChapters, setUpvotedChapters] = useState<number[]>([]);
     const { chaptersLikelyNeededWebnovel } = useWebnovels();
     const readerStyle = {
@@ -79,6 +79,11 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedTextRef = useRef<string>("");
     const [posts, setPosts] = useState([]);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [chapterToPurchase, setChapterToPurchase] = useState<Chapter>();
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
+
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -120,7 +125,10 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 setChapter(chapter);
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
-            if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(chapter_id))) {
+            if (!chapter?.free 
+                && !checking 
+                && purchased_webnovel_chapters 
+                && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
                 router.push(`/view_webnovels/${chapter?.webnovel_id}`);
             }
             setUpvotes(chapter?.upvotes || 0)
@@ -139,16 +147,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [email, webnovel])
 
     useEffect(() => {
-        if (!viewed.current) {
-            if (email) {
-                fetch(`/api/increase_views?chapter_id=${chapter_id}&user_email=${email}`)
-                viewed.current = true;
-            } else {
-                fetch(`/api/increase_views_not_logged_in?chapter_id=${chapter_id}`)
-                viewed.current = true;
-            }
-        }
-    }, [email])
+        fetch(`/api/increase_views?chapter_id=${chapter_id}`)
+    }, [chapter_id])
 
     const handleLikeClick = async () => {
         if (isLoggedIn) {
@@ -216,6 +216,61 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [webnovel?.id]);
 
 
+    const handleChapterClick = (chapter: Chapter) => {
+        if (!webnovel?.available_languages.includes(language)) {
+            alert(phrase(dictionary, "languageNotAvailable", language));
+            return;
+        }
+        if (chapter.free) {
+            router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
+        } else {
+            if (isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
+                router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
+                return;
+            }
+            setChapterToPurchase(chapter);
+            setShowPurchaseModal(true);
+        }
+    }
+
+    const handleChapterPurchase = async (chapter: Chapter) => {
+        if (!chapter) return;
+        if (!isLoggedIn) {
+            router.push("/signin");
+        }
+        else {
+            setShowPurchaseModal(false);
+            const price = language === "ko" ? webnovel?.price_korean : webnovel?.price_english;
+            if (stars < price!) {
+                setShowNotEnoughStarsModal(true);
+                return;
+            }
+            const response = await fetch(`/api/purchase_chapter`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    chapter_id: chapter.id,
+                    price: price,
+                    language: language
+                })
+            });
+            // TODO: tell user if there's not enough stars
+            if (!response.ok) {
+                console.error('Failed to purchase chapter');
+                alert("Failed to purchase chapter");
+            } else {
+                const data = await response.json();
+                if (data.success) {
+                    setInvokeCheckUser(prev => !prev);
+                    router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
+                } else {
+                    alert(data.message);
+                }
+            }
+        }
+    }
+
+
+
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
@@ -232,21 +287,30 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
             <div className={`${screenWidth} mx-auto w-full pb-5`}>
                 <Button
                     variant="link"
-                    disabled={!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)}
-                    className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
-                    <Link href={`/view_webnovels/${webnovel.id}/chapter_view/${nextChapter.id}`} className="w-full">
-                        <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
-                            <div className="flex flex-row items-center space-x-4">
-                                <Image
-                                    src={getImageUrl(webnovel.cover_art)}
-                                    alt={webnovel.title}
-                                    width={50} height={50}
-                                    className="rounded-lg"
-                                />
-                                <div className="flex flex-col">
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-bold">
-                                        {phrase(dictionary, "nextChapterView", language)}
-                                    </p>
+                    onClick={() => {
+                        if (!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language)) {
+                            setChapterToPurchase(nextChapter);
+                            setShowPurchaseModal(true);
+                        } else {
+                            handleChapterClick(nextChapter);
+                        }
+                    }}
+                    className={`w-full !no-underline ${!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language) ? "opacity-50" : ""}`}>
+                    <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
+                        <div className="flex flex-row items-center space-x-4">
+                            <Image
+                                src={getImageUrl(webnovel.cover_art)}
+                                alt={webnovel.title}
+                                width={50} height={50}
+                                className="rounded-lg"
+                            />
+                            <div className="flex flex-col justify-start items-start">
+                                <span>{phrase(dictionary, "nextChapterView", language)}</span>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 font-bold flex flex-row items-center justify-start">
+
+                                    {!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language) && (
+                                        <span className="mr-2">🔒</span>
+                                    )}
                                     <OtherTranslateComponent
                                         content={nextChapter.title}
                                         elementId={nextChapter.id.toString()}
@@ -256,9 +320,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                     />
                                 </div>
                             </div>
-                            <ChevronRight size={18} className="" />
                         </div>
-                    </Link>
+                        <ChevronRight size={18} className="" />
+                    </div>
                 </Button>
             </div>
         );
@@ -283,7 +347,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
 
                         <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
                             <MenubarMenu>
-                                <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent">
+                                <MenubarTrigger  className="rounded-full p-2 data-[state=open]:bg-accent cursor-pointer">
                                     <List className="h-5 w-5" />
                                     <span className="sr-only">Table of Contents</span>
                                 </MenubarTrigger>
@@ -292,17 +356,25 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         Table of Contents
                                     </MenubarItem>
                                     <MenubarSeparator />
-                                    {webnovel.chapters.map((chapter, index) => (
+                                    {sortedChapters?.map((chapter, index) => (
                                         <MenubarItem
                                             key={chapter.id}
-                                            onClick={() => router.push(`/view_webnovels/${webnovel.id}/chapter_view/${chapter.id}`)}
-                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free ? "opacity-50" : ""}`}
-                                            disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                                            onClick={() => {
+                                                if (!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
+                                                    setChapterToPurchase(chapter);
+                                                    setShowPurchaseModal(true);
+                                                } else {
+                                                    handleChapterClick(chapter);
+                                                }
+                                            }}
+                                            
+                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? "opacity-50" : ""}`}
+                                            // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
                                             <p className="text-sm">{index + 1}.</p>
                                             <MenubarShortcut>
                                                 {chapter.title}
-                                                {!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) && (
+                                                {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
                                                     <span className="ml-2">🔒</span>
                                                 )}
                                             </MenubarShortcut>
@@ -314,13 +386,13 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                             <MenubarMenu>
                                 <Button
                                     variant="ghost"
-                                    className="rounded-full p-2"
+                                    className="rounded-full"
                                     size="icon"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         handleViewSettings();
                                     }}>
-                                    <Settings className="h-5 w-5" />
+                                    <Type className="h-12 w-12" />
                                 </Button>
                             </MenubarMenu>
                             {/* like button */}
@@ -345,7 +417,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                                 padding: '0px !important'
                                             }}
                                             onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            <Heart className="h-5 w-5" />
+                                            <Heart className="h-6 w-6" />
                                         </Link>
                                     )
                                     }
@@ -362,7 +434,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                     setDeleteChapterId(chapter.id);
                                     //    handleChapterDelete(Number(id))
                                 }}>
-                                <Trash2 size={18} className="mr-2 text-gray-500" />
+                                <Trash2 className="h-6 w-6 mr-2 text-gray-500" />
                                 <span className="text-sm self-center">
                                     {phrase(dictionary, "delete", language)}
                                 </span>
@@ -425,6 +497,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 </div>
                 <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
                 <div className="md:h-[10vh] h-[10vh]"></div>
+                <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
+                <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
             </div>
         )
     }

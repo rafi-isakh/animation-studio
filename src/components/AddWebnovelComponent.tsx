@@ -300,13 +300,6 @@ const AddWebnovelComponent = () => {
                                             <option disabled selected value="">{phrase(dictionary, "language", language)}</option>
                                             <option value="ko">{phrase(dictionary, "korean", language)}</option>
                                             <option value="en">{phrase(dictionary, "english", language)}</option>
-                                            <option value="ja">{phrase(dictionary, "japanese", language)}</option>
-                                            <option value="zh-CN">{phrase(dictionary, "chineseSimplified", language)}</option>
-                                            <option value="zh-TW">{phrase(dictionary, "chineseTraditional", language)}</option>
-                                            <option value="th">{phrase(dictionary, "thai", language)}</option>
-                                            <option value="id">{phrase(dictionary, "indonesian", language)}</option>
-                                            <option value="vi">{phrase(dictionary, "vietnamese", language)}</option>
-                                            <option value="ar">{phrase(dictionary, "arabic", language)}</option>
                                         </select>
                                     </div>
                                     <br />

@@ -47,7 +47,7 @@ export default function ViewProfile({ params: { id }, }: { params: { id: string 
         return (
             <div className="relative md:max-w-screen-xl w-full mx-auto flex flex-col md:flex-row">
                 <PageAsideBar mode="viewProfile" user={user} />
-                <div className="flex-1 w-full flex-grow flex-shrink-0 h-full">
+                <div className="flex-1 w-full flex-shrink-0">
                     <ProfileComponent user={user} novels={novels} />
                 </div>
             </div>

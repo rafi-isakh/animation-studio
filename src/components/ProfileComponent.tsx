@@ -213,7 +213,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
 
 
     return (
-        <div className='md:max-w-screen-xl w-full mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center'>
+        <div className={`${id === user.id.toString() ? 'md:max-w-screen-md' : 'md:max-w-screen-xl'}  w-full mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center`}>
             <div className="flex flex-col md:flex-row w-full">
                 <div className={`w-full flex flex-col md:gap-4 md:px-2`}>
                     <div className='w-full flex md:flex-row flex-col gap-6 justify-center items-center order-1 relative'>
@@ -357,12 +357,13 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             content={user.bio}
                                             elementId={user.id.toString()}
                                             elementType='user'
+                                            classParams='text-base'
                                         />
                                     </>
-                                ) : <p className='text-sm text-gray-500'>
-                                        {phrase(dictionary, "noBioYet", language)}
-                                    </p>
-                                }
+                                ) : user.bio === "" ? (<p className='text-base text-gray-500'>
+                                                          {phrase(dictionary, "noBioYet", language)}
+                                                       </p>
+                                ) : (<></>)}
                             </div>
 
                             {novels.length > 0 ? (
@@ -386,12 +387,10 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         )}
                                     />
                                 </div>
-                            ) : (
-                                <></>
-                            )}
-                            <div className='w-full'>
+                            ) : (<></>)}
+                            {/* <div className='w-full'>
                                 <ToonyzPostCardList posts={posts} />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

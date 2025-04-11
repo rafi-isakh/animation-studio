@@ -35,7 +35,7 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
 
     const StarShopAsideLayout = ({ children }: { children: React.ReactNode }) => {
         return (
-            <aside className="relative flex flex-col gap-4 w-full md:w-1/4 md:my-0 my-5 flex-grow-0">
+            <aside className="relative flex flex-col gap-4 w-full md:w-1/4 md:my-0 my-5 flex-grow-0 flex-shrink-0 ">
                 <Link href={`${mode === "starShop" ? "/stars" : mode === "viewProfile" ? "/" : ""}`} className={`${hideManuInPages()} items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden`}>
                     <MoveLeft size={20} className='dark:text-white text-gray-500' />
                     <p className="text-sm font-base">Back</p>

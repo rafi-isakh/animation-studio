@@ -162,14 +162,9 @@ export const RomanceGenres = ({ webnovels }: { webnovels: Webnovel[] }) => {
             scrollRef={scrollRef}
             title={phrase(dictionary, 'romance', language)}
             webnovels={webnovelsToShow}
-            renderItem={(item: Webnovel, index: number) => (
+            renderItem={(item: Webnovel) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />
@@ -212,11 +207,6 @@ export const FantasyGenres = ({  webnovels }: {  webnovels: Webnovel[] }) => {
             renderItem={(item: Webnovel, index: number) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />
@@ -260,11 +250,6 @@ export const SciFiGenres = ({ webnovels }: {  webnovels: Webnovel[] }) => {
             renderItem={(item: Webnovel, index: number) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />
@@ -308,11 +293,6 @@ export const BLGenres = ({ webnovels }: {  webnovels: Webnovel[] }) => {
             renderItem={(item: Webnovel, index: number) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />
@@ -356,11 +336,6 @@ export const DramaGenres = ({  webnovels }: {  webnovels: Webnovel[] }) => {
             renderItem={(item: Webnovel, index: number) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />
@@ -404,11 +379,6 @@ export const RomanceFantasyGenres = ({ webnovels }: { webnovels: Webnovel[] }) =
             renderItem={(item: Webnovel, index: number) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />
@@ -448,14 +418,9 @@ export const LoveComedyGenres = ({ webnovels }: { webnovels: Webnovel[] }) => {
             scrollRef={scrollRef}
             title={phrase(dictionary, 'loveComedy', language)}
             webnovels={webnovelsToShow}
-            renderItem={(item: Webnovel, index: number) => (
+            renderItem={(item: Webnovel) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />

@@ -1,6 +1,6 @@
 'use client'
-
 import { phrase } from '@/utils/phrases'
+import { ToonyzPost } from '@/components/Types'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { getImageUrl, getVideoUrl } from '@/utils/urls'
 import Image from 'next/image'
@@ -11,8 +11,13 @@ import { useMediaQuery } from '@mui/material'
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link'
 
-const renderItem = (item: any, index: number) => {
+const ToonyzPostCardList = ({ posts }: { posts: ToonyzPost[] }) => {
     const { dictionary, language } = useLanguage()
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const [activeIndex, setActiveIndex] = useState<number | null>(null)
+    const isMobile = useMediaQuery('(max-width: 768px)')
+
+    const renderItem = (item: ToonyzPost, index: number) => {
         return (
             <Link href={`/toonyz_posts/${item.id}`} className="block w-full">
                 <div className="relative flex flex-col items-center w-full">
@@ -65,15 +70,8 @@ const renderItem = (item: any, index: number) => {
                     </div>
                 </div>
             </Link>
-        )
-}
-
-const ToonyzPostCardList = ({ posts }: { posts: any[] }) => {
-    const { dictionary, language } = useLanguage()
-    const scrollRef = useRef<HTMLDivElement>(null)
-    const [activeIndex, setActiveIndex] = useState<number | null>(null)
-    // const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
-    const isMobile = useMediaQuery('(max-width: 768px)')
+        ) 
+    }
 
     return (
         <div className={`relative w-full group`}>

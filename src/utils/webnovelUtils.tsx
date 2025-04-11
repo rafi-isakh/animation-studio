@@ -133,3 +133,7 @@ export const koreanToEnglishAuthorName : { [key: string]: string } = {
     "성상영":	"Sangyoung Seong",
     "데카스펠":	"deca spell"
 }
+
+export const isPurchasedChapter = (purchased_webnovel_chapters: [number, string][], chapter_id: number, language: string) => {
+    return purchased_webnovel_chapters.some(([chapterId, lang]) => chapterId === chapter_id && lang === language);
+}

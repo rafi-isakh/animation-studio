@@ -12,7 +12,7 @@ interface UserContextProps {
     setBio: (bio: string) => void;
     stars: number;
     picture: string;
-    purchased_webnovel_chapters: number[];
+    purchased_webnovel_chapters: [number, string][];
     setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
     checking: boolean;
     upvotedComments: string[];

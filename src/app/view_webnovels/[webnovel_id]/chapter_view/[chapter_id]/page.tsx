@@ -33,7 +33,7 @@ import animationData from '@/assets/N_logo_with_heart.json';
 import CommentsComponent from "@/components/CommentsComponent";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
-
+import { isPurchasedChapter } from "@/utils/webnovelUtils";
 function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -125,7 +125,10 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 setChapter(chapter);
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
-            if (!chapter?.free && !checking && purchased_webnovel_chapters && !purchased_webnovel_chapters.includes(Number(chapter_id))) {
+            if (!chapter?.free 
+                && !checking 
+                && purchased_webnovel_chapters 
+                && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
                 router.push(`/view_webnovels/${chapter?.webnovel_id}`);
             }
             setUpvotes(chapter?.upvotes || 0)
@@ -221,7 +224,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
         if (chapter.free) {
             router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
         } else {
-            if (purchased_webnovel_chapters.includes(chapter.id)) {
+            if (isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
                 router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
                 return;
             }
@@ -284,14 +287,14 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 <Button
                     variant="link"
                     onClick={() => {
-                        if (!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id)) {
+                        if (!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language)) {
                             setChapterToPurchase(nextChapter);
                             setShowPurchaseModal(true);
                         } else {
                             handleChapterClick(nextChapter);
                         }
                     }}
-                    className={`w-full !no-underline ${!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) ? "opacity-50" : ""}`}>
+                    className={`w-full !no-underline ${!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language) ? "opacity-50" : ""}`}>
                     <div className="flex flex-row justify-between items-center rounded-lg bg-gray-100 dark:bg-gray-900 p-3 w-full">
                         <div className="flex flex-row items-center space-x-4">
                             <Image
@@ -304,7 +307,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                 <span>{phrase(dictionary, "nextChapterView", language)}</span>
                                 <div className="text-sm text-gray-500 dark:text-gray-400 font-bold flex flex-row items-center justify-start">
 
-                                    {!nextChapter.free && !purchased_webnovel_chapters?.includes(nextChapter.id) && (
+                                    {!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language) && (
                                         <span className="mr-2">🔒</span>
                                     )}
                                     <OtherTranslateComponent
@@ -356,7 +359,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         <MenubarItem
                                             key={chapter.id}
                                             onClick={() => {
-                                                if (!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)) {
+                                                if (!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
                                                     setChapterToPurchase(chapter);
                                                     setShowPurchaseModal(true);
                                                 } else {
@@ -364,13 +367,13 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                                 }
                                             }}
                                             
-                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) ? "opacity-50" : ""}`}
+                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? "opacity-50" : ""}`}
                                             // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
                                             <p className="text-sm">{index + 1}.</p>
                                             <MenubarShortcut>
                                                 {chapter.title}
-                                                {!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id) && (
+                                                {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
                                                     <span className="ml-2">🔒</span>
                                                 )}
                                             </MenubarShortcut>

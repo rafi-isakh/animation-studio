@@ -51,6 +51,7 @@ const WebnovelPictureComponent = React.memo(
                                 placeholder="blur"
                                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                             />
+<<<<<<< Updated upstream
 
                             {/* Overlay for hover effect */}
                             <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 hover:opacity-50 flex items-center justify-center gap-2 z-10">
@@ -130,6 +131,15 @@ const WebnovelPictureComponent = React.memo(
                                 </div>
                             )}
                         </div>
+=======
+                        }
+                        {/* Author and Genre */}
+                        <p className="text-[10px] md:text-sm font-bold line-clamp-2 text-gray-500 flex flex-col justify-center">
+                            {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
+                            {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}
+                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
+                        </p>
+>>>>>>> Stashed changes
                     </div>
                 </div>
             </Link>

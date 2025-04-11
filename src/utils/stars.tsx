@@ -1,3 +1,6 @@
+import { Language } from "@/components/Types";
+import { loadStripe } from "@stripe/stripe-js";
+
 export const make_video_price = 35; // per video
 export const generate_pictures_price = 15; // four pictures
 export const generate_trailer_price = 20; // six pictures
@@ -53,9 +56,12 @@ export function getStarsAndDiscount(selectedPackage: string, isEvent: boolean) {
     return { stars, discount };
 }
 
-export const calculateOrderAmount = (numStars: number, discount: number) => {
-    console.log(stars_name_to_price_usd[`투니즈 별 ${numStars}개`])
-    return stars_name_to_price_usd[`투니즈 별 ${numStars}개`]
+export const calculateOrderAmount = (numStars: number, language: string) => {
+    if (language === 'ko') {
+        return stars_name_to_price_krw[`투니즈 별 ${numStars}개`]
+    } else {
+        return stars_name_to_price_usd[`투니즈 별 ${numStars}개`] * 100
+    }
 };
 
 export const starsString = (numStars: number, language: string) => {
@@ -109,4 +115,11 @@ export const starsPriceWithCurrencyString = (numStars: number, language: string)
             return "$6.20"
         }
     }
+}
+
+export const getStripe = (language: Language) => {
+    const stripeLocale = language === 'ko' ? 'ko' : language === 'ja'? 'ja': 'en'
+    return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
+        locale: stripeLocale,
+    })
 }

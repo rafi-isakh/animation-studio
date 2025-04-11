@@ -33,6 +33,9 @@ export default function PurchaseStarsKGInicisComponent() {
             // buyer_addr: "신사동 661-16", // 구매자 주소
             // buyer_postcode: "06018", // 구매자 우편번호
             m_redirect_url: `${process.env.NEXT_PUBLIC_HOST}/payment-redirect`,
+            display: {
+                card_quota: [0]
+            }
         };
 
         /* 4. 결제 창 호출하기 */

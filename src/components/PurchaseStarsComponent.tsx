@@ -8,7 +8,8 @@ export default function PurchaseStarsComponent() {
 
     return (
         <div>
-            {language === "en" ? <PurchaseStarsStripeComponent /> : <PurchaseStarsKGInicisComponent />}
+            {/* {language === "en" ? <PurchaseStarsStripeComponent /> : <PurchaseStarsKGInicisComponent />} */}
+            <PurchaseStarsStripeComponent />
         </div>
     )
 }

@@ -29,7 +29,7 @@ export default function PurchaseStarsStripeComponent() {
     useEffect(() => {
         const { stars, discount } = getStarsAndDiscount(selectedPackage, isEvent);
         setStarsToBuy(stars);
-        setTotalPrice(calculateOrderAmount(stars, discount));
+        setTotalPrice(calculateOrderAmount(stars, language));
     }, [isEvent, selectedPackage])
 
     const StarsToPurchase = ({ event }: { event: boolean }) => {
@@ -104,7 +104,9 @@ export default function PurchaseStarsStripeComponent() {
             {isPaying ? (
                 <div className='self-center md:w-[720px] w-full'>
                     <h1 className="text-xl font-bold text-center">
-                        Purchase {starsToBuy.toLocaleString()} stars for ${totalPrice.toLocaleString()}.
+                        {language === "en" ?
+                            `Purchase ${starsToBuy.toLocaleString()} stars for ${totalPrice.toLocaleString()}.` :
+                            `투니즈 별 ${starsToBuy.toLocaleString()}개를 ${totalPrice.toLocaleString()}원에 구매합니다.`}
                     </h1>
                     <StripeComponent isEvent={isEvent} selectedPackage={selectedPackage} />
                 </div>

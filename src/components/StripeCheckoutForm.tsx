@@ -1,19 +1,20 @@
 "use client";
 
 import styles from "@/styles/stripe.module.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     PaymentElement,
     useStripe,
     useElements,
     Elements
 } from '@stripe/react-stripe-js'
-import { loadStripe, StripeElementsOptions, StripePaymentElementOptions } from '@stripe/stripe-js'
+import { Stripe, StripeElementsOptions, StripePaymentElementOptions } from '@stripe/stripe-js'
+import { getStripe } from "@/utils/stars";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Make sure to call loadStripe outside of a component’s render to avoid
 // recreating the Stripe object on every render.
 // This is your test publishable API key.
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 function PaymentForm() {
     const stripe = useStripe();
@@ -58,6 +59,7 @@ function PaymentForm() {
 
     const paymentElementOptions = {
         layout: "auto",
+
     };
 
     return (
@@ -78,6 +80,18 @@ export default function CheckoutForm({ clientSecret }: { clientSecret: string })
     const appearance = {
         theme: 'stripe',
     };
+    const [stripePromise, setStripePromise] = useState<Stripe | null>(null);
+    const { language } = useLanguage();
+
+    useEffect(() => {
+      getStripe(language).then((stripe) => {
+        setStripePromise(stripe);
+      });
+    }, [language]);
+
+    if (!stripePromise) return null;
+    console.log(stripePromise);
+
     return (
         <Elements stripe={stripePromise} options={{ appearance, clientSecret } as StripeElementsOptions}>
             <PaymentForm />

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
                 stars: stars.toString(),
                 email: email
             },
-            currency: "krw",
+            currency: "usd",
             automatic_payment_methods: {
                 enabled: true,
             },

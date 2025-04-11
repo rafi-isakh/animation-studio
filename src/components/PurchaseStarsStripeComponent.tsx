@@ -104,7 +104,7 @@ export default function PurchaseStarsStripeComponent() {
             {isPaying ? (
                 <div className='self-center md:w-[720px] w-full'>
                     <h1 className="text-xl font-bold text-center">
-                        별 {starsToBuy.toLocaleString()}개를 {totalPrice.toLocaleString()}원에 구매합니다.
+                        Purchase {starsToBuy.toLocaleString()} stars for ${totalPrice.toLocaleString()}.
                     </h1>
                     <StripeComponent isEvent={isEvent} selectedPackage={selectedPackage} />
                 </div>

@@ -81,7 +81,6 @@ export default function InfoAndPictureComponent({
     const [videoSrc, setVideoSrc] = useState<string | null>(null)
 
     useEffect(() => {
-        console.log('content', content)
         if (language === "en") {
             if (content.en_cover_art) {
                 const imageSrc = getImageUrl(content.en_cover_art)
@@ -102,9 +101,10 @@ export default function InfoAndPictureComponent({
     }, [language])
 
     useEffect(() => {
-        console.log('videoSrc', videoSrc)
         if (videoSrc) {
             setVideoExists(true)
+        } else {
+            setVideoExists(false)
         }
     }, [videoSrc])
 

@@ -13,57 +13,13 @@ import { Pause, Play, VolumeOff, Volume2 } from 'lucide-react';
 import { Skeleton } from '@/components/shadcnUI/Skeleton';
 import { Card } from '@/components/shadcnUI/Card';
 import { useMediaQuery } from '@mui/material';
+import MainPagePictureOrVideoComponent from '@/components/MainPagePictureOrVideoComponent';
 
 export default function RankingGrid({ webnovels, isMobile, title }: { webnovels: Webnovel[], isMobile: boolean, title: string }) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [videoStates, setVideoStates] = useState<{ [key: number]: boolean }>({});
-    const [isMuted, setIsMuted] = useState(true);
-    const [isPlaying, setIsPlaying] = useState(true);
-    const [showPlayButton, setShowPlayButton] = useState(false);
     const isDesktop = useMediaQuery('(min-width: 768px)');
-
-    useEffect(() => {
-        async function checkCoverArtType(index: number) {
-            if (!webnovels?.[index]?.cover_art) return;
-
-            try {
-                const response = await fetch(`/api/check_if_video_exists?url=${webnovels[index].cover_art}`);
-                const data = await response.json();
-                setVideoStates(prev => ({
-                    ...prev,
-                    [index]: data.videoExists
-                }));
-            } catch (error) {
-                console.error('Error fetching coverArt:', error);
-            }
-        }
-
-        // Check for hovered or active webnovel
-        if (activeIndex !== null) {
-            checkCoverArtType(activeIndex);
-        }
-    }, [activeIndex, webnovels]);
-
-    const handleToggleMute = () => {
-        const videoElement = document.getElementById('videoElement');
-        if (videoElement) {
-            setIsMuted(prev => !prev);
-        }
-    };
-
-    const handleTogglePlayVideo = () => {
-        const videoElement = document.getElementById('videoElement') as HTMLVideoElement;
-        if (videoElement) {
-            if (isPlaying) {
-                videoElement.pause();
-            } else {
-                videoElement.play();
-            }
-            setIsPlaying(prev => !prev);
-        }
-    };
 
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
@@ -96,68 +52,8 @@ export default function RankingGrid({ webnovels, isMobile, title }: { webnovels:
                                     className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none ${activeIndex === index ? "shadow-none scale-110" : ""
                                         }`}
                                 >
+                                    <MainPagePictureOrVideoComponent webnovel={webnovel} />
                                     {/* Image container - now using full width of the grid column */}
-                                    <div className="relative w-[120px] md:w-[160px] aspect-[2/3] bg-gray-900 rounded-lg ">
-                                        {webnovel.cover_art ? (
-                                            (!videoStates[index] || activeIndex !== index) ? (
-                                                <Image
-                                                    src={
-                                                        language === "en" && webnovel.en_cover_art ?
-                                                            getImageUrl(webnovel.en_cover_art) :
-                                                            getImageUrl(webnovel.cover_art)
-                                                    }
-                                                    alt={webnovel.title}
-                                                    fill
-                                                    sizes="(max-width: 768px) 100vw, 300px"
-                                                    className="object-cover rounded-xl"
-                                                    placeholder="blur"
-                                                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                                    priority={index < 2}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full">
-                                                    <div className="relative w-full h-full">
-                                                        <video
-                                                            id={`videoElement-${index}`}
-                                                            src={getVideoUrl(webnovel.cover_art)}
-                                                            autoPlay
-                                                            playsInline
-                                                            onMouseEnter={() => setShowPlayButton(true)}
-                                                            onMouseLeave={() => setShowPlayButton(false)}
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                handleTogglePlayVideo();
-                                                            }}
-                                                            className="w-full h-full object-cover rounded-xl"
-                                                            muted={isMuted}
-                                                            loop
-                                                        />
-                                                        <button
-                                                            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButton ? 'block' : 'hidden'}`}
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                handleTogglePlayVideo();
-                                                            }}
-                                                        >
-                                                            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                handleToggleMute();
-                                                            }}
-                                                            className="mute-button absolute bottom-2 right-2 text-white"
-                                                        >
-                                                            {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )
-                                        ) : (
-                                            <Skeleton className="w-full h-full" />
-                                        )}
-                                    </div>
-                            
                                     {activeIndex === index && isDesktop && (
                                         <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-3 text-white h-[50px] z-50 justify-between items-center">
                                             <h3 className="dark:text-white text-black font-medium text-sm">

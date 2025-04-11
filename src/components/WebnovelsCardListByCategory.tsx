@@ -46,14 +46,9 @@ const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title }: { s
             webnovels={webnovelsToShow}
             scrollRef={scrollRef}
             isMobile={isMobile}
-            renderItem={(item: Webnovel, index: number) => (
+            renderItem={(item: Webnovel) => (
                 <WebnovelPictureComponent
                     webnovel={item}
-                    index={index + 1}
-                    ranking={false}
-                    details={false}
-                    up={false}
-                    isOriginal={false}
                 />
             )}
         />

@@ -75,7 +75,6 @@ function PaymentForm() {
 }
 
 export default function CheckoutForm({ clientSecret }: { clientSecret: string }) {
-    console.log(clientSecret);
     const appearance = {
         theme: 'stripe',
     };

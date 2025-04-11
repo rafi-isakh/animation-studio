@@ -57,7 +57,7 @@ export const calculateOrderAmount = (numStars: number, discount: number) => {
     // Replace this constant with a calculation of the order's amount
     // Calculate the order total on the server to prevent
     // people from directly manipulating the amount on the client
-    return numStars * 10 * discount;
+    return stars_name_to_price_usd[`투니즈 별 ${numStars}개`]
 };
 
 export const starsString = (numStars: number, language: string) => {

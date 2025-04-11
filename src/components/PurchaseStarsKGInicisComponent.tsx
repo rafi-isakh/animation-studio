@@ -6,7 +6,7 @@ import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { starsOptions, starsEventOptions, discount_factors, discount_factors_event, starsString, starsPriceWithCurrencyString } from "@/utils/stars";
+import { starsOptions, starsEventOptions, discount_factors, discount_factors_event, starsString, starsPriceWithCurrencyString, stars_name_to_price_krw } from "@/utils/stars";
 import { useCallback } from "react";
 
 export default function PurchaseStarsKGInicisComponent() {
@@ -20,12 +20,13 @@ export default function PurchaseStarsKGInicisComponent() {
         IMP.init("imp04870215"); // 가맹점 식별코드
 
         /* 2. 결제 데이터 정의하기 */
+        const name = `투니즈 별 ${numStars}개` // 주문명
         const data: RequestPayParams = {
             pg: "html5_inicis", // PG사 : https://developers.portone.io/docs/ko/tip/pg-2 참고
             pay_method: "card", // 결제수단
             merchant_uid: `mid_${new Date().getTime()}`, // 주문번호
-            amount: ((numStars * 10) * discount), // 결제금액
-            name: `투니즈 별 ${numStars}개`, // 주문명
+            amount: stars_name_to_price_krw[name], // 결제금액
+            name: name, // 주문명
             buyer_name: nickname, // 구매자 이름
             // buyer_tel: "01012341234", // 구매자 전화번호
             buyer_email: email, // 구매자 이메일

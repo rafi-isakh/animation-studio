@@ -92,36 +92,26 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     <hr className='my-2' />
                     <div className="space-y-2 text-base">
                         <ul className="flex flex-col gap-2">
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/my_profile" onClick={() => handleClose()}>
-                                    <SquareUser size={18} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "myProfile", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/my_webnovels" onClick={() => handleClose()}>
-                                    <Book size={18} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "myWebnovels", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/my_library" onClick={() => handleClose()} >
-                                    <SquareLibrary size={18} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "myLibrary", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/stars" onClick={() => handleClose()} >
-                                    <Sparkles size={18} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "stars", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/new_webnovel" onClick={() => handleClose()}>
-                                    <SquarePen size={18} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "newWebnovel", language)}</span>
-                                </Link>
-                            </li>
+                            <Link href="/my_profile" onClick={() => handleClose()} className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
+                                <SquareUser size={18} className='dark:text-white text-black inline-flex items-center' />
+                                <span className='ml-2 text-center'>{phrase(dictionary, "myProfile", language)}</span>
+                            </Link>
+                            <Link href="/my_webnovels" onClick={() => handleClose()} className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
+                                <Book size={18} className='dark:text-white text-black inline-flex items-center' />
+                                <span className='ml-2 text-center'>{phrase(dictionary, "myWebnovels", language)}</span>
+                            </Link>
+                            <Link href="/my_library" onClick={() => handleClose()} className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
+                                <SquareLibrary size={18} className='dark:text-white text-black inline-flex items-center' />
+                                <span className='ml-2 text-center'>{phrase(dictionary, "myLibrary", language)}</span>
+                            </Link>
+                            <Link href="/stars" onClick={() => handleClose()} className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg" >
+                                <Sparkles size={18} className='dark:text-white text-black inline-flex items-center' />
+                                <span className='ml-2 text-center'>{phrase(dictionary, "stars", language)}</span>
+                            </Link>
+                            <Link href="/new_webnovel" onClick={() => handleClose()} className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
+                                <SquarePen size={18} className='dark:text-white text-black inline-flex items-center' />
+                                <span className='ml-2 text-center'>{phrase(dictionary, "newWebnovel", language)}</span>
+                            </Link>
                         </ul>
                     </div>
                 </div>

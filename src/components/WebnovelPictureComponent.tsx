@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react"
 import type { Webnovel } from "@/components/Types"
 import Link from "next/link"
 import Image from "next/image"
-import { getImageUrl } from "@/utils/urls"
+import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
-import { TrendingUp } from "lucide-react"
-import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
+import { Pause, Play, TrendingUp, Volume2, VolumeOff } from "lucide-react"
+import { koreanToEnglishAuthorName, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 
 const WebnovelPictureComponent = React.memo(
     ({
@@ -20,37 +20,104 @@ const WebnovelPictureComponent = React.memo(
         up,
         isOriginal,
     }: { webnovel: Webnovel; index: number; ranking: boolean; details: boolean; up: boolean; isOriginal: boolean }) => {
-        console.log(webnovel.other_translations)
         const { language, dictionary } = useLanguage()
         const [imageSrc, setImageSrc] = useState<string | null>(null)
+        const [videoSrc, setVideoSrc] = useState<string | null>(null)
+        const [videoExists, setVideoExists] = useState(false)
+        const [isMuted, setIsMuted] = useState(true)
+        const [isPlaying, setIsPlaying] = useState(true)
+        const [showPlayButton, setShowPlayButton] = useState(false)
+        const [isHovered, setIsHovered] = useState(false)
+
         useEffect(() => {
-            console.log(webnovel.en_cover_art)
             if (language === "en" && webnovel.en_cover_art) {
                 const imageSrc = getImageUrl(webnovel.en_cover_art)
+                const videoSrc = getVideoUrl(webnovel.en_video_cover)
                 setImageSrc(imageSrc)
+                setVideoSrc(videoSrc)
             } else {
                 const imageSrc = getImageUrl(webnovel.cover_art)
+                const videoSrc = getVideoUrl(webnovel.video_cover)
                 setImageSrc(imageSrc)
+                setVideoSrc(videoSrc)
             }
         }, [language])
+
+        useEffect(() => {
+            if (videoSrc) {
+                setVideoExists(true)
+            } else {
+                setVideoExists(false)
+            }
+        }, [videoSrc])
+
+        const handleToggleMute = () => {
+            const videoElement = document.getElementById('videoElement');
+            if (videoElement) {
+                setIsMuted(prev => !prev);
+            }
+        };
+
+        const handleTogglePlayVideo = () => {
+            const videoElement = document.getElementById('videoElement') as HTMLVideoElement;
+            if (videoElement) {
+                if (isPlaying) {
+                    videoElement.pause();
+                } else {
+                    videoElement.play();
+                }
+                setIsPlaying(prev => !prev);
+            }
+        };
 
         return (
             <Link href={`/view_webnovels/${webnovel.id}`} className="block w-full">
                 <div className="relative flex flex-col items-center w-full">
                     {/* Image Container - Reduced sizes */}
-                    <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] ">
+                    <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257]"
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}>
                         {/* Image with hover effect */}
                         <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
-                            <Image
-                                src={imageSrc || "/placeholder.svg"}
-                                alt={webnovel.title}
-                                fill
-                                sizes="(max-width: 768px) 100px, 160px"
-                                quality={85}
-                                className="object-cover"
-                                placeholder="blur"
-                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                            />
+                            {
+                                (!videoExists || !isHovered || (videoDisallowedForKorean.includes(webnovel.id) && language === "ko")) ?
+                                    <Image
+                                        src={imageSrc || "/placeholder.svg"}
+                                        alt={webnovel.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 300px"
+                                        className="object-cover rounded-xl"
+                                        placeholder="blur"
+                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                    />
+                                    :
+                                    <div>
+                                        <div className="relative aspect-[2/3]">
+                                            <video
+                                                id="videoElement"
+                                                src={videoSrc!}
+                                                autoPlay
+                                                playsInline
+                                                onMouseEnter={() => setShowPlayButton(true)}
+                                                onMouseLeave={() => setShowPlayButton(false)}
+                                                onClick={handleTogglePlayVideo}
+                                                style={{ width: '225px', height: '300px', objectPosition: 'center top' }} // Inline styles
+                                                className="object-cover rounded-xl"
+                                                muted={isMuted}
+                                                loop
+                                            />
+                                            <button
+                                                className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButton ? 'block' : 'hidden'}`}
+                                                onClick={handleTogglePlayVideo}
+                                            >
+                                                {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                                            </button>
+                                        </div>
+                                        <button onClick={handleToggleMute} className="mute-button absolute bottom-2 right-2">
+                                            {isMuted ? <VolumeOff size={20} /> : <Volume2 size={20} />}
+                                        </button>
+                                    </div>
+                            }
 
                             {/* Overlay for hover effect */}
                             <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 hover:opacity-50 flex items-center justify-center gap-2 z-10">
@@ -95,8 +162,8 @@ const WebnovelPictureComponent = React.memo(
                                         && translation.element_type === "webnovel"
                                         && translation.element_subtype === "title"
                                         && translation.webnovel_id == webnovel.id.toString()
-                                )?.text 
-                                || 
+                                )?.text
+                                ||
                                 <OtherTranslateComponent
                                     content={webnovel.title}
                                     elementId={webnovel.id.toString()}

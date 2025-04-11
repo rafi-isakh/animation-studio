@@ -33,7 +33,6 @@ import { useUser } from '@/contexts/UserContext';
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
-import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";

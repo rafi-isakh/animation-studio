@@ -249,7 +249,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 method: 'POST',
                 body: JSON.stringify({
                     chapter_id: chapter.id,
-                    price: price
+                    price: price,
+                    language: language
                 })
             });
             // TODO: tell user if there's not enough stars

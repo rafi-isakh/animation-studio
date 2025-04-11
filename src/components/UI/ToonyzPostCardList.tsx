@@ -24,17 +24,17 @@ const ToonyzPostCardList = ({ posts }: { posts: ToonyzPost[] }) => {
                     <div className="relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] ">
                         {/* Image with hover effect */}
                         <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
-                             {item.image ? <Image
-                                            src={getImageUrl(item.image)}
-                                            alt={item.title} 
-                                            fill
-                                            sizes="(max-width: 768px) 180px, 257px, 100vw"
-                                            quality={85}
-                                            className='object-cover ' 
-                                            placeholder="blur"
-                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                            />
-                                        : item.video ? <video src={getVideoUrl(item.video)} className='w-full h-full object-cover' /> : <></>}
+                            {item.image ? <Image
+                                src={getImageUrl(item.image)}
+                                alt={item.title}
+                                fill
+                                sizes="(max-width: 768px) 180px, 257px, 100vw"
+                                quality={85}
+                                className='object-cover '
+                                placeholder="blur"
+                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                            />
+                                : item.video ? <video src={getVideoUrl(item.video)} className='w-full h-full object-cover' /> : <></>}
 
                             {/* Overlay for hover effect */}
                             <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-300 hover:opacity-50 flex items-center justify-center gap-2 z-10">
@@ -59,18 +59,20 @@ const ToonyzPostCardList = ({ posts }: { posts: ToonyzPost[] }) => {
                     <div className="mt-2 w-full">
                         <div className="flex flex-col items-center text-center">
                             {/* Title */}
-                            <OtherTranslateComponent
+                           { item.title ? <OtherTranslateComponent
                                 content={item.title}
                                 elementId={item.id.toString()}
                                 elementType="toonyz_post"
                                 elementSubtype="title"
                                 classParams="text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] break-keep korean"
-                            />
+                            /> : <p className='text-sm md:text-base font-medium line-clamp-2 w-[100px] md:w-[160px] break-keep korean'>
+                                {"post " + item.id.toString()}
+                                </p>}
                         </div>
                     </div>
                 </div>
             </Link>
-        ) 
+        )
     }
 
     return (
@@ -87,11 +89,9 @@ const ToonyzPostCardList = ({ posts }: { posts: ToonyzPost[] }) => {
                         className="hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 py-8"
                     >
                         {posts.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full">
-                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                    {phrase(dictionary, "noPosts", language)}
-                                </p>
-                            </div>
+                            <p className='text-base text-gray-500'>
+                                {phrase(dictionary, "noPosts", language)}
+                            </p>
                         ) : (
                             <>
                                 {posts.map((item, index) => (

@@ -367,7 +367,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                             </div>
 
                             {novels.length > 0 ? (
-                                <div className={`w-full flex`}>
+                                <div className='w-full flex'>
                                     {/* This key may conflict with OtherTranslateComponent's key if len(webnovels) > 1000. */}
                                     <WebnovelsCardList
                                         title={phrase(dictionary, "viewWebnovels", language)}
@@ -387,10 +387,10 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         )}
                                     />
                                 </div>
-                            ) : (<></>)}
-                            {/* <div className='w-full'>
+                               ) : (<></>)}
+                            <div className='w-full flex'>
                                 <ToonyzPostCardList posts={posts} />
-                            </div> */}
+                            </div>
                         </div>
                     </div>
                 </div>

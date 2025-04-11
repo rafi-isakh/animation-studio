@@ -45,7 +45,7 @@ export default function ViewProfile({ params: { id }, }: { params: { id: string 
     }
     if (user && novels) {
         return (
-            <div className="relative md:max-w-screen-xl w-full mx-auto flex flex-col md:flex-row">
+            <div className="md:max-w-screen-xl w-full mx-auto flex flex-col md:flex-row">
                 <PageAsideBar mode="viewProfile" user={user} />
                 <div className="flex-1 w-full flex-shrink-0">
                     <ProfileComponent user={user} novels={novels} />

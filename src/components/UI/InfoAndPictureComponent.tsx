@@ -39,7 +39,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
-import { videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 
 interface InfoAndPictureProps {
@@ -367,7 +367,7 @@ export default function InfoAndPictureComponent({
                                         if (!firstChapter) return;
 
                                         // Check if user has already purchased the chapter
-                                        const hasPurchased = purchased_webnovel_chapters?.includes(firstChapter.id);
+                                        const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
 
                                         if (content.premium && !firstChapter.free && !hasPurchased) {
                                             setShowPurchaseModal(true);

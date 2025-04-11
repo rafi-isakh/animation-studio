@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useUser } from '@/contexts/UserContext';
-import { getImageUrl } from '@/utils/urls';
+import { getImageUrl, getVideoUrl } from '@/utils/urls';
 import Image from 'next/image'
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,7 @@ import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
 import { usePathname } from 'next/navigation';
 import ProfileShareButton from '@/components/UI/ProfileShareButton';
 import { EditProfileButton } from '@/components/UI/EditProfileButton';
+import ToonyzPostCardList from '@/components/UI/ToonyzPostCardList';
 
 const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
@@ -218,7 +219,12 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                     <div className='w-full flex md:flex-row flex-col gap-6 justify-center items-center order-1 relative'>
                         <div className="relative rounded-xl p-6 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
                             <div className="absolute rounded-xl bg-white dark:bg-black inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
-                                style={{ backgroundImage: `url(${getImageUrl(user.picture)})`, backgroundColor: 'white', backgroundSize: 'cover', backgroundPosition: 'top', }}>
+                                 style={{ 
+                                    backgroundImage: `url(${getImageUrl(user.picture)})`, 
+                                    backgroundColor: 'white', 
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center', 
+                                }}>
                             </div>
                             {/* profile picture */}
                             <div className='z-20 flex md:flex-row flex-col w-full justify-center items-center md:gap-6 gap-2'>
@@ -274,15 +280,14 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             }
                                         </Link>
                                         <input type="file" id="profilePicture" className='hidden' onChange={handleFileChange} />
-
                                     </div>
                                 </div>
-                                {/* nickname */}
                                 <div className='flex flex-col justify-center md:items-start items-center gap-4'>
                                     <div className="flex flex-row justify-center items-center font-bold text-left gap-2 ">
                                         {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 p-1 mr-1">
-                                            {phrase(dictionary, "author", language)}
-                                        </span>}
+                                                                 {phrase(dictionary, "author", language)}
+                                                              </span>
+                                        }
                                         <p className="text-xl">{displayNickname}</p>
                                         <div className='flex flex-row gap-0 text-gray-600 dark:text-white'>
                                             {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} />}
@@ -290,8 +295,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
                                         </div>
-
-                                    </div>
+                                      </div>
                                     <div>
                                         {novels.length > 0 && <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
                                             <div className='flex flex-col justify-center items-center md:pr-6 pr-2 border-r border-gray-300'>
@@ -321,7 +325,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                             </div>
                         </div>
                     </div>
-
                     <div className='flex flex-col gap-2 w-full order-2 md:my-0 my-4'>
                         {
                             novels.length > 0 ? (
@@ -338,13 +341,13 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                     <ChevronRight size={10} />
                                 </Button>
                             ) : <p className='flex flex-row gap-2 justify-center items-center'>
-                            </p>
+                                </p>
                         }
                     </div>
 
                     <div className='flex flex-col w-full justify-center items-center order-2'>
-                        <div className='flex flex-col w-full md:justify-start md:items-start justify-center items-center gap-6'>
-                            <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
+                        <div className='flex flex-col w-full justify-start items-start gap-6'>
+                            <h1 className="flex flex-row text-xl font-extrabold md:mb-0 mb-3">
                                 {phrase(dictionary, "userBio", language)}
                             </h1>
                             <div>
@@ -356,8 +359,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             elementType='user'
                                         />
                                     </>
-                                )
-                                    : <p className='text-sm text-gray-500'>
+                                ) : <p className='text-sm text-gray-500'>
                                         {phrase(dictionary, "noBioYet", language)}
                                     </p>
                                 }
@@ -385,45 +387,10 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                     />
                                 </div>
                             ) : (
-                                <div className='flex flex-col gap-4 md:justify-start md:items-start justify-center items-center md:text-left text-center text-sm border-b-1 border-gray-300 w-full capitalize'>
-                                    <p>{phrase(dictionary, "noNovelsYet", language)} </p>
-                                </div>
+                                <></>
                             )}
-
                             <div className='w-full'>
-                                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
-                                    {phrase(dictionary, "ToonyzPost", language)}
-                                </h1>
-
-                                <div className="relative">
-                                    {posts.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center h-full">
-                                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                                {phrase(dictionary, "noPosts", language)}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            ref={scrollRef}
-                                            className="hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 py-8"
-                                        >
-                                            {posts.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className='flex flex-row flex-wrap gap-2 w-full'
-                                                >
-                                                    <div className="flex flex-col w-full">
-                                                        <div className='relative shrink-0 overflow-hidden rounded-xl h-full w-full aspect-[180/257] '>
-                                                         {post.imaage ? <Image src={getImageUrl(item.image)} alt={item.title} fill quality={85}  sizes="(max-width: 768px) 180px, 257px" className='object-cover ' /> :
-                                                          posts.video ? <video src={getVideoUrl(item.video)} className='' /> }
-                                                        </div>
-                                                        <p>{item.title}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                                <ToonyzPostCardList posts={posts} />
                             </div>
                         </div>
                     </div>

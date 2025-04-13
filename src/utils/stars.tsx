@@ -60,7 +60,7 @@ export const calculateOrderAmount = (numStars: number, language: string) => {
     if (language === 'ko') {
         return stars_name_to_price_krw[`투니즈 별 ${numStars}개`]
     } else {
-        return stars_name_to_price_usd[`투니즈 별 ${numStars}개`] * 100
+        return stars_name_to_price_usd[`투니즈 별 ${numStars}개`] * 100 // in cents
     }
 };
 

@@ -105,7 +105,7 @@ export default function PurchaseStarsStripeComponent() {
                 <div className='self-center md:w-[720px] w-full'>
                     <h1 className="text-xl font-bold text-center">
                         {language === "en" ?
-                            `Purchase ${starsToBuy.toLocaleString()} stars for ${totalPrice.toLocaleString()}.` :
+                            `Purchase ${starsToBuy.toLocaleString()} stars for $${(totalPrice/100).toLocaleString()}.` :
                             `투니즈 별 ${starsToBuy.toLocaleString()}개를 ${totalPrice.toLocaleString()}원에 구매합니다.`}
                     </h1>
                     <StripeComponent isEvent={isEvent} selectedPackage={selectedPackage} />

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
+import { Dialog } from "@/components/shadcnUI/Dialog";
 import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy, Bookmark } from "lucide-react";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import CommentsComponent from "@/components/CommentsComponent";
@@ -20,6 +21,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useMediaQuery } from "@mui/material";
 import dynamic from 'next/dynamic';
+import ShareDialog from "@/components/UI/ShareDialog";
+
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
@@ -38,7 +41,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [chapterTitle, setChapterTitle] = useState<string | undefined>(undefined);
     const [imageDimensions, setImageDimensions] = useState<{ width: number, height: number }>();
-
+    const [showShareDialog, setShowShareDialog] = useState<boolean>(false);
     useEffect(() => {
         const fetchPost = async () => {
             fetch(`/api/get_toonyz_post_by_id?id=${params.id}`)
@@ -92,21 +95,52 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm text-gray-500 font-bold font-base">{phrase(dictionary, "back", language)}</p>
                     </Link>
-                    <TopNavigationMenu
-                        email={currentUserEmail}
-                        isAuthor={isAuthor ?? false}
-                        user={post.user}
-                        postId={post.id.toString()}
-                        post={post}
-                    />
+
+
+                    <div className='flex flex-row flex-wrap gap-2 justify-center'>
+
+                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                            <Eye size={16} className="mr-2" />
+                            <span>{post.views}</span>
+                        </div>
+
+                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                            <MessageCircle size={16} className="mr-2" />
+                            <span>{post.comments.length}</span>
+                        </div>
+
+                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                            <Heart size={16} className="mr-2" />
+                            <span>{post.upvotes}</span>
+                        </div>
+
+                        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                            <Link
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setShowShareDialog(true);
+                                }}
+                                className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
+                                <Share2 size={10} className="dark:text-white text-gray-500" />
+                                {phrase(dictionary, "share", language)}
+                            </Link>
+
+                            {/* share dialog */}
+                            <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} description={`Share this post with your friends and family.`} />
+                        </Dialog>
+
+                    </div>
+
                 </div>
             </div>
 
             {/* Image/Video Container - simplified for mobile */}
             <div className={`relative max-w-screen-sm mx-auto group
                             ${post.image
-                            ? 'md:h-full h-[40vh] top-8 mt-8'
-                            : 'md:h-full md:top-16 md:mt-16'}`}>
+                    ? 'md:h-full h-[40vh] top-8 mt-8'
+                    : 'md:h-full md:top-16 md:mt-16'}`}>
                 {post.image ? (
                     <div className="group h-full w-full">
                         {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" width={300} height={300} className="object-cover overflow-hidden md:scale-125 scale-100 transition-all duration-300" /> */}
@@ -142,98 +176,104 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
                             ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
                 <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
-                    <div className="relative flex justify-center">
+                    <div className="relative flex flex-row justify-between">
                         {/* user hover card */}
-                        <UserInfoCard post={post} />
+                        <div className="flex flex-row gap-2">
+                            <UserInfoCard post={post} />
+                            <div className="flex flex-col">
+                                {post.user.nickname && (
+                                    <p className="text-sm font-extrabold  text-gray-500 flex flex-row items-center">
+                                        {post.user.nickname}
+                                    </p>
+                                )}
+                                {post.created_at && (
+                                    <p className="text-sm text-gray-500 flex flex-row items-center">
+                                        {new Date(post.created_at).toLocaleDateString()}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        {/* views, comments likes and date */}
+                        <div className='flex flex-row flex-wrap gap-2 justify-center'>
+
+                            <TopNavigationMenu
+                                email={currentUserEmail}
+                                isAuthor={isAuthor ?? false}
+                                user={post.user}
+                                postId={post.id.toString()}
+                                post={post}
+                            />
+
+                        </div>  ``
+
+
+                        <p className="text-center text-xl md:text-4xl font-bold">
+                            <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
+                        </p>
+
+                        <hr />
+
+                        {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
+
+                        {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
+
+
+                        <div className="flex flex-row justify-between gap-2">
+                            {/* tags */}
+                            {post.tags && (
+                                <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
+                                    <span className="text-sm font-bold">Tags: </span>
+                                    {(typeof post.tags === 'string'
+                                        ? post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+                                        : Array.isArray(post.tags)
+                                            ? post.tags
+                                            : []
+                                    ).map((tag, index) => {
+                                        const colors = [
+                                            'bg-pink-200',
+                                            'bg-blue-200',
+                                            'bg-green-200',
+                                            'bg-purple-200',
+                                            'bg-yellow-200',
+                                            'bg-orange-200',
+                                            'bg-red-200',
+                                            'bg-indigo-200',
+                                        ];
+                                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+                                        return (
+                                            <span
+                                                key={index}
+                                                className={`text-sm font-base text-gray-500 dark:text-gray-500 rounded-lg border-none ${randomColor} px-2 py-1`}
+                                            >
+                                                {tag}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+
+                        {/* card for the webnovel */}
+                        {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
+
+                        <hr className="w-full border-gray-200" />
+                        <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                     </div>
-                    <p className="text-center text-xl md:text-4xl font-bold">
-                        <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
-                    </p>
-
-                    {/* views, comments likes and date */}
-                    <div className='flex flex-row flex-wrap gap-2 justify-center'>
-                        <div className="text-sm text-gray-500 flex flex-row items-center">
-                            <Eye size={16} className="mr-2" />
-                            <span>{post.views}</span>
-                        </div>
-
-                        <div className="text-sm text-gray-500 flex flex-row items-center">
-                            <MessageCircle size={16} className="mr-2" />
-                            <span>{post.comments.length}</span>
-                        </div>
-
-                        <div className="text-sm text-gray-500 flex flex-row items-center">
-                            <Heart size={16} className="mr-2" />
-                            <span>{post.upvotes}</span>
-                        </div>
-
-                        {post.created_at && (
-                            <p className="text-sm text-gray-500 flex flex-row items-center">
-                                <Clock4 size={16} className="mr-2" />   {new Date(post.created_at).toLocaleDateString()}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* {webnovel && (<WebnovelHoverCard webnovel={webnovel} post={post} isHoverCard={true} showDetailInfo={true} showEngagementStats={false} showSynopsis={false} showActionButtons={false} />)} */}
-
-                    {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
-
-                    {/* quote toggle */}
-                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
-
-
-                    {post.tags && (
-                        <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
-                            <span className="text-sm font-bold">Tags: </span>
-                            {(typeof post.tags === 'string'
-                                ? post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-                                : Array.isArray(post.tags)
-                                    ? post.tags
-                                    : []
-                            ).map((tag, index) => {
-                                const colors = [
-                                    'bg-pink-200',
-                                    'bg-blue-200',
-                                    'bg-green-200',
-                                    'bg-purple-200',
-                                    'bg-yellow-200',
-                                    'bg-orange-200',
-                                    'bg-red-200',
-                                    'bg-indigo-200',
-                                ];
-                                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
-                                return (
-                                    <span
-                                        key={index}
-                                        className={`text-sm font-base text-gray-500 dark:text-gray-500 rounded-lg border border-gray-500 ${randomColor} px-2 py-1`}
-                                    >
-                                        {tag}
-                                    </span>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    {/* card for the webnovel */}
-                    {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
-
-                    <hr className="w-full border-gray-200" />
-                    <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
-                </div>
-                <div className="h-[10vh]" />
-                <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
-                    {/* reusable component for the feed */}
-                    {/* {allPosts && (
+                    <div className="h-[10vh]" />
+                    <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+                        {/* reusable component for the feed */}
+                        {/* {allPosts && (
                         <ToonyzPostGrid
                             key={post.id.toString()}
                             className="w-full"
                             initialPosts={allPosts}
                         />)} */}
+                    </div>
                 </div>
             </div>
-        </div>
-    )
+            )
 }
 
-export default ToonyzPostPage;
+            export default ToonyzPostPage;

@@ -10,7 +10,7 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
-import TopNavigationMenu from "@/components/UI/TopNavigationMenu";
+import ToonyzPostDropdownButton from "@/components/UI/ToonyzPostDropdownButton";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { WebnovelHoverCard, WebnovelCard } from "@/components/UI/WebnovelHoverCard";
 import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
@@ -93,27 +93,19 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
                     <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
-                        <p className="text-sm text-gray-500 font-bold font-base">{phrase(dictionary, "back", language)}</p>
+                        <p className="text-sm  font-bold font-base">{phrase(dictionary, "back", language)}</p>
                     </Link>
 
-
-                    <div className='flex flex-row flex-wrap gap-2 justify-center'>
-
-                        <div className="text-sm text-gray-500 flex flex-row items-center">
-                            <Eye size={16} className="mr-2" />
-                            <span>{post.views}</span>
-                        </div>
-
-                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                   {/* views, comments likes and date */}
+                    <div className='flex flex-row flex-wrap gap-2 justify-center dark:text-white text-gray-500'>
+                        <div className="text-sm  flex flex-row items-center">
                             <MessageCircle size={16} className="mr-2" />
                             <span>{post.comments.length}</span>
                         </div>
-
-                        <div className="text-sm text-gray-500 flex flex-row items-center">
+                        <div className="text-sm  flex flex-row items-center">
                             <Heart size={16} className="mr-2" />
                             <span>{post.upvotes}</span>
                         </div>
-
                         <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                             <Link
                                 href="#"
@@ -126,13 +118,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                 <Share2 size={10} className="dark:text-white text-gray-500" />
                                 {phrase(dictionary, "share", language)}
                             </Link>
-
                             {/* share dialog */}
                             <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} description={`Share this post with your friends and family.`} />
                         </Dialog>
-
                     </div>
-
                 </div>
             </div>
 
@@ -175,43 +164,38 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             {/* Description Container - simplified for mobile */}
             <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
                             ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
-                <div className="md:max-w-screen-md mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
+                <div className="md:max-w-screen-sm mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
                     <div className="relative flex flex-row justify-between">
                         {/* user hover card */}
                         <div className="flex flex-row gap-2">
                             <UserInfoCard post={post} />
                             <div className="flex flex-col">
                                 {post.user.nickname && (
-                                    <p className="text-sm font-extrabold  text-gray-500 flex flex-row items-center">
+                                    <p className="text-sm font-extrabold flex flex-row items-center dark:text-white text-gray-500">
                                         {post.user.nickname}
                                     </p>
                                 )}
                                 {post.created_at && (
-                                    <p className="text-sm text-gray-500 flex flex-row items-center">
+                                    <p className="text-sm flex flex-row items-center dark:text-white text-gray-500">
                                         {new Date(post.created_at).toLocaleDateString()}
                                     </p>
                                 )}
                             </div>
                         </div>
-                        {/* views, comments likes and date */}
-                        <div className='flex flex-row flex-wrap gap-2 justify-center'>
-
-                            <TopNavigationMenu
+                        <ToonyzPostDropdownButton
                                 email={currentUserEmail}
                                 isAuthor={isAuthor ?? false}
                                 user={post.user}
                                 postId={post.id.toString()}
                                 post={post}
-                            />
-
-                        </div>  ``
-
-
+                         />
+                        </div>
+                    
                         <p className="text-center text-xl md:text-4xl font-bold">
                             <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                         </p>
 
-                        <hr />
+                        <hr className='w-full border-gray-200' />
 
                         {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
 
@@ -270,10 +254,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                             className="w-full"
                             initialPosts={allPosts}
                         />)} */}
-                    </div>
                 </div>
             </div>
-            )
+        </div>
+    )
 }
 
-            export default ToonyzPostPage;
+export default ToonyzPostPage;

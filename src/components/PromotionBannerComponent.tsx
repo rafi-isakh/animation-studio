@@ -15,7 +15,6 @@ import { Button } from '@/components/shadcnUI/Button';
 export const LibraryPromotionComponent: React.FC = () => {
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
   const { dictionary, language } = useLanguage()
-  const { stars } = useUser();
 
   const handleImageLoad = useCallback(() => {
     console.log('Image loaded successfully');
@@ -41,9 +40,9 @@ export const LibraryPromotionComponent: React.FC = () => {
 
 
   return (
-    <Link href='https://open.spotify.com/show/4OKQmgzsWeNV3YO5dC2uMm?si=c199561a571b4e5c' className="cursor-pointer">
+    <Link href='https://open.spotify.com/show/4OKQmgzsWeNV3YO5dC2uMm?si=c199561a571b4e5c' className="cursor-pointer p-1">
       <div
-        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl w-full h-[100px]  mx-auto gap-6 pb-1 bg-purple-500'
+        className='flex flex-row justify-center rounded-lg md:max-w-screen-xl w-full h-[100px] mx-auto gap-6 pb-1 bg-purple-500'
       >
         <div className="flex items-center justify-between h-full">
           <div className="flex flex-row md:p-0 p-2">
@@ -54,7 +53,7 @@ export const LibraryPromotionComponent: React.FC = () => {
               </p>
 
               <div className='flex flex-row gap-2 items-start justify-start' >
-                <button className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
+                <button className="flex justify-center items-center gap-1 border-black text-black hover:text-white border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
                   <span className="md:text-sm text-[10px]">
                     {phrase(dictionary, "goToSpotify", language)}
                   </span>

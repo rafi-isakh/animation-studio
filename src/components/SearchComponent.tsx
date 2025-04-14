@@ -11,10 +11,10 @@ import { useSearch } from "@/contexts/SearchContext";
 import Link from "next/link";
 import { Drawer, Box } from "@mui/material";
 import { useTheme } from '@/contexts/providers'
-import WebnovelsList from "@/components/WebnovelsList";
+// import SearchComponentWebnovelsList from "@/components/SearchComponentWebnovelsList";
 import CircularProgress from '@mui/material/CircularProgress';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
-
+import SearchPageWebnovelsList from "@/components/UI/SearchPageWebnovelsList";
 
 function GradientCircularProgress() {
     return (
@@ -162,7 +162,6 @@ export default function SearchComponent({
         </div>
     )
 
-
     return (
         <div className="relative w-full overflow-hidden">
             <form onSubmit={handleSearch}>
@@ -198,7 +197,10 @@ export default function SearchComponent({
                                         <Search size={20} className='dark:text-white text-black' />
                                     </div>
                                     <input
-                                        onClick={toggleDrawer(true)}
+                                        onClick={(e) => {
+                                            toggleDrawer(true)(e);
+                                            inputRef.current?.focus();
+                                        }}
                                         type="text"
                                         id="search-navbar"
                                         value={query}
@@ -239,14 +241,13 @@ export default function SearchComponent({
                                     }}
                                     className="relative w-full no-scrollbar"
                                 >
-                                    <Box sx={{ p: 1, mt: 1 }}>
+                                    <Box sx={{ p: 2 }}>
                                         <form onSubmit={handleSearch}>
                                             {renderSearchInput()}
                                         </form>
                                         <div className="flex flex-col md:max-w-screen-xl w-full mx-auto">
                                             <div>
                                                 <div className='text-gray-500 text-md flex items-center justify-between'>
-
                                                     <p className='text-gray-500 text-md pt-3'> {phrase(dictionary, "recentSearch", language)} </p>
                                                     <a href="#">
                                                         <span className='text-gray-300 text-[10px] text-right self-end' onClick={() => toggleSearchRemember()}>
@@ -268,7 +269,6 @@ export default function SearchComponent({
                                                             </div>
                                                         )) :
                                                         <p className='text-gray-500 text-sm flex justify-center items-center h-full text-center'>
-
                                                             {phrase(dictionary, "noRecentSearch", language)}
                                                         </p>
                                                     }
@@ -276,14 +276,13 @@ export default function SearchComponent({
                                             </div>
                                         </div>
                                         {/* webnovel list here */}
-                                        <div
-                                            onClick={toggleDrawer(false)}
-                                            className='flex md:max-w-screen-xl w-full mx-auto'>
+                                        <div className='flex md:max-w-screen-xl w-full mx-auto'>
                                             {webnovels && (
-                                                <WebnovelsList
+                                                <SearchPageWebnovelsList
                                                     webnovels={webnovels}
                                                     searchParams={searchParamsObject}
                                                     sortBy='views'
+                                                    mode="component"
                                                 />
                                             )}
                                         </div>

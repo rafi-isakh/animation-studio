@@ -12,16 +12,19 @@ import { ToonyzPost, User, Webnovel } from "@/components/Types";
 import Link from "next/link";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
-import { CalendarIcon } from "lucide-react";
-import { truncateText } from "@/utils/truncateText";
+import { Book, CalendarIcon, Eye, Heart } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { getNumberOfLikes } from "@/utils/webnovelUtils";
 interface UserInfoCardProps {
     post: ToonyzPost;
     user?: User;
 }
 
 const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
+    const { dictionary, language } = useLanguage();
     const { getWebnovelsMetadataByUserId } = useWebnovels();
     const { email: currentUserEmail } = useUser();
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[]>([]);
@@ -61,40 +64,49 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                         )}
                     </Avatar>
                 </HoverCardTrigger>
-                <HoverCardContent className="w-[300px] bg-transparent border-none shadow-none">
-                    <Card className="w-full max-w-md rounded-xl shadow-sm">
-                        <CardHeader className="pb-0">
-                            <div className="flex items-start gap-4">
-                                <Avatar className="h-10 w-10 border-2 border-background self-center ">
-                                    {post.user.picture ? <AvatarImage src={getImageUrl(post.user.picture)} alt={post.user.nickname} /> : <AvatarFallback>{post.user.nickname.charAt(0)}</AvatarFallback>}
+                <HoverCardContent className="w-[360px] bg-transparent border-none shadow-none">
+                    <Card className="w-full max-w-md rounded-xl shadow-sm p-0 m-0">
+                        <CardHeader className="flex flex-col gap-2 p-2">
+                            <div className="flex flex-col justify-center items-center gap-2">
+                                <Avatar className="h-10 w-10 border-2 border-background justify-center items-center mx-auto">
+                                    {post.user.picture ? <AvatarImage src={getImageUrl(post.user.picture)} alt={post.user.nickname} />
+                                                       : <AvatarFallback>{post.user.nickname.charAt(0)}</AvatarFallback>}
                                 </Avatar>
-                                {/* <div className="flex flex-1 justify-between mt-2">
-                                    <div className="text-center">
-                                        <p className="text-muted-foreground mb-1">Stories</p>
-                                        {userWebnovels.length > 0 ? <p className="text-xl font-semibold text-[#DE2B74]">{userWebnovels.length}</p> : <p className="text-xl font-semibold text-[#DE2B74]">0</p>}
+                                <div className="flex flex-col">
+                                    <h2 className="text-center text-2xl font-bold text-gray-500 dark:text-white mb-1">{post.user.nickname}</h2>
+                                    <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
+                                        <div className='flex flex-col justify-center items-center pr-2 border-r border-gray-300 dark:border-gray-700'>
+                                            <p className='flex flex-row justify-center items-center gap-1 text-xs'>
+                                                <Book size={15} />
+                                                <p className='text-sm capitalize'>{phrase(dictionary, "works", language)}</p>
+                                                <p className='text-sm text-center text-gray-500'>{userWebnovels.length || 0}</p>
+                                            </p>
+                                        </div>
+                                        <div className='flex flex-col justify-center items-center pr-2 border-r border-gray-300 dark:border-gray-700'>
+                                            <p className='flex flex-row justify-center items-center gap-1 text-xs'>
+                                                <Eye size={15} />
+                                                <p className='text-sm capitalize'>{phrase(dictionary, "views", language)}</p>
+                                                <p className='text-sm text-center text-gray-500'>{userWebnovels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
+                                            </p>
+                                        </div>
+                                        <div className='flex flex-col justify-center items-center'>
+                                            <p className='flex flex-row justify-center items-center gap-1 text-xs'>
+                                                <Heart size={15} />
+                                                <p className='text-sm capitalize'>{phrase(dictionary, "likes", language)}</p>
+                                                <p className='text-sm text-center text-gray-500'>{getNumberOfLikes(userWebnovels)}</p>
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="text-center">
-                                        <p className="text-muted-foreground mb-1">Posts</p>
-                                        <p className="text-xl font-semibold text-[#DE2B74]">0</p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-muted-foreground mb-1">Liked</p>
-                                        <p className="text-xl font-semibold text-[#DE2B74]">0</p>
-                                    </div>
-                                </div> */}
+                                </div>
                             </div>
                         </CardHeader>
-                        <CardContent className="pt-2">
-                            <h2 className="text-2xl font-bold text-gray-500 dark:text-white mb-1">{post.user.nickname}</h2>
-                            {/* <p className="text-muted-foreground mb-6">{jobTitle}</p> */}
-
-                            {/* <h3 className="text-lg font-semibold text-gray-500 dark:text-white  mb-2">About</h3> */}
-                            <p className="text-muted-foreground">
-                                {post.user.bio ? post.user.bio : "No bio yet"}
-                            </p>
+                        <CardContent className="pt-0 px-9 py-2 pb-4">
+                            <div className="flex flex-col text-muted-foreground">
+                                <p className="font-bold text-gray-500 dark:text-white"> {phrase(dictionary, "userBio", language)}{" "}</p>
+                                <span>{post.user.bio ? <>{post.user.bio}</> : "No bio yet"}</span>
+                            </div>
                         </CardContent>
                     </Card>
-
                 </HoverCardContent>
             </HoverCard>
         </Link>

@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import StarShopAside from "@/components/UI/StarShopAside";
+import PageAsideBar from "@/components/UI/PageAsideBar";
 
 export default async function StarsLayout({ children }: { children: React.ReactNode }) {
     const session = await auth();
@@ -12,7 +12,7 @@ export default async function StarsLayout({ children }: { children: React.ReactN
     return (
         <div className="relative md:max-w-screen-xl w-full mx-auto flex flex-col md:flex-row">
             {/* aside part */}
-            <StarShopAside email={email ?? ""} />
+            <PageAsideBar email={email ?? ""} mode="starShop" />
             {/* main part */}
             <div className="flex-1  w-full flex-grow flex-shrink-0">
                 {children}

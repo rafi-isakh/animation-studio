@@ -15,7 +15,7 @@ const UserWithSameEmailExistsModalComponent = () => {
 
     const confirm = () => {
         setOpenModal(false);
-        logout(true, '/?version=free');
+        logout(true, '/');
     }
 
     return (

@@ -195,48 +195,47 @@ export default function ShareAsToonyzPostModal({
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
                 className={`select-none no-scrollbar backdrop-blur-md z-[9999]
-                     ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21]'}`}
+                           ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21] max-h-screen'}`}
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >
-                <DialogHeader>
-                    <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
-                    <DialogDescription>
-                        {image && (<>
-                            <Image
-                                src={`data:image/png;base64,${image}`}
-                                alt={`image ${index + 1}`}
-                                width={250}
-                                height={250}
-                                className="self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
-                            />
-                            <div
-                                className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
-                            >
-                                {displayQuote}
-                            </div>
-                        </>)
-                        }
-                        {videoFileName && (
-                            <>
-                            <video
-                                src={getVideoUrl(videoFileName)}
-                                // alt={`Generated video ${index + 1}`}
-                                width={250}
-                                height={250}
-                                autoPlay={true}
-                                muted={true}
-                                loop={true}
-                                playsInline
-                                className='self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300'
+                <ScrollArea className="relative flex flex-col md:h-full h-screen">
+                    <DialogHeader>
+                        <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
+                        <DialogDescription>
+                            {image && (<>
+                                <Image
+                                    src={`data:image/png;base64,${image}`}
+                                    alt={`image ${index + 1}`}
+                                    width={200}
+                                    height={200}
+                                    className="self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
                                 />
-                            </>
-                        )}
-                    </DialogDescription>
-                </DialogHeader>
-                <ScrollArea className="flex flex-col">
+                                <div
+                                    className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
+                                >
+                                    {displayQuote}
+                                </div>
+                            </>)
+                            }
+                            {videoFileName && (
+                                <>
+                                    <video
+                                        src={getVideoUrl(videoFileName)}
+                                        width={250}
+                                        height={250}
+                                        autoPlay={true}
+                                        muted={true}
+                                        loop={true}
+                                        playsInline
+                                        className='self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300'
+                                    />
+                                </>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
                     <div className="items-center">
-                        <Label htmlFor="name" className="text-right text-sm">
+                        <Label htmlFor="name" className="text-left text-sm">
                             {phrase(dictionary, "title", language)}
                         </Label>
                         <Input
@@ -247,7 +246,7 @@ export default function ShareAsToonyzPostModal({
                         />
                     </div>
                     <div className="items-center">
-                        <Label htmlFor="tags" className="text-right text-sm">
+                        <Label htmlFor="tags" className="text-left text-sm">
                             {phrase(dictionary, "tags", language)}
                         </Label>
                         <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 col-span-3">
@@ -265,7 +264,7 @@ export default function ShareAsToonyzPostModal({
                                 </span>
                             ))}
                             <Input
-                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags", language)}
+                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags_placeholder", language)}
                                 value={tagInput}
                                 onChange={handleTagInput}
                                 onKeyDown={handleTagKeyDown}
@@ -274,38 +273,39 @@ export default function ShareAsToonyzPostModal({
                         </div>
                     </div>
                     <div className="items-center">
-                        <Label htmlFor="content" className="text-right text-sm">
+                        <Label htmlFor="content" className="text-left text-sm">
                             {phrase(dictionary, "content", language)}
                         </Label>
                         <Textarea
-                            placeholder={phrase(dictionary, "content", language)}
+                            placeholder={phrase(dictionary, "content_placeholder", language)}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             className=""
                             rows={4}
                         />
                     </div>
+                    <DialogFooter className='flex md:flex-row flex-col gap-2'>
+                        <Button
+                            disabled={isLoading}
+                            variant="outline"
+                            className="bg-[#DE2B74] hover:bg-pink-400 text-white"
+                            onClick={() => handleShareAsPost()}>
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
+                                    <span className="text-[16px]">
+                                        {phrase(dictionary, "generatingPrompt", language)}
+                                    </span>
+                                </>) : (
+
+                                phrase(dictionary, "confirm", language))
+
+                            }
+                        </Button>
+                        <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
+                    </DialogFooter>
+                    <div className='h-[10vh]' />
                 </ScrollArea>
-                <DialogFooter>
-                    <Button
-                        disabled={isLoading}
-                        variant="outline"
-                        className="bg-[#DE2B74] hover:bg-pink-400 text-white"
-                        onClick={() => handleShareAsPost()}>
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin text-pink-600" />
-                                <span className="text-[16px]">
-                                    {phrase(dictionary, "generatingPrompt", language)}
-                                </span>
-                            </>) : (
-
-                            phrase(dictionary, "confirm", language))
-
-                        }
-                    </Button>
-                    <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
-                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

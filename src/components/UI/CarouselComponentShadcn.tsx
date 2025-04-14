@@ -28,7 +28,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
   const isDesktop = useMediaQuery("(min-width: 768px)")
   const plugin = useRef(
     Autoplay({
-      delay: 5000,
+      delay: 4000,
       stopOnInteraction: true,
     })
   )

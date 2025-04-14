@@ -24,23 +24,19 @@ export default function BottomNavigationBar() {
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
         switch (newValue) {
-            case 0: // menu 1
-                router.push('/?version=premium');
+            case 0:
+                router.push('/');
                 setIsMobileMenuOpen(false);
                 break;
-            case 1: // menu 2
-                router.push('/explore');
-                setIsMobileMenuOpen(false);
-                break;
-            case 2: // menu 3
+            case 1:
                 router.push('/feeds');
                 setIsMobileMenuOpen(false);
                 break;
-            case 3: // menu 4
+            case 2:
                 router.push('/search');
                 setIsMobileMenuOpen(false);
                 break;
-            case 4: // menu 5
+            case 3:
                 router.push('/stars');
                 setIsMobileMenuOpen(false);
                 break;
@@ -90,7 +86,6 @@ export default function BottomNavigationBar() {
                 }}
             >
                 <BottomNavigationAction label={phrase(dictionary, "home", language)} icon={<Home />} />
-                <BottomNavigationAction label={phrase(dictionary, "features", language)} icon={<Star />} />
                 <BottomNavigationAction label={phrase(dictionary, "feeds", language)} icon={<LayoutGrid />} />
                 <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
                 <BottomNavigationAction label={phrase(dictionary, "shop", language)} icon={<Gift />} />

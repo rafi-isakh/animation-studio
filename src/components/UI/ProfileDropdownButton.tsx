@@ -7,7 +7,7 @@ import { UserRoundX, CircleHelp, Flag, EllipsisVertical, Power } from 'lucide-re
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { useState } from "react";
-import { User } from "@/components/Types";
+import { UserStripped } from "@/components/Types";
 import ReportModal from "@/components/UI/ReportModal";
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -19,7 +19,7 @@ export default function ProfileDropdownButton({
 }: {
     isProfileOwner: boolean,
     onDeleteAccount: () => void,
-    user: User
+    user: UserStripped
 }) {
     const { language, dictionary } = useLanguage();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -38,7 +38,7 @@ export default function ProfileDropdownButton({
     };
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname} - ${user.email}\n\nReport message: ${reportMessage}`;
+        const message = `Reported user: ${user.nickname}\n\nReport message: ${reportMessage}`;
         await fetch('/api/send_email', {
             method: 'POST',
             body: JSON.stringify({ message: message })

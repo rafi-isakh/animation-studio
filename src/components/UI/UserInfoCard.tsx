@@ -68,7 +68,7 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                                 <Avatar className="h-10 w-10 border-2 border-background self-center ">
                                     {post.user.picture ? <AvatarImage src={getImageUrl(post.user.picture)} alt={post.user.nickname} /> : <AvatarFallback>{post.user.nickname.charAt(0)}</AvatarFallback>}
                                 </Avatar>
-                                <div className="flex flex-1 justify-between mt-2">
+                                {/* <div className="flex flex-1 justify-between mt-2">
                                     <div className="text-center">
                                         <p className="text-muted-foreground mb-1">Stories</p>
                                         {userWebnovels.length > 0 ? <p className="text-xl font-semibold text-[#DE2B74]">{userWebnovels.length}</p> : <p className="text-xl font-semibold text-[#DE2B74]">0</p>}
@@ -81,14 +81,14 @@ const UserInfoCard = ({ post, user }: UserInfoCardProps) => {
                                         <p className="text-muted-foreground mb-1">Liked</p>
                                         <p className="text-xl font-semibold text-[#DE2B74]">0</p>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         </CardHeader>
                         <CardContent className="pt-2">
                             <h2 className="text-2xl font-bold text-gray-500 dark:text-white mb-1">{post.user.nickname}</h2>
                             {/* <p className="text-muted-foreground mb-6">{jobTitle}</p> */}
 
-                            <h3 className="text-lg font-semibold text-gray-500 dark:text-white  mb-2">About</h3>
+                            {/* <h3 className="text-lg font-semibold text-gray-500 dark:text-white  mb-2">About</h3> */}
                             <p className="text-muted-foreground">
                                 {post.user.bio ? post.user.bio : "No bio yet"}
                             </p>

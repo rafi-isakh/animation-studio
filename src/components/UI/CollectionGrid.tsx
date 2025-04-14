@@ -31,14 +31,15 @@ export default function CollectionGrid({ collections }: CollectionGridProps) {
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const MAX_GROUPS = 10;
 
     return (
         <div className="relative max-w-screen-xl mx-auto">
-            <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "ToonyzPost", language)}</h2>
+            <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "toonyzPost_title", language)}</h2>
             <div className="relative group">
                 <div ref={scrollRef} className="overflow-x-auto no-scrollbar">
-                    <div className="flex w-full space-x-4 py-1">
-                        {collections.map((collection) => (
+                    <div className="flex w-full space-x-4">
+                        {collections.slice(0, MAX_GROUPS).map((collection) => (
                             <CollectionCard
                                 key={collection.id}
                                 id={collection.id}
@@ -65,9 +66,15 @@ export const ToonyzPostCards = () => {
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
 
     useEffect(() => {
-        fetch('/api/get_toonyz_posts')
-            .then(res => res.json())
-            .then(data => setPosts(data));
+        const fetchPosts = async () => {
+            const response = await fetch('/api/get_toonyz_posts');
+            if (!response.ok) {
+                throw new Error('Failed to fetch posts');
+            }
+            const data = await response.json();
+            setPosts(data);
+        };
+        fetchPosts();
     }, []);
 
     // Group posts by webnovel_id

@@ -12,7 +12,8 @@ import {
   Bell,
   Gift,
   ChevronFirst,
-  Home
+  Home,
+  Clapperboard
 } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
@@ -36,9 +37,6 @@ const SidebarContext = createContext<SidebarContextType>({
 export function GlobalSidebar() {
   const pathname = usePathname();
 
-  useEffect(() => {
-    console.log(pathname)
-  }, [pathname])
   return (
     <Sidebar>
       <SidebarItem
@@ -46,15 +44,7 @@ export function GlobalSidebar() {
         text="Home"
         active={pathname === '/'}
         alert={false}
-        href="/?version=premium"
-        type="link"
-      />
-      <SidebarItem
-        icon={<LibraryBig />}
-        text="Explore"
-        active={pathname.startsWith('/explore')}
-        alert={false}
-        href="/explore"
+        href="/"
         type="link"
       />
       <SidebarItem
@@ -76,19 +66,27 @@ export function GlobalSidebar() {
       <SidebarItem
         icon={<Gift />}
         text="Shop"
-        active={pathname.startsWith('/stars')} // This will match /library and its subpaths
+        active={pathname.startsWith('/stars')}
         alert={false}
         href="/stars"
         type="link"
       />
-      <SidebarItem
-        type="component"
-        alert={true}
+      {/* <SidebarItem
+        icon={<Clapperboard />}
+        text="ToonyzCut"
+        active={pathname.startsWith('/toonyzcut')} 
+        alert={false}
+        href="/toonyzcut"
+        type="link"
+      /> */}
+      {/* <SidebarItem
         icon={<Bell />}
         text="Notifications"
         active={pathname.startsWith('#')}
+        alert={true}
         href="#"
-      />
+        type="component"
+      /> */}
     </Sidebar>
   )
 }
@@ -112,7 +110,7 @@ export function SidebarItem({ icon, text, active, alert, href, type }:
         <li className={`relative flex items-center py-2 px-6 my-1 font-medium 
                       rounded-md cursor-pointer transition-colors group 
                       ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
-                      : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
+            : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
           {icon}
           <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
           {alert && (
@@ -164,7 +162,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
         {/* darkmode color bg-[#211F21] */}
         <div className="flex h-16 items-center justify-center">
           <div className={`flex flex-row items-center justify-between ${expanded ? "gap-10" : "gap-0"}`}>
-            <Link href="/?version=premium">
+            <Link href="/">
               {expanded && <Image
                 src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyz_logo_pink.svg'}
                 alt="N_logo"
@@ -198,10 +196,10 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             {/* Setting btn */}
             <div className="flex flex-col gap-y-4 mt-auto pb-10">
               {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
-                                            <UserProfileButton expanded={expanded} />
-                                        </div> : <></>
+                <UserProfileButton expanded={expanded} />
+              </div> : <></>
               }
-              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded}  />
+              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded} />
             </div>
           </nav>
         </SidebarContext.Provider>

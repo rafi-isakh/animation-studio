@@ -1,9 +1,9 @@
-import { Webnovel, SortBy, Chapter, Comment, ToonyzPost } from '@/components/Types';
+import { Webnovel, SortBy} from '@/components/Types';
 import moment from 'moment';
 
 
-export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130, 103 ]
-
+export const temporarilyUnpublished = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 117, 115, 116, 121, 130 ]
+export const videoDisallowedForKorean = [134, 135, 136, 133, 139, 140, 141, 143, 144]
 export const chapterPrice = (language: string) => {
     if (language === "ko") {
         return "10";
@@ -20,14 +20,24 @@ export const filter_by_genre = (item: Webnovel, genre: string | null | undefined
 };
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
-    if (!version) return (item.premium ? "premium" : "free");
-    else if (version === "free") return !item.premium;
-    else return version === (item.premium ? "premium" : "free");
+    if (!version) return item.premium;
+    else if (version === "community") return !item.premium;
+    else return item.premium;
 };
 
-export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy): number => {
-    if (sortBy === 'recommendation') {
-        return Math.random() - 0.5;
+const genre_recommendation_score = (a: Webnovel, b: Webnovel, genres: { [key: string]: boolean }): number => {
+    const a_genre = a.genre;
+    const b_genre = b.genre;
+    const a_score = genres[a_genre] ? Math.random() : 0;
+    const b_score = genres[b_genre] ? Math.random() : 0;
+    const noise = Math.random() * 0.01 - 0.005; // add random noise for discovery
+    const score = b_score - a_score + noise;
+    return score;
+}
+
+export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [key: string]: boolean } | null = null): number => {
+    if (sortBy === 'recommendation' && genres) {
+        return genre_recommendation_score(a, b, genres)
     } else if (sortBy === 'views') {
         // Calculate time difference in days
         const daysSinceCreation = (date: Date) => {
@@ -108,3 +118,24 @@ export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMob
         }
     }
 
+    // AUTHOR ENGLISH NAME SHOULD BE IN DATABASE, BUT SINCE IT ISN'T AND IT'S GOING TO TAKE SOME TIME, HERE'S A TEMP FIX
+export const koreanToEnglishAuthorName : { [key: string]: string } = {
+    "독연":	"dok yeon",
+    "온리온":	"OnlyOn",
+    "다원나린":	"DawonNarin",
+    "김호섭":	"hoseup",
+    "언정이":	"eonjeong",
+    "거북수염":	"Turtlebeard",
+    "후두마루":	"Hudumaru",
+    "홍삼더덕":	"Hongsamdeodeok",
+    "차우렌즈":	"CHAWOOLENS",
+    "이르스":	"Irusu",
+    "성상영":	"Sangyoung Seong",
+    "데카스펠":	"deca spell"
+}
+
+export const isPurchasedChapter = (purchased_webnovel_chapters: [number, string][], chapter_id: number, language: string) => {
+    console.log(purchased_webnovel_chapters)
+    if (purchased_webnovel_chapters.length === 0) return false;
+    return purchased_webnovel_chapters.some(([chapterId, lang]) => chapterId === chapter_id && lang === language);
+}

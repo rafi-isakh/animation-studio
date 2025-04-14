@@ -1,7 +1,6 @@
 "use client"
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { scroll } from '@/utils/scroll'
 import { Webnovel } from '@/components/Types';
 import { getImageUrl } from "@/utils/urls"
 import { phrase } from '@/utils/phrases';
@@ -9,24 +8,32 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link';
 import CardsScroll from '@/components/CardsScroll';
+import { getVideoUrl } from '@/utils/urls';
+import { Pause, Play, VolumeOff, Volume2 } from 'lucide-react';
+import { Skeleton } from '@/components/shadcnUI/Skeleton';
+import { Card } from '@/components/shadcnUI/Card';
+import { useMediaQuery } from '@mui/material';
+import MainPagePictureOrVideoComponent from '@/components/MainPagePictureOrVideoComponent';
 
-export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnovel[], isMobile: boolean }) {
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+export default function RankingGrid({ webnovels, isMobile, title }: { webnovels: Webnovel[], isMobile: boolean, title: string }) {
+    const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const { dictionary, language } = useLanguage();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+
     return (
         <div className="md:w-max-screen-xl w-full mx-auto group relative">
-            <h2 className="text-xl font-bold mb-3">{phrase(dictionary, "TOP_SEVEN_WEBNOVELS", language)}</h2>
-            <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
-                {/* Auto-cols-[190px] will define the column width */}
+            <h2 className="text-xl font-bold">{phrase(dictionary, title, language)}</h2>
+            <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden no-scrollbar">
                 <div
-                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] ">
+                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] py-8">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
                             className="relative group"
-                            onMouseEnter={() => setHoveredIndex(index)}
-                            onMouseLeave={() => setHoveredIndex(null)}
+                            onMouseEnter={() => setActiveIndex(index)}
+                            onMouseLeave={() => setActiveIndex(null)}
+
                         >
                             {/* Ranking number */}
                             <div className="absolute md:-left-[90px] md:-bottom-8 -left-[55px] -bottom-[15px] select-none pointer-events-none -z-10">
@@ -41,42 +48,40 @@ export default function RankingGrid({ webnovels, isMobile }: { webnovels: Webnov
                             </div>
                             {/* Card content */}
                             <Link href={`/view_webnovels/${webnovel.id}`}>
-                                <div
-                                    className={`relative overflow-hidden rounded-lg transition-all duration-300 pt-1 
-                                                hover:scale-105 
-                                                ${hoveredIndex === index ? 'transform scale-100' : ''}`}
+                                <Card
+                                    className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none ${activeIndex === index ? "shadow-none scale-110" : ""
+                                        }`}
                                 >
+                                    <MainPagePictureOrVideoComponent webnovel={webnovel} />
                                     {/* Image container - now using full width of the grid column */}
-                                    <div className="relative w-[120px] md:w-[160px] aspect-[2/3] bg-gray-900 rounded-lg ">
-                                        <Image
-                                            fill
-                                            src={getImageUrl(webnovel.cover_art)}
-                                            alt={webnovel.title}
-                                            className="object-cover w-full rounded-lg "
-                                            sizes="(max-width: 768px) 120px, 180px"
-                                            placeholder="blur"
-                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                        />
-                                    </div>
-                                    {/* Gradient overlay */}
-                                    <div className="w-[120px] md:w-[180px] absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
-                                    {/* Title and badge */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="text-white font-semibold line-clamp-2 text-base break-keep">
-                                            <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
-                                        </h3>
-                                    </div>
-                                </div>
+                                    {activeIndex === index && isDesktop && (
+                                        <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-3 text-white h-[50px] z-50 justify-between items-center">
+                                            <h3 className="dark:text-white text-black font-medium text-sm">
+                                                <OtherTranslateComponent
+                                                    content={webnovel.title}
+                                                    elementId={webnovel.id.toString()}
+                                                    elementType="webnovel"
+                                                    elementSubtype="title"
+                                                    classParams="text-xs font-medium text-center line-clamp-2 break-keep korean"
+                                                />
+                                            </h3>
+                                            <div className="flex flex-row gap-2">
+                                                <p className="text-xs text-gray-500">{webnovel.author.nickname}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </Card>
                             </Link>
                         </div>
                     ))}
                 </div>
-            </div>
+            </div >
 
             {!isMobile && (
                 <CardsScroll scrollRef={scrollRef} shift={true} />
-            )}
+            )
+            }
 
-        </div>
+        </div >
     )
 }

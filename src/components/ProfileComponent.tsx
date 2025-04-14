@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { Webnovel, User } from '@/components/Types';
+import { Webnovel, UserStripped, User } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -41,7 +41,7 @@ import UserBlockedComponent from '@/components/UserBlockedComponent';
 import ProfileDropdownButton from '@/components/UI/ProfileDropdownButton';
 import SharingModal from '@/components/UI/SharingModal';
 import DeleteAccountModal from '@/components/UI/DeleteAccountModal';
-const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) => {
+const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
     const [introActive, setIntroActive] = useState<boolean>(true);
     const [viewActive, setViewActive] = useState<boolean>(false);
@@ -76,7 +76,7 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                 return null;
             }
             const data = await response.json();
-            setBlockedUsers(data.blockedUsers.map((user: User) => user.id));
+            setBlockedUsers(data.blockedUsers.map((user: UserStripped) => user.id));
             setLoading(false);
         }
         if (isLoggedIn) {
@@ -122,7 +122,6 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
             // Create FormData object
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('email', user.email);
             formData.append('bio', user.bio);
             formData.append('nickname', user.nickname);
 
@@ -363,14 +362,9 @@ const ProfileComponent = ({ user, novels }: { user: User, novels: Webnovel[] }) 
                             webnovels={novels}
                             scrollRef={scrollRef}
                             isMobile={isMobile}
-                            renderItem={(item: Webnovel, index: number) => (
+                            renderItem={(item: Webnovel) => (
                                 <WebnovelPictureComponent
                                     webnovel={item}
-                                    index={index}
-                                    ranking={false}
-                                    details={false}
-                                    up={false}
-                                    isOriginal={false}
                                 />
                             )}
                         />

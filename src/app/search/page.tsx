@@ -4,12 +4,11 @@ import WebnovelSearchComponent from '@/components/WebnovelSearchComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect, useRef } from 'react';
 import { phrase } from '@/utils/phrases';
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import SearchComponent from '@/components/SearchComponent';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
-import { useWebnovels } from '@/contexts/WebnovelsContext';
 import WebnovelPictureCardWrapper from '@/components/UI/WebnovelPictureCardWrapper';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
 import {
@@ -24,17 +23,12 @@ import {
   LoveComedyGenres
 } from '@/components/UI/GenresTabs';
 import SearchPageWebnovelsList from '@/components/UI/SearchPageWebnovelsList';
-
-// import WebnovelCard from '@/components/UI/WebnovelCard';
-
 const Search = () => {
-  const router = useRouter();
   const { dictionary, language } = useLanguage();
   const searchParams = useSearchParams();
   const query = searchParams.get('query');
   const remember = searchParams.get('remember');
   const searchParamsObject = Object.fromEntries(searchParams.entries());
-  const { theme } = useTheme();
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
   const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,12 +89,7 @@ const Search = () => {
     }
   }, [webnovels]);
 
-
-
-
-
   const scrollRef = useRef<HTMLDivElement>(null);
-  // let { webnovels } = useWebnovels();
   const filteredAllWebnovels = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
 
   const tabsConfig = [
@@ -217,9 +206,6 @@ const Search = () => {
     )
   }
 
-
-
-
   const SearchResultSkeleton = ({ width = 300, height = 24 }) => (
     <div className="flex flex-row gap-3 w-full">
       <CustomSkeleton variant='rounded' animation="wave" width={120} height={90} className="md:w-[300px] md:h-[150px] w-[120px] h-[90px]" />
@@ -240,7 +226,6 @@ const Search = () => {
       ))}
     </div>
   );
-
 
   return (
     <div className='w-full md:max-w-screen-lg mx-auto overflow-hidden no-scrollbar'>
@@ -276,12 +261,13 @@ const Search = () => {
           )}
         </div>
       ) : (
-        // Show default view 
+        // Show default view if no query
         <div className='space-y-8 md:px-2 px-4'>
-          <SearchPageWebnovelList
+          <SearchPageWebnovelsList
             searchParams={searchParamsObject}
             webnovels={allWebnovels}
             sortBy={sortBy}
+            mode="page"
           />
           <div className='relative w-full mx-auto'>
             <GenresTabs tabs={tabsConfig} type="tabs" orientation="horizontal" />

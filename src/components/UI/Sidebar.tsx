@@ -66,7 +66,7 @@ export function GlobalSidebar() {
       <SidebarItem
         icon={<Gift />}
         text="Shop"
-        active={pathname.startsWith('/stars')} 
+        active={pathname.startsWith('/stars')}
         alert={false}
         href="/stars"
         type="link"
@@ -79,14 +79,14 @@ export function GlobalSidebar() {
         href="/toonyzcut"
         type="link"
       /> */}
-      <SidebarItem
+      {/* <SidebarItem
         icon={<Bell />}
         text="Notifications"
         active={pathname.startsWith('#')}
         alert={true}
         href="#"
         type="component"
-      />
+      /> */}
     </Sidebar>
   )
 }
@@ -110,7 +110,7 @@ export function SidebarItem({ icon, text, active, alert, href, type }:
         <li className={`relative flex items-center py-2 px-6 my-1 font-medium 
                       rounded-md cursor-pointer transition-colors group 
                       ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
-                      : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
+            : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
           {icon}
           <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
           {alert && (
@@ -196,10 +196,10 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             {/* Setting btn */}
             <div className="flex flex-col gap-y-4 mt-auto pb-10">
               {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
-                                            <UserProfileButton expanded={expanded} />
-                                        </div> : <></>
+                <UserProfileButton expanded={expanded} />
+              </div> : <></>
               }
-              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded}  />
+              <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded} />
             </div>
           </nav>
         </SidebarContext.Provider>

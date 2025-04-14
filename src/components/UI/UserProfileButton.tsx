@@ -92,36 +92,36 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     <hr className='my-2' />
                     <div className="space-y-2 text-base">
                         <ul className="flex flex-col gap-2">
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/my_profile" onClick={() => handleClose()}>
+                            <Link href="/my_profile" onClick={() => handleClose()}>
+                                <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                     <SquareUser size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "myProfile", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/my_webnovels" onClick={() => handleClose()}>
+                                </li>
+                            </Link>
+                            <Link href="/my_webnovels" onClick={() => handleClose()}>
+                                <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                     <Book size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "myWebnovels", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/my_library" onClick={() => handleClose()} >
+                                </li>
+                            </Link>
+                            <Link href="/my_library" onClick={() => handleClose()} >
+                                <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                     <SquareLibrary size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "myLibrary", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/stars" onClick={() => handleClose()} >
+                                </li>
+                            </Link>
+                            <Link href="/stars" onClick={() => handleClose()} >
+                                <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                     <Sparkles size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "stars", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/new_webnovel" onClick={() => handleClose()}>
+                                </li>
+                            </Link>
+                            <Link href="/new_webnovel" onClick={() => handleClose()}>
+                                <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                     <SquarePen size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "newWebnovel", language)}</span>
-                                </Link>
-                            </li>
+                                </li>
+                            </Link>
                         </ul>
                     </div>
                 </div>

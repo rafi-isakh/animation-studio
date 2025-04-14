@@ -302,14 +302,14 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
-                    <div id='above-header' className="flex flex-row w-full flex-wrap md:flex-nowrap items-center mx-auto ">
+                    <div id='above-header' className="flex flex-row w-full flex-wrap md:flex-nowrap items-center mx-auto justify-between">
 
                         {/* header font and icon colour gray-500 */}
                         {/* md:pl-[72px] sidebar width is 72px */}
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, community,  */}
-                        {/* <div className='flex flex-row items-center justify-center gap-4 '>
-                            <Link href="/?version=premium"
+                        <div className='flex flex-row items-center'>
+                            <Link href="/"
                                 className="md:hidden flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                                 <Image
                                     src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyz_logo_pink.svg'}
@@ -319,7 +319,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     className="md:hidden"
                                 />
                             </Link>
-                            <div className="flex flex-row gap-4 items-center justify-center font-pretendard md:text-md text-sm">
+                            {/* <div className="flex flex-row gap-4 items-center justify-center font-pretendard md:text-md text-sm">
                                 <Link href="/?version=premium" prefetch={false} >
                                     <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold' : ''} hidden md:block webnovel mt-1 text-lg md:text-xl  dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "webnovels", language)}</p>
@@ -328,9 +328,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                         {phrase(dictionary, "free", language)}</p>  
                                 </Link>
-                            </div>
-                        </div> */}
-                        <div className="flex gap-x-2 mt-2 md:order-1 w-full">
+                            </div> */}
+                        </div>
+                        <div className="flex gap-x-2 mt-2 md:order-1 md:w-full">
                             {/* Search bar in desktop screen */}
                             <div className="relative hidden md:inline-flex w-full mr-3">
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />

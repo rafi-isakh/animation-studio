@@ -128,8 +128,8 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             {/* Image/Video Container - simplified for mobile */}
             <div className={`relative max-w-screen-sm mx-auto group
                             ${post.image
-                    ? 'md:h-full h-[40vh] top-8 mt-8'
-                    : 'md:h-full md:top-16 md:mt-16'}`}>
+                            ? 'md:h-full h-[40vh] top-8 mt-8'
+                            : 'md:h-full md:top-16 md:mt-16'}`}>
                 {post.image ? (
                     <div className="group h-full w-full">
                         {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" width={300} height={300} className="object-cover overflow-hidden md:scale-125 scale-100 transition-all duration-300" /> */}
@@ -165,7 +165,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
                             ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
                 <div className="md:max-w-screen-sm mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
-                    <div className="relative flex flex-row justify-between">
+                    <div className="relative w-full flex flex-row justify-between">
                         {/* user hover card */}
                         <div className="flex flex-row gap-2">
                             <UserInfoCard post={post} />
@@ -189,13 +189,13 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                 postId={post.id.toString()}
                                 post={post}
                          />
-                        </div>
+                    </div>
                     
-                        <p className="text-center text-xl md:text-4xl font-bold">
+                        <hr className='w-full border-gray-200' />
+
+                        <p className="text-xl md:text-2xl font-bold">
                             <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                         </p>
-
-                        <hr className='w-full border-gray-200' />
 
                         {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
 
@@ -244,9 +244,9 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
 
                         <hr className="w-full border-gray-200" />
                         <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
-                    </div>
-                    <div className="h-[10vh]" />
-                    <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+                </div>
+                <div className="h-[10vh]" />
+                <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
                         {/* reusable component for the feed */}
                         {/* {allPosts && (
                         <ToonyzPostGrid

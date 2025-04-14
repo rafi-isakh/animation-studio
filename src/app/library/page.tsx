@@ -28,8 +28,9 @@ const Library = () => {
     }, [email])
 
     return (
-        <div className="max-w-screen-xl flex mx-auto justify-center">
+        <div className="max-w-screen-xl h-full flex mx-auto justify-center mb-72">
             <LibraryComponent library={library} nickname={nickname} loading={loading}/>
+            
         </div>
     )
 }

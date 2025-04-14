@@ -1,26 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ToonyzPost, Webnovel, } from "@/components/Types";
-import WebnovelComponent from "@/components/WebnovelComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar";
 import { phrase } from "@/utils/phrases";
 import Image from "next/image";
 import { Button } from "@/components/shadcnUI/Button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { LibraryPromotionComponent } from "@/components/PromotionBannerComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { truncateText } from "@/utils/truncateText";
 import { Skeleton } from "@/components/shadcnUI/Skeleton";
-import LottieLoader from "./LottieLoader";
-import animationData from '@/assets/N_logo_with_heart.json';
+// import LottieLoader from "./LottieLoader";
+// import animationData from '@/assets/N_logo_with_heart.json';
+import WebnovelsCardList from "@/components/WebnovelsCardList";
+import WebnovelPictureComponent from "@/components/WebnovelPictureComponent";
+import { useMediaQuery } from "@mui/material";
+import MyFavoriteAuthorList from "@/components/UI/MyFavoriteAuthorList";
 
 // Add a helper function for image URLs if it doesn't exist elsewhere
 const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[], nickname: string, loading: boolean }) => {
     const { dictionary, language } = useLanguage();
     const [toonyzPosts, setToonyzPosts] = useState<ToonyzPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const authorListScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchAndSortToonyzPosts = async () => {
@@ -83,42 +88,32 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
         )
     }
 
-
     return (
-        <div className="md:max-w-screen-xl w-full mx-auto">
+        <div className="md:max-w-screen-xl w-full h-full mx-auto">
             <div className="flex flex-col justify-start md:p-0 p-2">
                 <LibraryPromotionComponent />
                 {smallGap()}
-                <p className="text-2xl font-bold !text-start mb-3">
-                    {phrase(dictionary, "myLibrary", language)}
-                </p>
                 {library.length > 0 ?
-                    <div className="w-full overflow-x-auto no-scrollbar">
-                        <div className="flex gap-2">
-                            {library && library.map((item, index) => (
-                                <div
-                                    key={item.id}
-                                    className={cn(
-                                        "flex flex-col",
-                                        "w-fit shrink-0",
-                                        "bg-white dark:bg-zinc-900/70",
-                                        "rounded-xl",
-                                        "border border-zinc-100 dark:border-zinc-800",
-                                        "hover:border-zinc-200 dark:hover:border-zinc-700",
-                                        "transition-all duration-200",
-                                        "shadow-sm backdrop-blur-xl",
-                                    )}
-                                >
-                                    <WebnovelComponent key={index} webnovel={item} index={index} ranking={false} chunkIndex={0} />
-                                </div>
-                            ))}
-                        </div>
+                    <div className='w-full flex'>
+                        <WebnovelsCardList
+                            title={phrase(dictionary, "myLibrary", language)}
+                            subtitle=""
+                            webnovels={library}
+                            scrollRef={scrollRef}
+                            isMobile={isMobile}
+                            renderItem={(item: Webnovel, index: number) => (
+                                <WebnovelPictureComponent
+                                    webnovel={item}
+                                />
+                            )}
+                        />
                     </div>
                     : (isLoading ?
                         <div className="flex flex-row justify-start items-start space-x-2">
                             <Skeleton className="w-[165px] h-[250px] rounded-lg" />
                             <Skeleton className="w-[165px] h-[250px] rounded-lg" />
                             <Skeleton className="w-[165px] h-[250px] rounded-lg" />
+                          
                         </div>
                         : <div className="flex flex-col justify-center items-center space-y-2">
                             <Image src="/stelli/stelli_3.png" alt="noWebnovelsFound" width={150} height={100} />
@@ -135,35 +130,10 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
             </div>
             {smallGap()}
             <div className="flex flex-col justify-start md:p-0 p-2">
-                <p className="text-2xl font-bold !text-start mb-3">
-                    {phrase(dictionary, "favoriteAuthors", language)}
-                </p>
-                
-                <div className="overflow-x-auto no-scrollbar">
-                    <div className="flex flex-row flex-nowrap gap-2" >
-                       {uniqueAuthors.length > 0 ? uniqueAuthors.slice(0, 20).map(author => (
-                            <div
-                                key={author.id}
-                                className="flex flex-row gap-1 justify-center items-center border border-zinc-200 dark:border-zinc-700 rounded-lg p-1 w-fit"
-                            >
-                                <Avatar key={author.id} className="relative w-6 h-6 rounded-full border border-white overflow-hidden">
-                                    <AvatarFallback className="bg-gray-300 flex items-center justify-center text-xs text-black dark:text-black">
-                                        {author.nickname.charAt(0).toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <p className="text-center text-sm truncate">{author.nickname}</p>
-                            </div>
-                        )) : (isLoading ? <div className="flex flex-row justify-start items-start space-x-2"> 
-                                            <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
-                                            <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
-                                            <Skeleton className="w-[70px] h-[30px] rounded-lg" /> 
-                                        </div> : <>{phrase(dictionary, "noFavoriteAuthorsYet", language)}</>)}
-                    </div>
-                </div>
+                <MyFavoriteAuthorList library={library} nickname={nickname} isLoading={isLoading} />
             </div>
             {largeGap()}
             <div className="flex flex-col justify-start md:p-0 p-2">
-
                 {library.length > 0 ?
                     <div className="flex flex-row justify-between">
                         <h1 className="text-2xl font-bold mb-3 text-black dark:text-white">
@@ -174,7 +144,7 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
                     </div>
                     : <></>
                 }
-
+              {smallGap()}
                 <div className="overflow-x-auto no-scrollbar ">
                     <div className="flex flex-row flex-nowrap gap-2">
                         {library.map(libraryItem => {
@@ -245,6 +215,7 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
                     </div>
                 </div>
             </div>
+          
         </div>
     )
 }

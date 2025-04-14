@@ -4,28 +4,38 @@ import WebnovelSearchComponent from '@/components/WebnovelSearchComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect, useRef } from 'react';
 import { phrase } from '@/utils/phrases';
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import SearchComponent from '@/components/SearchComponent';
-import WebnovelsList from '@/components/WebnovelsList';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@/contexts/providers';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
-// import WebnovelCard from '@/components/UI/WebnovelCard';
-
+import WebnovelPictureCardWrapper from '@/components/UI/WebnovelPictureCardWrapper';
+import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
+import {
+  GenresTabs,
+  AllGenres,
+  RomanceGenres,
+  FantasyGenres,
+  SciFiGenres,
+  BLGenres,
+  DramaGenres,
+  RomanceFantasyGenres,
+  LoveComedyGenres
+} from '@/components/UI/GenresTabs';
+import SearchPageWebnovelsList from '@/components/UI/SearchPageWebnovelsList';
 const Search = () => {
-  const router = useRouter();
   const { dictionary, language } = useLanguage();
   const searchParams = useSearchParams();
   const query = searchParams.get('query');
   const remember = searchParams.get('remember');
   const searchParamsObject = Object.fromEntries(searchParams.entries());
-  const { theme } = useTheme();
   const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
   const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortBy>('views');
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [showNoResults, setShowNoResults] = useState(false);
+
   // Fetch all webnovels on component mount
   useEffect(() => {
     const fetchAllWebnovels = async () => {
@@ -79,6 +89,88 @@ const Search = () => {
     }
   }, [webnovels]);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const filteredAllWebnovels = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+
+  const tabsConfig = [
+    {
+      label: "All Genres",
+      genre: "allgenres",
+      Component: () => (
+        <AllGenres>
+          {/* <CarouselComponentReactSlick items={items} slidesToShow={1} showDots={true} centerPadding={{ desktop: '10px', mobile: '24px' }} /> */}
+          <WebnovelsAllCardWrapper
+            title={''}
+            webnovels={filteredAllWebnovels}
+            scrollRef={scrollRef}
+            renderItem={(item: Webnovel, index: number) => (
+              <WebnovelPictureCardWrapper
+                webnovel={item}
+              />
+            )}
+          />
+        </AllGenres>
+      ),
+      color: "#F9B294"
+    },
+    {
+      label: "Romance",
+      genre: "romance",
+      Component: () => (
+        <RomanceGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F2727F"
+    },
+    {
+      label: "Fantasy",
+      genre: "fantasy",
+      Component: () => (
+        <FantasyGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F89E8D"
+    },
+    {
+      label: "Sci-Fi",
+      genre: "sf",
+      Component: () => (
+        <SciFiGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F78A86"
+    },
+    {
+      label: "BL",
+      genre: "bl",
+      Component: () => (
+        <BLGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F2727F"
+    },
+    {
+      label: "Drama",
+      genre: "drama",
+      Component: () => (
+        <DramaGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#0C34F0"
+    },
+    {
+      label: "Romance Fantasy",
+      genre: "romanceFantasy",
+      Component: () => (
+        <RomanceFantasyGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F0BA18"
+    },
+    {
+      label: "Love Comedy",
+      genre: "loveComedy",
+      Component: () => (
+        <LoveComedyGenres webnovels={filteredAllWebnovels} />
+      ),
+      color: "#F0183C"
+    },
+  ];
+
 
   const CustomSkeleton = ({
     width = '100%',
@@ -109,7 +201,6 @@ const Search = () => {
     )
   }
 
-
   const SearchResultSkeleton = ({ width = 300, height = 24 }) => (
     <div className="flex flex-row gap-3 w-full">
       <CustomSkeleton variant='rounded' animation="wave" width={120} height={90} className="md:w-[300px] md:h-[150px] w-[120px] h-[90px]" />
@@ -130,7 +221,6 @@ const Search = () => {
       ))}
     </div>
   );
-
 
   return (
     <div className='w-full md:max-w-screen-lg mx-auto overflow-hidden no-scrollbar'>
@@ -166,13 +256,17 @@ const Search = () => {
           )}
         </div>
       ) : (
-        // Show default view 
+        // Show default view if no query
         <div className='space-y-8 md:px-2 px-4'>
-          <WebnovelsList
+          <SearchPageWebnovelsList
             searchParams={searchParamsObject}
             webnovels={allWebnovels}
             sortBy={sortBy}
+            mode="page"
           />
+          <div className='relative w-full mx-auto'>
+            <GenresTabs tabs={tabsConfig} type="tabs" orientation="horizontal" />
+          </div>
         </div>
       )}
     </div>

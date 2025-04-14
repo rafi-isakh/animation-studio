@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/shadcnUI/Button'
-import { User, UserStripped } from '@/components/Types';
-import { Modal, } from '@mui/material';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
+import { UserStripped } from '@/components/Types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import {
@@ -18,6 +18,7 @@ import {
     PinterestShareButton,
     PinterestIcon,
 } from "react-share";
+
 
 const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, user }: {
     isOpen: boolean,
@@ -41,7 +42,6 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
         try {
             const currentUrl = window.location.href;
             await navigator.clipboard.writeText(currentUrl);
-
             // Show "Copied!" message
             setCopied(true);
             // Reset after 2 seconds
@@ -58,11 +58,8 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
     if (!isOpen) return null;
 
     return (
-        <Modal
-            open={isOpen}
-            onClose={onClose}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent showCloseButton={false} className="!bg-transparent !border-none shadow-none flex items-center justify-center">
             <div className="flex flex-col items-center justify-center w-[350px]">
                 <div className="relative top-[10px]">
                     <div className="w-24 h-24 bg-pink-200 rounded-full flex items-center justify-center">
@@ -72,12 +69,13 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
 
                 <div className="bg-white rounded-3xl w-full max-w-md p-6 relative">
                     {/* Close button */}
-                    <button
+                    <Button
+                        variant='link'
                         onClick={onClose}
-                        className="absolute right-4 top-4 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center"
+                        className="!no-underline absolute right-4 top-4 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center"
                     >
                         <span className="text-[#DE2B74] text-xl">&times;</span>
-                    </button>
+                    </Button>
 
                     {/* Content title */}
                     <div className="text-center">
@@ -88,10 +86,6 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                     </div>
 
                     <div className="flex flex-row justify-center items-center gap-2 my-5">
-                        <FacebookShareButton url={currentPageUrl} title={user.nickname}>
-                            <FacebookIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
-                        </FacebookShareButton>
-
                         <TwitterShareButton url={currentPageUrl} title={user.nickname}>
                             <TwitterIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                         </TwitterShareButton>
@@ -110,7 +104,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                     </div>
 
                     {/* Buttons */}
-                    <div className="space-y-3">
+                    <DialogFooter className="flex flex-col gap-2">
                         <Button
                             variant='outline'
                             onClick={handleCopyLink}
@@ -130,10 +124,11 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                             {/* Close */}
                             {phrase(dictionary, "close", language)}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </div>
             </div>
-        </Modal>
+            </DialogContent>
+        </Dialog>
     );
 };
 

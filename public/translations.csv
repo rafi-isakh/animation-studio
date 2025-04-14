@@ -34,11 +34,13 @@ description,작품 소개,作品紹介,Description,作品介紹,作品介绍,ค
 number,회차,話,Number,話,回合,หมายเลขตอน,Nomor,Số,الرقم
 webnovelTitle,작품명,作品名,Webnovel Title,作品名稱,作品名称,ชื่อเรื่อง,Judul Novel,Tiêu đề Tiểu Thuyết,عنوان الرواية
 uploadDate,날짜,日付,Date,日期,日期,วันที่,Tanggal,Ngày,تاريخ
+works,작품,作品,Works,作品,作品,นิยาย,Novel,Tiểu thuyết,الروايات
 views,조회,閲覧,Views,瀏覽量,浏览量,การดู,Tampilan,Lượt Xem,المشاهدات
 likes,좋아요,いいね,Likes,喜歡,喜欢,ถูกใจ,Suka,Thích,إعجاب
 numberOfWebnovels,작품수,作品数,Number of Webnovels,作品數,作品数,จำนวนนิยาย,Jumlah Novel,Số Lượng Tiểu Thuyết,عدد الروايات
 numTotalChapters,총 연재 글수,総連載文字数,Total Number of Chapters,總連載章節數,总连载章节数,จำนวนตอนรวม,Total Jumlah Bab,Tổng Số Chương,إجمالي عدد الفصول
 authorBio,작가 소개,作家紹介,Author Bio,作者介紹,作者介绍,ประวัติผู้แต่ง,Biografi Penulis,Giới Thiệu Tác Giả,نبذة عن المؤلف
+userBio,자기 소개,ユーザー紹介,User Bio,用戶介紹,用户介绍,คำบรรยายผู้ใช้งาน,Deskripsi Pengguna,Giới Thiệu Người Dùng,وصف المستخدم
 viewWebnovels,작품 보기,作品を見る,View Webnovels,查看作品,查看作品,ดูนิยาย,Lihat Novel,Xem Tiểu Thuyết,عرض الروايات
 list,목록,目次,List,列表,列表,รายการ,Daftar,Danh Sách,قائمة
 myLibrary,내 서재,私の書斎,My Library,我的書房,我的书架,ห้องสมุดของฉัน,Perpustakaan Saya,Thư Viện Của Tôi,مكتبتي
@@ -207,7 +209,7 @@ help,도움말,,Help
 follow,팔로우,,Follow
 share,공유,,Share
 report,신고,,Report
-wouldYouLikeToReport,,신고하시겠습니까?,,Would you like to report this user?
+wouldYouLikeToReport,신고하시겠습니까?,,Would you like to report this user?
 reportReason,신고 사유,,Report Reason
 reportSuccess,신고가 접수되었습니다.,,Report has been submitted.
 block,차단,,Block
@@ -216,8 +218,6 @@ blockSuccess,차단되었습니다.,,User has been blocked.
 startToRead,읽어보기,,Read Episode 1
 unlockNextEpisode,유료 다음 화 보기,,View Author's Other Works 
 viewAnotherWorks,다른 작품 보기,,View More Works by the Author 
-works,작품,,WORKS
-views,조회,,VIEWS
 peopleAlsoLike,추천 작품,,People Also Like
 episodes,에피소드,,Episodes
 start_to_read_episode_1,첫 화 보기,,Read Episode 1
@@ -397,6 +397,11 @@ notEnoughStars,별이 부족합니다.,,You don't have enough stars.,,
 count,개,,,,
 languageNotAvailable,이 웹소설은 이 언어로 제공되지 않습니다.,,This webnovel is not available in this language.,,
 engaged,반응,,engaged,,
+editProfile,프로필 수정,,Edit Profile,,
+editProfileDescription,프로필 정보를 수정하세요.,,Edit your profile information,,
+newNickname,새 닉네임,,New Nickname,,
+saveChanges,저장 하기,,Save Changes,,
+saving,저장 중...,,Saving,,
 invalid_promo_code,유효하지 않은 쿠폰 코드입니다.,,Invalid promo code,,
 promo_code_applied,쿠폰이 적용되었습니다.,,Promo code applied,,
 already_applied_promo_code,이미 적용된 쿠폰 코드입니다.,,Already applied promo code,,
@@ -407,6 +412,7 @@ newToonyzPostsFromYourLibrary,의 읽던 작품의 새로운 투니즈 포스트
 findYourFavoriteWebnovelsAudiobookAndMore,좋아하는 웹소설을 오디오북으로도 들어보세요!,,Find your favorite webnovels' audiobook and more
 goToSpotify,투니즈 Spotify 가기,,Go to Toonyz Spotify
 noFavoriteAuthorsYet,좋아하는 작가가 없습니다,,No Favorite Authors Yet,,
+YouMightLike,이런 작품 어떠세요?,,You might like this
 newReleasesWebnovels,🚀 위클리 데뷔작 ,,🚀 New Stars Rising – Weekly Launches
 recommendedWebnovels,🏆 몰입감 순삭 인기작,,🏆 Best Reads – Chapters of Pure Momentum
 TOP_SEVEN_WEBNOVELS,⭐ TOP 7,,⭐ TOP 7
@@ -433,3 +439,6 @@ go_to_charge,하러가기,,and enjoy!
 stars_free,무료,,Free
 my_posts,내가 올린 포스트,,My Posts
 posts_history,기록,,Full History
+go_to_dashboard,대시보드 가기,,Go to Dashboard,,
+uploadProfilePicture,프로필 사진 업로드,,Upload Profile Picture,,
+noBioYet,자기소개가 없습니다,,No Bio Yet,,

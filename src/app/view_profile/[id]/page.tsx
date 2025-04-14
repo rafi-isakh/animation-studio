@@ -6,6 +6,8 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserBlockedComponent from '@/components/UserBlockedComponent';
 import { useEffect } from 'react';
 import { useState } from 'react';
+import PageAsideBar from "@/components/UI/PageAsideBar";
+
 
 async function getUser(id: string) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_user_by_id?id=${id}`);
@@ -23,6 +25,7 @@ export default function ViewProfile({ params: { id }, }: { params: { id: string 
     const [isLoading, setIsLoading] = useState(true);
     const { getWebnovelsMetadataByUserId } = useWebnovels();
 
+
     useEffect(() => {
         const fetchUserAndNovels = async () => {
             const user = await getUser(id);
@@ -34,6 +37,7 @@ export default function ViewProfile({ params: { id }, }: { params: { id: string 
             setIsLoading(false);
         }
         fetchUserAndNovels();
+        console.log(user, id, user?.id)
     }, [id]);
 
     if (isLoading) {
@@ -41,7 +45,12 @@ export default function ViewProfile({ params: { id }, }: { params: { id: string 
     }
     if (user && novels) {
         return (
-            <ProfileComponent user={user} novels={novels} />
+            <div className="md:max-w-screen-xl w-full mx-auto flex flex-col md:flex-row">
+                <PageAsideBar mode="viewProfile" user={user} />
+                <div className="flex-1 w-full flex-shrink-0">
+                    <ProfileComponent user={user} novels={novels} />
+                </div>
+            </div>
         );
     } else {
         return (

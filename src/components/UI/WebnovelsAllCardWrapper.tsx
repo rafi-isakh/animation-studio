@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/shadcnUI/Card';
 import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { Button } from '@/components/shadcnUI/Button';
 import { Heart, Bookmark } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { koreanToEnglishAuthorName } from '@/utils/webnovelUtils';
 
 interface WebnovelsCardListProps {
     title: string;
@@ -24,7 +26,7 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
 }) => {
     // const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
     const [activeIndex, setActiveIndex] = useState<number | null>(null)
-
+    const { language } = useLanguage();
     return (
         <div className={`relative  w-full mx-auto group overflow-hidden ${className}`}>
             <div>
@@ -66,7 +68,11 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
                                                 />
                                             </h3>
                                             <div className="flex flex-row gap-2">
-                                                <p className="text-xs text-gray-500">{item.author.nickname}</p>
+                                                <p className="text-xs text-gray-500">{
+                                                    language === "ko" ?
+                                                        item.author.nickname :
+                                                        koreanToEnglishAuthorName[item.author.nickname]
+                                                }</p>
                                             </div>
                                         </div>
                                     )}

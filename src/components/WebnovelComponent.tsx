@@ -43,7 +43,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                     </div>
                 </div>
 
-                {ranking && <p className={`text-xl md:text-2xl self-center p-3`}>{index}</p>}
+                {ranking && <p className={`text-xl md:text-2xl self-center p-3 dark:text-white`}>{index}</p>}
 
                 <div className="w-full flex-grow-0 flex-shrink overflow-hidden text-center">
                     <OtherTranslateComponent
@@ -51,9 +51,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                         elementId={webnovel.id.toString()}
                         elementType='webnovel'
                         elementSubtype="title"
-                        classParams={language === 'ko'
-                            ? "text-md md:text-base w-full break-keep korean truncate text-center"
-                            : "text-md md:text-base w-full break-words truncate text-center"}
+                        classParams={language === 'ko' ? "text-md md:text-base w-full break-keep korean dark:text-white" : "text-md md:text-base w-full break-words dark:text-white"}
                     />
                     <div className="flex flex-col items-center">
                         <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
@@ -61,9 +59,13 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                             <span className="hidden md:block"> • </span>
                             <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>
-
-                        <div className="flex flex-row gap-1 text-[10px] md:text-sm text-gray-500 font-bold dark:text-gray-500 justify-center">
-                            {/* <p> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length} {phrase(dictionary, "numchapters", language)}</p> */}
+                        {/* total chapters and num chapters */}
+                        <div className="flex flex-row gap-1 text-[10px] md:text-sm text-gray-500 font-bold dark:text-gray-500 ">
+                            <p> {phrase(dictionary, "totalchapters", language)} {webnovel.chapters_length} {phrase(dictionary, "numchapters", language)}</p>
+                            <p className="flex flex-row gap-1 items-center text-gray-500 dark:text-gray-500">
+                                <FavoriteIcon sx={{ fontSize: 12 }} />
+                                {webnovel.upvotes}
+                            </p>
                         </div>
                     </div>
                 </div>

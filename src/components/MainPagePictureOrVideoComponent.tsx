@@ -15,6 +15,7 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
     const currentHoverTimeout = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
+        setImageSrc(getImageUrl(webnovel.cover_art)) // this one always exists, is default
         if (language === "en") {
             if (webnovel.en_cover_art) {
                 const imageSrc = getImageUrl(webnovel.en_cover_art)
@@ -25,8 +26,6 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
                 setVideoSrc(videoSrc)
             }
         } else {
-            const imageSrc = getImageUrl(webnovel.cover_art) // this one always exists
-            setImageSrc(imageSrc)
             if (webnovel.video_cover) {
                 const videoSrc = getVideoUrl(webnovel.video_cover)
                 setVideoSrc(videoSrc)

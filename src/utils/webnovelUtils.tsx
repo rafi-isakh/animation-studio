@@ -21,7 +21,7 @@ export const filter_by_genre = (item: Webnovel, genre: string | null | undefined
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
     if (!version) return item.premium;
-    else if (version === "free") return !item.premium;
+    else if (version === "community") return !item.premium;
     else return item.premium;
 };
 

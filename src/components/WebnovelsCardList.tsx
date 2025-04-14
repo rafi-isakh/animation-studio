@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import CardsScroll from '@/components/CardsScroll';
-import { Card, CardContent } from "@/components/shadcnUI/Card"
-import { Button } from '@/components/shadcnUI/Button';
-import { Bookmark, Heart } from 'lucide-react';
-import OtherTranslateComponent from "@/components/OtherTranslateComponent"
-
-
+import { Card } from "@/components/shadcnUI/Card"
 interface WebnovelsCardListProps {
     title: string;
     subtitle?: string;
@@ -26,7 +21,6 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     isMobile = false,
     className = '',
 }) => {
-    const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
     const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
     return (
@@ -57,21 +51,6 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                                     className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none ${activeIndex === index ? "shadow-none scale-110" : ""
                                         }`}
                                 >
-                                    {/* {activeIndex === index && (
-                                        <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-3 text-white h-[80px] z-50 justify-between items-center">
-                                            <h3 className="dark:text-white text-black font-medium text-sm">
-                                                <OtherTranslateComponent
-                                                    content={item.title}
-                                                    elementId={item.id.toString()}
-                                                    elementType="webnovel"
-                                                    elementSubtype="title"
-                                                    classParams="text-sm md:text-base font-medium text-center line-clamp-2 break-keep korean"
-                                                />
-                                            </h3>
-                                            <div className="flex flex-row gap-2">
-                                            </div>
-                                        </div>
-                                    )} */}
                                     {renderItem(item, index)}
                                 </Card>
                             </div>

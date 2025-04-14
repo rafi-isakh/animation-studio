@@ -40,7 +40,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                     />
                 </div>
 
-                {ranking && <p className={`text-xl md:text-2xl self-center p-3`}>{index}</p>}
+                {ranking && <p className={`text-xl md:text-2xl self-center p-3 dark:text-white`}>{index}</p>}
 
                 <div className="flex-grow overflow-hidden self-center">
                     {/* Genre & Title */}
@@ -49,7 +49,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                         elementId={webnovel.id.toString()}
                         elementType='webnovel'
                         elementSubtype="title"
-                        classParams={language === 'ko' ? "text-md md:text-base w-full break-keep korean" : "text-md md:text-base w-full break-words"}
+                        classParams={language === 'ko' ? "text-md md:text-base w-full break-keep korean dark:text-white" : "text-md md:text-base w-full break-words dark:text-white"}
                     />
                     <div className="flex flex-col">
                         <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500">
@@ -63,9 +63,7 @@ const WebnovelComponent = ({ webnovel, index, ranking, chunkIndex }: { webnovel:
                                 {webnovel.upvotes}
                             </p>
                         </div>
-                     
                     </div>
-
                 </div>
                 <div className="text-[12px] md:text-xl text-gray-200 dark:text-gray-500 self-center">
                    {/* the left side of the webnovel */}

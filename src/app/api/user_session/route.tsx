@@ -12,8 +12,14 @@ export async function GET(request: NextRequest) {
             if (!email) {
                 return NextResponse.json({ loggedIn: false, error: 'User email not in session' }, { status: 500 });
             }
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_user_by_email?email=${email}`)
-
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_session_user`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${session.accessToken}`,
+                        'Provider': session.provider
+                    }
+                }
+            )
             if (!response.ok) {
                 console.error(`Error fetching user by email: ${email}`, response.statusText);
                 return NextResponse.json({ loggedIn: false, error: 'Failed to fetch user' }, { status: response.status });
@@ -36,9 +42,11 @@ export async function GET(request: NextRequest) {
                 email: email,
                 email_hash: user.email_hash,
                 stars: user.stars,
+                free_stars: user.free_stars,
                 picture: user.picture,
                 purchased_webnovel_chapters: user.purchased_webnovel_chapters,
                 upvoted_comments: user.upvoted_comments,
+                genres: user.genres,
             });
         } else {
             return NextResponse.json({
@@ -49,9 +57,11 @@ export async function GET(request: NextRequest) {
                 email: "",
                 email_hash: "",
                 stars: 0,
+                free_stars: 0,
                 picture: "",
                 purchased_webnovel_chapters: "[]",
                 upvoted_comments: "",
+                genres: "",
             });
         }
     } catch (error) {

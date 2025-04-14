@@ -83,7 +83,6 @@ export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }:
                                 href=''
                                 onClick={() => {
                                     setFontFamily('default');
-                                    console.log('Font family set to:', 'default');
                                 }}
                                 className={`${fontFamily === 'default' ? 'text-gray-300' : 'text-gray-500'}`}
                             >
@@ -102,7 +101,6 @@ export const ViewerSettingDialog = ({ showIsViewerModal, setShowIsViewerModal }:
                                 href=''
                                 onClick={() => {
                                     setFontFamily('nanum-gothic');
-                                    console.log('Font family set to:', 'nanum-gothic');
                                 }} className={`${fontFamily === 'nanum-gothic' ? 'text-gray-300 nanum-gothic' : 'text-gray-500'}`}
                             >
                                 {/* 고딕체 */}

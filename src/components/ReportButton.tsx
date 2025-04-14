@@ -2,20 +2,20 @@ import { phrase } from "@/utils/phrases";
 
 import { Box, Button, Modal } from "@mui/material";
 import { useState } from "react";
-import { User } from "./Types";
+import { User, UserStripped } from "./Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Textarea } from "flowbite-react";
 import { useModalStyle } from "@/styles/ModalStyles";
 import { Flag } from "lucide-react";
 
-export default function ReportButton({ user }: { user: User }) {
+export default function ReportButton({ user }: { user: UserStripped }) {
     const [showReportModal, setShowReportModal] = useState(false);
     const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
     const { language, dictionary } = useLanguage();
     const [reportMessage, setReportMessage] = useState('');
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname} - ${user.email}\n\nReport message: ${reportMessage}`;
+        const message = `Reported user: ${user.nickname}\nUser ID: ${user.id}\n\nReport message: ${reportMessage}`;
         await fetch('/api/send_email', {
             method: 'POST',
             body: JSON.stringify({ message: message })

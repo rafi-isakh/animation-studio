@@ -9,9 +9,7 @@ export function formatRelativeTime(dateString: string): string {
       return `${Math.floor(diffInSeconds / 60)} minutes ago`;
     } else if (diffInSeconds < 86400) {
       return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    } else if (diffInSeconds < 604800) {
-      return `${Math.floor(diffInSeconds / 86400)} days ago`;
     } else {
-      return date.toLocaleDateString();
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
     }
   }

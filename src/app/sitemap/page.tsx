@@ -1,206 +1,181 @@
 'use client'
+import type React from "react"
+import { useState } from "react"
 import Link from "next/link"
-import Accordion from "@/components/UI/Accordion"
-import { useLanguage } from "@/contexts/LanguageContext"
+import { ChevronRight, MessageSquare, Star } from "lucide-react"
+import { MdStars } from "react-icons/md";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/shadcnUI/Button";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { useTheme } from '@/contexts/providers'
+import { Moon, Sun } from "lucide-react";
+import { Label } from "@/components/shadcnUI/Label";
+import { Switch } from "@/components/shadcnUI/Switch";
 
-const readByGenreData = [
-  {
-    title: "Read By Genres",
-    subtitles: [
-      "Fantasy",
-      "Romance",
-      "Action",
-      "Mystery",
-      "Sci-Fi",
-      "Horror",
-      "Comedy"
-    ]
-  },
-]
+export default function Home() {
+  const { isLoggedIn, logout } = useAuth();
+  const { dictionary, language } = useLanguage();
+  const [inquiryDialogOpen, setInquiryDialogOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
-export default function Sitemap() {
-  const { dictionary, language } = useLanguage()
+  const handleSignOut = async (event: React.FormEvent) => {
+    event.preventDefault();
+    logout(true, '/');
+  };
+
   return (
-    <div className="w-full min-h-screen bg-white dark:bg-black">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-12">Site Map</h1>
+    <TooltipProvider delayDuration={0}>
+      <div className="md:max-w-screen-md w-full mx-auto flex flex-col bg-white dark:bg-[#121212] text-black dark:text-white p-4">
+        {/* Header */}
+        <header className="p-4">
+          <h1 className="text-2xl font-bold">{phrase(dictionary, "moreOptions", language)}</h1>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
-          {/* About Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About Toonyz</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/creators" className="text-gray-500 hover:underline">
-                  Be a Toonyz Creators
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms/privacy" className="text-gray-500 hover:underline">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-gray-500 hover:underline">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms/youth" className="text-gray-500 hover:underline">
-                  Youth Protection Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-500 hover:underline">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
+        {/* Banner */}
+        {!isLoggedIn ? <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+          <Link href="/signin">
+            <div className="absolute inset-0 overflow-hidden">
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+              <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "signup_description", language)}</p>
+              <h2 className="md:text-2xl text-lg font-bold">
+                {/* {phrase(dictionary, "toonyz", language)}{" "} */}   
+                {phrase(dictionary, "do_signup", language)}
+              </h2>
+            </div>
+          </Link>
+        </div> : <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+          <Link href="/stars">
+            <div className="absolute inset-0 overflow-hidden">
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+              <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "charge_stars_description", language)}</p>
+              <h2 className="md:text-2xl text-lg font-bold">
+                {phrase(dictionary, "charge_stars", language)}{" "}
+                <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-6 h-6 rounded-full mx-1">
+                  <MdStars className="text-lg md:text-xl text-white" />
+                </span>{" "}
+                {phrase(dictionary, "go_to_charge", language)}
+              </h2>
+            </div>
+          </Link>
+        </div>}
+
+        {/* Menu Items */}
+        <nav className="flex-1">
+          <MenuItem
+            icon={
+              <div className="bg-[#D92979] w-6 h-6 rounded-full flex items-center justify-center text-white font-bold">
+                <MdStars className="text-lg md:text-xl text-white" />
+              </div>
+            }
+            label={phrase(dictionary, "stars", language)}
+            href="/stars"
+          />
+          {/* <MenuItem label="이벤트" /> */}
+          <MenuItem label={phrase(dictionary, "profile", language)} href="/my_profile" />
+          <MenuItem label={phrase(dictionary, "redeem_code", language)} href="/stars/redeem" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <MenuItem label={phrase(dictionary, "notice", language)} href="#" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" >
+              <p>{phrase(dictionary, "preparing", language)}</p>
+            </TooltipContent>
+          </Tooltip>
+          <MenuItem label={phrase(dictionary, "contact", language)} href="/contact" />
+          {/* {phrase(dictionary, "theme", language)} */}
+          <div className="flex flex-row items-center justify-between gap-x-3 p-4 text-base font-normal">
+            <div className="flex items-center gap-1">
+              <Label htmlFor="dark-mode">
+                {theme === 'dark' ? <span className="text-base font-normal">{phrase(dictionary, "DarkMode", language)}</span> : <span className="text-base font-normal">{phrase(dictionary, "LightMode", language)}</span>}
+              </Label>
+              {theme === 'dark' ? <Sun className=" w-6 h-6" /> : <Moon className=" w-6 h-6" />}
+            </div>
+            <Switch
+              id="dark-mode"
+              checked={theme === 'dark'}
+              onCheckedChange={() => toggleTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="data-[state=checked]:bg-pink-800 data-[state=unchecked]:bg-gray-200"
+            />
           </div>
 
-          {/* Webnovels Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Webnovels & Community</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/?version=premium" className="text-gray-500 hover:underline">
-                  Read Webnovels
+          {/* Footer */}
+          {!isLoggedIn ? (
+            <footer className="w-full py-4">
+              <Button variant="outline" className="w-full flex items-center justify-center  border text-black hover:text-[#D92979] dark:text-white shadow-none">
+                <Link href="/signin">
+                  {phrase(dictionary, "login", language)} · {phrase(dictionary, "signup", language)}
                 </Link>
-              </li>
-              <li>
-                <Accordion
-                  data={readByGenreData.map(genre => ({
-                    title: genre.title,
-                    subtitle: genre.subtitles.map((sub, index) => (
-                      <span key={index}>
-                        {sub}
-                        {index < genre.subtitles.length - 1 && <br />}
-                      </span>
-                    ))
-                  }))}
-                  className="md:max-w-screen-sm w-full mx-auto"
-                  titleClassName="!p-0 !text-gray-500"
-                  subtitleClassName=""
-                />
-              </li>
-              <li>
-                <Link href="/search" className="text-gray-500 hover:underline">
-                  Find a Webnovel
-                </Link>
-              </li>
-              <li>
-                <Link href="/?version=free" className="text-gray-500 hover:underline">
-                  Community
-                </Link>
-              </li>
-              <li>
-                <Link href="/feeds" className="text-gray-500 hover:underline">
-                  Feeds
-                </Link>
-              </li>
-            </ul>
-          </div>
+              </Button>
+            </footer>
+          ) : (
+            <footer className="w-full py-4">
+              <Button variant="outline" className="w-full flex items-center justify-center text-black hover:text-[#D92979]  dark:text-white shadow-none" onClick={handleSignOut}>
+                {phrase(dictionary, "logout", language)}
+              </Button>
+            </footer>
+          )}
+        </nav>
 
-          {/* Account Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/my_profile" className="text-gray-500 hover:underline">
-                  Manage Your Account
-                </Link>
-              </li>
-              <li>
-                <Link href="/my_profile" className="text-gray-500 hover:underline">
-                  Your Profile
-                </Link>
-              </li>
-              <li>
-                <Link href="/stars" className="text-gray-500 hover:underline">
-                  Stars Shop
-                </Link>
-              </li>
-            </ul>
-          </div>
 
-          {/* For Business Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">For Business</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  Business Solutions
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  Business Support
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  IP Licensing
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Services Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Services</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/toonyzcut" className="text-gray-500 hover:underline">
-                  Toonyz Cut
-                </Link>
-              </li>
-              <li>
-                <Link href="/toonyz_posts" className="text-gray-500 hover:underline">
-                  Toonyz Post
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-500 hover:underline">
-                  Toonyz Echo
-                </Link>
-              </li>
-              <li>
-                <Link href="/studio/novel" className="text-gray-500 hover:underline">
-                  Writing Assistant
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Values Section */}
-          {/* <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Values</h2>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/environment" className="text-gray-500 hover:underline">
-                  Environment
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="text-gray-500 hover:underline">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/supplier-responsibility" className="text-gray-500 hover:underline">
-                  Supplier Responsibility
-                </Link>
-              </li>
-              <li>
-                <Link href="/accessibility" className="text-gray-500 hover:underline">
-                  Accessibility
-                </Link>
-              </li>
-            </ul> 
-          </div> */}
+        {/* Bottom Buttons */}
+        <div className="w-full gap-4">
+          <Dialog open={inquiryDialogOpen} onOpenChange={setInquiryDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full flex items-center justify-center dark:bg-zinc-800 hover:text-[#D92979] shadow-none ">
+                <span>{phrase(dictionary, "inquiry", language)}</span>
+                <MessageSquare size={20} />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white dark:bg-black" showCloseButton={true}>
+              <DialogHeader>
+                <DialogTitle>{phrase(dictionary, "inquiry", language)}</DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                <p>{phrase(dictionary, "inquiry_description", language)}</p>
+              </DialogDescription>
+              <DialogFooter>
+                <Button variant="outline" className="w-full" onClick={() => setInquiryDialogOpen(false)}>
+                  {phrase(dictionary, "close", language)}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {/* <Button variant="outline" className="flex items-center justify-center gap-2  dark:bg-zinc-800 rounded-lg py-4 w-full">
+            <span>공모전</span>
+            <Star size={20} />
+          </Button> */}
         </div>
       </div>
-    </div>
+    </TooltipProvider>
+  )
+}
+
+interface MenuItemProps {
+  label: string
+  icon?: React.ReactNode
+  highlighted?: boolean
+  href?: string
+}
+
+function MenuItem({ label, icon, highlighted = false, href = "#" }: MenuItemProps) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center justify-between p-4 border-b border-zinc-800 text-base font-normal ${highlighted ? "bg-zinc-900" : ""}`}
+    >
+      <div className="flex items-center gap-2">
+        <span className={highlighted ? "font-bold" : ""}>{label}</span>
+        {icon}
+      </div>
+      <ChevronRight size={20} className="text-zinc-500" />
+    </Link>
   )
 }
 

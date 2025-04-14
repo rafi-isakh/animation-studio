@@ -14,15 +14,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
         });
     }
 
-    if (!email) {
-        return NextResponse.json({
-            message: "Email is required",
-        }, {
-            status: 400
-        });
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library?email=${email}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library`, {
         headers: {
             'Authorization': `Bearer ${session.accessToken}`,
             'Provider': session.provider

@@ -38,6 +38,7 @@ import { AIPromotionComponent } from '@/components/PromotionBannerComponent'
 import { useUser } from '@/contexts/UserContext';
 import WatermarkedImage from '@/utils/watermark';
 import { getImageUrl } from '@/utils/urls';
+import NotEnoughStarsDialog from '@/components/UI/NotEnoughStarsDialog'
 
 type Position = {
     x: number;
@@ -91,13 +92,16 @@ const FloatingMenu: React.FC<{
         setWebnovelId,
         narrations,
         setNarrations,
+        openHistory,
+        setOpenHistory,
     } = useCreateMedia();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
     const { stars, setInvokeCheckUser } = useUser();
     const [context, setContext] = useState<string>("");
-
     const [isSelecting, setIsSelecting] = useState(false);
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [createMediaPrice, setCreateMediaPrice] = useState(0);
 
     // Listen for touch events to mark selection start/end
     useEffect(() => {
@@ -185,6 +189,7 @@ const FloatingMenu: React.FC<{
 
     const handlePicturesGenerated = (newPictures: string[]) => {
         setOpenDialog(true);
+        setOpenHistory(false);
     };
 
     useEffect(() => {
@@ -253,7 +258,6 @@ const FloatingMenu: React.FC<{
         }
     };
 
-
     // image generating
     const generatePictures = async () => {
         setShowConfirmDialog(true);
@@ -261,12 +265,10 @@ const FloatingMenu: React.FC<{
 
     const handleConfirmGeneration = async () => {
         setShowConfirmDialog(false);
+        setOpenHistory(false);
         if (stars < 15) {
-            toast({
-                title: "Error",
-                description: phrase(dictionary, "notEnoughStars", language),
-                variant: "destructive"
-            })
+            setCreateMediaPrice(15);
+            setShowNotEnoughStarsModal(true);
             return;
         }
 
@@ -495,7 +497,6 @@ const FloatingMenu: React.FC<{
                     </DialogHeader>
                     <DialogFooter className="flex !justify-center">
                         <div className="flex flex-row justify-center items-center gap-2 mt-4">
-
                             <Button
                                 onClick={handleConfirmGeneration}
                                 className="bg-black hover:bg-[#D92979]/50 text-white"
@@ -519,6 +520,8 @@ const FloatingMenu: React.FC<{
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            {/* not enough stars modal */}
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
         </div >
     );
 }

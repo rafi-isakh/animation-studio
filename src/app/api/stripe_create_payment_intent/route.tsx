@@ -18,22 +18,26 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
     }
     try {
-        const { selectedPackage, isEvent } = await request.json();
+        const { selectedPackage, isEvent, language } = await request.json();
         const { stars, discount } = getStarsAndDiscount(selectedPackage, isEvent);
 
         // Create a PaymentIntent with the order amount and currency
+        const amount = calculateOrderAmount(stars, language) // calculates amount based on language
+        let currency = "usd"
+        if (language === 'ko') {
+            currency = "krw"
+        }
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: calculateOrderAmount(stars, discount),
+            amount: amount,
             metadata: {
                 stars: stars.toString(),
                 email: email
             },
-            currency: "krw",
+            currency: currency,
             automatic_payment_methods: {
                 enabled: true,
             },
         });
-        console.log(paymentIntent.client_secret);
         return NextResponse.json({
             clientSecret: paymentIntent.client_secret,
             // [DEV]: For demo purposes only, you should avoid exposing the PaymentIntent ID in the client-side code.

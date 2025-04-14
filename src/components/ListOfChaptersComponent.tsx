@@ -15,8 +15,10 @@ import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
-import { chapterPrice } from "@/utils/webnovelUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
+import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
+import { isPurchasedChapter } from "@/utils/webnovelUtils";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -38,20 +40,35 @@ const ListOfChaptersComponent = ({
     const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
-    const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+    const CHAPTERS_PER_PAGE = 100; // Number of chapters to show per click
 
     const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
 
-    useEffect(() => {
-        console.log('webnovel?.price_korean', webnovel?.price_korean);
-    }, [webnovel]);
 
     const loadMoreChapters = () => {
-        setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
+        if (language == 'en') {
+            console.log("Language is english, setting visible chapters to en_published_up_to_chapter, which is")
+            setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0)));
+        } else {
+            console.log("Language is not english, setting visible chapters to prev + CHAPTERS_PER_PAGE")
+            setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
+        }
     };
+
+    useEffect(() => {
+        if (language == 'en') {
+            setSavedValueOfVisibleChapters(visibleChapters);
+            setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, prev));
+        } else {
+            const tempVisibleChapters = visibleChapters;
+            setVisibleChapters(savedValueOfVisibleChapters);
+            setSavedValueOfVisibleChapters(tempVisibleChapters);
+        }
+    }, [language])
 
     const handleChapterDelete = async (id: number) => {
         try {
@@ -77,7 +94,7 @@ const ListOfChaptersComponent = ({
         if (chapter.free) {
             router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
         } else {
-            if (purchased_webnovel_chapters.includes(chapter.id)) {
+            if (isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
                 router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
                 return;
             }
@@ -102,7 +119,8 @@ const ListOfChaptersComponent = ({
                 method: 'POST',
                 body: JSON.stringify({
                     chapter_id: chapter.id,
-                    price: price
+                    price: price,
+                    language: language
                 })
             });
             // TODO: tell user if there's not enough stars
@@ -147,7 +165,14 @@ const ListOfChaptersComponent = ({
                                     </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row">
-                                            <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" />
+                                            {
+                                                language == 'en' ?
+                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">Episode {index + 1}</p>
+                                                    :
+                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
+
+                                            }
+                                            {/* <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" /> */}
                                         </div>
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
@@ -171,7 +196,7 @@ const ListOfChaptersComponent = ({
                                 <div className="flex flex-row gap-2 items-center">
                                     <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
                                         {chapter.free ? phrase(dictionary, "readingForFree", language)
-                                            : purchased_webnovel_chapters?.includes(chapter.id) ? <BadgeCheck size={11} />
+                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} />
                                                 : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}</div>}
                                     </div>
                                 </div>
@@ -212,49 +237,11 @@ const ListOfChaptersComponent = ({
                     </div>
                 </Box>
             </Modal>
-            <Modal open={showPurchaseModal} onClose={() => setShowPurchaseModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
-                        <p className="text-lg font-bold">
-                            {phrase(dictionary, "purchaseChapter", language)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}
-                        </p>
-                        <Button
-                            variant="outlined"
-                            color="gray"
-                            onClick={() => handleChapterPurchase(chapterToPurchase!)}
-                        >
-                            <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english} {phrase(dictionary, "purchase", language)}
-                        </Button>
-                    </div>
-                </Box>
-            </Modal>
-            <Modal open={showNotEnoughStarsModal} onClose={() => setShowNotEnoughStarsModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
-                        <p className="text-lg font-bold">
-                            {phrase(dictionary, "notEnoughStarsWouldYouLikeToPurchase", language)}
-                        </p>
-                        <div className="flex flex-row gap-2">
-                        <Button
-                            variant="outlined"
-                            color="gray"
-                            onClick={() => setShowNotEnoughStarsModal(false)}
-                        >
-                            {phrase(dictionary, "no", language)}
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            onClick={() => router.push("/stars")}
-                        >
-                            {phrase(dictionary, "yes", language)}
-                        </Button>
-                        </div>
-                    </div>
-                </Box>
-            </Modal>
+
+            {/* Purchase Modal */}
+            <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
+            {/* Not Enough Stars Modal */}
+            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />
         </>
     )
 };

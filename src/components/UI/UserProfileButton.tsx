@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { phrase } from '@/utils/phrases'
-import { User, Book, SquareLibrary, Sparkles, Video, SquarePen } from 'lucide-react';
+import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
@@ -77,7 +77,7 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     }
                 }}
             >
-                <div className="w-80 h-80 p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
+                <div className="w-80 h-fit p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
                     <div className="flex flex-row justify-between items-center">
                         <h3 className="text-lg font-semibold mb-2 self-center text-center">
                             <Link href="/my_profile">
@@ -92,6 +92,12 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                     <hr className='my-2' />
                     <div className="space-y-2 text-base">
                         <ul className="flex flex-col gap-2">
+                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
+                                <Link href="/my_profile" onClick={() => handleClose()}>
+                                    <SquareUser size={18} className='dark:text-white text-black inline-flex items-center' />
+                                    <span className='ml-2 text-center'>{phrase(dictionary, "myProfile", language)}</span>
+                                </Link>
+                            </li>
                             <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                 <Link href="/my_webnovels" onClick={() => handleClose()}>
                                     <Book size={18} className='dark:text-white text-black inline-flex items-center' />
@@ -108,12 +114,6 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                                 <Link href="/stars" onClick={() => handleClose()} >
                                     <Sparkles size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "stars", language)}</span>
-                                </Link>
-                            </li>
-                            <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                <Link href="/videos" onClick={() => handleClose()} >
-                                    <Video size={20} className='dark:text-white text-black inline-flex items-center' />
-                                    <span className='ml-2 text-center'>{phrase(dictionary, "curriculum", language)}</span>
                                 </Link>
                             </li>
                             <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">

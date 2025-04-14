@@ -1,5 +1,5 @@
 import Footer from '@/components/Footer';
-import WebnovelsCardListByNew from '@/components/WebnovelsCardListByNew';
+import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategory';
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
 import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { cookies } from 'next/headers';
@@ -12,7 +12,7 @@ import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
@@ -21,13 +21,14 @@ async function getCarouselItems() {
 
 async function getLibrary() {
     const session = await auth();
-    const email = session?.user?.email;
-    if (!email) {
+    if (!session) {
         return [];
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/get_library?email=${email}`,{
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library`,{
         headers: {
             'Cookie': cookies().toString(),
+            'Authorization': `Bearer ${session?.accessToken}`,
+            'Provider': session?.provider
         }
     }
     )
@@ -38,10 +39,21 @@ async function getLibrary() {
     return data.library;
 }
 
+async function getToonyzPosts() {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_posts`)
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Failed to fetch toonyz posts", error);
+        throw new Error("Failed to fetch toonyz posts", { cause: response.status });
+    }
+    return response.json();
+}
+
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
-    let library = await getLibrary() || [];
-    library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    //let library = await getLibrary() || [];
+    let posts = await getToonyzPosts();
+    //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
@@ -68,15 +80,20 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {smallGap()}
-                    <MyReadingListComponent library={library} />
+                    {/*<MyReadingListComponent library={library} />*/}
+                    {/*smallGap()/*}
+                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
+                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
+                    {largeGap()}
+                    <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
                     {smallGap()}
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
                     <ToonyzPostCards />
-                    {smallGap()}
-                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" />    
-                    {smallGap()}
-                    <WebnovelsCardListByNew searchParams={searchParams} sortBy='date' />
-                    {smallGap()}
-                    <WebnovelsByRank searchParams={searchParams} sortBy='views' />
                     {smallGap()}
                 </div>
             </div>

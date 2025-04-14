@@ -1,7 +1,7 @@
 "use client"
 import { Chapter, Language, Webnovel } from '@/components/Types';
 import { temporarilyUnpublished } from '@/utils/webnovelUtils';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, Dispatch, SetStateAction } from 'react';
 import { useLanguage } from './LanguageContext';
 
 // Define the shape of the context state
@@ -23,9 +23,29 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); 
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
     const { language } = useLanguage();
-
-    const fetchWebnovelsMetadata = async () => {
+    
+    const fetchWebnovelsMetadata = async (language: Language) => {
         const response = await fetch(`/api/get_webnovels_metadata`);
+        if (!response.ok) {
+            console.error("Failed to fetch webnovels metadata", response.status);
+        }
+        const data = await response.json();
+        setAllWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id)));
+    }
+
+    useEffect(() => {
+        fetchWebnovelsMetadata(language);
+    }, []);
+
+    useEffect(() => {
+        const filteredData = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
+                                                        && novel.available_languages.includes(language));
+        setWebnovels(filteredData);
+    }, [language, allWebnovels]);
+
+    const invalidateCache = async () => {
+        // fetchWebnovelsMetadata except no-store the cache
+        const response = await fetch(`/api/get_webnovels_metadata_cache_no_store`, { cache: 'no-store' });
         if (!response.ok) {
             console.error("Failed to fetch webnovels metadata", response.status);
         }
@@ -33,19 +53,6 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
         setAllWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id)));
         setWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
                                                         && novel.available_languages.includes(language)));
-    }
-
-    useEffect(() => {
-        setWebnovels(allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
-                                                        && novel.available_languages.includes(language)));
-    }, [language])
-
-    useEffect(() => {
-        fetchWebnovelsMetadata();
-    }, []);
-
-    const invalidateCache = () => {
-        fetchWebnovelsMetadata();
     }
 
     // may or may not have chapter metadata

@@ -1,9 +1,11 @@
 "use client"
-import { useState, useEffect, useRef } from "react";
-import { Webnovel, ImageOrVideo } from "@/components/Types";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
 import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,9 +33,14 @@ import { useUser } from '@/contexts/UserContext';
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
-import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
-import { isPlainObject } from "lodash";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
+import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
+import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
+
 interface InfoAndPictureProps {
     content: Webnovel;
     coverArt: string;
@@ -53,7 +60,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars } = useUser();
+    const { id, email, stars, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
@@ -63,41 +70,125 @@ export default function InfoAndPictureComponent({
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
     const [showPlayButton, setShowPlayButton] = useState(false);
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const { isLoggedIn } = useAuth();
+    const router = useRouter();
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const showPlayButtonRef = useRef(false);
+    const [createMediaPrice, setCreateMediaPrice] = useState(0);
+    const [imageSrc, setImageSrc] = useState<string | null>(null)
+    const [videoSrc, setVideoSrc] = useState<string | null>(null)
 
-    const handleToggleMute = () => {
-        const videoElement = document.getElementById('videoElement');
-        if (videoElement) {
-            setIsMuted(prev => !prev);
+    useEffect(() => {
+        if (language === "en") {
+            if (content.en_cover_art) {
+                const imageSrc = getImageUrl(content.en_cover_art)
+                setImageSrc(imageSrc)
+            }
+            if (content.en_video_cover) {
+                const videoSrc = getVideoUrl(content.en_video_cover)
+                setVideoSrc(videoSrc)
+            }
+        } else {
+            const imageSrc = getImageUrl(content.cover_art) // this one always exists
+            setImageSrc(imageSrc)
+            if (content.video_cover) {
+                const videoSrc = getVideoUrl(content.video_cover)
+                setVideoSrc(videoSrc)
+            }
         }
-    };
+    }, [language])
 
-    const handleTogglePlayVideo = () => {
-        const videoElement = document.getElementById('videoElement') as HTMLVideoElement;
-        if (videoElement) {
+    useEffect(() => {
+        if (videoSrc) {
+            setVideoExists(true)
+        } else {
+            setVideoExists(false)
+        }
+    }, [videoSrc])
+
+    const view_profile_href = content.user.email_hash == content.author.email_hash ?
+        `/view_profile/${content.user.id}` : '#';
+
+    const handleMouseEnter = useCallback(() => {
+        showPlayButtonRef.current = true;
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        showPlayButtonRef.current = false;
+    }, []);
+
+    const handleTogglePlayVideo = useCallback(() => {
+        if (videoRef.current) {
             if (isPlaying) {
-                videoElement.pause();
+                videoRef.current.pause();
             } else {
-                videoElement.play();
+                videoRef.current.play();
             }
             setIsPlaying(prev => !prev);
         }
-    };
+    }, [isPlaying]);
 
-    useEffect(() => {
-        async function checkCoverArtType() {
-            try {
-                const response = await fetch(`/api/check_if_video_exists?url=${coverArt}`);
+    const handleToggleMute = useCallback(() => {
+        if (videoRef.current) {
+            setIsMuted(prev => !prev);
+        }
+    }, []);
+
+
+    const handleChapterPurchase = async (chapter: Chapter) => {
+        if (!chapter) return;
+        if (!isLoggedIn) {
+            router.push("/signin");
+        }
+        else {
+            setShowPurchaseModal(false);
+            const price = language === "ko" ? content.price_korean : content.price_english;
+            if (stars < price!) {
+                setShowNotEnoughStarsModal(true);
+                return;
+            }
+            const response = await fetch(`/api/purchase_chapter`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    chapter_id: chapter.id,
+                    price: price,
+                    language: language
+                })
+            });
+            // TODO: tell user if there's not enough stars
+            if (!response.ok) {
+                console.error('Failed to purchase chapter');
+                alert("Failed to purchase chapter");
+            } else {
                 const data = await response.json();
-                setVideoExists(data.videoExists);
-            } catch (error) {
-                console.error('Error fetching coverArt:', error);
+                if (data.success) {
+                    setInvokeCheckUser(prev => !prev);
+                    router.push(`/view_webnovels/${content.id}/chapter_view/${chapter.id}`);
+                } else {
+                    alert(data.message);
+                }
             }
         }
+    }
 
-        if (coverArt) {
-            checkCoverArtType();
-        }
-    }, [coverArt]);
+
+    // useEffect(() => {
+    //     async function checkCoverArtType() {
+    //         try {
+    //             const response = await fetch(`/api/check_if_video_exists?url=${coverArt}`);
+    //             const data = await response.json();
+    //             setVideoExists(data.videoExists);
+    //         } catch (error) {
+    //             console.error('Error fetching coverArt:', error);
+    //         }
+    //     }
+
+    //     if (coverArt) {
+    //         checkCoverArtType();
+    //     }
+    // }, [coverArt]);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -140,6 +231,16 @@ export default function InfoAndPictureComponent({
         return userEmailHash == jongminEmailHash
     }
 
+    const handleGenerateTrailer = () => {
+        if (stars < 20) {
+            setCreateMediaPrice(20)
+            setShowNotEnoughStarsModal(true);
+            return;
+        }
+        setOpenDialog(true);
+        generateTrailer(content.chapters.map(chapter => chapter.id));
+    }
+
     // TODO: refactor this function as it's copied from FloatingMenuComponent
     return (
         <div className="relative md:h-screen w-full h-full top-0 flex-shrink-0
@@ -165,9 +266,9 @@ export default function InfoAndPictureComponent({
                         <div className="min-w-[300px] h-[550px] w-full rounded-xl mx-auto md:pt-1 pt-0">
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                                 {coverArt ?
-                                    !videoExists ?
+                                    !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
                                         <Image
-                                            src={getImageUrl(coverArt)}
+                                            src={imageSrc || ""}
                                             alt={content.title}
                                             fill
                                             sizes="(max-width: 768px) 100vw, 300px"
@@ -179,19 +280,20 @@ export default function InfoAndPictureComponent({
                                         <div>
                                             <div className="relative">
                                                 <video
-                                                    id="videoElement"
-                                                    src={getVideoUrl(coverArt)}
+                                                    ref={videoRef}
+                                                    src={videoSrc || ""}
                                                     autoPlay
-                                                    onMouseEnter={() => setShowPlayButton(true)}
-                                                    onMouseLeave={() => setShowPlayButton(false)}
+                                                    onMouseEnter={handleMouseEnter}
+                                                    onMouseLeave={handleMouseLeave}
                                                     onClick={handleTogglePlayVideo}
-                                                    style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }} // Inline styles
+                                                    style={{ width: '450px', height: '550px', objectPosition: 'center bottom' }}
                                                     className="object-cover rounded-xl"
                                                     muted={isMuted}
+                                                    playsInline
                                                     loop
                                                 />
                                                 <button
-                                                    className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButton ? 'block' : 'hidden'}`}
+                                                    className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${showPlayButtonRef.current ? 'block' : 'hidden'}`}
                                                     onClick={handleTogglePlayVideo}
                                                 >
                                                     {isPlaying ? <Pause size={20} /> : <Play size={20} />}
@@ -217,8 +319,16 @@ export default function InfoAndPictureComponent({
                                 classParams="text-2xl font-bold self-center text-center"
                             />
 
+                            {/* TEMPORARY FIX WHILE I PUT AUTHOR'S ENGLISH NAME IN THE DB IN A SANE WAY.*/}
                             <p className="text-center">
-                                {content.author.nickname === 'Anonymous' ? '' : content.author.nickname}
+                                <Link href={view_profile_href}>
+                                    {
+                                        content.author.nickname === 'Anonymous' ? '' :
+                                            language == 'ko' ?
+                                                content.author.nickname :
+                                                koreanToEnglishAuthorName[content.author.nickname as string]
+                                    }
+                                </Link>
                             </p>
 
                             {/*TEMPORARY FIX FOR SHOWING THE NAME OF THE PUBLISHER. DOING THIS BECAUSE
@@ -230,7 +340,7 @@ export default function InfoAndPictureComponent({
                                             "피앙세"
                                             :
                                             "fiance"
-                                    :
+                                        :
                                         content.user.nickname
                                     }
                                 </p>
@@ -255,9 +365,10 @@ export default function InfoAndPictureComponent({
                                     <Eye size={11} /> {content.views}
                                 </div>
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                    {/* heart icon */}
-                                    <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                    {/* heart icon - gray #6B7280 */}
+                                    <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
+                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
+                                            fill="#DE2B74" />
                                     </svg>
                                     {content.upvotes}
                                 </div>
@@ -280,13 +391,21 @@ export default function InfoAndPictureComponent({
                                 <Button
                                     variant="default"
                                     className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                    onClick={() => {
+                                        const firstChapter = content.chapters[0];
+                                        if (!firstChapter) return;
+
+                                        // Check if user has already purchased the chapter
+                                        const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
+
+                                        if (content.premium && !firstChapter.free && !hasPurchased) {
+                                            setShowPurchaseModal(true);
+                                        } else {
+                                            router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
+                                        }
+                                    }}
                                 >
-                                    <Link
-                                        href={content.chapters_length > 0 ? `/view_webnovels/${content.id}/chapter_view/${content.chapters[0]?.id}` : `#`}
-                                        className="text-center flex flex-row items-center"
-                                    >
-                                        {phrase(dictionary, "start_to_read_episode_1", language)}
-                                    </Link>
+                                    {phrase(dictionary, "start_to_read_episode_1", language)}
                                 </Button>
 
                                 {/* Like Button */}
@@ -355,10 +474,7 @@ export default function InfoAndPictureComponent({
                                         variant="default"
                                         className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                         disabled={loadingVideoGeneration}
-                                        onClick={() => {
-                                            setOpenDialog(true);
-                                            generateTrailer(content.chapters.map(chapter => chapter.id));
-                                        }}
+                                        onClick={handleGenerateTrailer}
                                     >
                                         <p>
                                             {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
@@ -422,14 +538,18 @@ export default function InfoAndPictureComponent({
                                 </Button>
                             </div>
 
-                            {/* photo cards */}
-                            {/* {pictures && pictures.length > 0 && (
-                                <div className="md:max-w-[360px] w-full">
-                                    {pictures && pictures.length > 0 && (
-                                        <PhotoCards images={pictures} />
-                                    )}
-                                </div>
-                            )} */}
+                            {/* Purchase Modal */}
+                            <ChapterPurchaseDialog
+                                showPurchaseModal={showPurchaseModal}
+                                setShowPurchaseModal={setShowPurchaseModal}
+                                handleChapterPurchase={handleChapterPurchase}
+                                content={content}
+                                stars={stars}
+                                chapter={content.chapters[0]}
+                            />
+
+                            {/* Not Enough Stars Modal */}
+                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
 
                         </div>
                     </div>

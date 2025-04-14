@@ -97,6 +97,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         isAuthor={isAuthor ?? false}
                         user={post.user}
                         postId={post.id.toString()}
+                        post={post}
                     />
                 </div>
             </div>

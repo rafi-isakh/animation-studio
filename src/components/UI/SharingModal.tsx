@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/shadcnUI/Button'
-import { User } from '@/components/Types';
+import { User, UserStripped } from '@/components/Types';
 import { Modal, } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
@@ -25,7 +25,7 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
     onConfirm: () => void,
     onCancel: () => void,
     isProfileOwner: boolean,
-    user: User
+    user: UserStripped
 }) => {
     const { language, dictionary } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('')

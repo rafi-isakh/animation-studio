@@ -1,33 +1,17 @@
 "use client"
-import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
-import { Alert, AlertTitle, Button, Snackbar, SnackbarCloseReason } from "@mui/material";
+import { Button } from "@mui/material";
 import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { useRouter, useSearchParams } from "next/navigation";
-import { starsOptions, starsEventOptions, discount_factors, discount_factors_event } from "@/utils/stars";
+import { starsOptions, starsEventOptions, discount_factors, discount_factors_event, starsString, starsPriceWithCurrencyString, stars_name_to_price_krw } from "@/utils/stars";
+import { useCallback } from "react";
 
 export default function PurchaseStarsKGInicisComponent() {
     const { dictionary, language } = useLanguage();
     const { email, nickname, stars } = useUser();
-    const searchParams = useSearchParams();
-    // true if reaching the page with this component after completion of payment
-    const complete = searchParams.get('complete');
-    // const { enqueueSnackbar } = useSnackbar();
-    const [isOpen, setIsOpen] = useState(true);
-
-    const handleCloseSnackbar = (
-        event?: React.SyntheticEvent | Event,
-        reason?: SnackbarCloseReason,
-    ) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setIsOpen(false);
-    };
 
     const onClickPaymentInicis = (numStars: number, discount: number) => {
         if (!window.IMP) return;
@@ -36,22 +20,27 @@ export default function PurchaseStarsKGInicisComponent() {
         IMP.init("imp04870215"); // 가맹점 식별코드
 
         /* 2. 결제 데이터 정의하기 */
+        const name = `투니즈 별 ${numStars}개` // 주문명
         const data: RequestPayParams = {
             pg: "html5_inicis", // PG사 : https://developers.portone.io/docs/ko/tip/pg-2 참고
             pay_method: "card", // 결제수단
             merchant_uid: `mid_${new Date().getTime()}`, // 주문번호
-            amount: ((numStars * 10) * discount), // 결제금액
-            name: `투니즈 별 ${numStars}개`, // 주문명
+            amount: stars_name_to_price_krw[name], // 결제금액
+            name: name, // 주문명
             buyer_name: nickname, // 구매자 이름
             // buyer_tel: "01012341234", // 구매자 전화번호
             buyer_email: email, // 구매자 이메일
             // buyer_addr: "신사동 661-16", // 구매자 주소
             // buyer_postcode: "06018", // 구매자 우편번호
             m_redirect_url: `${process.env.NEXT_PUBLIC_HOST}/payment-redirect`,
+            display: {
+                card_quota: [0]
+            }
         };
 
         /* 4. 결제 창 호출하기 */
         IMP.request_pay(data, callback);
+        console.log("IMP", IMP);
 
         async function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;
@@ -83,18 +72,6 @@ export default function PurchaseStarsKGInicisComponent() {
         <div className="relative flex flex-col md:w-[360px] w-full space-y-4 items-center justify-center m-auto">
             {/*  tall:h-[calc(100vh-16rem)]  */}
             <div className="flex flex-col w-full items-center justify-center">
-                <Snackbar
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    open={isOpen}
-                    autoHideDuration={5000}
-                    onClose={handleCloseSnackbar}
-                    key="error"
-                >
-                    <Alert severity="error" onClose={() => setIsOpen(false)}>
-                        <AlertTitle>별 구입 서비스는 테스트 중입니다. 테스트 목적으로만 구매하세요.</AlertTitle>
-                    </Alert>
-                </Snackbar>
-
                 <Image src="/stelli/stelli-smile.png" alt="stars" width={100} height={100} />
                 {/* <h1 className="text-red-500 font-extrabold text-center"> 주의: 투니즈는 아직 정식으로 런칭하지 않았습니다. 별을 구매하실 수 있으나, 아직 사용하실 수 없습니다.</h1> */}
                 <h1 className="text-2xl font-extrabold text-center">
@@ -116,7 +93,7 @@ export default function PurchaseStarsKGInicisComponent() {
                 {starsEventOptions.map((stars, index) => (
                     <Button
                         key={index}
-                        onClick={() => onClickPaymentInicis(stars, discount_factors[index])}
+                        onClick={() => onClickPaymentInicis(stars, discount_factors_event[index])}
                         variant="text"
                         sx={{
                             borderBottom: 1,
@@ -139,17 +116,14 @@ export default function PurchaseStarsKGInicisComponent() {
                                 <div className="flex flex-row items-center justify-center space-x-2">
                                     <MdStars className="text-xl text-[#D92979]" />
                                     <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
-                                        {language === 'ko' ? <>별{' '}</> : ''}
-                                        {stars.toLocaleString()}
-                                        {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
-                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors[index] * 100}%</span>
+                                        {starsString(stars, language)}
+                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors_event[index] * 100}%</span>
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {((stars * 10) * discount_factors[index]).toLocaleString()}원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                    {starsPriceWithCurrencyString(stars, language)}
                                 </h1>
                             </div>
                         </div>
@@ -186,15 +160,12 @@ export default function PurchaseStarsKGInicisComponent() {
                             <div className="flex items-center space-x-2 ">
                                 <MdStars className="text-xl text-[#D92979]" />
                                 <div className="text-xl">
-                                    {language === 'ko' ? <>별{' '}</> : ''}
-                                    {stars.toLocaleString()}
-                                    {language === 'ko' ? <>{' '}개</> : <span className="text-md lowercase"></span>}
+                                    {starsString(stars, language)}
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {(stars * 10).toLocaleString()} 원
-                                    {/* { language === 'ko' &&  <>&#8361;</> } */}
+                                    {starsPriceWithCurrencyString(stars, language)} 
                                 </h1>
                             </div>
                         </div>

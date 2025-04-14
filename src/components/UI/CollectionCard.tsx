@@ -40,7 +40,8 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const firstImageWidth = images.length > 1 ? "w-1/2" : "w-full";
+    // Should abolish this in favor of just using one image later, but for now, use this to show just one image
+    const firstImageWidth = "w-full";
     const { language, dictionary } = useLanguage();
 
     // Replace useState with useRef for video elements
@@ -88,14 +89,13 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
         <div className="max-w-[400px] w-fit rounded-xl overflow-hidden shadow-none bg-white dark:bg-[#211F21] flex-shrink-0 flex-grow-0">
             <Link href={webnovel_id ? `/toonyz_posts/${id}` : "#"} className="block">
                 <div className="relative h-64 w-full">
-                    {/* Two equal-width images in a row */}
                     {
                         images[0]?.image && (
                             <div className={`absolute left-0 top-0 ${firstImageWidth} h-full p-0.5`}>
                                 <div className="relative h-full w-full overflow-hidden">
                                     {images[0]?.type === 'video' ? (
                                         <div
-                                            className="relative h-full w-full"
+                                            className="relative w-full h-full aspect-video"
                                             onMouseEnter={() => handleMouseEnter(0)}
                                             onMouseLeave={() => handleMouseLeave(0)}
                                         >
@@ -129,47 +129,6 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                                 </div>
                             </div>
                         )
-                    }
-
-                    {/* Second image */}
-                    {images[1]?.image && (
-                        <div className="absolute left-1/2 top-0 w-1/2 h-full p-0.5">
-                            <div className="relative h-full w-full overflow-hidden">
-                                {images[1]?.type === 'video' ? (
-                                    <div
-                                        className="relative h-full w-full"
-                                        onMouseEnter={() => handleMouseEnter(1)}
-                                        onMouseLeave={() => handleMouseLeave(1)}
-                                    >
-                                        <video
-                                            ref={videoRefs[1]}
-                                            src={getVideoUrl(images[1]?.image) || ""}
-                                            className="object-cover w-full h-full"
-                                            muted
-                                            loop
-                                            playsInline
-                                        />
-                                        <div className={`absolute inset-0 flex items-center justify-center ${hoveredVideo === 1 ? 'opacity-0' : ''}`}>
-                                            <div className="bg-white bg-opacity-70 rounded-full p-1">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <HoverWrapper>
-                                        <Image
-                                            src={getImageUrl(images[1]?.image) || "/coverArt_thumbnail.png"}
-                                            alt={images[1]?.image || "Collection image"}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </HoverWrapper>
-                                )}
-                            </div>
-                        </div>
-                    )
                     }
                 </div>
             </Link >

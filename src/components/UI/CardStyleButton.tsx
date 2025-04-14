@@ -40,7 +40,7 @@ export default function CardStyleButton({
             className={cn(
                 "!w-[150px] rounded-full overflow-hidden text-left transition-transform duration-300 ease-out !text-sm",
                 // "bg-gradient-to-b from-pink-600 to-pink-500",
-                "bg-gray-300 dark:bg-[#1a1b1f] text-black dark:text-white dark:border-[#2a2b2f] hover:text-white hover:bg-[#2a2b2f] flex gap-2 shrink-0 shadow-none",
+                "group flex gap-2 shrink-0 shadow-none z-50 hover:bg-[#2a2b2f] hover:text-white",
                 isHovered ? "" : "",
                 loadingVideoGeneration ? "opacity-50 cursor-not-allowed" : "",
                 className,
@@ -57,7 +57,7 @@ export default function CardStyleButton({
             {/* Image cards at the bottom */}
             <div
                 className={cn(
-                    " absolute bottom-5 right-0 left-1 inline-flex gap-1 transform transition-transform duration-300 cursor-pointer -z-10",
+                    "absolute bottom-6 right-0 left-1 inline-flex gap-1 transform transition-transform duration-300 cursor-pointer !-z-10",
                     isHovered ? "translate-y-[-5px]" : "translate-y-0",
                 )}
             >
@@ -96,17 +96,17 @@ export default function CardStyleButton({
                 )}
             </div>
 
-            <p className="text-white text-sm font-medium tracking-wide inline-flex gap-1 items-center">
+            <div className="relative text-sm font-medium tracking-wide inline-flex gap-1 items-center ">
                 {loadingVideoGeneration ? phrase(dictionary, "generatingPrompt", language) :
-                    <div className="flex flex-row gap-1 items-center">
+                    <div className="flex flex-row gap-1 items-center text-black dark:text-white group-hover:text-white">
                         <TvMinimalPlay className="w-4 h-4" />
-                        {title}
+                        <p className="text-sm font-medium tracking-wide ">{title}</p>
                         <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
                             {phrase(dictionary, "readingForFree", language)}
                         </div>
                     </div>
                 }
-            </p>
+            </div>
         </Button>
     )
 }

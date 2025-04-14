@@ -12,13 +12,14 @@ interface UserContextProps {
     setBio: (bio: string) => void;
     stars: number;
     picture: string;
-    purchased_webnovel_chapters: number[];
+    purchased_webnovel_chapters: [number, string][];
     setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
     checking: boolean;
     upvotedComments: string[];
     email_hash: string;
     setUpvotedComments: (upvotedComments: string[]) => void;
     id: string;
+    genres: { [key: string]: boolean };
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -33,7 +34,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [bio, setBio] = useState<string>("");
     const [stars, setStars] = useState<number>(0);
     const [picture, setPicture] = useState<string>("");
-    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<number[]>([]);
+    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<[number, string][]>([]);
     const [upvotedComments, setUpvotedComments] = useState<string[]>([]);
     const pathname = usePathname();
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
@@ -41,6 +42,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const { isLoggedIn, loading } = useAuth();
     const [email_hash, setEmailHash] = useState<string>("");
     const [id, setId] = useState<string>("");
+    const [genres, setGenres] = useState<{ [key: string]: boolean }>({});
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -54,13 +56,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);
-                setStars(data.stars);
+                setStars(data.stars + data.free_stars);
                 setPicture(data.picture);
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
                 setChecking(false);
                 setUpvotedComments(data.upvoted_comments);
                 setEmailHash(data.email_hash);
                 setId(data.id);
+                setGenres(JSON.parse(data.genres));
             } catch (error) {
                 console.error('Error checking user:', error);
             }
@@ -82,7 +85,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             checking,
             upvotedComments, setUpvotedComments,
             email_hash,
-            id
+            id,
+            genres,
         }}>
             {children}
         </userContext.Provider>

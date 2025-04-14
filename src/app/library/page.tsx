@@ -16,7 +16,7 @@ const Library = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetch(`/api/get_library?email=${email}`);
+            const response = await fetch(`/api/get_library`);
             if (!response.ok) {
                 return;
             }

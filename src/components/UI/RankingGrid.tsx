@@ -1,19 +1,15 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { Webnovel } from '@/components/Types';
-import { getImageUrl } from "@/utils/urls"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import Link from 'next/link';
 import CardsScroll from '@/components/CardsScroll';
-import { getVideoUrl } from '@/utils/urls';
-import { Pause, Play, VolumeOff, Volume2 } from 'lucide-react';
-import { Skeleton } from '@/components/shadcnUI/Skeleton';
 import { Card } from '@/components/shadcnUI/Card';
 import { useMediaQuery } from '@mui/material';
 import MainPagePictureOrVideoComponent from '@/components/MainPagePictureOrVideoComponent';
+import { koreanToEnglishAuthorName } from '@/utils/webnovelUtils';
 
 export default function RankingGrid({ webnovels, isMobile, title }: { webnovels: Webnovel[], isMobile: boolean, title: string }) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -66,7 +62,11 @@ export default function RankingGrid({ webnovels, isMobile, title }: { webnovels:
                                                 />
                                             </h3>
                                             <div className="flex flex-row gap-2">
-                                                <p className="text-xs text-gray-500">{webnovel.author.nickname}</p>
+                                                <p className="text-xs text-gray-500">{
+                                                    language === "ko" ?
+                                                        webnovel.author.nickname :
+                                                        koreanToEnglishAuthorName[webnovel.author.nickname]
+                                                }</p>
                                             </div>
                                         </div>
                                     )}

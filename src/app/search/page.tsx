@@ -106,11 +106,6 @@ const Search = () => {
             renderItem={(item: Webnovel, index: number) => (
               <WebnovelPictureCardWrapper
                 webnovel={item}
-                index={index + 1}
-                ranking={false}
-                details={false}
-                up={false}
-                isOriginal={false}
               />
             )}
           />

@@ -44,7 +44,7 @@ export function GlobalSidebar() {
         text="Home"
         active={pathname === '/'}
         alert={false}
-        href="/?version=premium"
+        href="/"
         type="link"
       />
       <SidebarItem
@@ -162,7 +162,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
         {/* darkmode color bg-[#211F21] */}
         <div className="flex h-16 items-center justify-center">
           <div className={`flex flex-row items-center justify-between ${expanded ? "gap-10" : "gap-0"}`}>
-            <Link href="/?version=premium">
+            <Link href="/">
               {expanded && <Image
                 src={theme === 'dark' ? '/toonyz_logo_white.svg' : '/toonyz_logo_pink.svg'}
                 alt="N_logo"

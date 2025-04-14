@@ -122,7 +122,7 @@ export default function Setting({ isLoggedInAndRegistered, expanded, }
                             onClick={() => toggleTheme(theme == 'dark' ? 'light' : 'dark')}
                             className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'
                         >
-                            {theme === 'dark' ? <Moon className=" w-6 h-6 mr-1" /> : <Sun className=" w-6 h-6 mr-1" />}{'  '}
+                            {theme === 'dark' ? <Sun className=" w-6 h-6 mr-1" /> : <Moon className=" w-6 h-6 mr-1" />}{'  '}
                             <ListItemText primary={phrase(dictionary, theme === 'dark' ? 'LightMode' : 'DarkMode', language)} />
                         </ListItemButton>
                         <ListItemButton

@@ -21,6 +21,7 @@ const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title }: { s
         const _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
+            .filter(item => item.chapters_length > 0)
             .sort((a, b) => sortByFn(a, b, sortBy))
             .slice(0, 9)
 
@@ -45,14 +46,9 @@ const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title }: { s
             webnovels={webnovelsToShow}
             scrollRef={scrollRef}
             isMobile={isMobile}
-            renderItem={(item: Webnovel, index: number) => (
+            renderItem={(item: Webnovel) => (
                 <WebnovelPictureComponent
                     webnovel={item}
-                    index={index + 1}
-                    ranking={false}
-                    details={false}
-                    up={false}
-                    isOriginal={false}
                 />
             )}
         />

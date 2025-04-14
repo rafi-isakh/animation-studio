@@ -27,6 +27,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         if (!paymentResponse.ok)
             throw new Error(`paymentResponse: ${await paymentResponse.json()}`);
         const payment = await paymentResponse.json();
+        console.log("payment", payment);
         const starsMatch = payment.response.name?.match(/\d+/);
         const stars = starsMatch ? parseInt(starsMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
         if (stars === -1) {

@@ -33,13 +33,12 @@ import { useUser } from '@/contexts/UserContext';
 import { TranslateWebnovelAllButton } from "@/components/TranslateWebnovelAllButton";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
-import { CircularProgress } from "@mui/material";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
-import { videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 
 interface InfoAndPictureProps {
@@ -78,6 +77,36 @@ export default function InfoAndPictureComponent({
     const videoRef = useRef<HTMLVideoElement>(null);
     const showPlayButtonRef = useRef(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
+    const [imageSrc, setImageSrc] = useState<string | null>(null)
+    const [videoSrc, setVideoSrc] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (language === "en") {
+            if (content.en_cover_art) {
+                const imageSrc = getImageUrl(content.en_cover_art)
+                setImageSrc(imageSrc)
+            }
+            if (content.en_video_cover) {
+                const videoSrc = getVideoUrl(content.en_video_cover)
+                setVideoSrc(videoSrc)
+            }
+        } else {
+            const imageSrc = getImageUrl(content.cover_art) // this one always exists
+            setImageSrc(imageSrc)
+            if (content.video_cover) {
+                const videoSrc = getVideoUrl(content.video_cover)
+                setVideoSrc(videoSrc)
+            }
+        }
+    }, [language])
+
+    useEffect(() => {
+        if (videoSrc) {
+            setVideoExists(true)
+        } else {
+            setVideoExists(false)
+        }
+    }, [videoSrc])
 
     const view_profile_href = content.user.email_hash == content.author.email_hash ?
         `/view_profile/${content.user.id}` : '#';
@@ -124,7 +153,8 @@ export default function InfoAndPictureComponent({
                 method: 'POST',
                 body: JSON.stringify({
                     chapter_id: chapter.id,
-                    price: price
+                    price: price,
+                    language: language
                 })
             });
             // TODO: tell user if there's not enough stars
@@ -144,21 +174,21 @@ export default function InfoAndPictureComponent({
     }
 
 
-    useEffect(() => {
-        async function checkCoverArtType() {
-            try {
-                const response = await fetch(`/api/check_if_video_exists?url=${coverArt}`);
-                const data = await response.json();
-                setVideoExists(data.videoExists);
-            } catch (error) {
-                console.error('Error fetching coverArt:', error);
-            }
-        }
+    // useEffect(() => {
+    //     async function checkCoverArtType() {
+    //         try {
+    //             const response = await fetch(`/api/check_if_video_exists?url=${coverArt}`);
+    //             const data = await response.json();
+    //             setVideoExists(data.videoExists);
+    //         } catch (error) {
+    //             console.error('Error fetching coverArt:', error);
+    //         }
+    //     }
 
-        if (coverArt) {
-            checkCoverArtType();
-        }
-    }, [coverArt]);
+    //     if (coverArt) {
+    //         checkCoverArtType();
+    //     }
+    // }, [coverArt]);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -238,7 +268,7 @@ export default function InfoAndPictureComponent({
                                 {coverArt ?
                                     !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
                                         <Image
-                                            src={getImageUrl(coverArt)}
+                                            src={imageSrc || ""}
                                             alt={content.title}
                                             fill
                                             sizes="(max-width: 768px) 100vw, 300px"
@@ -251,7 +281,7 @@ export default function InfoAndPictureComponent({
                                             <div className="relative">
                                                 <video
                                                     ref={videoRef}
-                                                    src={getVideoUrl(coverArt)}
+                                                    src={videoSrc || ""}
                                                     autoPlay
                                                     onMouseEnter={handleMouseEnter}
                                                     onMouseLeave={handleMouseLeave}
@@ -294,9 +324,9 @@ export default function InfoAndPictureComponent({
                                 <Link href={view_profile_href}>
                                     {
                                         content.author.nickname === 'Anonymous' ? '' :
-                                        language == 'ko'?
-                                            content.author.nickname: 
-                                            koreanToEnglishAuthorName[content.author.nickname as string]
+                                            language == 'ko' ?
+                                                content.author.nickname :
+                                                koreanToEnglishAuthorName[content.author.nickname as string]
                                     }
                                 </Link>
                             </p>
@@ -366,7 +396,7 @@ export default function InfoAndPictureComponent({
                                         if (!firstChapter) return;
 
                                         // Check if user has already purchased the chapter
-                                        const hasPurchased = purchased_webnovel_chapters?.includes(firstChapter.id);
+                                        const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
 
                                         if (content.premium && !firstChapter.free && !hasPurchased) {
                                             setShowPurchaseModal(true);

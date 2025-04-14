@@ -34,14 +34,9 @@ const ExplorePage = () => {
                         title={''}
                         webnovels={webnovels}
                         scrollRef={scrollRef}
-                        renderItem={(item: Webnovel, index: number) => (
+                        renderItem={(item: Webnovel) => (
                             <WebnovelPictureCardWrapper
                                 webnovel={item}
-                                index={index + 1}
-                                ranking={false}
-                                details={false}
-                                up={false}
-                                isOriginal={false}
                             />
                         )}
                     />

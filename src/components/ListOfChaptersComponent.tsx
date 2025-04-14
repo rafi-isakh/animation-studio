@@ -18,6 +18,7 @@ import { MdStars } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
+import { isPurchasedChapter } from "@/utils/webnovelUtils";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -93,7 +94,7 @@ const ListOfChaptersComponent = ({
         if (chapter.free) {
             router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
         } else {
-            if (purchased_webnovel_chapters.includes(chapter.id)) {
+            if (isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
                 router.push(`/view_webnovels/${webnovel?.id}/chapter_view/${chapter.id}`);
                 return;
             }
@@ -118,7 +119,8 @@ const ListOfChaptersComponent = ({
                 method: 'POST',
                 body: JSON.stringify({
                     chapter_id: chapter.id,
-                    price: price
+                    price: price,
+                    language: language
                 })
             });
             // TODO: tell user if there's not enough stars
@@ -194,7 +196,7 @@ const ListOfChaptersComponent = ({
                                 <div className="flex flex-row gap-2 items-center">
                                     <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
                                         {chapter.free ? phrase(dictionary, "readingForFree", language)
-                                            : purchased_webnovel_chapters?.includes(chapter.id) ? <BadgeCheck size={11} />
+                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} />
                                                 : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}</div>}
                                     </div>
                                 </div>

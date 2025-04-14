@@ -38,14 +38,7 @@ const MyReadingListWrapper = ({ library, nickname }: { library: Webnovel[], nick
                                 key={index}
                                 className="flex-shrink-0 w-[160px]"
                             >
-                                <WebnovelPictureComponent
-                                    webnovel={item}
-                                    index={index + 1}
-                                    ranking={false}
-                                    details={false}
-                                    up={false}
-                                    isOriginal={false}
-                                />
+                                <WebnovelPictureComponent webnovel={item} />
                             </div>
                         ))}
                     </div>
@@ -54,17 +47,8 @@ const MyReadingListWrapper = ({ library, nickname }: { library: Webnovel[], nick
                     <div className="md:hidden flex overflow-x-auto no-scrollbar scroll-smooth gap-1">
                         {library && library.map((item, index) =>
                             <div key={index}
-
                                 className="flex-none">
-                                <WebnovelPictureComponent
-                                    key={index}
-                                    webnovel={item}
-                                    index={index + 1}
-                                    ranking={false}
-                                    details={false}
-                                    up={false}
-                                    isOriginal={false}
-                                />
+                                <WebnovelPictureComponent webnovel={item} />
                             </div>
                         )}
                     </div>

@@ -357,7 +357,7 @@ export default function CreateMediaArea({
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center h-full">
-                                    <CreateMediaDefaultContents stars={stars} source={source} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                                    <CreateMediaDefaultContents stars={stars} source={source} webnovelId={webnovel_id} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
                                 </div>
                             )}
                         </div>

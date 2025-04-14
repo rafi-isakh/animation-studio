@@ -35,10 +35,6 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, []);
 
-  useEffect(() => {
-    console.log("language modified to", language);
-  }, [language]);
-
   const setLanguageOverride = (language: Language) => {
     setLanguage(language);
     localStorage.setItem('language_override', language);

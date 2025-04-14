@@ -52,7 +52,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     description: description,
     cover_art: fileName,
     genre: genre,
-    language: language
+    language: language,
+    // available_languages: ["en", "ko"]
   };
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webnovel`, {

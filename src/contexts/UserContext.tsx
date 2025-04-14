@@ -17,6 +17,7 @@ interface UserContextProps {
     checking: boolean;
     upvotedComments: string[];
     email_hash: string;
+    provider: string;
     setUpvotedComments: (upvotedComments: string[]) => void;
     id: string;
     genres: { [key: string]: boolean };
@@ -41,6 +42,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [checking, setChecking] = useState<boolean>(false);
     const { isLoggedIn, loading } = useAuth();
     const [email_hash, setEmailHash] = useState<string>("");
+    const [provider, setProvider] = useState<string>("");
     const [id, setId] = useState<string>("");
     const [genres, setGenres] = useState<{ [key: string]: boolean }>({});
     useEffect(() => {
@@ -62,6 +64,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 setChecking(false);
                 setUpvotedComments(data.upvoted_comments);
                 setEmailHash(data.email_hash);
+                setProvider(data.provider);
                 setId(data.id);
                 setGenres(JSON.parse(data.genres));
             } catch (error) {
@@ -85,6 +88,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             checking,
             upvotedComments, setUpvotedComments,
             email_hash,
+            provider,
             id,
             genres,
         }}>

@@ -302,13 +302,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
             <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
-                    <div id='above-header' className="flex flex-row flex-wrap md:flex-nowrap items-center justify-between mx-auto ">
+                    <div id='above-header' className="flex flex-row w-full flex-wrap md:flex-nowrap items-center mx-auto ">
 
                         {/* header font and icon colour gray-500 */}
                         {/* md:pl-[72px] sidebar width is 72px */}
                         {/* px-3 for the logo's padding on the mobile screen */}
                         {/* logo, webnovels, community,  */}
-                        <div className='flex flex-row items-center justify-center gap-4 '>
+                        {/* <div className='flex flex-row items-center justify-center gap-4 '>
                             <Link href="/?version=premium"
                                 className="md:hidden flex items-center gap-3 rtl:space-x-reverse md:p-0 pl-1">
                                 <Image
@@ -326,13 +326,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </Link>
                                 <Link href="/?version=free" prefetch={false} >
                                     <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold' : ''} hidden md:block free mt-1 text-lg md:text-xl dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
-                                        {phrase(dictionary, "free", language)}</p>  {/* community */}
+                                        {phrase(dictionary, "free", language)}</p>  
                                 </Link>
                             </div>
-                        </div>
-                        <div className="flex gap-x-2 mt-2 md:order-1">
+                        </div> */}
+                        <div className="flex gap-x-2 mt-2 md:order-1 w-full">
                             {/* Search bar in desktop screen */}
-                            <div className="relative hidden md:inline-flex w-[400px] mr-3">
+                            <div className="relative hidden md:inline-flex w-full mr-3">
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
                             </div>
                            
@@ -494,16 +494,16 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                         </div>
                     </div>
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
-                    <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-3">
+                    {/* <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-3">
                         <Link href="/?version=premium" prefetch={false} >
-                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   {/* has-[:clicked]:bg-indigo-50  */}
+                            <p className={`${activeTab === 'premium' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} webnovel mt-1 text-md  dark:hover:text-[#DB2777]   hover:text-[#DB2777] `}>   
                                 {phrase(dictionary, "webnovels", language)}</p>
                         </Link>
                         <Link href="/?version=free" prefetch={false} >
                             <p className={`${activeTab === 'free' ? 'text-[#DB2777] font-bold pb-1 border-b-2 border-[#DB2777]' : ''} free mt-1 text-md dark:hover:text-[#DB2777]  hover:text-[#DB2777]`}>
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
-                    </div>
+                    </div> */}
                 </div>
                 <hr className='md:hidden block border-gray-300 dark:border-[#2F2F2F]' />
             </nav>

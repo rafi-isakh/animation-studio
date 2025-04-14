@@ -13,9 +13,11 @@ import { LibraryPromotionComponent } from "@/components/PromotionBannerComponent
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { truncateText } from "@/utils/truncateText";
 import { Skeleton } from "@/components/shadcnUI/Skeleton";
+import LottieLoader from "./LottieLoader";
+import animationData from '@/assets/N_logo_with_heart.json';
 
 // Add a helper function for image URLs if it doesn't exist elsewhere
-const LibraryComponent = ({ library, nickname }: { library: Webnovel[], nickname: string }) => {
+const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[], nickname: string, loading: boolean }) => {
     const { dictionary, language } = useLanguage();
     const [toonyzPosts, setToonyzPosts] = useState<ToonyzPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);

@@ -10,7 +10,7 @@ const HeaderTabs = ({ language, dictionary, phrase }: { language: string, dictio
     {
       id: 'home',
       icon: <Sparkles size={20} />,
-      href: '/?version=premium',
+      href: '/',
       label: phrase(dictionary, "home", language)
     },
     {

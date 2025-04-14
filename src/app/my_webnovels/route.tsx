@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         if (data.length > 0) {
             const ids = data.map((w: Webnovel) => w.id); // same code as in ViewWebnovelsComponent
             const first = Math.min(...ids);
-            url.searchParams.set("id", first.toString());
+            url = new URL(`${baseUrl}/view_webnovels/${first}`);
         }
     }
     else {

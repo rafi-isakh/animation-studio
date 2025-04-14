@@ -93,10 +93,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
-<<<<<<< Updated upstream
-=======
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" />
->>>>>>> Stashed changes
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"/>
                     <ToonyzPostCards />
                     <SmallGap />
                 </div>

@@ -24,7 +24,7 @@ async function getLibrary() {
     if (!session) {
         return [];
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library`,{
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_library`, {
         headers: {
             'Cookie': cookies().toString(),
             'Authorization': `Bearer ${session?.accessToken}`,
@@ -51,19 +51,19 @@ async function getToonyzPosts() {
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
-    //let library = await getLibrary() || [];
+    let library = await getLibrary() || [];
     let posts = await getToonyzPosts();
-    //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
-    const largeGap = () => {
+    const LargeGap = () => {
         return (
             <div className='md:h-[3rem] h-[2rem]' />
         )
     }
 
-    const smallGap = () => {
+    const SmallGap = () => {
         return (
             <div className='md:h-[2rem] h-[1rem]' />
         )
@@ -76,25 +76,29 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
                 {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
                 <CarouselComponentShadcn items={items} />
-                {smallGap()}
+                <SmallGap />
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
-                    {smallGap()}
-                    {/*<MyReadingListComponent library={library} />*/}
-                    {/*smallGap()/*}
-                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
+                    <SmallGap />
+                    <MyReadingListComponent library={library} />
+                    <SmallGap />
+                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/}
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
-                    {largeGap()}
+                    <LargeGap />
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
-                    {smallGap()}
+                    <SmallGap />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
+<<<<<<< Updated upstream
+=======
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" />
+>>>>>>> Stashed changes
                     <ToonyzPostCards />
-                    {smallGap()}
+                    <SmallGap />
                 </div>
             </div>
             <Footer />

@@ -84,15 +84,16 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {/*smallGap()/*}
                     {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
-                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommended" />
+                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
                     {largeGap()}
-                    <WebnovelsByRank searchParams={searchParams} sortBy='views' />
+                    <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
                     {smallGap()}
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"/>
                     <ToonyzPostCards />
                     {smallGap()}
                 </div>

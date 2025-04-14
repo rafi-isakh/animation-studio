@@ -1,3 +1,6 @@
+import { Language } from "@/components/Types";
+import { loadStripe } from "@stripe/stripe-js";
+
 export const make_video_price = 35; // per video
 export const generate_pictures_price = 15; // four pictures
 export const generate_trailer_price = 20; // six pictures
@@ -7,14 +10,25 @@ interface StarsNameToPrice {
 }
 
 export const stars_name_to_price_krw: StarsNameToPrice = {
-    "투니즈 별 150개": 1425,
-    "투니즈 별 350개": 3150,
-    "투니즈 별 550개": 4675,
+    "투니즈 별 150개": 1400,
+    "투니즈 별 350개": 3100,
+    "투니즈 별 550개": 4600,
     "투니즈 별 1100개": 8800,
     "투니즈 별 100개": 1000,
     "투니즈 별 300개": 3000,
     "투니즈 별 500개": 5000,
     "투니즈 별 1000개": 10000,
+}
+
+export const stars_name_to_price_usd: StarsNameToPrice = {
+    "투니즈 별 150개": 1,
+    "투니즈 별 350개": 2.5,
+    "투니즈 별 550개": 3.8,
+    "투니즈 별 1100개": 6.2,
+    "투니즈 별 100개": 0.75,
+    "투니즈 별 300개": 2.25,
+    "투니즈 별 500개": 3.75,
+    "투니즈 별 1000개": 7.5,
 }
 
 export const starsOptions = [100, 300, 500, 1000]
@@ -27,9 +41,7 @@ export function getStarsAndDiscount(selectedPackage: string, isEvent: boolean) {
     let discount = 1; // Default value
 
     if (selectedPackage) {
-        console.log('selectedPackage is', selectedPackage, 'isEvent', isEvent)
         const packageIndex = parseInt(selectedPackage);
-        console.log('packageIndex is', packageIndex)
         if (!isNaN(packageIndex) && packageIndex >= 0) {
             if (isEvent && packageIndex < starsEventOptions.length) {
                 stars = starsEventOptions[packageIndex];
@@ -41,13 +53,73 @@ export function getStarsAndDiscount(selectedPackage: string, isEvent: boolean) {
         }
     }
 
-    console.log('stars', stars, 'discount', discount)
     return { stars, discount };
 }
 
-export const calculateOrderAmount = (numStars: number, discount: number) => {
-    // Replace this constant with a calculation of the order's amount
-    // Calculate the order total on the server to prevent
-    // people from directly manipulating the amount on the client
-    return numStars * 10 * discount;
+export const calculateOrderAmount = (numStars: number, language: string) => {
+    if (language === 'ko') {
+        return stars_name_to_price_krw[`투니즈 별 ${numStars}개`]
+    } else {
+        return stars_name_to_price_usd[`투니즈 별 ${numStars}개`] * 100 // in cents
+    }
 };
+
+export const starsString = (numStars: number, language: string) => {
+    if (language === 'ko') {
+        return `별 ${numStars}개`;
+    } else {
+        return `${numStars} stars`;
+    }
+}
+
+export const starsPriceWithCurrencyString = (numStars: number, language: string) => {
+    if (language === 'ko') {
+        if (numStars === 100) {
+            return "1,000원"
+        } else if (numStars === 300) {
+            return "3,000원"
+        } else if (numStars === 500) {
+            return "5,000원"
+        } else if (numStars === 1000) {
+            return "10,000원"
+        }
+
+        if (numStars === 150) {
+            return "1,400원"
+        } else if (numStars === 350) {
+            return "3,100원"
+        } else if (numStars === 550) {
+            return "4,600원"
+        } else if (numStars === 1100) {
+            return "8,800원"
+        }
+    }
+    else if (language === 'en') {
+        if (numStars === 100) {
+            return "$0.75"
+        } else if (numStars === 300) {
+            return "$2.25"
+        } else if (numStars === 500) {
+            return "$3.75"
+        } else if (numStars === 1000) {
+            return "$7.50"
+        }
+
+        if (numStars === 150) {
+            return "$1"
+        } else if (numStars === 350) {
+            return "$2.50"
+        } else if (numStars === 550) {
+            return "$3.80"
+        } else if (numStars === 1100) {
+            return "$6.20"
+        }
+    }
+}
+
+export const getStripe = (language: Language) => {
+    const stripeLocale = language === 'ko' ? 'ko' : language === 'ja'? 'ja': 'en'
+    return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
+        locale: stripeLocale,
+    })
+}

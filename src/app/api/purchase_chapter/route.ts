@@ -8,7 +8,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { chapter_id, price } = await req.json();
+    const { chapter_id, price, language } = await req.json();
+    console.log(chapter_id, price, language)
 
     if (!chapter_id) {
         return NextResponse.json({ error: 'Chapter ID is required' }, { status: 400 });
@@ -23,7 +24,8 @@ export async function POST(req: NextRequest) {
             },
             body: JSON.stringify({
                 chapter_id: chapter_id,
-                price: price
+                price: price,
+                language: language
             })
         }
     );

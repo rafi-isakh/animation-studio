@@ -12,7 +12,7 @@ interface UserContextProps {
     setBio: (bio: string) => void;
     stars: number;
     picture: string;
-    purchased_webnovel_chapters: number[];
+    purchased_webnovel_chapters: [number, string][];
     setInvokeCheckUser: Dispatch<SetStateAction<boolean>>;
     checking: boolean;
     upvotedComments: string[];
@@ -35,7 +35,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [bio, setBio] = useState<string>("");
     const [stars, setStars] = useState<number>(0);
     const [picture, setPicture] = useState<string>("");
-    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<number[]>([]);
+    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<[number, string][]>([]);
     const [upvotedComments, setUpvotedComments] = useState<string[]>([]);
     const pathname = usePathname();
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);

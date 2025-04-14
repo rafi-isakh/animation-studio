@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/shadcnUI/Toast";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 
-export default function CreateMediaDefaultContents({ stars, source, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', chapterIds?: number[] }) {
+export default function CreateMediaDefaultContents({ stars, source, webnovelId, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', webnovelId?: string, chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -26,6 +26,8 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
 
     useEffect(() => {
+        // TODO: refactor the backend to use webnovel_id
+        // TODO: create ToonyzPostsContext like WebnovelsContext
         fetch('/api/get_toonyz_posts')
             .then(res => {
                 if (!res.ok) {
@@ -34,6 +36,7 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                 return res.json();
             })
             .then(data => {
+                data = data.filter((post: ToonyzPost) => post.webnovel_id === webnovelId);
                 setInitialPosts(data);
                 setInitialLoading(false);
             })
@@ -139,6 +142,7 @@ export default function CreateMediaDefaultContents({ stars, source, chapterIds }
                 <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 p-6 md:p-8 col-span-1 md:col-span-3 h-[230px]">
                     <h3 className="text-2xl font-bold mb-1">{phrase(dictionary, "makeVideo", language)}</h3>
                     <p className="text-md mb-6">{phrase(dictionary, "shareYourInfiniteImagination", language)}</p>
+
                     <div className="flex justify-end gap-2 h-[200px] overflow-hidden">
                         {randomVideos.map((post, index) => (
                             <div

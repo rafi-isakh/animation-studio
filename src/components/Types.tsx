@@ -92,6 +92,7 @@ export interface Webnovel {
   id: number;
   title: string;
   cover_art: string;
+  en_cover_art: string;
   chapters: Chapter[];
   description: string;
   genre: string;
@@ -111,6 +112,9 @@ export interface Webnovel {
   chapters_length: number;
   last_update: Date;
   en_published_up_to_chapter: number;
+  other_translations: OtherTranslation[];
+  video_cover: string;
+  en_video_cover: string;
 }
 
 export interface Dictionary {
@@ -161,4 +165,14 @@ export interface ToonyzPostUpdate {
   title: string;
   content: string;
   tags: string;
+}
+
+export type OtherTranslation = {
+  id: string
+  text: string
+  language: string
+  webnovel_id: string | null
+  element_type: string
+  element_subtype: string
+  done: boolean
 }

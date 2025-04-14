@@ -300,7 +300,7 @@ export default function SearchComponent({
                             {/* my-4 md:px-2 px-4 for the margin top and padding of the search bar */}
                             <div className="flex flex-row justify-center items-center min-h-[80px]">
                                 <div className="self-center mr-5">
-                                    <Link href="/?version=premium">
+                                    <Link href="/">
                                         <MoveLeft size={20} className='dark:text-white text-black' />
                                     </Link>
                                 </div>

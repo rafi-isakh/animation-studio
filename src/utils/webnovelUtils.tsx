@@ -29,7 +29,7 @@ export const filter_by_genre = (item: Webnovel, genre: string | null | undefined
 
 export const filter_by_version = (item: Webnovel, version: string | null | undefined) => {
     if (!version) return item.premium;
-    else if (version === "free") return !item.premium;
+    else if (version === "community") return !item.premium;
     else return item.premium;
 };
 
@@ -140,4 +140,10 @@ export const koreanToEnglishAuthorName : { [key: string]: string } = {
     "이르스":	"Irusu",
     "성상영":	"Sangyoung Seong",
     "데카스펠":	"deca spell"
+}
+
+export const isPurchasedChapter = (purchased_webnovel_chapters: [number, string][], chapter_id: number, language: string) => {
+    console.log(purchased_webnovel_chapters)
+    if (purchased_webnovel_chapters.length === 0) return false;
+    return purchased_webnovel_chapters.some(([chapterId, lang]) => chapterId === chapter_id && lang === language);
 }

@@ -51,10 +51,8 @@ const ListOfChaptersComponent = ({
 
     const loadMoreChapters = () => {
         if (language == 'en') {
-            console.log("Language is english, setting visible chapters to en_published_up_to_chapter, which is")
             setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0)));
         } else {
-            console.log("Language is not english, setting visible chapters to prev + CHAPTERS_PER_PAGE")
             setVisibleChapters(prev => Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0));
         }
     };

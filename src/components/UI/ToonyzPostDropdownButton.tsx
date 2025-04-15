@@ -32,7 +32,7 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
 import { truncateText } from "@/utils/truncateText";
 
-const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: string, isAuthor?: boolean, user: User, postId: string, post: ToonyzPost }) => {
+const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { email: string, isAuthor?: boolean, user: User, postId: string, post: ToonyzPost }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
@@ -351,4 +351,4 @@ const TopNavigationMenu = ({ email, isAuthor, user, postId, post }: { email: str
   );
 };
 
-export default TopNavigationMenu;
+export default ToonyzPostDropdownButton;

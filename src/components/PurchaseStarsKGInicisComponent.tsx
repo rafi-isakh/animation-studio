@@ -25,6 +25,7 @@ export default function PurchaseStarsKGInicisComponent() {
             pg: "html5_inicis", // PG사 : https://developers.portone.io/docs/ko/tip/pg-2 참고
             pay_method: "card", // 결제수단
             merchant_uid: `mid_${new Date().getTime()}`, // 주문번호
+            channelKey: "channel-key-c163cb6f-3aeb-4e10-ab21-6b88d99e0ed5",
             amount: stars_name_to_price_krw[name], // 결제금액
             name: name, // 주문명
             buyer_name: nickname, // 구매자 이름

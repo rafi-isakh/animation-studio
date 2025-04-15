@@ -143,7 +143,6 @@ export const koreanToEnglishAuthorName : { [key: string]: string } = {
 }
 
 export const isPurchasedChapter = (purchased_webnovel_chapters: [number, string][], chapter_id: number, language: string) => {
-    console.log(purchased_webnovel_chapters)
     if (purchased_webnovel_chapters.length === 0) return false;
     return purchased_webnovel_chapters.some(([chapterId, lang]) => chapterId === chapter_id && lang === language);
 }

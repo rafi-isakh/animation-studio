@@ -5,10 +5,8 @@ import { useUser } from "@/contexts/UserContext";
 import { phrase } from "@/utils/phrases";
 import { useEffect, useState } from "react";
 import LibraryComponent from '@/components/LibraryComponent'
-import { useAuth } from "@/contexts/AuthContext";
 
 const Library = () => {
-    const {language, dictionary} = useLanguage();
     const {email} = useUser();
     const [library, setLibrary] = useState<Webnovel[]>([])
     const [loading, setLoading] = useState(true);

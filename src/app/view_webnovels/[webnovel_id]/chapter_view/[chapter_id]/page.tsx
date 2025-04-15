@@ -89,7 +89,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
             alert(phrase(dictionary, "languageNotAvailable", language));
             router.push(`/view_webnovels/${webnovel?.id}`);
         }
-        if (webnovel && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
+        if (webnovel && chapter && !chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
             router.push(`/view_webnovels/${webnovel?.id}`);
         }
     }, [webnovel, language])

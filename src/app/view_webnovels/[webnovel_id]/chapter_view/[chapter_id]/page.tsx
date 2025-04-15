@@ -84,10 +84,12 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
 
-
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
             alert(phrase(dictionary, "languageNotAvailable", language));
+            router.push(`/view_webnovels/${webnovel?.id}`);
+        }
+        if (webnovel && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
             router.push(`/view_webnovels/${webnovel?.id}`);
         }
     }, [webnovel, language])

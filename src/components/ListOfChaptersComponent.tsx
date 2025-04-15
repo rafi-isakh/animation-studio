@@ -48,6 +48,15 @@ const ListOfChaptersComponent = ({
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
 
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+        setImageSrc(getImageUrl(webnovel?.cover_art));
+        if (language == 'en') {
+            setImageSrc(getImageUrl(webnovel?.en_cover_art));
+        } 
+    }, [webnovel, language]);
+
 
     const loadMoreChapters = () => {
         if (language == 'en') {
@@ -154,7 +163,7 @@ const ListOfChaptersComponent = ({
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
                                     <div className="min-w-[50px] max-w-[50px]">
                                     <Image
-                                        src={getImageUrl(webnovel?.cover_art)}
+                                        src={imageSrc || ""}
                                         alt={webnovel?.title || ""}
                                         width={50}
                                         height={50}

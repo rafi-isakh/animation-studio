@@ -252,6 +252,7 @@ export interface RequestPayParams extends RequestPayAdditionalParams {
     customer_uid?: string;
     display?: Display;
     card?: Card;
+    channelKey?: string;
 }
 
 export interface RequestPayAdditionalResponse {

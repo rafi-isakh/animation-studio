@@ -43,7 +43,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
     const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false);
-    const { id, email, nickname, email_hash } = useUser();
+    const { id, email, email_hash } = useUser();
     const { isLoggedIn } = useAuth();
     const router = useRouter();
     const { logout } = useAuth();
@@ -90,11 +90,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
         ssr: false,
     });
-
-    useEffect(() => {
-        setDisplayNickname(nickname);
-    }, [nickname]);
-
 
     useEffect(() => {
         const fetchPosts = async () => {

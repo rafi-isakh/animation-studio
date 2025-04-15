@@ -36,7 +36,8 @@ async function getLibrary() {
         console.error("Failed to fetch library", response.status);
     }
     const data = await response.json();
-    return data.library;
+    console.log(data)
+    return data;
 }
 
 async function getToonyzPosts() {
@@ -51,9 +52,9 @@ async function getToonyzPosts() {
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
-    let library = await getLibrary() || [];
-    let posts = await getToonyzPosts();
-    library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    //let library = await getLibrary() || [];
+    // let posts = await getToonyzPosts();
+    //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
     const carouselFilter = [22, 24, 19]
     items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
@@ -79,10 +80,10 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 <SmallGap />
                 <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
-                    <SmallGap />
-                    <MyReadingListComponent library={library} />
-                    <SmallGap />
-                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/}
+                    {/*{smallGap()}*/}
+                    {/*<MyReadingListComponent library={library} />*/}
+                    {/*smallGap()/*}
+                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
                     <LargeGap />

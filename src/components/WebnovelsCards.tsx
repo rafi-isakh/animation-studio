@@ -23,12 +23,17 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams:
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
-        const _webnovelsToShow = webnovels
+        let _webnovelsToShow = webnovels
             .filter(item => filter_by_genre(item, genre))
             .filter(item => filter_by_version(item, version))
             .filter(item => item.chapters_length > 0)
             .sort((a, b) => sortByFn(a, b, sortBy, genres))
-            .slice(0, 18)
+
+        if (isMobile) {
+            _webnovelsToShow = _webnovelsToShow.slice(0, 9)
+        } else {
+            _webnovelsToShow = _webnovelsToShow.slice(0, 12)
+        }
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

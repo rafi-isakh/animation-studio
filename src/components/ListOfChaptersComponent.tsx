@@ -52,7 +52,7 @@ const ListOfChaptersComponent = ({
 
     useEffect(() => {
         setImageSrc(getImageUrl(webnovel?.cover_art));
-        if (language == 'en') {
+        if (language == 'en' && webnovel?.en_cover_art) {
             setImageSrc(getImageUrl(webnovel?.en_cover_art));
         } 
     }, [webnovel, language]);

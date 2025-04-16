@@ -202,7 +202,7 @@ export default function MyLibraryToonyzPostCard({ library, toonyzPosts }: { libr
                           <h4 className="font-bold text-sm">
                             <Link href={`/view_webnovels/${libraryItem.id}`}>
                               <OtherTranslateComponent
-                                content={truncateText(libraryItem.title, 15)}
+                                content={libraryItem.title}
                                 elementId={libraryItem.id.toString()}
                                 elementType='webnovel'
                                 elementSubtype="title"
@@ -228,7 +228,7 @@ export default function MyLibraryToonyzPostCard({ library, toonyzPosts }: { libr
                       <div className="flex items-center justify-between">
                         <Button
                           variant="outline"
-                          className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity border-white dark:border-white"
                         >
                           <Link href={`/toonyz_posts/${currentPost?.id}`}>
                             {phrase(dictionary, "viewPost", language)}
@@ -240,12 +240,12 @@ export default function MyLibraryToonyzPostCard({ library, toonyzPosts }: { libr
                           <UserInfoCard post={currentPost} />
                           <div className="flex flex-col">
                             {currentPost.user.nickname && (
-                              <p className="text-sm font-extrabold flex flex-row items-center dark:text-white text-gray-500">
+                              <p className="text-sm font-extrabold flex flex-row items-center dark:text-white text-white">
                                 {currentPost.user.nickname}
                               </p>
                             )}
                             {currentPost.created_at && (
-                              <p className="text-sm flex flex-row items-center dark:text-white text-gray-500">
+                              <p className="text-sm flex flex-row items-center dark:text-white text-white">
                                 {new Date(currentPost.created_at).toLocaleDateString()}
                               </p>
                             )}

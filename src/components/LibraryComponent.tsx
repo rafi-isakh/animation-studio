@@ -72,13 +72,13 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
     );
 
 
-    const largeGap = () => {
+    const LargeGap = () => {
         return (
             <div className='md:h-[3rem] h-[2rem]' />
         )
     }
 
-    const smallGap = () => {
+    const SmallGap = () => {
         return (
             <div className='md:h-[2rem] h-[1rem]' />
         )
@@ -88,7 +88,7 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
         <div className="md:max-w-screen-xl w-full h-full mx-auto">
             <div className="flex flex-col justify-start md:p-0 p-2">
                 <LibraryPromotionComponent />
-                {smallGap()}
+                <SmallGap/>
                 {library.length > 0 ?
                     <div className='w-full flex'>
                         <WebnovelsCardList
@@ -123,11 +123,11 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
                     )
                 }
             </div>
-            {smallGap()}
-            <div className="flex flex-col justify-start md:p-0 p-2">
+            <SmallGap/>
+            <div className="w-full">
                 <MyFavoriteAuthorList library={library} nickname={nickname} isLoading={isLoading} />
             </div>
-            {largeGap()}
+            <LargeGap/>
             <div className="flex flex-col justify-start md:p-0 p-2">
                 {library.length > 0 ?
                     <div className="flex flex-row justify-between">
@@ -140,7 +140,7 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
                     : <></>
                 }
                 <div className="w-full ">
-                    {smallGap()}
+                    <SmallGap/>
                     <MyLibraryToonyzPostCard library={library} toonyzPosts={toonyzPosts} />
                 </div>
             </div>

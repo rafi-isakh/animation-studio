@@ -7,13 +7,14 @@ import { Textarea } from "@/components/shadcnUI/Textarea"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Link from "next/link"
+import { useToast } from "@/hooks/use-toast"
 
 export const ContactForm = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [message, setMessage] = useState("")
     const { dictionary, language } = useLanguage()
-
+    const { toast } = useToast()
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -45,18 +46,24 @@ export const ContactForm = () => {
                 return response.text();
             })
             .then(data => {
-                // 'data' will now be the string "Email sent"
+                toast({
+                    title: "Email sent",
+                    description: "We will get back to you as soon as possible.",
+                    variant: "success",
+                })
                 console.log("Success:", data);
                 // Add any success handling logic here (e.g., show a success message to the user)
             })
             .catch(error => {
+                toast({
+                    title: "Error sending message",
+                    description: "Please try again.",
+                    variant: "destructive",
+                })
                 console.error("Error sending message:", error);
                 // Add any error handling logic here (e.g., show an error message to the user)
             });
     }
-
-
-
 
     return (
         <div className="bg-[#FECACA] p-8 lg:p-16">
@@ -81,13 +88,13 @@ export const ContactForm = () => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="bg-white/20 border-0 text-white placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Textarea
                         placeholder="Message"
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="bg-white/20 border-0 text-white placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="bg-white/20 border-0 text-black placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Button
                         onClick={(e) => handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)}
@@ -161,8 +168,8 @@ export default function FAQ() {
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>투니즈 포스트로 공유한 이미지는 여러분의 프로필 페이지에서 볼 수 있습니다.
-                                            추후 업데이트로 생성한 모든 이미지를 보실 수 있습니다.</>
-                                            : <>Shared images to Toonyz Post are available on your profile page. In the future, you will be able to see all the images you have generated.</>}
+                                                            추후 업데이트로 생성한 모든 이미지를 보실 수 있습니다.</>
+                                                           : <>Shared images to Toonyz Post are available on your profile page. In the future, you will be able to see all the images you have generated.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
@@ -172,17 +179,20 @@ export default function FAQ() {
                                         {phrase(dictionary, "IsThereAnyCopyrightIssues", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        We offer various sizes, including apartment-sized pieces.
+                                        {language === "ko" ? <>2차 저작물에 대한 저작권에 동의한 작품에 대하여 이미지와 비디오 생성이 가능하고 상업적 이용으로 하지 않는 경우에 한해 저작권 문제가 발생하지 않습니다. 하지만 상업적으로 무단 이용할 경우 추후 저작권 문제가 발생할 수 있고, 이 경우 투니즈 포스트 이용이 제한될 수 있습니다.</> 
+                                                           : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
                                 <AccordionItem value="item-5" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
-                                        {/*  */}
-                                        Do your sofas come with a warranty?
+                                        {/* 연재 및 투고 방법 */}
+                                        {phrase(dictionary, "HowToSubmitOrPublish", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        Yes, all our sofas come with a comprehensive warranty.
+                                        {language === "ko" ? <>투니즈 포스트에 이미지와 비디오 생성을 한 경우, 공유가 가능하고 <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">이곳</Link>에서 투니즈 포스트 방법을 확인할 수 있습니다.
+                                        자유연재에 투고 방법은 <Link href="https://www.toonyz.com/new_webnovel" target="_blank" className="underline">이곳</Link>에서 바로 글을 쓰고 투고할 수 있습니다. 완성된 작품이 있으시다고요? lisa@stelland.io로 문의 주시면 검토 후 투니즈에서 프리미엄 연재 및 투고 방법을 안내해드립니다.</>
+                                                           : <>If you have generated images and videos on Toonyz Post, you can share the post, and you can check the submission method <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">here</Link>.</>}
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>

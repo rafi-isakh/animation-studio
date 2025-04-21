@@ -89,7 +89,7 @@ export default function Home() {
               <p>{phrase(dictionary, "preparing", language)}</p>
             </TooltipContent>
           </Tooltip>
-          <MenuItem label={phrase(dictionary, "contact", language)} href="/contact" />
+          <MenuItem label={phrase(dictionary, "contact", language)} href="/faq" />
           {/* {phrase(dictionary, "theme", language)} */}
           <div className="flex flex-row items-center justify-between gap-x-3 p-4 text-base font-normal">
             <div className="flex items-center gap-1">

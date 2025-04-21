@@ -58,6 +58,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hasMounted) return;
     
+    // Only run on the client side
+    if (typeof document === 'undefined') return;
+    
     document.body.classList.remove('light', 'dark', 'sepia');
     // Add the effective theme class (which is always light, dark, or sepia at this point)
     document.body.classList.add(effectiveTheme);

@@ -60,7 +60,7 @@ export default function HelpGuidComponent() {
             title_en: "Toonyz Platform Guide",
             thumbnail: "/carousel/platformGuide/youtube_guide1.webp",
             thumbnail_en: "/carousel/platformGuide/youtube_guide1_en.webp",
-            url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing",
+            url: "https://youtu.be/q-j_FEe5EG0?si=Axuzjeou6wxfHHQD",
             url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
         },
     ]
@@ -86,7 +86,7 @@ export default function HelpGuidComponent() {
             id: 1,
             title: "🎥 이미지 생성 강의/매뉴얼",
             title_en: "🎥 Image Generation Tutorial",
-            url: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A",
+            url: "https://youtu.be/q-j_FEe5EG0?si=Axuzjeou6wxfHHQD",
             url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
         },
         {

@@ -122,7 +122,6 @@ export default function FAQ() {
                 <div className="grid lg:grid-cols-2">
                     {/* FAQ Section */}
                     <div className="bg-gray-100 dark:bg-[#211F21] p-4 lg:p-16">
-
                         {/* bg-gradient-to-r from-[#8B6B6B] to-[#A9A889] */}
                         <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white md:mb-12 mb-4">FAQS</h1>
 
@@ -170,7 +169,7 @@ export default function FAQ() {
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>이미지 및 비디오 생성에는 별 15개가 소모됩니다.
                                             처음 투니즈에 가입하신 회원분들을 위해, 소량의 별을 무료로 제공해드리고 있어 이미지와 비디오 생성을 무료로 체험해보실 수 있습니다.
-                                            여러분이 만든 콘텐츠는 '투니즈 포스트' 커뮤니티에 자유롭게 공유하실 수 있습니다.
+                                            여러분이 만든 콘텐츠는 &apos;투니즈 포스트&apos; 커뮤니티에 자유롭게 공유하실 수 있습니다.
                                             별이 부족할 경우, 스타샵에서 별을 충전해 사용하실 수 있습니다.</>
                                             : <>Image/video generation consumes 15 stars. We offer free stars to our first-time members, and you can freely create and share images and videos in the community space, Toonyz Post. If you run out of stars, you can charge them using the star charge. If you run out of stars, you can charge them using the star charge. If you run out of stars, you can charge them using the star charge.</>}
                                     </AccordionContent>
@@ -195,7 +194,7 @@ export default function FAQ() {
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>2차 저작물에 대한 저작권에 동의한 작품에 대하여 이미지와 비디오 생성이 가능하고 상업적 이용으로 하지 않는 경우에 한해 저작권 문제가 발생하지 않습니다. 하지만 상업적으로 무단 이용할 경우 추후 저작권 문제가 발생할 수 있고, 이 경우 투니즈 포스트 이용이 제한될 수 있습니다.</>
-                                            : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
+                                                           : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 

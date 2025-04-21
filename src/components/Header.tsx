@@ -16,17 +16,20 @@ import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
 import {
     Sun,
-    Search,
     Grip,
     Globe,
     Menu,
     User,
     MoonStar,
     Book,
-    Info,
     CircleHelp,
     Gift,
 } from 'lucide-react';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/shadcnUI/Popover"
 import { Button } from '@/components/shadcnUI/Button';
 import { useTheme } from '@/contexts/providers'
 import SearchComponent from '@/components/SearchComponent';
@@ -34,6 +37,7 @@ import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserProfileButton from '@/components/UI/UserProfileButton';
+import HelpGuidComponent from './UI/HelpGuidComponent';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -379,10 +383,17 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {/* Language globe icon menu button - Desktop */}
 
                                 <li className="relative hidden md:inline-flex">
-                                    <Link href="/" className='inline-flex justify-center items-center gap-2 text-gray-500 dark:text-white'>
-                                        <CircleHelp size={20} className='text-gray-500 dark:text-white' />
+                                    {/* <Link href="/" className='inline-flex justify-center items-center gap-2 text-gray-500 dark:text-white'> */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
+                                        </PopoverTrigger>
+                                        <PopoverContent className='md:w-[350px] w-full border-none bg-transparent shadow-none'>
+                                            <HelpGuidComponent />
+                                        </PopoverContent>
+                                    </Popover>
                                         {/* {phrase(dictionary, "help", language)} */}
-                                    </Link>
+                                    {/* </Link> */}
                                 </li>
                                 {!isLoggedIn ? (
                                     <li className="relative hidden md:inline-flex">

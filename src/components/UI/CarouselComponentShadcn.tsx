@@ -33,6 +33,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
     })
   )
 
+  console.log('carouselshadcn items', items)
   useEffect(() => {
     if (!api) return
 

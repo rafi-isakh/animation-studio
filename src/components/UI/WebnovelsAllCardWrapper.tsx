@@ -60,6 +60,7 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
                                         <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-1 text-white h-[50px] z-50 justify-between items-center">
                                             <h3 className="dark:text-white text-black font-medium text-sm text-center">
                                                 <OtherTranslateComponent
+                                                    element={item}
                                                     content={item.title}
                                                     elementId={item.id.toString()}
                                                     elementType="webnovel"

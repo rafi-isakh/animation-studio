@@ -9,31 +9,15 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
-    DialogTrigger,
-    DialogClose
 } from "@/components/shadcnUI/Dialog";
 import { Button } from "@/components/shadcnUI/Button";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
-import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { useReader } from '@/contexts/ReaderContext';
-import { useTheme } from '@/contexts/providers'
 import {
     ChevronLeft,
     ChevronRight,
-    Sparkles,
-    X,
-    BookOpen,
 } from 'lucide-react';
-import { Slider } from '@/components/shadcnUI/Slider';
-import { Switch } from '@/components/shadcnUI/Switch';
-import { Label } from '@/components/shadcnUI/Label';
-import BlobButton from '@/components/UI/BlobButton';
-import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcnUI/Tooltip';
-import { truncateText } from '@/utils/truncateText';
-import ToonyzPostViewer from './UI/ToonyzPostViewer';
 
 const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
     { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {

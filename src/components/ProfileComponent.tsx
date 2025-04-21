@@ -326,6 +326,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 <Button color='gray' onClick={() => router.push(`/view_webnovels/${getRecentNovel().id}`)} variant='outline' className='border border-gray-300 rounded-sm'>
                                     <div className='flex flex-row gap-1 justify-center items-center'>
                                         <OtherTranslateComponent
+                                            element={getRecentNovel()}
                                             content={getRecentNovel().title}
                                             elementId={getRecentNovel().id.toString()}
                                             elementType='webnovel'
@@ -349,6 +350,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 {user.bio ? (
                                     <>
                                         <OtherTranslateComponent
+                                            element={user}
                                             content={user.bio}
                                             elementId={user.id.toString()}
                                             elementType='user'

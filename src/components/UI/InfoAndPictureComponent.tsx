@@ -312,6 +312,7 @@ export default function InfoAndPictureComponent({
                         {/* Content Info */}
                         <div className="flex flex-col items-center py-10">
                             <OtherTranslateComponent
+                                element={content}
                                 content={content.title}
                                 elementId={content.id.toString()}
                                 elementType="webnovel"
@@ -377,6 +378,7 @@ export default function InfoAndPictureComponent({
                             <div className="mt-2">
                                 {/* Description */}
                                 <OtherTranslateComponent
+                                    element={content}
                                     content={content.description}
                                     elementId={content.id.toString()}
                                     elementType="webnovel"

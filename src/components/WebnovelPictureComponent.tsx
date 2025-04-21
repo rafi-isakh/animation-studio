@@ -37,6 +37,7 @@ const WebnovelPictureComponent = React.memo(
                             )?.text
                             ||
                             <OtherTranslateComponent
+                                element={webnovel}
                                 content={webnovel.title}
                                 elementId={webnovel.id.toString()}
                                 elementType="webnovel"

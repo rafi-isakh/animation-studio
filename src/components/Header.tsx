@@ -383,7 +383,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {/* Language globe icon menu button - Desktop */}
 
                                 <li className="relative hidden md:inline-flex">
-                                    {/* <Link href="/" className='inline-flex justify-center items-center gap-2 text-gray-500 dark:text-white'> */}
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
@@ -392,8 +391,6 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             <HelpGuidComponent />
                                         </PopoverContent>
                                     </Popover>
-                                        {/* {phrase(dictionary, "help", language)} */}
-                                    {/* </Link> */}
                                 </li>
                                 {!isLoggedIn ? (
                                     <li className="relative hidden md:inline-flex">
@@ -403,7 +400,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                     </li>
                                 ) : (
                                     <li className="relative hidden md:inline-flex">
-                                        <UserProfileButton className='text-gray-500 dark:text-white' />
+                                        <UserProfileButton mode='header' className='text-gray-500 dark:text-white' />
                                     </li>
                                 )}
                                 <li className="relative hidden md:inline-flex">

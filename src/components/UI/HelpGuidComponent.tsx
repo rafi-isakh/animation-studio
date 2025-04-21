@@ -46,8 +46,9 @@ export default function HelpGuidComponent() {
             title: "투니즈 플랫폼 이용 가이드",
             title_en: "Toonyz Platform Guide",
             thumbnail: "/carousel/platformGuide/youtube_guide1.webp",
+            thumbnail_en: "/carousel/platformGuide/youtube_guide1_en.webp",
             url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing",
-            url_en: ""
+            url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
         },
 
     ]
@@ -59,22 +60,14 @@ export default function HelpGuidComponent() {
             title: "🎥 이미지 생성 강의/매뉴얼",
             title_en: "🎥 Image Generation Tutorial",
             url: "https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view?usp=sharing",
-            url_en: "https://drive.google.com/file/d/1Ce2JA6MmJxZ5KFJPCwSYW68wj_FaPCBH/view?usp=sharing"
+            url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
         },
         {
             id: 2,
-            title: "📖 투니즈 포스트 튜토리얼",
-            title_en: "📖 Toonyz Post Tutorial",
-            url: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing",
-            url_en: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing"
-        },
-        {
-            id: 3,
             title: "🍀 투니즈 이용 가이드",
             title_en: "🍀 Toonyz Platform Guide",
-            url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing",
-            url_en: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing"
-            //
+            url: "/faq",
+            url_en: "/faq"
         },
         {
             id: 4,
@@ -130,8 +123,8 @@ export default function HelpGuidComponent() {
                                 <CarouselItem key={index}>
                                     <Card className="w-full h-full border-none shadow-none">
                                         <CardContent className="flex aspect-[16/9] items-center justify-center border-none shadow-none p-0">
-                                            <Link href={item.url} target="_blank" className="relative block w-full h-full group overflow-hidden">
-                                                <Image src={item.thumbnail} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                                            <Link href={language === "ko" ? item.url : item.url_en} target="_blank" className="relative block w-full h-full group overflow-hidden">
+                                                <Image src={language === "ko" ? item.thumbnail : item.thumbnail_en} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
                                                 
                                                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                     <CirclePlay size={48} className="text-white" />

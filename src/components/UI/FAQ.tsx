@@ -115,14 +115,25 @@ export default function FAQ() {
     const { dictionary, language } = useLanguage()
 
     return (
-        <div className="relative w-full bg-white dark:bg-black p-4 md:p-8 flex items-center justify-center">
+        <div className="relative w-full bg-white dark:bg-black p-4 md:p-4 flex flex-col items-center justify-center">
+
             <div className="w-full max-w-6xl  overflow-hidden">
                 {/* rounded-[32px] */}
                 <div className="grid lg:grid-cols-2">
                     {/* FAQ Section */}
-                    <div className="bg-gray-100 dark:bg-[#211F21] p-8 lg:p-16">
+                    <div className="bg-gray-100 dark:bg-[#211F21] p-4 lg:p-16">
+
                         {/* bg-gradient-to-r from-[#8B6B6B] to-[#A9A889] */}
-                        <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white mb-12">FAQS</h1>
+                        <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white md:mb-12 mb-4">FAQS</h1>
+
+                        <div className="md:hidden inline-flex pb-4 mx-auto">
+                            <iframe
+                                src="https://www.youtube.com/embed/OyN8QHqYONc"
+                                allowFullScreen
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                className="w-[290px] aspect-video" />
+                        </div>
                         <div className="space-y-4">
                             <p className="text-black dark:text-white text-sm mb-8">
                                 {language === "ko" ? "문의하실 내용이 있으시다면" : "Please contact us at"} {" "}
@@ -138,11 +149,13 @@ export default function FAQ() {
                                         {phrase(dictionary, "WhatIsToonyzPost", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        {language === "ko" ? <>투니즈 포스트는 투니즈 회원들이 자유롭게 쓸 수 있는 포스트 입니다.
+                                        {language === "ko" ? <div>투니즈 포스트는 투니즈 회원들이 자유롭게 쓸 수 있는 포스트 입니다.
                                             생성한 이미지와 비디오를 자유롭게 창작하고 공유할 수 있는 커뮤니티 공간입니다.
                                             투니즈 포스트를 이용하시기 전에 튜토리얼을 보시려면 {' '}
                                             <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">
-                                                여기</Link>를 클릭해주세요.</>
+                                                여기</Link>를 클릭해주세요.
+
+                                        </div>
                                             : <>Toonyz Post is a post that Toonyz members can freely write. It is a community space where you can freely create and share images and videos. If you want to see the tutorial before using Toonyz Post, please click <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">here</Link>.</>}
                                     </AccordionContent>
                                 </AccordionItem>
@@ -155,7 +168,7 @@ export default function FAQ() {
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>이미지 및 비디오 생성에는 별 15개가 소모됩니다.
                                             처음 투니즈에 가입하신 회원분들을 위해, 소량의 별을 무료로 제공해드리고 있어 이미지와 비디오 생성을 무료로 체험해보실 수 있습니다.
-                                            여러분이 만든 콘텐츠는 ‘투니즈 포스트’ 커뮤니티에 자유롭게 공유하실 수 있습니다.
+                                            여러분이 만든 콘텐츠는 '투니즈 포스트' 커뮤니티에 자유롭게 공유하실 수 있습니다.
                                             별이 부족할 경우, 스타샵에서 별을 충전해 사용하실 수 있습니다.</>
                                             : <>Image/video generation consumes 15 stars. We offer free stars to our first-time members, and you can freely create and share images and videos in the community space, Toonyz Post. If you run out of stars, you can charge them using the star charge. If you run out of stars, you can charge them using the star charge. If you run out of stars, you can charge them using the star charge.</>}
                                     </AccordionContent>
@@ -168,8 +181,8 @@ export default function FAQ() {
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>투니즈 포스트로 공유한 이미지는 여러분의 프로필 페이지에서 볼 수 있습니다.
-                                                            추후 업데이트로 생성한 모든 이미지를 보실 수 있습니다.</>
-                                                           : <>Shared images to Toonyz Post are available on your profile page. In the future, you will be able to see all the images you have generated.</>}
+                                            추후 업데이트로 생성한 모든 이미지를 보실 수 있습니다.</>
+                                            : <>Shared images to Toonyz Post are available on your profile page. In the future, you will be able to see all the images you have generated.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
@@ -179,8 +192,8 @@ export default function FAQ() {
                                         {phrase(dictionary, "IsThereAnyCopyrightIssues", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        {language === "ko" ? <>2차 저작물에 대한 저작권에 동의한 작품에 대하여 이미지와 비디오 생성이 가능하고 상업적 이용으로 하지 않는 경우에 한해 저작권 문제가 발생하지 않습니다. 하지만 상업적으로 무단 이용할 경우 추후 저작권 문제가 발생할 수 있고, 이 경우 투니즈 포스트 이용이 제한될 수 있습니다.</> 
-                                                           : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
+                                        {language === "ko" ? <>2차 저작물에 대한 저작권에 동의한 작품에 대하여 이미지와 비디오 생성이 가능하고 상업적 이용으로 하지 않는 경우에 한해 저작권 문제가 발생하지 않습니다. 하지만 상업적으로 무단 이용할 경우 추후 저작권 문제가 발생할 수 있고, 이 경우 투니즈 포스트 이용이 제한될 수 있습니다.</>
+                                            : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
@@ -191,8 +204,8 @@ export default function FAQ() {
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>투니즈 포스트에 이미지와 비디오 생성을 한 경우, 공유가 가능하고 <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">이곳</Link>에서 투니즈 포스트 방법을 확인할 수 있습니다.
-                                        자유연재에 투고 방법은 <Link href="https://www.toonyz.com/new_webnovel" target="_blank" className="underline">이곳</Link>에서 바로 글을 쓰고 투고할 수 있습니다. 완성된 작품이 있으시다고요? lisa@stelland.io로 문의 주시면 검토 후 투니즈에서 프리미엄 연재 및 투고 방법을 안내해드립니다.</>
-                                                           : <>If you have generated images and videos on Toonyz Post, you can share the post, and you can check the submission method <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">here</Link>.</>}
+                                            자유연재에 투고 방법은 <Link href="https://www.toonyz.com/new_webnovel" target="_blank" className="underline">이곳</Link>에서 바로 글을 쓰고 투고할 수 있습니다. 완성된 작품이 있으시다고요? lisa@stelland.io로 문의 주시면 검토 후 투니즈에서 프리미엄 연재 및 투고 방법을 안내해드립니다.</>
+                                            : <>If you have generated images and videos on Toonyz Post, you can share the post, and you can check the submission method <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">here</Link>.</>}
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>

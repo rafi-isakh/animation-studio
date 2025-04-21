@@ -21,7 +21,7 @@ const getTimeBasedGreeting = () => {
     return 'Good evening';
 };
 
-const UserProfileButton = ({ expanded, className }: { expanded?: boolean, className?: string }) => {
+const UserProfileButton = ({ expanded, className, mode }: { expanded?: boolean, className?: string, mode?: 'header' | 'sidebar' }) => {
     const { nickname, picture } = useUser();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
@@ -50,6 +50,7 @@ const UserProfileButton = ({ expanded, className }: { expanded?: boolean, classN
                     {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
                 </span>
             </Link>
+                
             <Popover
                 open={open}
                 anchorEl={anchorEl}
@@ -60,7 +61,7 @@ const UserProfileButton = ({ expanded, className }: { expanded?: boolean, classN
                 }}
                 transformOrigin={{
                     vertical: 'top',
-                    horizontal: 'left',
+                    horizontal: mode === 'sidebar' ? 'left' : 'right',
                 }}
                 sx={{
                     zIndex: 1400,
@@ -72,7 +73,9 @@ const UserProfileButton = ({ expanded, className }: { expanded?: boolean, classN
                     className: "mt-2 dark:bg-black dark:text-white",
                     sx: {
                         zIndex: 1400,
-                        marginLeft: '20px',
+                        marginLeft: mode === 'sidebar' ? '20px' : '35px',
+                        marginTop: mode === 'header' ? '30px' : '',
+                        
                     }
                 }}
             >

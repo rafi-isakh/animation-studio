@@ -13,10 +13,12 @@ import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
+    const data = await response.json();
+    console.log(data)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    return response.json();
+    return data;
 }
 
 async function getLibrary() {

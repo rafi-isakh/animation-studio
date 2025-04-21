@@ -372,7 +372,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </button>
                             </div>
                         </div>
-                        <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
+                        <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2 ">
                             <div className="relative md:hidden">
                                 {/* Search bar in mobile screen (md:hidden) */}
                                 <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
@@ -427,7 +427,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <User size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "profile", language)}
                                             </p>
                                         </button>
@@ -446,7 +446,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <Book size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "library", language)}
                                             </p>
                                         </button>
@@ -466,7 +466,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <Globe size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "language", language)}
                                             </p>
                                         </button>
@@ -482,7 +482,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                 ? 'opacity-100 translate-y-0 scale-100'
                                                 : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'}`}
                                     >
-                                        <ul className="py-2 text-sm text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
+                                        <ul className="py-2 text-xs text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
                                             {langPairList.map((langPair, index) => (
                                                 <li
                                                     id={`li-${langPair.code}`}
@@ -514,7 +514,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 {theme === 'dark' ? <Sun size={20} className='dark:text-white text-gray-500' /> : <MoonStar size={20} className='dark:text-white text-gray-500' />}
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "mode", language)}
                                             </p>
                                         </button>
@@ -522,8 +522,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </li>
                                 <li className='relative md:hidden'>
                                     <div>
-                                        <button
-                                            onClick={() => {}}
+                                        <Link
+                                            href="/faq"
                                             className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
                                                        flex flex-col items-center justify-center gap-0
                                                        text-gray-500
@@ -533,13 +533,12 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <CircleHelp size={20} className='dark:text-white text-gray-500' /> 
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "help", language)}
                                             </p>
-                                        </button>
+                                        </Link>
                                     </div>
                                 </li>
-
                             </ul>
                         </div>
                     </div>

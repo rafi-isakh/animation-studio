@@ -68,8 +68,8 @@ export default function HelpGuidComponent() {
         },
         {
             id: 2,
-            title: "📖 투니즈 포스트 매뉴얼 & FAQ",
-            title_en: "📖 Toonyz Post Manual & FAQ",
+            title: "📖 투니즈 포스트 튜토리얼",
+            title_en: "📖 Toonyz Post Tutorial",
             url: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing",
             url_en: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing"
         },
@@ -83,15 +83,15 @@ export default function HelpGuidComponent() {
         },
         {
             id: 4,
-            title: "💬 고객 지원",
-            title_en: "💬 Customer Support",
-            url: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing",
-            url_en: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing"
+            title: "💬 고객 지원 & FAQ",
+            title_en: "💬 Customer Support & FAQ",
+            url: "/faq",
+            url_en: "/faq"
         }
     ]
 
     return (
-        <div className="relative w-full overflow-hidden rounded-lg border-2 border-pink-300 bg-white shadow-lg">
+        <div className="relative w-full overflow-hidden rounded-lg border-2 border-[#DE2777] bg-white shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between bg-[#DE2777] p-4 text-white">
                 <div className="flex items-center gap-2">
@@ -159,14 +159,16 @@ export default function HelpGuidComponent() {
             </div>
             {/* Notification */}
             <div className="relative bg-white p-6">
-                <h2 className="py-1 text-2xl font-bold">{phrase(dictionary, "ToonyzPlatformGuid", language)}</h2>
+                <h2 className="py-1 text-2xl font-bold text-gray-500 dark:text-black">{phrase(dictionary, "ToonyzPlatformGuid", language)}</h2>
                 <ul className="flex flex-col gap-2">
                     {GuideLinkList.map((item, index) => (
                         <li key={item.id} className="flex items-center gap-2">
-                            <ChevronRight size={20} className=" rounded-full bg-gray-200 p-1 text-gray-500 dark:text-white" />
-                                <Link href={language === "ko" ? item.url : item.url_en} target="_blank" className="text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">
+                            <ChevronRight size={20} className=" rounded-full bg-gray-200 p-1 text-gray-500 dark:text-black" />
+                               {item.id === 4 ? <Link href={item.url} className="text-gray-500 dark:text-black hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">
                                     {language === "ko" ? item.title : item.title_en}
-                                </Link>
+                                </Link> : <Link href={language === "ko" ? item.url : item.url_en} target="_blank" className="text-gray-500 dark:text-black hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">
+                                    {language === "ko" ? item.title : item.title_en}
+                                </Link>}
                         </li>
                     ))}
                 </ul>

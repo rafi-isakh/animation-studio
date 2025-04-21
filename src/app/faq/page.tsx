@@ -1,10 +1,13 @@
 import FAQ from "@/components/UI/FAQ";
-
+import Footer from "@/components/Footer";
 
 const FAQPage = () => {
     return (
-        <div>
+        <div className="mx-auto">
             <FAQ />
+            <div className="h-[10vh]"></div>
+            <Footer />
+
         </div>
     )
 }

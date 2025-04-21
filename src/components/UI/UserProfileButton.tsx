@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { phrase } from '@/utils/phrases'
-import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser } from 'lucide-react';
+import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser, CircleUserRound } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
@@ -21,13 +21,11 @@ const getTimeBasedGreeting = () => {
     return 'Good evening';
 };
 
-const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
-    const { email, nickname, picture } = useUser();
-    const { isLoggedIn } = useAuth();
+const UserProfileButton = ({ expanded, className }: { expanded?: boolean, className?: string }) => {
+    const { nickname, picture } = useUser();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
     const { dictionary, language } = useLanguage();
-    const router = useRouter();
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -41,12 +39,12 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
 
     return (
         <>
-            <Link href="#" onClick={handleClick as any} className="relative flex flex-row py-2 px-6 my-1 text-gray-400">
+            <Link href="#" onClick={handleClick as any} className={`relative flex flex-row ${className}`}>
                 {picture ?
-                    <div className='relative w-8 h-8 rounded-full overflow-hidden shadow-md'>
+                    <div className='relative w-6 h-6 rounded-full overflow-hidden shadow-md'>
                         <Image src={getImageUrl(picture)} alt={nickname} width={15} height={15} sizes='100vw' quality={80} className='rounded-full object-center object-cover w-full h-full' />
                     </div>
-                    : <User size={20} className='text-gray-400' />
+                    : <CircleUserRound size={20} className={`${className} self-center`} />
                 }
                 <span className={`overflow-hidden transition-all text-left ${expanded ? "w-40 ml-3" : "w-0"}`}>
                     {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
@@ -73,7 +71,8 @@ const UserProfileButton = ({ expanded }: { expanded: boolean }) => {
                 PaperProps={{
                     className: "mt-2 dark:bg-black dark:text-white",
                     sx: {
-                        zIndex: 1400
+                        zIndex: 1400,
+                        marginLeft: '20px',
                     }
                 }}
             >

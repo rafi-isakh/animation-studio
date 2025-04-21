@@ -12,7 +12,9 @@ import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
+        next: { tags: ['carousel'] } 
+    })
     const data = await response.json();
     console.log(data)
     if (!response.ok) {

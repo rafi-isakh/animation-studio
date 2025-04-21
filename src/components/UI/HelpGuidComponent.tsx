@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/shadcnUI/Dialog"
 import { ChevronRight, CirclePlay, X } from "lucide-react"
 import { Button } from "@/components/shadcnUI/Button"
 import { PopoverClose } from "@/components/shadcnUI/Popover"
@@ -19,12 +20,52 @@ import {
 import Autoplay from "embla-carousel-autoplay"
 
 import Image from "next/image"
+
+// Helper function to convert YouTube URLs to embed format
+const getYoutubeEmbedUrl = (url: string) => {
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  // Handle youtube.com/watch?v= format
+  const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+  const watchMatch = url.match(watchRegex);
+  if (watchMatch) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  }
+  
+  // Handle youtu.be/ format
+  const shortRegex = /youtu\.be\/([^?&]+)/;
+  const shortMatch = url.match(shortRegex);
+  if (shortMatch) {
+    return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  }
+  
+  // If not a YouTube URL or unknown format, return as is
+  return url;
+};
+
 export default function HelpGuidComponent() {
     const { dictionary, language } = useLanguage();
-
+    const [showVideoModal, setShowVideoModal] = useState(false);
+    const [showCarouselVideoModal, setShowCarouselVideoModal] = useState(false);
     const [api, setApi] = useState<CarouselApi>()
     const [count, setCount] = useState(0)
     const [current, setCurrent] = useState(0)
+    
+    const youtubeVideoList = [
+        {
+            id: 1,
+            title: "투니즈 플랫폼 이용 가이드",
+            title_en: "Toonyz Platform Guide",
+            thumbnail: "/carousel/platformGuide/youtube_guide1.webp",
+            thumbnail_en: "/carousel/platformGuide/youtube_guide1_en.webp",
+            url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing",
+            url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
+        },
+    ]
+    
+    const [selectedVideoItem, setSelectedVideoItem] = useState(youtubeVideoList[0]);
 
     useEffect(() => {
         if (!api) {
@@ -40,26 +81,12 @@ export default function HelpGuidComponent() {
     }, [api])
 
 
-    const youtubeVideoList = [
-        {
-            id: 1,
-            title: "투니즈 플랫폼 이용 가이드",
-            title_en: "Toonyz Platform Guide",
-            thumbnail: "/carousel/platformGuide/youtube_guide1.webp",
-            thumbnail_en: "/carousel/platformGuide/youtube_guide1_en.webp",
-            url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing",
-            url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
-        },
-
-    ]
-
-
     const GuideLinkList = [
         {
             id: 1,
             title: "🎥 이미지 생성 강의/매뉴얼",
             title_en: "🎥 Image Generation Tutorial",
-            url: "https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view?usp=sharing",
+            url: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A",
             url_en: "https://www.youtube.com/watch?v=V7Fgfc-Fl1A"
         },
         {
@@ -123,17 +150,27 @@ export default function HelpGuidComponent() {
                                 <CarouselItem key={index}>
                                     <Card className="w-full h-full border-none shadow-none">
                                         <CardContent className="flex aspect-[16/9] items-center justify-center border-none shadow-none p-0">
-                                            <Link href={language === "ko" ? item.url : item.url_en} target="_blank" className="relative block w-full h-full group overflow-hidden">
-                                                <Image src={language === "ko" ? item.thumbnail : item.thumbnail_en} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                                                
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                    <CirclePlay size={48} className="text-white" />
-                                                </div>
+                                            <Dialog open={showCarouselVideoModal} onOpenChange={setShowCarouselVideoModal}>
+                                                <DialogTrigger asChild>
+                                                    <div className="relative block w-full h-full group overflow-hidden cursor-pointer" onClick={() => setSelectedVideoItem(item)}>
+                                                        <Image src={language === "ko" ? item.thumbnail : item.thumbnail_en} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
 
-                                                <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-t from-transparent to-black/60  text-white text-sm pointer-events-none">
-                                                    {language === "ko" ? item.title : item.title_en}
-                                                </div>
-                                            </Link>
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                            <CirclePlay size={48} className="text-white" />
+                                                        </div>
+
+                                                        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-t from-transparent to-black/60 text-white text-sm pointer-events-none">
+                                                            {language === "ko" ? item.title : item.title_en}
+                                                        </div>
+                                                    </div>
+                                                </DialogTrigger>
+                                                <VideoModal 
+                                                    isOpen={showCarouselVideoModal} 
+                                                    onClose={() => setShowCarouselVideoModal(false)} 
+                                                    header={language === "ko" ? selectedVideoItem.title : selectedVideoItem.title_en} 
+                                                    video={language === "ko" ? selectedVideoItem.url : selectedVideoItem.url_en}
+                                                />
+                                            </Dialog>
                                         </CardContent>
                                     </Card>
                                 </CarouselItem>
@@ -152,9 +189,14 @@ export default function HelpGuidComponent() {
                     {GuideLinkList.map((item, index) => (
                         <li key={item.id} className="flex items-center gap-2">
                             <ChevronRight size={20} className=" rounded-full bg-gray-200 p-1 text-gray-500 dark:text-black" />
-                               {item.id === 4 ? <Link href={item.url} className="text-gray-500 dark:text-black hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">
-                                    {language === "ko" ? item.title : item.title_en}
-                                </Link> : <Link href={language === "ko" ? item.url : item.url_en} target="_blank" className="text-gray-500 dark:text-black hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">
+                            {item.id === 1 ?
+                                <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
+                                    <DialogTrigger asChild>
+                                        <span className="text-gray-500 dark:text-black hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">{language === "ko" ? item.title : item.title_en}</span>
+                                    </DialogTrigger>
+                                    <VideoModal isOpen={showVideoModal} onClose={() => setShowVideoModal(false)} video={language === "ko" ? item.url : item.url_en} header={language === "ko" ? item.title : item.title_en} />
+                                </Dialog>
+                                : <Link href={language === "ko" ? item.url : item.url_en} className="text-gray-500 dark:text-black hover:text-[#DB2777] dark:hover:text-[#DB2777] cursor-pointer">
                                     {language === "ko" ? item.title : item.title_en}
                                 </Link>}
                         </li>
@@ -162,5 +204,29 @@ export default function HelpGuidComponent() {
                 </ul>
             </div>
         </div>
+    )
+}
+
+
+const VideoModal = ({ isOpen, onClose, header, video }: { isOpen: boolean, onClose: () => void, header: string, video: string }) => {
+    const embedUrl = getYoutubeEmbedUrl(video);
+    
+    return (
+        <DialogContent showCloseButton={true} className="max-w-[600px] bg-white dark:bg-black">
+            <DialogHeader>
+                <DialogTitle>{header}</DialogTitle>
+            </DialogHeader>
+            <DialogDescription className="w-full mx-auto">
+                <iframe
+                    width="500"
+                    height="315"
+                    src={embedUrl}
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                ></iframe>
+            </DialogDescription>
+        </DialogContent>
     )
 }

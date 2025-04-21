@@ -132,6 +132,8 @@ export default function FAQ() {
                                 allowFullScreen
                                 title="YouTube video player"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                loading="lazy"
+                                referrerPolicy="strict-origin-when-cross-origin"
                                 className="w-[290px] aspect-video" />
                         </div>
                         <div className="space-y-4">

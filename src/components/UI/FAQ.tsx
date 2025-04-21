@@ -8,8 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Link from "next/link"
 
-
-export default function FAQ() {
+export const ContactForm = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [message, setMessage] = useState("")
@@ -56,6 +55,58 @@ export default function FAQ() {
             });
     }
 
+
+
+
+    return (
+        <div className="bg-[#FECACA] p-8 lg:p-16">
+            <div className="max-w-md mx-auto">
+                <h2 className="text-3xl text-black mb-2 uppercase">
+                    {/* DIDN'T FIND YOUR ANSWER? */}
+                    {phrase(dictionary, "MayIHelpYou", language)}
+                </h2>
+                <p className="text-black/80 mb-8">
+                    {phrase(dictionary, "emailUs", language)}
+                </p>
+
+                <form className="space-y-6">
+                    <Input
+                        placeholder="Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                    <Input
+                        placeholder="Email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-white/20 border-0 text-white placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                    <Textarea
+                        placeholder="Message"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="bg-white/20 border-0 text-white placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                    <Button
+                        onClick={(e) => handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)}
+                        className="bg-white text-black hover:bg-white/90 rounded-full px-8 uppercase">
+                        {/* SEND MESSAGE */}
+                        {phrase(dictionary, "sendMessage", language)}
+                    </Button>
+                </form>
+            </div>
+        </div>
+    )
+}
+
+
+
+
+export default function FAQ() {
+    const { dictionary, language } = useLanguage()
+
     return (
         <div className="relative w-full bg-white dark:bg-black p-4 md:p-8 flex items-center justify-center">
             <div className="w-full max-w-6xl  overflow-hidden">
@@ -67,45 +118,58 @@ export default function FAQ() {
                         <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white mb-12">FAQS</h1>
                         <div className="space-y-4">
                             <p className="text-black dark:text-white text-sm mb-8">
-                                Please contact us at{" "}
+                                {language === "ko" ? "문의하실 내용이 있으시다면" : "Please contact us at"} {" "}
                                 <Link href="mailto:hello@stelland.io" className="underline">
                                     hello@stelland.io
                                 </Link>{" "}
-                                for more information.
+                                {language === "ko" ? "에 문의해주세요." : "for more information."}
                             </p>
                             <Accordion type="single" collapsible className="space-y-4">
                                 <AccordionItem value="item-1" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
-                                        What materials are used in your sofas?
+                                        {/* What's the Toonyz Post? */}
+                                        {phrase(dictionary, "WhatIsToonyzPost", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        Our sofas are crafted using premium materials including high-grade hardwood frames, high-resilience
-                                        foam cushioning, and a variety of upholstery options.
+                                        {language === "ko" ? <>투니즈 포스트는 투니즈 회원들이 자유롭게 쓸 수 있는 포스트 입니다.
+                                            생성한 이미지와 비디오를 자유롭게 창작하고 공유할 수 있는 커뮤니티 공간입니다.
+                                            투니즈 포스트를 이용하시기 전에 튜토리얼을 보시려면 {' '}
+                                            <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">
+                                                여기</Link>를 클릭해주세요.</>
+                                            : <>Toonyz Post is a post that Toonyz members can freely write. It is a community space where you can freely create and share images and videos. If you want to see the tutorial before using Toonyz Post, please click <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="underline">here</Link>.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
                                 <AccordionItem value="item-2" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
-                                        How do I care for and maintain my sofa?
+                                        {/* 이미지/비디오 생성은 무료인가요? */}
+                                        {phrase(dictionary, "HowDoIGenerateImagesOrVideos", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        Regular maintenance includes vacuuming, spot cleaning spills immediately, and rotating cushions
-                                        periodically.
+                                        {language === "ko" ? <>이미지 및 비디오 생성에는 별 15개가 소모됩니다.
+                                            처음 투니즈에 가입하신 회원분들을 위해, 소량의 별을 무료로 제공해드리고 있어 이미지와 비디오 생성을 무료로 체험해보실 수 있습니다.
+                                            여러분이 만든 콘텐츠는 ‘투니즈 포스트’ 커뮤니티에 자유롭게 공유하실 수 있습니다.
+                                            별이 부족할 경우, 스타샵에서 별을 충전해 사용하실 수 있습니다.</>
+                                            : <>Image/video generation consumes 15 stars. We offer free stars to our first-time members, and you can freely create and share images and videos in the community space, Toonyz Post. If you run out of stars, you can charge them using the star charge. If you run out of stars, you can charge them using the star charge. If you run out of stars, you can charge them using the star charge.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
                                 <AccordionItem value="item-3" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
-                                        Can I customize the fabric or finish of my sofa?
+                                        {/* 내가 만든 이미지는 어디서 볼 수 있나요? */}
+                                        {phrase(dictionary, "WhereCanISeeMyGeneratedImages", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
-                                        Yes, we offer a wide range of customization options for fabrics and finishes.
+                                        {language === "ko" ? <>투니즈 포스트로 공유한 이미지는 여러분의 프로필 페이지에서 볼 수 있습니다.
+                                            추후 업데이트로 생성한 모든 이미지를 보실 수 있습니다.</>
+                                            : <>Shared images to Toonyz Post are available on your profile page. In the future, you will be able to see all the images you have generated.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
                                 <AccordionItem value="item-4" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
-                                        Are your sofas suitable for small spaces?
+                                        {/* 저작권 문제가 있나요? */}
+                                        {phrase(dictionary, "IsThereAnyCopyrightIssues", language)}
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         We offer various sizes, including apartment-sized pieces.
@@ -114,6 +178,7 @@ export default function FAQ() {
 
                                 <AccordionItem value="item-5" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
+                                        {/*  */}
                                         Do your sofas come with a warranty?
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
@@ -125,45 +190,7 @@ export default function FAQ() {
                     </div>
 
                     {/* Contact Form Section */}
-                    <div className="bg-[#FECACA] p-8 lg:p-16">
-                        <div className="max-w-md mx-auto">
-                            <h2 className="text-3xl text-black mb-2 uppercase">
-                                {/* DIDN'T FIND YOUR ANSWER? */}
-                                {phrase(dictionary, "MayIHelpYou", language)}
-                            </h2>
-                            <p className="text-black/80 mb-8">
-                                {phrase(dictionary, "emailUs", language)}
-                            </p>
-
-                            <form className="space-y-6">
-                                <Input
-                                    placeholder="Name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                />
-                                <Input
-                                    placeholder="Email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-white/20 border-0 text-white placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                />
-                                <Textarea
-                                    placeholder="Message"
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    className="bg-white/20 border-0 text-white placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
-                                />
-                                <Button
-                                    onClick={(e) => handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)}
-                                    className="bg-white text-black hover:bg-white/90 rounded-full px-8 uppercase">
-                                    {/* SEND MESSAGE */}
-                                    {phrase(dictionary, "sendMessage", language)}
-                                </Button>
-                            </form>
-                        </div>
-                    </div>
+                    <ContactForm />
                 </div>
             </div>
         </div>

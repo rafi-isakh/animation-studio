@@ -7,7 +7,6 @@ const FAQPage = () => {
             <FAQ />
             <div className="h-[10vh]"></div>
             <Footer />
-
         </div>
     )
 }

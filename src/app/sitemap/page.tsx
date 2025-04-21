@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/providers'
 import { Moon, Sun } from "lucide-react";
 import { Label } from "@/components/shadcnUI/Label";
 import { Switch } from "@/components/shadcnUI/Switch";
+import { ContactForm } from "@/components/UI/FAQ";
 
 export default function Home() {
   const { isLoggedIn, logout } = useAuth();
@@ -137,8 +138,8 @@ export default function Home() {
               <DialogHeader>
                 <DialogTitle>{phrase(dictionary, "inquiry", language)}</DialogTitle>
               </DialogHeader>
-              <DialogDescription>
-                <p>{phrase(dictionary, "inquiry_description", language)}</p>
+              <DialogDescription className="rounded-xl overflow-hidden">
+                <ContactForm />
               </DialogDescription>
               <DialogFooter>
                 <Button variant="outline" className="w-full" onClick={() => setInquiryDialogOpen(false)}>

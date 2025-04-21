@@ -43,18 +43,13 @@ export default function HelpGuidComponent() {
     const youtubeVideoList = [
         {
             id: 1,
-            title: "투니즈 플랫폼 이용 가이드 한국어 1",
-            title_en: "Toonyz Platform Guide (Korean)",
+            title: "투니즈 플랫폼 이용 가이드",
+            title_en: "Toonyz Platform Guide",
             thumbnail: "/carousel/platformGuide/youtube_guide1.webp",
-            url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing"
+            url: "https://drive.google.com/file/d/1wIKc4yz0ynXVZTFWCu7WiFPXlmrQaXg4/view?usp=sharing",
+            url_en: ""
         },
-        {
-            id: 2,
-            title: "투니즈 플랫폼 이용 가이드 영어",
-            title_en: "Toonyz Platform Guide (English)",
-            thumbnail: "/carousel/platformGuide/youtube_guide2.webp",
-            url: "https://drive.google.com/file/d/12_QF3N_dKFpBrmVr71ADWlgfNlU6PPiL/view?usp=sharing"
-        },
+
     ]
 
 
@@ -142,7 +137,7 @@ export default function HelpGuidComponent() {
                                                     <CirclePlay size={48} className="text-white" />
                                                 </div>
 
-                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent text-white text-sm pointer-events-none">
+                                                <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-t from-transparent to-black/60  text-white text-sm pointer-events-none">
                                                     {language === "ko" ? item.title : item.title_en}
                                                 </div>
                                             </Link>

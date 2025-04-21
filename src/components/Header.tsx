@@ -509,6 +509,25 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </button>
                                     </div>
                                 </li>
+                                <li className='relative md:hidden'>
+                                    <div>
+                                        <button
+                                            onClick={() => {}}
+                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
+                                                       flex flex-col items-center justify-center gap-0
+                                                       text-gray-500
+                                            ">
+                                            <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
+                                                          hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
+                                                           dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
+                                                <CircleHelp size={20} className='dark:text-white text-gray-500' /> 
+                                            </div>
+                                            <p className='md:hidden text-sm text-center'>
+                                                {phrase(dictionary, "help", language)}
+                                            </p>
+                                        </button>
+                                    </div>
+                                </li>
 
                             </ul>
                         </div>

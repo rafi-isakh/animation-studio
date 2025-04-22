@@ -113,7 +113,7 @@ export default function BookShelf() {
             <ScrollBar orientation="horizontal" />
             {/* Render ONE Dialog conditionally, outside the map */}
             <Dialog open={!!selectedBook} onOpenChange={(isOpen) => !isOpen && setSelectedBook(null)}>
-               <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} />
+               <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} language={language} />
             </Dialog>
         </ScrollArea >
     )

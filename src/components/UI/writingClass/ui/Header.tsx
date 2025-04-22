@@ -1,8 +1,12 @@
+import { useState } from "react";
 import Link from "next/link"
 import Image from "next/image"
 import { Globe, Menu } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog"
+import { Button } from "@/components/shadcnUI/Button"
 import { Language } from "@/components/Types"
+import SignInComponent from "@/components/SignInComponent"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,21 +22,29 @@ import {
     DropdownMenuTrigger,
 } from "@/components/shadcnUI/DropdownMenu"
 import { useAuth } from "@/contexts/AuthContext";
+import { usePathname } from "next/navigation";
 
 const Header = () => {
     const { language, setLanguage } = useLanguage();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, logout } = useAuth();
+    const [openLoginDialog, setOpenLoginDialog] = useState(false);
+    const pathname = usePathname();
     const handleLanguageChange = (newLanguage: string) => {
         setLanguage(newLanguage as Language);
         console.log("Language changed to", newLanguage);
     }
+
+    const handleSignOut = async (event: React.FormEvent) => {
+        event.preventDefault();
+        logout(true, '/writing-class');
+    };
 
     return (
         <header className="bg-white text-black">
             <div className="container mx-auto px-4">
                 <div className="flex items-center h-16">
                     <Link href="/" className="mr-6">
-                        <span className="text-2xl font-bold text-amber-400">
+                        <span className="text-2xl font-bold">
                             <Image src="/toonyz_logo_pink.svg" alt="Toonyz Logo" width={100} height={100} />
                         </span>
                     </Link>
@@ -63,10 +75,25 @@ const Header = () => {
                             <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
                         </Link>
 
-                        {!isLoggedIn && <Link href="/signin" className="flex items-center">
-                            <span className="font-bold">{language === "en" ? "LOGIN" : "로그인"}</span>
-                        </Link>}
-                        {isLoggedIn && <Link href="/signin" className="flex items-center">
+                        {!isLoggedIn && <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
+                            <DialogTrigger asChild>
+                                {/* <Link href="#" className="flex items-center"> */}
+                                <span className="font-bold">{language === "en" ? "LOGIN" : "로그인"}</span>
+                                {/* </Link> */}
+                            </DialogTrigger>
+                            <DialogContent showCloseButton={true}>
+                                <DialogHeader>
+                                    <DialogTitle>Login</DialogTitle>
+                                    <DialogDescription> Welcome to Toonyz </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <div className="mx-auto">
+                                        <SignInComponent />
+                                    </div>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>}
+                        {isLoggedIn && <Link href="#" onClick={handleSignOut} className="flex items-center">
                             <span className="font-bold">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
                         </Link>}
                     </div>
@@ -75,30 +102,32 @@ const Header = () => {
                 <div className="flex items-center h-10 text-sm">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 cursor-pointer">
                                 <Menu className="h-5 w-5" />
                                 <span>All</span>
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-56" side="bottom" align="start">
-                                <DropdownMenuItem>
-                                    <Link href="/docs" className="flex flex-col items-start w-full">
-                                        <span className="text-lg md:text-xl font-medium">1. 작법서 구매</span>
-                                        <span className="text-sm md:text-base">subtitle</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Link href="/docs" className="flex flex-col items-start w-full">
-                                        <span className="text-lg md:text-xl font-medium">2. 온라인 강의 참여</span>
-                                        <span className="text-sm md:text-base">subtitle</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Link href="/docs" className="flex flex-col items-start w-full">
-                                        <span className="text-lg md:text-xl font-medium">3. 고객 지원</span>
-                                        <span className="text-sm md:text-base">subtitle</span>
-                                    </Link>
-                                </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <Link href="/docs" className="flex flex-col items-start w-full">
+                                    <span className="text-md md:text-lg font-medium">1. 작법서 구매</span>
+                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                                <Link href="/docs" className="flex flex-col items-start w-full">
+                                    <span className="text-md md:text-lg font-medium">2. 온라인 강의 참여</span>
+                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                                <Link href="/docs" className="flex flex-col items-start w-full">
+                                    <span className="text-md md:text-lg font-medium">3. 고객 지원</span>
+                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                </Link>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     {/* {[

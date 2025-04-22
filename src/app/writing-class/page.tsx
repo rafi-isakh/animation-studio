@@ -21,10 +21,11 @@ import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import Header from "@/components/UI/writingClass/ui/Header";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
 import { useUser } from "@/contexts/UserContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 export default function WritingClassPage() {
-
+  const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -50,9 +51,11 @@ export default function WritingClassPage() {
                                : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
           <RoundedButton className='w-[330px] md:mx-0 mx-auto'>
-            <Link href="/signin">
+            {isLoggedIn ? <Link href="#">
+              {language === "en" ? "Join Free Writing Class" : "지금 작법서 무료로 받기"}
+            </Link> : <Link href="/signin">
               {language === "en" ? "Join Free Writing Class" : "가입하고 무료로 작법서 받기"}
-            </Link>
+            </Link>}
           </RoundedButton>
         </div>
 
@@ -115,7 +118,7 @@ export default function WritingClassPage() {
               </span> <br />
               <span className="text-black z-10">
                 {language === "en" ? "TOONYZ Writing 101 Class OPEN"
-                  : "투니즈 글쓰기 101 클래스 OPEN"}
+                                    : "투니즈 글쓰기 101 작법서 출간 OPEN"}
               </span>
             </h3>
             <Image
@@ -164,7 +167,7 @@ export default function WritingClassPage() {
           <div className="text-center mb-12">
             <p className="text-lg mb-4 whitespace-pre-line break-keep">
               {language === "en" ? "Join the Toonyz Writing 101 class now to get the full guide to creating a high-quality webnovel."
-                : "완성도 높은 작품을 위한 전 과정 안내를 해 드리는 투니즈 글쓰기 101 클래스에 지금 바로 가입하세요!"}
+                                 : "완성도 높은 작품을 위한 전 과정 안내를 해 드리는 투니즈 글쓰기 101 지금 바로 가입하고 무료로 다운 받으세요!"}
             </p>
           </div>
         </div>
@@ -222,7 +225,7 @@ export default function WritingClassPage() {
       <section className="py-16 bg-zinc-900 text-white">
         <div className="container mx-auto px-4 text-center">
           <Image
-            src="/images/certification.svg"
+            src="/writing-class/images/certification.svg"
             alt="webnovel class certification image"
             width={100}
             height={100}
@@ -298,27 +301,27 @@ export default function WritingClassPage() {
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>
                 {language === "en" ? "K-Webnovel Structure Template Pack (PDF)"
-                  : "K-웹소설 구조 템플릿 풀 패키지 (PDF)"}
+                                   : "K-웹소설 구조 템플릿 풀 패키지 (PDF)"}
               </span>
             </li>
             <li className="flex items-start">
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>
                 {language === "en" ? "Exclusive Story Hook Guide"
-                  : "독자를 끌어당기는 웹소설 훅 비법 가이드"}
+                                   : "독자를 끌어당기는 웹소설 훅 비법 가이드"}
               </span>
             </li>
             <li className="flex items-start">
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>
                 {language === "en" ? "Access to private writing Discord group"
-                  : "웹소설 작가 프라이빗 모임 온/오프라인 기회 제공"}
+                                   : "웹소설 작가 프라이빗 모임 온/오프라인 기회 제공"}
               </span>
             </li>
             <li className="flex items-start">
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>{language === "en" ? "Feedback from professional editors"
-                : "현업 작가들에게 1:1 피드백 기회 제공"}</span>
+                                       : "현업 작가들에게 1:1 피드백 기회 제공"}</span>
             </li>
           </ul>
 
@@ -359,7 +362,7 @@ export default function WritingClassPage() {
         </RoundedButton>
         <p className="text-center text-sm text-[#DE2B74] mt-3">
           {language === "en" ? "Only 20 writers will be accepted."
-            : "최대 20명의 예비 작가만 수용합니다."}
+                             : "최대 20명의 예비 작가만 수용합니다."}
           <span className="text-black">*</span>
         </p>
       </section>
@@ -385,8 +388,8 @@ export default function WritingClassPage() {
                 </div>
               </div>
               <p className="text-gray-700">
-                "Before Toonyz, I struggled to get readers past my first chapter. Now my retention rate is over 85% and
-                I've built a loyal following!"
+                Before Toonyz, I struggled to get readers past my first chapter. Now my retention rate is over 85% and
+                I&apos;ve built a loyal following!
               </p>
             </div>
 
@@ -400,8 +403,8 @@ export default function WritingClassPage() {
                 </div>
               </div>
               <p className="text-gray-700">
-                "The structured approach to episodic storytelling completely changed how I write. My latest series has
-                over 500,000 reads on Wattpad!"
+                The structured approach to episodic storytelling completely changed how I write. My latest series has
+                over 500,000 reads on Wattpad!
               </p>
             </div>
 
@@ -415,8 +418,8 @@ export default function WritingClassPage() {
                 </div>
               </div>
               <p className="text-gray-700">
-                "The feedback from professional editors was invaluable. I've now signed a contract with a publisher who
-                discovered my work on Webnovel."
+                The feedback from professional editors was invaluable. I&apos;ve now signed a contract with a publisher who
+                discovered my work on Webnovel.
               </p>
             </div>
           </div>
@@ -427,7 +430,7 @@ export default function WritingClassPage() {
       <section className="py-12 bg-[#DE2B74]">
         <div className="relative container mx-auto px-4 text-center">
           <Image 
-          src="/images/logo_sticker.svg" 
+          src="/writing-class/images/logo_sticker.svg" 
           alt="toonyz logo" 
           width={100} 
           height={100} 
@@ -438,10 +441,10 @@ export default function WritingClassPage() {
           </h2>
           <CountdownTimer targetDate="2025-05-06" className="text-white" />
           <p className="text-xl mb-8 text-white max-w-2xl mx-auto whitespace-pre-line break-keep">
-            {language === "en" ? <>Our next batch starts soon. <br /></>
-              : <>다음 세션이 곧 시작됩니다. <br /></>}
-            {language === "en" ? "Secure your place today and start your journey to becoming a successful web novel writer."
-              : "지금 바로 예약하고 성공적인 웹소설 작가로 시작하세요."}
+            {language === "en" ? <>Those books are free now, but they will be converted to paid content soon.<br /></>
+              : <>이 작법서는 현재 무료이지만 유료 컨텐츠로 전환될 예정입니다 <br /></>}
+            {language === "en" ? "Download them today and start your journey to becoming a successful web novel writer."
+                               : "지금 바로 다운받고 성공적인 웹소설 작가로 시작하세요."}
           </p>
 
         </div>
@@ -459,11 +462,6 @@ export default function WritingClassPage() {
             <div className="flex flex-col">
               <h3 className="text-lg font-bold mb-4">{language === "en" ? "Site map" : "사이트 맵"}</h3>
               <ul className="space-y-2">
-                <li>
-                  <Link href="#" className="text-sm text-gray-400 hover:text-white">
-                    {language === "en" ? "Web Novel Bootcamp" : "웹소설 부트캠프"}
-                  </Link>
-                </li>
                 <li>
                   <Link href="https://stelland.io" target="_blank" className="text-sm text-gray-400 hover:text-white">
                     {language === "en" ? "Company" : "회사 소개"}

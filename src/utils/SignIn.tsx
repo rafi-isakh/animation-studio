@@ -7,6 +7,7 @@ import Image from "next/image"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "./phrases";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePathname } from "next/navigation";
 
 export function getSessionUserEmail(session: Session) {
     if (session && session.user) {
@@ -22,6 +23,8 @@ export function getSessionUserEmail(session: Session) {
 export function GoogleSignIn() {
     const { language, dictionary } = useLanguage();
     const { login } = useAuth();
+    const pathname = usePathname();
+    
     return (
         <div className="relative inline-flex group w-[300px] h-[50px]">
             <div className="absolute transition-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">

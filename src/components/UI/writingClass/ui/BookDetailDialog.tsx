@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogHeader, DialogDescription } from "@/components/shadcnUI/Dialog"
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
-import { useLanguage } from "@/contexts/LanguageContext";
+// import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/shadcnUI/Button";
 import Image from "next/image";
 import { CourseBook } from "@/components/Types";
@@ -8,13 +8,14 @@ import { CourseBook } from "@/components/Types";
 interface BookDetailDialogProps {
     selectedBook: CourseBook | null;
     setSelectedBook: (book: CourseBook | null) => void;
+    language: string;
 }
 
-export default function BookDetailDialog({ selectedBook, setSelectedBook }: BookDetailDialogProps) {
+export default function BookDetailDialog({ selectedBook, setSelectedBook, language }: BookDetailDialogProps) {
     if (!selectedBook) return null;
-    const { language } = useLanguage();
+
     return (
-        <DialogContent className="bg-white md:h-[95vh] h-full" showCloseButton={true}>
+        <DialogContent className="bg-white md:h-[95vh] lg:h-[60vh] h-full" showCloseButton={true}>
             <DialogHeader>
                 <DialogTitle>{language === "en" ? "View details" : "살펴 보기"}</DialogTitle>
             </DialogHeader>
@@ -43,7 +44,7 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook }: Book
                     {language === "en" ? "Close" : "닫기"}
                 </Button>
                 <Button variant="outline" className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
-                    {language === "en" ? "Buy Now" : "구매하기"}
+                    {language === "en" ? "Download" : "다운받기"}
                 </Button>
             </DialogFooter>
         </DialogContent>

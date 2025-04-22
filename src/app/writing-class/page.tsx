@@ -20,7 +20,11 @@ import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedBut
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import Header from "@/components/UI/writingClass/ui/Header";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
-export default function ToonyzBootcampPage() {
+import { useUser } from "@/contexts/UserContext";
+
+
+export default function WritingClassPage() {
+
   const { language, setLanguage } = useLanguage();
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -36,18 +40,18 @@ export default function ToonyzBootcampPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0 order-2 md:order-1">
-          <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">40% OFF</p>
+          <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">99% OFF</p>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {language === "en" ? <><span className="">Webnovel Writing Debut</span>, <br /> No longer a dream</>
               : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
           </h1>
           <p className="text-gray-600 mb-8 max-w-lg">
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
-              : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
+                               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
           <RoundedButton className='w-[330px] md:mx-0 mx-auto'>
-            <Link href="#">
-              {language === "en" ? "Join Free Writing Class" : "무료 글쓰기 클래스 수강하기"}
+            <Link href="/signin">
+              {language === "en" ? "Join Free Writing Class" : "가입하고 무료로 작법서 받기"}
             </Link>
           </RoundedButton>
         </div>
@@ -59,27 +63,27 @@ export default function ToonyzBootcampPage() {
                 title={language === "en" ? "1. Webnovel Writing" : "1. 웹소설의 세계로"}
                 author={language === "en" ? "Become a Digital Storyteller" : "디지털 시대의 이야기꾼 되기"}
                 color="bg-blue-100"
-                imageUrl="/images/bookcover/book1.svg"
+                imageUrl="/writing-class/images/bookcover/book1.svg"
               />
               <BookCard
                 title={language === "en" ? "4. Create Vivid Characters" : "4. 생생한 캐릭터 창조하기"}
                 author={language === "en" ? "Create Characters" : "독자의 마음을 훔치는 인물 만들기"}
                 color="bg-green-100"
-                imageUrl="/images/bookcover/book4.svg"
+                imageUrl="/writing-class/images/bookcover/book4.svg"
               />
             </div>
             <div className="col-span-1 space-y-4 mt-8">
               <BookCard
                 title={language === "en" ? "2. Create Your Own Story" : "2. 나만의 이야기 씨앗 심기"}
                 author={language === "en" ? "Discover and Develop Creative Ideas" : "창의적 아이디어 발굴과 개발"}
-                color="bg-yellow-300"
-                imageUrl="/images/bookcover/book2.svg"
+                color="bg-yellow-200"
+                imageUrl="/writing-class/images/bookcover/book2.svg"
               />
               <BookCard
                 title={language === "en" ? "5. The Secret of First Sentence" : "5. 첫 문장에서 마지막 문장까지"}
                 author={language === "en" ? "Writing Techniques" : "강렬한 도입부 작성의 기술"}
                 color="bg-orange-200"
-                imageUrl="/images/bookcover/book5.svg"
+                imageUrl="/writing-class/images/bookcover/book5.svg"
               />
             </div>
             <div className="col-span-1 space-y-4 mt-16">
@@ -87,13 +91,13 @@ export default function ToonyzBootcampPage() {
                 title={language === "en" ? "3. Storytelling Techniques" : "3. 독자를 이끄는 스토리텔링 기술"}
                 author={language === "en" ? "Break the Clichés" : "클리셰를 깨부순 글쓰기 노하우"}
                 color="bg-purple-200"
-                imageUrl="/images/bookcover/book3.svg"
+                imageUrl="/writing-class/images/bookcover/book3.svg"
               />
               <BookCard
                 title={language === "en" ? "6. Editing and Revising" : "6. 완성도를 높이는 수정과 편집"}
                 author={language === "en" ? "Revising Effectively" : "효과적인 수정과 편집 방법"}
                 color="bg-pink-200"
-                imageUrl="/images/bookcover/book6.svg"
+                imageUrl="/writing-class/images/bookcover/book6.svg"
               />
             </div>
           </div>
@@ -115,7 +119,7 @@ export default function ToonyzBootcampPage() {
               </span>
             </h3>
             <Image
-              src="/images/circular_text.svg"
+              src="/writing-class/images/circular_text.svg"
               alt="Toonyz Logo"
               width={100}
               height={100}
@@ -206,7 +210,7 @@ export default function ToonyzBootcampPage() {
       <section className="py-16 bg-gray-100">
         <h2 className="text-3xl font-bold text-center">
           {language === "en" ? "4 Weeks, 7 e-books, 1 Completed Story That You Can Start"
-            : "4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다"}
+                              : "4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다"}
         </h2>
         <LearningSection />
       </section>
@@ -226,15 +230,15 @@ export default function ToonyzBootcampPage() {
           />
           <h2 className="text-xl md:text-4xl font-bold mb-6">
             {language === "en" ? "Webnovel Writing is now possible with Toonyz Writing Class"
-              : "웹소설 작가 데뷔는 투니즈 글쓰기 101로 가능합니다 "}
+                               : "웹소설 작가 데뷔는 투니즈 글쓰기 101로 가능합니다 "}
           </h2>
           <p className="md:text-xl text-sm mb-8 mx-auto">
             {language === "en" ? "One day 10 minutes, one month 200, a webnovel writer/e-book PDF side hustle, it's no longer a dream!"
-              : "하루 10분 일하고 월 200 꾸준히 버는 웹소설 작가/전자책 PDF 부업, 이제 꿈이 아닙니다!"}
+                               : "하루 10분 일하고 월 200 꾸준히 버는 웹소설 작가/전자책 PDF 부업, 이제 꿈이 아닙니다!"}
           </p>
           <p className="md:text-xl text-sm mx-auto">
             {language === "en" ? "Once you finish the Toonyz Writing Class,"
-              : "투니즈 글쓰기 101 클래스를 듣고나면,"}
+                               : "투니즈 글쓰기 101 참고서를 읽고나면,"}
           </p>
 
 

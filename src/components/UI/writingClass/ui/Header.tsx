@@ -4,14 +4,24 @@ import { Globe, Menu } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { Language } from "@/components/Types"
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/shadcnUI/Popover"
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuPortal,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuTrigger,
+} from "@/components/shadcnUI/DropdownMenu"
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
     const { language, setLanguage } = useLanguage();
-
+    const { isLoggedIn } = useAuth();
     const handleLanguageChange = (newLanguage: string) => {
         setLanguage(newLanguage as Language);
         console.log("Language changed to", newLanguage);
@@ -53,67 +63,52 @@ const Header = () => {
                             <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
                         </Link>
 
-                        <Link href="#" className="flex items-center">
+                        {!isLoggedIn && <Link href="/signin" className="flex items-center">
                             <span className="font-bold">{language === "en" ? "LOGIN" : "로그인"}</span>
-                        </Link>
+                        </Link>}
+                        {isLoggedIn && <Link href="/signin" className="flex items-center">
+                            <span className="font-bold">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
+                        </Link>}
                     </div>
                 </div>
-
                 {/* Secondary Navigation */}
                 <div className="flex items-center h-10 text-sm">
-                    <Popover>
-                        <PopoverTrigger>
-                            <Link href="#" className="flex items-center mr-4 cursor-pointer">
-                                <Menu className="h-5 w-5 mr-1" />
-                                All
-                            </Link>
-                        </PopoverTrigger>
-                        <PopoverContent 
-                            className="bg-white md:w-[460px] lg:w-[700px]"
-                            align="start"
-                            sideOffset={5}
-                        >
-                            <ul className="flex md:flex-row flex-col gap-3 p-4 ">
-                                <li className="w-full md:w-2/3">
-                                    <Link
-                                        className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gray-400 p-6 no-underline outline-none focus:shadow-md"
-                                        href="/"
-                                    >
-                                        <div className="mb-2 mt-4 text-lg md:text-xl font-medium">
-                                            Toonyz Writing 101
-                                        </div>
-                                        <p className="text-sm md:text-base leading-tight text-muted-foreground">
-                                            Beautifully designed components built with Radix UI and
-                                            Tailwind CSS.
-                                        </p>
-                                    </Link>
-
-                                </li>
-                                <div className="flex flex-col flex-1 w-full gap-4 items-start">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <div className="flex items-center gap-1">
+                                <Menu className="h-5 w-5" />
+                                <span>All</span>
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" side="bottom" align="start">
+                                <DropdownMenuItem>
                                     <Link href="/docs" className="flex flex-col items-start w-full">
                                         <span className="text-lg md:text-xl font-medium">1. 작법서 구매</span>
                                         <span className="text-sm md:text-base">subtitle</span>
                                     </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
                                     <Link href="/docs" className="flex flex-col items-start w-full">
                                         <span className="text-lg md:text-xl font-medium">2. 온라인 강의 참여</span>
                                         <span className="text-sm md:text-base">subtitle</span>
                                     </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
                                     <Link href="/docs" className="flex flex-col items-start w-full">
                                         <span className="text-lg md:text-xl font-medium">3. 고객 지원</span>
                                         <span className="text-sm md:text-base">subtitle</span>
                                     </Link>
-                                </div>
-                            </ul>
-                        </PopoverContent>
-                    </Popover>
-                    {[
+                                </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    {/* {[
                         "Webnovel Writing",
                         "Courses",
                     ].map((item) => (
                         <Link key={item} href="#" className="mr-4 hover:underline whitespace-nowrap">
                             {item}
                         </Link>
-                    ))}
+                    ))} */}
                 </div>
             </div >
         </header >

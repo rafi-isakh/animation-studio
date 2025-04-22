@@ -14,7 +14,7 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook }: Book
     if (!selectedBook) return null;
     const { language } = useLanguage();
     return (
-        <DialogContent className="bg-white md:h-[95vh] h-full">
+        <DialogContent className="bg-white md:h-[95vh] h-full" showCloseButton={true}>
             <DialogHeader>
                 <DialogTitle>{language === "en" ? "View details" : "살펴 보기"}</DialogTitle>
             </DialogHeader>
@@ -30,10 +30,7 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook }: Book
                     <p className="text-sm opacity-80">{language === "en" ? selectedBook.subtitle_en : selectedBook.subtitle}</p>
                     <DialogDescription>
                         <span className="text-sm opacity-80">
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus provident fuga officiis distinctio quam assumenda perferendis? Deleniti voluptatibus harum et in possimus qui vitae, eum consequatur ad minima non debitis!
-                           Lorem ipsum dolor sit, amet consectetur adipisicing elit. Reprehenderit facilis, expedita natus quia ullam exercitationem eius eligendi asperiores odit nemo placeat. Nulla debitis ipsa sapiente. Accusamus minus obcaecati animi officia.
-                           Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptates expedita veniam similique temporibus et quisquam ex, porro magnam vero amet natus eligendi dolor soluta iusto fuga voluptas rerum. Perspiciatis, iste?
-                           Lorem ipsum dolor sit amet consectetur, adipisicing elit. Consequatur praesentium magni suscipit odio fugit odit. Aliquid quod tempore possimus, pariatur eius dignissimos cumque porro quas vero accusantium nobis natus blanditiis.
+                          {language === "en" ? selectedBook.description_en : selectedBook.description}
                         </span>
                     </DialogDescription>
                 </div>

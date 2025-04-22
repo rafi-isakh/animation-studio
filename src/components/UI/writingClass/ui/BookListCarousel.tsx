@@ -16,7 +16,7 @@ export function BookListCarousel() {
       title_en: "Into the World of Web Novels",
       subtitle: "디지털 시대의 이야기꾼 되기",
       subtitle_en: "Become a storyteller in the digital age",
-      coverImage: "/images/bookcover/book1.svg",
+      coverImage: "/writing-class/images/bookcover/book1.svg",
       author: "",
       coverColor: "#f5f5f7"
     },
@@ -26,7 +26,7 @@ export function BookListCarousel() {
       title_en: "Plant Your Own Story Seeds",
       subtitle: "창의적 아이디어 발굴과 개발",
       subtitle_en: "Unleash your creativity and develop your ideas",
-      coverImage: "/images/bookcover/book2.svg",
+      coverImage: "/writing-class/images/bookcover/book2.svg",
     },
     {
       id: 3,
@@ -34,7 +34,7 @@ export function BookListCarousel() {
       title_en: "Break the clichés and create myths",
       subtitle: "클리셰를 깨부수고 신화를 창조하기",
       subtitle_en: "Break the clichés and create myths",
-      coverImage: "/images/bookcover/book3.svg",
+      coverImage: "/writing-class/images/bookcover/book3.svg",
     },
     {
       id: 4,
@@ -42,7 +42,7 @@ export function BookListCarousel() {
       title_en: "Create Vivid Characters",
       subtitle: "독자의 마음을 훔치는 인물 만들기",
       subtitle_en: "Create characters that steal readers' hearts",
-      coverImage: "/images/bookcover/book4.svg",
+      coverImage: "/writing-class/images/bookcover/book4.svg",
     },
     {
       id: 5,
@@ -50,7 +50,7 @@ export function BookListCarousel() {
       title_en: "From the First Sentence to the Last",
       subtitle: "첫 문장으로 독자를 사로잡아라, 강렬한 도입부 작성의 기술",
       subtitle_en: "Write a gripping first sentence to captivate your readers",
-      coverImage: "/images/bookcover/book5.svg",
+      coverImage: "/writing-class/images/bookcover/book5.svg",
     },
     {
       id: 6,
@@ -58,7 +58,7 @@ export function BookListCarousel() {
       title_en: "The Art of Editing and Revising",
       subtitle: "퇴고로 작품에 생명을 불어넣다, 효과적인 수정과 편집 방법",
       subtitle_en: "Revise your work to give it life, and learn effective editing techniques",
-      coverImage: "/images/bookcover/book6.svg",
+      coverImage: "/writing-class/images/bookcover/book6.svg",
     },
     {
       id: 7,
@@ -66,7 +66,7 @@ export function BookListCarousel() {
       title_en: "Publishing and marketing strategies",
       subtitle: "작가도 마케터다! - 효과적인 자기 홍보와 브랜드 구축",
       subtitle_en: "Authors are also marketers! - Effective self-promotion and brand building",
-      coverImage: "/images/bookcover/book7.svg",
+      coverImage: "/writing-class/images/bookcover/book7.svg",
     },
   ]
 

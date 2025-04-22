@@ -198,5 +198,7 @@ export interface CourseBook {
   coverColor?: string;
   coverImage?: string;
   textColor?: string;
+  description?: string;
+  description_en?: string;
 }
 

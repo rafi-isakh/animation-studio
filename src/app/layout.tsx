@@ -98,7 +98,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                 <Header isLoggedIn={isLoggedIn} />
                               </Suspense>
                               <Margin>
-                                <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                <div className=" pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
                                   {children}
                                 </div>
                                 <Analytics />

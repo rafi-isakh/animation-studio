@@ -186,3 +186,17 @@ export type OtherTranslation = {
   element_subtype: string
   done: boolean
 }
+
+
+export interface CourseBook {
+  id: number;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  author?: string;
+  coverColor?: string;
+  coverImage?: string;
+  textColor?: string;
+}
+

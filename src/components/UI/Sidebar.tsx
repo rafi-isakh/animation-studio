@@ -153,11 +153,19 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
 
   const open = Boolean(popoverAnchor);
 
+
+  const hideSidebarInPages = () => {
+    if (pathname.startsWith('/writing-class')) {
+      return "hidden"
+    }
+    return ""
+  }
+
   return (
     <>
       <aside className={`flex h-full flex-col md:z-[1300] transition-all duration-300 ease-in-out
                      fixed left-0 top-0 border-r dark:border-black text-base
-                    border-gray-200 bg-white dark:bg-[#211F21] ${expanded ? "w-[240px]" : "w-[72px]"}`}>
+                    border-gray-200 bg-white dark:bg-[#211F21] ${expanded ? "w-[240px]" : "w-[72px]"} ${hideSidebarInPages()}`}>
         {/* side bar z-[1300] because chapter_view/viewer_footer.tsx z-index is 1250 */}
         {/* darkmode color bg-[#211F21] */}
         <div className="flex h-16 items-center justify-center">

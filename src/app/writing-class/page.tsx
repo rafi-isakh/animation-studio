@@ -64,10 +64,10 @@ export default function WritingClassPage() {
           </p>
           <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
             <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-              {isLoggedIn ? <Link href="#">{language === "en" ? "Join Free Writing Class" : "지금 작법서 무료로 받기"}</Link> 
+              {isLoggedIn ? <Link href="#">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link> 
                           : <>
                             <Link href="#" onClick={() => setOpenLoginDialog(true)}>
-                              {language === "en" ? "Join Free Writing Class" : "가입하고 무료로 작법서 받기"}
+                              {language === "en" ? "Download Free Writing Book" : "가입하고 무료로 작법서 받기"}
                             </Link>
                             <LoginDialog />
                           </>
@@ -82,13 +82,13 @@ export default function WritingClassPage() {
               <BookCard
                 title={language === "en" ? "1. Webnovel Writing" : "1. 웹소설의 세계로"}
                 author={language === "en" ? "Become a Digital Storyteller" : "디지털 시대의 이야기꾼 되기"}
-                color="bg-blue-100"
+                color="bg-[#dbe9fe]"
                 imageUrl="/writing-class/images/bookcover/book1.svg"
               />
               <BookCard
                 title={language === "en" ? "4. Create Vivid Characters" : "4. 생생한 캐릭터 창조하기"}
                 author={language === "en" ? "Create Characters" : "독자의 마음을 훔치는 인물 만들기"}
-                color="bg-green-100"
+                color="bg-[#DCFCE5]"
                 imageUrl="/writing-class/images/bookcover/book4.svg"
               />
             </div>
@@ -96,13 +96,13 @@ export default function WritingClassPage() {
               <BookCard
                 title={language === "en" ? "2. Create Your Own Story" : "2. 나만의 이야기 씨앗 심기"}
                 author={language === "en" ? "Discover and Develop Creative Ideas" : "창의적 아이디어 발굴과 개발"}
-                color="bg-yellow-200"
+                color="bg-[#FFE020]"
                 imageUrl="/writing-class/images/bookcover/book2.svg"
               />
               <BookCard
                 title={language === "en" ? "5. The Secret of First Sentence" : "5. 첫 문장에서 마지막 문장까지"}
                 author={language === "en" ? "Writing Techniques" : "강렬한 도입부 작성의 기술"}
-                color="bg-orange-200"
+                color="bg-[#FED6A7]"
                 imageUrl="/writing-class/images/bookcover/book5.svg"
               />
             </div>
@@ -110,13 +110,13 @@ export default function WritingClassPage() {
               <BookCard
                 title={language === "en" ? "3. Storytelling Techniques" : "3. 독자를 이끄는 스토리텔링 기술"}
                 author={language === "en" ? "Break the Clichés" : "클리셰를 깨부순 글쓰기 노하우"}
-                color="bg-purple-200"
+                color="bg-[#E8D4FF]"
                 imageUrl="/writing-class/images/bookcover/book3.svg"
               />
               <BookCard
                 title={language === "en" ? "6. Editing and Revising" : "6. 완성도를 높이는 수정과 편집"}
                 author={language === "en" ? "Revising Effectively" : "효과적인 수정과 편집 방법"}
-                color="bg-pink-200"
+                color="bg-[#FCCEE8]"
                 imageUrl="/writing-class/images/bookcover/book6.svg"
               />
             </div>

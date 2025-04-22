@@ -7,6 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/shadcnUI/Popover"
+import { Dialog, DialogContent } from "@/components/shadcnUI/Dialog"
 import { Language } from "@/components/Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { BookCard } from "@/components/UI/writingClass/ui/BookCard";
@@ -18,35 +19,37 @@ import LearningSection from "@/components/UI/writingClass/ui/LearningSection";
 import { BookTab } from "@/components/UI/writingClass/ui/BookTab";
 import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton";
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
-import Header from "@/components/UI/writingClass/ui/WritingClassHeader";
+import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHeader";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { DialogTrigger } from "@/components/shadcnUI/Dialog";
+import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader";
 
 export default function WritingClassPage() {
   const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const [openLoginDialog, setOpenLoginDialog] = useState(false);
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage as Language);
     console.log("Language changed to", newLanguage);
- }
-
- useEffect(() => {
-  const previousTheme = theme;
-  if (previousTheme === "dark") {
-    toggleTheme("light");
   }
- }, [theme]);
+
+  useEffect(() => {
+    const previousTheme = theme;
+    if (previousTheme === "dark") {
+      toggleTheme("light");
+    }
+  }, [theme]);
 
 
   return (
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
       {/* Top Navigation Bar */}
-      <Header />
-
+      <WritingClassHeader />
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0 order-2 md:order-1">
@@ -57,15 +60,20 @@ export default function WritingClassPage() {
           </h1>
           <p className="text-gray-600 mb-8 max-w-lg">
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
-                               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
+              : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
-          <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-            {isLoggedIn ? <Link href="#">
-              {language === "en" ? "Join Free Writing Class" : "지금 작법서 무료로 받기"}
-            </Link> : <Link href="/signin">
-              {language === "en" ? "Join Free Writing Class" : "가입하고 무료로 작법서 받기"}
-            </Link>}
-          </RoundedButton>
+          <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
+            <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
+              {isLoggedIn ? <Link href="#">{language === "en" ? "Join Free Writing Class" : "지금 작법서 무료로 받기"}</Link> 
+                          : <>
+                            <Link href="#" onClick={() => setOpenLoginDialog(true)}>
+                              {language === "en" ? "Join Free Writing Class" : "가입하고 무료로 작법서 받기"}
+                            </Link>
+                            <LoginDialog />
+                          </>
+              }
+            </RoundedButton>
+          </Dialog>
         </div>
 
         <div className="md:w-1/2 relative md:order-2 order-1">
@@ -127,7 +135,7 @@ export default function WritingClassPage() {
               </span> <br />
               <span className="text-black z-10">
                 {language === "en" ? "TOONYZ Writing 101 Class OPEN"
-                                    : "투니즈 글쓰기 101 작법서 출간 OPEN"}
+                  : "투니즈 글쓰기 101 작법서 출간 OPEN"}
               </span>
             </h3>
             <Image
@@ -176,7 +184,7 @@ export default function WritingClassPage() {
           <div className="text-center mb-12">
             <p className="text-lg mb-4 whitespace-pre-line break-keep">
               {language === "en" ? "Join the Toonyz Writing 101 class now to get the full guide to creating a high-quality webnovel."
-                                 : "완성도 높은 작품을 위한 전 과정 안내를 해 드리는 투니즈 글쓰기 101 지금 바로 가입하고 무료로 다운 받으세요!"}
+                : "완성도 높은 작품을 위한 전 과정 안내를 해 드리는 투니즈 글쓰기 101 지금 바로 가입하고 무료로 다운 받으세요!"}
             </p>
           </div>
         </div>
@@ -195,8 +203,8 @@ export default function WritingClassPage() {
         </div>
         <BookListCarousel />
 
-         <DrawCircleText />
-      
+        <DrawCircleText />
+
       </section>
       {/* mid section */}
       <section className="container mx-auto px-4 py-16 ">
@@ -222,7 +230,7 @@ export default function WritingClassPage() {
       <section className="py-16 bg-gray-100">
         <h2 className="text-3xl font-bold text-center">
           {language === "en" ? "4 Weeks, 7 e-books, 1 Completed Story That You Can Start"
-                              : "4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다"}
+            : "4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다"}
         </h2>
         <LearningSection />
       </section>
@@ -242,15 +250,15 @@ export default function WritingClassPage() {
           />
           <h2 className="text-xl md:text-4xl font-bold mb-6">
             {language === "en" ? "Webnovel Writing is now possible with Toonyz Writing Class"
-                               : "웹소설 작가 데뷔는 투니즈 글쓰기 101로 가능합니다 "}
+              : "웹소설 작가 데뷔는 투니즈 글쓰기 101로 가능합니다 "}
           </h2>
           <p className="md:text-xl text-sm mb-8 mx-auto">
             {language === "en" ? "One day 10 minutes, one month 200, a webnovel writer/e-book PDF side hustle, it's no longer a dream!"
-                               : "하루 10분 일하고 월 200 꾸준히 버는 웹소설 작가/전자책 PDF 부업, 이제 꿈이 아닙니다!"}
+              : "하루 10분 일하고 월 200 꾸준히 버는 웹소설 작가/전자책 PDF 부업, 이제 꿈이 아닙니다!"}
           </p>
           <p className="md:text-xl text-sm mx-auto">
             {language === "en" ? "Once you finish the Toonyz Writing Class,"
-                               : "투니즈 글쓰기 101 참고서를 읽고나면,"}
+              : "투니즈 글쓰기 101 참고서를 읽고나면,"}
           </p>
 
 
@@ -310,27 +318,27 @@ export default function WritingClassPage() {
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>
                 {language === "en" ? "K-Webnovel Structure Template Pack (PDF)"
-                                   : "K-웹소설 구조 템플릿 풀 패키지 (PDF)"}
+                  : "K-웹소설 구조 템플릿 풀 패키지 (PDF)"}
               </span>
             </li>
             <li className="flex items-start">
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>
                 {language === "en" ? "Exclusive Story Hook Guide"
-                                   : "독자를 끌어당기는 웹소설 훅 비법 가이드"}
+                  : "독자를 끌어당기는 웹소설 훅 비법 가이드"}
               </span>
             </li>
             <li className="flex items-start">
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>
                 {language === "en" ? "Access to private writing Discord group"
-                                   : "웹소설 작가 프라이빗 모임 온/오프라인 기회 제공"}
+                  : "웹소설 작가 프라이빗 모임 온/오프라인 기회 제공"}
               </span>
             </li>
             <li className="flex items-start">
               <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
               <span>{language === "en" ? "Feedback from professional editors"
-                                       : "현업 작가들에게 1:1 피드백 기회 제공"}</span>
+                : "현업 작가들에게 1:1 피드백 기회 제공"}</span>
             </li>
           </ul>
 
@@ -371,7 +379,7 @@ export default function WritingClassPage() {
         </RoundedButton>
         <p className="text-center text-sm text-[#DE2B74] mt-3">
           {language === "en" ? "Only 20 writers will be accepted."
-                             : "최대 20명의 예비 작가만 수용합니다."}
+            : "최대 20명의 예비 작가만 수용합니다."}
           <span className="text-black">*</span>
         </p>
       </section>
@@ -382,8 +390,8 @@ export default function WritingClassPage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            {language === "en" ? "What Our Writers Say" 
-                               : "수강생 작가들의 이야기"}
+            {language === "en" ? "What Our Writers Say"
+              : "수강생 작가들의 이야기"}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -438,12 +446,12 @@ export default function WritingClassPage() {
       {/* Final CTA */}
       <section className="py-12 bg-[#DE2B74]">
         <div className="relative container mx-auto px-4 text-center">
-          <Image 
-          src="/writing-class/images/logo_sticker.svg" 
-          alt="toonyz logo" 
-          width={100} 
-          height={100} 
-          className="absolute -top-20 md:left-1/3 md:transform md:-translate-x-1/2 z-[5] animate-[spin_9s_linear_infinite]" />
+          <Image
+            src="/writing-class/images/logo_sticker.svg"
+            alt="toonyz logo"
+            width={100}
+            height={100}
+            className="absolute -top-20 md:left-1/3 md:transform md:-translate-x-1/2 z-[5] animate-[spin_9s_linear_infinite]" />
           <h2 className="text-3xl font-bold text-white mb-8">
             {language === "en" ? "Limited Spots Available!"
               : "얼마 남지 않은 기회입니다!"}
@@ -453,7 +461,7 @@ export default function WritingClassPage() {
             {language === "en" ? <>Those books are free now, but they will be converted to paid content soon.<br /></>
               : <>이 작법서는 현재 무료이지만 유료 컨텐츠로 전환될 예정입니다 <br /></>}
             {language === "en" ? "Download them today and start your journey to becoming a successful web novel writer."
-                               : "지금 바로 다운받고 성공적인 웹소설 작가로 시작하세요."}
+              : "지금 바로 다운받고 성공적인 웹소설 작가로 시작하세요."}
           </p>
 
         </div>

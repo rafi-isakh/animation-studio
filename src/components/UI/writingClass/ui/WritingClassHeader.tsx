@@ -23,12 +23,32 @@ import {
 } from "@/components/shadcnUI/DropdownMenu"
 import { useAuth } from "@/contexts/AuthContext";
 import { usePathname } from "next/navigation";
+import { ContactForm } from "@/components/UI/FAQ";
+
+
+export const LoginDialog = () => {
+    return (
+        <DialogContent showCloseButton={true}>
+            <DialogHeader>
+                <DialogTitle>Login</DialogTitle>
+                <DialogDescription> Welcome to Toonyz </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <div className="mx-auto">
+                    <SignInComponent />
+                </div>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
 
 const WritingClassHeader = () => {
     const { language, setLanguage } = useLanguage();
     const { isLoggedIn, logout } = useAuth();
     const [openLoginDialog, setOpenLoginDialog] = useState(false);
     const pathname = usePathname();
+    const [openContactForm, setOpenContactForm] = useState(false);
+
     const handleLanguageChange = (newLanguage: string) => {
         setLanguage(newLanguage as Language);
         console.log("Language changed to", newLanguage);
@@ -66,7 +86,6 @@ const WritingClassHeader = () => {
                             Account & Lists <ChevronDown className="h-3 w-3 ml-1" />
                             </div>
                         </div> */}
-
                         <Link
                             href="#"
                             onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")}
@@ -81,17 +100,7 @@ const WritingClassHeader = () => {
                                 <span className="font-bold">{language === "en" ? "LOGIN" : "로그인"}</span>
                                 {/* </Link> */}
                             </DialogTrigger>
-                            <DialogContent showCloseButton={true}>
-                                <DialogHeader>
-                                    <DialogTitle>Login</DialogTitle>
-                                    <DialogDescription> Welcome to Toonyz </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter>
-                                    <div className="mx-auto">
-                                        <SignInComponent />
-                                    </div>
-                                </DialogFooter>
-                            </DialogContent>
+                            <LoginDialog />
                         </Dialog>}
                         {isLoggedIn && <Link href="#" onClick={handleSignOut} className="flex items-center">
                             <span className="font-bold">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
@@ -123,10 +132,20 @@ const WritingClassHeader = () => {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>
-                                <Link href="/docs" className="flex flex-col items-start w-full">
-                                    <span className="text-md md:text-lg font-medium">3. 고객 지원</span>
-                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                </Link>
+                                <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
+                                    <DialogTrigger asChild>
+                                        <Link href="#" className="flex flex-col items-start w-full">
+                                            <span className="text-md md:text-lg font-medium">3. 고객 지원</span>
+                                            {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                        </Link>
+                                    </DialogTrigger>
+                                    <DialogContent showCloseButton={true} className="rounded-lg overflow-hidden">
+                                        <DialogHeader>
+                                            <DialogTitle>고객 지원</DialogTitle>
+                                        </DialogHeader>
+                                        <ContactForm />
+                                    </DialogContent>
+                                </Dialog>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -145,3 +164,5 @@ const WritingClassHeader = () => {
 }
 
 export default WritingClassHeader;
+
+

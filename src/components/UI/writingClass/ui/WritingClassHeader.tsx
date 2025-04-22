@@ -24,7 +24,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { usePathname } from "next/navigation";
 
-const Header = () => {
+const WritingClassHeader = () => {
     const { language, setLanguage } = useLanguage();
     const { isLoggedIn, logout } = useAuth();
     const [openLoginDialog, setOpenLoginDialog] = useState(false);
@@ -144,4 +144,4 @@ const Header = () => {
     )
 }
 
-export default Header;
+export default WritingClassHeader;

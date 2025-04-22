@@ -18,20 +18,29 @@ import LearningSection from "@/components/UI/writingClass/ui/LearningSection";
 import { BookTab } from "@/components/UI/writingClass/ui/BookTab";
 import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton";
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
-import Header from "@/components/UI/writingClass/ui/Header";
+import Header from "@/components/UI/writingClass/ui/WritingClassHeader";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
-
+import { useTheme } from "@/contexts/providers";
+import { useEffect } from "react";
 
 export default function WritingClassPage() {
   const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
-
+  const { theme, toggleTheme } = useTheme();
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage as Language);
     console.log("Language changed to", newLanguage);
-}
+ }
+
+ useEffect(() => {
+  const previousTheme = theme;
+  if (previousTheme === "dark") {
+    toggleTheme("light");
+  }
+ }, [theme]);
+
 
   return (
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
@@ -50,7 +59,7 @@ export default function WritingClassPage() {
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
                                : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
-          <RoundedButton className='w-[330px] md:mx-0 mx-auto'>
+          <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
             {isLoggedIn ? <Link href="#">
               {language === "en" ? "Join Free Writing Class" : "지금 작법서 무료로 받기"}
             </Link> : <Link href="/signin">

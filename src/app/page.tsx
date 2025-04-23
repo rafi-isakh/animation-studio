@@ -12,11 +12,15 @@ import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
+        next: { tags: ['carousel'] } 
+    })
+    const data = await response.json();
+    console.log(data)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    return response.json();
+    return data;
 }
 
 async function getLibrary() {
@@ -55,8 +59,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     //let library = await getLibrary() || [];
     // let posts = await getToonyzPosts();
     //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
-    const carouselFilter = [22, 24, 19]
-    items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
     const largeGap = () => {
         return (

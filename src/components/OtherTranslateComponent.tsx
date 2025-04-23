@@ -1,25 +1,40 @@
 "use client"
 import { useLanguage } from '@/contexts/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
-import { ElementType, ElementSubtype, Language } from '@/components/Types';
+import { ElementType, ElementSubtype, Language, ToonyzPost, Webnovel, Chapter, Comment, OtherTranslation, SlickCarouselItem, UserStripped } from '@/components/Types';
 import { CircularProgress, Skeleton } from '@mui/material';
 import { replaceSmartQuotes } from '@/utils/font';
 import { marked } from 'marked';
 import { useTheme } from '@/contexts/providers';
-const OtherTranslateComponent = React.memo(({ content, elementId, elementType, elementSubtype, defaultLanguage, classParams = "", showLoading = true, incomingText = '', }:
-    { content: string, elementId: string, elementType: ElementType, elementSubtype?: ElementSubtype, defaultLanguage?: Language, classParams?: string, showLoading?: boolean, incomingText?: string }) => {
+const OtherTranslateComponent = ({
+    element,
+    content,
+    elementId,
+    elementType,
+    elementSubtype,
+    defaultLanguage,
+    classParams = "",
+    showLoading = true,
+    incomingText = '',
+}: {
+    element: Webnovel | Chapter | UserStripped | ToonyzPost | SlickCarouselItem | Comment,
+    content: string,
+    elementId: string,
+    elementType: ElementType,
+    elementSubtype?: ElementSubtype,
+    defaultLanguage?: Language,
+    classParams?: string,
+    showLoading?: boolean,
+    incomingText?: string
+}) => {
     const [text, setText] = useState(incomingText);
     const { language, isRtl } = useLanguage();
     const initialized = useRef(false);
-    const fetchRef = useRef(false);
-    const [finished, setFinished] = useState(false)
-    const [changeCount, setChangeCount] = useState(0)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const languageChangedRef = useRef(false);
     const [skeletonHeight, setSkeletonHeight] = useState<number | null>(null);
     const [skeletonWidth, setSkeletonWidth] = useState<number | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
-    const [markedText, setMarkedText] = useState("");
     const { theme } = useTheme();
 
     useEffect(() => {
@@ -29,57 +44,63 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         }
     }, [content, classParams]);
 
+
     useEffect(() => {
+        // if the translation was already returned in the element, use it
+        const translation = element.other_translations?.find(
+            (translation: OtherTranslation) =>
+                translation.language === language
+                && translation.element_type === elementType
+                && translation.element_subtype === elementSubtype
+                && (translation.webnovel_id === elementId
+                    || translation.chapter_id === elementId
+                    || translation.user_id === elementId
+                    || translation.comment_id === elementId
+                    || translation.carousel_item_id === elementId
+                    || translation.post_id === elementId));
+
+        if (translation) {
+            setText(translation.text);
+            return
+        }
         const sessionKey = `${elementType}.${elementId}.${language}.${elementSubtype}`;
         languageChangedRef.current = true;
-        setText("");
-        setLoading(true);
-        const langSessionKey = `lang-${elementType}.${elementId}.${elementSubtype}`;
-        const detectLanguage = async () => {
-            const itemLanguageSessionKey = `${langSessionKey}`;
-            const itemLanguage = localStorage.getItem(itemLanguageSessionKey);
-            let langcode;
-            let originalAndTargetLangSame = false;
-            if (itemLanguage) {
-                langcode = itemLanguage;
-            } else {
-                const response = await fetch('/api/detect_language', {
-                    method: 'POST',
-                    body: JSON.stringify({ text: content }),
-                });
-                const data = await response.json();
-                langcode = data.langcode;
-                localStorage.setItem(itemLanguageSessionKey, langcode);
+        const detectLanguage = () => {
+            // Check if content is Korean or Japanese by looking for Korean/Japanese characters
+            const koreanRegex = /[\u3131-\u314E\u314F-\u3163\uAC00-\uD7A3]/;
+            const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+            const isKorean = koreanRegex.test(content);
+            const isJapanese = japaneseRegex.test(content);
+            // Check if content is English by looking for non-English characters
+            const nonEnglishRegex = /[^\x00-\x7F]/;
+            const isEnglish = !nonEnglishRegex.test(content);
+            if (isEnglish && language === 'en'
+                || isKorean && language === 'ko'
+                || isJapanese && language === 'ja'
+            ) {
+                return true;
             }
-            if (langcode == language) {
-                originalAndTargetLangSame = true;
-            }
-            localStorage.setItem(langSessionKey, langcode);
-            return originalAndTargetLangSame;
+            return false;
         }
 
         const handleTranslate = async () => {
-            const originalAndTargetLangSame = await detectLanguage();
+            const originalAndTargetLangSame = detectLanguage();
             if (originalAndTargetLangSame) {
                 setText(content);
-                setMarkedText(await marked(content));
-                setLoading(false);
-                return;
+                return
             }
             // elmeentId is either chapter.id (for chapter title) or webnovel.id (for webnovel title and description) or user_id (for user bio)
-            const subtypeOrNot = elementSubtype ? `&element_subtype=${elementSubtype}` : '';
             const sessionData = localStorage.getItem(sessionKey)
             if (sessionData) {
                 setText(sessionData)
-                setMarkedText(await marked(sessionData));
-                setLoading(false)
+                return
             }
             else {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}${subtypeOrNot}`)
+                setLoading(true)
+                const response = await fetch(`/api/get_other_translation?element_type=${elementType}&element_id=${elementId}&language=${language}&element_subtype=${elementSubtype}`)
                 const data = await response.json();
                 if (data.text) {
                     setText(data.text);
-                    setMarkedText(await marked(data.text));
                     setLoading(false)
                     localStorage.setItem(sessionKey, data.text)
                 }
@@ -101,13 +122,11 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                     handleTranslate();
                 } else {
                     setText("");
-                    setMarkedText("");
                     setLoading(false);
                     languageChangedRef.current = false;
                 }
             } else {
                 setText(content);
-                setMarkedText(await marked(content));
                 setLoading(false);
                 languageChangedRef.current = false;
             }
@@ -115,9 +134,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         initiate();
     }, [language, content]);
 
-    useEffect(() => {
-        setChangeCount((prevCount) => prevCount + 1);
-    }, [text]);
 
     const saveTranslationToDB = async (translation: string, done: boolean) => {
         if (translation) {
@@ -130,7 +146,7 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 "done": done
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/save_other_translation`, {
+            const res = await fetch('/api/save_other_translation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -138,8 +154,10 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
                 body: JSON.stringify(data),
             });
             if (!res.ok) {
-                console.error("Saving translation to DB failed");
+                const errorData = await res.json();
+                console.error("Saving translation to DB failed", errorData.error);
             } else {
+                console.log("Translation saved to DB");
             }
         }
     }
@@ -174,7 +192,6 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/translate/${textId}?target=${language}`);
         const data = await response.json();
         setText(data.translation);
-        setMarkedText(await marked(data.translation));
         saveTranslationToDB(data.translation, true);
         setLoading(false);
     };
@@ -189,12 +206,11 @@ const OtherTranslateComponent = React.memo(({ content, elementId, elementType, e
             {
                 loading && showLoading ?
                     (
-                        <Skeleton  sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
+                        <Skeleton sx={{ bgcolor: theme === 'dark' ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0, 0, 0, 0.11)' }} variant='rectangular' width={skeletonWidth || 100} height={skeletonHeight || 18} />
                     ) : <div className={`${classParams}`} dangerouslySetInnerHTML={{ __html: replaceSmartQuotes(text).replaceAll("\n", "<br/>") }} />
             }
         </div>
     );
-});
+};
 
-OtherTranslateComponent.displayName = 'OtherTranslateComponent'; // need this because this is a React.memo
 export default OtherTranslateComponent;

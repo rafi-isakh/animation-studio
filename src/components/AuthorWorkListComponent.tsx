@@ -40,6 +40,7 @@ const AuthorWorkListComponent = ({ webnovels, nickname }:
                                 <div className="flex flex-row justify-between items-center w-full mt-2">
                                     <div className="ml-3 flex flex-col gap-1 text-sm truncate">
                                         <OtherTranslateComponent
+                                            element={webnovel}
                                             content={truncateText(webnovel.title, 20)}
                                             elementId={webnovel.id.toString()}
                                             elementType='webnovel'

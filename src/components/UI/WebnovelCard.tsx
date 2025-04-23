@@ -80,13 +80,14 @@ const WebnovelCard = ({
 
                 <div className="relative md:bottom-0 bottom-0 left-0 w-full mt-auto p-1 md:pb-1">
                     <h3 className="md:text-base text-sm font-semibold leading-tight line-clamp-2 break-keep text-center">
-                        <OtherTranslateComponent
+                        {/* <OtherTranslateComponent
+                            element={webnovel}
                             content={webnovel.title}
                             elementId={webnovel.id.toString()}
                             elementType='webnovel'
                             elementSubtype="title"
                             classParams={language === 'ko' ? "text-md md:text-sm w-full break-words" : "text-md md:text-sm w-full break-words"}
-                        />
+                        /> */}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 break-keep text-center">{webnovel.author.nickname}</p>
                 </div>

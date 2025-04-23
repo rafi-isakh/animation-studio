@@ -86,6 +86,7 @@ export default function InfoAndPictureComponent({
         if (language === "en") {
             if (content.en_cover_art) {
                 const imageSrc = getImageUrl(content.en_cover_art)
+                setVideoSrc(null)
                 setImageSrc(imageSrc)
             }
             if (content.en_video_cover) {
@@ -96,6 +97,10 @@ export default function InfoAndPictureComponent({
             if (content.video_cover) {
                 const videoSrc = getVideoUrl(content.video_cover)
                 setVideoSrc(videoSrc)
+            } else {
+                const imageSrc = getImageUrl(content.cover_art) // this one always exists
+                setVideoSrc(null)
+                setImageSrc(imageSrc)
             }
         }
     }, [language])
@@ -312,6 +317,7 @@ export default function InfoAndPictureComponent({
                         {/* Content Info */}
                         <div className="flex flex-col items-center py-10">
                             <OtherTranslateComponent
+                                element={content}
                                 content={content.title}
                                 elementId={content.id.toString()}
                                 elementType="webnovel"
@@ -377,6 +383,7 @@ export default function InfoAndPictureComponent({
                             <div className="mt-2">
                                 {/* Description */}
                                 <OtherTranslateComponent
+                                    element={content}
                                     content={content.description}
                                     elementId={content.id.toString()}
                                     elementType="webnovel"

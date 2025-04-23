@@ -37,6 +37,7 @@ const WebnovelPictureComponent = React.memo(
                             )?.text
                             ||
                             <OtherTranslateComponent
+                                element={webnovel}
                                 content={webnovel.title}
                                 elementId={webnovel.id.toString()}
                                 elementType="webnovel"
@@ -45,11 +46,9 @@ const WebnovelPictureComponent = React.memo(
                             />
                         }
                         {/* Author and Genre */}
-                        <p className="text-[10px] md:text-sm font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
+                        <p className="text-[10px] md:text-sm line-clamp-2 font-bold w-full truncate text-gray-500 flex flex-col md:flex-row justify-center">
                             {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
                             {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}
-                            <span className="hidden md:block"> • </span>
-                            <span className="">{phrase(dictionary, webnovel.genre, language)}</span>
                         </p>
                     </div>
                 </div>

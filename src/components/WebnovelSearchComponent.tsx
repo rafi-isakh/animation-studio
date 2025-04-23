@@ -47,6 +47,7 @@ const WebnovelSearchComponent = ({ webnovel, index, ranking, chunkIndex }: { web
                 <div className="flex-grow overflow-hidden">
                     {/* Genre */}
                     <OtherTranslateComponent
+                        element={webnovel}
                         content={webnovel.title}
                         elementId={webnovel.id.toString()}
                         elementType='webnovel'

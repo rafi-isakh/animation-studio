@@ -51,6 +51,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
+                            element={webnovel}
                             content={webnovel.title}
                             elementId={webnovel.id.toString()}
                             elementType="webnovel"

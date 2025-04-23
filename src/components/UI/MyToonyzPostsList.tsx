@@ -1,7 +1,5 @@
 import { cn } from "@/lib/utils"
 import {
-    ArrowRight,
-    Loader2,
     Ellipsis,
     Flag,
     Share2,
@@ -12,13 +10,11 @@ import { Webnovel, ToonyzPost } from "@/components/Types"
 import Link from "next/link"
 import { phrase } from '@/utils/phrases'
 import { useLanguage } from "@/contexts/LanguageContext"
-import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useEffect, useState } from "react"
 import { useUser } from "@/contexts/UserContext"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
-import { truncateText } from "@/utils/truncateText";
 import { Skeleton } from "@/components/shadcnUI/Skeleton";
 import { formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { formatRelativeTime } from "@/utils/formatTime"

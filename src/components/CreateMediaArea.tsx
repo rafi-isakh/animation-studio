@@ -73,12 +73,6 @@ export default function CreateMediaArea({
     const [webnovel, setWebnovel] = useState<Webnovel>();
 
     useEffect(() => {
-        // if (narrations.length == 0) {
-        //     setNarrations(pictures.map(() => ""));
-        // }
-    }, [pictures]);
-
-    useEffect(() => {
         if (webnovel_id) {
             getWebnovelIdWithChapterMetadata(webnovel_id).then((webnovel) => {
                 setWebnovel(webnovel);

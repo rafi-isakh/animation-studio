@@ -159,12 +159,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                                     type="submit"
                                     variant="outlined"
                                     color="gray"
-                                    className='whitespace-nowrap hover:border-black hover:bg-black hover:text-white mb-10'
-                                >{phrase(dictionary, "save", language)}</Button>
-                                <Button
-                                    type="submit"
-                                    variant="outlined"
-                                    color="gray"
                                     className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white mb-10'
                                 >{phrase(dictionary, "publish", language)}</Button>
                                 {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}

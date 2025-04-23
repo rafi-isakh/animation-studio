@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { revalidateTag } from 'next/cache';
 
 export async function GET(req: NextRequest, res: NextResponse) {
   const session = await auth();
@@ -29,6 +30,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
       status: response.status
     });
   }
+
+  revalidateTag('webnovels');
 
   return NextResponse.json({
     message: "Delete webnovel success",

@@ -71,9 +71,9 @@ export function FileDownloadList({ downloadFiles }: { downloadFiles: { id: numbe
                     </div>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="icon">
+                    {/* <Button variant="outline" size="icon">
                         <RefreshCwIcon className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
 

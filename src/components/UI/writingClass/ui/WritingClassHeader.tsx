@@ -44,6 +44,47 @@ export const LoginDialog = () => {
 }
 
 
+export const UserAccountDropdownMenu = ({ language }: { language: Language }) => {
+    const [openContactForm, setOpenContactForm] = useState(false);
+
+    return (
+        <DropdownMenuContent className="w-56" side="bottom" align="start">
+            <DropdownMenuItem>
+                <Link href="/writing-class/downloads" className="flex flex-col items-start w-full">
+                    <span className="text-md md:text-lg font-medium">{language === "en" ? "Downloads" : "작법서 다운로드"}</span>
+                </Link>
+            </DropdownMenuItem>
+            {/* <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                    <Link href="/docs" className="flex flex-col items-start w-full">
+                        <span className="text-md md:text-lg font-medium">2. 온라인 강의 참여</span>
+                    
+                    </Link>
+                </DropdownMenuItem> */}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+                <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
+                    <Link 
+                        href="#" 
+                        className="flex flex-col items-start w-full" 
+                        onClick={(event) => {
+                            event.preventDefault();
+                            setOpenContactForm(true);
+                        }}>
+                        <span className="text-md md:text-lg font-medium">고객 지원</span>
+                    </Link>
+                    <DialogContent showCloseButton={true} className="!bg-white">
+                        <DialogHeader>
+                            <DialogTitle>고객 지원</DialogTitle>
+                        </DialogHeader>
+                        <ContactForm />
+                    </DialogContent>
+                </Dialog>
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    )
+}
+
 
 const WritingClassHeader = () => {
     const { language, setLanguage } = useLanguage();
@@ -51,13 +92,13 @@ const WritingClassHeader = () => {
     const { nickname } = useUser();
     const [openLoginDialog, setOpenLoginDialog] = useState(false);
     const pathname = usePathname();
-    const [openContactForm, setOpenContactForm] = useState(false);
+
 
     const handleLanguageChange = (newLanguage: string) => {
         setLanguage(newLanguage as Language);
         console.log("Language changed to", newLanguage);
     }
-   
+
     const handleSignOut = async (event: React.FormEvent) => {
         event.preventDefault();
         logout(true, '/writing-class');
@@ -89,36 +130,7 @@ const WritingClassHeader = () => {
                                         <span>All</span>
                                     </div>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" side="bottom" align="start">
-                                    <DropdownMenuItem>
-                                        <Link href="/docs" className="flex flex-col items-start w-full">
-                                            <span className="text-md md:text-lg font-medium">1. 작법서 구매</span>
-                                            {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <Link href="/docs" className="flex flex-col items-start w-full">
-                                            <span className="text-md md:text-lg font-medium">2. 온라인 강의 참여</span>
-                                            {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
-                                                <Link href="#" className="flex flex-col items-start w-full" onClick={() => setOpenContactForm(true)}>
-                                                    <span className="text-md md:text-lg font-medium">3. 고객 지원</span>
-                                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                                </Link>
-                                            <DialogContent showCloseButton={true} className="!bg-white">
-                                                <DialogHeader>
-                                                    <DialogTitle>고객 지원</DialogTitle>
-                                                </DialogHeader>
-                                                <ContactForm />
-                                            </DialogContent>
-                                        </Dialog>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
+                                <UserAccountDropdownMenu language={language} />
                             </DropdownMenu>
                         </div>
                     </div>
@@ -127,7 +139,14 @@ const WritingClassHeader = () => {
                         {isLoggedIn && <div className="text-xs">
                             <div>Hello, {nickname}</div>
                             <div className="font-bold flex items-center">
-                                Account & Lists <ChevronDown className="h-3 w-3 ml-1" />
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <div className="flex items-center gap-1 cursor-pointer">
+                                            <span>{language === "en" ? "Downloads" : "계정 & 다운로드"}</span> <ChevronDown className="h-3 w-3 ml-1" />
+                                        </div>
+                                    </DropdownMenuTrigger>
+                                    <UserAccountDropdownMenu language={language} />
+                                </DropdownMenu>
                             </div>
                         </div>}
                         <Link

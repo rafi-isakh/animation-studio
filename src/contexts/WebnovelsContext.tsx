@@ -27,7 +27,9 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children 
     const fetchWebnovelsMetadata = async (language: Language) => {
         const response = await fetch(`/api/get_webnovels_metadata`,
             {
-                next: { tags: ['webnovels'] }
+                next: {
+                    tags: ['webnovels']
+                }
             }
         );
         if (!response.ok) {

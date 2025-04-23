@@ -4,6 +4,12 @@ import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
 import { Button } from "@/components/shadcnUI/Button";
 import Image from "next/image";
 import { CourseBook } from "@/components/Types";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+  } from "@/components/shadcnUI/Tooltip"
 
 interface BookDetailDialogProps {
     selectedBook: CourseBook | null;
@@ -43,9 +49,24 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook, langua
                  className="bg-black hover:bg-black/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
                     {language === "en" ? "Close" : "닫기"}
                 </Button>
+              {selectedBook.id === 5 ? (
                 <Button variant="outline" className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
                     {language === "en" ? "Download" : "다운받기"}
                 </Button>
+              ) : (
+                <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="outline" className="bg-gray-700 hover:bg-700/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
+                             {language === "en" ? "Not available" : "준비 중"}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{language === "en" ? "This book is not available for purchase" : "이 책은 준비중 입니다."}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+              )}  
             </DialogFooter>
         </DialogContent>
     )

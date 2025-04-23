@@ -11,6 +11,7 @@ export default function Margin({ children }: { children: React.ReactNode }) {
     return (
         <div className={`children min-h-screen ${marginClasses} md:pl-[72px]
                          ${pathname === '/writing-class' ? '!pl-0' : ''}
+                         ${pathname === '/writing-class/downloads' ? '!pl-0' : ''}
                         `}>
             {children}
         </div>

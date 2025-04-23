@@ -1,13 +1,8 @@
 'use client';
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Globe, ChevronRight, Instagram, Youtube, Linkedin, Twitter } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/shadcnUI/Popover"
-import { Dialog, DialogContent } from "@/components/shadcnUI/Dialog"
+import { Check, ChevronRight } from "lucide-react";
+import { Dialog } from "@/components/shadcnUI/Dialog"
 import { Language } from "@/components/Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { BookCard } from "@/components/UI/writingClass/ui/BookCard";
@@ -19,13 +14,11 @@ import LearningSection from "@/components/UI/writingClass/ui/LearningSection";
 import { BookTab } from "@/components/UI/writingClass/ui/BookTab";
 import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton";
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
-import WritingClassHeader from "@/components/UI/writingClass/ui/WritingClassHeader";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
 import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
-import { DialogTrigger } from "@/components/shadcnUI/Dialog";
 import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader";
 
 export default function WritingClassPage() {
@@ -48,23 +41,21 @@ export default function WritingClassPage() {
 
   return (
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
-      {/* Top Navigation Bar */}
-      <WritingClassHeader />
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-10 md:mb-0 order-2 md:order-1">
           <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">99% OFF</p>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {language === "en" ? <><span className="">Webnovel Writing Debut</span>, <br /> No longer a dream</>
-              : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
+                               : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
           </h1>
           <p className="text-gray-600 mb-8 max-w-lg">
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
-              : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
+                               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
           <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
             <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-              {isLoggedIn ? <Link href="#">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link> 
+              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link> 
                           : <>
                             <Link href="#" onClick={() => setOpenLoginDialog(true)}>
                               {language === "en" ? "Download Free Writing Book" : "가입하고 무료로 작법서 받기"}
@@ -131,11 +122,11 @@ export default function WritingClassPage() {
             <h3 className="md:relative md:left-10 text-2xl md:text-4xl font-bold text-center mb-8 md:order-1 order-2">
               <span className="text-gray-500 z-10">
                 {language === "en" ? "Helping you become a webnovel writer"
-                  : "웹소설 작가로 데뷔를 도와주는"}
+                                   : "웹소설 작가로 데뷔를 도와주는"}
               </span> <br />
               <span className="text-black z-10">
                 {language === "en" ? "TOONYZ Writing 101 Class OPEN"
-                  : "투니즈 글쓰기 101 작법서 출간 OPEN"}
+                                   : "투니즈 글쓰기 101 작법서 출간 OPEN"}
               </span>
             </h3>
             <Image
@@ -456,7 +447,7 @@ export default function WritingClassPage() {
             {language === "en" ? "Limited Spots Available!"
               : "얼마 남지 않은 기회입니다!"}
           </h2>
-          <CountdownTimer targetDate="2025-05-06" className="text-white" />
+          <CountdownTimer targetDate="2025-05-30" className="text-white" />
           <p className="text-xl mb-8 text-white max-w-2xl mx-auto whitespace-pre-line break-keep">
             {language === "en" ? <>Those books are free now, but they will be converted to paid content soon.<br /></>
               : <>이 작법서는 현재 무료이지만 유료 컨텐츠로 전환될 예정입니다 <br /></>}
@@ -466,106 +457,10 @@ export default function WritingClassPage() {
 
         </div>
       </section>
-
       {/* FAQ Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <FaqSection />
       </section>
-
-      {/* Footer */}
-      <footer className=" bg-zinc-900 text-white py-8">
-        <div className="md:max-w-screen-lg w-full mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col">
-              <h3 className="text-lg font-bold mb-4">{language === "en" ? "Site map" : "사이트 맵"}</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="https://stelland.io" target="_blank" className="text-sm text-gray-400 hover:text-white">
-                    {language === "en" ? "Company" : "회사 소개"}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="https://toonyz.com" target="_blank" className="text-sm text-gray-400 hover:text-white">
-                    {language === "en" ? "Go to Toonyz" : "투니즈 바로가기"}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">{language === "en" ? "Contact" : "고객 지원"}</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="#" className="text-sm text-gray-400 hover:text-white">
-                    hello@stelland.io
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-sm text-gray-400 hover:text-white">
-                    {language === "en" ? "Terms of Service" : "이용 약관"}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-sm text-gray-400 hover:text-white">
-                    {language === "en" ? "Help Center" : "문의 하기"}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              {/* <h3 className="text-lg font-bold mb-4">Resources</h3> */}
-              <ul className="flex flex-row gap-2 justify-end">
-                <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                  <Link href="#" target="_blank" className="text-sm text-gray-400 hover:text-white">
-                    <Twitter className="w-4 h-4" />
-                  </Link>
-                </li>
-                <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                  <Link href="#" target="_blank" className="text-sm text-gray-400 hover:text-white">
-                    <Instagram className="w-4 h-4" />
-                  </Link>
-                </li>
-                <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                  <Link href="#" target="_blank" className="text-sm text-gray-400 hover:text-white">
-                    <Linkedin className="w-4 h-4" />
-                  </Link>
-                </li>
-                <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                  <Link href="#" className="text-sm text-gray-400 hover:text-white">
-                    <Youtube className="w-4 h-4" />
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-left">
-            <div className="flex flex-row justify-between items-center">
-              <p className="text-sm text-gray-400 text-center">
-                &copy; {new Date().getFullYear()} Stella&. All rights reserved.
-              </p>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" className="inline-flex items-center justify-center text-sm text-gray-400 text-center cursor-pointer">
-                    <Globe className="w-4 h-4" />
-                    {language === "en" ? "Language" : "언어"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-fit border border-gray-800 rounded-md bg-gray-900">
-                  <div className="flex flex-col gap-2">
-                    <Button onClick={() => handleLanguageChange("en")} variant="ghost" className="text-sm text-gray-400 hover:text-white cursor-pointer">
-                      English
-                    </Button>
-                    <Button onClick={() => handleLanguageChange("ko")} variant="ghost" className="text-sm text-gray-400 hover:text-white cursor-pointer">
-                      한국어
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

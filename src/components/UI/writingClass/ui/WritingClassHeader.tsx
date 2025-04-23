@@ -1,7 +1,8 @@
+'use client'
 import { useState } from "react";
 import Link from "next/link"
 import Image from "next/image"
-import { Globe, Menu } from "lucide-react"
+import { ChevronDown, Globe, Menu } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog"
 import { Button } from "@/components/shadcnUI/Button"
@@ -24,7 +25,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { usePathname } from "next/navigation";
 import { ContactForm } from "@/components/UI/FAQ";
-
+import { useUser } from "@/contexts/UserContext";
 
 export const LoginDialog = () => {
     return (
@@ -42,9 +43,12 @@ export const LoginDialog = () => {
     )
 }
 
+
+
 const WritingClassHeader = () => {
     const { language, setLanguage } = useLanguage();
     const { isLoggedIn, logout } = useAuth();
+    const { nickname } = useUser();
     const [openLoginDialog, setOpenLoginDialog] = useState(false);
     const pathname = usePathname();
     const [openContactForm, setOpenContactForm] = useState(false);
@@ -53,7 +57,7 @@ const WritingClassHeader = () => {
         setLanguage(newLanguage as Language);
         console.log("Language changed to", newLanguage);
     }
-
+   
     const handleSignOut = async (event: React.FormEvent) => {
         event.preventDefault();
         logout(true, '/writing-class');
@@ -71,21 +75,61 @@ const WritingClassHeader = () => {
 
                     <div className="flex items-center text-sm mr-4">
                         <span className="text-gray-500 text-xs">{language === "en" ? "Digital Writing Bootcamp" : "디지털 글쓰기 부트캠프의 시작"}</span>
-                        <button className="md:inline-block hidden text-xs ml-1 text-[#DE2B74] hover:underline">
+                        <Link href="/writing-class" className="md:inline-block hidden text-xs ml-1 text-[#DE2B74] hover:underline">
                             {language === "en" ? "Learn more" : "더 알아보기"}
-                        </button>
+                        </Link>
                     </div>
 
                     <div className="flex-1 flex items-center">
+                        <div className="md:hidden flex-1 flex justify-end">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <div className="flex items-center gap-1 cursor-pointer">
+                                        <Menu className="h-5 w-5" />
+                                        <span>All</span>
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" side="bottom" align="start">
+                                    <DropdownMenuItem>
+                                        <Link href="/docs" className="flex flex-col items-start w-full">
+                                            <span className="text-md md:text-lg font-medium">1. 작법서 구매</span>
+                                            {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                        <Link href="/docs" className="flex flex-col items-start w-full">
+                                            <span className="text-md md:text-lg font-medium">2. 온라인 강의 참여</span>
+                                            {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                        <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
+                                                <Link href="#" className="flex flex-col items-start w-full" onClick={() => setOpenContactForm(true)}>
+                                                    <span className="text-md md:text-lg font-medium">3. 고객 지원</span>
+                                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
+                                                </Link>
+                                            <DialogContent showCloseButton={true} className="!bg-white">
+                                                <DialogHeader>
+                                                    <DialogTitle>고객 지원</DialogTitle>
+                                                </DialogHeader>
+                                                <ContactForm />
+                                            </DialogContent>
+                                        </Dialog>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
 
                     <div className="md:flex items-center ml-4 space-x-6 hidden">
-                        {/* <div className="text-xs">
-                            <div>Hello, writer</div>
+                        {isLoggedIn && <div className="text-xs">
+                            <div>Hello, {nickname}</div>
                             <div className="font-bold flex items-center">
-                            Account & Lists <ChevronDown className="h-3 w-3 ml-1" />
+                                Account & Lists <ChevronDown className="h-3 w-3 ml-1" />
                             </div>
-                        </div> */}
+                        </div>}
                         <Link
                             href="#"
                             onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")}
@@ -94,70 +138,32 @@ const WritingClassHeader = () => {
                             <span className="font-bold">{language === "en" ? "ENG" : "KOR"}</span>
                         </Link>
 
-                        {!isLoggedIn && <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
-                            <DialogTrigger asChild>
-                                {/* <Link href="#" className="flex items-center"> */}
-                                <span className="font-bold">{language === "en" ? "LOGIN" : "로그인"}</span>
-                                {/* </Link> */}
-                            </DialogTrigger>
-                            <LoginDialog />
-                        </Dialog>}
-                        {isLoggedIn && <Link href="#" onClick={handleSignOut} className="flex items-center">
-                            <span className="font-bold">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
-                        </Link>}
+                        <div className="md:inline-flex hidden">
+                            {!isLoggedIn && <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
+                                <DialogTrigger asChild>
+                                    {/* <Link href="#" className="flex items-center"> */}
+                                    <span className="font-bold cursor-pointer">{language === "en" ? "LOGIN" : "로그인"}</span>
+                                    {/* </Link> */}
+                                </DialogTrigger>
+                                <LoginDialog />
+                            </Dialog>}
+                            {isLoggedIn && <Link href="#" onClick={handleSignOut} className="flex items-center">
+                                <span className="font-bold cursor-pointer">{language === "en" ? "LOGOUT" : "로그아웃"}</span>
+                            </Link>}
+                        </div>
                     </div>
                 </div>
-                {/* Secondary Navigation */}
-                <div className="flex items-center h-10 text-sm">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <div className="flex items-center gap-1 cursor-pointer">
-                                <Menu className="h-5 w-5" />
-                                <span>All</span>
-                            </div>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" side="bottom" align="start">
-                            <DropdownMenuItem>
-                                <Link href="/docs" className="flex flex-col items-start w-full">
-                                    <span className="text-md md:text-lg font-medium">1. 작법서 구매</span>
-                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                                <Link href="/docs" className="flex flex-col items-start w-full">
-                                    <span className="text-md md:text-lg font-medium">2. 온라인 강의 참여</span>
-                                    {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                                <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
-                                    <DialogTrigger asChild>
-                                        <Link href="#" className="flex flex-col items-start w-full">
-                                            <span className="text-md md:text-lg font-medium">3. 고객 지원</span>
-                                            {/* <span className="text-sm md:text-base">subtitle</span> */}
-                                        </Link>
-                                    </DialogTrigger>
-                                    <DialogContent showCloseButton={true} className="rounded-lg overflow-hidden">
-                                        <DialogHeader>
-                                            <DialogTitle>고객 지원</DialogTitle>
-                                        </DialogHeader>
-                                        <ContactForm />
-                                    </DialogContent>
-                                </Dialog>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    {/* {[
+                {/* Secondary menu Navigation */}
+                {/* <div className="flex items-center h-10 text-sm">
+                    {[
                         "Webnovel Writing",
                         "Courses",
                     ].map((item) => (
                         <Link key={item} href="#" className="mr-4 hover:underline whitespace-nowrap">
                             {item}
                         </Link>
-                    ))} */}
-                </div>
+                    ))}
+                </div> */}
             </div >
         </header >
     )

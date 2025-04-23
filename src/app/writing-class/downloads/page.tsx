@@ -7,57 +7,70 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import Link from "next/link"
 import SignInComponent from "@/components/SignInComponent"
 
+const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
+
 const downloadFiles = [
   {
     id: 1,
-    name: "Writing_Guide_1.pdf",
+    name: "Toonyz_Writing_Guide_1.pdf",
     modified: "Apr 15, 2023 10:37 AM",
     size: "2.4 MB",
     author: "Toonyz Content Team",
-    status: "unavailable"
+    status: "unavailable",
+    file_url_ko: "writing_guide_1_ko.pdf",
+    file_url_en: "",
   },
   {
     id: 2,
-    name: "Writing_Guide_2.pdf",
+    name: "Toonyz_Writing_Guide_2.pdf",
     modified: "Mar 22, 2023 3:55 PM",
     size: "1.8 MB",
     author: "Toonyz Content Team",
-    status: "unavailable"
+    status: "unavailable",
+    file_url_ko: "writing_guide_2_ko.pdf",
+    file_url_en: "",
   },
   {
     id: 3,
-    name: "Writing_Guide_3.pdf",
+    name: "Toonyz_Writing_Guide_3.pdf",
     modified: "Feb 09, 2023 3:37 PM",
     size: "4.2 MB",
     author: "Toonyz Content Team",
-    status: "unavailable"
+    status: "unavailable",
+    file_url_ko: "writing_guide_3_ko.pdf",
+    file_url_en: "",
   },
   {
     id: 4,
-    name: "Writing_Guide_4.pdf",
+    name: "Toonyz_Writing_Guide_4.pdf",
     modified: "Jan 18, 2023 1:32 PM",
     size: "0.5 MB",
     author: "Toonyz Content Team",
-    status: "unavailable"
+    status: "unavailable",
+    file_url_ko: "writing_guide_4_ko.pdf",
+    file_url_en: "",
   },
   {
     id: 5,
-    name: "Writing_Guide_5.pdf",
+    name: "Toonyz_Writing_Guide_5.pdf",
     modified: "Jan 05, 2023 1:31 PM",
     size: "8.7 MB",
     author: "Toonyz Content Team",
-    status: "available"
+    status: "available",
+    file_url_ko: `writing_guide_5_ko.pdf`,
+    file_url_en: "",
   },
   {
     id: 6,
-    name: "Writing_Guide_6.pdf",
+    name: "Toonyz_Writing_Guide_6.pdf",
     modified: "Dec 12, 2022 11:45 AM",
     size: "3.1 MB",
     author: "Toonyz Content Team",
-    status: "unavailable"
+    status: "unavailable",
+    file_url_ko: "writing_guide_6_ko.pdf",
+    file_url_en: "",
   },
 ]
-
 
 export default function DownloadsPage() {
   const { nickname } = useUser();
@@ -82,16 +95,12 @@ export default function DownloadsPage() {
         <div>
           <h1 className="text-3xl font-semibold text-gray-800">Download Files</h1>
           <p className="text-gray-500 mt-1">
-            {language === "en" ? <>Hi {nickname} There are 0 files available for download.</>
+            {language === "en" ? <>Hi {nickname}</>
               : <>{nickname} 안녕하세요! 다운로드 가능한 파일이 {downloadFiles.filter((file) => file.status === "available").length}개 있습니다.</>}
           </p>
         </div>
-        {/* <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2">
-          <PlusIcon className="h-5 w-5" />
-          Download PDF Files
-        </button> */}
       </div>
-      <FileDownloadList downloadFiles={downloadFiles} />
+      <FileDownloadList language={language} downloadFiles={downloadFiles} />
     </div>
   )
 }

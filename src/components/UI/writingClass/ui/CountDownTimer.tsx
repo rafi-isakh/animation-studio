@@ -3,9 +3,10 @@ import { useState, useEffect } from "react"
 
 interface CountdownTimerProps {
   targetDate: string
+  className?: string
 }
 
-export default function CountdownTimer({ targetDate }: CountdownTimerProps) {
+export default function CountdownTimer({ targetDate, className }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -69,7 +70,7 @@ export default function CountdownTimer({ targetDate }: CountdownTimerProps) {
   }, [targetDate])
   
   return (
-    <div className="flex justify-center items-center space-x-4 mb-6">
+    <div className={`${className} flex justify-center items-center space-x-4 mb-6`}>
       {Object.entries(timeLeft).map(([unit, value]) => (
         <div key={unit} className="flex flex-col items-center">
           <span className="text-4xl font-bold">{value}</span>

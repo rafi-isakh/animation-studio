@@ -1,4 +1,11 @@
+"use client"
+
 import { redirect } from 'next/navigation';
-export default async function UserLoggedIn() {
-    redirect('/')
+import { useSearchParams } from 'next/navigation';
+
+export default function UserLoggedIn() {
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get('returnTo') || '/';
+
+    redirect(returnTo);
 }

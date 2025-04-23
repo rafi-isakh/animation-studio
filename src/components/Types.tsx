@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface WebnovelIdProps {
     webnovelId: number;
 }
@@ -185,4 +187,26 @@ export type OtherTranslation = {
   element_type: string
   element_subtype: string
   done: boolean
+}
+
+
+export interface CourseBook {
+  id: number;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  author?: string;
+  coverColor?: string;
+  coverImage?: string;
+  textColor?: string;
+  description?: string;
+  description_en?: string;
+}
+
+export interface FaqItem {
+  question_ko: string;
+  question_en: string;
+  answer_ko: string | ReactNode;
+  answer_en: string | ReactNode;
 }

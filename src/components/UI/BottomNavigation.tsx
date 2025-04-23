@@ -51,6 +51,9 @@ export default function BottomNavigationBar() {
     };
 
     const hideBottomNavigationInPages = () => {
+        if (pathname.startsWith('/writing-class')) {
+            return "hidden"
+        }
         if (/^\/view_webnovels\/\d+\/chapter_view/.test(pathname)) { // hide bottom navigation in chapter view
             return "hidden"
         }

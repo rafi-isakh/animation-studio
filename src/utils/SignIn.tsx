@@ -20,10 +20,15 @@ export function getSessionUserEmail(session: Session) {
     return null
 }
 
-export function GoogleSignIn() {
+interface SignInProps {
+    redirectPath?: string;
+}
+
+export function GoogleSignIn({ redirectPath }: SignInProps) {
     const { language, dictionary } = useLanguage();
     const { login } = useAuth();
     const pathname = usePathname();
+    const redirectTo = redirectPath || pathname;
     
     return (
         <div className="relative inline-flex group w-[300px] h-[50px]">
@@ -40,7 +45,7 @@ export function GoogleSignIn() {
                     width: '100%',
                 }}
                 variant='text'
-                onClick={() => login('google', true, `/new_user`)}
+                onClick={() => login('google', true, `/new_user?returnTo=${redirectTo}`)}
                 className='flex-shrink-1 w-full relative inline-flex items-center px-6 py-3 md:text-base text-md font-medium text-black transition-all duration-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900'
                 type="submit">
                 <div className="w-[25px] flex items-center">
@@ -60,9 +65,12 @@ export function GoogleSignIn() {
     )
 }
 
-export function KakaoSignIn() {
+export function KakaoSignIn({ redirectPath }: SignInProps) {
     const { language, dictionary } = useLanguage();
     const { login } = useAuth();
+    const pathname = usePathname();
+    const redirectTo = redirectPath || pathname;
+    
     return (
         <div className="relative inline-flex group w-full h-[50px]">
             <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
@@ -78,7 +86,7 @@ export function KakaoSignIn() {
                     width: '100%',
                 }}
                 variant='text'
-                onClick={() => login('kakao', true, `/new_user`)}
+                onClick={() => login('kakao', true, `/new_user?returnTo=${redirectTo}`)}
                 className='flex-shrink-1 w-full relative inline-flex items-center justify-center px-6 py-3 md:text-base text-md font-medium text-black transition-all duration-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900'
                 type="submit">
                 <div className="w-[25px] flex items-center">
@@ -98,9 +106,12 @@ export function KakaoSignIn() {
     )
 }
 
-export function AppleSignIn() {
+export function AppleSignIn({ redirectPath }: SignInProps) {
     const { language, dictionary } = useLanguage();
     const { login } = useAuth();
+    const pathname = usePathname();
+    const redirectTo = redirectPath || pathname;
+    
     return (
         <div className="relative inline-flex group w-full h-[50px]">
             <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200">
@@ -116,7 +127,7 @@ export function AppleSignIn() {
                     width: '100%',
                 }}
                 variant='text'
-                onClick={() => login('apple', true, `/new_user`)}
+                onClick={() => login('apple', true, `/new_user?returnTo=${redirectTo}`)}
                 className='flex-shrink-1 w-full relative inline-flex items-center justify-center px-6 py-3 md:text-base text-md font-medium text-black transition-all duration-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900'
                 type="submit">
                 <div className="rounded-full p-1 flex items-center justify-center">

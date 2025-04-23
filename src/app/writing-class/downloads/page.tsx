@@ -68,7 +68,7 @@ export default function DownloadsPage() {
       <div className="container mx-auto py-8 px-4 min-h-screen">
         <p className="text-lg font-bold text-gray-800 text-center">{language === "en" ? "Please login to view downloads" : "로그인 후 다운로드 가능합니다."}</p>
         <div className='flex flex-col items-center justify-center h-[70vh] !p-10'>
-          <SignInComponent />
+          <SignInComponent redirectTo="writing-class/downloads" />
         </div>
       </div>)
   }

@@ -9,23 +9,15 @@ import { Button } from "@/components/shadcnUI/Button"
 import { Language } from "@/components/Types"
 import SignInComponent from "@/components/SignInComponent"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuPortal,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger,
-} from "@/components/shadcnUI/DropdownMenu"
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/shadcnUI/Popover"
 import { useAuth } from "@/contexts/AuthContext";
 import { usePathname } from "next/navigation";
 import { ContactForm } from "@/components/UI/FAQ";
 import { useUser } from "@/contexts/UserContext";
+import { DropdownMenu } from "@/components/shadcnUI/DropdownMenu";
 
 export const LoginDialog = () => {
     return (
@@ -48,40 +40,35 @@ export const UserAccountDropdownMenu = ({ language }: { language: Language }) =>
     const [openContactForm, setOpenContactForm] = useState(false);
 
     return (
-        <DropdownMenuContent className="w-56" side="bottom" align="start">
-            <DropdownMenuItem>
-                <Link href="/writing-class/downloads" className="flex flex-col items-start w-full">
-                    <span className="text-md md:text-lg font-medium">{language === "en" ? "Downloads" : "작법서 다운로드"}</span>
-                </Link>
-            </DropdownMenuItem>
-            {/* <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    <Link href="/docs" className="flex flex-col items-start w-full">
-                        <span className="text-md md:text-lg font-medium">2. 온라인 강의 참여</span>
-                    
+        <PopoverContent className="w-56" side="bottom" align="start">
+            <div className="flex flex-col gap-2 items-start w-full list-none">
+                <li>
+                    <Link href="/writing-class/downloads" className="flex flex-col items-start w-full">
+                        <span className="text-md md:text-lg font-medium">{language === "en" ? "Downloads" : "작법서 다운로드"}</span>
                     </Link>
-                </DropdownMenuItem> */}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-                <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
-                    <Link 
-                        href="#" 
-                        className="flex flex-col items-start w-full" 
-                        onClick={(event) => {
-                            event.preventDefault();
-                            setOpenContactForm(true);
-                        }}>
-                        <span className="text-md md:text-lg font-medium">고객 지원</span>
-                    </Link>
-                    <DialogContent showCloseButton={true} className="!bg-white">
-                        <DialogHeader>
-                            <DialogTitle>고객 지원</DialogTitle>
-                        </DialogHeader>
-                        <ContactForm />
-                    </DialogContent>
-                </Dialog>
-            </DropdownMenuItem>
-        </DropdownMenuContent>
+                </li>
+                <li>
+                    <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
+                        <Link
+                            href="#"
+                            className="flex flex-col items-start w-full"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setOpenContactForm(true);
+                            }}>
+                            <span className="text-md md:text-lg font-medium">고객 지원</span>
+                        </Link>
+                        <DialogContent showCloseButton={true} className="!bg-white">
+                            <DialogHeader>
+                                <DialogTitle>고객 지원</DialogTitle>
+                            </DialogHeader>
+                            <ContactForm />
+                        </DialogContent>
+                    </Dialog>
+                </li>
+            </div>
+        </PopoverContent>
     )
 }
 
@@ -123,15 +110,15 @@ const WritingClassHeader = () => {
 
                     <div className="flex-1 flex items-center">
                         <div className="md:hidden flex-1 flex justify-end">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                            <Popover>
+                                <PopoverTrigger asChild>
                                     <div className="flex items-center gap-1 cursor-pointer">
                                         <Menu className="h-5 w-5" />
                                         <span>All</span>
                                     </div>
-                                </DropdownMenuTrigger>
+                                </PopoverTrigger>
                                 <UserAccountDropdownMenu language={language} />
-                            </DropdownMenu>
+                            </Popover>
                         </div>
                     </div>
 
@@ -139,14 +126,14 @@ const WritingClassHeader = () => {
                         {isLoggedIn && <div className="text-xs">
                             <div>Hello, {nickname}</div>
                             <div className="font-bold flex items-center">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
+                                <Popover>
+                                    <PopoverTrigger asChild>
                                         <div className="flex items-center gap-1 cursor-pointer">
                                             <span>{language === "en" ? "Downloads" : "계정 & 다운로드"}</span> <ChevronDown className="h-3 w-3 ml-1" />
                                         </div>
-                                    </DropdownMenuTrigger>
+                                    </PopoverTrigger>
                                     <UserAccountDropdownMenu language={language} />
-                                </DropdownMenu>
+                                </Popover>
                             </div>
                         </div>}
                         <Link

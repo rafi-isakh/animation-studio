@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useUser } from "@/contexts/UserContext"
 import { useLanguage } from "@/contexts/LanguageContext"
 import Link from "next/link"
+import SignInComponent from "@/components/SignInComponent"
 
 const downloadFiles = [
   {
@@ -63,7 +64,13 @@ export default function DownloadsPage() {
   const { isLoggedIn } = useAuth();
   const { language } = useLanguage();
   if (!isLoggedIn) {
-    return <div>Please login to view your downloads.</div>
+    return (
+      <div className="container mx-auto py-8 px-4 min-h-screen">
+        <p className="text-lg font-bold text-gray-800 text-center">{language === "en" ? "Please login to view downloads" : "로그인 후 다운로드 가능합니다."}</p>
+        <div className='flex flex-col items-center justify-center h-[70vh] !p-10'>
+          <SignInComponent />
+        </div>
+      </div>)
   }
 
   return (
@@ -76,7 +83,7 @@ export default function DownloadsPage() {
           <h1 className="text-3xl font-semibold text-gray-800">Download Files</h1>
           <p className="text-gray-500 mt-1">
             {language === "en" ? <>Hi {nickname} There are 0 files available for download.</>
-                                : <>{nickname} 안녕하세요! 다운로드 가능한 파일이 {downloadFiles.filter((file) => file.status === "available").length}개 있습니다.</>}
+              : <>{nickname} 안녕하세요! 다운로드 가능한 파일이 {downloadFiles.filter((file) => file.status === "available").length}개 있습니다.</>}
           </p>
         </div>
         {/* <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2">

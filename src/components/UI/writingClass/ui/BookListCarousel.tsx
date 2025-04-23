@@ -122,19 +122,21 @@ export function BookListCarousel() {
             className="min-w-[300px] md:min-w-[350px] px-3 snap-start flex-shrink-0"
             style={{ width: "calc(100% / 3)" }}
           >
-            <Dialog open={!!selectedBook} onOpenChange={() => setSelectedBook(null)}>
               <Link
                 href="#"
                 onClick={(e) => {
                   e.preventDefault()
-                  setSelectedBook(category as unknown as CourseBook)
+                  setSelectedBook(category as CourseBook)
                 }}>
                 <BookCoverCard
                   title={language === "en" ? (category.title_en || category.title) : category.title}
                   description={language === "en" ? (category.subtitle_en || category.subtitle) : category.subtitle}
                   coverImage={category.coverImage || ""}
+                  language={language}
+                  id={category.id}
                 />
               </Link>
+             <Dialog open={!!selectedBook} onOpenChange={(isOpen) => !isOpen && setSelectedBook(null)}>
               <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} language={language} />
             </Dialog>
           </div>

@@ -6,14 +6,14 @@ import { useLanguage } from "@/contexts/LanguageContext"
 export default function LearningSection() {
   const { language } = useLanguage();
   const features = [
-    language === "en" ? "Thousands of creative classes. Beginner to pro." 
-                      : "초보자에서 전문가까지 큐레이션 된 창의적인 클래스",
-    language === "en" ? "Taught by creative pros and industry icons." 
-                      : "프로 전문가와 현업 웹소설 작가들이 가르칩니다.",
-    language === "en" ? "Learning Paths to help you achieve your goals." 
+    language === "en" ? "Writing guide books for beginners to pros" 
+                      : "초보자에서 전문가까지 큐레이션 된 체계적인 작법서 시리즈",
+    language === "en" ? "Tips and tricks by pros and best-selling authors" 
+                      : "프로 전문가와 현업 웹소설 작가들의 팁과 노하우",
+    language === "en" ? "Learning Paths to help you achieve your goals" 
                       : "목표를 달성하는 데 도움이 되는 학습 경로 제공",
-    language === "en" ? "Certificates to celebrate your accomplishments." 
-                      : "당신의 성취를 축하하는 수료증 제공"
+    language === "en" ? "Practical tips for real-world writing" 
+                      : "현업에 바로 적용할 수 있는 웹소설 글쓰기 팁",
   ]
 
   return (
@@ -22,15 +22,15 @@ export default function LearningSection() {
         <div className="flex flex-col gap-4">
           <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight ">
             {language === "en" ? "Master Webnovel Writing" 
-                               : "마스터 웹소설 클래스"}
+                               : "마스터 웹소설 작법서"}
           </h2>
           <p className="text-xl pb-4">
             {language === "en" ? "Start your global webnovel journey now" 
                                : "지금 바로 글로벌 웹소설 작가의 여정을 시작하세요"}
           </p>
           <RoundedButton className='w-[330px] md:mx-0 mx-auto'>
-            <Link href="#">
-              {language === "en" ? "Join Now" : "글쓰기 클래스 바로 신청하기"}
+            <Link href="/writing-class/downloads">
+              {language === "en" ? "Download Now" : "지금 작법서 무료로 받기"}
             </Link>
           </RoundedButton>
         </div>

@@ -10,7 +10,7 @@ const SignInComponent = () => {
   const { language, dictionary } = useLanguage()
   return (
     <div className="md:w-max-screen-md flex flex-col justify-center text-lg font-semibold font-pretendard">
-      <div className="w-[360px] flex flex-col items-center justify-center rounded-xl">
+      <div className="md:w-[360px] w-full flex flex-col items-center justify-center rounded-xl">
         <span className="relative flex h-28 w-28">
           <span className="relative inline-flex rounded-full h-28 w-28 border-[#FFE2DC]">
             <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className='self-center mx-auto' />

@@ -29,13 +29,13 @@ import { useUser } from "@/contexts/UserContext";
 
 export const LoginDialog = () => {
     return (
-        <DialogContent showCloseButton={true}>
+        <DialogContent showCloseButton={true} className="!bg-white md:p-4 px-0">
             <DialogHeader>
                 <DialogTitle>Login</DialogTitle>
                 <DialogDescription> Welcome to Toonyz </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-                <div className="mx-auto">
+                <div className="flex justify-center items-center mx-auto">
                     <SignInComponent />
                 </div>
             </DialogFooter>

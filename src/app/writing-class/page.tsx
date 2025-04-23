@@ -47,21 +47,21 @@ export default function WritingClassPage() {
           <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">99% OFF</p>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {language === "en" ? <><span className="">Webnovel Writing Debut</span>, <br /> No longer a dream</>
-                               : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
+              : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
           </h1>
           <p className="text-gray-600 mb-8 max-w-lg">
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
-                               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
+              : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
           <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
             <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link> 
-                          : <>
-                            <Link href="#" onClick={() => setOpenLoginDialog(true)}>
-                              {language === "en" ? "Download Free Writing Book" : "가입하고 무료로 작법서 받기"}
-                            </Link>
-                            <LoginDialog />
-                          </>
+              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link>
+                : <>
+                  <Link href="#" onClick={() => setOpenLoginDialog(true)}>
+                    {language === "en" ? "Download Free Writing Book" : "가입하고 무료로 작법서 받기"}
+                  </Link>
+                  <LoginDialog />
+                </>
               }
             </RoundedButton>
           </Dialog>
@@ -73,7 +73,7 @@ export default function WritingClassPage() {
               <BookCard
                 title={language === "en" ? "1. Webnovel Writing" : "1. 웹소설의 세계로"}
                 author={language === "en" ? "Become a Digital Storyteller" : "디지털 시대의 이야기꾼 되기"}
-                color="bg-[#dbe9fe]"
+                color="bg-[#DBE9FE]"
                 imageUrl="/writing-class/images/bookcover/book1.svg"
               />
               <BookCard
@@ -122,11 +122,11 @@ export default function WritingClassPage() {
             <h3 className="md:relative md:left-10 text-2xl md:text-4xl font-bold text-center mb-8 md:order-1 order-2">
               <span className="text-gray-500 z-10">
                 {language === "en" ? "Helping you become a webnovel writer"
-                                   : "웹소설 작가로 데뷔를 도와주는"}
+                  : "웹소설 작가로 데뷔를 도와주는"}
               </span> <br />
               <span className="text-black z-10">
                 {language === "en" ? "TOONYZ Writing 101 Class OPEN"
-                                   : "투니즈 글쓰기 101 작법서 출간 OPEN"}
+                  : "투니즈 글쓰기 101 작법서 출간 OPEN"}
               </span>
             </h3>
             <Image
@@ -186,10 +186,10 @@ export default function WritingClassPage() {
       <section className="w-full mx-auto px-4 py-16 md:py-24">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            {language === "en" ? "TOP Writing Guide Class" : "TOP 작법서 클래스"}
+            {language === "en" ? "TOP Writing Guide" : "TOP 작법서 시리즈"}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto whitespace-pre-line break-keep">
-            {language === "en" ? "Introducing the best writing guide class that has received the most love." : "가장 많은 사랑을 받은 베스트 작법서 클래스를 소개합니다."}
+            {language === "en" ? "Introducing the best writing guide books that has received the most love." : "가장 많은 사랑을 받은 베스트 작법서를 소개합니다."}
           </p>
         </div>
         <BookListCarousel />
@@ -249,16 +249,21 @@ export default function WritingClassPage() {
           </p>
           <p className="md:text-xl text-sm mx-auto">
             {language === "en" ? "Once you finish the Toonyz Writing Class,"
-              : "투니즈 글쓰기 101 참고서를 읽고나면,"}
+              : "투니즈 글쓰기 101 작법서를 완독하면,"}
           </p>
 
 
           <div className="max-w-screen-md mx-auto md:p-10 p-4">
             <hr className="border border-gray-300 mb-8" />
             <ul className="md:text-xl text-sm grid grid-cols-1 gap-4 text-black text-left">
-              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+              {/* <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
                 <p>{language === "en" ? "7 books with a systematic synopsis creation strategy"
-                  : "체계적으로 완성된 시놉시스 만들기 노하우를 담은 책 7권"}</p>
+                  : "추첨 후 체계적으로 완성된 시놉시스 만들기 노하우를 담은 비결"}</p>
+                <p>✅</p>
+              </li> */}
+              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+                <p>{language === "en" ? "You get premium benefits when you write in Toonyz"
+                  : "투니즈에 연재시 내부 추천 후 프리미엄 혜택 부여 및 제공"}</p>
                 <p>✅</p>
               </li>
               <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
@@ -276,103 +281,110 @@ export default function WritingClassPage() {
                   : "웹소설 작가의 데뷔 완벽 로드맵 제공"}</p>
                 <p>✅</p>
               </li>
-              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p>{language === "en" ? "Official Toonyz Writing Class completion certificate issued"
-                  : "공식 투니즈 클래스 수강 완료 취득서 발급"}</p>
-                <p>✅</p>
-              </li>
             </ul>
           </div>
 
           <div className="py-16">
             <RoundedButton className='w-[330px] mx-auto'>
-              <Link href="#">
+              <Link href="/writing-class/downloads">
                 {language === "en" ? "Download Free e-book"
                   : "무료 작법서 다운로드 받기"}
               </Link>
             </RoundedButton>
             <p className="mt-4 text-sm">
               {language === "en" ? "Easy login to download"
-                : "간편 로그인으로 바로 다운로드 가능해요"}
+                  : "간편 로그인으로 바로 다운로드 가능해요"}
             </p>
           </div>
         </div>
       </section>
 
-      <section className="container max-w-screen-md mx-auto md:p-10 p-0">
-        <div className="bg-white p-8 rounded-lg ">
-          <h3 className="text-2xl font-bold mb-8 text-center">
-            {language === "en" ? "Benefits for participants" : "참가자 혜택"}
-          </h3>
-          <ul className="space-y-4 md:text-xl text-sm">
-            <li className="flex items-start">
-              <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
-              <span>
-                {language === "en" ? "K-Webnovel Structure Template Pack (PDF)"
-                  : "K-웹소설 구조 템플릿 풀 패키지 (PDF)"}
-              </span>
-            </li>
-            <li className="flex items-start">
-              <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
-              <span>
-                {language === "en" ? "Exclusive Story Hook Guide"
-                  : "독자를 끌어당기는 웹소설 훅 비법 가이드"}
-              </span>
-            </li>
-            <li className="flex items-start">
-              <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
-              <span>
-                {language === "en" ? "Access to private writing Discord group"
-                  : "웹소설 작가 프라이빗 모임 온/오프라인 기회 제공"}
-              </span>
-            </li>
-            <li className="flex items-start">
-              <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
-              <span>{language === "en" ? "Feedback from professional editors"
-                : "현업 작가들에게 1:1 피드백 기회 제공"}</span>
-            </li>
-          </ul>
-
-          <div className="mt-8 pt-8 border-t">
-            <ul className="grid grid-cols-1 gap-4">
-              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Time" : "일정"}</p>
-                <p className="text-right md:text-md text-sm">
-                  2025년 5월 7일 (예정) <br />
-                  모집기간: 4월 18일 ~ 5월 6일 까지
-                </p>
+      <section className="relative w-full h-full mx-auto md:p-10 md:pb-16 p-0">
+        <div className="absolute inset-0 bg-black/80  z-50 flex flex-col items-center justify-center">
+          <h1 className="text-white md:text-4xl text-2xl font-bold text-center">
+            {language === "en" ? "Ended Session" : "종료된 세션입니다. 감사합니다."}
+          </h1>
+        </div>
+        <div className="relative container md:max-w-screen-md mx-auto pb-8">
+          <div className="bg-white p-8 rounded-lg ">
+            <h3 className="text-2xl font-bold mb-8 text-center">
+              {language === "en" ? "Benefits for participants" : "참가자 혜택"}
+            </h3>
+            <ul className="space-y-4 md:text-xl text-sm">
+              <li className="flex items-start">
+                <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
+                <span>
+                  {language === "en" ? "K-Webnovel Structure Template Pack (PDF)"
+                    : "K-웹소설 구조 템플릿 풀 패키지 (PDF)"}
+                </span>
               </li>
-              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Duration" : "시간"}</p>
-                <p className="text-right md:text-md text-sm">
-                  4주 (주 2회 실시간 Zoom 세션) <br />
-                  00:00 AM - 00:00 PM
-                </p>
+              <li className="flex items-start">
+                <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
+                <span>
+                  {language === "en" ? "Exclusive Story Hook Guide"
+                    : "독자를 끌어당기는 웹소설 훅 비법 가이드"}
+                </span>
               </li>
-              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Price" : "가격"}</p>
-                <p className="text-right md:text-md text-sm">
-                  얼리버드 $199/선착순 10명 <br />
-                  최종 가격 $299
-                </p>
+              <li className="flex items-start">
+                <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
+                <span>
+                  {language === "en" ? "Access to private writing Discord group"
+                    : "웹소설 작가 프라이빗 모임 온/오프라인 기회 제공"}
+                </span>
               </li>
-              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Participants" : "인원"}</p>
-                <p className="text-right md:text-md text-sm">20명</p>
+              <li className="flex items-start">
+                <Check className="h-6 w-6 bg-[#DE2B74] text-white rounded-full p-1 mr-2 flex-shrink-0 mt-0.5" />
+                <span>{language === "en" ? "Feedback from professional editors"
+                  : "현업 작가들에게 1:1 피드백 기회 제공"}</span>
               </li>
             </ul>
+
+            <div className="mt-8 pt-8 border-t">
+              <ul className="grid grid-cols-1 gap-4">
+                <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+                  <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Time" : "일정"}</p>
+                  <p className="text-right md:text-md text-sm">
+                    2025년 - <br />
+                    모집기간: 4월 18일 ~ 5월 6일 까지
+                  </p>
+                </li>
+                <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+                  <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Duration" : "시간"}</p>
+                  <p className="text-right md:text-md text-sm">
+                    4주 (주 2회 실시간 Zoom 세션) <br />
+                  </p>
+                </li>
+                <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+                  <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Price" : "가격"}</p>
+                  <p className="text-right md:text-md text-sm">
+                    얼리버드 $199/선착순 10명 <br />
+                    최종 가격 $299
+                  </p>
+                </li>
+                <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+                  <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Participants" : "인원"}</p>
+                  <p className="text-right md:text-md text-sm">20명</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center">
+            <Button disabled={true} className="w-[330px] mx-auto self-center">
+              {language === "en" ? "Session Ended" : "종료된 세션입니다. 감사합니다."}
+            </Button>
+            {/* <RoundedButton backgroundColor="#000000" className="w-[330px] mx-auto ">
+                <Link href="#">
+                  {language === "en" ? "Reserve Your Spot Now" : "지금 바로 예약하기"}
+                </Link>
+              </RoundedButton> */}
+            <p className="text-center text-sm text-[#DE2B74] mt-3">
+              {language === "en" ? "Only 20 writers will be accepted."
+                : "최대 20명의 예비 작가만 수용합니다."}
+              <span className="text-black">*</span>
+            </p>
           </div>
         </div>
-        <RoundedButton backgroundColor="#000000" className="w-[330px] mx-auto ">
-          <Link href="#">
-            {language === "en" ? "Reserve Your Spot Now" : "지금 바로 예약하기"}
-          </Link>
-        </RoundedButton>
-        <p className="text-center text-sm text-[#DE2B74] mt-3">
-          {language === "en" ? "Only 20 writers will be accepted."
-            : "최대 20명의 예비 작가만 수용합니다."}
-          <span className="text-black">*</span>
-        </p>
       </section>
 
 
@@ -412,7 +424,7 @@ export default function WritingClassPage() {
               </div>
               <p className="text-gray-700">
                 The structured approach to episodic storytelling completely changed how I write. My latest series has
-                over 500,000 reads on Wattpad!
+                over 500,000 reads on Webnovel!
               </p>
             </div>
 

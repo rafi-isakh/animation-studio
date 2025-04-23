@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/shadcnUI/Button"
+import Link from "next/link"
 
 interface Book {
   id: string
@@ -201,7 +202,7 @@ export function BookTab() {
             <div className={`${book.coverColor} p-8 rounded-lg mb-4 shadow-md relative`}>
               <div className="bg-transparent aspect-[2/3] rounded transform rotate-0 transition-transform hover:rotate-3 duration-300">
                 <Image
-                  src={book.coverImage || "/placeholder.svg"}
+                  src={book.coverImage || "/coverArt_thumbnail.png"}
                   alt={book.title}
                   width={100}
                   height={150}
@@ -218,7 +219,9 @@ export function BookTab() {
                       <Button
                         variant="outline"
                         className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white text-center p-4 text-xl font-bold cursor-pointer">
-                        {language === "en" ? "Download" : "다운받기"}
+                        <Link href="/writing-class/downloads">
+                          {language === "en" ? "Download" : "다운받기"}
+                        </Link>
                       </Button>
                     ) : (
                       <Button

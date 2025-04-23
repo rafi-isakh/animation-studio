@@ -1,19 +1,10 @@
-"use client"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/shadcnUI/Accordion"
-import { useLanguage } from "@/contexts/LanguageContext";
+import FAQ from "@/components/UI/FAQ";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { FaqItem } from "@/components/Types";
 
-interface FaqItem {
-  question_ko: string
-  question_en: string
-  answer_ko: string | ReactNode
-  answer_en: string | ReactNode
-}
 
-export default function FaqSection() {
-  const { language } = useLanguage();
-  const faqItems: FaqItem[] = [
+const faqItems: FaqItem[] = [
     {
       question_ko: "투니즈 작법서는 무료인가요?",
       question_en: "Are Toonyz writing class books free?",
@@ -54,23 +45,14 @@ export default function FaqSection() {
     }
   ]
 
-  return (
-    <div className="w-full max-w-3xl mx-auto">
-      <h2 className="text-3xl font-bold mb-8 text-center">
-        {language === "en" ? "Frequently Asked Questions" : "자주 묻는 질문"}
-      </h2>
-      <Accordion type="single" collapsible className="w-full">
-        {faqItems.map((item, index) => (
-          <AccordionItem key={index} value={`item-${index}`} className="border-b border-[#d2d2d7]">
-            <AccordionTrigger className="text-lg text-left py-5 text-[#1d1d1f] hover:no-underline hover:text-[#DE2B74] font-medium">
-              {language === "en" ? item.question_en : item.question_ko}
-            </AccordionTrigger>
-            <AccordionContent className="text-[#86868b] pb-5">
-              {language === "en" ? item.answer_en : item.answer_ko}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </div>
-  )
+
+const FAQPage = () => {
+    return (
+        <div className="mx-auto">
+            <FAQ faqItems={faqItems} />
+            <div className="h-[10vh]"></div>
+        </div>
+    )
 }
+
+export default FAQPage;

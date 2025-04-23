@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-
+import { FaqItem } from "@/components/Types"
 export const ContactForm = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
@@ -22,7 +22,7 @@ export const ContactForm = () => {
     }
 
     function sendMessage() {
-        fetch("api/send_email", {
+        fetch("/api/send_email", {
             method: "POST",
             headers: { // Good practice to specify content type
                 'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export const ContactForm = () => {
 
 
 
-export default function FAQ() {
+export default function FAQ({  faqItems }: { faqItems?: FaqItem[] }) {
     const { dictionary, language } = useLanguage()
 
     return (
@@ -125,16 +125,6 @@ export default function FAQ() {
                         {/* bg-gradient-to-r from-[#8B6B6B] to-[#A9A889] */}
                         <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white md:mb-12 mb-4">FAQS</h1>
 
-                        <div className="md:hidden inline-flex pb-4 mx-auto">
-                            <iframe
-                                src="https://www.youtube.com/embed/OyN8QHqYONc"
-                                allowFullScreen
-                                title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                loading="lazy"
-                                referrerPolicy="strict-origin-when-cross-origin"
-                                className="w-[290px] aspect-video" />
-                        </div>
                         <div className="space-y-4">
                             <p className="text-black dark:text-white text-sm mb-8">
                                 {language === "ko" ? "문의하실 내용이 있으시다면" : "Please contact us at"} {" "}
@@ -144,6 +134,17 @@ export default function FAQ() {
                                 {language === "ko" ? "에 문의해주세요." : "for more information."}
                             </p>
                             <Accordion type="single" collapsible className="space-y-4">
+                                {faqItems?.map((item, index) => (
+                                    <AccordionItem key={index} value={`writing-class-item-${index}`} className="border-b border-black/20">
+                                        <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
+                                            {language === "en" ? item.question_en : item.question_ko}
+                                        </AccordionTrigger>
+                                        <AccordionContent className="text-black/80 dark:text-white">
+                                            {language === "en" ? item.answer_en : item.answer_ko}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+
                                 <AccordionItem value="item-1" className="border-b border-black/20">
                                     <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
                                         {/* What's the Toonyz Post? */}
@@ -194,7 +195,7 @@ export default function FAQ() {
                                     </AccordionTrigger>
                                     <AccordionContent className="text-black/80 dark:text-white">
                                         {language === "ko" ? <>2차 저작물에 대한 저작권에 동의한 작품에 대하여 이미지와 비디오 생성이 가능하고 상업적 이용으로 하지 않는 경우에 한해 저작권 문제가 발생하지 않습니다. 하지만 상업적으로 무단 이용할 경우 추후 저작권 문제가 발생할 수 있고, 이 경우 투니즈 포스트 이용이 제한될 수 있습니다.</>
-                                                           : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
+                                            : <>For works that have agreed to the copyright for secondary works, image and video generation is possible, and there is no copyright issue as long as it is not used for commercial purposes.</>}
                                     </AccordionContent>
                                 </AccordionItem>
 
@@ -212,7 +213,6 @@ export default function FAQ() {
                             </Accordion>
                         </div>
                     </div>
-
                     {/* Contact Form Section */}
                     <ContactForm />
                 </div>

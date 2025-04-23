@@ -58,17 +58,17 @@ export default function WritingClassFooter() {
                         {/* <h3 className="text-lg font-bold mb-4">Resources</h3> */}
                         <ul className="flex flex-row gap-2 justify-end">
                             <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                                <Link href="#" target="_blank" className="text-sm text-gray-400 hover:text-white">
+                                <Link href="https://x.com/stelland_hello" target="_blank" className="text-sm text-gray-400 hover:text-white">
                                     <Twitter className="w-4 h-4" />
                                 </Link>
                             </li>
                             <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                                <Link href="#" target="_blank" className="text-sm text-gray-400 hover:text-white">
+                                <Link href="https://www.instagram.com/stelland_official/" target="_blank" className="text-sm text-gray-400 hover:text-white">
                                     <Instagram className="w-4 h-4" />
                                 </Link>
                             </li>
                             <li className="bg-gray-800 rounded-full p-2 px-2 inline-flex items-center justify-center ">
-                                <Link href="#" target="_blank" className="text-sm text-gray-400 hover:text-white">
+                                <Link href="https://www.linkedin.com/company/stellandio" target="_blank" className="text-sm text-gray-400 hover:text-white">
                                     <Linkedin className="w-4 h-4" />
                                 </Link>
                             </li>

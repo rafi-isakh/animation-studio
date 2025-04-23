@@ -1,7 +1,7 @@
 'use client';
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Info } from "lucide-react";
 import { Dialog } from "@/components/shadcnUI/Dialog"
 import { Language } from "@/components/Types";
 import { Button } from "@/components/shadcnUI/Button";
@@ -219,10 +219,10 @@ export default function WritingClassPage() {
 
       {/* Program Details Section */}
       <section className="py-16 bg-gray-100">
-        <h2 className="text-3xl font-bold text-center">
-          {language === "en" ? "4 Weeks, 7 e-books, 1 Completed Story That You Can Start"
-            : "4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다"}
-        </h2>
+        <div className="flex justify-center items-center text-center break-keep">
+          {language === "en" ? <h3 className="md:text-3xl text-lg font-bold text-center">4 Weeks, 7 e-books, 1 Completed Story That You Can Start</h3>
+            : <h3 className="md:text-3xl text-lg font-bold text-center">4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다</h3>}
+        </div>
         <LearningSection />
       </section>
 
@@ -239,15 +239,15 @@ export default function WritingClassPage() {
             height={100}
             className="mx-auto"
           />
-          <h2 className="text-xl md:text-4xl font-bold mb-6">
+          <h2 className="text-xl md:text-4xl font-bold mb-6 break-keep">
             {language === "en" ? "Webnovel Writing is now possible with Toonyz Writing Class"
               : "웹소설 작가 데뷔는 투니즈 글쓰기 101로 가능합니다 "}
           </h2>
-          <p className="md:text-xl text-sm mb-8 mx-auto">
+          <p className="md:text-xl text-sm mb-8 mx-auto break-keep">
             {language === "en" ? "One day 10 minutes, one month 200, a webnovel writer/e-book PDF side hustle, it's no longer a dream!"
               : "하루 10분 일하고 월 200 꾸준히 버는 웹소설 작가/전자책 PDF 부업, 이제 꿈이 아닙니다!"}
           </p>
-          <p className="md:text-xl text-sm mx-auto">
+          <p className="md:text-xl text-sm mx-auto break-keep">
             {language === "en" ? "Once you finish the Toonyz Writing Class,"
               : "투니즈 글쓰기 101 작법서를 완독하면,"}
           </p>
@@ -256,11 +256,11 @@ export default function WritingClassPage() {
           <div className="max-w-screen-md mx-auto md:p-10 p-4">
             <hr className="border border-gray-300 mb-8" />
             <ul className="md:text-xl text-sm grid grid-cols-1 gap-4 text-black text-left">
-              {/* <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p>{language === "en" ? "7 books with a systematic synopsis creation strategy"
-                  : "추첨 후 체계적으로 완성된 시놉시스 만들기 노하우를 담은 비결"}</p>
+              <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
+                <p>{language === "en" ? "Offer a special one-to-one feedback"
+                  : "내부 심사 후 체계적으로 완성된 1:1 피드백 제공"}</p>
                 <p>✅</p>
-              </li> */}
+              </li>
               <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
                 <p>{language === "en" ? "You get premium benefits when you write in Toonyz"
                   : "투니즈에 연재시 내부 추천 후 프리미엄 혜택 부여 및 제공"}</p>
@@ -293,7 +293,7 @@ export default function WritingClassPage() {
             </RoundedButton>
             <p className="mt-4 text-sm">
               {language === "en" ? "Easy login to download"
-                  : "간편 로그인으로 바로 다운로드 가능해요"}
+                : "간편 로그인으로 바로 다운로드 가능해요"}
             </p>
           </div>
         </div>
@@ -301,8 +301,9 @@ export default function WritingClassPage() {
 
       <section className="relative w-full h-full mx-auto md:p-10 md:pb-16 p-0">
         <div className="absolute inset-0 bg-black/80  z-50 flex flex-col items-center justify-center">
-          <h1 className="text-white md:text-4xl text-2xl font-bold text-center">
-            {language === "en" ? "Ended Session" : "종료된 세션입니다. 감사합니다."}
+          <h1 className="inline-flex flex-col gap-2 items-center text-white md:text-4xl text-2xl font-bold text-center">
+            <Info className="w-10 h-10" />
+            <span> {language === "en" ? "Ended Session" : "종료된 세션입니다. 감사합니다."} </span>
           </h1>
         </div>
         <div className="relative container md:max-w-screen-md mx-auto pb-8">
@@ -344,7 +345,6 @@ export default function WritingClassPage() {
                 <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
                   <p className="font-bold md:text-2xl text-xl">{language === "en" ? "Time" : "일정"}</p>
                   <p className="text-right md:text-md text-sm">
-                    2025년 - <br />
                     모집기간: 4월 18일 ~ 5월 6일 까지
                   </p>
                 </li>

@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface WebnovelIdProps {
     webnovelId: number;
 }
@@ -202,3 +204,9 @@ export interface CourseBook {
   description_en?: string;
 }
 
+export interface FaqItem {
+  question_ko: string;
+  question_en: string;
+  answer_ko: string | ReactNode;
+  answer_en: string | ReactNode;
+}

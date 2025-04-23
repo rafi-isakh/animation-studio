@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ChevronDown, Globe, Menu } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog"
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger, AlertDialogCancel } from "@/components/shadcnUI/AlertDialog";
 import { Button } from "@/components/shadcnUI/Button"
 import { Language } from "@/components/Types"
 import SignInComponent from "@/components/SignInComponent"
@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePathname } from "next/navigation";
 import { ContactForm } from "@/components/UI/FAQ";
 import { useUser } from "@/contexts/UserContext";
-import { DropdownMenu } from "@/components/shadcnUI/DropdownMenu";
+import { DialogContent, DialogHeader, DialogDescription, DialogTitle, DialogFooter, DialogTrigger, Dialog } from "@/components/shadcnUI/Dialog";
 
 export const LoginDialog = () => {
     return (
@@ -36,36 +36,26 @@ export const LoginDialog = () => {
 }
 
 
-export const UserAccountDropdownMenu = ({ language }: { language: Language }) => {
+export const UserAccountPopoverMenu = ({ language, setOpenPopover }: { language: Language, setOpenPopover: (open: boolean) => void }) => {
     const [openContactForm, setOpenContactForm] = useState(false);
+
+    // Function to close the popover
+    const closePopover = () => {
+        setOpenPopover(false);
+    };
 
     return (
         <PopoverContent className="w-56" side="bottom" align="start">
             <div className="flex flex-col gap-2 items-start w-full list-none">
                 <li>
-                    <Link href="/writing-class/downloads" className="flex flex-col items-start w-full">
+                    <Link href="/writing-class/downloads" className="flex flex-col items-start w-full" onClick={closePopover}>
                         <span className="text-md md:text-lg font-medium">{language === "en" ? "Downloads" : "작법서 다운로드"}</span>
                     </Link>
                 </li>
                 <li>
-                    <Dialog open={openContactForm} onOpenChange={setOpenContactForm}>
-                        <Link
-                            href="#"
-                            className="flex flex-col items-start w-full"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setOpenContactForm(true);
-                            }}>
-                            <span className="text-md md:text-lg font-medium">고객 지원</span>
-                        </Link>
-                        <DialogContent showCloseButton={true} className="!bg-white">
-                            <DialogHeader>
-                                <DialogTitle>고객 지원</DialogTitle>
-                            </DialogHeader>
-                            <ContactForm />
-                        </DialogContent>
-                    </Dialog>
+                    <Link href="/writing-class/faq" className="flex flex-col items-start w-full" onClick={closePopover}>
+                        <span className="text-md md:text-lg font-medium">{language === "en" ? "FAQ" : "자주 묻는 질문"}</span>
+                    </Link>
                 </li>
             </div>
         </PopoverContent>
@@ -78,8 +68,9 @@ const WritingClassHeader = () => {
     const { isLoggedIn, logout } = useAuth();
     const { nickname } = useUser();
     const [openLoginDialog, setOpenLoginDialog] = useState(false);
+    const [mobilePopoverOpen, setMobilePopoverOpen] = useState(false);
+    const [desktopPopoverOpen, setDesktopPopoverOpen] = useState(false);
     const pathname = usePathname();
-
 
     const handleLanguageChange = (newLanguage: string) => {
         setLanguage(newLanguage as Language);
@@ -110,14 +101,18 @@ const WritingClassHeader = () => {
 
                     <div className="flex-1 flex items-center">
                         <div className="md:hidden flex-1 flex justify-end">
-                            <Popover>
+                            <Popover open={mobilePopoverOpen} onOpenChange={setMobilePopoverOpen}>
                                 <PopoverTrigger asChild>
-                                    <div className="flex items-center gap-1 cursor-pointer">
+                                    <Button
+                                        variant="link"
+                                        onClick={() => setMobilePopoverOpen(true)}
+                                        className="!no-underline flex items-center gap-1 cursor-pointer"
+                                    >
                                         <Menu className="h-5 w-5" />
                                         <span>All</span>
-                                    </div>
+                                    </Button>
                                 </PopoverTrigger>
-                                <UserAccountDropdownMenu language={language} />
+                                <UserAccountPopoverMenu language={language} setOpenPopover={setMobilePopoverOpen} />
                             </Popover>
                         </div>
                     </div>
@@ -126,13 +121,16 @@ const WritingClassHeader = () => {
                         {isLoggedIn && <div className="text-xs">
                             <div>Hello, {nickname}</div>
                             <div className="font-bold flex items-center">
-                                <Popover>
+                                <Popover open={desktopPopoverOpen} onOpenChange={setDesktopPopoverOpen}>
                                     <PopoverTrigger asChild>
-                                        <div className="flex items-center gap-1 cursor-pointer">
+                                        <div
+                                            className="flex items-center gap-1 cursor-pointer"
+                                            onClick={() => setDesktopPopoverOpen(true)}
+                                        >
                                             <span>{language === "en" ? "Downloads" : "계정 & 다운로드"}</span> <ChevronDown className="h-3 w-3 ml-1" />
                                         </div>
                                     </PopoverTrigger>
-                                    <UserAccountDropdownMenu language={language} />
+                                    <UserAccountPopoverMenu language={language} setOpenPopover={setDesktopPopoverOpen} />
                                 </Popover>
                             </div>
                         </div>}

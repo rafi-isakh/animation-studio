@@ -30,7 +30,6 @@ import { useMediaQuery } from "@mui/material";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
-import { truncateText } from "@/utils/truncateText";
 import ReportButton from "./ReportButton";
 import { useAuth } from "@/contexts/AuthContext";
 

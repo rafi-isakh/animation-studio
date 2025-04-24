@@ -40,6 +40,7 @@ import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
+import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -422,7 +423,7 @@ export default function InfoAndPictureComponent({
                                     className="flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
                                 >
                                     <Heart size={20} className="text-white group-hover:text-white" />
-                                </Button> */}
+                                   </Button> */}
 
                                     {/* Share Button and Dropdown */}
                                     <div className="relative">
@@ -472,7 +473,6 @@ export default function InfoAndPictureComponent({
                                                 </div>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
-
                                     </div>
                                 </div>
                                 {content.okay_to_create_videos &&
@@ -498,16 +498,7 @@ export default function InfoAndPictureComponent({
                                 {(isAuthor() || isJongmin()) &&
                                     <>
                                         <div className='flex flex-col gap-5 w-full justify-center items-center pb-5'>
-                                            <Button
-                                                color='gray'
-                                                variant='outline'
-                                                onClick={onNewChapter}
-                                                className='w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                            >
-                                              <span className='inline-flex gap-2 items-center text-black dark:text-white  hover:text-[#DB2777]'>
-                                                <PenLine className='hover:text-[#DB2777]' size={18} />{phrase(dictionary, "uploadNewChapter", language)}
-                                             </span> 
-                                            </Button>
+                                            <UploadNewChapterButton onNewChapter={onNewChapter} />
                                             <Button
                                                 color='gray'
                                                 variant='outline'

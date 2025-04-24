@@ -77,6 +77,9 @@ export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [ke
             if (dateB > latestDateB) latestDateB = dateB;
         }
         return latestDateB.getTime() - latestDateA.getTime();
+    } else if (sortBy === 'id') {
+        // Sort by ID in descending order (newest first)
+        return b.id - a.id;
     } else {
         return 0;
     }

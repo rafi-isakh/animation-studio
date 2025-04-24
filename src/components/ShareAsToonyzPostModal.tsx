@@ -204,25 +204,23 @@ export default function ShareAsToonyzPostModal({
                         <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
                         <DialogDescription>
                             {image && (<>
-                                <Image
-                                    src={`data:image/png;base64,${image}`}
-                                    alt={`Generated image ${index + 1}`}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className={`object-cover rounded-xl group-hover:scale-105 transition-all duration-300`}
-                                />
-                                <div
-                                    className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
-                                >
-                                    {displayQuote}
+                                <div className="relative w-full aspect-[9/16] mb-4">
+                                    <Image
+                                        src={`data:image/png;base64,${image}`}
+                                        alt={`Generated image ${index + 1}`}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        className={`object-cover rounded-xl group-hover:scale-105 transition-all duration-300`}
+                                    />
                                 </div>
-                               </>)}
+                               </>
+                            )}
                             {videoFileName && (
                                 <>
                                     <video
                                         src={getVideoUrl(videoFileName)}
-                                        width={250}
-                                        height={250}
+                                        width={150}
+                                        height={220}
                                         autoPlay={true}
                                         muted={true}
                                         loop={true}
@@ -280,7 +278,7 @@ export default function ShareAsToonyzPostModal({
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             className=""
-                            rows={4}
+                            rows={2}
                         />
                     </div>
                     <DialogFooter className='flex md:flex-row flex-col gap-2'>
@@ -303,7 +301,6 @@ export default function ShareAsToonyzPostModal({
                         </Button>
                         <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
                     </DialogFooter>
-                    <div className='h-[10vh]' />
                 </ScrollArea>
             </DialogContent>
         </Dialog>

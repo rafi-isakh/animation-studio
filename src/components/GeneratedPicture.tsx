@@ -43,7 +43,7 @@ export default function GeneratedPicture({
 
     const buttonList = [
         {
-            id: 'post',
+            id: 'share',
             icon: <Share2 size={10} />,
             tooltipText: 'share',
             onClick: () => {

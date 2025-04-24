@@ -66,7 +66,15 @@ export default function ShareDialog({
                 </div>) : mode === "toonyzPostShare" ? (
                     <div className="flex items-center space-x-2">
                         {shareImage && (
-                            <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} />
+                            <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
+                                <Image
+                                    src={`data:image/png;base64,${shareImage}`}
+                                    alt={`Generated image`}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    className={`object-cover rounded-xl group-hover:scale-105 transition-all duration-300`}
+                                />
+                            </div>
                         )}
                     </div>
                 ) : <></>

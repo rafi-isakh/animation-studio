@@ -14,7 +14,7 @@ export default function ShareDialog({
     mode = "share",
     shareImage
 }: {
-    url: string;
+    url?: string;
     title?: string;
     description?: string;
     mode?: "share" | "toonyzPostShare";
@@ -35,10 +35,12 @@ export default function ShareDialog({
                     {description}
                 </DialogDescription>
             </DialogHeader>
-            {mode === "share" ? (
+            {mode === "share" && url ? (
                 <div className="flex flex-col items-center gap-2">
                     {shareImage && (
-                        <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} />
+                        <div className="">
+                            <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
+                        </div>
                     )}
                     <div className="w-full flex flex-row gap-2">
                         <Label htmlFor="link" className="sr-only">
@@ -51,22 +53,21 @@ export default function ShareDialog({
                             className='select-none bg-transparent'
                             disabled
                         />
-                    <Button
-                        onClick={() => {copyToClipboard(url); }}
-                        type="button"
-                        size="sm"
-                        className="px-3"
-                    >
-                        <span className="sr-only">Copy</span>
-                        <Copy />
-                    </Button>
+                        <Button
+                            onClick={() => { copyToClipboard(url) }}
+                            type="button"
+                            size="sm"
+                            className="px-3"
+                        >
+                            <span className="sr-only">Copy</span>
+                            <Copy />
+                        </Button>
                     </div>
                 </div>) : mode === "toonyzPostShare" ? (
                     <div className="flex items-center space-x-2">
-                        {/* <Image src={shareImage} alt="Share image" width={100} height={100} /> */}
-                        <Button>
-                            Share
-                        </Button>
+                        {shareImage && (
+                            <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} />
+                        )}
                     </div>
                 ) : <></>
             }

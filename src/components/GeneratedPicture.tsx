@@ -6,7 +6,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Share, RotateCw, X, Sparkles, Share2 } from "lucide-react";
 import { Dialog } from "@/components/shadcnUI/Dialog";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
-import { Input } from "@mui/material";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/shadcnUI/Textarea";
@@ -49,8 +48,8 @@ export default function GeneratedPicture({
             tooltipText: 'share',
             onClick: () => {
                 setShareType('image');
-                setShowShareAsPostModal(true);
                 setPicture(image);
+                setShowShareDialog(true);
             },
             className: 'bg-[#DE2B74] hover:bg-pink-400'
         },
@@ -97,7 +96,7 @@ export default function GeneratedPicture({
                             </Button>
                         </div>
 
-                        <div className="flex justify-end">
+                        <div className="absolute bottom-2 right-2 flex">
                             {buttonList.map((button, index) => (
                                 <Tooltip key={button.id}>
                                     <TooltipTrigger asChild>
@@ -121,7 +120,7 @@ export default function GeneratedPicture({
                 </div>
             </TooltipProvider>
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}/chapter_view/${chapter_id}`} description={`Share this chapter with your friends and family.`} />
+                <ShareDialog mode="toonyzPostShare" description={`Share this image with your friends and family.`} shareImage={image} />
             </Dialog>
             {isEditing && (
                 <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
@@ -141,13 +140,22 @@ export default function GeneratedPicture({
                             >
                                 {phrase(dictionary, "cancel", language)}
                             </Button>
-                            <Button variant="outline"
-                                onClick={() => setIsEditing(false)}
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline"
+                                            onClick={() => setIsEditing(false)}
                                 className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
                             >
                                 <Sparkles size={10} />
                                 {phrase(dictionary, "edit", language)}
-                            </Button>
+                                 </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {phrase(dictionary, "preparing", language)}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                     </div>
                 </div>

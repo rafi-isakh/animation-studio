@@ -206,18 +206,17 @@ export default function ShareAsToonyzPostModal({
                             {image && (<>
                                 <Image
                                     src={`data:image/png;base64,${image}`}
-                                    alt={`image ${index + 1}`}
-                                    width={200}
-                                    height={200}
-                                    className="self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300"
+                                    alt={`Generated image ${index + 1}`}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    className={`object-cover rounded-xl group-hover:scale-105 transition-all duration-300`}
                                 />
                                 <div
                                     className="w-full !select-none text-black dark:text-white  bg-gray-100 dark:bg-[#211F21] p-4 rounded-md"
                                 >
                                     {displayQuote}
                                 </div>
-                            </>)
-                            }
+                               </>)}
                             {videoFileName && (
                                 <>
                                     <video

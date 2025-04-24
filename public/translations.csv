@@ -207,7 +207,8 @@ Billboard_header,여러분의 꿈을 Toonyz와 함께 하세요!,,Your Dream wit
 Billboard_subheader,Your Favorite Story Universe Toonyz,,Your Favorite Story Universe Toonyz
 help,도움말,,Help
 follow,팔로우,,Follow
-share,공유,,Share
+share,공유하기,,Share
+editPrompt,프롬프트 수정,,Edit Prompt
 report,신고,,Report
 wouldYouLikeToReport,신고하시겠습니까?,,Would you like to report this user?
 reportReason,신고 사유,,Report Reason
@@ -437,3 +438,4 @@ posts_history,기록,,Full History
 go_to_dashboard,대시보드 가기,,Go to Dashboard,,
 uploadProfilePicture,프로필 사진 업로드,,Upload Profile Picture,,
 noBioYet,자기소개가 없습니다,,No Bio Yet,,
+uploadToonyzPost,투니즈 포스트 업로드,,Upload Toonyz Post,,

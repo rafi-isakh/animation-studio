@@ -53,8 +53,8 @@ const downloadFiles = [
   {
     id: 5,
     name: "Toonyz_Writing_Guide_5.pdf",
-    modified: "Jan 05, 2023 1:31 PM",
-    size: "8.7 MB",
+    modified: "April 23, 2025",
+    size: "189.7 KB",
     author: "Toonyz Content Team",
     status: "available",
     file_url_ko: `writing_guide_5_ko.pdf`,

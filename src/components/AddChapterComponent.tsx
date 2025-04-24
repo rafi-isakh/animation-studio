@@ -193,7 +193,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                             {phrase(dictionary, "preview", language)}
                         </DialogTitle>
                         <p className='text-sm text-gray-500'>
-                          Please save your draft regularly incase the server issues, and make sure to back it up. 
+                          {phrase(dictionary, "previewWarning", language)}
                         </p>
                     </DialogHeader>
                     <ScrollArea className='h-full'>

@@ -442,3 +442,4 @@ go_to_dashboard,대시보드 가기,,Go to Dashboard,,
 uploadProfilePicture,프로필 사진 업로드,,Upload Profile Picture,,
 noBioYet,자기소개가 없습니다,,No Bio Yet,,
 preview,미리보기,,Preview,,
+previewSubtitle,서버 문제가 발생할 수가 있습니다 정기적으로 글쓰기를 저장하고 백업하세요!,,Please save your draft regularly incase the server issues\, and make sure to back it up. 

@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         from: 'noreply@toonyz.com',
         to: email,
         subject: 'Report',
-        text: message
+        text: message,
     });
     return new Response('Email sent', { status: 200 });
 }

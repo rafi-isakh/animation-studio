@@ -28,7 +28,7 @@ export const LoginDialog = () => {
             </DialogHeader>
             <DialogFooter>
                 <div className="flex justify-center items-center mx-auto">
-                    <SignInComponent redirectTo="writing-class" />
+                    <SignInComponent redirectTo="/writing-class" />
                 </div>
             </DialogFooter>
         </DialogContent>

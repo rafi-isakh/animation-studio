@@ -405,11 +405,7 @@ const FloatingMenu: React.FC<{
                                 <TooltipTrigger asChild>
                                     <Button
                                         ref={shareButtonRef}
-                                        onClick={() => {
-                                          
-                                            setShowShareDialog(true)
-                                        }
-                                        }
+                                        onClick={() => {setShowShareDialog(true)}}
                                         variant="ghost"
                                         className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
                                                            inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
@@ -430,8 +426,7 @@ const FloatingMenu: React.FC<{
             {children}
             {/* share dialog */}
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                {/* /view_webnovels/144/chapter_view/5043 */}
-            <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}/chapter_view/${chapter_id}`} description={`Share this chapter with your friends and family.`} />
+            <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}/chapter_view/${chapter_id}`} description={`Share this chapter with your friends and family.`} shareImage={webnovel.cover_art} />
             </Dialog>
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

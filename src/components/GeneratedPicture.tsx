@@ -4,6 +4,7 @@ import { ImageOrVideo } from "./Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import { Share, RotateCw, X, Sparkles, Share2 } from "lucide-react";
+import { Dialog } from "@/components/shadcnUI/Dialog";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { Input } from "@mui/material";
 import { phrase } from "@/utils/phrases";
@@ -35,6 +36,7 @@ export default function GeneratedPicture({
     const { setChapterId, setShowShareAsPostModal, setShareType, setPicture } = useCreateMedia();
     const [isEditing, setIsEditing] = useState(false);
     const { dictionary, language } = useLanguage();
+    const [showShareDialog, setShowShareDialog] = useState(false);
 
     useEffect(() => {
         setChapterId(chapter_id);
@@ -43,7 +45,7 @@ export default function GeneratedPicture({
     const buttonList = [
         {
             id: 'post',
-            icon: <Share2  size={10} />,
+            icon: <Share2 size={10} />,
             tooltipText: 'share',
             onClick: () => {
                 setShareType('image');
@@ -82,15 +84,15 @@ export default function GeneratedPicture({
                     <div className="z-[99] absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center">
 
                         <div className="flex-1 flex items-center justify-center">
-                            <Button 
-                            className="bg-[#DE2B74] text-white z-[999] rounded-xl"
-                            onClick={() => {
-                                setShareType('image');
-                                setShowShareAsPostModal(true);
-                                setPicture(image);
-                            }}
+                            <Button
+                                className="bg-[#DE2B74] text-white z-[999] rounded-xl"
+                                onClick={() => {
+                                    setShareType('image');
+                                    setShowShareAsPostModal(true);
+                                    setPicture(image);
+                                }}
                             >
-                               <Share size={10} /> 
+                                <Share size={10} />
                                 {phrase(dictionary, "uploadToonyzPost", language)}
                             </Button>
                         </div>
@@ -118,6 +120,9 @@ export default function GeneratedPicture({
                     </div>
                 </div>
             </TooltipProvider>
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}/chapter_view/${chapter_id}`} description={`Share this chapter with your friends and family.`} />
+            </Dialog>
             {isEditing && (
                 <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
                     <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg" />

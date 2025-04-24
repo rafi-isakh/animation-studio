@@ -325,6 +325,25 @@ const AddWebnovelComponent = () => {
                                         </div>
                                     </div>
                                     <br />
+                                    <div className='flex justify-center items-center mb-8'>
+                                         <Button
+                                             variant='outline'
+                                             ref={buttonRef}
+                                             type="submit"
+                                             disabled={isSubmitting}
+                                             className="whitespace-nowrap px-4 py-2 transition-all duration-300
+                                              bg-pink-200 hover:bg-[#DB2777] hover:text-white
+                                              dark:bg-gray-800 border-0
+                                              dark:hover:bg-gray-700
+                                               ">
+                                             {/*Spinny wheel when submitting*/}
+                                             <CloudUpload size={16} className='mr-2' />
+                                             {isSubmitting ?
+                                                 <CircularProgress size="1rem" color='secondary' />
+                                                 :
+                                                 phrase(dictionary, "save", language)}
+                                         </Button>
+                                     </div>
                                 </div>
                                 {/* modal for input all info */}
                                 <Dialog open={openModal} onOpenChange={setOpenModal}>

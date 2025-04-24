@@ -111,7 +111,7 @@ export const ContactForm = () => {
 
 
 
-export default function FAQ({  faqItems }: { faqItems?: FaqItem[] }) {
+export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
     const { dictionary, language } = useLanguage()
 
     return (
@@ -122,7 +122,7 @@ export default function FAQ({  faqItems }: { faqItems?: FaqItem[] }) {
                     {/* FAQ Section */}
                     <div className="bg-gray-100 dark:bg-[#211F21] p-4 lg:p-16">
                         {/* bg-gradient-to-r from-[#8B6B6B] to-[#A9A889] */}
-                        <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white md:mb-12 mb-4">FAQS</h1>
+                        <h1 className="text-4xl md:text-6xl font-light text-black dark:text-white md:mb-12 mb-4">FAQ</h1>
 
                         <div className="space-y-4">
                             <p className="text-black dark:text-white text-sm mb-8">
@@ -134,7 +134,7 @@ export default function FAQ({  faqItems }: { faqItems?: FaqItem[] }) {
                             </p>
                             <Accordion type="single" collapsible className="space-y-4">
                                 {faqItems?.map((item, index) => (
-                                    <AccordionItem key={index} value={`writing-class-item-${index}`} className="border-b border-black/20">
+                                    <AccordionItem key={index} value={`${item.question_en}-${index}`} className="border-b border-black/20">
                                         <AccordionTrigger className="text-black dark:text-white hover:text-black/80 text-left">
                                             {language === "en" ? item.question_en : item.question_ko}
                                         </AccordionTrigger>

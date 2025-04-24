@@ -33,6 +33,8 @@ import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
 import { useUser } from '@/contexts/UserContext';
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import Link from "next/link";
+import { useMediaQuery } from "@mui/material";
+
 interface ContentChapterListComponentProps {
     content: Webnovel;
     relatedContent?: Webnovel[];
@@ -65,15 +67,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
         setIsSortedByLatest(prev => !prev);
     };
 
-
-    const isAuthor = (): boolean => {
-        return id === content.user.id.toString()
-    };
-
-
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
-
+    const isMobile = useMediaQuery('(max-width: 768px)');
     return (
         <div className="flex flex-col w-full md:overflow-auto overflow-x-hidden">
             <TabContext value={tabValue}>
@@ -163,49 +159,54 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                 >
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
-                            {content && content.chapters && content.chapters.length > 1 && isAuthor() ? (
+                            {content.chapters.length >= 1 && id === content.user.id.toString() ? (
                                 <Button
                                     variant='outline'
                                     onClick={onNewChapter}
                                     className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
                                     <span className="text-sm flex flex-row items-center gap-2">
                                         <PenLine className='' size={18} />
-                                        {language === "ko" ? <>안녕하세요, {nickname}! </> : <>Hello, {nickname}! </>}
-                                        {phrase(dictionary, "writeNewChapterToday", language)}
+                                        { !isMobile ? language === "ko" ? <>안녕하세요, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)}</> 
+                                                                        : <>Hello, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)} </>
+                                                                        : <>{phrase(dictionary, "writeNewChapterToday_mobile", language)}</>}
+
                                     </span>
                                     <ChevronRightIcon size={16} className="text-black dark:text-white" />
                                 </Button>
                             ) : (<></>)}
-                            {content && content.chapters ? (
+                              {content && content.chapters ? (
                                 content.chapters.length > 0 ? (
                                     <>
-                                        <Button
-                                            variant='outline'
-                                            className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
-                                            <Link href="/stars">
-                                                <span className="text-sm flex flex-row items-center gap-2">
-                                                    <Image
-                                                        src="/images/N_logo.svg"
-                                                        alt="Toonyz Logo"
-                                                        width={0}
-                                                        height={0}
-                                                        sizes="100vh"
-                                                        style={{
-                                                            height: '20px',
-                                                            width: '20px',
-                                                            padding: '2px',
-                                                            justifyContent: 'center',
-                                                            alignSelf: 'center',
-                                                            borderRadius: '25%',
-                                                            border: '1px solid #eee',
-                                                            backgroundColor: 'white'
-                                                        }}
-                                                    />
-                                                    {phrase(dictionary, "buy_more_stars", language)}
-                                                </span>
-                                            </Link>
-                                            <ChevronRightIcon size={16} className="text-black dark:text-white" />
-                                        </Button>
+                                        {id !== content.user.id.toString() && (
+                                            <Button
+                                                variant='outline'
+                                                className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
+                                                <Link href="/stars">
+                                                    <span className="text-sm flex flex-row items-center gap-2">
+                                                        <Image
+                                                            src="/images/N_logo.svg"
+                                                            alt="Toonyz Logo"
+                                                            width={0}
+                                                            height={0}
+                                                            sizes="100vh"
+                                                            style={{
+                                                                height: '20px',
+                                                                width: '20px',
+                                                                padding: '2px',
+                                                                justifyContent: 'center',
+                                                                alignSelf: 'center',
+                                                                borderRadius: '25%',
+                                                                border: '1px solid #eee',
+                                                                backgroundColor: 'white'
+                                                            }}
+                                                        />
+                                                        { isMobile ? `${phrase(dictionary, "buy_more_stars_mobile", language)}` 
+                                                                   : `${phrase(dictionary, "buy_more_stars", language)}`}
+                                                    </span>
+                                                </Link>
+                                                <ChevronRightIcon size={16} className="text-black dark:text-white" />
+                                            </Button>
+                                        )}
                                         <ListOfChaptersComponent
                                             webnovel={content as Webnovel}
                                             sortToggle={isSortedByLatest}
@@ -231,6 +232,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             )}
                             {/* author's other work list */}
                             {content && content.user && relatedContent && relatedContent.length > 0 ? (
+                                id !== content.user.id.toString() ? (
                                 <>
                                     <h1 className="text-base font-bold">
                                         {phrase(dictionary, "authorWorkList", language)}
@@ -242,7 +244,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                             nickname={content.user.nickname}
                                         />
                                     </div>
-                                </>
+                                </> ) : (<></>)
                             ) : (
                                 <div className="flex flex-row gap-2">
                                     <Skeleton variant="rectangular" height={200} width={150} />
@@ -250,7 +252,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <Skeleton variant="rectangular" height={200} width={150} />
                                 </div>
                             )}
-                            {/* Comments list */}
                             {content && content.chapters_length > 0 ? (
                                 <CommentList
                                     content={content}

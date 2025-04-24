@@ -243,6 +243,7 @@ noWebnovelsFound_subtitle,새로운 작품을 작성해 보세요,,Would you lik
 writeYourStory,새 웹소설 쓰기,,Write your webnovel
 writeNewChapter,아직 연재 중인 글이 없어요. 새 챕터를 작성해 보세요.,,No chapters available. Write a new chapter.
 writeNewChapterToday,오늘 새 챕터를 작성해 보세요,,Write a new chapter today.
+writeNewChapterToday_mobile,새 챕터를 작성하세요,,Write a new chapter
 discoverStories,작품 둘러보기,,Browse webnovels
 noViewingWebnovelsFound,보고 있는 작품이 없어요,,No webnovels in your library
 noViewingWebnovelsFound_subtitle,다양한 작품들을 찾아보세요,,Discover other webnovels
@@ -316,6 +317,7 @@ applyCreator_button,지금 신청하기,,Apply Now
 starsTransaction,충전 내역,,Transactions
 purchase,구매하기,,Purchase,
 buy_more_stars,달라진 스타샵을 둘러보세요! 오늘 구매하면 보너스를 드려요!,,Buy more stars! Today's purchase comes with a bonus!
+buy_more_stars_mobile,더 많은 별을 구매하세요!,,Buy more stars today!
 authorWorkList,작가의 다른 작품,,Author's Other Works
 starShop,별 충전,,Star Shop
 apple_signin,애플로 로그인,,Continue with Apple

@@ -49,7 +49,8 @@ export default function PurchaseStarsStripeComponent() {
                         onClick={() => {
                             setSelectedPackage(index.toString());
                             setIsEvent(event);
-                            setIsPaying(true);
+                            //TODO: TEMPORARILY DISABLED
+                            //setIsPaying(true);
                         }}
                         variant="text"
                         sx={{

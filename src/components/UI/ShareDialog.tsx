@@ -6,19 +6,22 @@ import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import Image from "next/image";
-import { getImageUrl } from "@/utils/urls";
+import { getImageUrl, getVideoUrl } from "@/utils/urls";
+import WatermarkedImage from "@/utils/watermark";
 export default function ShareDialog({
     url,
     title = "Share link",
     description = "Share the link with your friends and family.",
     mode = "share",
-    shareImage
+    shareImage,
+    mediaType
 }: {
     url?: string;
     title?: string;
     description?: string;
     mode?: "share" | "shareToSocialMedia";
     shareImage?: string;
+    mediaType?: 'image' | 'video';
 }) {
     const { toast } = useToast();
     const copyToClipboard = useCopyToClipboard();
@@ -38,9 +41,25 @@ export default function ShareDialog({
             {mode === "share" && url ? (
                 <div className="flex flex-col items-center gap-2">
                     {shareImage && (
-                        <div className="">
-                            <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
-                        </div>
+                        mediaType === 'image' ? (
+                            <div className="overflow-hidden rounded-lg">
+                                <WatermarkedImage
+                                    imageUrl={getImageUrl(shareImage)}
+                                    watermarkUrl="/toonyz_logo_white.svg"
+                                    width={400}
+                                    height={400}
+                                    watermarkOpacity={0.2}
+                                    watermarkPosition="bottomRight"
+                                    titlePosition="top"
+                                    titleColor="white"
+                                    className="object-cover rounded-lg"
+                                />
+                            </div>
+                        ) : mediaType === 'video' ? (
+                            <div className="overflow-hidden rounded-lg">
+                                <video src={getVideoUrl(shareImage)} playsInline muted loop autoPlay className="object-contain rounded-lg" />
+                            </div>
+                        ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
                     )}
                     <div className="w-full flex flex-row gap-2">
                         <Label htmlFor="link" className="sr-only">

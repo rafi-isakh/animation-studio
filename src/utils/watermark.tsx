@@ -292,6 +292,7 @@ export default function WatermarkedImage({
                     alt={webnovelTitle ? `${webnovelTitle} - ${chapterTitle}` : "Toonyz"}
                     width={width}
                     height={height}
+                    quality={100}
                     className="object-cover w-full h-full"
                     onError={(e) => {
                         if (fallbackUrl && e.currentTarget.src !== fallbackUrl) {

@@ -17,7 +17,7 @@ export default function ShareDialog({
     url?: string;
     title?: string;
     description?: string;
-    mode?: "share" | "toonyzPostShare";
+    mode?: "share" | "shareToSocialMedia";
     shareImage?: string;
 }) {
     const { toast } = useToast();
@@ -63,7 +63,7 @@ export default function ShareDialog({
                             <Copy />
                         </Button>
                     </div>
-                </div>) : mode === "toonyzPostShare" ? (
+                </div>) : mode === "shareToSocialMedia" ? (
                     <div className="flex items-center space-x-2">
                         {shareImage && (
                             <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">

@@ -120,7 +120,7 @@ export default function GeneratedPicture({
                 </div>
             </TooltipProvider>
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                <ShareDialog mode="toonyzPostShare" description={`Share this image with your friends and family.`} shareImage={image} />
+                <ShareDialog mode="shareToSocialMedia" description={`Share this image with your friends and family.`} shareImage={image} />
             </Dialog>
             {isEditing && (
                 <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">

@@ -20,7 +20,10 @@ import UpvoteButton from '@/components/UI/UpvotedButton';
 const CommentsComponent = ({
     contentToAttachTo,
     webnovelOrPost,
-    addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
+    addCommentEnabled 
+}: { contentToAttachTo: Chapter | ToonyzPost, 
+    webnovelOrPost: boolean, 
+    addCommentEnabled: boolean }) => {
     const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);

@@ -31,11 +31,14 @@ import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
 import { truncateText } from "@/utils/truncateText";
+import ReportButton from "./ReportButton";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { email: string, isAuthor?: boolean, user: User, postId: string, post: ToonyzPost }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const { toast } = useToast();
   const { language, dictionary } = useLanguage();
+  const { isLoggedIn } = useAuth();
   const { id, email_hash } = useUser();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -176,16 +179,9 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
               <Share2 size={10} className="dark:text-white text-gray-500" />
               {phrase(dictionary, "share", language)}
             </Link>
-            <Link
-              href="#"
-              //   onClick={(e) => {
-              //     e.preventDefault();
-              //     e.stopPropagation();
-              //   }}
-              className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
-              <Flag size={10} className="dark:text-white text-gray-500" />
-              {phrase(dictionary, "report", language)}
-            </Link>
+
+            {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} mode="toonyzPost_page" />}
+             
             {createEmailHash(email) === user.email_hash &&
               <AlertDialog>
                 <AlertDialogTrigger asChild >

@@ -133,7 +133,7 @@ const FloatingMenu: React.FC<{
                 height: rect.height,
             })
             setSelection(text)
-            setSavedPrompt(text)
+            // setSavedPrompt(text)
             selectedTextRef.current = text
             //setTestText(text)
             if (timeoutRef.current) {
@@ -435,22 +435,6 @@ const FloatingMenu: React.FC<{
                             Share the link with your friends and family.
                         </DialogDescription>
                     </DialogHeader>
-
-                    <WatermarkedImage
-                        imageUrl={getImageUrl(webnovel.cover_art)}
-                        watermarkUrl="/toonyz_logo_white.svg"
-                        webnovelTitle={webnovel?.title}
-                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === chapter_id)?.title || chapter_id}
-                        quote={truncateText(selectedTextRef.current, 100)}
-                        watermarkOpacity={0.9}
-                        width={400}
-                        height={400}
-                        watermarkPosition="centerRight"
-                        titlePosition="centerLeft"
-                        titleColor="white"
-                        className="object-cover h-full w-full overflow-hidden scale-100 transition-all duration-300 opacity-30"
-                    />
-
                     <div className="flex items-center space-x-2">
                         <div className="grid flex-1 gap-2">
                             <Label htmlFor="link" className="sr-only">

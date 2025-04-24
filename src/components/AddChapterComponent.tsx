@@ -158,7 +158,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
                         <ReactQuill ref={titleRef} theme="bubble" value={title} onChange={setTitle} className="title-editor" />
                     </div>
-
                     <div className="flex flex-col space-y-4">
                         <div className="flex flex-row justify-between">
                             <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
@@ -188,27 +187,25 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             </form>
             {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
             <Dialog open={openPreviewDialog} onOpenChange={setOpenPreviewDialog}>
-                <DialogContent className='bg-white dark:bg-black md:h-[60vh] h-full' showCloseButton={true}>
+                <DialogContent className='bg-white dark:bg-black md:h-[70vh] h-full' showCloseButton={true}>
                     <DialogHeader>
                         <DialogTitle>
                             {phrase(dictionary, "preview", language)}
                         </DialogTitle>
+                        <p className='text-sm text-gray-500'>
+                          Please save your draft regularly incase the server issues, and make sure to back it up. 
+                        </p>
                     </DialogHeader>
                     <ScrollArea className='h-full'>
                         <DialogDescription>
-                            <div className='flex flex-col space-y-4'>
+                            <div className='flex flex-col space-y-4 min-h-[50vh]'>
                                 <div className='inline-flex flex-col gap-2 text-sm font-bold'>
                                     <h1 className='text-md font-bold'> {phrase(dictionary, "chapterTitle", language)} </h1>
-                                    <pre className="whitespace-pre-wrap"> {plainTitleText} </pre>
+                                    <p className="w-full "> {plainTitleText} </p>
                                 </div>
                                 <h1 className='text-md font-bold'>{phrase(dictionary, "content", language)}</h1>
-                                <div
-                                    className='prose dark:prose-invert whitespace-pre-wrap'
-                                    style={{
-                                        WebkitUserSelect: 'text',
-                                        userSelect: 'text',
-                                    }}
-                                >
+                                <div className='w-full prose dark:prose-invert'>
+
                                     {plainContentText}
                                 </div>
                             </div>
@@ -221,7 +218,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
-
         </div>
     )
 }

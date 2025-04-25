@@ -18,6 +18,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [previewError, setPreviewError] = useState<string | null>(null);
+    const [isSafari, setIsSafari] = useState(false);
     const { toast } = useToast()
 
     const availableFiles = downloadFiles.filter((file) => file.status === "available")
@@ -49,7 +50,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
             console.error('File key is missing');
             return;
         }
-
+ 
         fetch(`/api/download?file=${encodeURIComponent(fileName)}`)
             .then(response => {
                 if (!response.ok) {
@@ -66,6 +67,11 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                     }).catch(() => {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     });
+                }
+                const url = response.url;
+                if (isSafari) {
+                    window.open(url, '_blank');
+                    setShowPreview(false);
                 }
                 window.open(response.url, '_blank');
                 toast({
@@ -85,6 +91,12 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 console.error('Error downloading file:', error);
             });
     }
+
+    useEffect(() => {
+        // Detect Safari browser
+        const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
+        setIsSafari(isSafariBrowser);
+    }, []);
 
     const viewFile = async (fileKey: string) => {
         if (!fileKey || fileKey.trim() === '') {
@@ -116,7 +128,14 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 throw new Error(errorMsg);
             }
 
-            setPreviewUrl(response.url);
+            const url = response.url;
+            setPreviewUrl(url);
+
+            // For Safari, open in new tab instead of iframe
+            if (isSafari) {
+                window.open(url, '_blank');
+                setShowPreview(false);
+            }
 
         } catch (error: any) {
             console.error('Error fetching file for preview:', error);
@@ -372,7 +391,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                 <div className="flex items-center justify-center h-full p-4">
                                     <span className="text-red-500">Error: {previewError}</span>
                                 </div>
-                            ) : previewUrl ? (
+                            ) : previewUrl && !isSafari ? (
                                 <iframe
                                     src={previewUrl}
                                     className="w-full h-full border-0"

@@ -18,7 +18,7 @@ const downloadFiles = [
     author: "Toonyz Content Team",
     status: "unavailable",
     file_url_ko: "writing_guide_1_ko.pdf",
-    file_url_en: "",
+    file_url_en: "writing_guide_1_en.pdf",
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const downloadFiles = [
     author: "Toonyz Content Team",
     status: "unavailable",
     file_url_ko: "writing_guide_2_ko.pdf",
-    file_url_en: "writing_guide",
+    file_url_en: "writing_guide_2_en.pdf",
   },
   {
     id: 3,
@@ -38,7 +38,7 @@ const downloadFiles = [
     author: "Toonyz Content Team",
     status: "unavailable",
     file_url_ko: "writing_guide_3_ko.pdf",
-    file_url_en: "",
+    file_url_en: "writing_guide_3_en.pdf",
   },
   {
     id: 4,
@@ -48,7 +48,7 @@ const downloadFiles = [
     author: "Toonyz Content Team",
     status: "unavailable",
     file_url_ko: "writing_guide_4_ko.pdf",
-    file_url_en: "",
+    file_url_en: "writing_guide_4_en.pdf",
   },
   {
     id: 5,
@@ -68,7 +68,7 @@ const downloadFiles = [
     author: "Toonyz Content Team",
     status: "unavailable",
     file_url_ko: "writing_guide_6_ko.pdf",
-    file_url_en: "",
+    file_url_en: "writing_guide_6_en.pdf",
   },
 ]
 

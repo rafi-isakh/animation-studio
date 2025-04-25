@@ -58,7 +58,8 @@ export default function WritingClassPage() {
               {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link>
                 : <>
                   <Link href="#" onClick={() => setOpenLoginDialog(true)}>
-                    {language === "en" ? "Download Free Writing Book" : "가입하고 무료로 작법서 받기"}
+                    {language === "en" ? "Download Free Book of 5"
+                      : "가입하고 무료 작법서 5강 받기"}
                   </Link>
                   <LoginDialog />
                 </>
@@ -125,8 +126,8 @@ export default function WritingClassPage() {
                   : "웹소설 작가로 데뷔를 도와주는"}
               </span> <br />
               <span className="text-black z-10">
-                {language === "en" ? "TOONYZ Writing 101 Class OPEN"
-                  : "투니즈 글쓰기 101 작법서 출간 OPEN"}
+                {language === "en" ? "TOONYZ Writing Guide Book"
+                  : "투니즈 글쓰기 가이드 작법서 출간"}
               </span>
             </h3>
             <Image
@@ -174,8 +175,10 @@ export default function WritingClassPage() {
 
           <div className="text-center mb-12">
             <p className="text-lg mb-4 whitespace-pre-line break-keep">
-              {language === "en" ? "Join the Toonyz Writing 101 class now to get the full guide to creating a high-quality webnovel."
-                : "완성도 높은 작품을 위한 전 과정 안내를 해 드리는 투니즈 글쓰기 101 지금 바로 가입하고 무료로 다운 받으세요!"}
+              {language === "en" ? "Toonyz Writing 101 book is now available! Get the full guide to creating a high-quality fiction."
+                : <>웹소설 글쓰기의 전 과정 안내를 해 드리는 투니즈 글쓰기 작법서가 출시 되었습니다. <br /> 지금 바로 가입하고 무료로 다운 받으세요! <br />
+
+                </>}
             </p>
           </div>
         </div>
@@ -205,12 +208,6 @@ export default function WritingClassPage() {
               <h2 className="text-xl md:text-3xl font-bold text-[#1d1d1f]">
                 {language === "en" ? "Toonyz Writing Guide Series" : "투니즈 작법서 시리즈"}
               </h2>
-              <Link href="#">
-                <Button variant="link" className="flex flex-row items-center text-gray-500 hover:underline cursor-pointer">
-                  {language === "en" ? "See All" : "더보기"}
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </Link>
             </div>
             <BookShelf />
           </section>
@@ -218,10 +215,9 @@ export default function WritingClassPage() {
       </section>
 
       {/* Program Details Section */}
-      <section className="py-16 bg-gray-100">
-        <div className="flex justify-center items-center text-center break-keep">
-          {language === "en" ? <h3 className="md:text-3xl text-lg font-bold text-center">4 Weeks, 7 e-books, 1 Completed Story That You Can Start</h3>
-            : <h3 className="md:text-3xl text-lg font-bold text-center">4주 완성 7개의 작법서 - 바로 작품 1개를 완성할 수 있는 노하우를 담았습니다</h3>}
+      <section className="relative flex flex-col items-center justify-center py-16 bg-gray-100">
+        <div className="flex md:flex-row flex-col justify-center items-center">
+          
         </div>
         <LearningSection />
       </section>
@@ -272,8 +268,8 @@ export default function WritingClassPage() {
                 <p>✅</p>
               </li>
               <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
-                <p>{language === "en" ? "Master webnovel/e-book lecture for life"
-                  : "마스터 웹소설/전자책 강의 평생 무료 제공"}</p>
+                <p>{language === "en" ? "Master webnovel guide series 6"
+                  : "투니즈 웹소설/전자책 시리즈 6권 무료 제공"}</p>
                 <p>✅</p>
               </li>
               <li className="bg-gray-50 p-4 rounded-md inline-flex items-center justify-between">
@@ -288,7 +284,7 @@ export default function WritingClassPage() {
             <RoundedButton className='w-[330px] mx-auto'>
               <Link href="/writing-class/downloads">
                 {language === "en" ? "Download Free e-book"
-                  : "무료 작법서 다운로드 받기"}
+                  : "무료로 5강 다운로드 받기"}
               </Link>
             </RoundedButton>
             <p className="mt-4 text-sm">
@@ -387,10 +383,8 @@ export default function WritingClassPage() {
         </div>
       </section>
 
-
-
       {/* Testimonials Section */}
-      <section className="py-16 bg-white">
+      {/* <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
             {language === "en" ? "What Our Writers Say"
@@ -398,7 +392,6 @@ export default function WritingClassPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
@@ -413,7 +406,6 @@ export default function WritingClassPage() {
               </p>
             </div>
 
-            {/* Testimonial 2 */}
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
@@ -428,7 +420,6 @@ export default function WritingClassPage() {
               </p>
             </div>
 
-            {/* Testimonial 3 */}
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
@@ -444,17 +435,11 @@ export default function WritingClassPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
-      {/* Final CTA */}
-      <section className="py-12 bg-[#DE2B74]">
+      {/* <section className="py-12 bg-[#DE2B74]">
         <div className="relative container mx-auto px-4 text-center">
-          <Image
-            src="/writing-class/images/logo_sticker.svg"
-            alt="toonyz logo"
-            width={100}
-            height={100}
-            className="absolute -top-20 md:left-1/3 md:transform md:-translate-x-1/2 z-[5] animate-[spin_9s_linear_infinite]" />
+          
           <h2 className="text-3xl font-bold text-white mb-8">
             {language === "en" ? "Limited Spots Available!"
               : "얼마 남지 않은 기회입니다!"}
@@ -468,8 +453,7 @@ export default function WritingClassPage() {
           </p>
 
         </div>
-      </section>
-      {/* FAQ Section */}
+      </section> */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <FaqSection />
       </section>

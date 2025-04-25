@@ -46,6 +46,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
                 });
         }
 
+        await fetch('/api/send_welcome', {
+            method: 'POST',
+            body: JSON.stringify({ name: postedData.nickname, email: session.user.email }),
+            headers: { 'Content-Type': 'application/json' },
+        });
+
         return NextResponse.json({
             message: "Add user success",
             id: data2.id

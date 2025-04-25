@@ -19,6 +19,7 @@ import {
     Eye,
     ChevronRight,
     ImageUp,
+    UserRoundX,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import WebnovelsCardList from '@/components/WebnovelsCardList';
@@ -214,11 +215,11 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                     <div className='w-full flex md:flex-row flex-col gap-6 justify-center items-center order-1 relative'>
                         <div className="relative rounded-xl p-6 md:p-0 z-10 flex md:flex-row flex-col justify-evenly items-center md:h-[200px] h-auto space-y-1 bg-[#929292]/10 w-full">
                             <div className="absolute rounded-xl bg-white dark:bg-black inset-0 bg-cover bg-center opacity-10 backdrop-blur-xl z-0"
-                                 style={{ 
-                                    backgroundImage: `url(${getImageUrl(user.picture)})`, 
-                                    backgroundColor: 'white', 
+                                style={{
+                                    backgroundImage: `url(${getImageUrl(user.picture)})`,
+                                    backgroundColor: 'white',
                                     backgroundSize: 'cover',
-                                    backgroundPosition: 'center', 
+                                    backgroundPosition: 'center',
                                 }}>
                             </div>
                             {/* profile picture */}
@@ -280,8 +281,8 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 <div className='flex flex-col justify-center md:items-start items-center gap-4'>
                                     <div className="flex flex-row justify-center items-center font-bold text-left gap-2 ">
                                         {novels.length > 0 && <span className="text-[10px] self-center rounded-xl text-white bg-[#8A2BE2] px-2 p-1 mr-1">
-                                                                 {phrase(dictionary, "author", language)}
-                                                              </span>
+                                            {phrase(dictionary, "author", language)}
+                                        </span>
                                         }
                                         <p className="text-xl">{displayNickname}</p>
                                         <div className='flex flex-row gap-0 text-gray-600 dark:text-white'>
@@ -289,8 +290,23 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             <ProfileShareButton user={user} id={id} />
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
+                                            {isLoggedIn && user.id.toString() === id && <>
+                                                                                        <Link
+                                                                                            href="#"
+                                                                                            key="edit"
+                                                                                            onClick={() => {
+                                                                                                setShowDeleteAccountModal(true)
+                                                                                                // onDeleteAccount();
+                                                                                                // handleClose();
+                                                                                            }}
+                                                                                            className="flex items-center gap-2 dark:text-white text-black"
+                                                                                        >
+                                                                                            <UserRoundX size={20} />
+                                                                                            {phrase(dictionary, "deleteAccount", language)}
+                                                                                        </Link>
+                                                                                    </>}
                                         </div>
-                                      </div>
+                                    </div>
                                     <div>
                                         {novels.length > 0 && <div className="flex flex-row gap-4 justify-center items-center text-gray-600 dark:text-white">
                                             <div className='flex flex-col justify-center items-center md:pr-6 pr-2 border-r border-gray-300'>
@@ -337,7 +353,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                     <ChevronRight size={10} />
                                 </Button>
                             ) : <p className='flex flex-row gap-2 justify-center items-center'>
-                                </p>
+                            </p>
                         }
                     </div>
 
@@ -358,8 +374,8 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         />
                                     </>
                                 ) : user.bio === "" ? (<p className='text-base text-gray-500'>
-                                                          {phrase(dictionary, "noBioYet", language)}
-                                                       </p>
+                                    {phrase(dictionary, "noBioYet", language)}
+                                </p>
                                 ) : (<></>)}
                             </div>
 
@@ -379,7 +395,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         )}
                                     />
                                 </div>
-                               ) : (<></>)}
+                            ) : (<></>)}
                             <div className='w-full flex'>
                                 <ToonyzPostCardList posts={posts} />
                             </div>

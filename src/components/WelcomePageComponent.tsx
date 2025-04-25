@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { User } from '@/components/Types';
-import { Button, Tooltip } from '@mui/material';
+import { Button } from '@/components/shadcnUI/Button';
 import StarIcon from '@mui/icons-material/Star';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import { phrase } from '@/utils/phrases'
 import { MdStars } from 'react-icons/md';
 import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
+import { FolderHeart } from 'lucide-react';
 
 export default function WelcomePageComponent() {
     const { language, dictionary } = useLanguage();
@@ -19,8 +20,8 @@ export default function WelcomePageComponent() {
     const [confettiWidth, setConfettiWidth] = useState(width);
     const [confettiHeight, setConfettiHeight] = useState(height);
 
-    const ToonyzLogo = ({ className }: { className: string }) => {
-        return <Image src="/images/N_logo.svg" alt="Toonyz Logo" width={18} height={18} className={`${className}`} />
+    const ToonyzLogo = ({ className }: { className?: string }) => {
+        return <Image src="/images/N_logo.svg" alt="Toonyz Logo" width={12} height={12} className={`${className}`} />
     }
 
     useEffect(() => {
@@ -45,50 +46,40 @@ export default function WelcomePageComponent() {
         </span>
 
         <div className='flex flex-col items-center justify-center gap-2'>
-
             <h1 className='text-2xl font-bold'>
                 {nickname}
                 {language == 'ko' ? '님' : ''}
             </h1>
             <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'welcome_to_toonyz', language)}</p>
             <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'complementary_stars_added', language)}</p>
+            <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'complementary_stars_added_subtitle', language)}</p>
         </div>
 
         <div className='flex flex-col items-center justify-center gap-3 mt-6'>
-            <Button sx={{ width: '100%', backgroundColor: '#DB2879', color: 'white' }} size="large" variant="contained">
+            <Button variant="outline" className='w-full'>
                 <Link href="/stars" className='flex items-center justify-center w-full'>
-                    {/* 첫 회원가입 별 구매하고 혜택 받기 &gt; */}
                     <div className="w-6 flex justify-center">
-                        <StarIcon className="w-5 h-5" />
+                        <StarIcon className="w-8 h-8 text-[#DB2879]" />
                     </div>
                     <span className='ml-2 '>{phrase(dictionary, 'signedup_first_time_user', language)}</span>
                 </Link>
             </Button>
-
-
-            <Button
-                sx={{
-                    width: '100%',
-                    border: '1px solid #D9D9D9',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                    '&:hover': {
-                        backgroundColor: 'white',
-                        color: 'black',
-                    }
-
-                }} size="large"
-                variant="outlined">
-
+            <Button variant="outline" className='w-full'>
                 <Link href="/" className='flex w-full '>
-                    {/* Toonyz 작품 확인하러 가기 &gt; */}
                     <div className="w-6 flex justify-center">
-                        <ToonyzLogo className="w-5 h-5 self-center" />
+                        <ToonyzLogo className='' />
                     </div>
                     <span className='ml-5 text-center self-center '>{phrase(dictionary, 'check_out_toonyz_works', language)}</span>
                 </Link>
             </Button>
+            <Button variant="outline" className='w-full'>
+                <Link href="/writing-class" className='flex items-center justify-center w-full '>
+                    <div className='w-6 flex justify-center'>
+                        <FolderHeart className="w-8 h-8 text-[#DB2879]" />
+                    </div>
+                    <span className='ml-2 text-right'> {phrase(dictionary, 'download_free_writing_guide', language)}</span>
+                </Link>
+            </Button>
         </div>
-
-    </div>;
+    </div>
 }

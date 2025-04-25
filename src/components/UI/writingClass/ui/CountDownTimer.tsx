@@ -26,7 +26,7 @@ export default function CountdownTimer({ targetDate, className }: CountdownTimer
       
       if (isSafari) {
         // Use the hardcoded target for Safari - April 31, 2025 at 23:59:59
-        target = new Date("2025/04/30T23:59:59")
+        target = new Date("2025/05/30T23:59:59")
       } else {
         // For other browsers, use the provided targetDate
         target = new Date(targetDate)

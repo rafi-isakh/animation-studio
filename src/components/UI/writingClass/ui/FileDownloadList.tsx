@@ -131,12 +131,6 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
             const url = response.url;
             setPreviewUrl(url);
 
-            // For Safari, open in new tab instead of iframe
-            if (isSafari) {
-                window.open(url, '_blank');
-                setShowPreview(false);
-            }
-
         } catch (error: any) {
             console.error('Error fetching file for preview:', error);
             let message = "Could not load preview.";
@@ -391,14 +385,13 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                 <div className="flex items-center justify-center h-full p-4">
                                     <span className="text-red-500">Error: {previewError}</span>
                                 </div>
-                            ) : previewUrl && !isSafari ? (
-                                <iframe
-                                    src={previewUrl}
-                                    className="w-full h-full border-0"
-                                    title="File Preview"
+                            ) : previewUrl ? (
+                                <object
+                                    data={previewUrl}
+                                    type="application/pdf"
+                                    className="w-full h-full"
                                 >
-                                    Your browser does not support embedded PDF previews.
-                                </iframe>
+                                </object>
                             ) : (
                                 <div className="flex items-center justify-center h-full p-4">
                                     <span className="text-gray-500">No preview available.</span>

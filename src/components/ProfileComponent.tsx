@@ -33,6 +33,7 @@ import { usePathname } from 'next/navigation';
 import ProfileShareButton from '@/components/UI/ProfileShareButton';
 import { EditProfileButton } from '@/components/UI/EditProfileButton';
 import ToonyzPostCardList from '@/components/UI/ToonyzPostCardList';
+import DeleteAccountButton from './UI/DeleteAccountButton';
 
 const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
@@ -289,6 +290,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             <ProfileShareButton user={user} id={id} />
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
+                                            {isLoggedIn && user.id.toString() === id && <DeleteAccountButton setShowDeleteAccountModal={setShowDeleteAccountModal} />}
                                         </div>
                                       </div>
                                     <div>

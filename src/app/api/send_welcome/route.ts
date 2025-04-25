@@ -30,6 +30,9 @@ export async function POST(req: Request) {
             color: white;
             padding: 20px;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .email-body {
             padding: 20px;
@@ -51,7 +54,7 @@ export async function POST(req: Request) {
         }
         .card h3 {
             margin-top: 0;
-            color: #4a6cf7;
+            color: #DB2777;
         }
         .social-links {
             text-align: center;
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
         .social-links a {
             display: inline-block;
             margin: 0 10px;
-            color: #4a6cf7;
+            color: #DB2777;
             text-decoration: none;
         }
         .footer {
@@ -70,14 +73,16 @@ export async function POST(req: Request) {
             font-size: 12px;
             color: #777777;
         }
-        .button {
+        .button a {
             display: inline-block;
-            background-color: #4a6cf7;
-            color: white;
+            color: #DB2777;
+            background-color: #ffffff;
+            border: 1px solid #DB2777;
             padding: 10px 20px;
             text-decoration: none;
             border-radius: 5px;
             margin-top: 10px;
+            font-weight: bold;
         }
         @media only screen and (max-width: 600px) {
             .email-container {
@@ -95,9 +100,7 @@ export async function POST(req: Request) {
 <body>
     <div class="email-container">
         <div class="email-header">
-           <h1 style="color: #DB2777; font-size: 18px; margin-bottom: 16px; text-align: center;">
-            Welcome to Toonyz, ${nickname}!
-           </h1>
+            <img src="https://www.toonyz.com/toonyz_logo_pink.svg" alt="Toonyz Logo" style="max-width: 150px;">
         </div>
         <div class="email-body">
             <div class="greeting">
@@ -126,19 +129,19 @@ export async function POST(req: Request) {
             </div>
             
             <p>If you have any questions, feel free to reach out to our support team.</p>
-            <p>Best regards,<br>The Team</p>
+            <p>Best regards,<br>Toonyz Team</p>
         </div>
         
         <div class="social-links">
             <p>Follow us on social media:</p>
-            <a href="#" class="social-link">Facebook</a>
+            <a href="#" class="social-link">Youtube</a>
             <a href="#" class="social-link">Twitter</a>
             <a href="#" class="social-link">Instagram</a>
             <a href="#" class="social-link">LinkedIn</a>
         </div>
         
         <div class="footer">
-            <p>© 2025 Your Company. All rights reserved.</p>
+            <p>© 2025 Toonyz. All rights reserved.</p>
             <p>You're receiving this email because you signed up for our platform.</p>
             <p><a href="#">Unsubscribe</a> | <a href="#">Privacy Policy</a></p>
         </div>

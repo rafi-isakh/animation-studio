@@ -28,7 +28,7 @@ const downloadFiles = [
     author: "Toonyz Content Team",
     status: "unavailable",
     file_url_ko: "writing_guide_2_ko.pdf",
-    file_url_en: "",
+    file_url_en: "writing_guide",
   },
   {
     id: 3,
@@ -57,8 +57,8 @@ const downloadFiles = [
     size: "189.7 KB",
     author: "Toonyz Content Team",
     status: "available",
-    file_url_ko: `writing_guide_5_ko.pdf`,
-    file_url_en: "",
+    file_url_ko: "writing_guide_5_ko.pdf",
+    file_url_en: "writing_guide_5_en.pdf",
   },
   {
     id: 6,

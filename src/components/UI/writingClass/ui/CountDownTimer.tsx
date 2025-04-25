@@ -38,7 +38,7 @@ export default function CountdownTimer({ targetDate, className }: CountdownTimer
         // Fallback to a manually constructed date
         const fallbackDate = new Date()
         fallbackDate.setFullYear(2025)
-        fallbackDate.setMonth(3) // April (0-indexed)
+        fallbackDate.setMonth(4) // May (0-indexed)
         fallbackDate.setDate(30)
         fallbackDate.setHours(23, 59, 59, 0)
         target = fallbackDate

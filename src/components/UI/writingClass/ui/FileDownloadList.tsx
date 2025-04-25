@@ -18,7 +18,6 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPreviewLoading, setIsPreviewLoading] = useState(false);
     const [previewError, setPreviewError] = useState<string | null>(null);
-    const [isSafari, setIsSafari] = useState(false);
     const { toast } = useToast()
 
     const availableFiles = downloadFiles.filter((file) => file.status === "available")
@@ -68,11 +67,31 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     });
                 }
-                const url = response.url;
-                if (isSafari) {
-                    window.open(url, '_blank');
-                    setShowPreview(false);
+                
+                const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
+            
+                if (isSafariBrowser) {
+                    // For Safari, we need to handle downloads differently
+                    return response.blob().then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = fileName.split('/').pop() || 'download.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                        
+                        toast({
+                            title: "File download started",
+                            description: fileName.split('/').pop() || fileName,
+                            variant: "success",
+                        });
+                    });
                 }
+                
+                // For non-Safari browsers
                 window.open(response.url, '_blank');
                 toast({
                     title: "File download started",
@@ -91,12 +110,6 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 console.error('Error downloading file:', error);
             });
     }
-
-    useEffect(() => {
-        // Detect Safari browser
-        const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
-        setIsSafari(isSafariBrowser);
-    }, []);
 
     const viewFile = async (fileKey: string) => {
         if (!fileKey || fileKey.trim() === '') {
@@ -128,13 +141,17 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 throw new Error(errorMsg);
             }
 
-            const url = response.url;
-            setPreviewUrl(url);
-
-            // For Safari, open in new tab instead of iframe
-            if (isSafari) {
-                window.open(url, '_blank');
-                setShowPreview(false);
+            // Check if browser is Safari
+            const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
+            
+            if (isSafariBrowser) {
+                // For Safari, use native PDF viewing
+                const pdfBlob = await response.blob();
+                const pdfObjectUrl = URL.createObjectURL(pdfBlob);
+                setPreviewUrl(pdfObjectUrl);
+            } else {
+                // For other browsers, use the response URL
+                setPreviewUrl(response.url);
             }
 
         } catch (error: any) {
@@ -153,6 +170,15 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
             setIsPreviewLoading(false);
         }
     };
+
+    // Cleanup object URL on unmount or when preview changes
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     const downloadSelectedFiles = async (fileKeys: string[]) => {
         if (fileKeys.length === 0) {
@@ -391,14 +417,12 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                 <div className="flex items-center justify-center h-full p-4">
                                     <span className="text-red-500">Error: {previewError}</span>
                                 </div>
-                            ) : previewUrl && !isSafari ? (
+                            ) : previewUrl ? (
                                 <iframe
-                                    src={previewUrl}
+                                    src={`${previewUrl}#toolbar=0&navpanes=0`}
                                     className="w-full h-full border-0"
-                                    title="File Preview"
-                                >
-                                    Your browser does not support embedded PDF previews.
-                                </iframe>
+                                    title="PDF Preview"
+                                />
                             ) : (
                                 <div className="flex items-center justify-center h-full p-4">
                                     <span className="text-gray-500">No preview available.</span>

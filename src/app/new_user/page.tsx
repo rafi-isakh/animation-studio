@@ -25,7 +25,8 @@ const randomNickname = () => nouns[Math.floor(Math.random() * nouns.length)] + M
 export default function NewUser() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const returnTo = searchParams.get('returnTo') || '/welcome';
+    const returnTo = searchParams.get('returnTo');
+    const pushTo = returnTo? `/user_loggedin?returnTo=${encodeURIComponent(returnTo)}` : '/user_loggedin';
     const { language, dictionary } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [userExists, setUserExists] = useState(false);
@@ -56,7 +57,7 @@ export default function NewUser() {
                 const data = await res.json();
                 if (data.user_exists) {
                     setUserExists(true);
-                    router.push(`/user_loggedin?returnTo=${encodeURIComponent(returnTo)}`);
+                    router.push(pushTo)
                 } else if (data.user_with_same_email_exists) {
                     setUserWithSameEmailExists(true);
                 }
@@ -114,7 +115,7 @@ export default function NewUser() {
         if (!res.ok) {
             throw new Error(`Failed to update user: ${res.statusText} ${res.status}`);
         }
-        router.push(returnTo);
+        router.push(returnTo || '/welcome');
     }
 
 
@@ -178,7 +179,7 @@ export default function NewUser() {
             if (!res.ok) throw new Error("Failed to create user");
             await updateUser(formData2);
 
-            router.push(returnTo);
+            router.push(returnTo || '/welcome');
         } catch (error) {
             console.error("Error creating user:", error);
         }

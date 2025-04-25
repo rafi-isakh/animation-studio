@@ -100,7 +100,7 @@ export async function POST(req: Request) {
 <body>
     <div class="email-container">
         <div class="email-header">
-            <img src="https://www.toonyz.com/toonyz_logo_pink.svg" alt="Toonyz Logo" style="max-width: 150px;">
+            <img src="https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/logo+white.png" alt="Toonyz Logo" style="max-width: 150px;">
         </div>
         <div class="email-body">
             <div class="greeting">

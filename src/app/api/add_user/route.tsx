@@ -46,11 +46,21 @@ export async function POST(req: NextRequest, res: NextResponse) {
                 });
         }
 
-        await fetch('/api/send_welcome', {
+
+       const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/send_welcome`, {
             method: 'POST',
-            body: JSON.stringify({ name: postedData.nickname, email: session.user.email }),
+            body: JSON.stringify({ nickname: postedData.nickname, email: session.user.email }),
             headers: { 'Content-Type': 'application/json' },
         });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Error in send_welcome route:", {
+                status: res.status,
+                statusText: res.statusText,
+                error: errorText
+            })
+        }
 
         return NextResponse.json({
             message: "Add user success",
@@ -59,6 +69,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
             {
                 status: 200,
             });
+
+            
     } catch (error) {
         console.error("Error in add_user route:", error)
         return NextResponse.json({

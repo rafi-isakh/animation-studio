@@ -1,10 +1,9 @@
 import { sendMail } from '@/lib/send_mail';
 import { NextResponse } from 'next/server';
 
-
 export async function POST(req: Request) {
   if (req.method === 'POST') {
-    const { email = 'by.kangdami@gmail.com', nickname = 'Kangdami' } = await req.json();
+    const { email, nickname } = await req.json();
     const html = `
     <html>
         <body>
@@ -16,9 +15,9 @@ export async function POST(req: Request) {
    
     const info = await sendMail({
       email: process.env.EMAIL_USER!,
-      sendTo: email,
-      subject: `Thank you for joining Toonyz ${name}!`,
-      text: `Welcome, ${name}! Thanks for joining us.`,
+      sendTo: email || 'dami@stelland.io',
+      subject: `Thank you for joining Toonyz ${nickname}!`,
+      text: `Welcome, ${nickname}! Thanks for joining us.`,
       html,
     });
     if (info?.messageId) {

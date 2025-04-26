@@ -30,7 +30,7 @@ export default function LearningSection() {
           </p>
           <RoundedButton className='w-[330px] md:mx-0 mx-auto'>
             <Link href="/writing-class/downloads">
-              {language === "en" ? "Download Now" : "지금 작법서 무료로 받기"}
+              {language === "en" ? "Download Now" : "무료로 5강 다운로드 받기"}
             </Link>
           </RoundedButton>
         </div>

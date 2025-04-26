@@ -3,6 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import { ReactNode } from "react";
+import Image from "next/image";
 
 interface FaqItem {
   question_ko: string
@@ -55,10 +56,21 @@ export default function FaqSection() {
   ]
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <h2 className="text-3xl font-bold mb-8 text-center">
-        {language === "en" ? "Frequently Asked Questions" : "자주 묻는 질문"}
-      </h2>
+    <div className="w-full max-w-3xl mx-auto break-keep py-24">
+      <div className="flex flex-col">
+        <div className="relative w-full flex md:flex-row flex-col gap-8 justify-center items-center ">
+          <h2 className="w-full text-3xl font-bold text-center break-keep  md:order-1 order-2 pb-2">
+            {language === "en" ? "Frequently Asked Questions" : "자주 묻는 질문"}
+          </h2>
+          <Image
+          src="/writing-class/images/logo_sticker.svg"
+          alt="toonyz logo"
+          width={100}
+          height={100}
+          className="absolute z-[5] animate-[spin_9s_linear_infinite] md:bottom-4 bottom-12 md:-right-8 md:order-2 order-1" />
+        </div>
+      </div>
+
       <Accordion type="single" collapsible className="w-full">
         {faqItems.map((item, index) => (
           <AccordionItem key={index} value={`item-${index}`} className="border-b border-[#d2d2d7]">

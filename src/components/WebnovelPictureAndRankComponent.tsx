@@ -51,6 +51,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                     <div className="flex flex-col items-center text-center">
                         {/* Genre */}
                         <OtherTranslateComponent
+                            element={webnovel}
                             content={webnovel.title}
                             elementId={webnovel.id.toString()}
                             elementType="webnovel"
@@ -72,7 +73,7 @@ const WebnovelPictureAndRankComponent = React.memo(({ webnovel, index, ranking, 
                                 </p>
                                 <p className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-500 md:flex flex-row items-center ml-2 hidden gap-1 ">
                                     <Eye size={10} />
-                                    <span> {webnovel.views} </span>
+                                    <span> {webnovel.shown_views} </span>
                                 </p>
                             </div>
                         )}

@@ -60,6 +60,7 @@ const ToonyzPostCardList = ({ posts }: { posts: ToonyzPost[] }) => {
                         <div className="flex flex-col items-center text-center">
                             {/* Title */}
                            { item.title ? <OtherTranslateComponent
+                                element={item}
                                 content={item.title}
                                 elementId={item.id.toString()}
                                 elementType="toonyz_post"

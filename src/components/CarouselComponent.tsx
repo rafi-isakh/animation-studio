@@ -7,7 +7,6 @@ import { Webnovel } from '@/components/Types';
 import Image from 'next/image';
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { revalidateTag } from 'next/cache';
 
 export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     cover_art: fileName,
     genre: genre,
     language: language,
-    // available_languages: ["en", "ko"]
+    available_languages: JSON.stringify([language])
   };
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webnovel`, {
@@ -75,6 +76,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
       status: response.status
     });
   }
+
+  revalidateTag('webnovels');
 
   return NextResponse.json({
     message: "Add webnovel success",

@@ -1,13 +1,9 @@
 import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Link from "next/link";
 import { phrase } from '@/utils/phrases';
-import OtherTranslateComponent from "./OtherTranslateComponent";
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { ChevronDownIcon, Eye, Heart, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
-import { bwTheme, wbTheme } from "@/styles/BlackWhiteButtonStyle";
-import { styled } from '@mui/system';
+import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
 import { Button, Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { useRouter } from 'next/navigation';
@@ -48,6 +44,14 @@ const ListOfChaptersComponent = ({
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
 
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+        setImageSrc(getImageUrl(webnovel?.cover_art));
+        if (language == 'en' && webnovel?.en_cover_art) {
+            setImageSrc(getImageUrl(webnovel?.en_cover_art));
+        } 
+    }, [webnovel, language]);
 
     const loadMoreChapters = () => {
         if (language == 'en') {
@@ -154,7 +158,7 @@ const ListOfChaptersComponent = ({
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
                                     <div className="min-w-[50px] max-w-[50px]">
                                     <Image
-                                        src={getImageUrl(webnovel?.cover_art)}
+                                        src={imageSrc || ""}
                                         alt={webnovel?.title || ""}
                                         width={50}
                                         height={50}
@@ -175,7 +179,7 @@ const ListOfChaptersComponent = ({
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                <Eye size={11} /> {chapter.views}
+                                                <Eye size={11} /> {chapter.shown_views}
                                             </div>
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                                 {/* <Heart size={11} /> */}

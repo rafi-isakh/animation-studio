@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface WebnovelIdProps {
     webnovelId: number;
 }
@@ -20,8 +22,10 @@ export interface Chapter {
   comments: Comment[];
   created_at: string;
   views: number;
+  shown_views: number;
   upvotes: number;
   free: boolean;
+  other_translations: OtherTranslation[];
 }
 
 export interface User {
@@ -33,11 +37,12 @@ export interface User {
   picture: string;
   stars: number;
   free_stars: number;
-  marketing: string;
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
   created_at: Date;
   genres: string;
+  other_translations: OtherTranslation[];
+  is_adult: boolean;
 }
 
 export interface UserStripped {
@@ -45,6 +50,8 @@ export interface UserStripped {
   nickname: string;
   picture: string;
   bio: string;
+  other_translations: OtherTranslation[];
+  is_adult: boolean;
 }
 
 export interface Author {
@@ -74,6 +81,7 @@ export interface Comment {
   replies: Comment[];
   created_at: Date;
   post_id: number;
+  other_translations: OtherTranslation[];
 }
 
 export interface SlickCarouselItem {
@@ -86,6 +94,7 @@ export interface SlickCarouselItem {
   webnovel_id: number;
   webnovel: Webnovel;
   parsed_tags: string[];
+  other_translations: OtherTranslation[];
 }
 
 export interface Webnovel {
@@ -101,6 +110,7 @@ export interface Webnovel {
   upvotes: number;
   language: string;
   views: number;
+  shown_views: number;
   version?: string;
   created_at: Date;
   tags: string;
@@ -115,6 +125,7 @@ export interface Webnovel {
   other_translations: OtherTranslation[];
   video_cover: string;
   en_video_cover: string;
+  is_adult_material: boolean;
 }
 
 export interface Dictionary {
@@ -158,6 +169,7 @@ export interface ToonyzPost {
   created_at: Date;
   views: number;
   quote?: string;
+  other_translations: OtherTranslation[];
 }
 
 export interface ToonyzPostUpdate {
@@ -172,7 +184,34 @@ export type OtherTranslation = {
   text: string
   language: string
   webnovel_id: string | null
+  chapter_id: string | null
+  user_id: string | null
+  comment_id: string | null
+  carousel_item_id: string | null
+  post_id: string | null
   element_type: string
   element_subtype: string
   done: boolean
+}
+
+
+export interface CourseBook {
+  id: number;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  author?: string;
+  coverColor?: string;
+  coverImage?: string;
+  textColor?: string;
+  description?: string;
+  description_en?: string;
+}
+
+export interface FaqItem {
+  question_ko: string;
+  question_en: string;
+  answer_ko: string | ReactNode;
+  answer_en: string | ReactNode;
 }

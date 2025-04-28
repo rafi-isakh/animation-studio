@@ -18,8 +18,6 @@ export default function LanguageSetter() {
                 setLanguage('ko');
             } else if (userCountry === 'US') {
                 setLanguage('en');
-            } else if (userCountry === 'JP') {
-                setLanguage('ja');
             } else {
                 setLanguage('en');
             }

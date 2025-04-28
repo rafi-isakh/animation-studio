@@ -54,6 +54,7 @@ export default function RankingGrid({ webnovels, isMobile, title }: { webnovels:
                                         <div className="absolute bottom-0 left-0 right-0 flex flex-col bg-white dark:bg-black p-3 text-white h-[50px] z-50 justify-between items-center">
                                             <h3 className="dark:text-white text-black font-medium text-sm">
                                                 <OtherTranslateComponent
+                                                    element={webnovel}
                                                     content={webnovel.title}
                                                     elementId={webnovel.id.toString()}
                                                     elementType="webnovel"

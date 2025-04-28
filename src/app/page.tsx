@@ -1,22 +1,21 @@
 import Footer from '@/components/Footer';
 import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategory';
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
-import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
-import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
-import MyReadingListComponent from '@/components/MyReadingListComponent';
-import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
+        next: { tags: ['carousel'] } 
+    })
+    const data = await response.json();
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    return response.json();
+    return data;
 }
 
 async function getLibrary() {
@@ -55,8 +54,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     //let library = await getLibrary() || [];
     // let posts = await getToonyzPosts();
     //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
-    const carouselFilter = [22, 24, 19]
-    items = items.filter((item: any) => !carouselFilter.includes(item.webnovel_id));
 
     const LargeGap = () => {
         return (

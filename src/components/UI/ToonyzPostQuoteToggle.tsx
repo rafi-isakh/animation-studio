@@ -72,7 +72,7 @@ const ToonyzPostQuoteToggle: React.FC<QuoteToggleProps> = ({ quote, postId, defa
                     }`}
                 >
                     <ScrollArea className="md:h-[150px] h-[100px]">
-                        <OtherTranslateComponent content={quote} elementId={postId} elementType="toonyz_post" elementSubtype="quote" />
+                        {quote}
                     </ScrollArea>
                 </p>
             )}

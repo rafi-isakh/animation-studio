@@ -33,6 +33,7 @@ import { usePathname } from 'next/navigation';
 import ProfileShareButton from '@/components/UI/ProfileShareButton';
 import { EditProfileButton } from '@/components/UI/EditProfileButton';
 import ToonyzPostCardList from '@/components/UI/ToonyzPostCardList';
+import DeleteAccountButton from './UI/DeleteAccountButton';
 
 const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
 
@@ -289,6 +290,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             <ProfileShareButton user={user} id={id} />
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
+                                            {isLoggedIn && user.id.toString() === id && <DeleteAccountButton setShowDeleteAccountModal={setShowDeleteAccountModal} />}
                                         </div>
                                       </div>
                                     <div>
@@ -304,7 +306,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                                 <p className='flex flex-row justify-center items-center gap-1 text-sm'>
                                                     <Eye size={15} />
                                                     <p className='text-sm capitalize'>{phrase(dictionary, "views", language)}</p>
-                                                    <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
+                                                    <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.shown_views, 0)}</p>
                                                 </p>
                                             </div>
                                             <div className='flex flex-col justify-center items-center'>
@@ -326,6 +328,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 <Button color='gray' onClick={() => router.push(`/view_webnovels/${getRecentNovel().id}`)} variant='outline' className='border border-gray-300 rounded-sm'>
                                     <div className='flex flex-row gap-1 justify-center items-center'>
                                         <OtherTranslateComponent
+                                            element={getRecentNovel()}
                                             content={getRecentNovel().title}
                                             elementId={getRecentNovel().id.toString()}
                                             elementType='webnovel'
@@ -349,6 +352,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 {user.bio ? (
                                     <>
                                         <OtherTranslateComponent
+                                            element={user}
                                             content={user.bio}
                                             elementId={user.id.toString()}
                                             elementType='user'

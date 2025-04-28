@@ -27,7 +27,6 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/N_logo_with_heart.json';
-import { getImageDimensions } from "@/utils/imageDimensions";
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
@@ -194,10 +193,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                         <hr className='w-full border-gray-200' />
 
                         <p className="text-xl md:text-2xl font-bold">
-                            <OtherTranslateComponent content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
+                            <OtherTranslateComponent element={post} content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
                         </p>
 
-                        {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
+                        {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent element={post} content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
 
                         {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
 

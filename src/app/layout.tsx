@@ -22,109 +22,136 @@ import { auth } from "@/auth";
 import { ToastProvider } from '@/hooks/use-toast';
 import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { headers } from 'next/headers';
+import UserProviderServer from "@/contexts/UserProviderServer";
+
 interface RootLayoutProps {
-  children: ReactNode;
+    children: ReactNode;
 }
 
 export const metadata: Metadata = {
-  title: '투니즈 Toonyz',
-  description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
-  manifest: '/manifest.json',
-  openGraph: {
-    type: 'website',
-    url: 'https://toonyz.com',
     title: '투니즈 Toonyz',
     description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
-    images: [
-      {
-        url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
-        alt: '스텔리 Stelli'
-      }
-    ]
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '투니즈 toonyz',
-    description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
-    images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
-  },
-  alternates: {
-    canonical: 'https://toonyz.com/',
-  },
-  verification: {
-    google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
-    other: {
-      "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
+    manifest: '/manifest.json',
+    openGraph: {
+        type: 'website',
+        url: 'https://toonyz.com',
+        title: '투니즈 Toonyz',
+        description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
+        images: [
+            {
+                url: 'https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75',
+                alt: '스텔리 Stelli'
+            }
+        ]
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: '투니즈 toonyz',
+        description: '웹소설 숏폼 애니메이션 글로벌 스토리 플랫폼',
+        images: ['https://toonyz.com/_next/image?url=%2Fstelli.png&w=256&q=75'],
+    },
+    alternates: {
+        canonical: 'https://toonyz.com/',
+    },
+    verification: {
+        google: 'mPCV_mpPVichrxpPAZwTfQKLDr3XF5JEPfi-W8kJiLU',
+        other: {
+            "naver-site-verification": "ab9c8fe45b7e410447296fcf47bbc16bec7d8edf"
+        }
     }
-  }
 }
 
 interface RootLayoutProps {
-  children: ReactNode;
+    children: ReactNode;
+}
+
+export async function getUserSession() {
+    const headersList = headers();
+    const protocol = headersList.get('x-forwarded-proto') || 'https'; // usually 'https'
+    const host = headersList.get('host'); // e.g., toonyz.com or yoursite.vercel.app
+
+    const url = `${protocol}://${host}/api/user_session`;
+
+    const res = await fetch(url, {
+        headers: {
+            cookie: headersList.get('cookie') || '', // important! pass cookies manually
+        },
+        cache: 'no-store',
+    });
+
+    if (!res.ok) {
+        return null;
+    }
+
+    const data = await res.json();
+    return data;
 }
 
 export default async function RootLayout({ children }: RootLayoutProps) {
-  const session = await auth();
-  const isLoggedIn = !!session?.user;
+    const session = await auth();
+    const isLoggedIn = !!session?.user;
+    const user = await getUserSession();
+    console.log(user)
 
-  return (
-    <html lang="en" translate="no" suppressHydrationWarning>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
-        />
-      </head>
-      <body className={`antialiased dark`}>
-        <GoogleAnalytics />
-        <RegisterSW />
+    return (
+        <html lang="en" translate="no" suppressHydrationWarning>
+            <head>
+                <link
+                    rel="stylesheet"
+                    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+                />
+            </head>
+            <body className={`antialiased dark`}>
+                <GoogleAnalytics />
+                <RegisterSW />
 
-        <ToastProvider>
-          <LanguageProvider>
-            <WebnovelsProvider>
-              <LanguageSetter />
-              <ThemeProvider>
-                <AuthProvider>
-                  <UserProvider>
-                    <DeviceProvider>
-                      <MobileMenuProvider>
-                        <SearchProvider>
-                          <CreateMediaProvider>
-                            <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
-                              <Suspense>
-                                <NavigationEvents />
-                              </Suspense>
-                              <Suspense>
-                                <Header isLoggedIn={isLoggedIn} />
-                              </Suspense>
-                              <Margin>
-                                <div className="md:pl-[72px] pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
-                                  {children}
-                                </div>
-                                <Analytics />
-                              </Margin>
-                              <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
-                                <GlobalSidebar />
-                              </div>
-                              <div className="block md:hidden z-[99]">
-                                <BottomNavigationBar />
-                              </div>
-                            </div>
-                          </CreateMediaProvider>
-                        </SearchProvider>
-                      </MobileMenuProvider>
-                    </DeviceProvider>
-                  </UserProvider>
-                </AuthProvider>
-              </ThemeProvider>
-            </WebnovelsProvider>
-          </LanguageProvider>
-        </ToastProvider>
-        <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
-        <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6123598702567464"
-          crossOrigin="anonymous"></script>
-      </body>
-    </html >
-  );
+                <ToastProvider>
+                    <LanguageProvider>
+                        <WebnovelsProvider>
+                            <LanguageSetter />
+                            <ThemeProvider>
+                                <AuthProvider>
+                                    <UserProviderServer user={user}>
+                                        <DeviceProvider>
+                                            <MobileMenuProvider>
+                                                <SearchProvider>
+                                                    <CreateMediaProvider>
+                                                        <div className={`relative font-pretendard pretendard-jp pretendard-std`}>
+                                                            <Suspense>
+                                                                <NavigationEvents />
+                                                            </Suspense>
+                                                            <Suspense>
+                                                                <Header isLoggedIn={isLoggedIn} />
+                                                            </Suspense>
+                                                            <Margin>
+                                                                <div className="pl-0 overflow-x-hidden">  {/* The side bar width is 72px md:pl-[72px] */}
+                                                                    {children}
+                                                                </div>
+                                                                <Analytics />
+                                                            </Margin>
+                                                            <div className="hidden md:flex md:z-[1300] justify-center items-center">  {/* no sidebar on mobile */}
+                                                                <GlobalSidebar />
+                                                            </div>
+                                                            <div className="block md:hidden z-[99]">
+                                                                <BottomNavigationBar />
+                                                            </div>
+                                                        </div>
+                                                    </CreateMediaProvider>
+                                                </SearchProvider>
+                                            </MobileMenuProvider>
+                                        </DeviceProvider>
+                                    </UserProviderServer>
+                                </AuthProvider>
+                            </ThemeProvider>
+                        </WebnovelsProvider>
+                    </LanguageProvider>
+                </ToastProvider>
+                <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
+                <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6123598702567464"
+                    crossOrigin="anonymous"></script>
+            </body>
+        </html >
+    );
 }

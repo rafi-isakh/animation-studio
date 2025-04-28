@@ -89,10 +89,10 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
             alert(phrase(dictionary, "languageNotAvailable", language));
             router.push(`/view_webnovels/${webnovel?.id}`);
         }
-        if (webnovel && chapter && !chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
+        if (webnovel && !checking && chapter && !chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
             router.push(`/view_webnovels/${webnovel?.id}`);
         }
-    }, [webnovel, language])
+    }, [webnovel, language, checking])
 
     const handleViewSettings = () => {
         setShowIsViewerModal(true);
@@ -314,6 +314,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         <span className="mr-2">🔒</span>
                                     )}
                                     <OtherTranslateComponent
+                                        element={nextChapter}
                                         content={nextChapter.title}
                                         elementId={nextChapter.id.toString()}
                                         elementType='chapter'
@@ -343,7 +344,21 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}>
                             <div className="flex flex-row space-x-1 items-center">
                                 <ChevronLeft size={18} />
-                                <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype="title" />
+                                {webnovel.other_translations?.find(
+                                    translation => 
+                                        translation.language === language && 
+                                        translation.element_type === 'webnovel' && 
+                                        translation.element_subtype === 'title' && 
+                                        translation.webnovel_id === webnovel.id.toString()
+                                )?.text || 
+                                    <OtherTranslateComponent 
+                                        element={webnovel}
+                                        content={webnovel.title} 
+                                        elementId={webnovel.id.toString()} 
+                                        elementType='webnovel' 
+                                        elementSubtype="title" 
+                                    />
+                                }
                             </div>
                         </Button>
 
@@ -454,7 +469,13 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
                                 <div className='flex justify-between px-4'>
-                                    <OtherTranslateComponent content={chapter.title} elementId={chapter_id} elementType='chapter' elementSubtype="title" classParams="text-2xl mt-2 mb-2" />
+                                    <OtherTranslateComponent 
+                                        element={chapter}
+                                        content={chapter.title} 
+                                        elementId={chapter_id} 
+                                        elementType='chapter' 
+                                        elementSubtype="title" 
+                                        classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                     <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} webnovel_id={webnovel.id.toString()} chapter_id={chapter_id}>

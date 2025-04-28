@@ -68,7 +68,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                          {/* miscellanous */}
                          <div className="flex flex-row space-x-2 text-sm">
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                    <Eye size={11} /> {webnovel.views}
+                                    <Eye size={11} /> {webnovel.shown_views}
                                 </div>
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     {/* heart icon */}
@@ -80,12 +80,12 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             </div>
                             
                         <p className="font-semibold text-lg text-balck dark:text-black break-keep">
-                            <OtherTranslateComponent content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
+                            <OtherTranslateComponent element={webnovel} content={webnovel.title} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='title' />
                         </p>
                         <p className="text-gray-600">{webnovel.author.nickname}</p>
                         <p className="text-gray-500 uppercase">{phrase(dictionary, webnovel.genre, language)}</p>
                         <p className="text-sm text-center max-w-[400px] text-balck dark:text-black break-keep">
-                            <OtherTranslateComponent content={webnovel.description} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='description' />
+                            <OtherTranslateComponent element={webnovel} content={webnovel.description} elementId={webnovel.id.toString()} elementType='webnovel' elementSubtype='description' />
                         </p>
 
 

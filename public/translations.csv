@@ -413,16 +413,16 @@ findYourFavoriteWebnovelsAudiobookAndMore,좋아하는 웹소설을 오디오북
 goToSpotify,투니즈 Spotify 가기,,Go to Toonyz Spotify
 noFavoriteAuthorsYet,좋아하는 작가가 없습니다,,No Favorite Authors Yet,,
 YouMightLike,이런 작품 어떠세요?,,You might like this
-newReleasesWebnovels,🚀 위클리 데뷔작 ,,🚀 New Stars Rising – Weekly Launches
-recommendedWebnovels,🏆 몰입감 순삭 인기작,,🏆 Best Reads – Chapters of Pure Momentum
+newReleasesWebnovels,🚀 위클리 데뷔작 ,,🚀 Weekly Launches
+recommendedWebnovels,🏆 몰입감 순삭 인기작,,🏆 Best Reads
 TOP_SEVEN_WEBNOVELS,⭐ TOP 7,,⭐ TOP 7
-romanceWebnovels,💘 설렘가득 로맨스,,💘 Hi-teen Romance – Drama\, Laughs & Catfights
+romanceWebnovels,💘 설렘가득 로맨스,,💘 Modern Romance
 fantasyWebnovels,⚠️ 무적의 판타지,,⚠️ Sci-Fi & Fantasy
-BLWebnovels,🌈 경계없는 사랑,,🌈 Love Without Borders – BL/GL/LGBTQ+
+BLWebnovels,🌈 경계없는 사랑,,🌈 BL/GL/LGBTQ+
 Sci-FiWebnovels,🚀 인기 SF 추천작,,🚀 Best Sci-Fi Now
-orientalFantasyWebnovels,⚔️ 고독한 무림,,⚔️ Blades\, Blood & Fallen Sects – Lonesome Paths
+orientalFantasyWebnovels,⚔️ 고독한 무림,,⚔️ Wuxia
 romanceFantasyWebnovels,💐 운명의 로맨스 판타지,,💐 Romance Fantasy
-communityWebnovels,📝 모두의 이야기: 자유연재,,📝 Tales by You – Raw\, Real\, Relatable
+communityWebnovels,📝 모두의 이야기: 자유연재,,📝 Tales by You
 toonyzPost_title,투니즈 포스트 쇼케이스,,Starburst- TOONYZ Post,
 complementary_stars_added,가입 축하 별 50개를 받으셨습니다. 웹소설을 구매하거나 이미지로 만들어보세요!,,You have received 50 stars as a welcome gift. Purchase a webnovel or create an image!,,,
 reset,초기화,,Reset,,
@@ -443,3 +443,13 @@ go_to_dashboard,대시보드 가기,,Go to Dashboard,,
 uploadProfilePicture,프로필 사진 업로드,,Upload Profile Picture,,
 noBioYet,자기소개가 없습니다,,No Bio Yet,,
 viewPost,포스트 보기,,View Post,,
+ToonyzPlatformGuid,투니즈 플랫폼 가이드,,Toonyz Platform Guide,,
+HelpGuid,투니즈 이용가이드,,Help Guide,,
+sendMessage,메시지 보내기,,Send Message,,
+MayIHelpYou,무엇을 도와드릴까요?,,May I help you?,,
+emailUs,이메일을 보내주세요. 신속한 답변을 드리도록 하겠습니다.,,Welcome! Don't hesitate to contact us,,
+WhatIsToonyzPost,투니즈 포스트는 무엇 인가요?,,What is a Toonyz Post?,,
+HowDoIGenerateImagesOrVideos,이미지/비디오 생성은 무료인가요? 어떻게 하나요?,,Is image/video generation free? How do I do it?,,
+WhereCanISeeMyGeneratedImages,내가 만든 이미지는 어디서 볼 수 있나요?,,Where can I see my generated images?,,
+IsThereAnyCopyrightIssues,저작권 상에 문제가 있나요?,,Is there any copyright issue?,,
+HowToSubmitOrPublish,연재 및 투고 방법,,How to submit or publish,,

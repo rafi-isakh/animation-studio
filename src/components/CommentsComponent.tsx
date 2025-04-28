@@ -40,27 +40,26 @@ const CommentsComponent = ({
     const replyDropdownRef = useRef<HTMLDivElement>(null);
     const [textareaRows, setTextareaRows] = useState(1);
 
-
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
             // Prevent form submission on Enter
             e.preventDefault();
-            
+
             // Store a reference to the textarea element before the event is cleaned up
             const textarea = e.currentTarget;
-            
+
             // Insert a newline character at cursor position
             const cursorPosition = textarea.selectionStart;
             const textBefore = commentContent.substring(0, cursorPosition);
             const textAfter = commentContent.substring(cursorPosition);
             setCommentContent(textBefore + '\n' + textAfter);
-            
+
             // Set cursor position after the newline
             setTimeout(() => {
                 const newCursorPosition = cursorPosition + 1;
                 textarea.setSelectionRange(newCursorPosition, newCursorPosition);
             }, 0);
-            
+
             // Increase rows up to a maximum of 5
             setTextareaRows(prev => Math.min(prev + 1, 5));
         } else if (e.key === 'Backspace' && commentContent.split('\n').length < textareaRows) {
@@ -276,7 +275,7 @@ const CommentsComponent = ({
                                 placeholder={phrase(dictionary, "typeYourComment", language)}
 
                             />
-     
+
                             <button
                                 type="submit"
                                 className='absolute right-2 bottom-2 bg-transparent text-black dark:text-white hover:opacity-75 transition-opacity'
@@ -292,7 +291,11 @@ const CommentsComponent = ({
 
                     <div className='flex flex-row justify-start items-center text-gray-500 dark:text-gray-500 px-3 py-3 text-sm font-bold gap-1'>
                         {/* chapter title */}
-                        <OtherTranslateComponent content={contentToAttachTo.title} elementId={contentToAttachTo.id.toString()} elementType={webnovelOrPostElementType} />
+                        <OtherTranslateComponent
+                            content={contentToAttachTo.title}
+                            elementId={contentToAttachTo.id.toString()}
+                            elementType={webnovelOrPostElementType}
+                            element={contentToAttachTo} />
                         <p className=' text-gray-500 dark:text-gray-500'> {phrase(dictionary, "comments", language)}{' '}</p>
                         <p className=' text-gray-500 dark:text-gray-500'> ({allComments.length})</p>
                     </div>
@@ -304,7 +307,8 @@ const CommentsComponent = ({
                     ) : (
                         <div>
                             {allComments.map((comment, index) => (
-                                (!comment.parent_id) ? (
+                                // TODO: fix bug where if there are comments with the parent deleted, they don't show but are accounted for in the length
+                                !comment.parent_id && (
                                     <div key={`comment-${comment.id}`} className='flex flex-col py-4 px-4'>
                                         <div className="flex flex-row gap-2 justify-between">
                                             <div className='flex flex-row gap-2 justify-start items-center'>
@@ -357,6 +361,7 @@ const CommentsComponent = ({
                                         <div className='flex justify-between w-full py-4'>
                                             <div className='flex flex-col gap-8'>
                                                 <OtherTranslateComponent
+                                                    element={comment}
                                                     key={`translate-comment-${comment.id}`}
                                                     content={comment.content}
                                                     elementId={comment.id.toString()}
@@ -444,6 +449,7 @@ const CommentsComponent = ({
                                                         <div className='flex justify-between'>
                                                             <div className='flex flex-col gap-8 py-2'>
                                                                 <OtherTranslateComponent
+                                                                    element={reply}
                                                                     key={`translate-reply-${reply.id}`}
                                                                     content={reply.content}
                                                                     elementId={reply.id.toString()}
@@ -486,7 +492,7 @@ const CommentsComponent = ({
                                             </div>
                                         }
                                     </div >
-                                ) : <></>
+                                )
                             ))}
                         </div >
                     )}

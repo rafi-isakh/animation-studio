@@ -137,13 +137,16 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                 <Link href={webnovel_id ? `/view_webnovels/${webnovel_id}` : "#"}>
                     <h2 className="text-2xl font-bold mb-1 text-black dark:text-white">
                         {/* {webnovel?.title} */}
-                        <OtherTranslateComponent
-                            content={webnovel?.title || ""}
-                            elementId={webnovel?.id.toString() || ""}
-                            elementType="webnovel"
-                            elementSubtype="title"
-                            classParams="truncate max-w-full"
-                        />
+                        {webnovel &&
+                            <OtherTranslateComponent
+                                element={webnovel}
+                                content={webnovel?.title || ""}
+                                elementId={webnovel?.id.toString() || ""}
+                                elementType="webnovel"
+                                elementSubtype="title"
+                                classParams="truncate max-w-full"
+                            />
+                        }
                     </h2>
                 </Link>
                 <div className="flex flex-col items-start justify-between">

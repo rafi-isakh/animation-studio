@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
                 purchased_webnovel_chapters: user.purchased_webnovel_chapters,
                 upvoted_comments: user.upvoted_comments,
                 genres: user.genres,
+                is_adult: user.is_adult,
             });
         } else {
             return NextResponse.json({
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest) {
                 purchased_webnovel_chapters: "[]",
                 upvoted_comments: "",
                 genres: "",
+                is_adult: false,
             });
         }
     } catch (error) {

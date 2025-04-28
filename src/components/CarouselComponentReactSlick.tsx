@@ -170,6 +170,7 @@ const CarouselComponentReactSlick = ({
                                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 md:p-8 rounded-xl overflow-hidden">
                                                 <div className="flex flex-col justify-end">
                                                     <OtherTranslateComponent
+                                                        element={item}
                                                         key={`title-${index}-${language}`}
                                                         content={item.title}
                                                         elementId={item.id.toString()}
@@ -199,6 +200,7 @@ const CarouselComponentReactSlick = ({
 
                                                     <div className="text-sm md:text-base line-clamp-2 mt-2">
                                                         <OtherTranslateComponent
+                                                            element={item}
                                                             key={`hook-${index}-${language}`}
                                                             content={item.hook}
                                                             elementId={item.id.toString()}

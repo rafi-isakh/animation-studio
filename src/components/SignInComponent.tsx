@@ -6,11 +6,15 @@ import { phrase } from '@/utils/phrases'
 import Image from "next/image"
 import Link from "next/link"
 
-const SignInComponent = () => {
+interface SignInComponentProps {
+  redirectTo?: string;
+}
+
+const SignInComponent = ({ redirectTo }: SignInComponentProps) => {
   const { language, dictionary } = useLanguage()
   return (
     <div className="md:w-max-screen-md flex flex-col justify-center text-lg font-semibold font-pretendard">
-      <div className="w-[360px] flex flex-col items-center justify-center rounded-xl">
+      <div className="md:w-[360px] w-full flex flex-col items-center justify-center rounded-xl">
         <span className="relative flex h-28 w-28">
           <span className="relative inline-flex rounded-full h-28 w-28 border-[#FFE2DC]">
             <Image src="/images/stelli_head.svg" alt="Stelli image" width={100} height={100} className='self-center mx-auto' />
@@ -29,9 +33,9 @@ const SignInComponent = () => {
         </div> */}
 
         <div className="flex flex-col space-y-4 m-4 justify-center" >
-          <GoogleSignIn></GoogleSignIn>
-          <KakaoSignIn></KakaoSignIn>
-          <AppleSignIn></AppleSignIn>
+          <GoogleSignIn redirectPath={redirectTo}></GoogleSignIn>
+          <KakaoSignIn redirectPath={redirectTo}></KakaoSignIn>
+          <AppleSignIn redirectPath={redirectTo}></AppleSignIn>
         </div>
 
         <p className="text-center text-[10px] text-gray-400 dark:text-white"> 

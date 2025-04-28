@@ -21,7 +21,7 @@ import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
 import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader";
 import { useToast } from "@/hooks/use-toast";
-import { downloadFiles } from "./downloads/page";
+import { downloadFiles } from "./data/downloadFiles";
 
 
 // const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
@@ -33,7 +33,6 @@ export default function WritingClassPage() {
   const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  // const [openLoginDialog, setOpenLoginDialog] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
 
@@ -122,7 +121,7 @@ export default function WritingClassPage() {
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
-          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          {/* <Dialog open={showPreview} onOpenChange={setShowPreview}> */}
             <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
               {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Books"
                             : "무료로 작법서 다운 받기"}
@@ -140,7 +139,7 @@ export default function WritingClassPage() {
                 </>
               }
             </RoundedButton>
-          </Dialog>
+          {/* </Dialog> */}
         </div>
 
         <div className="md:w-1/2 relative md:order-2 order-2 hidden md:block">

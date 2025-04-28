@@ -42,6 +42,7 @@ export interface User {
   created_at: Date;
   genres: string;
   other_translations: OtherTranslation[];
+  is_adult: boolean;
 }
 
 export interface UserStripped {
@@ -50,6 +51,7 @@ export interface UserStripped {
   picture: string;
   bio: string;
   other_translations: OtherTranslation[];
+  is_adult: boolean;
 }
 
 export interface Author {
@@ -123,6 +125,7 @@ export interface Webnovel {
   other_translations: OtherTranslation[];
   video_cover: string;
   en_video_cover: string;
+  is_adult_material: boolean;
 }
 
 export interface Dictionary {

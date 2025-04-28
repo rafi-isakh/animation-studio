@@ -41,7 +41,6 @@ export default function PurchaseStarsKGInicisComponent() {
 
         /* 4. 결제 창 호출하기 */
         IMP.request_pay(data, callback);
-        console.log("IMP", IMP);
 
         async function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;

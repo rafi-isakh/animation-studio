@@ -40,7 +40,6 @@ const CommentsComponent = ({
     const replyDropdownRef = useRef<HTMLDivElement>(null);
     const [textareaRows, setTextareaRows] = useState(1);
 
-
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
             // Prevent form submission on Enter
@@ -308,7 +307,8 @@ const CommentsComponent = ({
                     ) : (
                         <div>
                             {allComments.map((comment, index) => (
-                                (!comment.parent_id) ? (
+                                // TODO: fix bug where if there are comments with the parent deleted, they don't show but are accounted for in the length
+                                !comment.parent_id && (
                                     <div key={`comment-${comment.id}`} className='flex flex-col py-4 px-4'>
                                         <div className="flex flex-row gap-2 justify-between">
                                             <div className='flex flex-row gap-2 justify-start items-center'>
@@ -492,7 +492,7 @@ const CommentsComponent = ({
                                             </div>
                                         }
                                     </div >
-                                ) : <></>
+                                )
                             ))}
                         </div >
                     )}

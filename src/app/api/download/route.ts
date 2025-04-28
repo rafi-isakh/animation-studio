@@ -5,10 +5,10 @@ import { auth } from "@/auth";
 import { s3Client } from "@/utils/s3";
 
 export async function GET(request: NextRequest) {
-    const session = await auth();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // const session = await auth();
+    // if (!session) {
+    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     try {
         const { searchParams } = new URL(request.url);

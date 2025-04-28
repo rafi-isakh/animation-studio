@@ -22,6 +22,7 @@ export interface Chapter {
   comments: Comment[];
   created_at: string;
   views: number;
+  shown_views: number;
   upvotes: number;
   free: boolean;
   other_translations: OtherTranslation[];
@@ -107,6 +108,7 @@ export interface Webnovel {
   upvotes: number;
   language: string;
   views: number;
+  shown_views: number;
   version?: string;
   created_at: Date;
   tags: string;

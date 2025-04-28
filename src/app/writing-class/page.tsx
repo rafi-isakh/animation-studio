@@ -20,16 +20,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
 import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader";
+import { useToast } from "@/hooks/use-toast";
+import { downloadFiles } from "./data/downloadFiles";
+
+
+// const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
+
+const file_url_en = `${downloadFiles[4].file_url_en}`;
+const file_url_ko = `${downloadFiles[4].file_url_ko}`;
 
 export default function WritingClassPage() {
   const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const [openLoginDialog, setOpenLoginDialog] = useState(false);
-  const handleLanguageChange = (newLanguage: string) => {
-    setLanguage(newLanguage as Language);
-    console.log("Language changed to", newLanguage);
-  }
+  const [showPreview, setShowPreview] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const previousTheme = theme;
@@ -38,13 +43,76 @@ export default function WritingClassPage() {
     }
   }, [theme]);
 
+  const downloadFile = (fileName: string) => {
+    if (!fileName || fileName.trim() === '') {
+      toast({
+        title: "Error downloading file",
+        description: "File key is missing",
+        variant: "destructive",
+      });
+      console.error('File key is missing');
+      return;
+    }
+
+    fetch(`/api/download?file=${encodeURIComponent(fileName)}`)
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || `HTTP error! Status: ${response.status}`);
+          }).catch(() => {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          });
+        }
+
+        const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
+
+        if (isSafariBrowser) {
+          // For Safari, we need to handle downloads differently
+          return response.blob().then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName.split('/').pop() || 'download.pdf';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast({
+              title: "File download started",
+              description: fileName.split('/').pop() || fileName,
+              variant: "success",
+            });
+          });
+        }
+
+        // For non-Safari browsers
+        window.open(response.url, '_blank');
+        toast({
+          title: "File download started",
+          description: fileName.split('/').pop() || fileName,
+          variant: "success",
+        });
+      })
+      .catch(error => {
+        if (!(error instanceof Error && error.message.startsWith('HTTP error'))) {
+          toast({
+            title: "Error preparing download",
+            description: error.message || "Could not get download link.",
+            variant: "destructive",
+          });
+        }
+        console.error('Error downloading file:', error);
+      });
+  }
 
   return (
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
-        <div className="md:w-1/2 mb-10 md:mb-0 order-2 md:order-1">
-          <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">99% OFF</p>
+        <div className="md:w-1/2 mb-10 md:mb-0 order-1 md:order-1">
+          <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">{language === "en" ? "1 Chapter Free" : "1강 무료"}</p>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {language === "en" ? <><span className="">Webnovel Writing Debut</span>, <br /> No longer a dream</>
               : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
@@ -53,22 +121,32 @@ export default function WritingClassPage() {
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
-          <Dialog open={openLoginDialog} onOpenChange={setOpenLoginDialog}>
+          {/* <Dialog open={showPreview} onOpenChange={setShowPreview}> */}
             <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Writing Book" : "지금 작법서 무료로 받기"}</Link>
+              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Books"
+                            : "무료로 작법서 다운 받기"}
+              </Link>
                 : <>
-                  <Link href="#" onClick={() => setOpenLoginDialog(true)}>
-                    {language === "en" ? "Download Free Book of 5"
-                      : "가입하고 무료 작법서 5강 받기"}
+                  <Link href="#" onClick={() => {
+                    const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko;
+                    console.log(`Download clicked: ${fileKey} (${language})`);
+                    downloadFile(fileKey);
+                  }}>
+                    {language === "en" ? "Preview Free Book of 5"
+                      : "무료로 작법서 5강 보기"}
                   </Link>
-                  <LoginDialog />
+                  {/* <LoginDialog /> */}
                 </>
               }
             </RoundedButton>
-          </Dialog>
+          {/* </Dialog> */}
+          <p className="w-fit text-sm text-gray-500 md:mx-0 mx-auto pt-4">
+            {language === "en" ? "Join Toonyz to get all free books :)"
+                               : <>투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.</>}
+          </p>
         </div>
 
-        <div className="md:w-1/2 relative md:order-2 order-1">
+        <div className="md:w-1/2 relative md:order-2 order-2 hidden md:block">
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-1 space-y-4">
               <BookCard
@@ -217,7 +295,7 @@ export default function WritingClassPage() {
       {/* Program Details Section */}
       <section className="relative flex flex-col items-center justify-center py-16 bg-gray-100">
         <div className="flex md:flex-row flex-col justify-center items-center">
-          
+
         </div>
         <LearningSection />
       </section>

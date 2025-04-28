@@ -106,6 +106,7 @@ export interface Webnovel {
   upvotes: number;
   language: string;
   views: number;
+  shown_views: number;
   version?: string;
   created_at: Date;
   tags: string;

@@ -283,7 +283,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 </p>
 
                                 <p className="text-sm capitalize">
-                                    {content.views}
+                                    {content.shown_views}
                                 </p>
                                 <hr />
 

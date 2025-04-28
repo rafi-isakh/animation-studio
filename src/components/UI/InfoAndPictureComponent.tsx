@@ -368,7 +368,7 @@ export default function InfoAndPictureComponent({
                             {/* miscellanous */}
                             <div className="flex flex-row space-x-2 text-sm">
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                    <Eye size={11} /> {content.views}
+                                    <Eye size={11} /> {content.shown_views}
                                 </div>
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     {/* heart icon - gray #6B7280 */}

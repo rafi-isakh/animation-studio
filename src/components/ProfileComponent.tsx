@@ -304,7 +304,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                                 <p className='flex flex-row justify-center items-center gap-1 text-sm'>
                                                     <Eye size={15} />
                                                     <p className='text-sm capitalize'>{phrase(dictionary, "views", language)}</p>
-                                                    <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.views, 0)}</p>
+                                                    <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.shown_views, 0)}</p>
                                                 </p>
                                             </div>
                                             <div className='flex flex-col justify-center items-center'>

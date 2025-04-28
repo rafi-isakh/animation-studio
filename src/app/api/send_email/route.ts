@@ -4,7 +4,7 @@ import { EmailTemplateToStaff } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
     const { message, email, subject, templateType } = await req.json();
-    // const staffEmail = 'dami@stelland.io'
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -28,5 +28,5 @@ export async function POST(req: Request) {
         text: message,
         html: emailHtml
     });
-    return new Response('Email sent', { status: 200 });
+    return new Response(`Email sent to ${email}`, { status: 200 });
 }

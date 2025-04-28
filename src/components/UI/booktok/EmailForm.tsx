@@ -48,12 +48,14 @@ export function EmailForm() {
       })
     })
     if (response.ok) {
+      console.log('Email sent successfully to staff')
       toast({
         title: "Success!",
         variant: "success",
         description: "We got your email! we will be in touch very soon!",
       })
     } else {
+      console.log('Email not sent to staff')
       toast({
         title: "Error!",
         variant: "destructive",
@@ -76,12 +78,14 @@ export function EmailForm() {
       })
     })
     if (response.ok) {
+      console.log('Email sent successfully to creator')
       toast({
         title: "Success!",
         variant: "success",
         description: "Email sent successfully",
       })
     } else {
+      console.log('Email not sent')
       toast({
         title: "Error!",
         variant: "destructive",

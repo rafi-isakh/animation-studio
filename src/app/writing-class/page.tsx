@@ -23,6 +23,12 @@ import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader"
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./downloads/page";
 
+
+// const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
+
+const file_url_en = `${downloadFiles[4].file_url_en}`;
+const file_url_ko = `${downloadFiles[4].file_url_ko}`;
+
 export default function WritingClassPage() {
   const { isLoggedIn } = useAuth();
   const { language, setLanguage } = useLanguage();
@@ -52,14 +58,6 @@ export default function WritingClassPage() {
     fetch(`/api/download?file=${encodeURIComponent(fileName)}`)
       .then(response => {
         if (!response.ok) {
-          if (response.status === 401) {
-            toast({
-              title: "Authentication error",
-              description: "You need to be signed in to download files",
-              variant: "destructive",
-            });
-            return Promise.reject(new Error("Authentication error"));
-          }
           return response.json().then(data => {
             throw new Error(data.error || `HTTP error! Status: ${response.status}`);
           }).catch(() => {
@@ -126,12 +124,12 @@ export default function WritingClassPage() {
           </p>
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
             <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Book of 5"
-                : "무료로 작법서 다운 받기"}
+              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Books"
+                            : "무료로 작법서 다운 받기"}
               </Link>
                 : <>
                   <Link href="#" onClick={() => {
-                    const fileKey = language === "ko" ? file.file_url_ko : file.file_url_en || file.file_url_ko;
+                    const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko;
                     console.log(`Download clicked: ${fileKey} (${language})`);
                     downloadFile(fileKey);
                   }}>

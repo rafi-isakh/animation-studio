@@ -38,7 +38,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
                 console.log('webnovels', webnovels)
                 console.log('isAdult', isAdult)
                 alert('성인 인증이 필요합니다.')
-                router.push('/adult_verification')
+                router.push(`/adult_verification?webnovel_id=${webnovel_id}`)
             }
         }
     }, [pathname, webnovels, isAdult])

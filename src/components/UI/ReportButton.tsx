@@ -18,7 +18,7 @@ export default function ReportButton({ user }: { user: UserStripped }) {
         const message = `Reported user: ${user.nickname}\nUser ID: ${user.id}\n\nReport message: ${reportMessage}`;
         await fetch('/api/send_email', {
             method: 'POST',
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ message: message, templateType: 'report' })
         });
         setShowReportModal(false);
         setShowReportSuccessModal(true);

@@ -273,6 +273,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/writing-class')) {
             return "hidden"
         }
+        if (pathname.startsWith('/booktok')) {
+            return "hidden"
+        }
         return ""
     }
 

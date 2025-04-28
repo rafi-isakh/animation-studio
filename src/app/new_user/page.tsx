@@ -6,7 +6,7 @@ import NewUserBioComponent from '@/components/NewUserBioComponent';
 import NewUserCodeComponent from '@/components/NewUserCodeComponent';
 import UserWithSameEmailExistsModalComponent from '@/components/UserWithSameEmailExistsModalComponent';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CircularProgress, Checkbox, FormControlLabel, Modal, Box } from '@mui/material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -24,6 +24,9 @@ const randomNickname = () => nouns[Math.floor(Math.random() * nouns.length)] + M
 
 export default function NewUser() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get('returnTo');
+    const pushTo = returnTo? `/user_loggedin?returnTo=${encodeURIComponent(returnTo)}` : '/user_loggedin';
     const { language, dictionary } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [userExists, setUserExists] = useState(false);
@@ -54,7 +57,7 @@ export default function NewUser() {
                 const data = await res.json();
                 if (data.user_exists) {
                     setUserExists(true);
-                    router.push("/user_loggedin");
+                    router.push(pushTo)
                 } else if (data.user_with_same_email_exists) {
                     setUserWithSameEmailExists(true);
                 }
@@ -65,7 +68,7 @@ export default function NewUser() {
             }
         };
         checkUser();
-    }, [router]);
+    }, [router, returnTo]);
 
     async function updateUser(formData: FormData) {
         // TODO: add option to upload picture at user registration
@@ -112,7 +115,7 @@ export default function NewUser() {
         if (!res.ok) {
             throw new Error(`Failed to update user: ${res.statusText} ${res.status}`);
         }
-        router.push('/welcome');
+        router.push(returnTo || '/welcome');
     }
 
 
@@ -176,7 +179,7 @@ export default function NewUser() {
             if (!res.ok) throw new Error("Failed to create user");
             await updateUser(formData2);
 
-            router.push("/welcome");
+            router.push(returnTo || '/welcome');
         } catch (error) {
             console.error("Error creating user:", error);
         }

@@ -35,13 +35,15 @@ export function EmailForm() {
   }
 
   const sendNotification = async (formData: FormData) => {
-    const email = 'dami@stelland.io, ellie@stelland.io, ead0525@gmail.com'
+    const email = formData.get('email') as string
+    const staffEmail = 'dami@stelland.io, ellie@stelland.io, ead0525@gmail.com'
     const subject = 'BookTok Creator Campaign signup notification'
     const message = `New signup: ${email}`
     const response = await fetch('/api/send_email', {
       method: 'POST',
       body: JSON.stringify({ 
         email, 
+        staffEmail,
         subject, 
         message,
         templateType: 'staff'
@@ -52,14 +54,14 @@ export function EmailForm() {
       toast({
         title: "Success!",
         variant: "success",
-        description: "We got your email! we will be in touch very soon!",
+        description: "Email sent successfully to Toonyz staff",
       })
     } else {
       console.log('Email not sent to staff')
       toast({
         title: "Error!",
         variant: "destructive",
-        description: "Email not sent",
+        description: "Email not sent to Toonyz staff",
       })
     }
   }
@@ -82,14 +84,14 @@ export function EmailForm() {
       toast({
         title: "Success!",
         variant: "success",
-        description: "Email sent successfully",
+        description: "We got your email! we will be in touch very soon!",
       })
     } else {
       console.log('Email not sent')
       toast({
         title: "Error!",
         variant: "destructive",
-        description: "Email not sent",
+        description: "Email not sent to creator",
       })
     }
   }

@@ -1,9 +1,10 @@
 interface EmailTemplateProps {
     email: string
+    staffEmail?: string
     message?: string
   }
   
-  export function EmailTemplateToStaff({ email }: EmailTemplateProps) {
+  export function EmailTemplateToStaff({ email, staffEmail }: EmailTemplateProps) {
     return `
       <!DOCTYPE html>
       <html lang="en">

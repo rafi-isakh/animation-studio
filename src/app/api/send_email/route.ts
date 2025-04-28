@@ -3,7 +3,7 @@ import { EmailTemplateToCreator, EmailTemplateToReport } from '@/utils/EmailTemp
 import { EmailTemplateToStaff } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
-    const { message, email, subject, templateType } = await req.json();
+    const { message, email, subject, templateType, staffEmail } = await req.json();
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -15,18 +15,24 @@ export async function POST(req: Request) {
     
     // Conditionally render the appropriate email template
     const emailHtml = templateType === 'staff' 
-        ? EmailTemplateToStaff({ email })
+        ? EmailTemplateToStaff({ email, staffEmail })
         : templateType === 'creator'
         ? EmailTemplateToCreator({ email })
         : templateType === 'report'
         ? EmailTemplateToReport({ email, message })
         : EmailTemplateToReport({ email, message });
         
+    // Set the recipient based on template type
+    const recipient = templateType === 'staff' ? staffEmail 
+                    : templateType === 'report' ? staffEmail 
+                    : templateType === 'creator' ? email : email;
+        
     transporter.sendMail({
-        to: email,
+        from: email,
+        to: recipient,
         subject: subject || 'Report',
         text: message,
         html: emailHtml
     });
-    return new Response(`Email sent to ${email}`, { status: 200 });
+    return new Response(`Email sent to ${recipient}`, { status: 200 });
 }

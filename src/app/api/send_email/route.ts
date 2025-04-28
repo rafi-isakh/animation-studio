@@ -27,12 +27,18 @@ export async function POST(req: Request) {
                     : templateType === 'report' ? staffEmail 
                     : templateType === 'creator' ? email : email;
         
-    transporter.sendMail({
+    await transporter.sendMail({
         from: email,
         to: recipient,
         subject: subject || 'Report',
         text: message,
         html: emailHtml
     });
-    return new Response(`Email sent to ${recipient}`, { status: 200 });
+    
+    return new Response(JSON.stringify({ status: "OK", recipient }), { 
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 }

@@ -9,7 +9,7 @@ import SignInComponent from "@/components/SignInComponent"
 
 const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
 
-const downloadFiles = [
+export const downloadFiles = [
   {
     id: 1,
     name: "Toonyz_Writing_Guide_1.pdf",

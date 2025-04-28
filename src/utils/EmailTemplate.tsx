@@ -1,6 +1,9 @@
 interface EmailTemplateProps {
     email: string
     message?: string
+    nickname?: string
+    subject?: string
+    language?: string
   }
   
   export function EmailTemplateToStaff({ email }: EmailTemplateProps) {
@@ -85,3 +88,54 @@ interface EmailTemplateProps {
       </html>
     `
   }
+
+
+
+
+    
+  export function EmailTemplateToWelcome({ email, nickname, subject, language }: EmailTemplateProps) {
+    if (language === 'en') {
+      return `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>Toonyz Report</title>
+        </head>
+        <body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 20px;">
+          <div style="max-width: 560px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">Thank you for joining Toonyz ${nickname}!</h1>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              Welcome ${nickname}!
+            </p>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              ${nickname}, we are excited to have you on board!
+            </p>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              Please review the report and take action.
+            </p>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>
+            <p style="color: #111827; font-size: 16px; font-weight: 500;">Toonyz R&D Team</p>
+          </div>
+        </body>
+      </html>
+    `
+  }
+
+  if (language === 'kr') {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>Toonyz Report</title>
+        </head>
+        <body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 20px;">
+          <div style="max-width: 560px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">Thank you for joining Toonyz ${nickname}!</h1>
+          </div>
+        </body>
+      </html>
+    `
+  }
+}

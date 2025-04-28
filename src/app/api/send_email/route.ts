@@ -1,10 +1,10 @@
 import nodemailer from 'nodemailer';
-import { EmailTemplateToCreator, EmailTemplateToReport } from '@/utils/EmailTemplate';
+import { EmailTemplateToCreator, EmailTemplateToReport, EmailTemplateToWelcome } from '@/utils/EmailTemplate';
 import { EmailTemplateToStaff } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
-    const { message, email, subject, templateType } = await req.json();
-    // const staffEmail = 'dami@stelland.io'
+    const { message, email, subject, templateType, nickname, language } = await req.json();
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -20,6 +20,8 @@ export async function POST(req: Request) {
         ? EmailTemplateToCreator({ email })
         : templateType === 'report'
         ? EmailTemplateToReport({ email, message })
+        : templateType === 'welcome'
+        ? EmailTemplateToWelcome({ email, nickname, subject, language })
         : EmailTemplateToReport({ email, message });
         
     transporter.sendMail({

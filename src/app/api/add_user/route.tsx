@@ -47,9 +47,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
         }
 
 
-       const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/send_welcome`, {
+       const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/send_email`, {
             method: 'POST',
-            body: JSON.stringify({ nickname: postedData.nickname, email: session.user.email }),
+            body: JSON.stringify({ nickname: postedData.nickname, email: session.user.email, templateType: "welcome", language: postedData.language }),
             headers: { 'Content-Type': 'application/json' },
         });
 

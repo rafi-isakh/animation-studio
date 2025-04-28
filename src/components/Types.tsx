@@ -20,6 +20,7 @@ export interface Chapter {
   comments: Comment[];
   created_at: string;
   views: number;
+  shown_views: number;
   upvotes: number;
   free: boolean;
   other_translations: OtherTranslation[];

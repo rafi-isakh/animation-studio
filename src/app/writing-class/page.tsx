@@ -140,6 +140,10 @@ export default function WritingClassPage() {
               }
             </RoundedButton>
           {/* </Dialog> */}
+          <p className="w-fit text-sm text-gray-500 md:mx-0 mx-auto pt-4">
+            {language === "en" ? "Join Toonyz to get all free books :)"
+                               : <>투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.</>}
+          </p>
         </div>
 
         <div className="md:w-1/2 relative md:order-2 order-2 hidden md:block">

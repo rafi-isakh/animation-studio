@@ -103,7 +103,7 @@ export function EmailForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             aria-describedby="email-error"
-            className="w-full border-0 bg-transparent text-black dark:text-white placeholder:text-gray-400 focus:ring-0 focus:border-transparent focus-visible:border-transparent focus:outline-none active:ring-0 active:outline-none focus-visible:ring-0 focus-visible:outline-none active:border-transparent focus-visible:ring-offset-0"
+            className="w-full border-0 bg-transparent text-black dark:text-black placeholder:text-gray-400 focus:ring-0 focus:border-transparent focus-visible:border-transparent focus:outline-none active:ring-0 active:outline-none focus-visible:ring-0 focus-visible:outline-none active:border-transparent focus-visible:ring-offset-0"
           />
           <Button
             type="submit"

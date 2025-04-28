@@ -35,7 +35,7 @@ export function EmailForm() {
   }
 
   const sendNotification = async (formData: FormData) => {
-    const email = 'dami@stelland.io, ellie@stelland.io'
+    const email = 'dami@stelland.io, ellie@stelland.io, ead0525@gmail.com'
     const subject = 'BookTok Creator Campaign signup notification'
     const message = `New signup: ${email}`
     const response = await fetch('/api/send_email', {

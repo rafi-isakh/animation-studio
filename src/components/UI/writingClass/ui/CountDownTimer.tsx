@@ -26,7 +26,7 @@ export default function CountdownTimer({ targetDate, className }: CountdownTimer
       
       if (isSafari) {
         // Use the hardcoded target for Safari - April 31, 2025 at 23:59:59
-        target = new Date("2025/04/30T23:59:59")
+        target = new Date("2025/05/30T23:59:59")
       } else {
         // For other browsers, use the provided targetDate
         target = new Date(targetDate)
@@ -38,7 +38,7 @@ export default function CountdownTimer({ targetDate, className }: CountdownTimer
         // Fallback to a manually constructed date
         const fallbackDate = new Date()
         fallbackDate.setFullYear(2025)
-        fallbackDate.setMonth(3) // April (0-indexed)
+        fallbackDate.setMonth(4) // May (0-indexed)
         fallbackDate.setDate(30)
         fallbackDate.setHours(23, 59, 59, 0)
         target = fallbackDate

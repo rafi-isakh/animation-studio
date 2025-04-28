@@ -14,7 +14,7 @@ export function NavigationEvents() {
  
   useEffect(() => {
     if (prevPathname.current == '/new_user') { // if user logs in and doesn't register, log out
-        if (pathname !== '/welcome' && pathname !== '/new_user' && pathname !== '/user_loggedin') {
+        if (pathname !== '/welcome' && pathname !== '/new_user' && pathname !== '/user_loggedin' && pathname !== '/writing-class/downloads') {
             logout(false, '/');
         }
     }

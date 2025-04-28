@@ -115,8 +115,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
     const { dictionary, language } = useLanguage()
 
     return (
-        <div className="relative w-full bg-white dark:bg-black p-4 md:p-4 flex flex-col items-center justify-center">
-
+        <div className="relative w-full bg-white dark:bg-black p-4 md:p-4 flex flex-col flex-shrink-0 flex-grow-0 items-center justify-center">
             <div className="w-full max-w-6xl  overflow-hidden">
                 {/* rounded-[32px] */}
                 <div className="grid lg:grid-cols-2">

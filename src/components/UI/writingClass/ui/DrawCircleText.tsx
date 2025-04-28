@@ -9,9 +9,9 @@ export const DrawCircleText = () => {
     <div className="grid place-content-center bg-transparent px-4 pt-24 text-black">
       <h1 className="max-w-2xl text-center text-4xl leading-snug mx-auto">
      {language === "en" ? <>Want to become a writer?<br/> </> : <>작가가 되고 싶다고요?<br/></>}
-        {language === "en" ? "Make" : "풍부한"} {' '}
+        {language === "en" ? "Make" : ""} {' '}
         <span className="relative">
-        {language === "en" ? "your dreams" : "당신의 상상력"}
+        {language === "en" ? "your dreams" : "투니즈 작법서"}
           <svg
             viewBox="0 0 286 73"
             fill="none"
@@ -30,15 +30,15 @@ export const DrawCircleText = () => {
             />
           </svg>
         </span>{" "}
-        {language === "en" ? "come true" : "꿈을 이루어 보세요"}
+        {language === "en" ? "come true" : "로 꿈을 이루어 보세요"}
       </h1>
 
 
       <p className="pt-10 text-xl text-black whitespace-pre-line break-keep text-center">
             {language === "en" ? <>Toonyz Writing Class is offering a free writing guide PDF for the first step to become a successful webnovel writer.</>
-              : "투니즈 글쓰기 101 클래스는 성공적인 웹소설 작가가 되기 위한 첫걸음, 무료 작법서 PDF 가이드를 드립니다."} <br />
+              : "투니즈 작법서는 성공적인 웹소설 작가가 되기 위한 완벽 가이드를 담았습니다."} <br />
             {language === "en" ? "Practical writing tips, proven plot design methods, and actual writer's secrets are all included."
-              : "실전에서 바로 써먹을 수 있는 글쓰기 팁, 검증된 플롯 설계법, 실제 작가들의 노하우까지 모두 담았습니다."}
+              : "실전에서 바로 써먹을 수 있는 글쓰기 팁, 검증된 플롯 설계법, 실제 작가들의 노하우를 알려드립니다."}
       </p>
     </div>
   );

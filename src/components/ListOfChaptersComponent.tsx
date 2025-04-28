@@ -53,7 +53,6 @@ const ListOfChaptersComponent = ({
         } 
     }, [webnovel, language]);
 
-
     const loadMoreChapters = () => {
         if (language == 'en') {
             setVisibleChapters(prev => Math.min(webnovel?.en_published_up_to_chapter || Infinity, Math.min(prev + CHAPTERS_PER_PAGE, sortedChapters?.length || 0)));
@@ -180,7 +179,7 @@ const ListOfChaptersComponent = ({
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                <Eye size={11} /> {chapter.views}
+                                                <Eye size={11} /> {chapter.shown_views}
                                             </div>
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                                 {/* <Heart size={11} /> */}

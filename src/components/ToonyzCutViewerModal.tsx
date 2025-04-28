@@ -68,7 +68,7 @@ const ToonyzCutViewerModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                          {/* miscellanous */}
                          <div className="flex flex-row space-x-2 text-sm">
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                    <Eye size={11} /> {webnovel.views}
+                                    <Eye size={11} /> {webnovel.shown_views}
                                 </div>
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     {/* heart icon */}

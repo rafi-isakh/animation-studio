@@ -1,14 +1,10 @@
 import Footer from '@/components/Footer';
 import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategory';
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
-import PromotionBannerComponent from '@/components/PromotionBannerComponent';
 import { cookies } from 'next/headers';
 import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
-import { Webnovel } from '@/components/Types';
 import { auth } from '@/auth';
-import MyReadingListComponent from '@/components/MyReadingListComponent';
-import { temporarilyUnpublished } from '@/utils/webnovelUtils';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 
 async function getCarouselItems() {
@@ -16,7 +12,6 @@ async function getCarouselItems() {
         next: { tags: ['carousel'] } 
     })
     const data = await response.json();
-    console.log(data)
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }

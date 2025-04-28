@@ -34,7 +34,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
 
         await fetch('/api/send_email', {
             method: 'POST',
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ message: message, templateType: 'report' })
         });
         
     }

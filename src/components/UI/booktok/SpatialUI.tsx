@@ -4,27 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import { CircleFlag } from 'react-circle-flags'
-import {
-  Clock,
-  Cloud,
-  Globe,
-  Heart,
-  ImageIcon,
-  Mail,
-  MessageCircle,
-  Music,
-  Phone,
-  Play,
-  Timer,
-  Zap,
-  Calendar,
-  Settings,
-  Activity,
-  Camera,
-  Headphones,
-  MapPin,
-  Bell,
-} from "lucide-react"
+import Image from "next/image"
 import AppIcon from "./AppIcon"
 
 // Icon data structure
@@ -83,7 +63,7 @@ export default function SpatialUI() {
   useEffect(() => {
     const iconElements = [
       // Center icon (Clock)
-      { icon: <CircleFlag countryCode="kr" height="35" />, color: "bg-white", ring: 0 },
+      { icon: <Image src='/toonyz_logo_pink.svg' width="35" height="35" alt="Toonyz Logo" />, color: "bg-white", ring: 0 },
 
       // First ring
       { icon: <CircleFlag countryCode="es" height="35" />, color: "bg-blue-500", ring: 1 },

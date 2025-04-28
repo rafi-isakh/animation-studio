@@ -31,7 +31,8 @@ export const ContactForm = () => {
                 name: name,
                 email: email,
                 message: message,
-                subject: "Report"
+                subject: "Report",
+                templateType: 'report'
             })
         })
             .then(response => {

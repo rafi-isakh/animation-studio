@@ -244,15 +244,15 @@ export function BookTab() {
               <p className="text-gray-600 mb-4 line-clamp-2">
                 {language === "en" ? book.subtitle_en : book.subtitle}
               </p>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <span className="text-gray-400 line-through">
                   ${book.originalPrice}
                 </span>
                 <span className="text-xl font-bold text-gray-800">
-                  {/* ${book.salePrice} */}
+                  ${book.salePrice}
                   Free
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
         ))}

@@ -43,8 +43,8 @@ export default function WritingClassPage() {
     <div className="flex flex-col min-h-screen !bg-white !dark:bg-white ">
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
-        <div className="md:w-1/2 mb-10 md:mb-0 order-2 md:order-1">
-          <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">99% OFF</p>
+        <div className="md:w-1/2 mb-10 md:mb-0 order-1 md:order-1">
+          <p className="text-red-500 font-bold text-2xl md:text-3xl mb-2">{language === "en" ? "1 Chapter Free" : "1강 무료"}</p>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {language === "en" ? <><span className="">Webnovel Writing Debut</span>, <br /> No longer a dream</>
               : <><span className="">웹소설 작가 데뷔</span>, <br /> 더 이상 꿈이 아닙니다</>}
@@ -68,7 +68,7 @@ export default function WritingClassPage() {
           </Dialog>
         </div>
 
-        <div className="md:w-1/2 relative md:order-2 order-1">
+        <div className="md:w-1/2 relative md:order-2 order-2 hidden md:block">
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-1 space-y-4">
               <BookCard

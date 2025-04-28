@@ -15,7 +15,7 @@ const credentials = {
     secretAccessKey: AWS_S3_SECRET_ACCESS_KEY
 }
 
-const s3Client = new S3Client({
+export const s3Client = new S3Client({
     credentials,
     region: REGION
 });

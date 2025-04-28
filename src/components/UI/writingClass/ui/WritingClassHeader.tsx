@@ -28,7 +28,7 @@ export const LoginDialog = () => {
             </DialogHeader>
             <DialogFooter>
                 <div className="flex justify-center items-center mx-auto">
-                    <SignInComponent redirectTo="writing-class" />
+                    <SignInComponent redirectTo="/writing-class/downloads" />
                 </div>
             </DialogFooter>
         </DialogContent>
@@ -38,11 +38,16 @@ export const LoginDialog = () => {
 
 export const UserAccountPopoverMenu = ({ language, setOpenPopover }: { language: Language, setOpenPopover: (open: boolean) => void }) => {
     const [openContactForm, setOpenContactForm] = useState(false);
-
+    const { setLanguage } = useLanguage();
     // Function to close the popover
     const closePopover = () => {
         setOpenPopover(false);
     };
+
+    const handleLanguageChange = (newLanguage: string) => {
+        setLanguage(newLanguage as Language);
+        console.log("Language changed to", newLanguage);
+    }
 
     return (
         <PopoverContent className="w-56" side="bottom" align="start">
@@ -55,6 +60,11 @@ export const UserAccountPopoverMenu = ({ language, setOpenPopover }: { language:
                 <li>
                     <Link href="/writing-class/faq" className="flex flex-col items-start w-full" onClick={closePopover}>
                         <span className="text-md md:text-lg font-medium">{language === "en" ? "FAQ" : "자주 묻는 질문"}</span>
+                    </Link>
+                </li>
+                <li>
+                    <Link href="#" className="flex flex-col items-start w-full" onClick={() => handleLanguageChange(language === "en" ? "ko" : "en")} >
+                        <span>{language === "en" ? "Language" : "언어"}: </span> <span className="text-md md:text-lg font-medium">{language === "en" ? "English" : "한국어"}</span>
                     </Link>
                 </li>
             </div>

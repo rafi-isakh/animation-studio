@@ -52,6 +52,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
                     transaction_id: merchant_uid,
                     transaction_pg: 'inicis',
                     email: payment.response.buyer_email,
+                    // TODO: change to 별 덤
                     stars: stars,
                     price: payment.response.amount,
                     date: new Date().toISOString()

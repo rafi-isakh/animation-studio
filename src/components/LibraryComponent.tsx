@@ -124,10 +124,10 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
                 }
             </div>
             <SmallGap/>
-            <div className="w-full">
+            {/* <div className="w-full">
                 <MyFavoriteAuthorList library={library} nickname={nickname} isLoading={isLoading} />
-            </div>
-            <LargeGap/>
+            </div> */}
+            {/* <LargeGap/> */}
             <div className="flex flex-col justify-start md:p-0 p-2">
                 {library.length > 0 ?
                     <div className="flex flex-row justify-between">

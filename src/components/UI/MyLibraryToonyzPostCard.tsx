@@ -202,6 +202,7 @@ export default function MyLibraryToonyzPostCard({ library, toonyzPosts }: { libr
                           <h4 className="font-bold text-sm">
                             <Link href={`/view_webnovels/${libraryItem.id}`}>
                               <OtherTranslateComponent
+                                element={libraryItem}
                                 content={libraryItem.title}
                                 elementId={libraryItem.id.toString()}
                                 elementType='webnovel'

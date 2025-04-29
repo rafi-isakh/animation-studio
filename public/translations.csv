@@ -458,6 +458,5 @@ IsThereAnyCopyrightIssues,저작권 상에 문제가 있나요?,,Is there any co
 HowToSubmitOrPublish,연재 및 투고 방법,,How to submit or publish,,
 ToonyzPlatformGuideTitle,투니즈 플랫폼 가이드,,Toonyz Platform Guide,,
 ToonyzAIGenerateImageGuideTitle,투니즈 AI 이미지 생성 가이드,,Toonyz AI Image Generation Guide,,
-HelpGuideLink_1,🎥 이미지 생성 강의/매뉴얼,,🎥 Image Generation Tutorial,,
-HelpGuideLink_2,🍀 투니즈 이용 가이드,,🍀 Toonyz Platform Guide,,
-HelpGuideLink_3,💬 고객 지원 & FAQ,,💬 Help Center & FAQ,,
+HelpGuideLink_ImageGenerationTutorial,🎥 이미지 생성 강의/매뉴얼,,🎥 Image Generation Tutorial,,
+HelpGuideLink_CustomerSupport,💬 고객 지원 & FAQ,,💬 Help Center & FAQ,,

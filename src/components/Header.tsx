@@ -37,7 +37,7 @@ import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserProfileButton from '@/components/UI/UserProfileButton';
-import HelpGuidComponent from './UI/HelpGuidComponent';
+import HelpGuidComponent from './UI/HelpGuideComponent';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();

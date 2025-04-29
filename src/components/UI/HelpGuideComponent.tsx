@@ -19,7 +19,6 @@ import {
     CarouselPrevious,
 } from "@/components/shadcnUI/Carousel"
 import Autoplay from "embla-carousel-autoplay"
-
 import Image from "next/image"
 
 // Helper function to convert YouTube URLs to embed format
@@ -44,7 +43,7 @@ const getYoutubeEmbedUrl = (url: string) => {
     return url;
 };
 
-export default function HelpGuidComponent() {
+export default function HelpGuideComponent() {
     const { dictionary, language } = useLanguage();
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [showCarouselVideoModal, setShowCarouselVideoModal] = useState(false);
@@ -82,15 +81,13 @@ export default function HelpGuidComponent() {
     const GuideLinkList = [
         {
             id: 1,
-            title: "HelpGuideLink_1",
-            title_en: "🎥 Image Generation Tutorial",
+            title: "HelpGuideLink_ImageGenerationTutorial",
             url: "https://youtu.be/q-j_FEe5EG0?si=Axuzjeou6wxfHHQD",
             url_en: "https://www.youtube.com/embed/08OixaiTZGw?si=1KiX_FnxOG8LhGfV"
         },
         {
             id: 2,
-            title: "HelpGuideLink_3",
-            title_en: "💬 Customer Support & FAQ",
+            title: "HelpGuideLink_CustomerSupport",
             url: "/faq",
             url_en: "/faq"
         }
@@ -204,7 +201,8 @@ export default function HelpGuidComponent() {
                                         language={language as "en" | "ko"}
                                         dictionary={dictionary}
                                     />
-                                </Dialog>}
+                                </Dialog>
+                                }
                         </li>
                     ))}
                 </ul>

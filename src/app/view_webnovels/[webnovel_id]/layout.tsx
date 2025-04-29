@@ -32,8 +32,13 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     }, [webnovel_id]);
 
     useEffect(() => {
-        if (!isLoggedIn) router.push('/signin');
-        if (isAdult) return;
+        if (!isLoggedIn) {
+            router.push('/signin');
+            return;
+        }
+        if (isAdult) {
+            return;
+        }
         const webnovel = webnovels.find(webnovel => webnovel.id === parseInt(webnovel_id))
         if (webnovel?.is_adult_material) {
             if (!isAdult) {

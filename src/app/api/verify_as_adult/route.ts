@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
         return new NextResponse("Unauthorized", { status: 401 });
     }
     const { imp_uid } = await request.json();
+    console.log('imp_uid', imp_uid);
 
     const getToken = await fetch("https://api.iamport.kr/users/getToken", {
         method: "post",
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest) {
         }),
     });
     if (!getToken.ok) {
+        console.error('Failed to get token', getToken.status);
         return new NextResponse("Failed to get token", { status: getToken.status });
     }
     const {access_token} = await getToken.json();
@@ -26,6 +28,7 @@ export async function POST(request: NextRequest) {
         headers: { Authorization: access_token },
     });
     if (!getCertifications.ok) {
+        console.error('Failed to get certifications', getCertifications.status);
         return new NextResponse("Failed to get certifications", { status: getCertifications.status });
     }
     const { birth } = await getCertifications.json();
@@ -33,6 +36,7 @@ export async function POST(request: NextRequest) {
     const today = new Date();
     const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
     if (new Date(birth) > eighteenYearsAgo) {
+        console.error('Too young', birth);
         return new NextResponse(`Too young: ${birth}`, { status: 401 });
     }
 
@@ -46,6 +50,7 @@ export async function POST(request: NextRequest) {
     });
     if (!response.ok) {
         const error = await response.text();
+        console.error('Failed to verify as adult', error);
         return new NextResponse(error, { status: response.status });
     }
     const data = await response.json();

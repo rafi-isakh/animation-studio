@@ -144,7 +144,9 @@ export function EmailForm() {
               </AvatarFallback>
             </Avatar>
           </div>
-          <p className="text-black font-semibold">{clickCount}+ people got benefited already</p>
+          <p className="text-black font-semibold text-sm">
+            {clickCount}+ have started creating their BookTok — your turn to shine.
+          </p>
         </div>
       </div>
     </div>

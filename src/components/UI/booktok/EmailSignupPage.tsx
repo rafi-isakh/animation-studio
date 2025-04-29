@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from 'next/image'
 import { EmailForm } from "@/components/UI/booktok/EmailForm"
 import { Hash, CheckCircle, BookOpen, Video, MailOpen, CirclePlay } from "lucide-react"
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogFooter, DialogClose, Dialog
 import { Card, CardContent } from "@/components/shadcnUI/Card"
 import { Button } from "@/components/shadcnUI/Button"
 import { useLanguage } from "@/contexts/LanguageContext"
+import Link from "next/link"
 
 const youtubeVideoList = [
     {
@@ -64,8 +65,8 @@ export function EmailSignupPage() {
                     </div>
                     <div>
                         <p className="text-lg  text-black mb-6">
-                            We are launching a special BookTok creator campaign and would love to collaborate with you! <br />
-                            <span className="text-lg text-black">Simply, fill out your email address in the form here.</span>
+                            We are launching a special BookTok creator campaign and would love to collaborate with you!  <br />
+                            <span className="text-lg text-black">Just drop your email below and we will reach out to you.</span>
                         </p>
                     </div>
                     <div className="w-full">
@@ -84,7 +85,7 @@ export function EmailSignupPage() {
                 </h1>
                 <div>
                     <p className="text-lg sm:text-xl mb-8 text-black">
-                        We invite you a BookTok creator to help readers see their favorite characters with stunning AI-generated visuals and animations.
+                        We are calling in all BookTok creators to help readers see their favorite characters with stunning AI-generated visuals (and animations).
                     </p>
                 </div>
                 <div>
@@ -95,15 +96,15 @@ export function EmailSignupPage() {
                         <div className="grid md:grid-cols-3 gap-6">
                             <div className="flex items-start">
                                 <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
+                                <p className="text-black dark:text-black"> Paid partnership and promotion opportunities</p>
+                            </div>
+                            <div className="flex items-start">
+                                <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
                                 <p className="text-black dark:text-black">Exclusive early access to AI generating tool</p>
                             </div>
                             <div className="flex items-start">
                                 <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
                                 <p className="text-black dark:text-black"> Get featured as a &quot;Visual Story Curator&quot; on our global launch page</p>
-                            </div>
-                            <div className="flex items-start">
-                                <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
-                                <p className="text-black dark:text-black"> Paid partnership and promotion opportunities</p>
                             </div>
                         </div>
                     </section>
@@ -152,13 +153,13 @@ export function EmailSignupPage() {
                                 <div className="bg-[#DE2B74] text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
                                     2
                                 </div>
-                                <p className="text-black dark:text-black">We will get back to you as soon as possible</p>
+                                <p className="text-black dark:text-black">We will reach out to you within 4-5 days</p>
                             </div>
                             <div className="flex items-start">
                                 <div className="bg-[#DE2B74] text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
                                     3
                                 </div>
-                                <p className="text-black dark:text-black">While you are waiting, Join Toonyz and Pick a web novel and explore its visuals and animations</p>
+                                <p className="text-black dark:text-black">In the meanwhile, explore visuals and animations provided by <Link href="https://toonyz.com" className="text-[#DE2B74]">Toonyz</Link></p>
                             </div>
                         </div>
                     </section>
@@ -213,6 +214,18 @@ export function EmailSignupPage() {
                                 <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-50 border-none shadow-none text-white dark:text-white" />
                             </Carousel>
                         </div>
+                    </section>
+
+                    <section className="w-full flex flex-col justify-center items-center py-10">
+                        <Image src='/stelli/stelli_5.png' alt="Toonyz Logo" width={100} height={100} />
+                        <Button variant="outline" className="bg-[#DE2B74] text-white text-xl w-fit mx-auto rounded-full">
+                            <Link href="https://toonyz.com" className="">
+                                Go to Toonyz website
+                            </Link>
+                        </Button>
+                        <p className="text-black text-sm">
+                            *Sign up Toonyz
+                        </p>
                     </section>
                 </div>
             </div>

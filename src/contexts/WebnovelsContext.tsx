@@ -12,6 +12,7 @@ interface WebnovelsContextState {
     getWebnovelIdWithChapterMetadata: (id: string) => Promise<Webnovel | undefined>;
     getWebnovelsMetadataByUserId: (userId: string) => Promise<Array<Webnovel>>;
     getWebnovelsMetadataByAuthorId: (authorId: string) => Promise<Array<Webnovel>>;
+    getWebnovelMetadataById: (id: string) => Promise<Webnovel | undefined>;
     invalidateCache: () => void;
 }
 
@@ -59,6 +60,21 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
         setAllWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id)));
         setWebnovels(data.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id) 
                                                         && novel.available_languages.includes(language)));
+    }
+
+    const getWebnovelMetadataById = async (id: string) => {
+        const webnovel = webnovels.find((webnovel) => webnovel.id.toString() == id);
+        if (webnovel) {
+            return Promise.resolve(webnovel);
+        } else {
+            const response = await fetch(`/api/get_webnovel_metadata_by_id?id=${id}`);
+            if (!response.ok) {
+                console.error("Failed to fetch webnovel metadata by id", response.status);
+                return undefined;
+            }
+            const data = await response.json();
+            return data;
+        }
     }
 
     // may or may not have chapter metadata
@@ -125,7 +141,7 @@ export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadat
     };
 
     return (
-        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, invalidateCache }}>
+        <WebnovelsContext.Provider value={{ webnovels, getWebnovelById, getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByUserId, getWebnovelsMetadataByAuthorId, chaptersLikelyNeededWebnovel, invalidateCache, getWebnovelMetadataById }}>
             {children}
         </WebnovelsContext.Provider>
     );

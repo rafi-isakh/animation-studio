@@ -24,6 +24,7 @@ import { CreateMediaProvider } from "@/contexts/CreateMediaContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { headers } from 'next/headers';
 import UserProviderServer from "@/contexts/UserProviderServer";
+import WebnovelsProviderServer from "@/contexts/WebnovelsProviderServer";
 
 interface RootLayoutProps {
     children: ReactNode;
@@ -88,11 +89,32 @@ export async function getUserSession() {
     return data;
 }
 
+export async function getWebnovelsMetadata() {
+    const headersList = headers();
+    const protocol = headersList.get('x-forwarded-proto') || 'https'; // usually 'https'
+    const host = headersList.get('host'); // e.g., toonyz.com or yoursite.vercel.app
+
+    const url = `${protocol}://${host}/api/get_webnovels_metadata`;
+    const response = await fetch(url,
+        {
+            next: {
+                tags: ['webnovels']
+            }
+        }
+    );
+    if (!response.ok) {
+        console.error("Failed to fetch webnovels metadata", response.status);
+        return [];
+    }
+    const data = await response.json();
+    return data;
+}
+
 export default async function RootLayout({ children }: RootLayoutProps) {
     const session = await auth();
     const isLoggedIn = !!session?.user;
     const user = await getUserSession();
-    console.log(user)
+    const webnovelsMetadata = await getWebnovelsMetadata();
 
     return (
         <html lang="en" translate="no" suppressHydrationWarning>
@@ -108,7 +130,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
                 <ToastProvider>
                     <LanguageProvider>
-                        <WebnovelsProvider>
+                        <WebnovelsProviderServer webnovelsMetadata={webnovelsMetadata}>
                             <LanguageSetter />
                             <ThemeProvider>
                                 <AuthProvider>
@@ -144,7 +166,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                     </UserProviderServer>
                                 </AuthProvider>
                             </ThemeProvider>
-                        </WebnovelsProvider>
+                        </WebnovelsProviderServer>
                     </LanguageProvider>
                 </ToastProvider>
                 <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>

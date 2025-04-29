@@ -1,3 +1,5 @@
+import { env } from "process"
+
 interface EmailTemplateProps {
     email: string
     staffEmail?: string
@@ -51,7 +53,7 @@ interface EmailTemplateProps {
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
               in the meantime, you can check out our proposal 
                <a href='https://docs.google.com/presentation/d/1GZBqZz8Iy8kCaJgAw5Hk0tKSgW0TUJJRge4hYcgIGsA/edit?usp=sharing' style="text-decoration: none; color: #374151;">
-                  <img src='https://toonyz.com/images/booktok_intro.svg' alt='Toonyz BookTok Creator Campaign' style="width: 100%; height: auto; border-radius: 8px;" />
+                  <img src='${env.NEXT_PUBLIC_VIDEOS_CLOUDFRONT}/bookTok_intro.png' alt='Toonyz BookTok Creator Campaign' style="width: 100%; height: auto; border-radius: 8px;" />
                 </a>
               </p>
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>

@@ -26,7 +26,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       setDictionary(dictionary);
     }
     fetchPhrases();
-    setLanguage(localStorage.getItem('language_override') as Language);
+    if (localStorage.getItem('language_override')) {
+      setLanguage(localStorage.getItem('language_override') as Language);
+    }
     if (language == 'ar') {
       setIsRtl("rtl");
     }

@@ -70,7 +70,7 @@ interface RootLayoutProps {
 export async function getUserSession() {
     const headersList = headers();
     const protocol = headersList.get('x-forwarded-proto') || 'https';
-    const host = headersList.get('host'); 
+    const host = headersList.get('host');
 
     const url = `${protocol}://${host}/api/user_session`;
 
@@ -92,7 +92,7 @@ export async function getUserSession() {
 export async function getWebnovelsMetadata() {
     const headersList = headers();
     const protocol = headersList.get('x-forwarded-proto') || 'https';
-    const host = headersList.get('host'); 
+    const host = headersList.get('host');
 
     const url = `${protocol}://${host}/api/get_webnovels_metadata`;
     const response = await fetch(url,
@@ -130,8 +130,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
                 <ToastProvider>
                     <LanguageProvider>
+                        <LanguageSetter />
                         <WebnovelsProviderServer webnovelsMetadata={webnovelsMetadata}>
-                            <LanguageSetter />
                             <ThemeProvider>
                                 <AuthProvider>
                                     <UserProviderServer user={user}>

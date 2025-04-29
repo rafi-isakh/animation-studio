@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
-import { EmailTemplateToCreator, EmailTemplateToReport } from '@/utils/EmailTemplate';
-import { EmailTemplateToStaff } from '@/utils/EmailTemplate';
+import { EmailTemplateToCreator, EmailTemplateToStaff, EmailTemplateToReport } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
     const { message, email, subject, templateType, staffEmail } = await req.json();
@@ -13,26 +12,36 @@ export async function POST(req: Request) {
         }
     });
     
-    // Conditionally render the appropriate email template
-    const emailHtml = templateType === 'staff' 
-        ? EmailTemplateToStaff({ email, staffEmail })
-        : templateType === 'creator'
-        ? EmailTemplateToCreator({ email })
-        : templateType === 'report'
-        ? EmailTemplateToReport({ email, message })
-        : EmailTemplateToReport({ email, message });
-        
+    const emailHtml = (templateType: string) => {
+        if (templateType === 'staff') {
+            return EmailTemplateToStaff({ email, staffEmail })
+        } else if (templateType === 'creator') {
+            return EmailTemplateToCreator({ email })
+        } else if (templateType === 'Report') {
+            return EmailTemplateToReport({ email, message })
+        } else {
+            return EmailTemplateToReport({ email, message })
+        }
+    }
     // Set the recipient based on template type
-    const recipient = templateType === 'staff' ? staffEmail 
-                    : templateType === 'report' ? staffEmail 
-                    : templateType === 'creator' ? email : email;
+    const recipient = (templateType: string) => {
+        if (templateType === 'staff') {
+            return staffEmail
+        } else if (templateType === 'Report') {
+            return staffEmail
+        } else if (templateType === 'creator') {
+            return email
+        } else {
+            return email
+        }
+    }
         
     await transporter.sendMail({
         from: email,
-        to: recipient,
-        subject: subject || 'Report',
+        to: recipient(templateType),
+        subject: subject,
         text: message,
-        html: emailHtml
+        html: emailHtml(templateType)
     });
     
     return new Response(JSON.stringify({ status: "OK", recipient }), { 

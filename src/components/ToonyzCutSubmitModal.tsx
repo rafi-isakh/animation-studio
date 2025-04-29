@@ -34,7 +34,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
 
         await fetch('/api/send_email', {
             method: 'POST',
-            body: JSON.stringify({ message: message, subject: 'Toonyz Cut Proposal' })
+            body: JSON.stringify({ message: message, subject: 'Toonyz Cut Proposal', staffEmail: 'dami@stelland.io, min@stelland.io' })
         });
         
     }

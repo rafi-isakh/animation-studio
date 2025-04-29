@@ -24,12 +24,13 @@ export const ContactForm = () => {
     function sendMessage() {
         fetch("/api/send_email", {
             method: "POST",
-            headers: { // Good practice to specify content type
+            headers: { 
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 name: name,
                 email: email,
+                staffEmail: 'dami@stelland.io',
                 message: message,
                 subject: "Report",
                 templateType: 'report'

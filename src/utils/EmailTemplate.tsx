@@ -67,7 +67,7 @@ interface EmailTemplateProps {
 
 
     
-  export function EmailTemplateToReport({ email, message }: EmailTemplateProps) {
+  export function EmailTemplateToReport({ message, email }: EmailTemplateProps) {
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -79,7 +79,7 @@ interface EmailTemplateProps {
           <div style="max-width: 560px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">There is a new report</h1>
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
-              Toonyz has received a new report from ${email}.
+              Toonyz has received a new report
             </p>
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
               ${message}

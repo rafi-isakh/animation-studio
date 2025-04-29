@@ -23,20 +23,19 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
     const [fullDescription, setFullDescription] = useState('');
 
     const handleSubmit = async () => {
-        const message = `Proposal for ${webnovel.title} by ${webnovel.author.nickname}:\n
-        Company Name: ${companyName}\n
-        Full Name: ${fullName}\n
-        Email: ${email}\n
-        Contact Number: ${contactNumber}\n
-        Country: ${country}\n
-        Project Type: ${projectType}\n
+        const message = `Proposal for ${webnovel.title} by ${webnovel.author.nickname}:<br/>
+        Company Name: ${companyName} <br/>
+        Full Name: ${fullName} <br/>
+        Email: ${email} <br/>
+        Contact Number: ${contactNumber} <br/>
+        Country: ${country} <br/>
+        Project Type: ${projectType} <br/>
         Full Description: ${fullDescription}`
 
         await fetch('/api/send_email', {
             method: 'POST',
-            body: JSON.stringify({ message: message, subject: 'Toonyz Cut Proposal', staffEmail: 'dami@stelland.io, min@stelland.io' })
+            body: JSON.stringify({ message: message, templateType: 'report', subject: 'Toonyz Cut Proposal', staffEmail: 'dami@stelland.io, min@stelland.io' })
         });
-        
     }
 
 

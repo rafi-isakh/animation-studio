@@ -12,7 +12,7 @@ export function EmailForm() {
   const [email, setEmail] = useState('')
   const [isPending, setIsPending] = useState(false)
   const { toast } = useToast()
-  const [clickCount, setClickCount] = useState(11)
+  const [clickCount, setClickCount] = useState(101)
 
   useEffect(() => {
     // Get the stored count on component mount

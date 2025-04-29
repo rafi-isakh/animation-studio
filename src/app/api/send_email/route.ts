@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { EmailTemplateToCreator, EmailTemplateToStaff, EmailTemplateToReport, EmailTemplateToonyzCut } from '@/utils/EmailTemplate';
+import { EmailTemplateToCreator, EmailTemplateToStaff, EmailTemplateToReport } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
     const { message, email, subject, templateType, staffEmail } = await req.json();

@@ -12,6 +12,7 @@ import { useUser } from "@/contexts/UserContext";
 import { temporarilyUnpublished } from "@/utils/webnovelUtils";
 import { useRouter } from "next/navigation";
 import { useWebnovels } from "@/contexts/WebnovelsContext";
+import { useAuth } from "@/contexts/AuthContext";
 const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { webnovel_id: string }, children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
     const { stars } = useUser();
@@ -19,6 +20,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     const pathname = usePathname();
     const { webnovels } = useWebnovels();
     const { isAdult } = useUser();
+    const { isLoggedIn } = useAuth();
 
     useEffect(() => {
         if (webnovel_id) {
@@ -30,13 +32,11 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     }, [webnovel_id]);
 
     useEffect(() => {
+        if (!isLoggedIn) router.push('/signin');
         if (isAdult) return;
         const webnovel = webnovels.find(webnovel => webnovel.id === parseInt(webnovel_id))
         if (webnovel?.is_adult_material) {
             if (!isAdult) {
-                console.log('pathname', pathname)
-                console.log('webnovels', webnovels)
-                console.log('isAdult', isAdult)
                 alert('성인 인증이 필요합니다.')
                 router.push(`/adult_verification?webnovel_id=${webnovel_id}`)
             }

@@ -3,13 +3,14 @@
 import { useState } from "react"
 import Image from 'next/image'
 import { EmailForm } from "@/components/UI/booktok/EmailForm"
-import { Hash, CheckCircle, BookOpen, Video, MailOpen, CirclePlay } from "lucide-react"
+import { Hash, CheckCircle, BookOpen, Video, MailOpen, CirclePlay, } from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, CarouselApi } from "@/components/shadcnUI/Carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { Dialog, DialogContent, DialogTrigger, DialogFooter, DialogClose, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
 import { Card, CardContent } from "@/components/shadcnUI/Card"
 import { Button } from "@/components/shadcnUI/Button"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { motion } from "framer-motion"
 import Link from "next/link"
 
 const youtubeVideoList = [
@@ -40,7 +41,40 @@ export function EmailSignupPage() {
     const [selectedVideoItem, setSelectedVideoItem] = useState(youtubeVideoList[0]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { language } = useLanguage()
+    const [hoveredCard, setHoveredCard] = useState<number | null>(null)
 
+    const benefits = [
+        {
+            title: "Paid Partnership",
+            description: "Paid partnership and promotion opportunities",
+            icon: CheckCircle,
+        },
+        {
+            title: "Gift Cards",
+            description: "Receive redeeming giftcards from Amazon/Starbucks",
+            icon: CheckCircle,
+        },
+        {
+            title: "Networking",
+            description: "Collaborate with popular writers",
+            icon: CheckCircle,
+        },
+    ]
+
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+            },
+        },
+    }
+
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 },
+    }
 
 
     return (
@@ -48,28 +82,35 @@ export function EmailSignupPage() {
             <div className="flex md:flex-row flex-col w-full gap-10">
                 <div className="flex flex-col justify-center items-center">
                     <div className="flex flex-col justify-center items-center">
-                        <div className="flex flex-row items-center gap-2 font-bold">
+                        <div className="relative flex flex-row items-center gap-2 font-bold">
                             <Image src='/toonyz_logo_pink.svg' alt="Toonyz Logo" width={100} height={20} className="self-center py-6 " />
                             <span className="text-black dark:text-black text-center">
                                 X BookTok
                             </span>
+                            <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-[#DE2B74] rounded-full"></span>
                         </div>
 
                         <p className="text-lg sm:text-xl mb-4 text-black text-center">
                             We invite you a BookTok creator campaign
                         </p>
                         {/* <MailOpen className="text-black text-2xl" /> */}
-                        <h2 className="text-2xl sm:text-5xl font-extrabold mb-4 text-black text-center">
-                            BookTok Creator Invitation
+                        <h2 className="text-4xl font-bold text-center mb-6 relative">
+                            <span className="bg-gradient-to-r from-[#DE2B74] to-[#FF6CAB] bg-clip-text text-transparent">
+                                BookTok Creator Invitation
+                            </span>
+                           
                         </h2>
+                     
                     </div>
                     <div>
-                        <p className="text-lg  text-black mb-6">
+                        <p className="text-lg  text-black mb-2">
                             We are launching a special BookTok creator campaign and would love to collaborate with you!  <br />
                             <span className="text-lg text-black">Just drop your email below and we will reach out to you.</span>
                         </p>
                     </div>
-                    <div className="w-full">
+                    <div className="w-full flex flex-col items-center justify-center">
+                        <Image src='/stelli/stelli_5.png' alt="Toonyz Logo" width={100} height={100} className="-mb-1" />
+
                         <EmailForm />
                     </div>
 
@@ -91,27 +132,51 @@ export function EmailSignupPage() {
                 <div>
 
                     {/* Why Collaborate Section */}
-                    <section className="mb-16">
-                        <h2 className="text-2xl font-bold text-[#DE2B74] mb-6">Why Collaborate With Us?</h2>
-                        <div className="grid md:grid-cols-3 gap-6">
-                            <div className="flex items-start">
-                                <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
-                                <p className="text-black dark:text-black"> Paid partnership and promotion opportunities</p>
-                            </div>
-                            <div className="flex items-start">
-                                <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
-                                <p className="text-black dark:text-black">Exclusive early access to AI generating tool</p>
-                            </div>
-                            <div className="flex items-start">
-                                <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
-                                <p className="text-black dark:text-black"> Get featured as a &quot;Visual Story Curator&quot; on our global launch page</p>
-                            </div>
+                    <section className="mb-16 py-10">
+                        <div className="container mx-auto px-4">
+                            <h2 className="text-3xl font-bold text-center mb-10 relative">
+                                <span className="bg-gradient-to-r from-[#DE2B74] to-[#FF6CAB] bg-clip-text text-transparent">
+                                    Why Collaborate With Us?
+                                </span>
+                            </h2>
+
+                            <motion.div className="grid md:grid-cols-3 gap-8" variants={container} initial="hidden" animate="show">
+                                {benefits.map((benefit, index) => (
+                                    <motion.div key={index} variants={item}>
+                                        <Card
+                                            className={`h-full transition-all duration-300 border-2 ${hoveredCard === index ? "border-[#DE2B74] shadow-lg shadow-[#DE2B74]/20" : "border-transparent"
+                                                }`}
+                                            onMouseEnter={() => setHoveredCard(index)}
+                                            onMouseLeave={() => setHoveredCard(null)}
+                                        >
+                                            <CardContent className="p-6">
+                                                <div className="flex flex-col items-center text-center">
+                                                    <div
+                                                        className={`mb-4 p-3 rounded-full ${hoveredCard === index ? "bg-[#DE2B74] text-white" : "bg-[#DE2B74]/10 text-[#DE2B74]"
+                                                            } transition-colors duration-300`}
+                                                    >
+                                                        <benefit.icon className="h-8 w-8" />
+                                                    </div>
+                                                    <h3 className="text-xl font-semibold mb-2 text-[#DE2B74]">{benefit.title}</h3>
+                                                    <p className="text-gray-700 dark:text-gray-300">{benefit.description}</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
                         </div>
                     </section>
 
                     {/* What You Will Do Section */}
                     <section className="mb-16">
-                        <h2 className="text-2xl font-bold text-[#DE2B74] mb-6">What You Will Do:</h2>
+                        <h2 className="text-3xl font-bold text-center mb-10 relative">
+                            <span className="bg-gradient-to-r from-[#DE2B74] to-[#FF6CAB] bg-clip-text text-transparent">
+                                What You Will Do:
+                            </span>
+                        </h2>
+
+                        {/* <h2 className="text-2xl font-bold text-[#DE2B74] mb-6"></h2> */}
                         <div className="space-y-4">
                             <div className="flex items-start">
                                 <BookOpen className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
@@ -130,7 +195,7 @@ export function EmailSignupPage() {
 
                     {/* Suggested Hashtags */}
                     <section className="mb-16">
-                        <h2 className="text-2xl font-bold text-[#DE2B74] mb-6">Suggested Hashtags:</h2>
+                        <h2 className="text-xl font-bold text-gray-500 mb-6">Suggested Hashtags:</h2>
                         <div className="flex flex-wrap gap-3">
                             <span className="bg-purple-100 text-[#DE2B74] px-3 py-1 rounded-full">#ToonyzBookTok</span>
                             <span className="bg-purple-100 text-[#DE2B74] px-3 py-1 rounded-full">#MyToonyzHero</span>
@@ -141,7 +206,11 @@ export function EmailSignupPage() {
 
                     {/* How It Works Section */}
                     <section className="mb-12">
-                        <h2 className="text-2xl font-bold text-[#DE2B74] mb-6">How it works? - it&quot;s easy!</h2>
+                        <h2 className="text-3xl font-bold text-center mb-10 relative">
+                            <span className="bg-gradient-to-r from-[#DE2B74] to-[#FF6CAB] bg-clip-text text-transparent">
+                                How it works? - it&quot;s easy!
+                            </span>
+                        </h2>
                         <div className="space-y-4">
                             <div className="flex items-start">
                                 <div className="bg-[#DE2B74] text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">
@@ -217,7 +286,6 @@ export function EmailSignupPage() {
                     </section>
 
                     <section className="w-full flex flex-col justify-center items-center py-10">
-                        <Image src='/stelli/stelli_5.png' alt="Toonyz Logo" width={100} height={100} />
                         <Button variant="outline" className="bg-[#DE2B74] text-white text-xl w-fit mx-auto rounded-full">
                             <Link href="https://toonyz.com" className="">
                                 Go to Toonyz website

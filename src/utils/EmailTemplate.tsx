@@ -48,6 +48,12 @@ interface EmailTemplateProps {
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
               We're working hard to create something amazing and can't wait to share it with you!
             </p>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              in the meantime, you can check out our proposal 
+               <a href='https://docs.google.com/presentation/d/1GZBqZz8Iy8kCaJgAw5Hk0tKSgW0TUJJRge4hYcgIGsA/edit?usp=sharing' style="text-decoration: none; color: #374151;">
+                  <img src='https://toonyz.com/images/booktok_intro.svg' alt='Toonyz BookTok Creator Campaign' style="width: 100%; height: auto; border-radius: 8px;" />
+                </a>
+              </p>
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>
             <p style="color: #111827; font-size: 16px; font-weight: 500;">Toonyz Team</p>
           </div>

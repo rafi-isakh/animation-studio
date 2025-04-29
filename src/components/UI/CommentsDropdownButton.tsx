@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { Button } from "@/components/shadcnUI/Button"
-import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@/components/shadcnUI/Popover";
-import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
-import { Ellipsis, UserRoundX, CircleHelp, Flag, Trash } from 'lucide-react';
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/shadcnUI/Popover";
+import { Ellipsis, Trash } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { useState } from "react";
 import { User, Comment } from "@/components/Types";
-import Image from 'next/image';
+import Link from 'next/link';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,9 +18,11 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/shadcnUI/AlertDialog"
-import { useTheme } from '@/contexts/providers'
 import { useUser } from '@/contexts/UserContext';
 import { createEmailHash } from '@/utils/cryptography'
+import ReportButton from '@/components/UI/ReportButton';
+import { useAuth } from '@/contexts/AuthContext';
+
 export default function CommentsDropdownButton({
     comment,
     user,
@@ -37,8 +38,7 @@ export default function CommentsDropdownButton({
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const { id } = useUser();
-    const { theme } = useTheme();
-    const [showReportModal, setShowReportModal] = useState(false);
+    const { isLoggedIn } = useAuth();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -59,52 +59,43 @@ export default function CommentsDropdownButton({
                     <Ellipsis size={18} className='text-gray-600' />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-24">
+            <PopoverContent className="w-fit">
                 <div className='flex flex-col gap-2'>
                     {comment.user.email_hash === createEmailHash(email) &&
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button
-                                    variant='ghost'
+                                <Link
+                                    href="#"
                                     key="delete"
-                                    onClick={() => {
-                                        setShowDeleteModal(true);
-                                    }}
-                                    className='flex items-center gap-2 dark:text-white text-black'>
-                                    <Trash size={20} className="dark:text-white text-black" />
+                                    onClick={(e) => { e.stopPropagation(); setShowDeleteModal(true); }}
+                                    className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
+                                    <Trash size={10} className="dark:text-white text-gray-500" />
                                     {phrase(dictionary, "delete", language)}
-                                </Button>
+                                </Link>
+
                             </AlertDialogTrigger>
-                            <AlertDialogContent>
+                            <AlertDialogContent className="dark:bg-[#211F21] bg-white">
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogTitle>{phrase(dictionary, "confirmDeleteComments", language)}</AlertDialogTitle>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>
-                                        Cancel
+                                        {phrase(dictionary, "cancel", language)}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                         onClick={() => {
                                             handleDeleteComment(comment.id.toString());
                                             setShowDeleteModal(false);
                                         }}>
-                                        Delete
+                                        {phrase(dictionary, "delete", language)}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
                     }
-                    <Tooltip title={phrase(dictionary, "preparing", language)} followCursor>
-                        <Button
-                            key="report"
-                            variant="ghost"
-                            className="flex items-center gap-2 dark:text-white text-black">
-                            <Flag size={20} className="dark:text-white text-black" />
-                            {phrase(dictionary, "report", language)}
-                        </Button>
-                    </Tooltip>
+                    {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} mode="comments" />}
                 </div>
             </PopoverContent>
-        </Popover>
+        </Popover >
     );
 }

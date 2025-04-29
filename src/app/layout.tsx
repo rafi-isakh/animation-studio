@@ -69,14 +69,14 @@ interface RootLayoutProps {
 
 export async function getUserSession() {
     const headersList = headers();
-    const protocol = headersList.get('x-forwarded-proto') || 'https'; // usually 'https'
-    const host = headersList.get('host'); // e.g., toonyz.com or yoursite.vercel.app
+    const protocol = headersList.get('x-forwarded-proto') || 'https';
+    const host = headersList.get('host'); 
 
     const url = `${protocol}://${host}/api/user_session`;
 
     const res = await fetch(url, {
         headers: {
-            cookie: headersList.get('cookie') || '', // important! pass cookies manually
+            cookie: headersList.get('cookie') || '',
         },
         cache: 'no-store',
     });
@@ -91,8 +91,8 @@ export async function getUserSession() {
 
 export async function getWebnovelsMetadata() {
     const headersList = headers();
-    const protocol = headersList.get('x-forwarded-proto') || 'https'; // usually 'https'
-    const host = headersList.get('host'); // e.g., toonyz.com or yoursite.vercel.app
+    const protocol = headersList.get('x-forwarded-proto') || 'https';
+    const host = headersList.get('host'); 
 
     const url = `${protocol}://${host}/api/get_webnovels_metadata`;
     const response = await fetch(url,

@@ -1,16 +1,17 @@
 "use client"
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { Home, LayoutGrid, Gift, Search, Star } from "lucide-react"
+import { Home, LayoutGrid, Search, User } from "lucide-react"
 import { useRouter } from 'next/navigation';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function BottomNavigationBar() {
     const { theme } = useTheme();
@@ -20,6 +21,7 @@ export default function BottomNavigationBar() {
     const { dictionary, language } = useLanguage();
     const { isMobileMenuOpen, setIsMobileMenuOpen } = useMobileMenu();
     const pathname = usePathname();
+    const { isLoggedIn } = useAuth();
 
     const handleNavigation = (newValue: number) => {
         setValue(newValue);
@@ -37,8 +39,13 @@ export default function BottomNavigationBar() {
                 setIsMobileMenuOpen(false);
                 break;
             case 3:
-                router.push('/stars');
-                setIsMobileMenuOpen(false);
+                if (isLoggedIn) {
+                    router.push('/my_profile');
+                    setIsMobileMenuOpen(false);
+                } else {
+                    router.push('/signin');
+                    setIsMobileMenuOpen(false);
+                }
                 break;
         }
     };
@@ -91,7 +98,7 @@ export default function BottomNavigationBar() {
                 <BottomNavigationAction label={phrase(dictionary, "home", language)} icon={<Home />} />
                 <BottomNavigationAction label={phrase(dictionary, "feeds", language)} icon={<LayoutGrid />} />
                 <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
-                <BottomNavigationAction label={phrase(dictionary, "shop", language)} icon={<Gift />} />
+                <BottomNavigationAction label={phrase(dictionary, "profile", language)} icon={<User />} />
             </BottomNavigation>
         </Paper>
     );

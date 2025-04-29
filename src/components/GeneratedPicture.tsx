@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react";
 import { ImageOrVideo } from "./Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
-import { Share, RotateCw, X, Sparkles } from "lucide-react";
+import { Share, RotateCw, X, Sparkles, Share2 } from "lucide-react";
+import { Dialog } from "@/components/shadcnUI/Dialog";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
-import { Input } from "@mui/material";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/shadcnUI/Textarea";
+import ShareDialog from "@/components/UI/ShareDialog";
 
 export default function GeneratedPicture({
     index,
@@ -34,6 +35,7 @@ export default function GeneratedPicture({
     const { setChapterId, setShowShareAsPostModal, setShareType, setPicture } = useCreateMedia();
     const [isEditing, setIsEditing] = useState(false);
     const { dictionary, language } = useLanguage();
+    const [showShareDialog, setShowShareDialog] = useState(false);
 
     useEffect(() => {
         setChapterId(chapter_id);
@@ -41,20 +43,20 @@ export default function GeneratedPicture({
 
     const buttonList = [
         {
-            id: 'post',
-            icon: <Share size={10} />,
-            tooltipText: 'Post to Toonyz',
+            id: 'share',
+            icon: <Share2 size={10} />,
+            tooltipText: 'share',
             onClick: () => {
                 setShareType('image');
-                setShowShareAsPostModal(true);
                 setPicture(image);
+                setShowShareDialog(true);
             },
             className: 'bg-[#DE2B74] hover:bg-pink-400'
         },
         {
             id: 'edit',
             icon: <RotateCw size={10} />,
-            tooltipText: 'Edit Prompt',
+            tooltipText: 'editPrompt',
             onClick: () => {
                 setIsEditing(true);
             },
@@ -78,30 +80,51 @@ export default function GeneratedPicture({
                             />
                         </Button>
                     </div>
-                    <div className="z-[99] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-center items-center">
-                        {buttonList.map((button, index) => (
-                            <Tooltip key={button.id}>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        onClick={button.onClick}
-                                        variant="outline"
-                                        className={`rounded-full text-white border-0 
+                    <div className="z-[99] absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center">
+
+                        <div className="flex-1 flex items-center justify-center">
+                            <Button
+                                className="bg-[#DE2B74] text-white z-[999] rounded-xl"
+                                onClick={() => {
+                                    setShareType('image');
+                                    setShowShareAsPostModal(true);
+                                    setPicture(image);
+                                }}
+                            >
+                                <Share size={10} />
+                                {phrase(dictionary, "uploadToonyzPost", language)}
+                            </Button>
+                        </div>
+
+                        <div className="absolute bottom-2 right-2 flex">
+                            {buttonList.map((button, index) => (
+                                <Tooltip key={button.id}>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            onClick={button.onClick}
+                                            variant="outline"
+                                            size="icon"
+                                            className={`rounded-full text-white border-0 
                                             ${button.className} ${index > 0 ? 'ml-2' : ''}`}
-                                    >
-                                        {button.icon}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {button.tooltipText}
-                                </TooltipContent>
-                            </Tooltip>
-                        ))}
+                                        >
+                                            {button.icon}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {phrase(dictionary, button.tooltipText, language)}
+                                    </TooltipContent>
+                                </Tooltip>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </TooltipProvider>
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                <ShareDialog mode="shareToSocialMedia" description={`Share this image with your friends and family.`} shareImage={image} />
+            </Dialog>
             {isEditing && (
                 <div className="absolute inset-0 flex items-center justify-center z-[100] select-none">
-                    <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg -z-10" />
+                    <div className="absolute inset-0  backdrop-blur-md z-50 rounded-lg" />
                     <div className="flex flex-col gap-1 z-50">
                         <Textarea
                             value={quote}
@@ -117,13 +140,22 @@ export default function GeneratedPicture({
                             >
                                 {phrase(dictionary, "cancel", language)}
                             </Button>
-                            <Button variant="outline"
-                                onClick={() => setIsEditing(false)}
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline"
+                                            onClick={() => setIsEditing(false)}
                                 className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
                             >
                                 <Sparkles size={10} />
                                 {phrase(dictionary, "edit", language)}
-                            </Button>
+                                 </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {phrase(dictionary, "preparing", language)}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
                     </div>
                 </div>

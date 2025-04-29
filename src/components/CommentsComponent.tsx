@@ -7,8 +7,6 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import OtherTranslateComponent from './OtherTranslateComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronLeftIcon } from '@heroicons/react/24/solid';
-import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
 import { Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
@@ -20,7 +18,10 @@ import UpvoteButton from '@/components/UI/UpvotedButton';
 const CommentsComponent = ({
     contentToAttachTo,
     webnovelOrPost,
-    addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
+    addCommentEnabled 
+}: { contentToAttachTo: Chapter | ToonyzPost, 
+    webnovelOrPost: boolean, 
+    addCommentEnabled: boolean }) => {
     const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);
@@ -348,12 +349,12 @@ const CommentsComponent = ({
                                             </div>
 
                                             <div className="relative flex flex-row gap-2 items-center">
-                                                <CommentsDropdownButton
+                                                {isLoggedIn && <CommentsDropdownButton
                                                     comment={comment}
                                                     user={comment.user}
                                                     email={email}
                                                     handleDeleteComment={handleDeleteComment}
-                                                />
+                                                />}
 
                                             </div>
                                         </div>
@@ -435,12 +436,12 @@ const CommentsComponent = ({
                                                             </div>
 
                                                             <div className="relative flex flex-row  items-center">
-                                                                <CommentsDropdownButton
+                                                                {isLoggedIn && <CommentsDropdownButton
                                                                     comment={reply}
                                                                     user={reply.user}
                                                                     email={email}
                                                                     handleDeleteComment={handleDeleteComment}
-                                                                />
+                                                                />}
 
                                                             </div>
 

@@ -28,6 +28,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createEmailHash } from "@/utils/cryptography";
+import ToonyzPostDropdownButton from "./ToonyzPostDropdownButton"
 
 const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
     { webnovels: Webnovel[], nickname: string | null | undefined, email: string | null | undefined, className?: string }) => {
@@ -167,87 +168,17 @@ const MyToonyzPostsList = ({ webnovels, nickname, email, className }:
                                     </div>
                                 </div>
 
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="dark:text-white text-gray-500 rounded-full"
-                                        >
-                                            <Ellipsis className="w-3.5 h-3.5 " />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-fit">
-                                        <ul className="relative w-full flex flex-col gap-2">
-                                            <Link
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    setShowShareDialog(true);
-                                                }}
-                                                className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
-                                                <Share2 size={10} className="dark:text-white text-gray-500" />
-                                                {phrase(dictionary, "share", language)}
-                                            </Link>
-                                            <TooltipProvider delayDuration={0}>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Link
-                                                            href="#"
-                                                            className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
-                                                            <Flag size={10} className="dark:text-white text-gray-500" />
-                                                            {phrase(dictionary, "report", language)}
-                                                        </Link>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {phrase(dictionary, "preparing", language)}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                            {email && createEmailHash(email) === item.user.email_hash &&
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild >
-                                                        <Link
-                                                            href="#"
-                                                            key="delete"
-                                                            onClick={(e) => {
-                                                                e.preventDefault
-                                                                setShowDeleteModal(true);
-                                                            }}
-                                                            className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
-                                                            <Trash size={10} className="dark:text-white text-gray-500" />
-                                                            {phrase(dictionary, "delete", language)}
-                                                        </Link>
-                                                    </AlertDialogTrigger>
-
-                                                    {/* delete modal */}
-                                                    <AlertDialogContent className="dark:bg-[#211F21] bg-white">
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>{phrase(dictionary, "deletePost", language)}</AlertDialogTitle>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>
-                                                                {phrase(dictionary, "cancel", language)}
-                                                            </AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                onClick={() => {
-                                                                    handleDeletePost(item.id.toString());
-                                                                    setShowDeleteModal(false);
-                                                                }}>
-                                                                {phrase(dictionary, "delete", language)}
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            }
-                                        </ul>
-                                    </PopoverContent>
-                                </Popover>
+                                <ToonyzPostDropdownButton
+                                    email={email ?? ""}
+                                    // isAuthor={isAuthor ?? false}
+                                    user={item.user}
+                                    postId={item.id.toString()}
+                                    post={item}
+                                />
                             </div>
-                            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                            {/* <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                                 <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${item.id}`} description={`Share this post with your friends and family.`} />
-                            </Dialog>
+                            </Dialog> */}
                         </div>
                     ))
                 )}

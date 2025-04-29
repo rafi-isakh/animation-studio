@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { useToonyzCutSubmitModalStyle } from "@/styles/ModalStyles"
 import OtherTranslateComponent from "./OtherTranslateComponent";
 import { CircleX } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel, open: boolean, onClose: () => void }) => {
     const imageSrc = getImageUrl(webnovel?.cover_art)
@@ -22,6 +23,7 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
     const [projectType, setProjectType] = useState('');
     const [fullDescription, setFullDescription] = useState('');
 
+    const { toast } = useToast()
     const handleSubmit = async () => {
         const message = `Proposal for ${webnovel.title} by ${webnovel.author.nickname}:<br/>
         Company Name: ${companyName} <br/>
@@ -36,6 +38,12 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
             method: 'POST',
             body: JSON.stringify({ message: message, templateType: 'report', subject: 'Toonyz Cut Proposal', staffEmail: 'dami@stelland.io, min@stelland.io' })
         });
+        toast({
+            title: 'Email sent',
+            variant: 'success',
+            description: 'Email sent successfully',
+        })
+        onClose()
     }
 
 
@@ -139,11 +147,14 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                                 {/* Which Type of Project Would You Like to Develop? */}
                                 {phrase(dictionary, 'toonyzCut_which_type_of_project', language)}
                             </FormLabel>
+                            
                             <RadioGroup
                                 row
                                 aria-labelledby="row-radio-buttons-group-label"
                                 name="row-radio-buttons-group"
                                 className="text-black dark:text-black"
+                                value={projectType}
+                                onChange={(e) => setProjectType(e.target.value)}
                             >
                                 <FormControlLabel
                                     value="Webtoon"
@@ -170,6 +181,8 @@ const ToonyzCutSubmitModal = ({ webnovel, open, onClose }: { webnovel: Webnovel,
                             <TextField fullWidth
                                 label={phrase(dictionary, 'full_description', language)}
                                 id="full-description"
+                                value={fullDescription}
+                                onChange={(e) => setFullDescription(e.target.value)}
                                 variant="outlined"
                                 type="text"
                                 placeholder={phrase(dictionary, 'full_description', language)}

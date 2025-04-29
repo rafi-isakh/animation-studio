@@ -144,7 +144,7 @@ export function EmailForm() {
               </AvatarFallback>
             </Avatar>
           </div>
-          <p className="text-black font-semibold">{clickCount}+ people on the waitlist</p>
+          <p className="text-black font-semibold">{clickCount}+ people got benefited already</p>
         </div>
       </div>
     </div>

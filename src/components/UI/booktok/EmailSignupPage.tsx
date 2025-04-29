@@ -99,7 +99,7 @@ export function EmailSignupPage() {
                             </div>
                             <div className="flex items-start">
                                 <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
-                                <p className="text-black dark:text-black"> Get featured as a "Visual Story Curator" on our global launch page</p>
+                                <p className="text-black dark:text-black"> Get featured as a &quot;Visual Story Curator&quot; on our global launch page</p>
                             </div>
                             <div className="flex items-start">
                                 <CheckCircle className="text-[#DE2B74] mr-3 h-6 w-6 mt-1 flex-shrink-0" />
@@ -140,7 +140,7 @@ export function EmailSignupPage() {
 
                     {/* How It Works Section */}
                     <section className="mb-12">
-                        <h2 className="text-2xl font-bold text-[#DE2B74] mb-6">How it works? - it's easy!</h2>
+                        <h2 className="text-2xl font-bold text-[#DE2B74] mb-6">How it works? - it&quot;s easy!</h2>
                         <div className="space-y-4">
                             <div className="flex items-start">
                                 <div className="bg-[#DE2B74] text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">

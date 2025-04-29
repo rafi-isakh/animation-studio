@@ -18,9 +18,9 @@ interface WebnovelsContextState {
 // Create the context with a default value
 const WebnovelsContext = createContext<WebnovelsContextState | undefined>(undefined);
 // Create a provider component
-export const WebnovelsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [allWebnovels, setAllWebnovels] = useState<Array<Webnovel>>([]);
-    const [webnovels, setWebnovels] = useState<Array<Webnovel>>([]); 
+export const WebnovelsProvider: React.FC<{ children: ReactNode, webnovelsMetadata: Webnovel[] }> = ({ children, webnovelsMetadata }) => {
+    const [allWebnovels, setAllWebnovels] = useState<Array<Webnovel>>(webnovelsMetadata);
+    const [webnovels, setWebnovels] = useState<Array<Webnovel>>(webnovelsMetadata); 
     const [chaptersLikelyNeededWebnovel, setChaptersLikelyNeededWebnovel] = useState<Webnovel | undefined>(undefined);
     const { language } = useLanguage();
     

@@ -11,6 +11,7 @@ import { UserStripped } from "@/components/Types";
 import ReportModal from "@/components/UI/ReportModal";
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import { useUser } from "@/contexts/UserContext";
 
 export default function ProfileDropdownButton({
     isProfileOwner,
@@ -29,6 +30,7 @@ export default function ProfileDropdownButton({
     const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
     const { logout } = useAuth();
+    const { nickname: loggedInUser_nickname, id: loggedInUser_id } = useUser();
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -38,10 +40,10 @@ export default function ProfileDropdownButton({
     };
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname}\n\nReport message: ${reportMessage}`;
+        const message = `Reported user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Reported by: ${loggedInUser_nickname} <br/> Reported by ID: ${loggedInUser_id} <br/><br/> Report message: ${reportMessage}`;
         await fetch('/api/send_email', {
             method: 'POST',
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ message: message, templateType: 'report', subject: 'Report', staffEmail: 'dami@stelland.io, min@stelland.io' })
         });
         setShowReportModal(false);
         setShowReportSuccessModal(true);

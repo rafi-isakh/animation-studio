@@ -13,6 +13,18 @@ export default function LanguageSetter() {
                 setLanguageOverride(localStorage.getItem('language_override')! as Language);
                 return;
             }
+            // Check browser language first
+            const browserLang = navigator.language.toLowerCase();
+            if (browserLang.startsWith('ko')) {
+                setLanguage('ko');
+                return;
+            } else if (browserLang.startsWith('ja')) {
+                setLanguage('ja'); 
+                return;
+            } else if (browserLang.startsWith('en')) {
+                setLanguage('en');
+                return;
+            }
             const userCountry = await getCountryFromIP();
             if (userCountry === 'KR') {
                 setLanguage('ko');

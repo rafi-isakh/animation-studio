@@ -8,17 +8,20 @@ import { UserStripped } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Flag } from "lucide-react";
 import Link from "next/link";
+import { useUser } from "@/contexts/UserContext";
+
 export default function ReportButton({ user, mode = "profile_page" }: { user: UserStripped, mode?: "profile_page" | "toonyzPost_page" | "comments" }) {
     const [showReportModal, setShowReportModal] = useState(false);
     const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
     const { language, dictionary } = useLanguage();
     const [reportMessage, setReportMessage] = useState('');
+    const { nickname: loggedInUser_nickname, id: loggedInUser_id } = useUser();
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname}\nUser ID: ${user.id}\n\nReport message: ${reportMessage}`;
+        const message = `Reported user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Reported by: ${loggedInUser_nickname} <br/> Reported by ID: ${loggedInUser_id} <br/><br/> Report message: ${reportMessage}`;
         await fetch('/api/send_email', {
             method: 'POST',
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({  message: message, templateType: 'report', subject: 'Report', staffEmail: 'dami@stelland.io, min@stelland.io' })
         });
         setShowReportModal(false);
         setShowReportSuccessModal(true);

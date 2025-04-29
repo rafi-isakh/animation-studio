@@ -117,7 +117,7 @@ export default function Footer() {
                 {/* Toonyz social media channel */}
                 <div className="sns order-first md:order-last">
                     <ul className="flex flex-row gap-3">
-                        <Link href="https://www.instagram.com/stelland_official/">
+                        <Link target="_blank" href="https://www.instagram.com/stelland_official/">
                             <i className="fab fa-instagram cursor-pointer
                              text-white rounded-full px-[0.6rem] py-2
                               hover:bg-[#DB2777] bg-gray-300 text-[16px] 
@@ -125,7 +125,7 @@ export default function Footer() {
                              dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                             "></i>
                         </Link>
-                        <Link href="#">
+                        <Link target="_blank" href="https://www.youtube.com/@Toonyz_Official">
                             <i className="fab fa-youtube cursor-pointer
                              text-white rounded-full px-2 py-2
                               hover:bg-[#DB2777] bg-gray-300 text-[15px] 
@@ -133,7 +133,7 @@ export default function Footer() {
                              dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                              "></i>
                         </Link>
-                        <Link href="https://x.com/stelland_hello">
+                        <Link target="_blank" href="https://x.com/stelland_hello">
                             <i className="fab fa-x cursor-pointer
                              text-white rounded-full px-[0.7rem] py-2
                               hover:bg-[#DB2777] bg-gray-300 text-[16px] 
@@ -141,7 +141,7 @@ export default function Footer() {
                                dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                              "></i>
                         </Link>
-                        <Link href="https://stelland.medium.com">
+                        <Link target="_blank" href="https://stelland.medium.com">
                             <i className="fa-brands fa-medium cursor-pointer
                              text-white rounded-full px-[0.44rem] py-2
                               hover:bg-[#DB2777] bg-gray-300 text-[16px] 
@@ -149,7 +149,7 @@ export default function Footer() {
                               dark:text-gray-100 dark:bg-gray-500 dark:hover:opacity-75
                               "></i>
                         </Link>
-                        <Link href="https://www.linkedin.com/company/stellandio/">
+                        <Link target="_blank" href="https://www.linkedin.com/company/stellandio/">
                             <i className="fa-brands fa-linkedin-in cursor-pointer
                              text-white rounded-full px-[0.6rem] py-2
                               hover:bg-[#DB2777] bg-gray-300 text-[16px] 

@@ -14,24 +14,30 @@ import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
 import { useMediaQuery } from 'react-responsive';
 import { langPairList } from '@/utils/phrases';
-import { getUrlWithParams } from '@/utils/stringUtils';
 import {
     Sun,
-    Search,
     Grip,
-    Ellipsis,
     Globe,
     Menu,
     User,
     MoonStar,
     Book,
+    CircleHelp,
+    Gift,
 } from 'lucide-react';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/shadcnUI/Popover"
+import { Button } from '@/components/shadcnUI/Button';
 import { useTheme } from '@/contexts/providers'
-import { Box, Button, Drawer } from '@mui/material';
 import SearchComponent from '@/components/SearchComponent';
 import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
+import UserProfileButton from '@/components/UI/UserProfileButton';
+import HelpGuidComponent from './UI/HelpGuideComponent';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -333,18 +339,33 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </Link>
                             </div> */}
                         </div>
-                        <div className="flex gap-x-2 mt-2 md:order-1 md:w-full">
+                        <div className="flex gap-x-2 md:mt-2 md:order-1 md:w-full">
                             {/* Search bar in desktop screen */}
-                            <div className="relative hidden md:inline-flex w-full mr-3">
+                            <div className="relative hidden md:inline-flex w-full ">
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
                             </div>
-                           
+
                             <div ref={hamburgerRef}>
+                                {!isLoggedIn ? (
+                                    <li className='md:hidden inline-flex absolute top-2 right-14'>
+                                        <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
+                                            <span className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]'>
+                                                {phrase(dictionary, "login", language)}
+                                            </span>
+                                        </Link>
+                                    </li>
+                                ) : (
+                                    <li className='md:hidden inline-flex items-center justify-center mr-2'>
+                                        <Link href='/stars' className='!no-underline capitalize rounded-lg' >
+                                          <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
+                                        </Link>      
+                                    </li>
+                                )}
                                 <button
                                     id="mobile-hamburger"
                                     onClick={() => handleMobileMenuClick()}
                                     type="button"
-                                    className="inline-flex items-center p-2 w-10 h-10 
+                                    className="inline-flex items-center w-10 h-10 
                                                justify-center text-sm 
                                                rounded-xl text-black md:hidden
                                                focus:outline-none dark:text-black "
@@ -354,23 +375,44 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </button>
                             </div>
                         </div>
-                        <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2">
+                        <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2 ">
                             <div className="relative md:hidden">
                                 {/* Search bar in mobile screen (md:hidden) */}
                                 <SearchComponent mode="mobileHeader" setIsMobileMenuOpen={setIsMobileMenuOpen} />
                             </div>
-
-                            <ul className="flex justify-center items-center">
+                            <ul className="flex justify-center items-center md:gap-4">
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
-                                {/* gap-1 for desktop header icons */}
+                                {/* gap-4 for desktop header icons */}
                                 {/* Language globe icon menu button - Desktop */}
-                                <li className="relative hidden md:inline-flex mx-2">
+
+                                <li className="relative hidden md:inline-flex">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
+                                        </PopoverTrigger>
+                                        <PopoverContent className='md:w-[350px] w-full border-none bg-transparent shadow-none'>
+                                            <HelpGuidComponent />
+                                        </PopoverContent>
+                                    </Popover>
+                                </li>
+                                {!isLoggedIn ? (
+                                    <li className="relative hidden md:inline-flex">
+                                        <Link href="/signin" className='inline-flex justify-center  items-center text-gray-500 dark:text-white'>
+                                            <span className='text-sm !break-keep'>{phrase(dictionary, "login", language)}</span>
+                                        </Link>
+                                    </li>
+                                ) : (
+                                    <li className="relative hidden md:inline-flex">
+                                        <UserProfileButton mode='header' className='text-gray-500 dark:text-white' />
+                                    </li>
+                                )}
+                                <li className="relative hidden md:inline-flex">
                                     {/* Site map icon */}
-                                    <button onClick={handleSitemapClick}>
+                                    <button onClick={handleSitemapClick} className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
                                         <Grip size={20} className='dark:text-white text-gray-500' />
                                     </button>
                                 </li>
-                                <li className="relative">
+                                <li className="relative md:hidden">
                                     {/* User menu button currently showing in mobile screen */}
                                     <div>
                                         <button
@@ -385,13 +427,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <User size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "profile", language)}
                                             </p>
                                         </button>
                                     </div>
                                 </li>
-                                <li className='relative'>
+                                <li className='relative md:hidden'>
                                     <div>
                                         <button
                                             onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleLibraryClick(event)}
@@ -404,13 +446,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <Book size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "library", language)}
                                             </p>
                                         </button>
                                     </div>
                                 </li>
-                                <li className="relative">
+                                <li className="relative md:hidden">
                                     <div ref={languageMenuRef}>
                                         <button
                                             id="dropdownNavbarLanguageLink"
@@ -424,7 +466,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 <Globe size={20} className='dark:text-white text-gray-500' />
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "language", language)}
                                             </p>
                                         </button>
@@ -440,7 +482,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                 ? 'opacity-100 translate-y-0 scale-100'
                                                 : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'}`}
                                     >
-                                        <ul className="py-2 text-sm text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
+                                        <ul className="py-2 text-xs text-gray-700 dark:text-white" aria-labelledby="dropdownLargeButton">
                                             {langPairList.map((langPair, index) => (
                                                 <li
                                                     id={`li-${langPair.code}`}
@@ -459,7 +501,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </ul>
                                     </div>
                                 </li>
-                                <li className='relative'>
+                                <li className='relative md:hidden'>
                                     <div>
                                         <button
                                             onClick={() => toggleTheme(theme == 'dark' ? 'light' : 'dark')}
@@ -472,27 +514,31 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
                                                 {theme === 'dark' ? <Sun size={20} className='dark:text-white text-gray-500' /> : <MoonStar size={20} className='dark:text-white text-gray-500' />}
                                             </div>
-                                            <p className='md:hidden text-sm text-center'>
+                                            <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "mode", language)}
                                             </p>
                                         </button>
                                     </div>
                                 </li>
-
-                                {/* 
-                                {!isLoggedIn && (
-                                    <li className='md:flex items-center justify-center ml-1 hidden'>
-                                        <Button sx={{
-                                            backgroundColor: '#DB2777',
-                                            color: 'white',
-                                            '&:hover': {
-                                                color: 'white',
-                                            }
-                                        }} variant="text" className='capitalize rounded-lg' onClick={() => router.push('/signin')} >
-                                            {phrase(dictionary, "login", language)}
-                                        </Button>
-                                    </li>
-                                )} */}
+                                <li className='relative md:hidden'>
+                                    <div>
+                                        <Link
+                                            href="/faq"
+                                            className="md:hidden md:px-0 md:py-0 px-4 py-4 md:p-0 mw-auto w-full
+                                                       flex flex-col items-center justify-center gap-0
+                                                       text-gray-500
+                                            ">
+                                            <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
+                                                          hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
+                                                           dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
+                                                <CircleHelp size={20} className='dark:text-white text-gray-500' /> 
+                                            </div>
+                                            <p className='md:hidden text-xs text-center'>
+                                                {phrase(dictionary, "help", language)}
+                                            </p>
+                                        </Link>
+                                    </div>
+                                </li>
                             </ul>
                         </div>
                     </div>

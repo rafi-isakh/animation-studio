@@ -12,7 +12,7 @@ import { FaqItem } from "@/components/Types"
 export const ContactForm = () => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
-    const [message, setMessage] = useState("")
+    const [userMessage, setUserMessage] = useState("")
     const { dictionary, language } = useLanguage()
     const { toast } = useToast()
 
@@ -22,6 +22,7 @@ export const ContactForm = () => {
     }
 
     function sendMessage() {
+        const message = `Name: ${name} <br/> Email: ${email} <br/> Message: ${userMessage}`;
         fetch("/api/send_email", {
             method: "POST",
             headers: { 
@@ -30,9 +31,9 @@ export const ContactForm = () => {
             body: JSON.stringify({
                 name: name,
                 email: email,
-                staffEmail: 'dami@stelland.io',
+                staffEmail: 'dami@stelland.io, min@stelland.io',
                 message: message,
-                subject: "Report",
+                subject: "Report - FAQ",
                 templateType: 'report'
             })
         })
@@ -94,8 +95,8 @@ export const ContactForm = () => {
                     />
                     <Textarea
                         placeholder="Message"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
+                        value={userMessage}
+                        onChange={(e) => setUserMessage(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Button

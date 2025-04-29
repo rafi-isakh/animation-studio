@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Flag } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+
 export default function ReportButton({ user, mode = "profile_page" }: { user: UserStripped, mode?: "profile_page" | "toonyzPost_page" | "comments" }) {
     const [showReportModal, setShowReportModal] = useState(false);
     const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);

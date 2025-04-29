@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     const email = session.user.email;
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_transaction`, {
         method: "POST",
+        // TODO: change to 별 덤
         body: JSON.stringify({ currency, email, stars, price, date: date}),
         headers: {
             "Content-Type": "application/json",

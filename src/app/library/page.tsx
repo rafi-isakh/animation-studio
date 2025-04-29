@@ -4,10 +4,16 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useUser } from "@/contexts/UserContext";
 import { phrase } from "@/utils/phrases";
 import { useEffect, useState } from "react";
-import LibraryComponent from '@/components/LibraryComponent'
+import dynamic from 'next/dynamic'
+
+// Dynamically import the LibraryComponent with SSR disabled
+const LibraryComponent = dynamic(
+  () => import('@/components/LibraryComponent'),
+  { ssr: false } // This ensures the component only loads on the client side
+)
 
 const Library = () => {
-    const {email} = useUser();
+    const {email, nickname} = useUser();
     const [library, setLibrary] = useState<Webnovel[]>([])
     const [loading, setLoading] = useState(true);
 
@@ -28,8 +34,9 @@ const Library = () => {
     }, [email])
 
     return (
-        <div className="max-w-screen-lg flex mx-auto justify-center">
-            <LibraryComponent library={library} loading={loading}/>
+        <div className="max-w-screen-xl h-full flex mx-auto justify-center mb-72">
+            <LibraryComponent library={library} nickname={nickname} loading={loading}/>
+            
         </div>
     )
 }

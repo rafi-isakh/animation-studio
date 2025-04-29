@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     const today = new Date();
     const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    if (new Date(birth) < eighteenYearsAgo) {
+    if (new Date(birth) > eighteenYearsAgo) {
         return new NextResponse(`Too young: ${birth}`, { status: 401 });
     }
 

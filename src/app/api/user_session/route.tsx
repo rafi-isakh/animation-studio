@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
                 picture: "",
                 purchased_webnovel_chapters: "[]",
                 upvoted_comments: "",
-                genres: "",
+                genres: "[]",
                 is_adult: false,
             });
         }

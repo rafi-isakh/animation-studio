@@ -7,7 +7,7 @@ import { Input } from "@/components/shadcnUI/Input"
 import { Button } from "@/components/shadcnUI/Button"
 import { DownloadIcon, EyeIcon, FilterIcon, MoreHorizontalIcon, RefreshCwIcon, FileIcon, Loader2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/shadcnUI/DropdownMenu"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
 // import Markdown from "marked-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -49,7 +49,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
             console.error('File key is missing');
             return;
         }
- 
+
         fetch(`/api/download?file=${encodeURIComponent(fileName)}`)
             .then(response => {
                 if (!response.ok) {
@@ -67,9 +67,9 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     });
                 }
-                
+
                 const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
-            
+
                 if (isSafariBrowser) {
                     // For Safari, we need to handle downloads differently
                     return response.blob().then(blob => {
@@ -82,7 +82,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         a.click();
                         window.URL.revokeObjectURL(url);
                         document.body.removeChild(a);
-                        
+
                         toast({
                             title: "File download started",
                             description: fileName.split('/').pop() || fileName,
@@ -90,7 +90,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         });
                     });
                 }
-                
+
                 // For non-Safari browsers
                 window.open(response.url, '_blank');
                 toast({
@@ -143,7 +143,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
 
             // Check if browser is Safari
             const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
-            
+
             if (isSafariBrowser) {
                 // For Safari, use native PDF viewing
                 const pdfBlob = await response.blob();
@@ -299,15 +299,15 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-12">
+                            {/* <TableHead className="w-12">
                                 <Checkbox
                                     checked={selectedFiles.length === filteredFiles.length && filteredFiles.length > 0}
                                     onCheckedChange={toggleSelectAll}
                                 />
-                            </TableHead>
+                            </TableHead> */}
                             <TableHead>Name</TableHead>
-                            <TableHead>Modified</TableHead>
-                            <TableHead>Size</TableHead>
+                            <TableHead className="hidden md:table-cell">Modified</TableHead>
+                            <TableHead className="hidden md:table-cell">Size</TableHead>
                             <TableHead className="hidden md:table-cell">Author</TableHead>
                             <TableHead className="w-24">Actions</TableHead>
                         </TableRow>
@@ -317,20 +317,20 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                             filteredFiles.map((file) =>
                                 file.status === "available" ? (
                                     <TableRow key={file.id}>
-                                        <TableCell>
+                                        {/* <TableCell>
                                             <Checkbox
                                                 checked={selectedFiles.includes(file.id)}
                                                 onCheckedChange={() => toggleSelectFile(file.id)}
                                             />
-                                        </TableCell>
+                                        </TableCell> */}
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 <FileIcon className="h-5 w-5 text-red-500" />
                                                 {file.name}
                                             </div>
                                         </TableCell>
-                                        <TableCell>{file.modified}</TableCell>
-                                        <TableCell>{file.size}</TableCell>
+                                        <TableCell className="hidden md:table-cell">{file.modified}</TableCell>
+                                        <TableCell className="hidden md:table-cell">{file.size}</TableCell>
                                         <TableCell className="hidden md:table-cell">{file.author}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-1">
@@ -363,21 +363,21 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                     </TableRow>
                                 ) : (
                                     <TableRow key={file.id}>
-                                        <TableCell>
+                                        {/* <TableCell>
                                             <Checkbox
                                                 checked={selectedFiles.includes(file.id)}
                                                 onCheckedChange={() => toggleSelectFile(file.id)}
                                                 disabled
                                             />
-                                        </TableCell>
+                                        </TableCell> */}
                                         <TableCell className="font-medium text-gray-300">
                                             <div className="flex items-center gap-2">
                                                 <FileIcon className="h-5 w-5 text-red-500" />
                                                 {file.name}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-gray-300">{file.modified}</TableCell>
-                                        <TableCell className="text-gray-300">{file.size}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-gray-300">{file.modified}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-gray-300">{file.size}</TableCell>
                                         <TableCell className="hidden md:table-cell text-gray-300">{file.author}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-1">
@@ -403,37 +403,55 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 </Table>
 
                 <Dialog open={showPreview} onOpenChange={setShowPreview}>
-                    <DialogContent className="sm:max-w-screen-lg w-full h-full max-h-screen flex flex-col p-0" showCloseButton={true}>
+                    <DialogContent
+                        className="sm:max-w-screen-lg w-full max-h-[90vh] flex flex-col p-0"
+                        showCloseButton={true}
+                    >
                         <DialogHeader className="p-4 border-b">
                             <DialogTitle>Preview</DialogTitle>
                         </DialogHeader>
-                        <div className="flex-grow overflow-y-auto p-0 m-0">
+
+                        <div
+                            className="flex-grow overflow-y-auto p-0 m-0"
+                            style={{
+                                WebkitOverflowScrolling: "touch", // smooth scrolling on iOS
+                                overflowY: "auto",
+                            }}
+                        >
                             {isPreviewLoading ? (
-                                <div className="flex items-center justify-center h-full">
+                                <div className="flex items-center justify-center min-h-[200px]">
                                     <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
                                     <span className="ml-2 text-gray-500">Loading preview...</span>
                                 </div>
                             ) : previewError ? (
-                                <div className="flex items-center justify-center h-full p-4">
+                                <div className="flex items-center justify-center p-4">
                                     <span className="text-red-500">Error: {previewError}</span>
                                 </div>
                             ) : previewUrl ? (
                                 <iframe
                                     src={`${previewUrl}#toolbar=0&navpanes=0`}
-                                    className="w-full h-full border-0"
+                                    className="w-full min-h-[500px] border-0"
                                     title="PDF Preview"
                                 />
                             ) : (
-                                <div className="flex items-center justify-center h-full p-4">
+                                <div className="flex items-center justify-center p-4">
                                     <span className="text-gray-500">No preview available.</span>
                                 </div>
                             )}
                         </div>
+                        <DialogFooter className="flex flex-col gap-2 justify-center items-center">
+                            <p className="text-sm text-gray-500">
+                                Chrome and Safari browser is recommended for preview.
+                            </p>
+                            <Button variant="outline" onClick={() => setShowPreview(false)}>
+                                Close
+                            </Button>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
 
-            {
+            {/* {
                 selectedFiles.length > 0 && (
                     <div className="p-4 border-t flex justify-between items-center bg-gray-50">
                         <div className="text-sm text-gray-500">
@@ -468,7 +486,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         </div>
                     </div>
                 )
-            }
+            } */}
         </div >
     )
 }

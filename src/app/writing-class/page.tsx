@@ -1,8 +1,8 @@
 'use client';
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ChevronRight, Info } from "lucide-react";
-import { Dialog } from "@/components/shadcnUI/Dialog"
+import { Check, Info, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
 import { Language } from "@/components/Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { BookCard } from "@/components/UI/writingClass/ui/BookCard";
@@ -19,12 +19,9 @@ import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
-import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./data/downloadFiles";
-
-
-// const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
+import PdfViewer from "@/components/UI/writingClass/ui/PdfViewer";
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -34,6 +31,9 @@ export default function WritingClassPage() {
   const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const [showPreview, setShowPreview] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,6 +42,70 @@ export default function WritingClassPage() {
       toggleTheme("light");
     }
   }, [theme]);
+
+  const viewFile = async (fileKey: string) => {
+    if (!fileKey || fileKey.trim() === '') {
+      toast({
+        title: "Error viewing file",
+        description: "File key is missing",
+        variant: "destructive",
+      });
+      console.error('File key is missing for preview');
+      return;
+    }
+
+    setIsPreviewLoading(true);
+    setPreviewUrl(null);
+    setPreviewError(null);
+    setShowPreview(true);
+
+    try {
+      const response = await fetch(`/api/download?file=${encodeURIComponent(fileKey)}`);
+
+      if (!response.ok) {
+        let errorMsg = `HTTP error! Status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          // Ignore if response is not JSON
+        }
+        throw new Error(errorMsg);
+      }
+
+      // For PDF viewer, we need to create a blob URL
+      const pdfBlob = await response.blob();
+      const pdfObjectUrl = URL.createObjectURL(pdfBlob);
+      
+      // Add the toolbar and navpanes parameters to the URL
+      const viewerUrl = `${pdfObjectUrl}#toolbar=1&navpanes=1`;
+      setPreviewUrl(viewerUrl);
+
+    } catch (error: any) {
+      console.error('Error fetching file for preview:', error);
+      let message = "Could not load preview.";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      setPreviewError(message);
+      toast({
+        title: "Error loading preview",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  // Cleanup object URL on unmount or when preview changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const downloadFile = (fileName: string) => {
     if (!fileName || fileName.trim() === '') {
@@ -122,27 +186,74 @@ export default function WritingClassPage() {
               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
           {/* <Dialog open={showPreview} onOpenChange={setShowPreview}> */}
-            <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-              {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Books"
-                            : "무료로 작법서 다운 받기"}
-              </Link>
-                : <>
-                  <Link href="#" onClick={() => {
-                    const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko;
-                    console.log(`Download clicked: ${fileKey} (${language})`);
-                    downloadFile(fileKey);
-                  }}>
-                    {language === "en" ? "Preview Free Book of 5"
-                      : "무료로 작법서 5강 보기"}
-                  </Link>
-                  {/* <LoginDialog /> */}
-                </>
-              }
-            </RoundedButton>
+          <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
+            {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Books"
+              : "무료로 작법서 다운 받기"}
+            </Link>
+              : <>
+                <Link href="#" onClick={() => {
+                  const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko;
+                  console.log(`Download clicked: ${fileKey} (${language})`);
+                  viewFile(fileKey);
+                }}>
+                  {language === "en" ? "Preview Free Book of 5"
+                    : "무료로 작법서 5강 보기"}
+                </Link>
+                <Dialog open={showPreview} onOpenChange={setShowPreview}>
+                  <DialogContent
+                    className="sm:max-w-screen-lg w-full max-h-[90vh] flex flex-col p-0"
+                    showCloseButton={true}
+                  >
+                    <DialogHeader className="p-4 border-b">
+                      <DialogTitle>Preview</DialogTitle>
+                    </DialogHeader>
+
+                    <div
+                      className="flex-grow overflow-y-auto p-0 m-0"
+                      style={{
+                        WebkitOverflowScrolling: "touch", // smooth scrolling on iOS
+                        overflowY: "auto",
+                      }}
+                    >
+                      {isPreviewLoading ? (
+                        <div className="flex items-center justify-center min-h-[200px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                          <span className="ml-2 text-gray-500">Loading preview...</span>
+                        </div>
+                      ) : previewError ? (
+                        <div className="flex items-center justify-center p-4">
+                          <span className="text-red-500">Error: {previewError}</span>
+                        </div>
+                      ) : previewUrl ? (
+                         <iframe
+                          src={`${previewUrl}#toolbar=1&navpanes=1`}
+                          className="w-full min-h-[500px] border-0"
+                          title="PDF Preview"
+                        />
+                        // <PdfViewer file={previewUrl} onClose={() => setShowPreview(false)} />
+                      ) : (
+                        <div className="flex items-center justify-center p-4">
+                          <span className="text-gray-500">No preview available.</span>
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter className="flex flex-col gap-2 justify-center items-center">
+                      <p className="text-sm text-gray-500">
+                        Chrome and Safari browser is recommended for preview.
+                      </p>
+                      <Button variant="outline" onClick={() => setShowPreview(false)}>
+                        Close
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </>
+            }
+          </RoundedButton>
           {/* </Dialog> */}
           <p className="w-fit text-sm text-gray-500 md:mx-0 mx-auto pt-4">
             {language === "en" ? "Join Toonyz to get all free books :)"
-                               : <>투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.</>}
+              : <>투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.</>}
           </p>
         </div>
 

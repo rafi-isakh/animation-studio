@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         headers: { Authorization: access_token },
     });
     if (!getCertifications.ok) {
+        console.error("access_token", access_token);
         console.error('Failed to get certifications', getCertifications.status);
         return new NextResponse("Failed to get certifications", { status: getCertifications.status });
     }

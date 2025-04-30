@@ -22,23 +22,22 @@ export async function POST(request: NextRequest) {
         console.error('Failed to get token', getToken.status);
         return new NextResponse("Failed to get token", { status: getToken.status });
     }
-    const {access_token} = await getToken.json();
+    const { response: { access_token } } = await getToken.json();
 
     const getCertifications = await fetch(`https://api.iamport.kr/certifications/${imp_uid}`, {
         headers: { Authorization: access_token },
     });
     if (!getCertifications.ok) {
-        console.error("access_token", access_token);
         console.error('Failed to get certifications', getCertifications.status);
         return new NextResponse("Failed to get certifications", { status: getCertifications.status });
     }
-    const { birth } = await getCertifications.json();
+    const { response: { birth } } = await getCertifications.json();
 
     const today = new Date();
     const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    if (new Date(birth) > eighteenYearsAgo) {
+    if (new Date(birth * 1000) > eighteenYearsAgo) { // birth is in seconds from unix epoch
         console.error('Too young', birth);
-        return new NextResponse(`Too young: ${birth}`, { status: 401 });
+        return new NextResponse(`Too young: ${birth}`, { status: 403 });
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/verify_as_adult`, {

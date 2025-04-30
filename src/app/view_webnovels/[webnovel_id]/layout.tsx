@@ -35,6 +35,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
             return;
         }
         if (!loggedIn) {
+            console.log(loggedIn, checking)
             router.push('/signin');
             return;
         }

@@ -132,6 +132,13 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
               <img src="https://img.youtube.com/vi/08OixaiTZGw/maxresdefault.jpg" alt="Toonyz Post Tutorial" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
             </a>
 
+
+            <h1>Check out the most popular web novels!</h1>
+
+            <a href="https://toonyz.com/post" style="display: block; margin-bottom: 16px; text-decoration: none;">
+              <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/welcome-email-thumbnails_en.webp' alt="Toonyz web novels" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
+            </a>
+
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>
             <p style="color: #111827; font-size: 16px; font-weight: 500;">Toonyz R&D Team</p>
           </div>
@@ -139,7 +146,7 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
       </html>
     `
   }
-  
+
   if (language === 'ko') {
     return `
       <!DOCTYPE html>
@@ -150,10 +157,12 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
         </head>
         <body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 20px;">
           <div style="max-width: 400px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-           <div style="display: flex; justify-content: center; align-items: center;">
+          
+          <div style="display: flex; justify-content: center; align-items: center; word-break: keep-all;">
             <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/toonyz_log_with_stelli.png' width="150" height="auto" style="margin-bottom: 16px;">
           </div>
-           <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">
+
+           <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px; ">
                ${nickname}님, 투니즈에 오신 것을 환영합니다!
             </h1>
 
@@ -174,9 +183,16 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
               <img src="https://img.youtube.com/vi/q-j_FEe5EG0/maxresdefault.jpg" alt="투니즈 포스트 튜토리얼" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
             </a>
 
+            <h1>가장 인기있는 작품들을 만나보세요!</h1>
+
+            <a href="https://toonyz.com/post" style="display: block; margin-bottom: 16px; text-decoration: none;">
+              <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/welcome-email-thumbnails_ko.webp' alt="Toonyz web novels" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
+            </a>
+
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">감사합니다,</p>
             <p style="color: #111827; font-size: 16px; font-weight: 500;">Toonyz R&D Team</p>
           </div>
+
         </body>
       </html>
     `

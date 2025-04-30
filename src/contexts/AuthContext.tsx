@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
-
+import { useUser } from './UserContext';
 interface AuthContextProps {
     isLoggedIn: boolean | null;
     setIsLoggedIn: (loggedIn: boolean | null) => void;
@@ -24,6 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [email, setEmail] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [invokeAuthCheck, setInvokeAuthCheck] = useState(false);
+    const { setInvokeCheckUser } = useUser();
     const pathname = usePathname();
 
     useEffect(() => {
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await signIn(provider, { redirect: redirect, redirect_uri: callbackUrl, callbackUrl: callbackUrl, redirectTo: callbackUrl });
         setIsLoggedIn(true);
         setInvokeAuthCheck(!invokeAuthCheck);
+        setInvokeCheckUser(prev => !prev);
     }
 
     async function logout(redirect: boolean, callbackUrl: string) {
@@ -55,6 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn(false);
         setEmail(null);
         setInvokeAuthCheck(!invokeAuthCheck);
+        setInvokeCheckUser(prev => !prev);
     }
 
     return (

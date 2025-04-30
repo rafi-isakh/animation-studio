@@ -19,8 +19,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     const router = useRouter();
     const pathname = usePathname();
     const { webnovels } = useWebnovels();
-    const { isAdult } = useUser();
-    const { isLoggedIn } = useAuth();
+    const { isAdult, loggedIn, checking } = useUser();
 
     useEffect(() => {
         if (webnovel_id) {
@@ -32,7 +31,10 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     }, [webnovel_id]);
 
     useEffect(() => {
-        if (!isLoggedIn) {
+        if (checking) {
+            return;
+        }
+        if (!loggedIn) {
             router.push('/signin');
             return;
         }
@@ -46,7 +48,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
                 router.push(`/adult_verification?webnovel_id=${webnovel_id}`)
             }
         }
-    }, [pathname, webnovels, isAdult])
+    }, [pathname, webnovels, isAdult, checking, loggedIn])
 
     const {
         isLoading,

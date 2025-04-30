@@ -52,7 +52,7 @@ interface EmailTemplateProps {
             </p>
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
               in the meantime, you can check out our proposal 
-               <a href='https://drive.google.com/file/d/1aIl8ig34HbF5UadZ8bh4anpPaR60UKvN/view?usp=sharing' style="text-decoration: none; color: #374151;">
+               <a href='https://drive.google.com/file/d/1J45SUuRXqJ1T9kvi3qN286U2YXUYEL0-/view?usp=sharing' style="text-decoration: none; color: #374151;">
                   <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/bookTok_intro.png' alt='Toonyz BookTok Creator Campaign' style="width: 100%; height: auto; border-radius: 8px;" />
                 </a>
               </p>

@@ -190,7 +190,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
         },
         {
             question_ko: "연재 및 투고 방법",
-            question_en: "How can I submit work?",
+            question_en: "How can I submit my work?",
             answer_ko: (
                 <>
                    투니즈 포스트에 이미지와 비디오 생성을 한 경우, 투니즈 피드 페이지에 공유가 가능하고 {' '}

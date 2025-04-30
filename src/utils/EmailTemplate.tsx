@@ -136,7 +136,7 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
             <h1>Check out the most popular web novels!</h1>
 
             <a href="https://toonyz.com/post" style="display: block; margin-bottom: 16px; text-decoration: none;">
-              <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/welcome-email-thumbnails_en.webp' alt="Toonyz web novels" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
+              <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/welcome_email_thumbnails_eng.webp' alt="Toonyz web novels" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
             </a>
 
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>
@@ -186,7 +186,7 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
             <h1>가장 인기있는 작품들을 만나보세요!</h1>
 
             <a href="https://toonyz.com/post" style="display: block; margin-bottom: 16px; text-decoration: none;">
-              <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/welcome-email-thumbnails_ko.webp' alt="Toonyz web novels" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
+              <img src='${process.env.NEXT_PUBLIC_PICTURES_S3}/welcome_email_thumbnails_ko.webp' alt="Toonyz web novels" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
             </a>
 
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">감사합니다,</p>

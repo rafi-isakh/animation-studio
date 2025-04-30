@@ -15,7 +15,7 @@ import { FolderHeart } from 'lucide-react';
 
 export default function WelcomePageComponent() {
     const { language, dictionary } = useLanguage();
-    const { nickname } = useUser();
+    const { nickname, checking } = useUser();
     const { width, height } = useWindowSize()
     const [confettiWidth, setConfettiWidth] = useState(width);
     const [confettiHeight, setConfettiHeight] = useState(height);
@@ -47,8 +47,14 @@ export default function WelcomePageComponent() {
 
         <div className='flex flex-col items-center justify-center gap-2'>
             <h1 className='text-2xl font-bold'>
-                {nickname}
-                {language == 'ko' ? '님' : ''}
+                {checking ? (
+                    <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-32 rounded"></div>
+                ) : (
+                    <>
+                        {nickname}
+                        {language == 'ko' ? '님' : ''}
+                    </>
+                )}
             </h1>
             <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'welcome_to_toonyz', language)}</p>
             <p className='text-lg text-gray-800 dark:text-white'>{phrase(dictionary, 'complementary_stars_added', language)}</p>

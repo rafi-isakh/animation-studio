@@ -1,16 +1,14 @@
-import { env } from "process"
-
 interface EmailTemplateProps {
-    email: string
-    staffEmail?: string
-    message?: string
-    nickname?: string
-    subject?: string
-    language?: string
-  }
-  
-  export function EmailTemplateToStaff({ email, staffEmail }: EmailTemplateProps) {
-    return `
+  email: string
+  staffEmail?: string
+  message?: string
+  nickname?: string
+  subject?: string
+  language?: string
+}
+
+export function EmailTemplateToStaff({ email, staffEmail }: EmailTemplateProps) {
+  return `
       <!DOCTYPE html>
       <html lang="en">
         <head>
@@ -32,12 +30,12 @@ interface EmailTemplateProps {
         </body>
       </html>
     `
-  }
+}
 
 
 
-  export function EmailTemplateToCreator({ email }: EmailTemplateProps) {
-    return `
+export function EmailTemplateToCreator({ email }: EmailTemplateProps) {
+  return `
      <!DOCTYPE html>
       <html lang="en">
         <head>
@@ -65,13 +63,13 @@ interface EmailTemplateProps {
         </body>
       </html>
     `
-  }
+}
 
 
 
-    
-  export function EmailTemplateToReport({ message, email }: EmailTemplateProps) {
-    return `
+
+export function EmailTemplateToReport({ message, email }: EmailTemplateProps) {
+  return `
       <!DOCTYPE html>
       <html lang="en">
         <head>
@@ -96,34 +94,40 @@ interface EmailTemplateProps {
         </body>
       </html>
     `
-  }
+}
 
-
-<<<<<<< HEAD
-
-
-    
-  export function EmailTemplateToWelcome({ email, nickname, subject, language }: EmailTemplateProps) {
-    if (language === 'en') {
-      return `
+export function EmailTemplateToWelcome({ email, nickname, language }: EmailTemplateProps) {
+  if (language === 'en') {
+    return `
       <!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="UTF-8">
-          <title>Toonyz Report</title>
+          <title>Welcome to Toonyz</title>
         </head>
         <body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 20px;">
           <div style="max-width: 560px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-            <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">Thank you for joining Toonyz ${nickname}!</h1>
+           <img src="https://www.toonyz.com/toonyz_logo_pink.svg" width="100" height="30" style="margin-bottom: 16px;">
+           <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">
+              Welcome to Toonyz, ${nickname}!
+            </h1>
+
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
-              Welcome ${nickname}!
+              We're truly excited to have you here, ${nickname}! Thank you for joining our creative community.
             </p>
+
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
-              ${nickname}, we are excited to have you on board!
+              To celebrate your signup, we've gifted you 30 Stars as a welcome gift :)<br />
+              On Toonyz, you can bring your stories to life with AI-generated illustrations and short-form content. 
+              Share your creations directly on Toonyz Post!
             </p>
+
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
-              Please review the report and take action.
+              Check out our tutorial video to get started with Toonyz Post.
             </p>
+            <a href="https://www.youtube.com/embed/08OixaiTZGw?si=N3MveutAhyKY55Gz" style="display: block; margin-bottom: 16px; text-decoration: none;">
+              <img src="https://img.youtube.com/vi/08OixaiTZGw/maxresdefault.jpg" alt="Toonyz Post Tutorial" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
+            </a>
             <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>
             <p style="color: #111827; font-size: 16px; font-weight: 500;">Toonyz R&D Team</p>
           </div>
@@ -132,23 +136,46 @@ interface EmailTemplateProps {
     `
   }
 
-  if (language === 'kr') {
+  if (language === 'ko') {
     return `
       <!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="UTF-8">
-          <title>Toonyz Report</title>
+          <title>Welcome to Toonyz</title>
         </head>
         <body style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 20px;">
           <div style="max-width: 560px; margin: 0 auto; background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-            <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">Thank you for joining Toonyz ${nickname}!</h1>
+          <img src="https://www.toonyz.com/toonyz_logo_pink.svg" width="100" height="30" style="margin-bottom: 16px;">
+ 
+          <h1 style="color: #111827; font-size: 24px; margin-bottom: 16px;">
+              ${nickname}님, 투니즈에 오신 것을 환영합니다!
+            </h1>
+
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              진심으로 환영합니다, ${nickname}님! 투니즈의 새로운 크리에이터가 되어주셔서 감사합니다.
+            </p>
+
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              가입을 기념하여 웰컴 기프트로 별 30개를 선물로 드렸어요 :)<br />
+              투니즈에서는 상상 속 이야기를 AI 삽화와 숏폼 콘텐츠로 직접 창작하고, 만든 콘텐츠를 투니즈 포스트에 공유할 수 있어요.
+            </p>
+
+            <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+              아래의 튜토리얼 영상으로 투니즈 포스트 활용법을 먼저 확인해 보세요!
+            </p>
+
+            <h2 style="color: #111827; font-size: 20px; margin-bottom: 16px;">
+              투니즈 포스트 튜토리얼 영상
+            </h2>
+            <a href="https://www.youtube.com/embed/q-j_FEe5EG0?si=9j57FmjZuMAdYABF" style="display: block; margin-bottom: 16px; text-decoration: none;">
+              <img src="https://img.youtube.com/vi/q-j_FEe5EG0/maxresdefault.jpg" alt="투니즈 포스트 튜토리얼" style="width: 100%; max-width: 560px; height: auto; border-radius: 8px;" />
+            </a>
+            <p style="color: #374151; font-size: 16px; margin-bottom: 8px;">Best regards,</p>
+            <p style="color: #111827; font-size: 16px; font-weight: 500;">Toonyz R&D Team</p>
           </div>
         </body>
       </html>
     `
   }
 }
-=======
- 
->>>>>>> origin

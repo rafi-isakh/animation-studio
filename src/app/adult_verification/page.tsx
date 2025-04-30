@@ -30,7 +30,7 @@ export default function AdultVerificationPage() {
                 if (rsp.success) {
                     // 인증 성공 시 로직
                     alert("인증 성공");
-                    fetch("/api/set_as_adult", {
+                    fetch("/api/verify_as_adult", {
                         method: "POST",
                         body: JSON.stringify({
                             imp_uid: rsp.imp_uid,

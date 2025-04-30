@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         return new NextResponse(`Too young: ${birth}`, { status: 403 });
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/verify_as_adult`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/set_as_adult`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${session.accessToken}`,

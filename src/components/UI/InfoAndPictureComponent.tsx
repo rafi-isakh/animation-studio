@@ -272,20 +272,7 @@ export default function InfoAndPictureComponent({
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                                 {coverArt ?
                                     !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
-                                        <div className="relative">
-                                            {content.is_adult_material && (
-                                                <>
-                                                    {language === "ko" ? (
-                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-md">
-                                                            19
-                                                        </span>
-                                                    ) : (
-                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-xs">
-                                                            Mature
-                                                        </span>
-                                                    )}
-                                                </>
-                                            )}
+                                        <>
                                             <Image
                                                 src={imageSrc || ""}
                                                 alt={content.title}
@@ -295,7 +282,20 @@ export default function InfoAndPictureComponent({
                                                 placeholder="blur"
                                                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                                             />
-                                        </div>
+                                            {content.is_adult_material && (
+                                                <>
+                                                    {language === "ko" ? (
+                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-base">
+                                                            19
+                                                        </span>
+                                                    ) : (
+                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-base">
+                                                            Mature
+                                                        </span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </>
                                         :
                                         <div>
                                             <div className="relative">

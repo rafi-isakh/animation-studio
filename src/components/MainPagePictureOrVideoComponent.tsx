@@ -93,8 +93,17 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
             <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
                 {
                     (!videoExists || !isHovered || (videoDisallowedForKorean.includes(webnovel.id) && language === "ko")) ?
-                    <div className="relative">
-                    {webnovel.is_adult_material && (
+                    <>   
+                    <Image
+                            src={imageSrc || "/placeholder.svg"}
+                            alt={webnovel.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 300px"
+                            className="object-cover rounded-xl"
+                            placeholder="blur"
+                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                        />
+                     {webnovel.is_adult_material && (
                         <>
                           { language === "ko" ? (
                             <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-1.5 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-xs">
@@ -107,16 +116,7 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
                             )}
                         </>
                     )}
-                        <Image
-                            src={imageSrc || "/placeholder.svg"}
-                            alt={webnovel.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 300px"
-                            className="object-cover rounded-xl"
-                            placeholder="blur"
-                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                        />
-                    </div>
+                     </>
                         :
                         <div>
                             <div className="relative aspect-[2/3]">

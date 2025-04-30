@@ -19,12 +19,9 @@ import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
-import { LoginDialog } from "@/components/UI/writingClass/ui/WritingClassHeader";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./data/downloadFiles";
-
-
-// const bucketBaseUrl = `https://${process.env.NEXT_PUBLIC_AWS_BUCKET_NAME}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com`;
+import PdfViewer from "@/components/UI/writingClass/ui/PdfViewer";
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -76,18 +73,13 @@ export default function WritingClassPage() {
         throw new Error(errorMsg);
       }
 
-      // Check if browser is Safari
-      const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator?.userAgent || '');
-
-      if (isSafariBrowser) {
-        // For Safari, use native PDF viewing
-        const pdfBlob = await response.blob();
-        const pdfObjectUrl = URL.createObjectURL(pdfBlob);
-        setPreviewUrl(pdfObjectUrl);
-      } else {
-        // For other browsers, use the response URL
-        setPreviewUrl(response.url);
-      }
+      // For PDF viewer, we need to create a blob URL
+      const pdfBlob = await response.blob();
+      const pdfObjectUrl = URL.createObjectURL(pdfBlob);
+      
+      // Add the toolbar and navpanes parameters to the URL
+      const viewerUrl = `${pdfObjectUrl}#toolbar=1&navpanes=1`;
+      setPreviewUrl(viewerUrl);
 
     } catch (error: any) {
       console.error('Error fetching file for preview:', error);
@@ -114,8 +106,6 @@ export default function WritingClassPage() {
       }
     };
   }, [previewUrl]);
-
-
 
   const downloadFile = (fileName: string) => {
     if (!fileName || fileName.trim() === '') {
@@ -235,11 +225,12 @@ export default function WritingClassPage() {
                           <span className="text-red-500">Error: {previewError}</span>
                         </div>
                       ) : previewUrl ? (
-                        <iframe
-                          src={`${previewUrl}#toolbar=0&navpanes=0`}
+                         <iframe
+                          src={`${previewUrl}#toolbar=1&navpanes=1`}
                           className="w-full min-h-[500px] border-0"
                           title="PDF Preview"
                         />
+                        // <PdfViewer file={previewUrl} onClose={() => setShowPreview(false)} />
                       ) : (
                         <div className="flex items-center justify-center p-4">
                           <span className="text-gray-500">No preview available.</span>

@@ -203,7 +203,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
                 <>
                     If you have generated images and videos on Toonyz Post, you can share the post to <Link href="https://www.toonyz.com/feeds" className="text-[#DE2B74] underline">Toonyz Feed</Link>. 
                     You can submit your story to the community <Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline">here</Link>.
-                    If you have a completed story, please contact lisa@stelland.io for feedback. We will help you publish your story as the Toonyz premium story and get more views benefits.
+                    If you have a completed story, please contact lisa@stelland.io for feedback. We will help you publish your story as a Toonyz premium story and get more views and potentially monetization.
                 </>
             ),
         },

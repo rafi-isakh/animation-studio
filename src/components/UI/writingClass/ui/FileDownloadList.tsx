@@ -7,7 +7,7 @@ import { Input } from "@/components/shadcnUI/Input"
 import { Button } from "@/components/shadcnUI/Button"
 import { DownloadIcon, EyeIcon, FilterIcon, MoreHorizontalIcon, RefreshCwIcon, FileIcon, Loader2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/shadcnUI/DropdownMenu"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
 // import Markdown from "marked-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -439,6 +439,14 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                 </div>
                             )}
                         </div>
+                        <DialogFooter className="flex flex-col gap-2 justify-center items-center">
+                            <p className="text-sm text-gray-500">
+                                Chrome and Safari browser is recommended for preview.
+                            </p>
+                            <Button variant="outline" onClick={() => setShowPreview(false)}>
+                                Close
+                            </Button>
+                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>

@@ -95,19 +95,21 @@ export function SidebarItem({ icon, text, active, alert, href, type }:
         <li className={`relative flex items-center py-2 px-6 my-1 font-medium 
                       rounded-md cursor-pointer transition-colors group whitespace-nowrap
                       ${active ? "bg-gradient-to-tr from-pink-100 to-pink-100 text-[#DE2B74]"
-            : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
-          {icon}
-          <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
+                    : "text-gray-400 hover:bg-gray-50 dark:hover:bg-black/50"}`}>
+          <div className={`flex items-center ${expanded ? "" : "justify-center w-full"}`}>
+            {icon}
+            <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>{text}</span>
+          </div>
           {alert && (
             <div className={`absolute right-2 w-2 h-2 rounded bg-[#DE2B74] ${expanded ? "" : "top-2"}`}>
             </div>
           )}
           {!expanded && (
             // Tooltip
-            <span className={`absolute w-fit rounded-md px-2 py-1 ml-6
+            <span className={`absolute w-fit rounded-md px-2 py-1 ml-12
                        bg-[#707070] text-white whitespace-nowrap
-                        text-sm invisible opacity-20 
-                        -translate-x-3 transition-all group-hover:visible 
+                        text-sm invisible opacity-20 group-hover:visible
+                        -translate-x-3 transition-all duration-75 ease-in-out  
                         group-hover:opacity-100 group-hover:translate-x-0`}>
               {text}
             </span>
@@ -187,9 +189,10 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             {children}
             {/* Setting btn */}
             <div className="flex flex-col gap-y-4 mt-auto pb-10">
-              {isLoggedInAndRegistered ? <div className='flex justify-center items-center'>
-                <UserProfileButton expanded={expanded} mode='sidebar' className='text-gray-400 dark:text-white' />
-              </div> : <></>
+              {isLoggedInAndRegistered ? ( 
+              <div className='flex items-center justify-center'>
+                <UserProfileButton expanded={expanded} mode='sidebar' className='text-gray-400 dark:text-white whitespace-nowrap' />
+              </div> ): <></>
               }
               <Setting isLoggedInAndRegistered={isLoggedInAndRegistered} expanded={expanded} />
             </div>

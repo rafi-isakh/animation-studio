@@ -145,7 +145,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_en: (
                 <div>
                     A Toonyz Post is an image or video based on a webnovel, created by users. 
-                    {' '}<Link href="/feeds">Toonyz Feeds</Link> is a community space where you can freely share Toonyz Posts.
+                    {' '}<Link href="/feeds" className="text-[#DE2B74] underline">Toonyz Feeds</Link> is a community space where you can freely share Toonyz Posts.
                     If you want to see the tutorial before creating a Toonyz Post, 
                     please click {' '}
                     <Link href="https://drive.google.com/file/d/1Ce2JA6MmJxZ5KFJPCwSYW68wj_FaPCBH/view?usp=drive_link" target="_blank" className="text-[#DE2B74] underline">
@@ -176,13 +176,13 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             question_ko: "내가 만든 이미지는 어디서 볼 수 있나요?",
             question_en: "Where can I see my generated images?",
             answer_ko:
-                "투니즈 포스트로 공유한 이미지는 여러분의 프로필 페이지에서 볼 수 있습니다. 추후에는 업데이트로 생성한 모든 이미지를 보실 수 있을 것입니다.",
+                "피드에 공유한 이미지는 여러분의 프로필 페이지에서 볼 수 있습니다. 추후에는 업데이트로 생성한 모든 이미지를 보실 수 있을 것입니다.",
             answer_en:
-                "Shared images to Toonyz Post are available on your profile page. In the future, you will be able to see all the images you have generated. (This feature will be available in the future)",
+                "Images shared to the Feed are available on your profile page. In the future, you will be able to see all the images you have generated. (This feature will be available in the future)",
         },
         {
-            question_ko: "저작권에 문제가 있나요?",
-            question_en: "Is there any copyright issue?",
+            question_ko: "저작권 문제는 없나요?",
+            question_en: "Are there any copyright issues?",
             answer_ko:
                 "2차 저작물에 대한 저작권에 동의한 작품에 대하여 이미지와 비디오 생성이 가능하고 상업적 이용으로 하지 않는 경우에 한해 저작권 문제가 발생하지 않습니다. 하지만 상업적으로 무단 이용할 경우 추후 저작권 문제가 발생할 수 있고, 이 경우 투니즈 포스트 이용이 제한될 수 있습니다.",
             answer_en:
@@ -190,7 +190,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
         },
         {
             question_ko: "연재 및 투고 방법",
-            question_en: "Where can I download Toonyz writing class books?",
+            question_en: "How can I submit work?",
             answer_ko: (
                 <>
                    투니즈 포스트에 이미지와 비디오 생성을 한 경우, 투니즈 피드 페이지에 공유가 가능하고 {' '}
@@ -202,7 +202,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_en: (
                 <>
                     If you have generated images and videos on Toonyz Post, you can share the post to <Link href="https://www.toonyz.com/feeds" className="text-[#DE2B74] underline">Toonyz Feed</Link>. 
-                    You can also check the submission of your story to the community <Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline">here</Link>.
+                    You can submit your story to the community <Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline">here</Link>.
                     If you have a completed story, please contact lisa@stelland.io for feedback. We will help you publish your story as the Toonyz premium story and get more views benefits.
                 </>
             ),

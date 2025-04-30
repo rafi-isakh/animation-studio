@@ -35,7 +35,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
             return;
         }
         if (!loggedIn) {
-            console.log(loggedIn, checking)
+            alert('성인 인증이 필요합니다.')
             router.push('/signin');
             return;
         }

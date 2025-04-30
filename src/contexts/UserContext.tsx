@@ -61,6 +61,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                 let data: any;
                 const response = await fetch('/api/user_session');
                 if (!response.ok) {
+                    setChecking(false);
                     throw new Error(response.statusText)
                 }
                 data = await response.json();

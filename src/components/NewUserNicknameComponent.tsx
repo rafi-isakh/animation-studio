@@ -65,7 +65,7 @@ const NewUserNicknameComponent = ({
                 value={value}
                 onChange={onChange}
                 name="nickname"
-                placeholder="Write your Nickname here"
+                placeholder={phrase(dictionary, "write_your_nickname_here", language)}
                 slotProps={{
                     input: {
                         sx: {

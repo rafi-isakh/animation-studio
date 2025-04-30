@@ -1,7 +1,7 @@
 "use client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect } from "react";
-
+import { useUser } from "@/contexts/UserContext";
 export default function AdultVerificationRedirectPage() {
     const params = useSearchParams();
     const imp_uid = params.get('imp_uid') as string;
@@ -9,6 +9,7 @@ export default function AdultVerificationRedirectPage() {
     const success = params.get('success') as string;
     const webnovel_id = params.get('webnovel_id') as string;
     const router = useRouter();
+    const { setIsAdult } = useUser();
 
     useEffect(() => {
     if (success === "true") {
@@ -20,7 +21,7 @@ export default function AdultVerificationRedirectPage() {
             }),
         }).then(response => {
             if (response.ok) {
-                alert("업데이트 성공");
+                setIsAdult(true);
                 router.push(`/view_webnovels/${webnovel_id}`);
             } else {
                 alert("업데이트 실패");

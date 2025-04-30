@@ -48,9 +48,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [id, setId] = useState<string>(userFromServer?.id || "");
     const [genres, setGenres] = useState<{ [key: string]: boolean }>(userFromServer?.genres ? JSON.parse(userFromServer.genres) : {});
     const [isAdult, setIsAdult] = useState<boolean>(userFromServer?.is_adult || false);
+    const [loggedIn, setLoggedIn] = useState<boolean>(userFromServer?.loggedIn || false);
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
-    const [loggedIn, setLoggedIn] = useState<boolean>(false);
+    const {loading} = useAuth();
+    const pathname = usePathname();
+
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -58,9 +61,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                 let data: any;
                 const response = await fetch('/api/user_session');
                 if (!response.ok) {
+                    setChecking(false);
                     throw new Error(response.statusText)
                 }
                 data = await response.json();
+                console.log('data', data);
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);
@@ -80,7 +85,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
             }
         };
         checkUser();
-    }, [invokeCheckUser]);
+    }, [loading, invokeCheckUser, pathname]);
 
     return (
         <userContext.Provider value={{

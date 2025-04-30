@@ -144,7 +144,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
                 ),
             answer_en: (
                 <div>
-                    A Toonyz Post is an image or video created based on a webnovel, created by you.
+                    A Toonyz Post is an image or video based on a webnovel, created by users. 
                     <Link href="/feeds">Feeds</Link> is a community space where you can freely share Toonyz Posts.
                     If you want to see the tutorial before creating a Toonyz Post, 
                     please click {' '}

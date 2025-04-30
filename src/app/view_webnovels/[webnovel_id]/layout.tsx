@@ -19,7 +19,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     const router = useRouter();
     const pathname = usePathname();
     const { webnovels } = useWebnovels();
-    const { isAdult, loggedIn, checking } = useUser();
+    const { id, isAdult, loggedIn, checking } = useUser();
 
     useEffect(() => {
         if (webnovel_id) {
@@ -44,6 +44,10 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
             return;
         }
         const webnovel = webnovels.find(webnovel => webnovel.id === parseInt(webnovel_id))
+        // if user is the author, they can see the webnovel regardless of the adult material status
+        if (webnovel?.user.id === parseInt(id)) {
+            return;
+        }
         if (webnovel?.is_adult_material) {
             if (!isAdult) {
                 alert('성인 인증이 필요합니다.')

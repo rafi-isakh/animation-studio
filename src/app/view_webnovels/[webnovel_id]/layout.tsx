@@ -39,10 +39,10 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
         if (!loggedIn) {
             if (webnovel?.is_adult_material) {
                 alert('성인 인증이 필요합니다.')
-                router.push(`/adult_verification?webnovel_id=${webnovel_id}`)
+                router.push(`/signin`)
                 return;
             }
-            return;
+            return
         }
         if (isAdult) {
             return;

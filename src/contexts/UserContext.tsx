@@ -51,6 +51,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [loggedIn, setLoggedIn] = useState<boolean>(userFromServer?.loggedIn || false);
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
+    const {loading} = useAuth();
+
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -81,7 +83,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
             }
         };
         checkUser();
-    }, [invokeCheckUser]);
+    }, [loading, invokeCheckUser]);
 
     return (
         <userContext.Provider value={{

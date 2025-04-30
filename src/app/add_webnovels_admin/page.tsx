@@ -35,6 +35,7 @@ export default function UploadWebnovelsAdmin() {
     const [titleEnglish, setTitleEnglish] = useState<string>("");
     const [filesLoaded, setFilesLoaded] = useState<boolean>(false);
     const [uploading, setUploading] = useState<boolean>(false);
+    const [isAdultMaterial, setIsAdultMaterial] = useState<boolean>(false);
 
     const parseTxt = async (file: File) => {
         // Read the text content from the file
@@ -79,6 +80,7 @@ export default function UploadWebnovelsAdmin() {
         formData.append("price_korean", priceKorean.toString());
         formData.append("price_english", priceEnglish.toString());
         formData.append("okay_to_create_videos", okayToCreateVideos.toString());
+        formData.append("is_adult_material", isAdultMaterial.toString());
 
         const response = await fetch('/api/add_webnovel_admin', {
             method: 'POST',
@@ -250,6 +252,10 @@ export default function UploadWebnovelsAdmin() {
         <div className='flex flex-row space-x-4 items-center'>
             <p>Available in English</p>
             <Checkbox checked={availableLanguages.includes("en")} onClick={() => setAvailableLanguages(availableLanguages.includes("en") ? availableLanguages.filter(lang => lang !== "en") : [...availableLanguages, "en"])} />
+        </div>
+        <div className='flex flex-row space-x-4 items-center'>
+            <p>Is Adult Material</p>
+            <Checkbox checked={isAdultMaterial} onClick={() => setIsAdultMaterial(prev => !prev)} />
         </div>
         <TextField
             className='w-full'

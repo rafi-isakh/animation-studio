@@ -42,7 +42,7 @@ const NewUserBioComponent = ({
             width: '100%',
         }}>
             <FormControl fullWidth variant="standard">
-                <StyledLabel>Bio</StyledLabel>
+                <StyledLabel>{phrase(dictionary, "bio", language)}</StyledLabel>
                 <TextField
                     slotProps={{
                         input: {

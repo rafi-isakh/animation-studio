@@ -1,4 +1,4 @@
-    "use client"
+"use client"
 import { usePathname, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,30 +21,36 @@ interface UserContextProps {
     setUpvotedComments: (upvotedComments: string[]) => void;
     id: string;
     genres: { [key: string]: boolean };
+    isAdult: boolean;
+    setIsAdult: (isAdult: boolean) => void;
+    loggedIn: boolean;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
 
 interface UserProviderProps {
+    userFromServer?: any;
     children: ReactNode;
 }
 
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-    const [email, setEmail] = useState<string>("");
-    const [nickname, setNickname] = useState<string>("");
-    const [bio, setBio] = useState<string>("");
-    const [stars, setStars] = useState<number>(0);
-    const [picture, setPicture] = useState<string>("");
-    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<[number, string][]>([]);
-    const [upvotedComments, setUpvotedComments] = useState<string[]>([]);
-    const pathname = usePathname();
+export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, children }) => {
+    const [email, setEmail] = useState<string>(userFromServer?.email || "");
+    const [nickname, setNickname] = useState<string>(userFromServer?.nickname || "");
+    const [bio, setBio] = useState<string>(userFromServer?.bio || "");
+    const [stars, setStars] = useState<number>(userFromServer ? userFromServer.stars + userFromServer.free_stars : 0);
+    const [picture, setPicture] = useState<string>(userFromServer?.picture || "");
+    const [purchased_webnovel_chapters, setPurchasedWebnovelChapters] = useState<[number, string][]>(
+        userFromServer ? JSON.parse(userFromServer.purchased_webnovel_chapters) : []
+    );
+    const [upvotedComments, setUpvotedComments] = useState<string[]>(userFromServer?.upvoted_comments || []);
+    const [email_hash, setEmailHash] = useState<string>(userFromServer?.email_hash || "");
+    const [provider, setProvider] = useState<string>(userFromServer?.provider || "");
+    const [id, setId] = useState<string>(userFromServer?.id || "");
+    const [genres, setGenres] = useState<{ [key: string]: boolean }>(userFromServer?.genres ? JSON.parse(userFromServer.genres) : {});
+    const [isAdult, setIsAdult] = useState<boolean>(userFromServer?.is_adult || false);
+    const [loggedIn, setLoggedIn] = useState<boolean>(userFromServer?.loggedIn || false);
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
-    const { isLoggedIn, loading } = useAuth();
-    const [email_hash, setEmailHash] = useState<string>("");
-    const [provider, setProvider] = useState<string>("");
-    const [id, setId] = useState<string>("");
-    const [genres, setGenres] = useState<{ [key: string]: boolean }>({});
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -55,26 +61,27 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                     throw new Error(response.statusText)
                 }
                 data = await response.json();
+                console.log('data', data);
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);
                 setStars(data.stars + data.free_stars);
                 setPicture(data.picture);
                 setPurchasedWebnovelChapters(JSON.parse(data.purchased_webnovel_chapters));
-                setChecking(false);
                 setUpvotedComments(data.upvoted_comments);
                 setEmailHash(data.email_hash);
                 setProvider(data.provider);
                 setId(data.id);
                 setGenres(JSON.parse(data.genres));
+                setIsAdult(data.is_adult);
+                setLoggedIn(data.loggedIn);
+                setChecking(false);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
         };
-        if (isLoggedIn) {
-            checkUser();
-        }
-    }, [pathname, loading, invokeCheckUser]);
+        checkUser();
+    }, [invokeCheckUser]);
 
     return (
         <userContext.Provider value={{
@@ -91,6 +98,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             provider,
             id,
             genres,
+            isAdult,
+            setIsAdult,
+            loggedIn,
         }}>
             {children}
         </userContext.Provider>

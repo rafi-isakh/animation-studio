@@ -7,8 +7,6 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import OtherTranslateComponent from './OtherTranslateComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronLeftIcon } from '@heroicons/react/24/solid';
-import { Button } from '@mui/material';
 import { phrase } from '@/utils/phrases';
 import Image from 'next/image';
 import { Send, Redo2, CornerDownRight, Heart } from 'lucide-react';
@@ -20,7 +18,10 @@ import UpvoteButton from '@/components/UI/UpvotedButton';
 const CommentsComponent = ({
     contentToAttachTo,
     webnovelOrPost,
-    addCommentEnabled }: { contentToAttachTo: Chapter | ToonyzPost, webnovelOrPost: boolean, addCommentEnabled: boolean }) => {
+    addCommentEnabled 
+}: { contentToAttachTo: Chapter | ToonyzPost, 
+    webnovelOrPost: boolean, 
+    addCommentEnabled: boolean }) => {
     const webnovelOrPostElementType = webnovelOrPost ? "toonyz_post" : "chapter";
     const [commentContent, setCommentContent] = useState('');
     const [allComments, setAllComments] = useState<Comment[]>(contentToAttachTo.comments || []);
@@ -39,7 +40,6 @@ const CommentsComponent = ({
     const [openReplyDropdownId, setOpenReplyDropdownId] = useState<string | null>(null);
     const replyDropdownRef = useRef<HTMLDivElement>(null);
     const [textareaRows, setTextareaRows] = useState(1);
-
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
@@ -308,7 +308,8 @@ const CommentsComponent = ({
                     ) : (
                         <div>
                             {allComments.map((comment, index) => (
-                                (!comment.parent_id) ? (
+                                // TODO: fix bug where if there are comments with the parent deleted, they don't show but are accounted for in the length
+                                !comment.parent_id && (
                                     <div key={`comment-${comment.id}`} className='flex flex-col py-4 px-4'>
                                         <div className="flex flex-row gap-2 justify-between">
                                             <div className='flex flex-row gap-2 justify-start items-center'>
@@ -348,12 +349,12 @@ const CommentsComponent = ({
                                             </div>
 
                                             <div className="relative flex flex-row gap-2 items-center">
-                                                <CommentsDropdownButton
+                                                {isLoggedIn && <CommentsDropdownButton
                                                     comment={comment}
                                                     user={comment.user}
                                                     email={email}
                                                     handleDeleteComment={handleDeleteComment}
-                                                />
+                                                />}
 
                                             </div>
                                         </div>
@@ -435,12 +436,12 @@ const CommentsComponent = ({
                                                             </div>
 
                                                             <div className="relative flex flex-row  items-center">
-                                                                <CommentsDropdownButton
+                                                                {isLoggedIn && <CommentsDropdownButton
                                                                     comment={reply}
                                                                     user={reply.user}
                                                                     email={email}
                                                                     handleDeleteComment={handleDeleteComment}
-                                                                />
+                                                                />}
 
                                                             </div>
 
@@ -492,7 +493,7 @@ const CommentsComponent = ({
                                             </div>
                                         }
                                     </div >
-                                ) : <></>
+                                )
                             ))}
                         </div >
                     )}

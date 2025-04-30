@@ -1,9 +1,8 @@
 import nodemailer from 'nodemailer';
-import { EmailTemplateToCreator, EmailTemplateToReport, EmailTemplateToWelcome } from '@/utils/EmailTemplate';
-import { EmailTemplateToStaff } from '@/utils/EmailTemplate';
+import { EmailTemplateToCreator, EmailTemplateToStaff, EmailTemplateToReport } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
-    const { message, email, subject, templateType, nickname, language } = await req.json();
+    const { message, email, subject, templateType, staffEmail } = await req.json();
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -13,22 +12,42 @@ export async function POST(req: Request) {
         }
     });
     
-    // Conditionally render the appropriate email template
-    const emailHtml = templateType === 'staff' 
-        ? EmailTemplateToStaff({ email })
-        : templateType === 'creator'
-        ? EmailTemplateToCreator({ email })
-        : templateType === 'report'
-        ? EmailTemplateToReport({ email, message })
-        : templateType === 'welcome'
-        ? EmailTemplateToWelcome({ email, nickname, subject, language })
-        : EmailTemplateToReport({ email, message });
+    const emailHtml = (templateType: string) => {
+        if (templateType === 'staff') {
+            return EmailTemplateToStaff({ email, staffEmail })
+        } else if (templateType === 'creator') {
+            return EmailTemplateToCreator({ email })
+        } else if (templateType === 'report') {
+            return EmailTemplateToReport({ email, message })
+        } else {
+            return EmailTemplateToReport({ email, message })
+        }
+    }
+    // Set the recipient based on template type
+    const recipient = (templateType: string) => {
+        if (templateType === 'staff') {
+            return staffEmail
+        } else if (templateType === 'report') {
+            return staffEmail
+        } else if (templateType === 'creator') {
+            return email
+        } else {
+            return email
+        }
+    }
         
-    transporter.sendMail({
-        to: email,
-        subject: subject || 'Report',
+    await transporter.sendMail({
+        from: email,
+        to: recipient(templateType),
+        subject: subject,
         text: message,
-        html: emailHtml
+        html: emailHtml(templateType)
     });
-    return new Response('Email sent', { status: 200 });
+    
+    return new Response(JSON.stringify({ status: "OK", recipient }), { 
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 }

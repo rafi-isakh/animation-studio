@@ -108,12 +108,12 @@ export function WebnovelCard({
                         {/* Action Buttons */}
                         {showActionButtons && (
                             <div className="flex items-center gap-3">
-                                <Button className="md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md">
+                                {/* <Button className="md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md">
                                     <Heart className="w-5 h-5 text-red-500" />
                                 </Button>
                                 <Button className="md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md">
                                     <Bookmark className="w-5 h-5 text-gray-400" />
-                                </Button>
+                                </Button> */}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button className="z-[99] md:w-10 md:h-10 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md cursor-pointer" onClick={(e) => e.stopPropagation()}>

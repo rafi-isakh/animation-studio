@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, MessageCircle, Share2, MoreHorizontal, Trash, Flag } from "lucide-react"
+import { Heart, Share2, MoreHorizontal, Trash, Flag } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
 import { Button } from "@/components/shadcnUI/Button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/shadcnUI/Card"
@@ -23,6 +23,8 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import CommentToggleButton from "@/components/UI/CommentToggleButton";
+import ToonyzPostDropdownButton from "./ToonyzPostDropdownButton"
+
 
 export default function ToonyzPostCard({ post, webnovel, user, email }: { post: ToonyzPost, webnovel: Webnovel, user?: User, email?: string }) {
     const [liked, setLiked] = useState(false)
@@ -44,58 +46,17 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                     </p>
                 </div>
                 <div className="ml-auto">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More options</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {/* <DropdownMenuItem>Save post</DropdownMenuItem> */}
-                            {createEmailHash(email || "") === user?.email_hash &&
-                                <>
-                                    <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => {
-                                                // This prevents the dropdown from closing
-                                                e.preventDefault();
-                                                setShowDeleteModal(true);
-                                            }}>
-                                                <div className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
-                                                    <Trash size={10} className="dark:text-white text-gray-500" />
-                                                    {phrase(dictionary, "delete", language)}
-                                                </div>
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent className="dark:bg-[#211F21] bg-white">
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>{phrase(dictionary, "deletePost", language)}</AlertDialogTitle>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>
-                                                  {phrase(dictionary, "cancel", language)}
-                                                </AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    onClick={() => {
-                                                        // handleDeleteComment(comment.id.toString());
-                                                        setShowDeleteModal(false);
-                                                    }}>
-                                                    {phrase(dictionary, "delete", language)}
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </>
-                            }
-                            <DropdownMenuItem>
-                                <div className='text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500'>
-                                    <Flag size={10} className="dark:text-white text-gray-500" />
-                                    {phrase(dictionary, "report", language)}
-                                </div>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    
+
+
+                    <ToonyzPostDropdownButton
+                                email={email ?? ""}
+                                // isAuthor={isAuthor ?? false}
+                                user={post.user}
+                                postId={post.id.toString()}
+                                post={post}
+                         />
+
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-0">

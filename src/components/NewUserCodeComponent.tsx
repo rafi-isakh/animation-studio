@@ -63,7 +63,7 @@ return (
       value={value}
       onChange={onChange}
       name="promoCode"
-      placeholder="Write your Promo Code here"
+      placeholder={phrase(dictionary, "write_your_promotion_code", language)}
       slotProps={{
         input: {
           sx: {

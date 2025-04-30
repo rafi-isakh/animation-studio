@@ -1,10 +1,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { scroll } from '@/utils/scroll'
 
-export default function CardsScroll({ scrollRef, shift = false }: { scrollRef: React.RefObject<HTMLDivElement>, shift?: boolean }) {
+export default function CardsScroll({ scrollRef, shift = false, className = '' }: { scrollRef: React.RefObject<HTMLDivElement>, shift?: boolean, className?: string }) {
     const top = shift ? 'top-[55%]' : 'top-[40%]';
     return (
-        <div>
+        <div className='z-[100]'>
             <button
                 onClick={() => scroll('left', scrollRef)}
                 className={`bg-white/80 dark:bg-black/80 group-hover:opacity-80 transition-opacity 

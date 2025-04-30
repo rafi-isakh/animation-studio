@@ -39,6 +39,7 @@ import { useUser } from '@/contexts/UserContext';
 import WatermarkedImage from '@/utils/watermark';
 import { getImageUrl } from '@/utils/urls';
 import NotEnoughStarsDialog from '@/components/UI/NotEnoughStarsDialog'
+import ShareDialog from "@/components/UI/ShareDialog";
 
 type Position = {
     x: number;
@@ -102,7 +103,8 @@ const FloatingMenu: React.FC<{
     const [isSelecting, setIsSelecting] = useState(false);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
-
+    
+    
     // Listen for touch events to mark selection start/end
     useEffect(() => {
         const handleTouchStart = () => setIsSelecting(true);
@@ -133,7 +135,7 @@ const FloatingMenu: React.FC<{
                 height: rect.height,
             })
             setSelection(text)
-            setSavedPrompt(text)
+            // setSavedPrompt(text)
             selectedTextRef.current = text
             //setTestText(text)
             if (timeoutRef.current) {
@@ -403,11 +405,7 @@ const FloatingMenu: React.FC<{
                                 <TooltipTrigger asChild>
                                     <Button
                                         ref={shareButtonRef}
-                                        onClick={() => {
-                                            console.log('share dialog clicked')
-                                            setShowShareDialog(true)
-                                        }
-                                        }
+                                        onClick={() => {setShowShareDialog(true)}}
                                         variant="ghost"
                                         className="!no-underline rounded-full items-center justify-center text-center mx-auto p-1 relative 
                                                            inline-flex group w-10 h-10 text-black dark:text-white self-center shadow-none
@@ -428,61 +426,7 @@ const FloatingMenu: React.FC<{
             {children}
             {/* share dialog */}
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                <DialogContent className="sm:max-w-md  bg-gradient-to-r dark:from-blue-900/20 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none" showCloseButton={true}>
-                    <DialogHeader>
-                        <DialogTitle>Share link</DialogTitle>
-                        <DialogDescription>
-                            Share the link with your friends and family.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <WatermarkedImage
-                        imageUrl={getImageUrl(webnovel.cover_art)}
-                        watermarkUrl="/toonyz_logo_white.svg"
-                        webnovelTitle={webnovel?.title}
-                        chapterTitle={webnovel?.chapters.find(chapter => chapter.id.toString() === chapter_id)?.title || chapter_id}
-                        quote={truncateText(selectedTextRef.current, 100)}
-                        watermarkOpacity={0.9}
-                        width={400}
-                        height={400}
-                        watermarkPosition="centerRight"
-                        titlePosition="centerLeft"
-                        titleColor="white"
-                        className="object-cover h-full w-full overflow-hidden scale-100 transition-all duration-300 opacity-30"
-                    />
-
-                    <div className="flex items-center space-x-2">
-                        <div className="grid flex-1 gap-2">
-                            <Label htmlFor="link" className="sr-only">
-                                Link
-                            </Label>
-                            <Input
-                                id="link"
-                                defaultValue={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}`}
-                                readOnly
-                                className='select-none bg-transparent'
-                                disabled
-                            />
-                        </div>
-                        <Button
-                            onClick={() => {
-                                const linkText = `${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}`;
-                                const text = `${truncateText(selection, 197)} ${webnovel.title} ${chapter.title} ${linkText}`;
-                                copyToClipboard(text);
-                            }}
-                        >
-                            <span className="sr-only">Copy</span>
-                            <Copy />
-                        </Button>
-                    </div>
-                    <DialogFooter className="sm:justify-start">
-                        <DialogClose asChild>
-                            <Button type="button" variant="secondary">
-                                Close
-                            </Button>
-                        </DialogClose>
-                    </DialogFooter>
-                </DialogContent>
+            <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/view_webnovels/${webnovel_id}/chapter_view/${chapter_id}`} description={`Share this chapter with your friends and family.`} shareImage={webnovel.cover_art} />
             </Dialog>
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

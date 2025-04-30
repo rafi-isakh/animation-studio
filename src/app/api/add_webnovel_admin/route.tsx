@@ -36,6 +36,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const fileName = await fileNameResponse.json();
     const titleEnglish = formData.get('title_english')
     const okayToCreateVideos = formData.get('okay_to_create_videos') === 'true'
+    const isAdultMaterial = formData.get('is_adult_material') === 'true'
 
     try {
         await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         price_korean: priceKorean,
         price_english: priceEnglish,
         okay_to_create_videos: okayToCreateVideos,
+        is_adult_material: isAdultMaterial,
         title_english: titleEnglish
     }
 

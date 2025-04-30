@@ -23,40 +23,19 @@ import {
   LoveComedyGenres
 } from '@/components/UI/GenresTabs';
 import SearchPageWebnovelsList from '@/components/UI/SearchPageWebnovelsList';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 const Search = () => {
   const { dictionary, language } = useLanguage();
   const searchParams = useSearchParams();
   const query = searchParams.get('query');
   const remember = searchParams.get('remember');
   const searchParamsObject = Object.fromEntries(searchParams.entries());
-  const [webnovels, setWebnovels] = useState<Webnovel[]>([]);
-  const [allWebnovels, setAllWebnovels] = useState<Webnovel[]>([]);
+  const { webnovels } = useWebnovels();
+  const [searchResults, setSearchResults] = useState<Webnovel[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortBy>('views');
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [showNoResults, setShowNoResults] = useState(false);
-
-  // Fetch all webnovels on component mount
-  useEffect(() => {
-    const fetchAllWebnovels = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/get_webnovels_metadata');
-        if (!response.ok) {
-          throw new Error('Failed to fetch webnovels');
-        }
-        const data = await response.json();
-        setAllWebnovels(data);
-      } catch (error) {
-        console.error('Error fetching webnovels:', error);
-        setAllWebnovels([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllWebnovels();
-  }, []);
 
   if (typeof query === 'string') {
   } else if (Array.isArray(query)) {
@@ -65,16 +44,12 @@ const Search = () => {
   }
 
   useEffect(() => {
-    console.log('loading', loading)
-  }, [loading])
-
-  useEffect(() => {
     setLoading(true);
     const asyncSearch = async () => {
       if (query) {
         const response = await fetch(`/api/search?query=${query}&remember=${remember}`) // searches and saves query if user is logged in
         const data = await response.json();
-        setWebnovels(data.filter((wenbnovel: Webnovel) => !temporarilyUnpublished.includes(wenbnovel.id)));
+        setSearchResults(data.filter((wenbnovel: Webnovel) => !temporarilyUnpublished.includes(wenbnovel.id)));
       }
       setLoading(false);
     }
@@ -82,15 +57,15 @@ const Search = () => {
   }, [query]);
 
   useEffect(() => {
-    if (webnovels.length === 0) {
+    if (searchResults.length === 0 && !loading) {
       setShowNoResults(true);
     } else {
       setShowNoResults(false);
     }
-  }, [webnovels]);
+  }, [searchResults, loading]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const filteredAllWebnovels = allWebnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+  const filteredAllWebnovels = webnovels.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
 
   const tabsConfig = [
     {
@@ -232,8 +207,8 @@ const Search = () => {
       ) : query ? (
         // Show search results if there's a query
         <div ref={contentRef} className='grid grid-cols-1 md:grid-cols-2 md:gap-4 gap-0 w-full'>
-          {webnovels.length > 0 ? (
-            webnovels.map((webnovel, index) => (
+          {searchResults.length > 0 ? (
+            searchResults.map((webnovel, index) => (
               <WebnovelSearchComponent
                 key={index}
                 webnovel={webnovel}
@@ -244,7 +219,7 @@ const Search = () => {
             ))
           ) : (
             // This will show either the "No results" message or a loading skeleton
-            showNoResults ? (
+            showNoResults && !loading ? (
               <div className='col-span-2 text-center py-8 w-full'>
                 <p>{phrase(dictionary, "noSearchResults", language)}</p>
               </div>
@@ -260,7 +235,7 @@ const Search = () => {
         <div className='space-y-8 md:px-2 px-4'>
           <SearchPageWebnovelsList
             searchParams={searchParamsObject}
-            webnovels={allWebnovels}
+            webnovels={webnovels}
             sortBy={sortBy}
             mode="page"
           />

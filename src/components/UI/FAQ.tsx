@@ -135,7 +135,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_ko: (
                 <div>
                     투니즈 포스트는 투니즈 회원들이 웹소설을 기반으로 이미지와 비디오를 자유롭게 창작하고 공유할 수 있는 포스트입니다.
-                    <Link href="https://www.toonyz.com/feeds">피드</Link>는 투니즈 포스트를 공유하는 커뮤니티 공간입니다.
+                    <Link href="https://www.toonyz.com/feeds">투니즈 피드</Link>는 투니즈 포스트를 공유하는 커뮤니티 공간입니다.
                     투니즈 포스트를 이용하시기 전에 튜토리얼을 보시려면 {' '}
                     <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="text-[#DE2B74] underline">
                         여기
@@ -145,7 +145,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_en: (
                 <div>
                     A Toonyz Post is an image or video based on a webnovel, created by users. 
-                    <Link href="/feeds">Feeds</Link> is a community space where you can freely share Toonyz Posts.
+                    {' '}<Link href="/feeds">Toonyz Feeds</Link> is a community space where you can freely share Toonyz Posts.
                     If you want to see the tutorial before creating a Toonyz Post, 
                     please click {' '}
                     <Link href="https://drive.google.com/file/d/1Ce2JA6MmJxZ5KFJPCwSYW68wj_FaPCBH/view?usp=drive_link" target="_blank" className="text-[#DE2B74] underline">

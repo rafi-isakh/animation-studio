@@ -133,8 +133,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                         <LanguageSetter />
                         <WebnovelsProviderServer webnovelsMetadata={webnovelsMetadata}>
                             <ThemeProvider>
-                                <AuthProvider>
-                                    <UserProviderServer user={user}>
+                                <UserProviderServer user={user}>
+                                    <AuthProvider>
                                         <DeviceProvider>
                                             <MobileMenuProvider>
                                                 <SearchProvider>
@@ -163,8 +163,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                                                 </SearchProvider>
                                             </MobileMenuProvider>
                                         </DeviceProvider>
-                                    </UserProviderServer>
-                                </AuthProvider>
+                                    </AuthProvider>
+                                </UserProviderServer>
                             </ThemeProvider>
                         </WebnovelsProviderServer>
                     </LanguageProvider>

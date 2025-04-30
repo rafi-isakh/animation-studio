@@ -23,6 +23,7 @@ interface UserContextProps {
     genres: { [key: string]: boolean };
     isAdult: boolean;
     setIsAdult: (isAdult: boolean) => void;
+    loggedIn: boolean;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -47,10 +48,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [id, setId] = useState<string>(userFromServer?.id || "");
     const [genres, setGenres] = useState<{ [key: string]: boolean }>(userFromServer?.genres ? JSON.parse(userFromServer.genres) : {});
     const [isAdult, setIsAdult] = useState<boolean>(userFromServer?.is_adult || false);
-    const pathname = usePathname();
+    const [loggedIn, setLoggedIn] = useState<boolean>(userFromServer?.loggedIn || false);
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
-    const { isLoggedIn, loading } = useAuth();
+    const {loading} = useAuth();
+    const pathname = usePathname();
+
     useEffect(() => {
         const checkUser = async () => {
             try {
@@ -58,9 +61,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                 let data: any;
                 const response = await fetch('/api/user_session');
                 if (!response.ok) {
+                    setChecking(false);
                     throw new Error(response.statusText)
                 }
                 data = await response.json();
+                console.log('data', data);
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);
@@ -73,15 +78,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                 setId(data.id);
                 setGenres(JSON.parse(data.genres));
                 setIsAdult(data.is_adult);
+                setLoggedIn(data.loggedIn);
                 setChecking(false);
             } catch (error) {
                 console.error('Error checking user:', error);
             }
         };
-        if (isLoggedIn) {
-            checkUser();
-        }
-    }, [pathname, loading, invokeCheckUser]);
+        checkUser();
+    }, [loading, invokeCheckUser, pathname]);
 
     return (
         <userContext.Provider value={{
@@ -100,6 +104,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
             genres,
             isAdult,
             setIsAdult,
+            loggedIn,
         }}>
             {children}
         </userContext.Provider>

@@ -82,6 +82,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     {/*smallGap()/*}
                     {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
+                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"/>
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
                     <LargeGap />
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
@@ -91,7 +92,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"/>
                     <ToonyzPostCards />
                     <SmallGap />
                 </div>

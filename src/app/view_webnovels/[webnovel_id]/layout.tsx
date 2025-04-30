@@ -19,8 +19,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     const router = useRouter();
     const pathname = usePathname();
     const { webnovels } = useWebnovels();
-    const { isAdult } = useUser();
-    const { isLoggedIn } = useAuth();
+    const { id, isAdult, loggedIn, checking } = useUser();
 
     useEffect(() => {
         if (webnovel_id) {
@@ -32,7 +31,12 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
     }, [webnovel_id]);
 
     useEffect(() => {
-        if (!isLoggedIn) {
+        if (checking) {
+            console.log('checking', checking)
+            return;
+        }
+        if (!loggedIn) {
+            alert('성인 인증이 필요합니다.')
             router.push('/signin');
             return;
         }
@@ -40,13 +44,17 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
             return;
         }
         const webnovel = webnovels.find(webnovel => webnovel.id === parseInt(webnovel_id))
+        // if user is the author, they can see the webnovel regardless of the adult material status
+        if (webnovel?.user.id === parseInt(id)) {
+            return;
+        }
         if (webnovel?.is_adult_material) {
             if (!isAdult) {
                 alert('성인 인증이 필요합니다.')
                 router.push(`/adult_verification?webnovel_id=${webnovel_id}`)
             }
         }
-    }, [pathname, webnovels, isAdult])
+    }, [pathname, webnovels, isAdult, checking, loggedIn])
 
     const {
         isLoading,

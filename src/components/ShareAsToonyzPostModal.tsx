@@ -23,6 +23,7 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import DictionaryPhrase from "./DictionaryPhrase"
 import { useCreateMedia } from "@/contexts/CreateMediaContext"
 import { useRouter } from "next/navigation";
+import { revalidateTag } from "next/cache";
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -77,7 +78,6 @@ export default function ShareAsToonyzPostModal({
                 const fileName = `${index}-${Date.now()}.png`;
                 const fileType = 'image/png';
                 const bucketName = 'toonyzbucket'
-                console.log('chapter_id', chapter_id);
                 const [uploadResponse, createResponse] = await Promise.all([
                     fetch('/api/upload_picture_to_s3', {
                         method: 'POST',
@@ -145,6 +145,7 @@ export default function ShareAsToonyzPostModal({
                 title: "Success",
                 description: "Post created successfully"
             });
+            revalidateTag("/toonyz_posts");
             setShowShareAsPostModal(false);
             setIsLoading(false);
         } catch (error) {
@@ -155,7 +156,6 @@ export default function ShareAsToonyzPostModal({
                 description: "An unexpected error occurred"
             });
         } finally {
-            router.push(`/toonyz_posts/${postResponseData.id}`);
             setIsLoading(false);
         }
     };

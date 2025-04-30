@@ -241,9 +241,8 @@ export default function NewUser() {
                                 height={50}
                                 className="self-start"
                             />
-                            <p className="relative md:text-4xl text-xl font-extrabold">
-                                Choose topics
-                                that interest you
+                            <p className="relative md:text-4xl text-xl font-extrabold break-keep">
+                                {phrase(dictionary, "choose_topics", language)}
                             </p>
                             <p className="text-sm font-medium">{phrase(dictionary, "selectFavoriteGenres", language)}</p>
                             <div className="grid grid-cols-2 gap-2">

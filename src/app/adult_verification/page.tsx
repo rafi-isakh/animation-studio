@@ -37,7 +37,6 @@ export default function AdultVerificationPage() {
                         }),
                     }).then(response => {
                         if (response.ok) {
-                            alert("업데이트 성공");
                             setIsAdult(true);
                             router.push(`/view_webnovels/${webnovel_id}`);
                         } else {

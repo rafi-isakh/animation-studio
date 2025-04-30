@@ -32,6 +32,7 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
 
     useEffect(() => {
         if (checking) {
+            console.log('checking', checking)
             return;
         }
         if (!loggedIn) {

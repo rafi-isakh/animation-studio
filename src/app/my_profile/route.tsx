@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from '@/auth';
 import { Webnovel } from "@/components/Types";
+import { signOut } from '@/auth';
 
 export async function GET(request: Request) {
     const session = await auth();
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
         )
 
         if (!response.ok) {
+            signOut();
             return NextResponse.json({ error: `Failed to fetch user by email ${session.user.email}` }, { status: response.status });
         }
         const data = await response.json();

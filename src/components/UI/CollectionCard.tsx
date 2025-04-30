@@ -140,8 +140,8 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                         {webnovel &&
                             <OtherTranslateComponent
                                 element={webnovel}
-                                content={webnovel?.title || ""}
-                                elementId={webnovel?.id.toString() || ""}
+                                content={webnovel?.title || ""} 
+                                elementId={webnovel?.id?.toString() || ""}
                                 elementType="webnovel"
                                 elementSubtype="title"
                                 classParams="truncate max-w-full"

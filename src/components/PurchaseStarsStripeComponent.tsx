@@ -8,13 +8,12 @@ import { useRouter } from "next/navigation";
 import DictionaryPhrase from "@/components/DictionaryPhrase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { starsOptions, starsEventOptions, discount_factors_event, discount_factors, getStarsAndDiscount, calculateOrderAmount, starsString, starsPriceWithCurrencyString } from "@/utils/stars";
+import { starsOptionsUSD, calculateOrderAmount, starsString, starsPriceWithCurrencyString, nominalDiscountFactorsUSD } from "@/utils/stars";
 import { useLanguage } from "@/contexts/LanguageContext";
 export default function PurchaseStarsStripeComponent() {
     const router = useRouter();
     const { isLoggedIn, loading } = useAuth();
     const [selectedPackage, setSelectedPackage] = useState<string>("");
-    const [isEvent, setIsEvent] = useState<boolean>(false);
     const [isPaying, setIsPaying] = useState<boolean>(false);
     const [starsToBuy, setStarsToBuy] = useState<number>(0);
     const [totalPrice, setTotalPrice] = useState<number>(0);
@@ -27,28 +26,22 @@ export default function PurchaseStarsStripeComponent() {
     }, [isLoggedIn, loading]);
 
     useEffect(() => {
-        const { stars, discount } = getStarsAndDiscount(selectedPackage, isEvent);
-        setStarsToBuy(stars);
-        setTotalPrice(calculateOrderAmount(stars, language));
-    }, [isEvent, selectedPackage])
+        setStarsToBuy(starsOptionsUSD[parseInt(selectedPackage)]);
+        setTotalPrice(calculateOrderAmount(starsOptionsUSD[parseInt(selectedPackage)], language));
+    }, [selectedPackage])
 
     const StarsToPurchase = ({ event }: { event: boolean }) => {
-        const options = event ? starsEventOptions : starsOptions;
-        const discount_factors_used = event ? discount_factors_event : discount_factors;
         return (
             <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
                             from-indigo-500/10 from-10% via-sky-500/10 via-30% to-emerald-500/10 to-90%">
                 <h1 className="text-md font-base py-3 px-2 text-left">
-                    {event ?
-                        <DictionaryPhrase phraseVar="special_deal" /> :
-                        <DictionaryPhrase phraseVar="regular_bundles" />}
+                    <DictionaryPhrase phraseVar="regular_bundles" />
                 </h1>
-                {options.map((stars, index) => (
+                {starsOptionsUSD.map((stars, index) => (
                     <Button
                         key={index}
                         onClick={() => {
                             setSelectedPackage(index.toString());
-                            setIsEvent(event);
                             //TODO: TEMPORARILY DISABLED
                             //setIsPaying(true);
                         }}
@@ -75,7 +68,7 @@ export default function PurchaseStarsStripeComponent() {
                                     <MdStars className="text-xl text-[#D92979]" />
                                     <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
                                         {starsString(stars, language)}
-                                        {event && <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors_used[index] * 100}%</span>}
+                                        {event && <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {nominalDiscountFactorsUSD[index]}%</span>}
                                     </div>
                                 </div>
                             </div>
@@ -106,10 +99,10 @@ export default function PurchaseStarsStripeComponent() {
                 <div className='self-center md:w-[720px] w-full'>
                     <h1 className="text-xl font-bold text-center">
                         {language === "en" ?
-                            `Purchase ${starsToBuy.toLocaleString()} stars for $${(totalPrice/100).toLocaleString()}.` :
+                            `Purchase ${starsToBuy.toLocaleString()} stars for $${(totalPrice / 100).toLocaleString()}.` :
                             `투니즈 별 ${starsToBuy.toLocaleString()}개를 ${totalPrice.toLocaleString()}원에 구매합니다.`}
                     </h1>
-                    <StripeComponent isEvent={isEvent} selectedPackage={selectedPackage} />
+                    <StripeComponent selectedPackage={selectedPackage} />
                 </div>
             ) : (
                 <div className="flex flex-col md:w-[360px] w-full gap-2 pt-5">

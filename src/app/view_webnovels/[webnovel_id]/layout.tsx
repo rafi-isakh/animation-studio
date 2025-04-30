@@ -35,15 +35,18 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
             console.log('checking', checking)
             return;
         }
+        const webnovel = webnovels.find(webnovel => webnovel.id === parseInt(webnovel_id))
         if (!loggedIn) {
-            alert('성인 인증이 필요합니다.')
-            router.push('/signin');
+            if (webnovel?.is_adult_material) {
+                alert('성인 인증이 필요합니다.')
+                router.push(`/adult_verification?webnovel_id=${webnovel_id}`)
+                return;
+            }
             return;
         }
         if (isAdult) {
             return;
         }
-        const webnovel = webnovels.find(webnovel => webnovel.id === parseInt(webnovel_id))
         // if user is the author, they can see the webnovel regardless of the adult material status
         if (webnovel?.user.id === parseInt(id)) {
             return;

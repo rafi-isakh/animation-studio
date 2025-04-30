@@ -41,7 +41,7 @@ export const ContactForm = () => {
             body: JSON.stringify({
                 name: name,
                 email: email,
-                staffEmail: 'dami@stelland.io, min@stelland.io',
+                staffEmail: 'dami@stelland.io, min@stelland.io, lisa@stelland.io',
                 message: message,
                 subject: "Report - FAQ",
                 templateType: 'report'

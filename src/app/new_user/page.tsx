@@ -13,6 +13,7 @@ import { phrase } from '@/utils/phrases'
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
+
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
@@ -167,6 +168,7 @@ export default function NewUser() {
             const userData = {
                 nickname: formDataState.nickname || randomNickname(),
                 bio: formDataState.bio,
+                language: language,
             };
 
             console.log(userData);

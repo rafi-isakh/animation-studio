@@ -1,8 +1,13 @@
 import nodemailer from 'nodemailer';
-import { EmailTemplateToCreator, EmailTemplateToStaff, EmailTemplateToReport } from '@/utils/EmailTemplate';
+import { EmailTemplateToCreator, EmailTemplateToStaff, EmailTemplateToReport, EmailTemplateToWelcome } from '@/utils/EmailTemplate';
 
 export async function POST(req: Request) {
-    const { message, email, subject, templateType, staffEmail } = await req.json();
+    const body = await req.json();
+    const { message, email, subject, templateType, staffEmail } = body;
+    
+    // Only get nickname and language if templateType is 'welcome'
+    const nickname = templateType === 'welcome' ? body.nickname : undefined;
+    const language = templateType === 'welcome' ? body.language : undefined;
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -19,6 +24,8 @@ export async function POST(req: Request) {
             return EmailTemplateToCreator({ email })
         } else if (templateType === 'report') {
             return EmailTemplateToReport({ email, message })
+        } else if (templateType === 'welcome') {
+            return EmailTemplateToWelcome({ email, nickname, subject, language })
         } else {
             return EmailTemplateToReport({ email, message })
         }

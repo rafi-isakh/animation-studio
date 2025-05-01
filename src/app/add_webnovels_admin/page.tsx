@@ -1,13 +1,16 @@
 "use client"
 
 import { parseEpub } from '@gxl/epub-parser'
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { parseHtmlToText } from '@/utils/stringUtils';
 import { Button, Checkbox, LinearProgress, TextField } from '@mui/material';
 import { parseOfficeAsync } from "officeparser";
+import { v4 as uuidv4 } from 'uuid';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
+import { Webnovel } from '@/components/Types';
 
 export default function UploadWebnovelsAdmin() {
-    const [userEmail, setUserEmail] = useState<string>("");
+    const [userEmail, setUserEmail] = useState<string>("nadapms@naver.com");
     const [authorEmail, setAuthorEmail] = useState<string>("");
     const [authorNickname, setAuthorNickname] = useState<string>("");
     const [description, setDescription] = useState<string>("");
@@ -17,7 +20,7 @@ export default function UploadWebnovelsAdmin() {
     const [webnovelId, setWebnovelId] = useState<string>("");
     const [publisherKoreanName, setPublisherKoreanName] = useState<string>("");
     const [publisherEnglishName, setPublisherEnglishName] = useState<string>("");
-    const [publisherEmail, setPublisherEmail] = useState<string>("");
+    const [publisherEmail, setPublisherEmail] = useState<string>("airjongman@nuonmedia.co.kr");
     const [numberOfFreeChapters, setNumberOfFreeChapters] = useState<number>(0);
     const [chapterFiles, setChapterFiles] = useState<File[]>([]);
     const [chapterEpubObjs, setChapterEpubObjs] = useState<any[]>([]);
@@ -27,8 +30,8 @@ export default function UploadWebnovelsAdmin() {
     const [webnovelTitle, setWebnovelTitle] = useState<string>("");
     const [progress, setProgress] = useState<number>(0);
     const [userIsAuthor, setUserIsAuthor] = useState<boolean>(false);
-    const [priceKorean, setPriceKorean] = useState<number>(10);
-    const [priceEnglish, setPriceEnglish] = useState<number>(30);
+    const [priceKorean, setPriceKorean] = useState<number>(1);
+    const [priceEnglish, setPriceEnglish] = useState<number>(3);
     const [availableLanguages, setAvailableLanguages] = useState<string[]>(["ko"]);
     const [fileType, setFileType] = useState<'epub' | 'docx' | 'txt'>("epub");
     const [okayToCreateVideos, setOkayToCreateVideos] = useState<boolean>(false);
@@ -36,6 +39,16 @@ export default function UploadWebnovelsAdmin() {
     const [filesLoaded, setFilesLoaded] = useState<boolean>(false);
     const [uploading, setUploading] = useState<boolean>(false);
     const [isAdultMaterial, setIsAdultMaterial] = useState<boolean>(false);
+    const [input, setInput] = useState<string>("");
+    const { webnovels } = useWebnovels();
+    const askedForInput = useRef<boolean>(false);
+
+    useEffect(() => {
+        if (!askedForInput.current) {
+            parseInput();
+            askedForInput.current = true;
+        }
+    }, []);
 
     const parseTxt = async (file: File) => {
         // Read the text content from the file
@@ -55,6 +68,44 @@ export default function UploadWebnovelsAdmin() {
         if (file) {
             setPicture(file);
         }
+    }
+
+    const parseInput = () => {
+        const getGenreCode = (genre: string) => {
+            if (genre === "판타지") return "fantasy";
+            if (genre === "로맨스") return "romance";
+            if (genre === "무협") return "orientalFantasy";
+            if (genre === 'BL') return 'bl';
+            else return 'other';
+        }
+        const input = prompt("Enter the input")?.split("\t")
+        if (!input) {
+            return;
+        }
+        const title = input[3];
+        const okay_to_create_videos = input[4] == "TRUE";
+        const publisher_korean_name = input[14];
+        const publisher_english_name = input[15];
+        const genre = getGenreCode(input[17]);
+        const num_free_chapters = input[20] ? parseInt(input[20]) : 0;
+        const description = input[22].slice(1, input[22].length - 1);
+        const is_adult_material = input[24] == '성인';
+        const price_korean = parseInt(input[28].replaceAll(",", "")) / 100;
+        const author = input[29];
+        const tags = input[31];
+
+        setWebnovelTitle(title);
+        setOkayToCreateVideos(okay_to_create_videos);
+        setPublisherKoreanName(publisher_korean_name);
+        setPublisherEnglishName(publisher_english_name);
+        setGenre(genre);
+        setNumberOfFreeChapters(num_free_chapters);
+        setDescription(description);
+        setIsAdultMaterial(is_adult_material);
+        setPriceKorean(price_korean);
+        setTags(tags);
+        setAuthorNickname(author);
+        setAuthorEmail(author + uuidv4().toString().substring(0, 5) + "@gmail.com");
     }
 
     const handleAddWebnovel = async () => {
@@ -158,10 +209,11 @@ export default function UploadWebnovelsAdmin() {
             for (let i = 0; i < chapterEpubObjs.length; i++) {
                 const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                for (const section of epubObj.sections) {
-                    if (section.id.startsWith('Section')) {
-                        htmlString += section.htmlString;
-                    }
+                for (const section of epubObj.sections.slice(4, epubObj.sections.length)) {
+                // for (const section of epubObj.sections) {
+                    // if (section.id.startsWith('Section')) {
+                        htmlString += section.htmlString.replaceAll("ebook", "");
+                    // }
                 }
                 text = parseHtmlToText(htmlString!);
                 title = epubObj.info?.title;
@@ -200,6 +252,10 @@ export default function UploadWebnovelsAdmin() {
     }
 
     const addAllChapters = async (chapters: { title: string, content: string, webnovel_id: string }[]) => {
+        const title_of_id = webnovels.find((webnovel: Webnovel) => webnovel.id === Number(webnovelId))?.title;
+        if (!confirm(`Are you sure you want to add all chapters to webnovel ${title_of_id}?`)) {
+            return;
+        }
         setUploading(true);
         const response = await fetch('/api/add_chapters_admin', {
             method: 'POST',
@@ -238,6 +294,7 @@ export default function UploadWebnovelsAdmin() {
     }
 
     return <div className="flex flex-col space-y-4 items-center justify-center max-w-screen-md p-4 mx-auto mb-24">
+        <TextField className='w-[50%]' label="Input" type="text" value={input} onChange={(e) => setInput(e.target.value)} />
         <TextField className='w-[50%]' label="User (Not Author) Email" type="text" value={userEmail || ""} onChange={(e) => setUserEmail(e.target.value)} />
         <TextField className='w-[50%]' label="Author Email" type="text" value={authorEmail || ""} onChange={(e) => setAuthorEmail(e.target.value)} />
         <TextField className='w-[50%]' label="Author Nickname" type="text" value={authorNickname || ""} onChange={(e) => setAuthorNickname(e.target.value)} />

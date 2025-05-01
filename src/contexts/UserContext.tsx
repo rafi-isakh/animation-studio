@@ -65,7 +65,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                     throw new Error(response.statusText)
                 }
                 data = await response.json();
-                console.log('data', data);
                 setNickname(data.nickname);
                 setEmail(data.email);
                 setBio(data.bio);

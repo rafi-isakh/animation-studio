@@ -10,7 +10,7 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { Webnovel } from '@/components/Types';
 
 export default function UploadWebnovelsAdmin() {
-    const [userEmail, setUserEmail] = useState<string>("nadapms@naver.com");
+    const [userEmail, setUserEmail] = useState<string>("airjongman@nuonmedia.co.kr");
     const [authorEmail, setAuthorEmail] = useState<string>("");
     const [authorNickname, setAuthorNickname] = useState<string>("");
     const [description, setDescription] = useState<string>("");
@@ -209,7 +209,7 @@ export default function UploadWebnovelsAdmin() {
             for (let i = 0; i < chapterEpubObjs.length; i++) {
                 const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                for (const section of epubObj.sections.slice(4, epubObj.sections.length)) {
+                for (const section of epubObj.sections.slice(3, epubObj.sections.length)) {
                 // for (const section of epubObj.sections) {
                     // if (section.id.startsWith('Section')) {
                         htmlString += section.htmlString.replaceAll("ebook", "");

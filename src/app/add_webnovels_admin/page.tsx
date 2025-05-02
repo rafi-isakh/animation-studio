@@ -42,6 +42,7 @@ export default function UploadWebnovelsAdmin() {
     const [input, setInput] = useState<string>("");
     const { webnovels } = useWebnovels();
     const askedForInput = useRef<boolean>(false);
+    const [titleOfEnteredId, setTitleOfEnteredId] = useState<string>("");
 
     useEffect(() => {
         if (!askedForInput.current) {
@@ -343,7 +344,8 @@ export default function UploadWebnovelsAdmin() {
             <Checkbox checked={okayToCreateVideos} onClick={() => setOkayToCreateVideos(!okayToCreateVideos)} />
         </div>
         <Button color='gray' variant='contained' onClick={handleAddWebnovel}>Add Webnovel</Button>
-        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => setWebnovelId(e.target.value)} />
+        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => {setWebnovelId(e.target.value); setTitleOfEnteredId(webnovels.find((webnovel: Webnovel) => webnovel.id === Number(e.target.value))?.title || "")}} />
+        <p>{titleOfEnteredId}</p>
         <div className='flex flex-row space-x-4'>
             <p>Chapter Files</p>
             <input type="file" multiple accept=".epub,.docx,.txt" onChange={handleChapterFilesChange} />

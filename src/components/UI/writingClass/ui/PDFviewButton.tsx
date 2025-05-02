@@ -8,8 +8,7 @@ import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedBut
 import { Document, Page, pdfjs } from "react-pdf"
 import { Download, Eye } from "lucide-react"
 
-// https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.min.mjs`
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs'
 
 export default function PDFPreviewButton({ language, file_url_en, file_url_ko, isLoggedIn }: any) {
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)

@@ -119,7 +119,7 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
             </p>
 
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
-              To celebrate your signup, we've gifted you 3 stars as a welcome gift :)<br />
+              To celebrate your signup, we've gifted you 30 stars as a welcome gift :)<br />
               On Toonyz, you can bring your stories to life with AI-generated illustrations and short-form content. 
               Share your creations directly on Toonyz Post!
             </p>
@@ -171,7 +171,7 @@ export function EmailTemplateToWelcome({ email, nickname, language }: EmailTempl
              </p>
 
             <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
-            ${nickname}님, 가입을 기념하여 웰컴 기프트로 별 3개를 선물로 드렸어요 :)<br />
+            ${nickname}님, 가입을 기념하여 웰컴 기프트로 별 30개를 선물로 드렸어요 :)<br />
               투니즈에서는 상상 속 이야기를 AI 삽화와 숏폼 콘텐츠로 직접 창작하고, 만든 콘텐츠를 투니즈 포스트에 공유할 수 있어요.
             </p>
 

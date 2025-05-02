@@ -12,6 +12,7 @@ import FaqSection from "@/components/UI/writingClass/ui/FaqSection";
 import { BookListCarousel } from "@/components/UI/writingClass/ui/BookListCarousel";
 import LearningSection from "@/components/UI/writingClass/ui/LearningSection";
 import { BookTab } from "@/components/UI/writingClass/ui/BookTab";
+import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton";
 import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton";
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
@@ -21,7 +22,6 @@ import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./data/downloadFiles";
-import PdfViewer from "@/components/UI/writingClass/ui/PdfViewer";
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;
@@ -185,72 +185,7 @@ export default function WritingClassPage() {
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
-          {/* <Dialog open={showPreview} onOpenChange={setShowPreview}> */}
-          <RoundedButton className='w-[330px] md:mx-0 mx-auto dark:text-black'>
-            {isLoggedIn ? <Link href="/writing-class/downloads">{language === "en" ? "Download Free Books"
-              : "무료로 작법서 다운 받기"}
-            </Link>
-              : <>
-                <Link href="#" onClick={() => {
-                  const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko;
-                  console.log(`Download clicked: ${fileKey} (${language})`);
-                  viewFile(fileKey);
-                }}>
-                  {language === "en" ? "Preview Free Book of 5"
-                    : "무료로 작법서 5강 보기"}
-                </Link>
-                <Dialog open={showPreview} onOpenChange={setShowPreview}>
-                  <DialogContent
-                    className="sm:max-w-screen-lg w-full max-h-[90vh] flex flex-col p-0"
-                    showCloseButton={true}
-                  >
-                    <DialogHeader className="p-4 border-b">
-                      <DialogTitle>Preview</DialogTitle>
-                    </DialogHeader>
-
-                    <div
-                      className="flex-grow overflow-y-auto p-0 m-0"
-                      style={{
-                        WebkitOverflowScrolling: "touch", // smooth scrolling on iOS
-                        overflowY: "auto",
-                      }}
-                    >
-                      {isPreviewLoading ? (
-                        <div className="flex items-center justify-center min-h-[200px]">
-                          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                          <span className="ml-2 text-gray-500">Loading preview...</span>
-                        </div>
-                      ) : previewError ? (
-                        <div className="flex items-center justify-center p-4">
-                          <span className="text-red-500">Error: {previewError}</span>
-                        </div>
-                      ) : previewUrl ? (
-                         <iframe
-                          src={`${previewUrl}#toolbar=1&navpanes=1`}
-                          className="w-full min-h-[500px] border-0"
-                          title="PDF Preview"
-                        />
-                        // <PdfViewer file={previewUrl} onClose={() => setShowPreview(false)} />
-                      ) : (
-                        <div className="flex items-center justify-center p-4">
-                          <span className="text-gray-500">No preview available.</span>
-                        </div>
-                      )}
-                    </div>
-                    <DialogFooter className="flex flex-col gap-2 justify-center items-center">
-                      <p className="text-sm text-gray-500">
-                        Chrome and Safari browser is recommended for preview.
-                      </p>
-                      <Button variant="outline" onClick={() => setShowPreview(false)}>
-                        Close
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </>
-            }
-          </RoundedButton>
-          {/* </Dialog> */}
+          <PDFviewButton language={language} file_url_en={file_url_en} file_url_ko={file_url_ko} isLoggedIn={isLoggedIn} />
           <p className="w-fit text-sm text-gray-500 md:mx-0 mx-auto pt-4">
             {language === "en" ? "Join Toonyz to get all free books :)"
               : <>투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.</>}

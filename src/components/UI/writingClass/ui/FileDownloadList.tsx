@@ -441,10 +441,10 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         </div>
                         <DialogFooter className="flex flex-col gap-2 justify-center items-center">
                             <p className="text-sm text-gray-500">
-                                Chrome and Safari browser is recommended for preview.
+                                {language === 'en' ? 'Chrome and Safari browser is recommended for preview.' : 'PC에서 미리보기 하는 것을 권장합니다.'}
                             </p>
                             <Button variant="outline" onClick={() => setShowPreview(false)}>
-                                Close
+                                {language === 'en' ? 'Close' : '닫기'}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

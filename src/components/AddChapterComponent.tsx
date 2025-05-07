@@ -189,7 +189,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             </form>
             {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
             <Dialog open={openPreviewDialog} onOpenChange={setOpenPreviewDialog}>
-                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-black md:h-[60vh] h-full border-none shadow-none ' showCloseButton={true}>
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] md:h-[60vh] h-full border-none shadow-none' showCloseButton={true}>
                     {/* z-[2500] for mobile screen which is the bottom navigation bar disturbing the dialog */}
                     <DialogHeader className='p-4'>
                         <DialogTitle>

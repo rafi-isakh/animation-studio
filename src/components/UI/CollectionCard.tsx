@@ -36,7 +36,7 @@ interface CollectionCardProps {
 }
 
 export default function CollectionCard({ id, title, pinCount, webnovel_id, created_at, images, commentedBy = [], commentCount }: CollectionCardProps) {
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelMetadataById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -53,7 +53,7 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
 
     useEffect(() => {
         const fetchWebnovel = async () => {
-            const novel = await getWebnovelById(webnovel_id);
+            const novel = await getWebnovelMetadataById(webnovel_id);
             setWebnovel(novel);
         };
         fetchWebnovel();
@@ -140,8 +140,8 @@ export default function CollectionCard({ id, title, pinCount, webnovel_id, creat
                         {webnovel &&
                             <OtherTranslateComponent
                                 element={webnovel}
-                                content={webnovel?.title || ""}
-                                elementId={webnovel?.id.toString() || ""}
+                                content={webnovel?.title || ""} 
+                                elementId={webnovel?.id?.toString() || ""}
                                 elementType="webnovel"
                                 elementSubtype="title"
                                 classParams="truncate max-w-full"

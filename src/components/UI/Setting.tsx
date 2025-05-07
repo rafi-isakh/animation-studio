@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/shadcnUI/Button';
 import {
     Box,
-    Button,
     List,
     ListItemButton,
     ListItemText,
@@ -84,18 +84,19 @@ export default function Setting({ isLoggedInAndRegistered, expanded, }
                     },
                 }}>
                 <Button
-                    variant='text'
-                    color='gray'
+                    variant='link'
                     aria-describedby={id}
                     onClick={handleClick}
-                    className={`flex flex-row py-2 px-6 my-1 w-full items-center
-                                 capitalize font-medium text-gray-400 text-base
-                                 hover:bg-gray-50 dark:hover:bg-black/50 
-                                 `} >
-                    <Settings className="h-6 w-6 text-gray-400 " />
-                    <span className={`overflow-hidden transition-all text-left capitalize text-gray-400 ${expanded ? "w-52 ml-3" : "w-0"}`}>
-                        {phrase(dictionary, 'setting', language)}
-                    </span>
+                    className={`flex flex-row py-2 px-6 my-1 w-full items-center font-medium
+                                 capitalize text-gray-400 text-base justify-center
+                                 hover:bg-gray-50 dark:hover:bg-black/50 !no-underline
+                                 `}>
+                    <Settings className={`!w-5 !h-5 text-gray-400 self-center ${expanded ? "mx-auto" : "mx-auto"}`} />
+                    {expanded && (
+                        <span className={`overflow-hidden transition-all text-left capitalize text-gray-400 ${expanded ? "w-52 ml-1" : " w-0"}`}>
+                            {phrase(dictionary, 'setting', language)}
+                        </span>
+                    )}
                 </Button>
             </Tooltip>
             <Popover

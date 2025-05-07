@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
                     transaction_id: paymentIntent.id,
                     transaction_pg: 'stripe',
                     email: paymentIntent.metadata.email || '',
+                    // TODO: change to 별 덤
                     stars: stars,
                     price: paymentIntent.currency == 'usd' ? paymentIntent.amount / 100: paymentIntent.amount, 
                     date: new Date().toISOString()

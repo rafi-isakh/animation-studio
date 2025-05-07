@@ -10,51 +10,38 @@ interface StarsNameToPrice {
 }
 
 export const stars_name_to_price_krw: StarsNameToPrice = {
-    "투니즈 별 150개": 1400,
-    "투니즈 별 350개": 3100,
-    "투니즈 별 550개": 4600,
-    "투니즈 별 1100개": 8800,
-    "투니즈 별 100개": 1000,
-    "투니즈 별 300개": 3000,
-    "투니즈 별 500개": 5000,
-    "투니즈 별 1000개": 10000,
+    "투니즈 별 20개": 2000,
+    "투니즈 별 50개": 5000,
+    "투니즈 별 100개": 10000,
+    "투니즈 별 200개": 20000,
+    "투니즈 별 300개": 30000,
+    "투니즈 별 500개": 50000,
+    "투니즈 별 700개": 70000,
+    "투니즈 별 1000개": 100000,
+}
+
+export const stars_name_to_free_stars_krw: StarsNameToPrice = {
+    "투니즈 별 20개": 1,
+    "투니즈 별 50개": 2,
+    "투니즈 별 100개": 3,
+    "투니즈 별 200개": 6,
+    "투니즈 별 300개": 12,
+    "투니즈 별 500개": 20,
+    "투니즈 별 700개": 28,
+    "투니즈 별 1000개": 50,
 }
 
 export const stars_name_to_price_usd: StarsNameToPrice = {
-    "투니즈 별 150개": 1,
-    "투니즈 별 350개": 2.5,
-    "투니즈 별 550개": 3.8,
-    "투니즈 별 1100개": 6.2,
-    "투니즈 별 100개": 0.75,
-    "투니즈 별 300개": 2.25,
-    "투니즈 별 500개": 3.75,
-    "투니즈 별 1000개": 7.5,
+    "투니즈 별 2개": 0.99,
+    "투니즈 별 8개": 3.99,
+    "투니즈 별 20개": 9.99,
+    "투니즈 별 30개": 13.99,
+    "투니즈 별 50개": 23.99,
+    "투니즈 별 62개": 29.99,
 }
 
-export const starsOptions = [100, 300, 500, 1000]
-export const starsEventOptions = [150, 350, 550, 1100]
-export const discount_factors_event = [0.95, 0.9, 0.85, 0.8]
-export const discount_factors = [1, 1, 1, 1]
-
-export function getStarsAndDiscount(selectedPackage: string, isEvent: boolean) {
-    let stars = 100; // Default value
-    let discount = 1; // Default value
-
-    if (selectedPackage) {
-        const packageIndex = parseInt(selectedPackage);
-        if (!isNaN(packageIndex) && packageIndex >= 0) {
-            if (isEvent && packageIndex < starsEventOptions.length) {
-                stars = starsEventOptions[packageIndex];
-                discount = discount_factors_event[packageIndex];
-            } else if (!isEvent && packageIndex < starsOptions.length) {
-                stars = starsOptions[packageIndex];
-                discount = discount_factors[packageIndex];
-            }
-        }
-    }
-
-    return { stars, discount };
-}
+export const starsOptions = [20, 50, 100, 200, 300, 500, 700, 1000]
+export const starsOptionsUSD = [2, 8, 20, 30, 50, 62]
 
 export const calculateOrderAmount = (numStars: number, language: string) => {
     if (language === 'ko') {
@@ -74,45 +61,37 @@ export const starsString = (numStars: number, language: string) => {
 
 export const starsPriceWithCurrencyString = (numStars: number, language: string) => {
     if (language === 'ko') {
-        if (numStars === 100) {
-            return "1,000원"
-        } else if (numStars === 300) {
-            return "3,000원"
-        } else if (numStars === 500) {
+        if (numStars === 20) {
+            return "2,000원"
+        } else if (numStars === 50) {
             return "5,000원"
-        } else if (numStars === 1000) {
+        } else if (numStars === 100) {
             return "10,000원"
-        }
-
-        if (numStars === 150) {
-            return "1,400원"
-        } else if (numStars === 350) {
-            return "3,100원"
-        } else if (numStars === 550) {
-            return "4,600원"
-        } else if (numStars === 1100) {
-            return "8,800원"
+        } else if (numStars === 200) {
+            return "20,000원"
+        } else if (numStars === 300) {
+            return "30,000원"
+        } else if (numStars === 500) {
+            return "50,000원"
+        } else if (numStars === 700) {
+            return "70,000원"
+        } else if (numStars === 1000) {
+            return "100,000원"
         }
     }
     else if (language === 'en') {
-        if (numStars === 100) {
-            return "$0.75"
-        } else if (numStars === 300) {
-            return "$2.25"
-        } else if (numStars === 500) {
-            return "$3.75"
-        } else if (numStars === 1000) {
-            return "$7.50"
-        }
-
-        if (numStars === 150) {
-            return "$1"
-        } else if (numStars === 350) {
-            return "$2.50"
-        } else if (numStars === 550) {
-            return "$3.80"
-        } else if (numStars === 1100) {
-            return "$6.20"
+        if (numStars === 2) {
+            return "$0.99"
+        } else if (numStars === 8) {
+            return "$3.99"
+        } else if (numStars === 20) {
+            return "$9.99"
+        } else if (numStars === 30) {
+            return "$13.99"
+        } else if (numStars === 50) {
+            return "$23.99"
+        } else if (numStars === 62) {
+            return "$29.99"
         }
     }
 }
@@ -123,3 +102,5 @@ export const getStripe = (language: Language) => {
         locale: stripeLocale,
     })
 }
+
+export const nominalDiscountFactorsUSD = [0, 3, 13, 19, 29, 50]

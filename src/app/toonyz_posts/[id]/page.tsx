@@ -27,7 +27,6 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
 import animationData from '@/assets/N_logo_with_heart.json';
-import { getImageDimensions } from "@/utils/imageDimensions";
 
 const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const [post, setPost] = useState<ToonyzPost | undefined>(undefined);
@@ -119,7 +118,11 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                 {phrase(dictionary, "share", language)}
                             </Link>
                             {/* share dialog */}
-                            <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} description={`Share this post with your friends and family.`} />
+                            <ShareDialog 
+                                shareImage={post.image || post.video}
+                                mediaType={post.image ? 'image' : post.video ? 'video' : undefined}
+                                url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} 
+                                description={`Share this post with your friends and family.`} />
                         </Dialog>
                     </div>
                 </div>

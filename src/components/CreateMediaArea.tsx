@@ -28,7 +28,7 @@ import {
 import { make_video_price, generate_pictures_price, generate_trailer_price } from "@/utils/stars";
 import { MdStars } from "react-icons/md";
 import CreateMediaHistoryContents from "@/components/UI/CreateMediaHistoryContents";
-
+// 
 export default function CreateMediaArea({
     // TODO: refactor these props; don't need them, because I can just do useCreateMedia()
     isLoading,

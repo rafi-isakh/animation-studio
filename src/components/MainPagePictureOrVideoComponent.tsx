@@ -93,7 +93,8 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
             <div className="absolute inset-0 w-full h-full transition-transform duration-300 ease-in-out hover:scale-105">
                 {
                     (!videoExists || !isHovered || (videoDisallowedForKorean.includes(webnovel.id) && language === "ko")) ?
-                        <Image
+                    <>   
+                    <Image
                             src={imageSrc || "/placeholder.svg"}
                             alt={webnovel.title}
                             fill
@@ -102,6 +103,20 @@ export default function MainPagePictureOrVideoComponent({ webnovel }: { webnovel
                             placeholder="blur"
                             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                         />
+                     {webnovel.is_adult_material && (
+                        <>
+                          { language === "ko" ? (
+                            <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-1.5 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-xs">
+                            19
+                            </span>
+                            ) : (
+                          <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-xs">
+                            Mature
+                          </span>
+                            )}
+                        </>
+                    )}
+                     </>
                         :
                         <div>
                             <div className="relative aspect-[2/3]">

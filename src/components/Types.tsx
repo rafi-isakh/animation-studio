@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface WebnovelIdProps {
     webnovelId: number;
 }
@@ -20,6 +22,7 @@ export interface Chapter {
   comments: Comment[];
   created_at: string;
   views: number;
+  shown_views: number;
   upvotes: number;
   free: boolean;
   other_translations: OtherTranslation[];
@@ -39,6 +42,7 @@ export interface User {
   created_at: Date;
   genres: string;
   other_translations: OtherTranslation[];
+  is_adult: boolean;
 }
 
 export interface UserStripped {
@@ -47,6 +51,7 @@ export interface UserStripped {
   picture: string;
   bio: string;
   other_translations: OtherTranslation[];
+  is_adult: boolean;
 }
 
 export interface Author {
@@ -105,6 +110,7 @@ export interface Webnovel {
   upvotes: number;
   language: string;
   views: number;
+  shown_views: number;
   version?: string;
   created_at: Date;
   tags: string;
@@ -119,6 +125,7 @@ export interface Webnovel {
   other_translations: OtherTranslation[];
   video_cover: string;
   en_video_cover: string;
+  is_adult_material: boolean;
 }
 
 export interface Dictionary {
@@ -185,4 +192,26 @@ export type OtherTranslation = {
   element_type: string
   element_subtype: string
   done: boolean
+}
+
+
+export interface CourseBook {
+  id: number;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  author?: string;
+  coverColor?: string;
+  coverImage?: string;
+  textColor?: string;
+  description?: string;
+  description_en?: string;
+}
+
+export interface FaqItem {
+  question_ko: string;
+  question_en: string;
+  answer_ko: string | ReactNode;
+  answer_en: string | ReactNode;
 }

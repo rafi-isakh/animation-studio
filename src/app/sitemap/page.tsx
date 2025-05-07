@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/providers'
 import { Moon, Sun } from "lucide-react";
 import { Label } from "@/components/shadcnUI/Label";
 import { Switch } from "@/components/shadcnUI/Switch";
+import { ContactForm } from "@/components/UI/FAQ";
 
 export default function Home() {
   const { isLoggedIn, logout } = useAuth();
@@ -88,7 +89,7 @@ export default function Home() {
               <p>{phrase(dictionary, "preparing", language)}</p>
             </TooltipContent>
           </Tooltip>
-          <MenuItem label={phrase(dictionary, "contact", language)} href="/contact" />
+          <MenuItem label={phrase(dictionary, "contact", language)} href="/faq" />
           {/* {phrase(dictionary, "theme", language)} */}
           <div className="flex flex-row items-center justify-between gap-x-3 p-4 text-base font-normal">
             <div className="flex items-center gap-1">
@@ -137,8 +138,8 @@ export default function Home() {
               <DialogHeader>
                 <DialogTitle>{phrase(dictionary, "inquiry", language)}</DialogTitle>
               </DialogHeader>
-              <DialogDescription>
-                <p>{phrase(dictionary, "inquiry_description", language)}</p>
+              <DialogDescription className="rounded-xl overflow-hidden">
+                <ContactForm />
               </DialogDescription>
               <DialogFooter>
                 <Button variant="outline" className="w-full" onClick={() => setInquiryDialogOpen(false)}>

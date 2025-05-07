@@ -6,8 +6,7 @@ import { MdStars } from "react-icons/md";
 import type { RequestPayParams, RequestPayResponse } from "@/portone";
 import { useUser } from "@/contexts/UserContext";
 import Image from 'next/image';
-import { starsOptions, starsEventOptions, discount_factors, discount_factors_event, starsString, starsPriceWithCurrencyString, stars_name_to_price_krw } from "@/utils/stars";
-import { useCallback } from "react";
+import { starsOptions, starsString, starsPriceWithCurrencyString, stars_name_to_price_krw, stars_name_to_free_stars_krw } from "@/utils/stars";
 
 export default function PurchaseStarsKGInicisComponent() {
     const { dictionary, language } = useLanguage();
@@ -41,7 +40,6 @@ export default function PurchaseStarsKGInicisComponent() {
 
         /* 4. 결제 창 호출하기 */
         IMP.request_pay(data, callback);
-        console.log("IMP", IMP);
 
         async function callback(response: RequestPayResponse) {
             const { success, error_msg } = response;
@@ -91,52 +89,7 @@ export default function PurchaseStarsKGInicisComponent() {
                     {/* Regular Bundles   */}
                     {language === 'ko' ? '스페셜 딜' : 'Special Deal for You'}
                 </h1>
-                {starsEventOptions.map((stars, index) => (
-                    <Button
-                        key={index}
-                        onClick={() => onClickPaymentInicis(stars, discount_factors_event[index])}
-                        variant="text"
-                        sx={{
-                            borderBottom: 1,
-                            '&:last-child': {
-                                borderBottom: 0
-                            },
-                            borderColor: '#9ca3af',
-                            borderRadius: 0,
-                            padding: '15px 10px',
-                            margin: 0,
-                            color: '#9ca3af ',
-                            '&:hover': {
-                                backgroundColor: 'transparent',
-                            }
-                        }}
-                        className="text-xl flex items-center justify-between w-full text-gray-500 ">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex flex-col  ">
 
-                                <div className="flex flex-row items-center justify-center space-x-2">
-                                    <MdStars className="text-xl text-[#D92979]" />
-                                    <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
-                                        {starsString(stars, language)}
-                                        <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {100 - discount_factors_event[index] * 100}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center">
-                                <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
-                                    {starsPriceWithCurrencyString(stars, language)}
-                                </h1>
-                            </div>
-                        </div>
-                    </Button>
-                ))}
-            </div>
-
-            <div className="flex flex-col w-full rounded-md p-2 border-gray-400 border">
-                <h1 className="text-md font-base py-3 px-2 text-left">
-                    {/* Regular Bundles   */}
-                    {language === 'ko' ? '일반 번들' : 'Regular Bundles'}
-                </h1>
                 {starsOptions.map((stars, index) => (
                     <Button
                         key={index}
@@ -161,7 +114,7 @@ export default function PurchaseStarsKGInicisComponent() {
                             <div className="flex items-center space-x-2 ">
                                 <MdStars className="text-xl text-[#D92979]" />
                                 <div className="text-xl">
-                                    {starsString(stars, language)}
+                                    {starsString(stars, language)} <span className="text-pink-500">+ 덤 {stars_name_to_free_stars_krw[`투니즈 별 ${stars}개`]}개</span>
                                 </div>
                             </div>
                             <div className="flex items-center">

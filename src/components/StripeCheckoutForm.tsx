@@ -90,7 +90,6 @@ export default function CheckoutForm({ clientSecret }: { clientSecret: string })
     }, [language]);
 
     if (!stripePromise) return null;
-    console.log(stripePromise);
 
     return (
         <Elements stripe={stripePromise} options={{ appearance, clientSecret } as StripeElementsOptions}>

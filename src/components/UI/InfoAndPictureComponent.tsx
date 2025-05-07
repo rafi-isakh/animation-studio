@@ -273,15 +273,30 @@ export default function InfoAndPictureComponent({
                             <div className="relative w-full h-full max-w-[350px] mx-auto min-h-[550px] rounded-xl">
                                 {coverArt ?
                                     !videoExists || (videoDisallowedForKorean.includes(content.id) && language === "ko") ?
-                                        <Image
-                                            src={imageSrc || ""}
-                                            alt={content.title}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 300px"
-                                            className="object-cover rounded-xl"
-                                            placeholder="blur"
-                                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                                        />
+                                        <>
+                                            <Image
+                                                src={imageSrc || ""}
+                                                alt={content.title}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 300px"
+                                                className="object-cover rounded-xl"
+                                                placeholder="blur"
+                                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+                                            />
+                                            {content.is_adult_material && (
+                                                <>
+                                                    {language === "ko" ? (
+                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-base">
+                                                            19
+                                                        </span>
+                                                    ) : (
+                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-base">
+                                                            Mature
+                                                        </span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </>
                                         :
                                         <div>
                                             <div className="relative">
@@ -369,7 +384,7 @@ export default function InfoAndPictureComponent({
                             {/* miscellanous */}
                             <div className="flex flex-row space-x-2 text-sm">
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                    <Eye size={11} /> {content.views}
+                                    <Eye size={11} /> {content.shown_views}
                                 </div>
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     {/* heart icon - gray #6B7280 */}

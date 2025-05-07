@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
-
+import { useUser } from './UserContext';
 interface AuthContextProps {
     isLoggedIn: boolean | null;
     setIsLoggedIn: (loggedIn: boolean | null) => void;

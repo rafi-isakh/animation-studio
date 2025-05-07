@@ -165,14 +165,16 @@ const AddWebnovelComponent = () => {
                     </Link>
                 </div>
             ) : (
-                <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
-                    <div className='flex flex-col md:border md:border-gray-300 md:dark:border-[#2F2F2F] rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
+                <div className='md:max-w-screen-md p-6 w-full flex md:flex-row flex-col justify-center mx-auto'>
+                    <div className='flex flex-col border-none w-full'>
                         {/* Mui dark theme color code : divider [#2F2F2F] */}
                         <form onSubmit={handleAddWebnovel}>
-                            <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
-                            <div className="mt-10 md:w-[500px] w-full">
+                            <p className={`text-2xl font-bold ${styles.korean} mb-10`}>
+                                {phrase(dictionary, "uploadNewWebnovel", language)}
+                            </p>
+                            <div className="md:w-[500px] w-full">
                                 <>
-                                    <label htmlFor="author" className='text-sm ml-2'>
+                                    <label htmlFor="author" className='text-sm'>
                                         <div className='flex flex-row gap-1 items-center'>
                                             {/* 커버등록 */}
                                             {phrase(dictionary, "uploadCoverArt", language)}

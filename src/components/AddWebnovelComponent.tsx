@@ -8,8 +8,6 @@ import styles from "@/styles/KoreanText.module.css"
 import '@/styles/globals.css'
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
-import { replaceSmartQuotes } from '@/utils/font';
-import { WebnovelTermsInfo, WebnovelTermsInfo_en } from '@/utils/terms';
 import Link from 'next/link';
 import {
     CircularProgress,
@@ -25,6 +23,9 @@ import CoverArtModal from '@/components/CoverArtModal';
 import CoverArtPreview from './CoverArtPreview';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogDescription } from '@/components/shadcnUI/Dialog';
+import { Label } from "@/components/shadcnUI/Label"
+import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup"
+import { useToast } from "@/hooks/use-toast"
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
@@ -46,7 +47,8 @@ const AddWebnovelComponent = () => {
     const { invalidateCache } = useWebnovels();
     const { isLoggedIn } = useAuth();
     const isLoggedInAndRegistered = !!(isLoggedIn && email);
-
+    const [isAdultMaterial, setIsAdultMaterial] = useState(false);
+    const { toast } = useToast();
     useEffect(() => {
         setCurrText(description.length);
     }, [description])
@@ -77,7 +79,6 @@ const AddWebnovelComponent = () => {
     };
 
     const handleFinalSubmit = async () => {
-
         setIsSubmitting(true);
 
         const formData = new FormData();
@@ -88,7 +89,7 @@ const AddWebnovelComponent = () => {
         }
         formData.append('genre', genre);
         formData.append('language', novelLanguage);
-
+        formData.append('is_adult_material', isAdultMaterial.toString());
         try {
             const res = await fetch('/api/add_webnovel', {
                 method: 'POST',
@@ -96,8 +97,18 @@ const AddWebnovelComponent = () => {
             });
 
             if (!res.ok) {
+                toast({
+                    title: "Error: add webnovel failed",
+                    variant: "destructive",
+                    description: "Please try again",
+                })
                 throw new Error("Add webnovel failed");
             }
+            toast({
+                title: "Success: add webnovel",
+                variant: "success",
+                description: "Please wait for the webnovel to be approved",
+            })
             const data = await res.json();
             invalidateCache();
             router.push(`/view_webnovels/${data["id"]}`);
@@ -284,6 +295,39 @@ const AddWebnovelComponent = () => {
                                             <option value="sf">{phrase(dictionary, "sf", language)}</option>
                                         </select>
                                     </div>
+                                    <div className="mt-4">
+                                        <p className='text-sm ml-2'>
+                                            {/* 성인물 */}
+                                            {phrase(dictionary, "matureContent", language)}
+                                            <span className='text-red-500'>* </span>
+                                            <span className='text-gray-500 text-[12px]'>
+                                                {/* 성인물 여부를 선택해 주세요. */}
+                                                {language == 'ko' ? <> {phrase(dictionary, "isAdultStory", language)}</> : <></>}
+                                            </span>
+                                        </p>
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            <RadioGroup defaultValue="allContent" className="text-[#DB2777]">
+                                                <div className="flex items-center gap-2">
+                                                    <RadioGroupItem
+                                                        value="allContent"
+                                                        id="forAllContent"
+                                                        onChange={() => setIsAdultMaterial(false)}
+                                                        className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
+                                                    />
+                                                    <Label htmlFor="forAllContent" className="text-sm text-gray-500">전체 이용가</Label>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <RadioGroupItem
+                                                        value="adultContent"
+                                                        id="forAdultContent"
+                                                        onChange={() => setIsAdultMaterial(true)}
+                                                        className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
+                                                    />
+                                                    <Label htmlFor="forAdultContent" className="text-sm text-gray-500">성인물</Label>
+                                                </div>
+                                            </RadioGroup>
+                                        </div>
+                                    </div>
 
                                     <div className="mt-4">
                                         <label htmlFor="language" className='text-sm ml-2'>
@@ -328,24 +372,24 @@ const AddWebnovelComponent = () => {
                                     </div>
                                     <br />
                                     <div className='flex justify-center items-center mb-8'>
-                                         <Button
-                                             variant='outline'
-                                             ref={buttonRef}
-                                             type="submit"
-                                             disabled={isSubmitting}
-                                             className="whitespace-nowrap px-4 py-2 transition-all duration-300
+                                        <Button
+                                            variant='outline'
+                                            ref={buttonRef}
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="whitespace-nowrap px-4 py-2 transition-all duration-300
                                               bg-pink-200 hover:bg-[#DB2777] hover:text-white
                                               dark:bg-gray-800 border-0
                                               dark:hover:bg-gray-700
                                                ">
-                                             {/*Spinny wheel when submitting*/}
-                                             <CloudUpload size={16} className='mr-2' />
-                                             {isSubmitting ?
-                                                 <CircularProgress size="1rem" color='secondary' />
-                                                 :
-                                                 phrase(dictionary, "save", language)}
-                                         </Button>
-                                     </div>
+                                            {/*Spinny wheel when submitting*/}
+                                            <CloudUpload size={16} className='mr-2' />
+                                            {isSubmitting ?
+                                                <CircularProgress size="1rem" color='secondary' />
+                                                :
+                                                phrase(dictionary, "save", language)}
+                                        </Button>
+                                    </div>
                                 </div>
                                 {/* modal for input all info */}
                                 <Dialog open={openModal} onOpenChange={setOpenModal}>

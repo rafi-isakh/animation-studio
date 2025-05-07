@@ -471,4 +471,11 @@ write_your_nickname_here,닉네임을 입력하세요,,Write your nickname here
 bio,자기소개를 입력해주세요,,Write your bio here
 write_your_promotion_code,프로모션 코드를 입력하세요,,Write your promo code here
 choose_topics,좋아하는 장르를 선택해 주세요,,Choose genres you like
-
+new_chapter_preview_noTitle,제목이 없습니다,,No title yet
+new_chapter_preview_noContent,내용이 없습니다,,No content yet
+matureContent,성인물,,Mature Content
+isAdultStory,성인물 여부를 선택해 주세요,,Select if the story is adult content
+add_new_webnovel_error,웹소설 발행에 실패했습니다. 다시 시도해 주세요. 문제가 지속되면 고객센터로 문의해 주세요. ,,Webnovel publication failed. Please try again. If the problem persists\, please contact the customer support.
+add_new_webnovel_success,웹소설 발행에 성공했습니다. 웹소설 승인 후 연재 시작 가능합니다. ,,Webnovel publication successful. The webnovel will be approved and published after review.
+allContent,전체 이용가,,For all
+adultContent,성인물,,For mature content

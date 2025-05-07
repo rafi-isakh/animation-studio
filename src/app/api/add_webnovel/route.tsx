@@ -18,6 +18,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const coverArt = formData.get('coverArt') as File
   const genre = formData.get('genre')
   const language = formData.get('language')
+  const isAdultMaterial = formData.get('is_adult_material')
 
   if (!title || !description || !coverArt || !genre) {
     return NextResponse.json({ error: 'Missing web novel data' }, { status: 400 });
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     cover_art: fileName,
     genre: genre,
     language: language,
-    available_languages: JSON.stringify([language])
+    available_languages: JSON.stringify([language]),
+    is_adult_material: isAdultMaterial
   };
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/add_webnovel`, {

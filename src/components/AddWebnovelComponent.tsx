@@ -26,6 +26,7 @@ import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogD
 import { Label } from "@/components/shadcnUI/Label"
 import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from '@/lib/utils';
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
@@ -403,8 +404,8 @@ const AddWebnovelComponent = () => {
                                 </div>
                                 {/* modal for input all info */}
                                 <Dialog open={openModal} onOpenChange={setOpenModal}>
-                                    <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center'>
-                                        <DialogHeader>
+                                    <DialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none" showCloseButton={true}>
+                                        <DialogHeader className='p-4'>
                                             <DialogTitle>
                                                 <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200 text-center" />
                                                 <p className='text-2xl font-bold text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
@@ -413,12 +414,12 @@ const AddWebnovelComponent = () => {
                                                 <p className='text-base text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <DialogFooter>
-                                            <div className="flex justify-center gap-4">
-                                                <Button color='primary' variant='outline' className='border-0 bg-black text-white dark:text-black dark:bg-white dark:hover:opacity-80' onClick={() => setOpenModal(false)}>
+                                        <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
+                                                <Button 
+                                                className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                                                 onClick={() => setOpenModal(false)}>
                                                     {phrase(dictionary, "ok", language)}
                                                 </Button>
-                                            </div>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>

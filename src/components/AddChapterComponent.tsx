@@ -189,7 +189,8 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             </form>
             {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
             <Dialog open={openPreviewDialog} onOpenChange={setOpenPreviewDialog}>
-                <DialogContent className='!gap-0 !p-0 overflow-hidden bg-white dark:bg-black md:h-[60vh] h-full border-none shadow-none ' showCloseButton={true}>
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-black md:h-[60vh] h-full border-none shadow-none ' showCloseButton={true}>
+                    {/* z-[2500] for mobile screen which is the bottom navigation bar disturbing the dialog */}
                     <DialogHeader className='p-4'>
                         <DialogTitle>
                             {phrase(dictionary, "preview", language)}
@@ -218,16 +219,16 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                             </div>
                         </DialogDescription>
                     </ScrollArea>
-                    <DialogFooter className="flex sm:flex-row !space-x-0 !p-0">
+                    <DialogFooter className="flex sm:flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0">
                         <Button
                             onClick={() => setOpenPreviewDialog(false)}
-                            className={cn("!rounded-none flex-1 py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                            className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                         >
                             {phrase(dictionary, "confirm", language)}
                         </Button>
                         <Button
                             onClick={() => setOpenPreviewDialog(false)}
-                            className={cn("!rounded-none flex-1 py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                            className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                         >
                             {phrase(dictionary, "close", language)}
                         </Button>

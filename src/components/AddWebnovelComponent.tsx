@@ -319,7 +319,9 @@ const AddWebnovelComponent = () => {
                                                         id="forAllContent"
                                                         className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                                     />
-                                                    <Label htmlFor="forAllContent" className="text-sm text-gray-500">전체 이용가</Label>
+                                                    <Label htmlFor="forAllContent" className="text-sm text-gray-500">
+                                                        {phrase(dictionary, "allContent", language)}
+                                                    </Label>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <RadioGroupItem
@@ -327,7 +329,9 @@ const AddWebnovelComponent = () => {
                                                         id="forAdultContent"
                                                         className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                                     />
-                                                    <Label htmlFor="forAdultContent" className="text-sm text-gray-500">성인물</Label>
+                                                    <Label htmlFor="forAdultContent" className="text-sm text-gray-500">
+                                                        {phrase(dictionary, "adultContent", language)}
+                                                    </Label>
                                                 </div>
                                             </RadioGroup>
                                         </div>

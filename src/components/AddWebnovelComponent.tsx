@@ -98,20 +98,21 @@ const AddWebnovelComponent = () => {
 
             if (!res.ok) {
                 toast({
-                    title: "Error: add webnovel failed",
+                    title: phrase(dictionary, "add_new_webnovel_error", language),
                     variant: "destructive",
                     description: "Please try again",
                 })
                 throw new Error("Add webnovel failed");
             }
             toast({
-                title: "Success: add webnovel",
+                title: phrase(dictionary, "add_new_webnovel_success", language),
                 variant: "success",
                 description: "Please wait for the webnovel to be approved",
             })
             const data = await res.json();
             invalidateCache();
             router.push(`/view_webnovels/${data["id"]}`);
+            console.log("webnovel added", data);
         } catch (error) {
             // Handle error
             setIsSubmitting(false);
@@ -306,12 +307,18 @@ const AddWebnovelComponent = () => {
                                             </span>
                                         </p>
                                         <div className="flex flex-col gap-2 mt-2">
-                                            <RadioGroup defaultValue="allContent" className="text-[#DB2777]">
+                                            <RadioGroup 
+                                                onValueChange={(value) => {
+                                                    setIsAdultMaterial(value === "adultContent");
+                                                    console.log("is adult?", value === "adultContent");
+                                                }} 
+                                                defaultValue="allContent"
+                                                className="text-[#DB2777]"
+                                            >
                                                 <div className="flex items-center gap-2">
                                                     <RadioGroupItem
                                                         value="allContent"
                                                         id="forAllContent"
-                                                        onChange={() => setIsAdultMaterial(false)}
                                                         className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                                     />
                                                     <Label htmlFor="forAllContent" className="text-sm text-gray-500">전체 이용가</Label>
@@ -320,7 +327,6 @@ const AddWebnovelComponent = () => {
                                                     <RadioGroupItem
                                                         value="adultContent"
                                                         id="forAdultContent"
-                                                        onChange={() => setIsAdultMaterial(true)}
                                                         className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                                     />
                                                     <Label htmlFor="forAdultContent" className="text-sm text-gray-500">성인물</Label>

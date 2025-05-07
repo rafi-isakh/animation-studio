@@ -166,8 +166,8 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
                                     <span className="text-sm flex flex-row items-center gap-2">
                                         <PenLine className='' size={18} />
-                                        { !isMobile ? language === "ko" ? <>안녕하세요, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)}</> 
-                                                                        : <>Hello, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)} </>
+                                        { !isMobile ? language === "ko" ? <>{nickname}님, {phrase(dictionary, "writeNewChapterToday", language)}</> 
+                                                                        : <>Hi, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)} </>
                                                                         : <>{phrase(dictionary, "writeNewChapterToday_mobile", language)}</>}
 
                                     </span>

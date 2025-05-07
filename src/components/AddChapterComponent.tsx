@@ -18,7 +18,7 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/shadcnUI/Dialog';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
-
+import { cn } from '@/lib/utils';
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -151,7 +151,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                             {/* 총 .. 화 : total */}
                             {phrase(dictionary, "total", language)}
                             {' '}{webnovel?.chapters_length}
-                            {language == 'ko' ? <>{' '}화</> : <>{' '}chapters</>}
+                            {language == 'ko' ? <>{' '}화</> : <>{' '}chapter(s)</>}
                         </p>
                     </div>
                     <hr />
@@ -161,7 +161,9 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     <div className="flex flex-col space-y-4">
                         <div className="flex flex-row justify-between">
                             <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
-                            <p className='text-sm text-[#DB2777]'>{currText} / {maxText}</p>
+                            <p className='text-sm'>
+                                <span className='text-[#DB2777]'>{currText}</span> / {maxText}
+                            </p>
                         </div>
                         <div className='w-full max-w-full rounded-xl border border-gray-300'>
                             <ReactQuill ref={contentRef} theme="bubble" value={content} onChange={setContent} className="content-editor" />
@@ -187,35 +189,49 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             </form>
             {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
             <Dialog open={openPreviewDialog} onOpenChange={setOpenPreviewDialog}>
-                <DialogContent className='bg-white dark:bg-black md:h-[70vh] h-full' showCloseButton={true}>
-                    <DialogHeader>
+                <DialogContent className='!gap-0 !p-0 overflow-hidden bg-white dark:bg-black md:h-[60vh] h-full border-none shadow-none ' showCloseButton={true}>
+                    <DialogHeader className='p-4'>
                         <DialogTitle>
                             {phrase(dictionary, "preview", language)}
                         </DialogTitle>
                         <p className='text-sm text-gray-500'>
-                          {phrase(dictionary, "previewWarning", language)}
+                            {phrase(dictionary, "previewWarning", language)}
                         </p>
                     </DialogHeader>
-                    <ScrollArea className='h-full'>
-                        <DialogDescription>
+                    <ScrollArea className='h-full p-4'>
+                        <DialogDescription className='!p-0'>
                             <div className='flex flex-col space-y-4 min-h-[50vh]'>
-                                <div className='inline-flex flex-col gap-2 text-sm font-bold'>
+                                <div className='inline-flex flex-col gap-2 text-sm '>
                                     <h1 className='text-md font-bold'> {phrase(dictionary, "chapterTitle", language)} </h1>
-                                    <p className="w-full "> {plainTitleText} </p>
+                                    {titleRef.current?.getEditor()?.getText().trim() ? 
+                                        <p className="w-full text-sm font-bold"> {plainTitleText} </p> :
+                                        <p className="w-full text-sm font-bold"> {phrase(dictionary, "new_chapter_preview_noTitle", language)} </p>
+                                    }
                                 </div>
-                                <h1 className='text-md font-bold'>{phrase(dictionary, "content", language)}</h1>
-                                <div className='w-full prose dark:prose-invert'>
-
-                                    {plainContentText}
+                                <div className='inline-flex flex-col gap-2 text-sm'>
+                                    <h1 className='text-md font-bold'>{phrase(dictionary, "content", language)}</h1>
+                                    {contentRef.current?.getEditor()?.getText().trim() ? 
+                                        <p className="w-full prose dark:prose-invert text-sm"> {plainContentText} </p> :
+                                        <p className="w-full prose dark:prose-invert text-sm"> {phrase(dictionary, "new_chapter_preview_noContent", language)} </p>
+                                    }
                                 </div>
                             </div>
                         </DialogDescription>
-                        <DialogFooter className='flex justify-end'>
-                            <Button variant="outline" color="gray" onClick={() => setOpenPreviewDialog(false)}>
-                                {phrase(dictionary, "close", language)}
-                            </Button>
-                        </DialogFooter>
                     </ScrollArea>
+                    <DialogFooter className="flex sm:flex-row !space-x-0 !p-0">
+                        <Button
+                            onClick={() => setOpenPreviewDialog(false)}
+                            className={cn("!rounded-none flex-1 py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        >
+                            {phrase(dictionary, "confirm", language)}
+                        </Button>
+                        <Button
+                            onClick={() => setOpenPreviewDialog(false)}
+                            className={cn("!rounded-none flex-1 py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        >
+                            {phrase(dictionary, "close", language)}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

@@ -82,6 +82,7 @@ export default function InfoAndPictureComponent({
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
+        console.log("is adult", content.is_adult_material)
         setImageSrc(imageSrc)
         if (language === "en") {
             if (content.en_cover_art) {
@@ -285,11 +286,11 @@ export default function InfoAndPictureComponent({
                                             {content.is_adult_material && (
                                                 <>
                                                     {language === "ko" ? (
-                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-base">
+                                                        <span className="z-[999] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-full bg-white border border-red-600 text-black text-center justify-center items-center font-bold text-base">
                                                             19
                                                         </span>
                                                     ) : (
-                                                        <span className="z-[99] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-base">
+                                                        <span className="z-[999] inline-flex absolute top-2 left-2 w-fit px-2 py-1 rounded-sm bg-red-600 text-white text-center justify-center items-center text-base">
                                                             Mature
                                                         </span>
                                                     )}

@@ -530,7 +530,7 @@ export default function InfoAndPictureComponent({
                                                 <AlertDialogHeader className='p-4'>
                                                     <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
                                                 </AlertDialogHeader>
-                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0'>
+                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
                                                     <Button
                                                         onClick={onDelete}
                                                         className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}

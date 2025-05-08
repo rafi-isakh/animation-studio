@@ -20,7 +20,7 @@ export default function ProfileShareButton({ user, id }: { user: UserStripped, i
                 await navigator.share({
                     title: user.nickname,
                     text: phrase(dictionary, "share_profile", language),
-                    url: `${process.env.NEXT_PUBLIC_APP_URL}/profile/${user.id}`
+                    url: ``
                 });
             } catch (error) {
                 console.log('Share failed:', error);

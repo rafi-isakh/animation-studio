@@ -308,11 +308,11 @@ const AddWebnovelComponent = () => {
                                             </span>
                                         </p>
                                         <div className="flex flex-col gap-2 mt-2">
-                                            <RadioGroup 
+                                            <RadioGroup
                                                 onValueChange={(value) => {
                                                     setIsAdultMaterial(value === "adultContent");
                                                     console.log("is adult?", value === "adultContent");
-                                                }} 
+                                                }}
                                                 defaultValue="allContent"
                                                 className="text-[#DB2777]"
                                             >
@@ -388,17 +388,17 @@ const AddWebnovelComponent = () => {
                                             ref={buttonRef}
                                             type="submit"
                                             disabled={isSubmitting}
-                                            className="whitespace-nowrap px-4 py-2 transition-all duration-300
+                                            className="whitespace-nowrap w-full transition-all duration-300
                                               bg-pink-200 hover:bg-[#DB2777] hover:text-white
                                               dark:bg-gray-800 border-0
                                               dark:hover:bg-gray-700
                                                ">
                                             {/*Spinny wheel when submitting*/}
-                                            <CloudUpload size={16} className='mr-2' />
+                                            <CloudUpload size={16} />
                                             {isSubmitting ?
                                                 <CircularProgress size="1rem" color='secondary' />
-                                                :
-                                                phrase(dictionary, "save", language)}
+                                                : phrase(dictionary, "save", language)
+                                            }
                                         </Button>
                                     </div>
                                 </div>
@@ -415,11 +415,11 @@ const AddWebnovelComponent = () => {
                                             </DialogDescription>
                                         </DialogHeader>
                                         <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
-                                                <Button 
+                                            <Button
                                                 className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
-                                                 onClick={() => setOpenModal(false)}>
-                                                    {phrase(dictionary, "ok", language)}
-                                                </Button>
+                                                onClick={() => setOpenModal(false)}>
+                                                {phrase(dictionary, "ok", language)}
+                                            </Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>

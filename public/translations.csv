@@ -30,7 +30,7 @@ thai,태국어,タイ語,Thai,泰語,泰语,ภาษาไทย,Bahasa Thailan
 indonesian,인도네시아어,インドネシア語,Indonesian,印尼語,印尼语,ภาษาอินโดนีเซีย,Bahasa Indonesia,Tiếng Indonesia,الإندونيسية
 vietnamese,베트남어,ベトナム語,Vietnamese,越南語,越南语,ภาษาเวียดนาม,Bahasa Vietnam,Tiếng Việt,الفيتنامية
 arabic,아랍어,アラビア語,Arabic,阿拉伯語,阿拉伯语,ภาษาอารบิก,Bahasa Arab,Tiếng Ả Rập,العربية
-save,저장,保存,Save,儲存,保存,บันทึก,Simpan,Lưu,حفظ
+save,저장 하기,保存,Save,儲存,保存,บันทึก,Simpan,Lưu,حفظ
 description,작품 소개,作品紹介,Description,作品介紹,作品介绍,คำบรรยาย,Deskripsi,Mô Tả,وصف
 number,회차,話,Number,話,回合,หมายเลขตอน,Nomor,Số,الرقم
 webnovelTitle,작품명,作品名,Webnovel Title,作品名稱,作品名称,ชื่อเรื่อง,Judul Novel,Tiêu đề Tiểu Thuyết,عنوان الرواية
@@ -309,7 +309,7 @@ pleaseLoginFirst,서비스를 이용하시려면 로그인을 해주세요,,Plea
 userBlocked,차단되었습니다,,User blocked
 userBlocked_subtitle,이 사용자는 차단되었습니다.,,You have blocked this user.
 unblock,차단 해제,,Unblock
-upload,업로드,,Upload
+upload,직접 업로드,,Upload
 starsTransaction,충전 내역,,Transactions,
 latest,최신순,,Latest
 mostLiked,좋아요순,,Likes

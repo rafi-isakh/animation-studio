@@ -214,6 +214,9 @@ report,신고,,Report
 wouldYouLikeToReport,신고하시겠습니까?,,Would you like to report this user?
 reportReason,신고 사유,,Report Reason
 reportSuccess,신고가 접수되었습니다.,,Report has been submitted.
+reportSuccess_subtitle,신고 사유가 잘 전달되었습니다.,,We will review your report and take appropriate action.
+reportError,신고에 실패했습니다.,,Report failed.
+reportError_subtitle,신고 사유가 잘 전달되지 않았습니다.,,Your report was not sent. Try again later.
 block,차단,,Block
 wouldYouLikeToBlock,차단하시겠습니까?,,Would you like to block this user?
 blockSuccess,차단되었습니다.,,User has been blocked.

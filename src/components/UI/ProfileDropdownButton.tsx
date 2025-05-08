@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { Dialog } from '@/components/shadcnUI/Dialog';
+
 import { Button } from '@/components/shadcnUI/Button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcnUI/Popover'
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
@@ -12,6 +11,7 @@ import ReportModal from "@/components/UI/ReportModal";
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfileDropdownButton({
     isProfileOwner,
@@ -23,15 +23,13 @@ export default function ProfileDropdownButton({
     user: UserStripped
 }) {
     const { language, dictionary } = useLanguage();
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [showReportModal, setShowReportModal] = useState(false);
     const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
     const { logout } = useAuth();
     const { nickname: loggedInUser_nickname, id: loggedInUser_id } = useUser();
-
+    const { toast } = useToast();
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -40,13 +38,26 @@ export default function ProfileDropdownButton({
     };
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Reported by: ${loggedInUser_nickname} <br/> Reported by ID: ${loggedInUser_id} <br/><br/> Report message: ${reportMessage}`;
-        await fetch('/api/send_email', {
-            method: 'POST',
-            body: JSON.stringify({ message: message, templateType: 'report', subject: 'Report', staffEmail: 'dami@stelland.io, min@stelland.io' })
-        });
-        setShowReportModal(false);
-        setShowReportSuccessModal(true);
+        try {
+            const message = `Reported user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Reported by: ${loggedInUser_nickname} <br/> Reported by ID: ${loggedInUser_id} <br/><br/> Report message: ${reportMessage}`;
+            await fetch('/api/send_email', {
+                method: 'POST',
+            body: JSON.stringify({  message: message, templateType: 'report', subject: 'Report - general', staffEmail: 'dami@stelland.io, min@stelland.io' })
+            });
+            toast({
+                title: phrase(dictionary, "reportSuccess", language),
+                variant: "success",
+                description: phrase(dictionary, "reportSuccess_subtitle", language),
+            });
+            setShowReportModal(false);
+            setShowReportSuccessModal(true);
+        } catch (error) {
+            toast({
+                title: phrase(dictionary, "reportError", language),
+                variant: "destructive",
+                description: phrase(dictionary, "reportError_subtitle", language),
+            });
+        }
     }
 
     const handleSignOut = async (event: React.FormEvent) => {
@@ -55,7 +66,7 @@ export default function ProfileDropdownButton({
     };
 
     return (
-        <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
+        <>
             <Popover>
                 <PopoverTrigger asChild onClick={(e) => { e.stopPropagation(); }}>
                     <Button variant="ghost" size="icon" className='!no-underline !bg-transparent'>
@@ -117,12 +128,16 @@ export default function ProfileDropdownButton({
                     </Tooltip>
                 </PopoverContent>
             </Popover>
-            <ReportModal
-                isOpen={showReportModal}
-                onClose={() => setShowReportModal(false)}
-                user={user}
-                onSubmit={handleSendReportEmail}
-            />
-        </Dialog>
+                <ReportModal
+                    showReportModal={showReportModal}
+                    setShowReportModal={setShowReportModal}
+                    showReportSuccessModal={showReportSuccessModal}
+                    setShowReportSuccessModal={setShowReportSuccessModal}
+                    user={user}
+                    reportMessage={reportMessage}
+                    setReportMessage={setReportMessage}
+                    onSubmit={handleSendReportEmail}
+                />
+        </>
     );
 }

@@ -9,14 +9,41 @@ import SharingModal from '@/components/UI/SharingModal';
 
 export default function ProfileShareButton({ user, id }: { user: UserStripped, id: string }) {
     const [showShareModal, setShowShareModal] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
     const { language, dictionary } = useLanguage();
+
+    const handleShareClick = async () => {
+        if (isSharing) return; // Prevent multiple simultaneous share attempt
+        if (navigator.share) {
+            try {
+                setIsSharing(true);
+                await navigator.share({
+                    title: user.nickname,
+                    text: phrase(dictionary, "share_profile", language),
+                    url: `${process.env.NEXT_PUBLIC_APP_URL}/profile/${user.id}`
+                });
+            } catch (error) {
+                console.log('Share failed:', error);
+            } finally {
+                setIsSharing(false);
+            }
+        } else {
+            setShowShareModal(true);
+        }
+    }
 
     return (
         <>
             <TooltipProvider delayDuration={0}>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="!no-underline rounded-full" onClick={() => setShowShareModal(true)}>
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="!no-underline rounded-full"
+                            onClick={handleShareClick}
+                            disabled={!user.nickname || isSharing}
+                        >
                             <Share2 className='cursor-pointer' size={20} />
                         </Button>
                     </TooltipTrigger>

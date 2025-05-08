@@ -3,7 +3,6 @@ import { Webnovel, ToonyzPost } from '@/components/Types'
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
-import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Button } from '@/components/shadcnUI/Button'

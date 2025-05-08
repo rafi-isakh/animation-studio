@@ -115,7 +115,7 @@ export default function Home() {
             <footer className="w-full py-4">
               <Button variant="outline" className="w-full flex items-center justify-center  border text-black hover:text-[#D92979] dark:text-white shadow-none">
                 <Link href="/signin">
-                  {phrase(dictionary, "login", language)} · {phrase(dictionary, "signup", language)}
+                  {phrase(dictionary, "do_signup", language)}
                 </Link>
               </Button>
             </footer>

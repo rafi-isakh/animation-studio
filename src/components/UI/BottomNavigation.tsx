@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { Home, LayoutGrid, Search, User } from "lucide-react"
+import { Home, LayoutGrid, Search, User, Grip } from "lucide-react"
 import { useRouter } from 'next/navigation';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { usePathname } from 'next/navigation';
@@ -46,6 +46,10 @@ export default function BottomNavigationBar() {
                     router.push('/signin');
                     setIsMobileMenuOpen(false);
                 }
+                break;
+            case 4:
+                router.push('/sitemap')
+                setIsMobileMenuOpen(false);
                 break;
         }
     };
@@ -99,6 +103,7 @@ export default function BottomNavigationBar() {
                 <BottomNavigationAction label={phrase(dictionary, "feeds", language)} icon={<LayoutGrid />} />
                 <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
                 <BottomNavigationAction label={phrase(dictionary, "profile", language)} icon={<User />} />
+                <BottomNavigationAction label={phrase(dictionary, "allmenu", language)} icon={<Grip />} />
             </BottomNavigation>
         </Paper>
     );

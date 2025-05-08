@@ -1,7 +1,6 @@
 'use client'
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -19,6 +18,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function EditProfileButton({ nickname, setDisplayNickname }: { nickname: string, setDisplayNickname: (nickname: string) => void }) {
   const [value, setValue] = useState(nickname);
@@ -71,7 +71,7 @@ export function EditProfileButton({ nickname, setDisplayNickname }: { nickname: 
       setError('');
       setIsLoading(false);
       setOpen(false);
-      
+
     } catch (error) {
       console.error("Error updating nickname:", error);
     } finally {
@@ -95,14 +95,14 @@ export function EditProfileButton({ nickname, setDisplayNickname }: { nickname: 
           </Tooltip>
         </TooltipProvider>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-white dark:bg-black" showCloseButton>
-        <DialogHeader>
+      <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
+        <DialogHeader className='p-4'>
           <DialogTitle>{phrase(dictionary, "editProfile", language)}</DialogTitle>
           <DialogDescription>
             {phrase(dictionary, "editProfileDescription", language)}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 p-4 mb-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-left">
               {phrase(dictionary, "nickname", language)}
@@ -116,8 +116,21 @@ export function EditProfileButton({ nickname, setDisplayNickname }: { nickname: 
             <Input id="username" value={value} className="col-span-3" onChange={(e) => setValue(e.target.value)} />
           </div>
         </div>
-        <DialogFooter>
-          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>{isLoading ? phrase(dictionary, "saving", language) : phrase(dictionary, "saveChanges", language)}</Button>
+        <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+          >
+            {isLoading ? phrase(dictionary, "saving", language) : phrase(dictionary, "saveChanges", language)}
+          </Button>
+          <Button
+            onClick={() => setOpen(false)}
+            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+          >
+            {phrase(dictionary, "cancel", language)}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

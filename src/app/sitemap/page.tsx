@@ -2,7 +2,7 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, MessageSquare, Star } from "lucide-react"
+import { ChevronRight, MessageSquare } from "lucide-react"
 import { MdStars } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/shadcnUI/Button";
@@ -15,6 +15,7 @@ import { Moon, Sun } from "lucide-react";
 import { Label } from "@/components/shadcnUI/Label";
 import { Switch } from "@/components/shadcnUI/Switch";
 import { ContactForm } from "@/components/UI/FAQ";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const { isLoggedIn, logout } = useAuth();
@@ -31,42 +32,47 @@ export default function Home() {
     <TooltipProvider delayDuration={0}>
       <div className="md:max-w-screen-md w-full mx-auto flex flex-col bg-white dark:bg-[#121212] text-black dark:text-white p-4">
         {/* Header */}
-        <header className="p-4">
+        <header className="md:py-4 py-4">
           <h1 className="text-2xl font-bold">{phrase(dictionary, "moreOptions", language)}</h1>
         </header>
-
         {/* Banner */}
-        {!isLoggedIn ? <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
-          <Link href="/signin">
-            <div className="absolute inset-0 overflow-hidden">
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
-              <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "signup_description", language)}</p>
-              <h2 className="md:text-2xl text-lg font-bold">
-                {/* {phrase(dictionary, "toonyz", language)}{" "} */}   
-                {phrase(dictionary, "do_signup", language)}
-              </h2>
-            </div>
-          </Link>
-        </div> : <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
-          <Link href="/stars">
-            <div className="absolute inset-0 overflow-hidden">
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
-              <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "charge_stars_description", language)}</p>
-              <h2 className="md:text-2xl text-lg font-bold">
-                {phrase(dictionary, "charge_stars", language)}{" "}
-                <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-6 h-6 rounded-full mx-1">
-                  <MdStars className="text-lg md:text-xl text-white" />
-                </span>{" "}
-                {phrase(dictionary, "go_to_charge", language)}
-              </h2>
-            </div>
-          </Link>
-        </div>}
+        {!isLoggedIn ? (
+          <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+            <Link href="/signin">
+              <div className="absolute inset-0 overflow-hidden">
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+                <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "signup_description", language)}</p>
+                <h2 className="md:text-2xl text-lg font-bold">
+                  {/* {phrase(dictionary, "toonyz", language)}{" "} */}
+                  {phrase(dictionary, "do_signup", language)}
+                </h2>
+              </div>
+            </Link>
+          </div>
+        ) : (
+          <div className="relative w-full h-32 bg-[#FECACA] mb-4 rounded-lg">
+            <Link href="/stars">
+              <div className="absolute inset-0 overflow-hidden">
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-black dark:text-black">
+                <p className="md:text-lg text-xs mb-1">{phrase(dictionary, "charge_stars_description", language)}</p>
+                <h2 className="md:text-2xl text-lg font-bold">
+                  {phrase(dictionary, "charge_stars", language)}{" "}
+                  <span className="inline-flex items-center justify-center bg-[#D92979] text-white w-6 h-6 rounded-full mx-1">
+                    <MdStars className="text-lg md:text-xl text-white" />
+                  </span>{" "}
+                  {phrase(dictionary, "go_to_charge", language)}
+                </h2>
+              </div>
+            </Link>
+          </div>
+        )}
 
         {/* Menu Items */}
         <nav className="flex-1">
+          <MenuItem label={phrase(dictionary, "myProfile", language)} href="/my_profile" />
+          <MenuItem label={phrase(dictionary, "newWebnovel", language)} href="/new_webnovel" />
           <MenuItem
             icon={
               <div className="bg-[#D92979] w-6 h-6 rounded-full flex items-center justify-center text-white font-bold">
@@ -76,10 +82,8 @@ export default function Home() {
             label={phrase(dictionary, "stars", language)}
             href="/stars"
           />
-          {/* <MenuItem label="이벤트" /> */}
-          <MenuItem label={phrase(dictionary, "profile", language)} href="/my_profile" />
           <MenuItem label={phrase(dictionary, "redeem_code", language)} href="/stars/redeem" />
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <div>
                 <MenuItem label={phrase(dictionary, "notice", language)} href="#" />
@@ -88,7 +92,7 @@ export default function Home() {
             <TooltipContent side="bottom" >
               <p>{phrase(dictionary, "preparing", language)}</p>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
           <MenuItem label={phrase(dictionary, "contact", language)} href="/faq" />
           {/* {phrase(dictionary, "theme", language)} */}
           <div className="flex flex-row items-center justify-between gap-x-3 p-4 text-base font-normal">
@@ -124,25 +128,29 @@ export default function Home() {
           )}
         </nav>
 
-
         {/* Bottom Buttons */}
         <div className="w-full gap-4">
           <Dialog open={inquiryDialogOpen} onOpenChange={setInquiryDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full flex items-center justify-center dark:bg-zinc-800 hover:text-[#D92979] shadow-none ">
+              <Button variant="outline" className="w-full flex items-center justify-center bg-gray-100 dark:bg-zinc-800 hover:text-[#D92979] shadow-none ">
                 <span>{phrase(dictionary, "inquiry", language)}</span>
                 <MessageSquare size={20} />
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-white dark:bg-black" showCloseButton={true}>
-              <DialogHeader>
-                <DialogTitle>{phrase(dictionary, "inquiry", language)}</DialogTitle>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
+              <DialogHeader className='p-4' >
+                <DialogTitle>
+                  <p className="text-left">{phrase(dictionary, "inquiry", language)}</p>
+                </DialogTitle>
               </DialogHeader>
-              <DialogDescription className="rounded-xl overflow-hidden">
+              <DialogDescription className="w-full h-full">
                 <ContactForm />
               </DialogDescription>
-              <DialogFooter>
-                <Button variant="outline" className="w-full" onClick={() => setInquiryDialogOpen(false)}>
+              <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <Button
+                  onClick={() => setInquiryDialogOpen(false)}
+                  className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                >
                   {phrase(dictionary, "close", language)}
                 </Button>
               </DialogFooter>
@@ -152,6 +160,7 @@ export default function Home() {
             <span>공모전</span>
             <Star size={20} />
           </Button> */}
+          <div className="h-[10vh]"></div>
         </div>
       </div>
     </TooltipProvider>

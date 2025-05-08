@@ -532,27 +532,27 @@ export default function InfoAndPictureComponent({
                                         </Button>
                                     </div>
                                     <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                                            <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none">
-                                                <AlertDialogHeader className='p-4'>
-                                                    <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
-                                                    <Button
-                                                        onClick={onDelete}
-                                                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
-                                                    >
-                                                        {phrase(dictionary, "yes", language)}
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => setShowDeleteModal(false)}
-                                                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                                        <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none">
+                                            <AlertDialogHeader className='p-4'>
+                                                <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
+                                                <Button
+                                                    onClick={onDelete}
+                                                    className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                                                >
+                                                    {phrase(dictionary, "yes", language)}
+                                                </Button>
+                                                <Button
+                                                    onClick={() => setShowDeleteModal(false)}
+                                                    className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
 
-                                                    >
-                                                        {phrase(dictionary, "no", language)}
-                                                    </Button>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                                >
+                                                    {phrase(dictionary, "no", language)}
+                                                </Button>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </>
                             }
                             {/* Premium Info */}
@@ -582,7 +582,13 @@ export default function InfoAndPictureComponent({
                             />
 
                             {/* Not Enough Stars Modal */}
-                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
+                            <NotEnoughStarsDialog
+                                showNotEnoughStarsModal={showNotEnoughStarsModal}
+                                setShowNotEnoughStarsModal={setShowNotEnoughStarsModal}
+                                stars={stars}
+                                content={content}
+                                createMediaPrice={createMediaPrice}
+                            />
 
                         </div>
                     </div>

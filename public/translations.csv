@@ -217,6 +217,8 @@ reportSuccess,신고가 접수되었습니다.,,Report has been submitted.
 reportSuccess_subtitle,신고 사유가 잘 전달되었습니다.,,We will review your report and take appropriate action.
 reportError,신고에 실패했습니다.,,Report failed.
 reportError_subtitle,신고 사유가 잘 전달되지 않았습니다.,,Your report was not sent. Try again later.
+deleteAccountReason,계정 삭제 사유 (선택사항),,Delete Account Reason (Optional)
+deleteAccountReason_subtitle,계정 삭제 사유를 입력해 주세요. 추후 투니즈 플랫폼 운영에 도움이 될 것입니다. (선택사항),,Please enter the reason for deleting your account. It will help us improve the Toonyz platform. (Optional)
 block,차단,,Block
 wouldYouLikeToBlock,차단하시겠습니까?,,Would you like to block this user?
 blockSuccess,차단되었습니다.,,User has been blocked.

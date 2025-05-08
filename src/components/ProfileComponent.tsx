@@ -19,7 +19,6 @@ import {
     Eye,
     ChevronRight,
     ImageUp,
-    UserRoundX,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import WebnovelsCardList from '@/components/WebnovelsCardList';
@@ -57,6 +56,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const pathname = usePathname();
     const [displayNickname, setDisplayNickname] = useState<string>(user.nickname);
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
+    const [deleteAccountReason, setDeleteAccountReason] = useState<string>("");
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -161,13 +161,17 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
             console.error("Deleting account failed");
             return
         }
-
         try {
             const response = await fetch(`/api/delete_account?email=${email}`);
             if (!response.ok) {
                 console.error("Deleting account failed");
                 return;
             }
+            const message = `Deleted user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Deleted at: ${new Date().toISOString()} <br/><br/> Content: ${deleteAccountReason} <br/><br/>`;
+            fetch('/api/send_email', {
+                method: 'POST',
+                body: JSON.stringify({ message: message, email: email, templateType: 'report', subject: 'Survey - Account deletion', staffEmail: 'dami@stelland.io, min@stelland.io' })
+            })
 
             await logout(true, `/`);
         } catch (error) {
@@ -207,7 +211,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
         }
         return "";
     }
-
 
     return (
         <div className={`${id === user.id.toString() ? 'md:max-w-screen-md' : 'md:max-w-screen-xl'}  w-full mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center`}>
@@ -394,6 +397,8 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                 isOpen={showDeleteAccountModal}
                 onClose={() => setShowDeleteAccountModal(false)}
                 onConfirm={handleDeleteAccount}
+                deleteAccountReason={deleteAccountReason}
+                setDeleteAccountReason={setDeleteAccountReason}
             />
         </div >
     );

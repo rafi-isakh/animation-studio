@@ -1,8 +1,7 @@
-// components/AdvancedPDFViewer.jsx
 import { useEffect, useRef, useState } from 'react';
-import Head from 'next/head';
-import * as pdfjsLib from 'pdfjs-dist';
+import dynamic from 'next/dynamic';
 
+// Dynamically import pdfjs-dist with no SSR
 const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -27,20 +26,27 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
 
     // Initialize PDF.js
     useEffect(() => {
-        // Set the worker source
-        //pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+        let pdfjsLib: any;
+        
+        const initPdf = async () => {
+            // Dynamically import pdfjs-dist
+            pdfjsLib = await import('pdfjs-dist');
+            
+            // Set the worker source
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.mjs`;
 
-        // Load the PDF document
-        pdfjsLib.getDocument(pdfUrl).promise
-            .then(newPdfDoc => {
+            // Load the PDF document
+            try {
+                const newPdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
                 setPdfDoc(newPdfDoc);
                 setPageCount(newPdfDoc.numPages);
                 renderPage(1, newPdfDoc);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error loading PDF:', error);
-            });
+            }
+        };
+
+        initPdf();
 
         // Setup fullscreen change event
         const fullscreenChangeHandler = () => {
@@ -333,10 +339,6 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
 
     return (
         <div className="pdf-viewer" ref={containerRef}>
-            <Head>
-                <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/wasm/openjpeg_nowasm_fallback.min.js"></script>
-                <link href="https://cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/web/pdf_viewer.min.css" rel="stylesheet"></link>
-            </Head>
 
             <div className="toolbar">
                 <div className="page-controls">
@@ -486,4 +488,7 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
     );
 };
 
-export default PDFViewer;
+// Export a client-side only version of the component
+export default dynamic(() => Promise.resolve(PDFViewer), {
+    ssr: false
+});

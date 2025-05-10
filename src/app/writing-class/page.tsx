@@ -1,9 +1,7 @@
 'use client';
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Info, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
-import { Language } from "@/components/Types";
+import { Check, Info } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button";
 import { BookCard } from "@/components/UI/writingClass/ui/BookCard";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,7 +14,6 @@ import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton";
 import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton";
 import CountdownTimer from "@/components/UI/writingClass/ui/CountDownTimer";
 import { DrawCircleText } from "@/components/UI/writingClass/ui/DrawCircleText";
-import { useUser } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";

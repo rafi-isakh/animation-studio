@@ -149,7 +149,7 @@ export default function PDFPreviewButton({ language, file_url_en, file_url_ko, i
             ) : previewError ? (
               <div className="text-red-500 text-center">{previewError}</div>
             ) : previewUrl ? (
-              <PDFviewer pdfUrl={previewUrl} />
+              <PDFviewer pdfUrl={previewUrl} language={language} isLoggedIn={isLoggedIn} />
             ) : null}
           </div>
           <DialogFooter className="flex flex-col gap-2 justify-center items-center">

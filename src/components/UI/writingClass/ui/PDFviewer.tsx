@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import pdfjs-dist with no SSR
-const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
+const PDFViewer = ({ pdfUrl, language, isLoggedIn }: { pdfUrl: string, language: string, isLoggedIn?: boolean }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [pdfDoc, setPdfDoc] = useState<{ numPages: number; getPage: (num: number) => Promise<any> } | null>(null);
@@ -23,15 +23,17 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
         height: number;
     }[]>([]);
     const [currentMatch, setCurrentMatch] = useState(-1);
+    const [isBlurred, setIsBlurred] = useState(false);
+    const [showWarning, setShowWarning] = useState(false);
 
     // Initialize PDF.js
     useEffect(() => {
         let pdfjsLib: any;
-        
+
         const initPdf = async () => {
             // Dynamically import pdfjs-dist
             pdfjsLib = await import('pdfjs-dist');
-            
+
             // Set the worker source
             pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.mjs`;
 
@@ -126,11 +128,17 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
 
     const onPrevPage = () => {
         if (pageNum <= 1) return;
+        if (!isLoggedIn && pageNum - 1 > 5) return;
         queueRenderPage(pageNum - 1, pdfDoc);
     };
 
     const onNextPage = () => {
         if (pageNum >= pageCount) return;
+        if (!isLoggedIn && pageNum + 1 > 5) {
+            setIsBlurred(true);
+            setShowWarning(true);
+            return;
+        }
         queueRenderPage(pageNum + 1, pdfDoc);
     };
 
@@ -332,24 +340,46 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
         e.preventDefault();
         const pageToJump = parseInt((e.target as HTMLFormElement).pageNumber.value);
         if (pageToJump && pageToJump > 0 && pageToJump <= pageCount) {
-            queueRenderPage(pageToJump, pdfDoc);
+            if (!isLoggedIn && pageToJump > 5) {
+                setIsBlurred(true);
+                setShowWarning(true);
+                queueRenderPage(5, pdfDoc);
+            } else {
+                queueRenderPage(pageToJump, pdfDoc);
+            }
         }
         (e.target as HTMLFormElement).reset();
     };
 
+    useEffect(() => {
+        if (!isLoggedIn) {
+            // Only show warning and blur if trying to access pages beyond 5
+            if (pageNum > 5) {
+                setIsBlurred(true);
+                setShowWarning(true);
+                queueRenderPage(5, pdfDoc);
+            } else {
+                setIsBlurred(false);
+                setShowWarning(false);
+            }
+        } else {
+            setIsBlurred(false);
+            setShowWarning(false);
+        }
+    }, [isLoggedIn, pdfDoc, pageNum]);
+
     return (
         <div className="pdf-viewer" ref={containerRef}>
-
             <div className="toolbar">
                 <div className="page-controls">
                     <button onClick={onPrevPage} disabled={pageNum <= 1}>
-                        &lt; Prev
+                        &lt;
                     </button>
                     <span className="page-info">
                         Page {pageNum} of {pageCount}
                     </span>
                     <button onClick={onNextPage} disabled={pageNum >= pageCount}>
-                        Next &gt;
+                        &gt;
                     </button>
 
                     <form onSubmit={jumpToPage} className="jump-form">
@@ -396,7 +426,15 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
             </div>
 
             <div className="pdf-container">
-                <canvas ref={canvasRef}></canvas>
+                <canvas ref={canvasRef} className={isBlurred ? 'blurred' : ''}></canvas>
+                {showWarning && (
+                    <div className="warning-overlay">
+                        <div className="warning-message">
+                            {language === 'ko' ? '로그인 후 전체 내용을 볼 수 있습니다.' 
+                                               : 'Please login to view the full content'}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <style jsx>{`
@@ -466,11 +504,37 @@ const PDFViewer = ({ pdfUrl }: { pdfUrl: string }) => {
                 justify-content: start;
                 padding: 20px;
                 background-color: ${isFullscreen ? '#404040' : '#f9f9f9'};
+                position: relative;
                 }
                 
                 canvas {
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 background-color: white;
+                }
+                
+                .blurred {
+                    filter: blur(8px);
+                }
+
+                .warning-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    pointer-events: none;
+                }
+
+                .warning-message {
+                    background-color: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 20px 40px;
+                    border-radius: 8px;
+                    font-size: 24px;
+                    font-weight: bold;
                 }
                 
                 @media (max-width: 768px) {

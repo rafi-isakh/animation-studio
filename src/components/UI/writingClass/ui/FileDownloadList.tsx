@@ -11,7 +11,7 @@ import dynamic from "next/dynamic"
 
 const PDFviewer = dynamic(() => import("@/components/UI/writingClass/ui/PDFviewer"), { ssr: false });
 
-export function FileDownloadList({ language, downloadFiles }: { language: string, downloadFiles: { id: number, name: string, modified: string, size: string, author: string, status: string, file_url_ko: string, file_url_en: string }[] }) {
+export function FileDownloadList({ language, downloadFiles, isLoggedIn }: { language: string, downloadFiles: { id: number, name: string, modified: string, size: string, author: string, status: string, file_url_ko: string, file_url_en: string }[], isLoggedIn: boolean }) {
     const [selectedFiles, setSelectedFiles] = useState<number[]>([])
     const [searchTerm, setSearchTerm] = useState("")
     const [showPreview, setShowPreview] = useState(false)
@@ -402,7 +402,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                     <span className="text-red-500">Error: {previewError}</span>
                                 </div>
                             ) : previewUrl ? (
-                                <PDFviewer pdfUrl={previewUrl} />
+                                <PDFviewer pdfUrl={previewUrl} language={language} isLoggedIn={isLoggedIn} />
                             ) : (
                                 <div className="flex items-center justify-center p-4">
                                     <span className="text-gray-500">No preview available.</span>

@@ -38,7 +38,7 @@ export default function DownloadsPage() {
           </p>
         </div>
       </div>
-      <FileDownloadList language={language} downloadFiles={downloadFiles} />
+      <FileDownloadList language={language} downloadFiles={downloadFiles} isLoggedIn={isLoggedIn} />
       <div className='h-[10vh]'></div>
     </div>
   )

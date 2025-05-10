@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
+import { Dialog, DialogContent, DialogFooter } from "@/components/shadcnUI/Dialog"
 import { useToast } from "@/hooks/use-toast"
 import RoundedButton from "@/components/UI/writingClass/RoundedButton/RoundedButton"
-import { Document, Page, pdfjs } from "react-pdf"
-import { Download, Eye } from "lucide-react"
+import { Download, Loader2 } from "lucide-react"
+import { Button } from "@/components/shadcnUI/Button"
+import dynamic from "next/dynamic"
 
-// pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs'
+const PDFviewer = dynamic(() => import("@/components/UI/writingClass/ui/PDFviewer"), { ssr: false });
 
 export default function PDFPreviewButton({ language, file_url_en, file_url_ko, isLoggedIn }: any) {
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
@@ -43,7 +44,7 @@ export default function PDFPreviewButton({ language, file_url_en, file_url_ko, i
         try {
           const errorData = await response.json()
           errorMsg = errorData.error || errorMsg
-        } catch (e) {}
+        } catch (e) { }
         throw new Error(errorMsg)
       }
 
@@ -117,7 +118,8 @@ export default function PDFPreviewButton({ language, file_url_en, file_url_ko, i
     <>
       {isLoggedIn ? (
         <RoundedButton className="w-[330px] md:mx-0 mx-auto dark:text-black">
-          <Link href="/writing-class/downloads">
+          <Link href="/writing-class/downloads" className="flex items-center gap-2">
+            <Download size={16} />
             {language === "en" ? "Download Free Books" : "무료로 작법서 다운 받기"}
           </Link>
         </RoundedButton>
@@ -127,7 +129,7 @@ export default function PDFPreviewButton({ language, file_url_en, file_url_ko, i
             className="w-[330px] md:mx-0 mx-auto dark:text-black flex items-center justify-center gap-2"
             onClick={() => {
               const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko
-              downloadFile(fileKey)
+              viewFile(fileKey)
             }}
           >
             <Download size={16} />
@@ -137,55 +139,28 @@ export default function PDFPreviewButton({ language, file_url_en, file_url_ko, i
       )}
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="sm:max-w-screen-lg w-full max-h-[90vh] flex flex-col p-0" showCloseButton>
-          <DialogHeader className="p-4 border-b">
-            <DialogTitle>Preview</DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="sm:max-w-screen-lg w-full md:max-h-[90vh] h-full flex flex-col p-0" showCloseButton>
           <div className="flex-1 overflow-auto p-4">
             {isPreviewLoading ? (
-              <div className="flex justify-center items-center h-full">Loading preview...</div>
+              <div className="flex items-center justify-center h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                <span className="ml-2 text-gray-500">Loading preview...</span>
+              </div>
             ) : previewError ? (
               <div className="text-red-500 text-center">{previewError}</div>
             ) : previewUrl ? (
-              <div className="flex flex-col h-full">
-                <Document
-                  file={previewUrl}
-                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                  onLoadError={(error) => {
-                    console.error("PDF loading error:", error)
-                    setPreviewError("Failed to load PDF. Please try again.")
-                  }}
-                  loading={<div className="flex justify-center items-center h-full">Loading PDF...</div>}
-                >
-                  <Page
-                    pageNumber={pageNumber}
-                    width={800}
-                    loading={<div className="flex justify-center items-center h-full">Loading page...</div>}
-                  />
-                </Document>
-                <div className="flex justify-center items-center mt-4 gap-4">
-                  <button
-                    onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
-                    disabled={pageNumber <= 1}
-                    className="px-3 py-1 border rounded disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <span>
-                    Page {pageNumber} of {numPages}
-                  </span>
-                  <button
-                    onClick={() => setPageNumber((prev) => Math.min(prev + 1, numPages || 1))}
-                    disabled={pageNumber >= (numPages || 1)}
-                    className="px-3 py-1 border rounded disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              <PDFviewer pdfUrl={previewUrl} />
             ) : null}
           </div>
+          <DialogFooter className="flex flex-col gap-2 justify-center items-center">
+            <p className="text-sm text-gray-500">
+              {language === 'en' ? 'Chrome and Safari browser is recommended for preview.'
+                : 'PC에서 미리보기 하는 것을 권장합니다.'}
+            </p>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              {language === 'en' ? 'Close' : '닫기'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/shadcnUI/Table"
-import { Checkbox } from "@/components/shadcnUI/Checkbox"
 import { Input } from "@/components/shadcnUI/Input"
 import { Button } from "@/components/shadcnUI/Button"
-import { DownloadIcon, EyeIcon, FilterIcon, MoreHorizontalIcon, RefreshCwIcon, FileIcon, Loader2 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/shadcnUI/DropdownMenu"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
+import { DownloadIcon, EyeIcon, FileIcon, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogFooter } from "@/components/shadcnUI/Dialog"
 import { useToast } from "@/hooks/use-toast"
 import dynamic from "next/dynamic"
 

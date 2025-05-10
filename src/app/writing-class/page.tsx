@@ -326,7 +326,7 @@ export default function WritingClassPage() {
             {language === "en" ? "Introducing the best writing guide books that has received the most love." : "가장 많은 사랑을 받은 베스트 작법서를 소개합니다."}
           </p>
         </div>
-        <BookListCarousel />
+        <BookListCarousel isLoggedIn={isLoggedIn ?? false} />
 
         <DrawCircleText />
 
@@ -340,7 +340,7 @@ export default function WritingClassPage() {
                 {language === "en" ? "Toonyz Writing Guide Series" : "투니즈 작법서 시리즈"}
               </h2>
             </div>
-            <BookShelf />
+            <BookShelf isLoggedIn={isLoggedIn ?? false} />
           </section>
         </div>
       </section>

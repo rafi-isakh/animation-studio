@@ -6,7 +6,7 @@ import { CourseBook } from "@/components/Types"
 import { useLanguage } from "@/contexts/LanguageContext";
 import BookDetailDialog from "@/components/UI/writingClass/ui/BookDetailDialog"
 
-export default function BookShelf() {
+export default function BookShelf({ isLoggedIn }: { isLoggedIn: boolean }) {
     const { language } = useLanguage();
     const [selectedBook, setSelectedBook] = useState<CourseBook | null>(null);
     const books: CourseBook[] = [
@@ -127,7 +127,7 @@ export default function BookShelf() {
             <ScrollBar orientation="horizontal" />
             {/* Render ONE Dialog conditionally, outside the map */}
             <Dialog open={!!selectedBook} onOpenChange={(isOpen) => !isOpen && setSelectedBook(null)}>
-               <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} language={language} />
+               <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} language={language} isLoggedIn={isLoggedIn} />
             </Dialog>
         </ScrollArea >
     )

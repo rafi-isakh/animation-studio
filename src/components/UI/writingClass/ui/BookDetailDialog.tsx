@@ -5,17 +5,17 @@ import { Button } from "@/components/shadcnUI/Button";
 import Image from "next/image";
 import { CourseBook } from "@/components/Types";
 import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface BookDetailDialogProps {
     selectedBook: CourseBook | null;
     setSelectedBook: (book: CourseBook | null) => void;
     language: string;
+    isLoggedIn: boolean;
 }
 
-export default function BookDetailDialog({ selectedBook, setSelectedBook, language }: BookDetailDialogProps) {
+export default function BookDetailDialog({ selectedBook, setSelectedBook, language, isLoggedIn }: BookDetailDialogProps) {
     if (!selectedBook) return null;
-    const { isLoggedIn } = useAuth();
+
     return (
         <DialogContent className="bg-white sm:h-[95vh] md:h-[70vh] lg:h-[70vh] xl:h-[70vh] h-full" showCloseButton={true}>
             <DialogHeader>

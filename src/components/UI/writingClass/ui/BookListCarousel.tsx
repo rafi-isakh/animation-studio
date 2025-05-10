@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import BookDetailDialog from "@/components/UI/writingClass/ui/BookDetailDialog";
 import { CourseBook } from "@/components/Types";
 import Link from "next/link";
-export function BookListCarousel() {
+export function BookListCarousel({ isLoggedIn }: { isLoggedIn: boolean }) {
   const { language } = useLanguage();
   const categories: CourseBook[] = [
     {
@@ -151,7 +151,7 @@ export function BookListCarousel() {
                 />
               </Link>
              <Dialog open={!!selectedBook} onOpenChange={(isOpen) => !isOpen && setSelectedBook(null)}>
-              <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} language={language} />
+              <BookDetailDialog selectedBook={selectedBook} setSelectedBook={setSelectedBook} language={language} isLoggedIn={isLoggedIn} />
             </Dialog>
           </div>
         ))}

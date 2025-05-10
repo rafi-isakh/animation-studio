@@ -8,8 +8,10 @@ import { Button } from "@/components/shadcnUI/Button"
 import { DownloadIcon, EyeIcon, FilterIcon, MoreHorizontalIcon, RefreshCwIcon, FileIcon, Loader2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/shadcnUI/DropdownMenu"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
-// import Markdown from "marked-react"
 import { useToast } from "@/hooks/use-toast"
+import dynamic from "next/dynamic"
+
+const PDFviewer = dynamic(() => import("@/components/UI/writingClass/ui/PDFviewer"), { ssr: false });
 
 export function FileDownloadList({ language, downloadFiles }: { language: string, downloadFiles: { id: number, name: string, modified: string, size: string, author: string, status: string, file_url_ko: string, file_url_en: string }[] }) {
     const [selectedFiles, setSelectedFiles] = useState<number[]>([])
@@ -299,12 +301,6 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            {/* <TableHead className="w-12">
-                                <Checkbox
-                                    checked={selectedFiles.length === filteredFiles.length && filteredFiles.length > 0}
-                                    onCheckedChange={toggleSelectAll}
-                                />
-                            </TableHead> */}
                             <TableHead>Name</TableHead>
                             <TableHead className="hidden md:table-cell">Modified</TableHead>
                             <TableHead className="hidden md:table-cell">Size</TableHead>
@@ -317,12 +313,6 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                             filteredFiles.map((file) =>
                                 file.status === "available" ? (
                                     <TableRow key={file.id}>
-                                        {/* <TableCell>
-                                            <Checkbox
-                                                checked={selectedFiles.includes(file.id)}
-                                                onCheckedChange={() => toggleSelectFile(file.id)}
-                                            />
-                                        </TableCell> */}
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 <FileIcon className="h-5 w-5 text-red-500" />
@@ -363,13 +353,6 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                     </TableRow>
                                 ) : (
                                     <TableRow key={file.id}>
-                                        {/* <TableCell>
-                                            <Checkbox
-                                                checked={selectedFiles.includes(file.id)}
-                                                onCheckedChange={() => toggleSelectFile(file.id)}
-                                                disabled
-                                            />
-                                        </TableCell> */}
                                         <TableCell className="font-medium text-gray-300">
                                             <div className="flex items-center gap-2">
                                                 <FileIcon className="h-5 w-5 text-red-500" />
@@ -403,14 +386,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                 </Table>
 
                 <Dialog open={showPreview} onOpenChange={setShowPreview}>
-                    <DialogContent
-                        className="sm:max-w-screen-lg w-full max-h-[90vh] flex flex-col p-0"
-                        showCloseButton={true}
-                    >
-                        <DialogHeader className="p-4 border-b">
-                            <DialogTitle>Preview</DialogTitle>
-                        </DialogHeader>
-
+                    <DialogContent className="md:max-w-screen-xl w-full md:max-h-[90vh] h-full flex flex-col p-0">
                         <div
                             className="flex-grow overflow-y-auto p-0 m-0"
                             style={{
@@ -419,7 +395,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                             }}
                         >
                             {isPreviewLoading ? (
-                                <div className="flex items-center justify-center min-h-[200px]">
+                                <div className="flex items-center justify-center h-screen">
                                     <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
                                     <span className="ml-2 text-gray-500">Loading preview...</span>
                                 </div>
@@ -428,11 +404,7 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                                     <span className="text-red-500">Error: {previewError}</span>
                                 </div>
                             ) : previewUrl ? (
-                                <iframe
-                                    src={`${previewUrl}#toolbar=0&navpanes=0`}
-                                    className="w-full min-h-[500px] border-0"
-                                    title="PDF Preview"
-                                />
+                                <PDFviewer pdfUrl={previewUrl} />
                             ) : (
                                 <div className="flex items-center justify-center p-4">
                                     <span className="text-gray-500">No preview available.</span>
@@ -441,7 +413,8 @@ export function FileDownloadList({ language, downloadFiles }: { language: string
                         </div>
                         <DialogFooter className="flex flex-col gap-2 justify-center items-center">
                             <p className="text-sm text-gray-500">
-                                {language === 'en' ? 'Chrome and Safari browser is recommended for preview.' : 'PC에서 미리보기 하는 것을 권장합니다.'}
+                                {language === 'en' ? 'Chrome and Safari browser is recommended for preview.' 
+                                                   : 'PC에서 미리보기 하는 것을 권장합니다.'}
                             </p>
                             <Button variant="outline" onClick={() => setShowPreview(false)}>
                                 {language === 'en' ? 'Close' : '닫기'}

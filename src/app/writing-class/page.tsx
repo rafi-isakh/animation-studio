@@ -76,7 +76,7 @@ export default function WritingClassPage() {
       // For PDF viewer, we need to create a blob URL
       const pdfBlob = await response.blob();
       const pdfObjectUrl = URL.createObjectURL(pdfBlob);
-      
+
       // Add the toolbar and navpanes parameters to the URL
       const viewerUrl = `${pdfObjectUrl}#toolbar=1&navpanes=1`;
       setPreviewUrl(viewerUrl);
@@ -185,7 +185,14 @@ export default function WritingClassPage() {
             {language === "en" ? <><span className="">For webnovel writing beginners</span>, <br /> we have prepared free e-books and tips.</>
               : <>웹소설 입문자를 위한 무료 작법서와 팁들이 준비 되었습니다. <br /> 투니즈와 함께 글쓰기 실력을 키워보세요.</>}
           </p>
-          <PDFviewButton language={language} file_url_en={file_url_en} file_url_ko={file_url_ko} isLoggedIn={isLoggedIn} />
+          <PDFviewButton
+            mode="page"
+            language={language}
+            title={language === "en" ? "Download Free Book" : "무료로 작법서 다운받기"}
+            file_url_en={file_url_en}
+            file_url_ko={file_url_ko}
+            isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
+          />
           <p className="w-fit text-sm text-gray-500 md:mx-0 mx-auto pt-4">
             {language === "en" ? "Join Toonyz to get all free books :)"
               : <>투니즈에 회원 가입하고 지금 바로 모든 작법서를 다운 받으세요.</>}
@@ -405,12 +412,16 @@ export default function WritingClassPage() {
           </div>
 
           <div className="py-16">
-            <RoundedButton className='w-[330px] mx-auto'>
-              <Link href="/writing-class/downloads">
-                {language === "en" ? "Download Free e-book"
-                  : "무료로 5강 다운로드 받기"}
-              </Link>
-            </RoundedButton>
+            <div className="flex justify-center">
+              <PDFviewButton
+                mode="page"
+                language={language}
+                title={language === "en" ? "Download Free e-book" : "무료로 5강 다운로드 받기"}
+                file_url_en={file_url_en}
+                file_url_ko={file_url_ko}
+                isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
+              />
+            </div>
             <p className="mt-4 text-sm">
               {language === "en" ? "Easy login to download"
                 : "간편 로그인으로 바로 다운로드 가능해요"}
@@ -578,6 +589,7 @@ export default function WritingClassPage() {
 
         </div>
       </section> */}
+
       <section className="container mx-auto px-4 py-16 md:py-24">
         <FaqSection />
       </section>

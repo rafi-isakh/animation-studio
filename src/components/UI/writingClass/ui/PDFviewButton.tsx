@@ -11,7 +11,7 @@ import dynamic from "next/dynamic"
 
 const PDFviewer = dynamic(() => import("@/components/UI/writingClass/ui/PDFviewer"), { ssr: false });
 
-export default function PDFPreviewButton({ language, file_url_en, file_url_ko, isLoggedIn }: any) {
+export default function PDFPreviewButton({ language, file_url_en, file_url_ko, isLoggedIn, mode = 'page', title }: { language: string, file_url_en: string, file_url_ko: string, isLoggedIn?: boolean, mode?: 'page' | 'modal', title?: string }) {
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
@@ -116,30 +116,43 @@ export default function PDFPreviewButton({ language, file_url_en, file_url_ko, i
 
   return (
     <>
-      {isLoggedIn ? (
-        <RoundedButton className="w-[330px] md:mx-0 mx-auto dark:text-black">
-          <Link href="/writing-class/downloads" className="flex items-center gap-2">
-            <Download size={16} />
-            {language === "en" ? "Download Free Books" : "무료로 작법서 다운 받기"}
-          </Link>
-        </RoundedButton>
-      ) : (
-        <div className="flex flex-col sm:flex-row gap-2">
-          <RoundedButton
-            className="w-[330px] md:mx-0 mx-auto dark:text-black flex items-center justify-center gap-2"
-            onClick={() => {
-              const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko
-              viewFile(fileKey)
-            }}
-          >
-            <Download size={16} />
-            {language === "en" ? "Download Free Book" : "무료로 작법서 다운받기"}
+      {mode === 'page' ? (
+        isLoggedIn ? (
+          <RoundedButton className="w-[330px] md:mx-0 mx-auto dark:text-black">
+            <Link href="/writing-class/downloads" className="flex items-center gap-2">
+              <Download size={16} />
+              {language === "en" ? "Download Free Books" : "무료로 작법서 다운 받기"}
+            </Link>
           </RoundedButton>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <RoundedButton
+              className="w-[330px] md:mx-0 mx-auto dark:text-black flex items-center justify-center gap-2"
+              onClick={() => {
+                const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko
+                viewFile(fileKey)
+              }}
+            >
+              <Download size={16} />
+              {title}
+            </RoundedButton>
+          </div>
+        )
+      ) : mode === 'modal' ? (
+        <Button
+          variant="outline"
+          onClick={() => {
+            const fileKey = language === "ko" ? file_url_ko : file_url_en || file_url_ko
+            viewFile(fileKey)
+          }}
+          className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer"
+          >
+          {title}
+        </Button>
+      ) : null}
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="sm:max-w-screen-lg w-full md:max-h-[90vh] h-full flex flex-col p-0" showCloseButton>
+        <DialogContent className="sm:max-w-screen-lg w-full md:max-h-[90vh] h-full flex flex-col p-0 bg-white" showCloseButton>
           <div className="flex-1 overflow-auto p-4">
             {isPreviewLoading ? (
               <div className="flex items-center justify-center h-screen">

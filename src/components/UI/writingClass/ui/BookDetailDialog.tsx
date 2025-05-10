@@ -4,12 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/shadcnUI/Button";
 import Image from "next/image";
 import { CourseBook } from "@/components/Types";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-  } from "@/components/shadcnUI/Tooltip"
+import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BookDetailDialogProps {
     selectedBook: CourseBook | null;
@@ -19,7 +15,7 @@ interface BookDetailDialogProps {
 
 export default function BookDetailDialog({ selectedBook, setSelectedBook, language }: BookDetailDialogProps) {
     if (!selectedBook) return null;
-
+    const { isLoggedIn } = useAuth();
     return (
         <DialogContent className="bg-white md:h-[95vh] lg:h-[60vh] xl:h-[60vh] h-full" showCloseButton={true}>
             <DialogHeader>
@@ -37,38 +33,34 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook, langua
                     <p className="text-sm opacity-80">{language === "en" ? selectedBook.subtitle_en : selectedBook.subtitle}</p>
                     <DialogDescription>
                         <span className="text-sm opacity-80">
-                          {language === "en" ? selectedBook.description_en : selectedBook.description}
+                            {language === "en" ? selectedBook.description_en : selectedBook.description}
                         </span>
                     </DialogDescription>
                 </div>
             </ScrollArea>
             <DialogFooter className="flex flex-row gap-2 !justify-center !items-center">
-                <Button 
-                 variant="outline"
-                 onClick={() => setSelectedBook(null)} 
-                 className="bg-black hover:bg-black/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
+                <Button
+                    variant="outline"
+                    onClick={() => setSelectedBook(null)}
+                    className="bg-black hover:bg-black/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
                     {language === "en" ? "Close" : "닫기"}
                 </Button>
-              {selectedBook.id === 5 ? (
-                <Button variant="outline" className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
-                    <Link href="/writing-class/downloads">
-                        {language === "en" ? "Download" : "다운받기"}
-                    </Link>
-                </Button>
-              ) : (
-                <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="outline" className="bg-gray-700 hover:bg-700/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
-                             {language === "en" ? "Not available" : "준비 중"}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{language === "en" ? "This book is not available for purchase" : "이 책은 준비중 입니다."}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-              )}  
+                {selectedBook.id === 5 ? (
+                    <Button variant="outline" className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
+                        <Link href="/writing-class/downloads">
+                            {language === "en" ? "Download" : "다운받기"}
+                        </Link>
+                    </Button>
+                ) : (
+                    <PDFviewButton
+                        mode="modal"
+                        language={language}
+                        title={language === "en" ? "Download" : "무료로 다운받기"}
+                        file_url_en={selectedBook.file_url_en || ""}
+                        file_url_ko={selectedBook.file_url_ko || ""}
+                        isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
+                    />
+                )}
             </DialogFooter>
         </DialogContent>
     )

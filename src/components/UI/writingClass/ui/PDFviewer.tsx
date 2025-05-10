@@ -402,7 +402,7 @@ const PDFViewer = ({ pdfUrl, language, isLoggedIn }: { pdfUrl: string, language:
                     <button onClick={toggleFullscreen} title="Toggle Fullscreen">
                         {isFullscreen ? '↙' : '↗'}
                     </button>
-                    <button onClick={handlePrint} title="Print">🖨️</button>
+                    {/* <button onClick={handlePrint} title="Print">🖨️</button> */}
                 </div>
 
                 <div className="search-controls">

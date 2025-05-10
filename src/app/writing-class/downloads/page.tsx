@@ -33,12 +33,13 @@ export default function DownloadsPage() {
         <div>
           <h1 className="text-3xl font-semibold text-gray-800">Download Files</h1>
           <p className="text-gray-500 mt-1">
-            {language === "en" ? <>Hi {nickname}</>
-              : <>{nickname}님 안녕하세요! 다운로드 가능한 파일이 {downloadFiles.filter((file) => file.status === "available").length}개 있습니다.</>}
+            {language === "en" ? <>Hi {nickname}, you can download {downloadFiles.filter((file) => file.status === "available").length} files</>
+              : <>{nickname}님 안녕하세요! 다운로드 가능한 파일이 {downloadFiles.filter((file) => file.status === "available").length}개 있습니다</>}
           </p>
         </div>
       </div>
       <FileDownloadList language={language} downloadFiles={downloadFiles} />
+      <div className='h-[10vh]'></div>
     </div>
   )
 }

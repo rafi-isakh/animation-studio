@@ -4,8 +4,7 @@ import { useState } from "react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/shadcnUI/Button"
-import Link from "next/link"
+import PDFviewButton from "@/components/UI/writingClass/ui/PDFviewButton"
 
 interface Book {
   id: string
@@ -21,6 +20,8 @@ interface Book {
   originalPrice?: number
   salePrice?: number
   genre?: string[]
+  file_url_ko?: string
+  file_url_en?: string
 }
 
 interface TabData {
@@ -30,7 +31,7 @@ interface TabData {
   books: Book[]
 }
 
-export function BookTab() {
+export function BookTab({ isLoggedIn } : { isLoggedIn: boolean }) {
 
   const tabs: TabData[] = [
     {
@@ -50,8 +51,10 @@ export function BookTab() {
           description_en: "Start your journey as a web novel writer. It's not easy, but it's rewarding. Don't worry about being perfect, just start. We'll guide you systematically with the help of our content experts.",
           coverImage: "/writing-class/images/bookcover/book1.svg",
           coverColor: "bg-[#DBE9FE]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_1_ko.pdf",
+          file_url_en: "writing_guide_1_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
         {
           id: "writing-2",
@@ -65,8 +68,10 @@ export function BookTab() {
           description_en: "We'll guide you systematically with the help of our content experts.",
           coverImage: "/writing-class/images/bookcover/book2.svg",
           coverColor: "bg-[#FFE020]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_2_ko.pdf",
+          file_url_en: "writing_guide_2_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
         {
           id: "writing-3",
@@ -80,8 +85,10 @@ export function BookTab() {
           description_en: "Typically, we're used to the same old stories. But, we can create a creative stories that captivate readers.",
           coverImage: "/writing-class/images/bookcover/book3.svg",
           coverColor: "bg-[#E8D4FF]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_3_ko.pdf",
+          file_url_en: "writing_guide_3_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
         {
           id: "writing-4",
@@ -95,8 +102,10 @@ export function BookTab() {
           description_en: "There are many ways to create a character. But, we can create a vivid character that captivate readers.",
           coverImage: "/writing-class/images/bookcover/book4.svg",
           coverColor: "bg-[#DCFCE5]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_4_ko.pdf",
+          file_url_en: "writing_guide_4_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
         {
           id: "writing-5",
@@ -110,8 +119,10 @@ export function BookTab() {
           description_en: "The beginning of the story is the most important part. We'll guide you a gripping first sentence to captivate your readers.",
           coverImage: "/writing-class/images/bookcover/book5.svg",
           coverColor: "bg-[#FED6A7]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_5_ko.pdf",
+          file_url_en: "writing_guide_5_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
         {
           id: "writing-6",
@@ -125,8 +136,10 @@ export function BookTab() {
           description_en: "The art of editing and revising to elevate your work, and tips to make a perfect work.",
           coverImage: "/writing-class/images/bookcover/book6.svg",
           coverColor: "bg-[#FCCEE8]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_6_ko.pdf",
+          file_url_en: "writing_guide_6_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
         {
           id: "writing-7",
@@ -140,8 +153,10 @@ export function BookTab() {
           description_en: "The best way to market your web novel!",
           coverImage: "/writing-class/images/bookcover/book7.svg",
           coverColor: "bg-[#8EC4FF]",
-          originalPrice: 49,
-          salePrice: 19,
+          file_url_ko: "writing_guide_7_ko.pdf",
+          file_url_en: "writing_guide_7_en.pdf",
+          originalPrice: 20,
+          salePrice: 0,
         },
       ],
     },
@@ -215,20 +230,14 @@ export function BookTab() {
                   <h1 className="text-xl font-bold">{language === "en" ? book.subtitle_en : book.subtitle}</h1>
                   <p className="text-lg whitespace-pre-line break-keep">{language === "en" ? book.description_en : book.description}</p>
                   <div className="flex">
-                    {book.id === "writing-5" ? (
-                      <Button
-                        variant="outline"
-                        className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white text-center p-4 text-xl font-bold cursor-pointer">
-                        <Link href="/writing-class/downloads">
-                          {language === "en" ? "Download" : "다운받기"}
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        className="text-black hover:bg-black hover:text-white text-center p-4 text-xl font-bold cursor-pointer">
-                        {language === "en" ? "Not available" : "준비중"}
-                      </Button>)}
+                    <PDFviewButton
+                      mode="modal"
+                      language={language}
+                      title={language === "en" ? "Preview" : "미리보기"}
+                      file_url_en={book.file_url_en || ""}
+                      file_url_ko={book.file_url_ko || ""}
+                      isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
+                    />
                   </div>
                 </div>
               </div>
@@ -244,15 +253,14 @@ export function BookTab() {
               <p className="text-gray-600 mb-4 line-clamp-2">
                 {language === "en" ? book.subtitle_en : book.subtitle}
               </p>
-              {/* <div className="flex items-center gap-2">
-                <span className="text-gray-400 line-through">
-                  ${book.originalPrice}
-                </span>
-                <span className="text-xl font-bold text-gray-800">
-                  ${book.salePrice}
-                  Free
-                </span>
-              </div> */}
+              <div className="flex flex-col md:items-start md:justify-start items-center gap-2">
+                <span className="text-gray-400 line-through text-xs">
+                  Amazon Kindle ${book.originalPrice}
+                </span> 
+                <p className="text-md font-bold text-gray-800">
+                  {book.salePrice === 0 ? language === "en" ? <>Free</> : <>투니즈 회원 무료 다운로드</> : <>${book.salePrice}</>}
+                </p>
+              </div>
             </div>
           </div>
         ))}

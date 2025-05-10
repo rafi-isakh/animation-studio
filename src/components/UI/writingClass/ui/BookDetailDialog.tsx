@@ -17,7 +17,7 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook, langua
     if (!selectedBook) return null;
     const { isLoggedIn } = useAuth();
     return (
-        <DialogContent className="bg-white md:h-[95vh] lg:h-[60vh] xl:h-[60vh] h-full" showCloseButton={true}>
+        <DialogContent className="bg-white sm:h-[95vh] md:h-[70vh] lg:h-[70vh] xl:h-[70vh] h-full" showCloseButton={true}>
             <DialogHeader>
                 <DialogTitle>{language === "en" ? "View details" : "살펴 보기"}</DialogTitle>
             </DialogHeader>
@@ -45,13 +45,6 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook, langua
                     className="bg-black hover:bg-black/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
                     {language === "en" ? "Close" : "닫기"}
                 </Button>
-                {selectedBook.id === 5 ? (
-                    <Button variant="outline" className="bg-[#DE2B74] hover:bg-[#DE2B74]/40 text-white font-semibold px-8 py-6 text-lg cursor-pointer">
-                        <Link href="/writing-class/downloads">
-                            {language === "en" ? "Download" : "다운받기"}
-                        </Link>
-                    </Button>
-                ) : (
                     <PDFviewButton
                         mode="modal"
                         language={language}
@@ -60,7 +53,6 @@ export default function BookDetailDialog({ selectedBook, setSelectedBook, langua
                         file_url_ko={selectedBook.file_url_ko || ""}
                         isLoggedIn={isLoggedIn === null ? undefined : isLoggedIn}
                     />
-                )}
             </DialogFooter>
         </DialogContent>
     )

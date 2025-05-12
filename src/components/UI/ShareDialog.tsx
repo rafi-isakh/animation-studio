@@ -15,7 +15,7 @@ import { useState } from "react";
 
 export default function ShareDialog({
     url,
-    title = "Share link",
+    title = "Share",
     description = "Share the link with your friends and family.",
     mode = "share",
     shareImage,
@@ -106,7 +106,7 @@ export default function ShareDialog({
                 ) : <></>
             }
             <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
-                <Button
+                {mode === "share" && url && <Button
                     onClick={() => { 
                         if (url) {
                             copyToClipboard(url);
@@ -120,7 +120,7 @@ export default function ShareDialog({
                             ? phrase(dictionary, "copied", language)
                             : phrase(dictionary, "copyLink", language)
                         }
-                </Button>
+                </Button>}
                 <DialogClose asChild>
                     <Button
                         className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}

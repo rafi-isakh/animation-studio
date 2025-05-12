@@ -8,6 +8,11 @@ import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import WatermarkedImage from "@/utils/watermark";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { useState } from "react";
+
 export default function ShareDialog({
     url,
     title = "Share link",
@@ -25,21 +30,23 @@ export default function ShareDialog({
 }) {
     const { toast } = useToast();
     const copyToClipboard = useCopyToClipboard();
+    const { dictionary, language } = useLanguage();
+    const [copied, setCopied] = useState(false);
 
     return (
         <DialogContent
+            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
             showCloseButton={true}
-            className="sm:max-w-md bg-white dark:bg-[#211F21] select-none"
             onOpenAutoFocus={(e) => e.preventDefault()}
         >
-            <DialogHeader>
-                <DialogTitle>{title}</DialogTitle>
-                <DialogDescription>
+            <DialogHeader className='p-4'>
+                <DialogTitle className='text-lg'>{title}</DialogTitle>
+                <DialogDescription className='text-sm'>
                     {description}
                 </DialogDescription>
             </DialogHeader>
             {mode === "share" && url ? (
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-2 p-4">
                     {shareImage && (
                         mediaType === 'image' ? (
                             <div className="overflow-hidden rounded-lg">
@@ -98,10 +105,27 @@ export default function ShareDialog({
                     </div>
                 ) : <></>
             }
-            <DialogFooter className="sm:justify-start">
+            <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <Button
+                    onClick={() => { 
+                        if (url) {
+                            copyToClipboard(url);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                        }
+                    }}
+                    className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                >
+                    {copied
+                            ? phrase(dictionary, "copied", language)
+                            : phrase(dictionary, "copyLink", language)
+                        }
+                </Button>
                 <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                        Close
+                    <Button
+                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                    >
+                        {phrase(dictionary, "close", language)}
                     </Button>
                 </DialogClose>
             </DialogFooter>

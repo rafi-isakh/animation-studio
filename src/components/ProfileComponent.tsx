@@ -36,7 +36,6 @@ import ToonyzPostCardList from '@/components/UI/ToonyzPostCardList';
 import DeleteAccountButton from './UI/DeleteAccountButton';
 
 const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
-
     const { language, dictionary } = useLanguage();
     const introRef = useRef<HTMLDivElement>(null);
     const novelsRef = useRef<HTMLDivElement>(null);
@@ -58,6 +57,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
     const [deleteAccountReason, setDeleteAccountReason] = useState<string>("");
     const [deleteAccountReasonType, setDeleteAccountReasonType] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -158,6 +158,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     };
 
     const handleDeleteAccount = async () => {
+        setIsLoading(true);
         if (id !== user.id.toString()) {
             console.error("Deleting account failed");
             return
@@ -173,13 +174,14 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                 method: 'POST',
                 body: JSON.stringify({ message: message, email: email, templateType: 'report', subject: 'Survey - Account deletion', staffEmail: 'dami@stelland.io, min@stelland.io' })
             })
-
             await logout(true, `/`);
         } catch (error) {
             console.error('Error signing out:', error);
+            setIsLoading(false);
         }
         finally {
             setShowDeleteAccountModal(false);
+            setIsLoading(false);
         }
     }
 
@@ -402,6 +404,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                 setDeleteAccountReason={setDeleteAccountReason}
                 deleteAccountReasonType={deleteAccountReasonType}
                 setDeleteAccountReasonType={setDeleteAccountReasonType}
+                isLoading={isLoading}
             />
         </div >
     );

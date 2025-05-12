@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/shadcnUI/Textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/shadcnUI/RadioGroup';
 import { Label } from '@/components/shadcnUI/Label';
+import { Loader2 } from 'lucide-react';
 
 interface DeleteAccountModalProps {
     isOpen: boolean;
@@ -17,6 +18,7 @@ interface DeleteAccountModalProps {
     setDeleteAccountReason: (deleteAccountReason: string) => void;
     deleteAccountReasonType: string;
     setDeleteAccountReasonType: (deleteAccountReasonType: string) => void;
+    isLoading: boolean;
 }
 
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
@@ -26,7 +28,8 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
     deleteAccountReason,
     setDeleteAccountReason,
     deleteAccountReasonType,
-    setDeleteAccountReasonType
+    setDeleteAccountReasonType,
+    isLoading
 }) => {
     const { language, dictionary } = useLanguage();
 
@@ -107,7 +110,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                         onClick={onConfirm}
                         className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                     >
-                        {phrase(dictionary, "yes", language)}
+                        {isLoading ? <Loader2 className="animate-spin" /> : phrase(dictionary, "yes", language)}
                     </Button>
                     <Button
                         onClick={onClose}

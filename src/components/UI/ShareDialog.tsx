@@ -35,7 +35,7 @@ export default function ShareDialog({
 
     return (
         <DialogContent
-            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
+            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none'
             showCloseButton={true}
             onOpenAutoFocus={(e) => e.preventDefault()}
         >
@@ -46,10 +46,10 @@ export default function ShareDialog({
                 </DialogDescription>
             </DialogHeader>
             {mode === "share" && url ? (
-                <div className="flex flex-col items-center gap-2 p-4">
+                <div className="flex flex-col items-center gap-2 p-4 overflow-y-auto">
                     {shareImage && (
                         mediaType === 'image' ? (
-                            <div className="overflow-hidden rounded-lg">
+                            <div className="rounded-lg">
                                 <WatermarkedImage
                                     imageUrl={getImageUrl(shareImage)}
                                     watermarkUrl="/toonyz_logo_white.svg"
@@ -63,7 +63,7 @@ export default function ShareDialog({
                                 />
                             </div>
                         ) : mediaType === 'video' ? (
-                            <div className="overflow-hidden rounded-lg">
+                            <div className="rounded-lg ">
                                 <video src={getVideoUrl(shareImage)} playsInline muted loop autoPlay className="object-contain rounded-lg" />
                             </div>
                         ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
@@ -90,7 +90,7 @@ export default function ShareDialog({
                         </Button>
                     </div>
                 </div>) : mode === "shareToSocialMedia" ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 p-4 overflow-y-auto h-full">
                         {shareImage && (
                             <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
                                 <Image

@@ -47,7 +47,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
   const [content, setContent] = useState(post.content || "");
   const [tags, setTags] = useState<string[]>(post.tags ? post.tags.split(',') : []);
   const [tagInput, setTagInput] = useState("");
-
+  const [isSharing, setIsSharing] = useState(false);
   const handleDeletePost = async (postId: string) => {
     try {
       const response = await fetch(`/api/delete_toonyz_post?id=${postId}`, {
@@ -157,6 +157,26 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
     }
   }
 
+  const handleShareClick = async () => {
+    if (isSharing) return; // Prevent multiple simultaneous share attempt
+    if (navigator.share) {
+        try {
+            setIsSharing(true);
+            await navigator.share({
+                title: title,
+                text: phrase(dictionary, "share_post", language),
+                url: `${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`
+            });
+        } catch (error) {
+            console.log('Share failed:', error);
+        } finally {
+            setIsSharing(false);
+        }
+    } else {
+        setShowShareDialog(true);
+    }
+}
+
   return (
     <>
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
@@ -172,7 +192,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setShowShareDialog(true);
+                handleShareClick();
               }}
               className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
               <Share2 size={10} className="dark:text-white text-gray-500" />

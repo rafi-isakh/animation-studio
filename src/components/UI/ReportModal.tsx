@@ -31,7 +31,9 @@ export default function ReportModal({
     return (
         <>
             <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
-                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                >
                     <DialogHeader className='p-4'>
                         <DialogTitle>
                             <p className="text-center">{phrase(dictionary, "report", language)}</p>
@@ -39,13 +41,13 @@ export default function ReportModal({
                     </DialogHeader>
                     <DialogDescription className='flex flex-col items-center justify-center gap-4 p-4'>
                         <p className='text-lg font-bold'>{phrase(dictionary, "wouldYouLikeToReport", language)}</p>
-                        <Textarea 
-                            rows={4} 
-                            className='w-full p-4' 
-                            placeholder={phrase(dictionary, "reportReason", language)} 
-                            value={reportMessage} 
+                        <Textarea
+                            rows={4}
+                            className='w-full p-4'
+                            placeholder={phrase(dictionary, "reportReason", language)}
+                            value={reportMessage}
                             onChange={(e) => setReportMessage(e.target.value)}
-                         />
+                        />
                     </DialogDescription>
                     <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
                         <Button

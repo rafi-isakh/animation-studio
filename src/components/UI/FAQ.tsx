@@ -8,8 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-
-
+import { Loader2 } from "lucide-react"
 
 interface FaqItem {
     question_ko: string
@@ -24,58 +23,64 @@ export const ContactForm = () => {
     const [email, setEmail] = useState("")
     const [userMessage, setUserMessage] = useState("")
     const { dictionary, language } = useLanguage()
+    const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        if (name === "" || email === "" || userMessage === "") {
+            toast({
+                title: "Please fill in all fields",
+                description: "Please fill in all fields",
+                variant: "destructive",
+            })
+            return
+        }
         sendMessage()
     }
 
-    function sendMessage() {
+    async function sendMessage() {
+        setIsLoading(true);
         const message = `Name: ${name} <br/> Email: ${email} <br/> Message: ${userMessage}`;
-        fetch("/api/send_email", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                staffEmail: 'dami@stelland.io, min@stelland.io, lisa@stelland.io',
-                message: message,
-                subject: "Report - FAQ",
-                templateType: 'report'
-            })
-        })
-            .then(response => {
-                // Check if the response was successful (status code 200-299)
-                if (!response.ok) {
-                    // If not OK, try to read error as text or throw a generic error
-                    return response.text().then(text => {
-                        throw new Error(text || `HTTP error! status: ${response.status}`);
-                    });
-                }
-                // If OK, read the response as TEXT since API sends "Email sent"
-                return response.text();
-            })
-            .then(data => {
-                toast({
-                    title: "Email sent",
-                    description: "We will get back to you as soon as possible.",
-                    variant: "success",
+        
+        try {
+            const response = await fetch("/api/send_email", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    staffEmail: 'dami@stelland.io, min@stelland.io, lisa@stelland.io',
+                    message: message,
+                    subject: "Report - FAQ",
+                    templateType: 'report'
                 })
-                console.log("Success:", data);
-                // Add any success handling logic here (e.g., show a success message to the user)
-            })
-            .catch(error => {
-                toast({
-                    title: "Error sending message",
-                    description: "Please try again.",
-                    variant: "destructive",
-                })
-                console.error("Error sending message:", error);
-                // Add any error handling logic here (e.g., show an error message to the user)
             });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.text();
+            toast({
+                title: "Email sent",
+                description: "We will get back to you as soon as possible.",
+                variant: "success",
+            });
+            console.log("Success:", data);
+        } catch (error) {
+            toast({
+                title: "Error sending message",
+                description: "Please try again.",
+                variant: "destructive",
+            });
+            console.error("Error sending message:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -93,6 +98,7 @@ export const ContactForm = () => {
                     <Input
                         placeholder="Name"
                         value={name}
+                        required
                         onChange={(e) => setName(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
@@ -100,20 +106,23 @@ export const ContactForm = () => {
                         placeholder="Email"
                         type="email"
                         value={email}
+                        required
                         onChange={(e) => setEmail(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Textarea
                         placeholder="Message"
                         value={userMessage}
+                        required
                         onChange={(e) => setUserMessage(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Button
+                        type="submit"
                         onClick={(e) => handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)}
                         className="bg-white text-black hover:bg-white/90 rounded-full px-8 uppercase">
                         {/* SEND MESSAGE */}
-                        {phrase(dictionary, "sendMessage", language)}
+                        {isLoading ? <Loader2 className="animate-spin" /> : phrase(dictionary, "sendMessage", language)}
                     </Button>
                 </form>
             </div>

@@ -42,8 +42,12 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                     <p className='text-sm text-gray-500'>{phrase(dictionary, "deleteAccountReason", language)}</p>
                     <div className="flex flex-col gap-2 mt-2 w-full">
                         <RadioGroup
-                            onValueChange={(value: string) => {
-                                setDeleteAccountReasonType(value);
+                            onValueChange={async (value: string) => {
+                                try {
+                                    setDeleteAccountReasonType(value);
+                                } catch (error) {
+                                    console.error("Error setting delete account reason type:", error);
+                                }
                             }}
                             defaultValue={deleteAccountReasonType}
                             className="text-[#DB2777]"

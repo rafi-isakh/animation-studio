@@ -54,6 +54,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
     const pathname = usePathname();
     const [displayNickname, setDisplayNickname] = useState<string>(user.nickname);
+    const [displayBio, setDisplayBio] = useState<string>(user.bio);
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
     const [deleteAccountReason, setDeleteAccountReason] = useState<string>("");
     const [deleteAccountReasonType, setDeleteAccountReasonType] = useState<string>("");
@@ -122,6 +123,12 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
         fetchPosts();
     }, [email_hash]);
 
+
+    useEffect(() => {
+        if (user.bio !== displayBio) {
+            setDisplayBio(user.bio);
+        }
+    }, [user.bio]);
 
     // implementing utils function
     const handleProfilePictureUpload = () => {
@@ -293,7 +300,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         }
                                         <p className="text-xl">{displayNickname}</p>
                                         <div className='flex flex-row gap-0 text-gray-600 dark:text-white'>
-                                            {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} />}
+                                            {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} setDisplayBio={setDisplayBio} />}
                                             <ProfileShareButton user={user} id={id} />
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
@@ -356,9 +363,12 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 {phrase(dictionary, "userBio", language)}
                             </h1>
                             <div>
-                                {user.bio ? (
+                                {displayBio ? displayBio : user.bio ? (
+                                    // TODO: this has to be reviewed by Min, because it's not the best way to do this
+                                    // doesn't work when changing bio, otherTranslateComponent doesn't rerender
                                     <>
                                         <OtherTranslateComponent
+                                            key={`bio-${user.bio}`}
                                             element={user}
                                             content={user.bio}
                                             elementId={user.id.toString()}
@@ -366,10 +376,13 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             classParams='text-base'
                                         />
                                     </>
-                                ) : user.bio === "" ? (<p className='text-base text-gray-500'>
-                                    {phrase(dictionary, "noBioYet", language)}
-                                </p>
-                                ) : (<></>)}
+                                ) : (
+                                    user.bio === "" ?
+                                        <p className='text-base text-gray-500'>
+                                            {phrase(dictionary, "noBioYet", language)}
+                                        </p>
+                                        : (<></>)
+                                )}
                             </div>
 
                             {novels.length > 0 ? (

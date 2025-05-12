@@ -122,7 +122,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                 shareImage={post.image || post.video}
                                 mediaType={post.image ? 'image' : post.video ? 'video' : undefined}
                                 url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} 
-                                description={`Share this post with your friends and family.`} />
+                                description={`Share this post with your friends and family.`} 
+                                webnovelTitle={webnovel?.title}
+                                chapterTitle={chapterTitle}
+                                />
                         </Dialog>
                     </div>
                 </div>

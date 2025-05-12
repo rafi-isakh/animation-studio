@@ -57,6 +57,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [displayNickname, setDisplayNickname] = useState<string>(user.nickname);
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
     const [deleteAccountReason, setDeleteAccountReason] = useState<string>("");
+    const [deleteAccountReasonType, setDeleteAccountReasonType] = useState<string>("");
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -167,7 +168,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                 console.error("Deleting account failed");
                 return;
             }
-            const message = `Deleted user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Deleted at: ${new Date().toISOString()} <br/><br/> Content: ${deleteAccountReason} <br/><br/>`;
+            const message = `Deleted user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Deleted at: ${new Date().toISOString()} <br/><br/> Content: ${deleteAccountReason} <br/><br/> Reason Type: ${deleteAccountReasonType}`;
             fetch('/api/send_email', {
                 method: 'POST',
                 body: JSON.stringify({ message: message, email: email, templateType: 'report', subject: 'Survey - Account deletion', staffEmail: 'dami@stelland.io, min@stelland.io' })
@@ -399,6 +400,8 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                 onConfirm={handleDeleteAccount}
                 deleteAccountReason={deleteAccountReason}
                 setDeleteAccountReason={setDeleteAccountReason}
+                deleteAccountReasonType={deleteAccountReasonType}
+                setDeleteAccountReasonType={setDeleteAccountReasonType}
             />
         </div >
     );

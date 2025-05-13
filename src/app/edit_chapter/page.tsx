@@ -1,0 +1,49 @@
+import EditChapterComponent from "@/components/EditChapterComponent";
+
+async function EditChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+    const id = searchParams.id;
+    const novelLanguage = searchParams.novelLanguage;
+    const webnovelTitle = searchParams.webnovelTitle;
+    const webnovelContent = searchParams.webnovelContent;
+    const lastEdited = searchParams.lastEdited;
+    const chapterId = searchParams.chapterId;
+    
+    if (typeof id === 'string') {
+    // Handle single string value
+    } else if (Array.isArray(id)) {
+    // Handle array of strings
+        throw new Error("there should be only one id param")
+    } else {
+    // Handle undefined case
+        throw new Error("id param should be present")
+    }
+
+    if (typeof novelLanguage === 'string') {
+        // Handle single string value
+        } else if (Array.isArray(novelLanguage)) {
+        // Handle array of strings
+            throw new Error("there should be only one novelLanguage param")
+        } else {
+        // Handle undefined case
+            throw new Error("novelLanguage param should be present")
+        }
+
+    if (id) {
+        return (
+            <EditChapterComponent 
+                webnovelId={id as string} 
+                webnovelTitle={webnovelTitle as string} 
+                webnovelContent={webnovelContent as string} 
+                lastEdited={lastEdited as string} 
+                chapterId={chapterId as string}
+            />
+        );
+    }
+    else {
+        return (
+            <div></div>
+        )
+    }
+};
+
+export default EditChapter;

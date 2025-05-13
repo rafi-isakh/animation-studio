@@ -12,7 +12,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Heart, List, Type } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Trash2, Heart, List, Type, Pencil } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -304,8 +304,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
         }
     }
 
-
-
+    const handleEditChapter = () => {
+        router.push(`/edit_chapter?id=${chapter_id}&novelLanguage=${webnovel?.language}`);
+    }
 
     const ExtraInfoContainer = ({ webnovel, chapter, dictionary, language }:
         { webnovel: Webnovel, chapter: Chapter, dictionary: Dictionary, language: Language }) => {
@@ -373,8 +374,8 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                     className="w-full fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
                     bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
-                    <div className={`md:max-w-screen-sm w-full mx-auto flex flex-row items-center justify-between select-none`}>
-                        <Button color='gray' variant='ghost' onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}>
+                    <div className={`md:max-w-screen-md w-full mx-auto flex flex-row items-center justify-between select-none`}>
+                        <Button  variant='ghost' onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}>
                             <div className="flex flex-row space-x-1 items-center">
                                 <ChevronLeft size={18} />
                                 {webnovel.other_translations?.find(
@@ -469,17 +470,31 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                 </div>
                             </MenubarMenu>
                             {/* Delete chapter button */}
-                            {isAuthor && <Button color='gray' variant='ghost' onClick={(e) => {
-                                e.stopPropagation();
-                                setShowDeleteModal(true);
-                                setDeleteChapterId(chapter.id);
-                                //    handleChapterDelete(Number(id))
-                            }}>
-                                <Trash2 className="h-5 w-5 text-gray-500" />
-                                <span className="text-sm self-center">
-                                    {phrase(dictionary, "delete", language)}
-                                </span>
-                            </Button>
+                            {isAuthor && (
+                                <>
+                                <MenubarMenu>
+                                    <Button color='gray' variant='ghost' onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowDeleteModal(true);
+                                        setDeleteChapterId(chapter.id);
+                                        //    handleChapterDelete(Number(id))
+                                    }}>
+                                        <Trash2 className="h-5 w-5 text-gray-500" />
+                                        <span className="text-sm self-center">
+                                            {phrase(dictionary, "delete", language)}
+                                        </span>
+                                    </Button>
+                                </MenubarMenu>
+                                <MenubarMenu>
+                                    <Button color='gray' variant='ghost' onClick={handleEditChapter}>
+                                        <Pencil className="h-5 w-5 text-gray-500" />
+                                        <span className="text-sm self-center">
+                                            {phrase(dictionary, "edit", language)}
+                                        </span>
+                                    </Button>
+                                </MenubarMenu>
+                                </>
+                            )
                             }
                         </Menubar>
                     </div>

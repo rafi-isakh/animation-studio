@@ -32,6 +32,7 @@ import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
 import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
 import { useUser } from '@/contexts/UserContext';
+import { createEmailHash } from '@/utils/cryptography';
 
 interface ContentChapterListComponentProps {
     content: Webnovel;
@@ -51,6 +52,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const { email, email_hash } = useUser();
+    const [isAuthor, setIsAuthor] = useState(false);
     const formattedDate = content?.created_at
         ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
         : '';
@@ -65,6 +67,18 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
 
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
+
+
+    useEffect(() => {
+        // setup author status
+        if (email && content?.user?.email_hash) {
+            const userEmailHash = createEmailHash(email);
+            if (content.user.email_hash === userEmailHash) {
+                setIsAuthor(true);
+            }
+        }
+    }, [email, content])
+
 
     return (
         <div className="flex flex-col w-full md:overflow-auto overflow-x-hidden">
@@ -186,6 +200,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     webnovel={content as Webnovel}
                                     sortToggle={isSortedByLatest}
                                     onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
+                                    isAuthor={isAuthor}
                                 />
                             ) : (
                                 <div className="flex flex-col w-full gap-2">

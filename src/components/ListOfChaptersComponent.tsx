@@ -15,15 +15,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
+import { createEmailHash } from "@/utils/cryptography";
 
 const ListOfChaptersComponent = ({
     webnovel,
     sortToggle,
-    onUpdate
+    onUpdate,
+    isAuthor
 }: {
     webnovel: Webnovel | undefined,
     sortToggle: boolean,
-    onUpdate?: (updatedContent: Webnovel) => void
+    onUpdate?: (updatedContent: Webnovel) => void,
+    isAuthor?: boolean
 }) => {
     const { dictionary, language } = useLanguage();
     const [showDeleteModal, setShowDeleteModal] = useState(false);

@@ -7,7 +7,7 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
     const webnovelContent = searchParams.webnovelContent;
     const lastEdited = searchParams.lastEdited;
     const chapterId = searchParams.chapterId;
-    
+
     if (typeof id === 'string') {
     // Handle single string value
     } else if (Array.isArray(id)) {
@@ -35,7 +35,6 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
                 webnovelTitle={webnovelTitle as string} 
                 webnovelContent={webnovelContent as string} 
                 lastEdited={lastEdited as string} 
-                chapterId={chapterId as string}
             />
         );
     }

@@ -36,10 +36,11 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
     const { invalidateCache } = useWebnovels();
     const clicked = useRef(false);
     const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchChapter = async () => {
-
+            setIsLoading(true);
             try {
                 const chapter = await fetch(`/api/get_chapter_by_id?id=${webnovelId}`).then(res => res.json());
                 if (chapter) {
@@ -62,6 +63,8 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
                     description: error instanceof Error ? error.message : "Failed to fetch webnovel data",
                     variant: "destructive",
                 });
+            } finally {
+                setIsLoading(false);
             }
         }
         fetchChapter();
@@ -153,7 +156,7 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
                             {/* <p className='text-sm'> {webnovel?.description} </p> */}
                             <p className='text-sm'>
                                 {chapter?.id}
-                                {language == 'ko' ? <>{' '}화</> : <></>}
+                                {/* {language == 'ko' ? <>{' '}화</> : <></>} */}
                             </p>
                         </div>
                         <hr />

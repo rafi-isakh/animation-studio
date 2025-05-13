@@ -10,9 +10,9 @@ import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/shadcnUI/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List, Type  } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Trash2, Heart, List, Type } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -26,6 +26,7 @@ import ProgressBar from '@/components/UI/ProgressBar';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import ViewerSettingDialog from '@/components/UI/ViewerSettingDialog';
 import dynamic from 'next/dynamic';
+import { createEmailHash } from '@/utils/cryptography';
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
 });
@@ -34,12 +35,14 @@ import CommentsComponent from "@/components/CommentsComponent";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
+import { cn } from "@/lib/utils";
+
 function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
     const [upvotes, setUpvotes] = useState(0);
     const [likeToggle, setLikeToggle] = useState(false);
-    const { email } = useUser();
+    const { email, email_hash } = useUser();
     const { isLoggedIn } = useAuth();
     const [isAuthor, setIsAuthor] = useState(false);
     const { dictionary, language } = useLanguage();
@@ -127,9 +130,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 setChapter(chapter);
             }
             // If the chapter is not free and the user has not purchased it, redirect to the webnovel page
-            if (!chapter?.free 
-                && !checking 
-                && purchased_webnovel_chapters 
+            if (!chapter?.free
+                && !checking
+                && purchased_webnovel_chapters
                 && !isPurchasedChapter(purchased_webnovel_chapters, Number(chapter_id), language)) {
                 router.push(`/view_webnovels/${chapter?.webnovel_id}`);
             }
@@ -141,8 +144,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     }, [checking]);
 
     useEffect(() => {
-        if (email) {
-            if (webnovel?.user.email === email) {
+        if (email && webnovel?.user?.email_hash) {
+            const userEmailHash = createEmailHash(email);
+            if (webnovel.user.email_hash === userEmailHash) {
                 setIsAuthor(true);
             }
         }
@@ -345,18 +349,18 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                             <div className="flex flex-row space-x-1 items-center">
                                 <ChevronLeft size={18} />
                                 {webnovel.other_translations?.find(
-                                    translation => 
-                                        translation.language === language && 
-                                        translation.element_type === 'webnovel' && 
-                                        translation.element_subtype === 'title' && 
+                                    translation =>
+                                        translation.language === language &&
+                                        translation.element_type === 'webnovel' &&
+                                        translation.element_subtype === 'title' &&
                                         translation.webnovel_id === webnovel.id.toString()
-                                )?.text || 
-                                    <OtherTranslateComponent 
+                                )?.text ||
+                                    <OtherTranslateComponent
                                         element={webnovel}
-                                        content={webnovel.title} 
-                                        elementId={webnovel.id.toString()} 
-                                        elementType='webnovel' 
-                                        elementSubtype="title" 
+                                        content={webnovel.title}
+                                        elementId={webnovel.id.toString()}
+                                        elementType='webnovel'
+                                        elementSubtype="title"
                                     />
                                 }
                             </div>
@@ -364,13 +368,15 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
 
                         <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
                             <MenubarMenu>
-                                <MenubarTrigger  className="rounded-full p-2 data-[state=open]:bg-accent cursor-pointer">
-                                    <List className="h-5 w-5" />
-                                    <span className="sr-only">Table of Contents</span>
+                                <MenubarTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="rounded-full cursor-pointer">
+                                        <List className="h-5 w-5" />
+                                        <span className="sr-only">Table of Contents</span>
+                                    </Button>
                                 </MenubarTrigger>
                                 <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
                                     <MenubarItem className="font-semibold" inset>
-                                        Table of Contents
+                                        {phrase(dictionary, "tableOfContents", language)}
                                     </MenubarItem>
                                     <MenubarSeparator />
                                     {sortedChapters?.map((chapter, index) => (
@@ -384,9 +390,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                                     handleChapterClick(chapter);
                                                 }
                                             }}
-                                            
+
                                             className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? "opacity-50" : ""}`}
-                                            // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                                        // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
                                         >
                                             <p className="text-sm">{index + 1}.</p>
                                             <MenubarShortcut>
@@ -409,7 +415,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         e.preventDefault();
                                         handleViewSettings();
                                     }}>
-                                    <Type className="h-12 w-12" />
+                                    <Type className="h-5 w-5" />
                                 </Button>
                             </MenubarMenu>
                             {/* like button */}
@@ -417,10 +423,6 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                 <div className="text-center flex flex-row items-center md:pr-0 pr-[15px]">
                                     {likeToggle ? (
                                         <Link href='#' className='p-0'
-                                            style={{
-                                                margin: '0px !important',
-                                                padding: '0px !important'
-                                            }}
                                             onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
                                             {/* heart icon */}
                                             <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -429,29 +431,22 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         </Link>
                                     ) : (
                                         <Link href='#' className='p-0'
-                                            style={{
-                                                margin: '0px !important',
-                                                padding: '0px !important'
-                                            }}
                                             onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                            <Heart className="h-6 w-6" />
+                                            <Heart strokeWidth={1.5} className="h-5 w-5" />
                                         </Link>
                                     )
                                     }
                                     <p className='ml-1 self-center text-sm'>{upvotes}</p>
                                 </div>
                             </MenubarMenu>
-                            {/* Delete button */}
-                            {isAuthor && <Button
-                                color='gray'
-                                variant='ghost'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowDeleteModal(true);
-                                    setDeleteChapterId(chapter.id);
-                                    //    handleChapterDelete(Number(id))
-                                }}>
-                                <Trash2 className="h-6 w-6 mr-2 text-gray-500" />
+                            {/* Delete chapter button */}
+                            {isAuthor && <Button color='gray' variant='ghost' onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDeleteModal(true);
+                                setDeleteChapterId(chapter.id);
+                                //    handleChapterDelete(Number(id))
+                            }}>
+                                <Trash2 className="h-5 w-5 text-gray-500" />
                                 <span className="text-sm self-center">
                                     {phrase(dictionary, "delete", language)}
                                 </span>
@@ -469,12 +464,12 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
                                 <div className='flex justify-between px-4'>
-                                    <OtherTranslateComponent 
+                                    <OtherTranslateComponent
                                         element={chapter}
-                                        content={chapter.title} 
-                                        elementId={chapter_id} 
-                                        elementType='chapter' 
-                                        elementSubtype="title" 
+                                        content={chapter.title}
+                                        elementId={chapter_id}
+                                        elementType='chapter'
+                                        elementSubtype="title"
                                         classParams="text-2xl mt-2 mb-2" />
                                 </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
@@ -492,14 +487,27 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                     <PleaseLoginModal open={showPleaseLogin} setOpen={setShowPleaseLogin} />
                     {/* delete confirmation modal */}
                     <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
-                        <DialogContent>
-                            <DialogHeader>
+                        <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-screen' showCloseButton={true}>
+                            <DialogHeader className='p-4'>
                                 <DialogTitle>{phrase(dictionary, "deleteChapterConfirm", language)}</DialogTitle>
+                                <DialogDescription className='py-4'>
+                                    <p>{phrase(dictionary, "deleteChapterConfirmDescription", language)}</p>
+                                </DialogDescription>
                             </DialogHeader>
-                            <div className='flex flex-col space-y-4 items-center justify-cente'>
-                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => handleChapterDelete(deleteChapterId as number)}>{phrase(dictionary, "yes", language)}</Button>
-                                <Button color='gray' variant='outline' className='mt-10 w-32 text-black dark:text-white' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                            </div>
+                            <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                                <Button
+                                    onClick={() => handleChapterDelete(deleteChapterId as number)}
+                                    className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                                >
+                                    {phrase(dictionary, "yes", language)}
+                                </Button>
+                                <Button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                                >
+                                    {phrase(dictionary, "no", language)}
+                                </Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>

@@ -6,7 +6,6 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
     const webnovelTitle = searchParams.webnovelTitle;
     const webnovelContent = searchParams.webnovelContent;
     const lastEdited = searchParams.lastEdited;
-    const chapterId = searchParams.chapterId;
 
     if (typeof id === 'string') {
     // Handle single string value
@@ -20,6 +19,9 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
 
     if (typeof novelLanguage === 'string') {
         // Handle single string value
+        if (novelLanguage !== 'ko' && novelLanguage !== 'en') {
+            throw new Error("novelLanguage must be either 'ko' or 'en'")
+        }
         } else if (Array.isArray(novelLanguage)) {
         // Handle array of strings
             throw new Error("there should be only one novelLanguage param")
@@ -35,6 +37,7 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
                 webnovelTitle={webnovelTitle as string} 
                 webnovelContent={webnovelContent as string} 
                 lastEdited={lastEdited as string} 
+                novelLanguage={novelLanguage as 'ko' | 'en'}
             />
         );
     }

@@ -13,22 +13,26 @@ export async function POST(req: NextRequest, res: NextResponse) {
     });
   }
 
+  const id = formData.get('id')
   const title = formData.get('title')
   const content = formData.get('content')
   const webnovel_title = formData.get('webnovel_title')
   const webnovel_id = formData.get('webnovel_id')
   const last_edited = formData.get('last_edited')
+  const language = formData.get('language')
 
- if (!title || !content ) {
-    return NextResponse.json({ error: 'Missing web novel data' }, { status: 400 });
+  if (!id || !title || !content || !webnovel_id || !last_edited || !language) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
   const data = {
-    title: title,
-    content: content,
-    webnovel_title: webnovel_title,
-    webnovel_id: webnovel_id,
-    last_edited: last_edited
+    id: parseInt(id as string),
+    title: title as string,
+    content: content as string,
+    webnovel_title: webnovel_title as string,
+    webnovel_id: parseInt(webnovel_id as string),
+    last_edited: last_edited as string,
+    language: language as string
   };
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/edit_chapter`, {
@@ -42,7 +46,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   });
   if (!response.ok) {
     return NextResponse.json({
-        message: "Add chapter failed",
+        message: "Edit chapter failed",
     }, {
         status: response.status
     });

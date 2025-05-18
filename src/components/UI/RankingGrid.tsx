@@ -22,7 +22,7 @@ export default function RankingGrid({ webnovels, isMobile, title }: { webnovels:
             <h2 className="text-xl font-bold">{phrase(dictionary, title, language)}</h2>
             <div ref={scrollRef} className="overflow-x-auto overflow-y-hidden no-scrollbar">
                 <div
-                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-28 gap-20 w-fit md:pl-[120px] pl-[55px] py-8">
+                    className="grid grid-flow-col auto-cols-[120px] md:auto-cols-[160px] md:gap-12 gap-14 w-fit md:pl-[50px] pl-[55px] py-8">
                     {webnovels.map((webnovel, index) => (
                         <div
                             key={index}
@@ -32,12 +32,12 @@ export default function RankingGrid({ webnovels, isMobile, title }: { webnovels:
 
                         >
                             {/* Ranking number */}
-                            <div className="absolute md:-left-[90px] md:-bottom-8 -left-[55px] -bottom-[15px] select-none pointer-events-none -z-10">
+                            <div className="absolute md:-left-[40px] md:-bottom-2 -left-[40px] -bottom-[10px] select-none pointer-events-none -z-10">
                                 <span
-                                    className="md:text-[15.5rem] text-[9rem] font-black leading-none text-white 
-                                                [text-shadow:2px_0_2px_black,_-2px_0_2px_black,_0_2px_2px_black,_0_-2px_2px_black]
-                                                dark:text-black
-                                                dark:[text-shadow:2px_0_2px_gray,_-2px_0_2px_gray,_0_2px_2px_gray,_0_-2px_2px_gray]"
+                                    className="md:text-[5rem] text-[5rem] font-bold leading-none font-oxanium
+                                                [text-shadow:1px_0_1px_black,_-1px_0_1px_black,_0_1px_2px_black,_0_-1px_1px_black]
+                                                dark:text-white text-white text-right
+                                                dark:[text-shadow:1px_0_1px_gray,_-1px_0_1px_gray,_0_1px_1px_gray,_0_-1px_1px_gray]"
                                 >
                                     {(index + 1).toString()}
                                 </span>

@@ -74,7 +74,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
                 <CarouselComponentShadcn items={items} />
                 <SmallGap />
-                <div className='w-max-screen-xl justify-center items-center w-full mx-auto'>
+                <div className='w-max-screen-xl justify-center items-center w-full mx-auto px-1'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {/*{smallGap()}*/}
                     {/*<MyReadingListComponent library={library} />*/}

@@ -135,7 +135,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_ko: (
                 <div>
                     투니즈 포스트는 투니즈 회원들이 웹소설을 기반으로 이미지와 비디오를 자유롭게 창작하고 공유할 수 있는 포스트입니다.
-                    <Link href="https://www.toonyz.com/feeds">투니즈 피드</Link>는 투니즈 포스트를 공유하는 커뮤니티 공간입니다.
+                    <Link href="https://www.toonyz.com/feed">투니즈 피드</Link>는 투니즈 포스트를 공유하는 커뮤니티 공간입니다.
                     투니즈 포스트를 이용하시기 전에 튜토리얼을 보시려면 {' '}
                     <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="text-[#DE2B74] underline">
                         여기
@@ -145,7 +145,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_en: (
                 <div>
                     A Toonyz Post is an image or video based on a webnovel, created by users. 
-                    {' '}<Link href="/feeds" className="text-[#DE2B74] underline">Toonyz Feeds</Link> is a community space where you can freely share Toonyz Posts.
+                    {' '}<Link href="/feed" className="text-[#DE2B74] underline">Toonyz Feed</Link> is a community space where you can freely share Toonyz Posts.
                     If you want to see the tutorial before creating a Toonyz Post, 
                     please click {' '}
                     <Link href="https://drive.google.com/file/d/1Ce2JA6MmJxZ5KFJPCwSYW68wj_FaPCBH/view?usp=drive_link" target="_blank" className="text-[#DE2B74] underline">
@@ -194,14 +194,14 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_ko: (
                 <>
                    투니즈 포스트에 이미지와 비디오 생성을 한 경우, 투니즈 피드 페이지에 공유가 가능하고 {' '}
-                   <Link href="https://www.toonyz.com/feeds" className="text-[#DE2B74] underline">투니즈 피드</Link>에서 투니즈 회원님들의 다양한 포스트를 볼 수 있습니다. 
+                   <Link href="https://www.toonyz.com/feed" className="text-[#DE2B74] underline">투니즈 피드</Link>에서 투니즈 회원님들의 다양한 포스트를 볼 수 있습니다. 
                    자유연재는<Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline"> 이곳</Link>에서 회원 가입 후 바로 글을 쓰고 투고할 수 있습니다. 
                    완성된 작품이 있으시다고요? lisa@stelland.io로 문의 주시면 검토 후 투니즈에서 프리미엄 연재 및 투고 방법을 안내해드립니다.
                 </>
             ),
             answer_en: (
                 <>
-                    If you have generated images and videos on Toonyz Post, you can share the post to <Link href="https://www.toonyz.com/feeds" className="text-[#DE2B74] underline">Toonyz Feed</Link>. 
+                    If you have generated images and videos on Toonyz Post, you can share the post to <Link href="https://www.toonyz.com/feed" className="text-[#DE2B74] underline">Toonyz Feed</Link>. 
                     You can submit your story to the community <Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline">here</Link>.
                     If you have a completed story, please contact lisa@stelland.io for feedback. We will help you publish your story as a Toonyz premium story and get more views and potentially monetization.
                 </>

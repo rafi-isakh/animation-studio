@@ -31,7 +31,7 @@ export default function BottomNavigationBar() {
                 setIsMobileMenuOpen(false);
                 break;
             case 1:
-                router.push('/feeds');
+                router.push('/feed');
                 setIsMobileMenuOpen(false);
                 break;
             case 2:
@@ -100,7 +100,7 @@ export default function BottomNavigationBar() {
                 }}
             >
                 <BottomNavigationAction label={phrase(dictionary, "home", language)} icon={<Home />} />
-                <BottomNavigationAction label={phrase(dictionary, "feeds", language)} icon={<LayoutGrid />} />
+                <BottomNavigationAction label={phrase(dictionary, "feed", language)} icon={<LayoutGrid />} />
                 <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
                 <BottomNavigationAction label={phrase(dictionary, "profile", language)} icon={<User />} />
                 <BottomNavigationAction label={phrase(dictionary, "allmenu", language)} icon={<Grip />} />

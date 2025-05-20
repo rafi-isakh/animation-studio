@@ -12,7 +12,7 @@ export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouse
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other' | 'quote' | 'content'
 
-export type SortBy = 'views' | 'likes' | 'date' | 'recommendation'
+export type SortBy = 'views' | 'likes' | 'date' | 'recommendation' | 'id'
 
 export interface Chapter {
   id: number;

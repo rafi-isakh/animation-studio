@@ -1,4 +1,3 @@
-import { auth } from "@/auth";
 import AddChapterComponent from "@/components/AddChapterComponent";
 
 async function NewChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {

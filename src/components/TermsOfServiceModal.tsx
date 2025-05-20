@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { CircularProgress, FormControlLabel, Checkbox, Typography } from '@mui/material';
+import { CircularProgress, FormControlLabel, Checkbox } from '@mui/material';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogDescription } from '@/components/shadcnUI/Dialog';
-import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import { Button } from '@/components/shadcnUI/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
@@ -49,11 +48,12 @@ const TermsOfServiceModal = ({
                     <div className="flex flex-col">
                         <div className="max-h-[400px] overflow-y-auto p-4 bg-gray-50 rounded-lg text-sm">
                             <p className="whitespace-pre-line leading-6 text-gray-700">
+                                {/* Terms content */}
                                 {language === "en" ? replaceSmartQuotes(WebnovelTerms_en) : replaceSmartQuotes(WebnovelTerms)}
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-col dark:text-black text-black">
+                    <div className="flex flex-col dark:text-black text-black p-4">
                         <FormControlLabel
                             required
                             sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' } }}

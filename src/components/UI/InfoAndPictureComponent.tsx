@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
-import { useMediaQuery, Skeleton, Tooltip } from "@mui/material";
+import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
 import Image from "next/image";
@@ -527,20 +527,22 @@ export default function InfoAndPictureComponent({
                                             </Button>
                                         </div>
                                         <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                                            <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none">
-                                                <AlertDialogHeader className='p-4'>
-                                                    <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
+                                            <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none text-md">
+                                                <AlertDialogHeader className='text-md p-4'>
+                                                    <AlertDialogTitle className="text-md font-bold text-black dark:text-white">
+                                                        <p>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                                                    </AlertDialogTitle>
                                                 </AlertDialogHeader>
-                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
+                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end text-md'>
                                                     <Button
                                                         onClick={onDelete}
-                                                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                                                        className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                                                     >
                                                         {phrase(dictionary, "yes", language)}
                                                     </Button>
                                                     <Button
                                                         onClick={() => setShowDeleteModal(false)}
-                                                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                                                        className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
 
                                                     >
                                                         {phrase(dictionary, "no", language)}

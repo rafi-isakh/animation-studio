@@ -137,10 +137,10 @@ export default function Home() {
                 <MessageSquare size={20} />
               </Button>
             </DialogTrigger>
-            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
-              <DialogHeader className='p-4' >
-                <DialogTitle>
-                  <p className="text-left">{phrase(dictionary, "inquiry", language)}</p>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}>
+              <DialogHeader className='text-md p-4'>
+                <DialogTitle className="text-md">
+                  <p>{phrase(dictionary, "inquiry", language)}</p>
                 </DialogTitle>
               </DialogHeader>
               <DialogDescription className="w-full h-full">

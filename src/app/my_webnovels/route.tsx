@@ -12,7 +12,7 @@ export async function GET(request: Request) {
         const data = await response.json();
         if (data.length > 0) {
             const ids = data.map((w: Webnovel) => w.id); // same code as in ViewWebnovelsComponent
-            const first = Math.min(...ids);
+            const first = Math.max(...ids); // get the newest id
             url = new URL(`${baseUrl}/view_webnovels/${first}`);
         }
     }

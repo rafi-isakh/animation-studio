@@ -2,14 +2,12 @@
 import { Button } from '@/components/shadcnUI/Button';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogDescription } from '@/components/shadcnUI/Dialog';
 import { phrase } from '@/utils/phrases';
-import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Info, X, MoveLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Info, ImageUp } from 'lucide-react';
 import Image from 'next/image';
-import { SetStateAction, Dispatch, useState } from 'react';
+import { useState } from 'react';
 import CoverArtPreview from './CoverArtPreview';
-import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
+import { cn } from '@/lib/utils';
 
 const CoverArtModal = ({
     showCoverArtModal,
@@ -47,35 +45,27 @@ const CoverArtModal = ({
 
     return (
         <Dialog open={showCoverArtModal} onOpenChange={setShowCoverArtModal}>
-            <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center w-full md:h-auto h-screen'>
-                <ScrollArea className='w-full h-full'>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-screen' showCloseButton={true}>
+                <div className='w-full h-full overflow-y-auto p-4'>
                     <DialogHeader className='flex flex-row justify-start items-center my-2 w-full'>
-                        <Button 
-                        variant='link' 
-                        onClick={() => setShowCoverArtModal(false)} 
-                        className={`!no-underline justify-center items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors flex md:hidden !m-0 !p-0`}>
-                            <MoveLeft size={20} className='dark:text-white text-gray-500' />
-                           
-                        </Button>
                         <DialogTitle className='text-lg font-bold text-black dark:text-white text-center'>
-                            {/* Cover Art Register */}
-                            <p className='text-center md:ml-0 ml-5'>{phrase(dictionary, "coverArtRegister", language)}</p>
+                            <p>{phrase(dictionary, "coverArtRegister", language)}</p>
                         </DialogTitle>
                     </DialogHeader>
-
                     <DialogDescription className='flex md:flex-row flex-col md:space-x-4 justify-center'>
                         <div className='flex flex-col space-y-4'>
                             <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
                             <Button
                                 variant='outline'
                                 onClick={handleUploadFile}
-                                className="border-0 w-[200px] bg-[#DB2777] text-white"
+                                className="border-0 w-[200px] bg-[#DB2777] text-white inline-flex items-center justify-center"
                             >
+                                <ImageUp className='w-4 h-4' />
                                 {/* Upload Cover Art */}
                                 {phrase(dictionary, "upload", language)}
                             </Button>
                         </div>
-                        <div className='flex flex-col md:py-0 py-2 md:space-y-4 space-y-2'>
+                        <div className='flex flex-col md:py-0 py-4 md:space-y-4 space-y-4'>
                             <p className={`text-sm text-black font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
                                 {/* Please upload the cover art for your webnovel. */}
                                 {phrase(dictionary, "pleaseUploadTheCoverArt", language)}
@@ -87,8 +77,9 @@ const CoverArtModal = ({
                             </p>
                             <p className={`text-sm text-gray-500 ${language == 'ko' ? 'break-keep' : ''}`}>
                                 {/*
-                        It ideally sized at 1500 x 900 px, but can be smaller than 1000 x 600 px.
-                        It must be in PNG, GIF, or JPG format, smaller than 2MB. */}
+                                It ideally sized at 1500 x 900 px, but can be smaller than 1000 x 600 px.
+                                It must be in PNG, GIF, or JPG format, smaller than 2MB. 
+                                */}
                                 {phrase(dictionary, "coverArtSize", language)}
                             </p>
 
@@ -114,7 +105,8 @@ const CoverArtModal = ({
                                             value={option.value}
                                         />
                                         <Image
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.preventDefault();
                                                 fetch(option.src)
                                                     .then(res => res.blob())
                                                     .then(blob => {
@@ -132,23 +124,21 @@ const CoverArtModal = ({
                             </div>
                         </div>
                     </DialogDescription>
-                    <DialogFooter className='flex flex-row gap-2 my-5 md:py-0 pb-10 justify-center items-center'>
-                        <Button
-                            onClick={handleConfirm}
-                            variant='outline'
-                            className='w-32 text-blue-500 dark:text-blue-500'
-                        >
-                            {phrase(dictionary, "confirm", language)}
-                        </Button>
-                        <Button
-                            onClick={handleClose}
-                            variant='outline'
-                            className='w-32 text-[#DB2777] dark:text-[#DB2777] hover:bg-[#DB2777] hover:text-white dark:hover:bg-[#DB2777] dark:hover:text-white'
-                        >
-                            {phrase(dictionary, "cancel", language)}
-                        </Button>
-                    </DialogFooter>
-                </ScrollArea>
+                </div>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <Button
+                        onClick={handleConfirm}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                    >
+                        {phrase(dictionary, "confirm", language)}
+                    </Button>
+                    <Button
+                        onClick={handleClose}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                    >
+                        {phrase(dictionary, "cancel", language)}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

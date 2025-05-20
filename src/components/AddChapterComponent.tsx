@@ -4,21 +4,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext';
 import { Webnovel } from '@/components/Types';
-import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import '@/styles/globals.css'
-import { useModalStyle } from '@/styles/ModalStyles'
+import { Button } from '@/components/shadcnUI/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
-import { Button, ThemeProvider, Modal, Typography, Box } from '@mui/material';
 import AIEditorComponent from '@/components/AIEditorComponent';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import 'react-quill/dist/quill.snow.css';
 import '@/styles/quill-custom.css'; // Add this import
-import { grayTheme } from '@/styles/BlackWhiteButtonStyle';
 import Link from 'next/link';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-
+import { ArrowLeftIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/shadcnUI/Dialog';
+import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
+import { cn } from '@/lib/utils';
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -31,11 +31,13 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [openAIEditor, setOpenAIEditor] = useState(false);
     const titleRef = useRef<ReactQuill>(null);
     const contentRef = useRef<ReactQuill>(null);
-    const [openModal, setOpenModal] = useState(false);
+    const [openPreviewDialog, setOpenPreviewDialog] = useState(false);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
     const { invalidateCache } = useWebnovels();
     const clicked = useRef(false);
+    const [plainTitleText, setPlainTitleText] = useState('');
+    const [plainContentText, setPlainContentText] = useState('');
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -68,7 +70,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
             }
         }
     }, [dictionary, language, titleRef.current, contentRef.current])
-
 
     const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -113,88 +114,127 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     };
 
     const replaceSmartQuotes = (str: string) => {
-        return str.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+        return str.replace(/[""]/g, '"').replace(/['']/g, "'");
+    };
+
+    const handleClickPreview = (event: React.FormEvent) => {
+        event.preventDefault();
+        // Extract plain text from the content editor when opening preview
+        const plainTitleText = titleRef.current?.getEditor()?.getText() || "";
+        const plainContentText = contentRef.current?.getEditor()?.getText() || "";
+        setPlainContentText(plainContentText);
+        setPlainTitleText(plainTitleText);
+        setOpenPreviewDialog(true);
     };
 
     return (
-        <div className='md:w-[720px] p-6 mb-10 flex flex-col justify-center mx-auto border-gray-300 border rounded-xl'>
+        <div className='md:max-w-screen-md w-full p-6 mb-10 flex flex-col justify-center mx-auto border-none rounded-xl'>
             <form onSubmit={handleAddChapter}>
-                <div className='flex flex-row justify-between'>
-                    <h1 className='text-2xl font-bold mb-10'>{phrase(dictionary, "addChapter", language)}</h1>
-                    <div>
+                <div className='flex flex-row justify-between mb-10'>
+                    <div className='flex flex-row items-center gap-2'>
+                        <Link href={`/view_webnovels/${webnovelId}`}>
+                            <ArrowLeftIcon size={24} />
+                        </Link>
+                        <h1 className='text-2xl font-bold'>{phrase(dictionary, "addChapter", language)}</h1>
+                    </div>
+                    {/* <div>
                         <Button color="gray" className='text-sm text-gray-400 px-0 py-0' onClick={() => setOpenModal(true)}>
-                            {/* 임시 저장글  */}
+                        
                             {phrase(dictionary, "draft", language)}
                         </Button>
-                    </div>
+                    </div> */}
                 </div>
-                <ThemeProvider theme={grayTheme}>
-                    <div className="mr-4 flex flex-col space-y-4 w-full">
-                        <div className='flex flex-col space-y-4 items-start'>
-                            <p className='text-2xl font-bold'> {webnovel?.title} </p>
-                            {/* <p className='text-sm'> {webnovel?.description} </p> */}
+                <div className="mr-4 flex flex-col space-y-4 w-full">
+                    <div className='flex flex-col space-y-4 items-start'>
+                        <p className='text-2xl font-bold'> {webnovel?.title} </p>
+                        <p className='text-sm'>
+                            {/* 총 .. 화 : total */}
+                            {phrase(dictionary, "total", language)}
+                            {' '}{webnovel?.chapters_length}
+                            {language == 'ko' ? <>{' '}화</> : <>{' '}chapter(s)</>}
+                        </p>
+                    </div>
+                    <hr />
+                    <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
+                        <ReactQuill ref={titleRef} theme="bubble" value={title} onChange={setTitle} className="title-editor" />
+                    </div>
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex flex-row justify-between">
+                            <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
                             <p className='text-sm'>
-                                {/* 총 .. 화 : total */}
-                                {phrase(dictionary, "total", language)}
-                                {' '}{webnovel?.chapters_length}
-                                {language == 'ko' ? <>{' '}화</> : <></>}
+                                <span className='text-[#DB2777]'>{currText}</span> / {maxText}
                             </p>
                         </div>
-                        <hr />
-                        <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
-                            <ReactQuill ref={titleRef} theme="bubble" value={title} onChange={setTitle} className="title-editor" />
+                        <div className='w-full max-w-full rounded-xl border border-gray-300'>
+                            <ReactQuill ref={contentRef} theme="bubble" value={content} onChange={setContent} className="content-editor" />
                         </div>
 
-                        <div className="flex flex-col space-y-4">
-                            <div className="flex flex-row justify-between">
-                                <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
-                                <p className='text-sm text-[#DB2777]'>{currText} / {maxText}</p>
-                            </div>
-                            <div className='w-full max-w-full rounded-xl border border-gray-300'>
-                                <ReactQuill ref={contentRef} theme="bubble" value={content} onChange={setContent} className="content-editor" />
-                            </div>
-
-                            <div className='flex flex-row justify-end gap-4 items-end'>
-                                <Button
-                                    type="submit"
-                                    variant="outlined"
-                                    color="gray"
-                                    className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white mb-10'
-                                >{phrase(dictionary, "publish", language)}</Button>
-                                {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}
-                            </div>
+                        <div className='flex flex-row justify-end gap-4 items-end mb-10'>
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                color="gray"
+                                className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white'
+                            >{phrase(dictionary, "publish", language)}</Button>
+                            {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleClickPreview}
+                                className='whitespace-nowrap bg-black text-white hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white'
+                            >{phrase(dictionary, "preview", language)}</Button>
                         </div>
-
                     </div>
-                </ThemeProvider>
+                </div>
             </form>
             {/* <AIEditorComponent openModal={openAIEditor} setOpenModal={setOpenAIEditor} text={content} novelLanguage={novelLanguage}/> */}
-            <Modal open={openModal} onClose={() => setOpenModal(false)}>
-                <Box sx={useModalStyle}>
-                    <Typography className="text-center">
-                        <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-                            임시 저장글
-
-
-                        </h3>
-                    </Typography>
-                    <hr />
-
-                    <p className='text-center mb-28 mt-28'>   임시 저장글이 없습니다...       </p>
-
-
-
-                    <div className="flex justify-center">
+            <Dialog open={openPreviewDialog} onOpenChange={setOpenPreviewDialog}>
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] md:h-[60vh] h-full border-none shadow-none' showCloseButton={true}>
+                    {/* z-[2500] for mobile screen which is the bottom navigation bar disturbing the dialog */}
+                    <DialogHeader className='p-4'>
+                        <DialogTitle>
+                            {phrase(dictionary, "preview", language)}
+                        </DialogTitle>
+                        <p className='text-sm text-gray-500'>
+                            {phrase(dictionary, "previewWarning", language)}
+                        </p>
+                    </DialogHeader>
+                    <ScrollArea className='h-full p-4'>
+                        <DialogDescription className='!p-0'>
+                            <div className='flex flex-col space-y-4 min-h-[50vh]'>
+                                <div className='inline-flex flex-col gap-2 text-sm '>
+                                    <h1 className='text-md font-bold'> {phrase(dictionary, "chapterTitle", language)} </h1>
+                                    {titleRef.current?.getEditor()?.getText().trim() ? 
+                                        <p className="w-full text-sm font-bold"> {plainTitleText} </p> :
+                                        <p className="w-full text-sm font-bold"> {phrase(dictionary, "new_chapter_preview_noTitle", language)} </p>
+                                    }
+                                </div>
+                                <div className='inline-flex flex-col gap-2 text-sm'>
+                                    <h1 className='text-md font-bold'>{phrase(dictionary, "content", language)}</h1>
+                                    {contentRef.current?.getEditor()?.getText().trim() ? 
+                                        <p className="w-full prose dark:prose-invert text-sm"> {plainContentText} </p> :
+                                        <p className="w-full prose dark:prose-invert text-sm"> {phrase(dictionary, "new_chapter_preview_noContent", language)} </p>
+                                    }
+                                </div>
+                            </div>
+                        </DialogDescription>
+                    </ScrollArea>
+                    <DialogFooter className="flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end">
                         <Button
-                            className=' hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white'
-                            color='gray'
-                            variant='outlined'
-                            onClick={() => setOpenModal(false)}>
-                            {phrase(dictionary, "ok", language)}
+                            onClick={() => setOpenPreviewDialog(false)}
+                            className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        >
+                            {phrase(dictionary, "confirm", language)}
                         </Button>
-                    </div>
-                </Box>
-            </Modal>
+                        <Button
+                            onClick={() => setOpenPreviewDialog(false)}
+                            className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        >
+                            {phrase(dictionary, "close", language)}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

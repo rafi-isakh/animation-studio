@@ -78,8 +78,9 @@ const CoverArtModal = ({
                             </p>
                             <p className={`text-sm text-gray-500 ${language == 'ko' ? 'break-keep' : ''}`}>
                                 {/*
-                        It ideally sized at 1500 x 900 px, but can be smaller than 1000 x 600 px.
-                        It must be in PNG, GIF, or JPG format, smaller than 2MB. */}
+                                It ideally sized at 1500 x 900 px, but can be smaller than 1000 x 600 px.
+                                It must be in PNG, GIF, or JPG format, smaller than 2MB. 
+                                */}
                                 {phrase(dictionary, "coverArtSize", language)}
                             </p>
 

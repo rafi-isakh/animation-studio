@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Webnovel, Chapter } from "@/components/Types";
-import { useMediaQuery, Skeleton } from "@mui/material";
+import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
+import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,7 +40,6 @@ import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
-import { cn } from '@/lib/utils';
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -409,100 +409,100 @@ export default function InfoAndPictureComponent({
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
-                                {/* Read Button */}
-                                <Button
-                                    variant="default"
-                                    className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                    onClick={() => {
-                                        const firstChapter = content.chapters[0];
-                                        if (!firstChapter) return;
+                            <div className="flex flex-col w-full">
+                                <div className="flex flex-row gap-2 py-5 w-full">
+                                    {/* Read Button */}
+                                    <Button
+                                        variant="default"
+                                        className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                        onClick={() => {
+                                            const firstChapter = content.chapters[0];
+                                            if (!firstChapter) return;
 
-                                        // Check if user has already purchased the chapter
-                                        const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
+                                            // Check if user has already purchased the chapter
+                                            const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
 
-                                        if (content.premium && !firstChapter.free && !hasPurchased) {
-                                            setShowPurchaseModal(true);
-                                        } else {
-                                            router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
-                                        }
-                                    }}
-                                >
-                                    {phrase(dictionary, "start_to_read_episode_1", language)}
-                                </Button>
+                                            if (content.premium && !firstChapter.free && !hasPurchased) {
+                                                setShowPurchaseModal(true);
+                                            } else {
+                                                router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
+                                            }
+                                        }}
+                                    >
+                                        {phrase(dictionary, "start_to_read_episode_1", language)}
+                                    </Button>
 
-                                {/* Like Button */}
-                                <Button
+                                    {/* Like Button */}
+                                    {/* <Button
                                     size="icon"
                                     className="flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
                                 >
                                     <Heart size={20} className="text-white group-hover:text-white" />
-                                </Button>
+                                   </Button> */}
 
-                                {/* Share Button and Dropdown */}
-                                <div className="relative">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                size="icon"
-                                                className="z-[99] flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
-                                                onClick={(e) => e.stopPropagation()}>
+                                    {/* Share Button and Dropdown */}
+                                    <div className="relative">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    size="icon"
+                                                    className="z-[99] flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
+                                                    onClick={(e) => e.stopPropagation()}>
 
-                                                <Share size={20} className="text-white group-hover:text-white" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent className="flex flex-col justify-center items-center">
-                                            <DropdownMenuLabel>Share this webnovel</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="flex flex-row gap-2">
-                                                    <TwitterShareButton url={currentPageUrl}>
-                                                        <TwitterIcon size={22} round={true} />
-                                                    </TwitterShareButton>
-                                                    <WhatsappShareButton url={currentPageUrl}>
-                                                        <WhatsappIcon size={22} round={true} />
-                                                    </WhatsappShareButton>
-                                                    <TelegramShareButton url={currentPageUrl}>
-                                                        <TelegramIcon size={22} round={true} />
-                                                    </TelegramShareButton>
-                                                    <PinterestShareButton url={currentPageUrl} media={getImageUrl(content.cover_art)}>
-                                                        <PinterestIcon size={22} round={true} />
-                                                    </PinterestShareButton>
-                                                    <LinkedinShareButton url={currentPageUrl}>
-                                                        <LinkedinIcon size={22} round={true} />
-                                                    </LinkedinShareButton>
+                                                    <Share size={20} className="text-white group-hover:text-white" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent className="flex flex-col justify-center items-center">
+                                                <DropdownMenuLabel>Share this webnovel</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="flex flex-row gap-2">
+                                                        <TwitterShareButton url={currentPageUrl}>
+                                                            <TwitterIcon size={22} round={true} />
+                                                        </TwitterShareButton>
+                                                        <WhatsappShareButton url={currentPageUrl}>
+                                                            <WhatsappIcon size={22} round={true} />
+                                                        </WhatsappShareButton>
+                                                        <TelegramShareButton url={currentPageUrl}>
+                                                            <TelegramIcon size={22} round={true} />
+                                                        </TelegramShareButton>
+                                                        <PinterestShareButton url={currentPageUrl} media={getImageUrl(content.cover_art)}>
+                                                            <PinterestIcon size={22} round={true} />
+                                                        </PinterestShareButton>
+                                                        <LinkedinShareButton url={currentPageUrl}>
+                                                            <LinkedinIcon size={22} round={true} />
+                                                        </LinkedinShareButton>
+                                                    </div>
+                                                    <div className='flex flex-row gap-2 text-center px-1'>
+                                                        <p className="text-[10px] self-center text-gray-500">{currentPageUrl}</p>
+                                                        <Button
+                                                            onClick={() => copyToClipboard(currentPageUrl.toString())}
+                                                            variant="link"
+                                                            size='icon'
+                                                            className="!no-underline p-0"
+                                                        >
+                                                            <span className="sr-only">Copy</span>
+                                                            <Copy size={10} />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                                <div className='flex flex-row gap-2 text-center px-1'>
-                                                    <p className="text-[10px] self-center text-gray-500">{currentPageUrl}</p>
-                                                    <Button
-                                                        onClick={() => copyToClipboard(currentPageUrl.toString())}
-                                                        variant="link"
-                                                        size='icon'
-                                                        className="!no-underline p-0"
-                                                    >
-                                                        <span className="sr-only">Copy</span>
-                                                        <Copy size={10} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="pb-5 w-full">
                                 {content.okay_to_create_videos &&
-                                    <Button
-                                        variant="default"
-                                        className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                        disabled={loadingVideoGeneration}
-                                        onClick={handleGenerateTrailer}
-                                    >
-                                        <p>
-                                            {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
-                                        </p>
-                                    </Button>
+                                    <div className="pb-5 w-full">
+                                        <Button
+                                            variant="default"
+                                            className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                            disabled={loadingVideoGeneration}
+                                            onClick={handleGenerateTrailer}
+                                        >
+                                            <p>
+                                                {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
+                                            </p>
+                                        </Button>
+                                    </div>
                                 }
                             </div>
                             {isJongmin() &&
@@ -531,25 +531,15 @@ export default function InfoAndPictureComponent({
                                             {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
                                         </Button>
                                     </div>
+
                                     <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                                        <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none">
-                                            <AlertDialogHeader className='p-4'>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
                                                 <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
                                             </AlertDialogHeader>
-                                            <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
-                                                <Button
-                                                    onClick={onDelete}
-                                                    className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
-                                                >
-                                                    {phrase(dictionary, "yes", language)}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => setShowDeleteModal(false)}
-                                                    className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
-
-                                                >
-                                                    {phrase(dictionary, "no", language)}
-                                                </Button>
+                                            <AlertDialogFooter className='flex flex-row gap-2 items-center justify-center'>
+                                                <Button color='destructive' variant='outline' className='' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
+                                                <Button color='gray' variant='outline' className='' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -557,20 +547,16 @@ export default function InfoAndPictureComponent({
                             }
                             {/* Premium Info */}
                             <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
-                                <Button className="font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent hover:bg-white/90  dark:hover:bg-black/90 shadow-none">
+                                <Button variant="link" className="!no-underline font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent shadow-none">
                                     <div className="flex flex-row gap-2 items-center cursor-pointer">
                                         <MdStars className="text-xl text-[#D92979]" />
                                         <Link href={`/stars`}>
-                                            <p>
-                                                {/* 별 구매하기  */}
-                                                {phrase(dictionary, "buyStars", language)}
-                                            </p>
+                                            <span>{phrase(dictionary, "buyStars", language)}</span>
                                         </Link>
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </Button>
                             </div>
-
                             {/* Purchase Modal */}
                             <ChapterPurchaseDialog
                                 showPurchaseModal={showPurchaseModal}
@@ -580,15 +566,8 @@ export default function InfoAndPictureComponent({
                                 stars={stars}
                                 chapter={content.chapters[0]}
                             />
-
                             {/* Not Enough Stars Modal */}
-                            <NotEnoughStarsDialog
-                                showNotEnoughStarsModal={showNotEnoughStarsModal}
-                                setShowNotEnoughStarsModal={setShowNotEnoughStarsModal}
-                                stars={stars}
-                                content={content}
-                                createMediaPrice={createMediaPrice}
-                            />
+                            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
 
                         </div>
                     </div>

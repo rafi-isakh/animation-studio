@@ -145,6 +145,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                                 relatedContent={webnovels}
                                 onContentUpdate={handleContentUpdate}
                                 posts={posts}
+                                onNewChapter={handleNewChapter}
                             />
                         </div>
                     </div>

@@ -24,6 +24,7 @@ import {
     Book,
     CircleHelp,
     Gift,
+    Info,
 } from 'lucide-react';
 import {
     Popover,
@@ -360,8 +361,8 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 ) : (
                                     <li className='md:hidden inline-flex items-center justify-center mr-2'>
                                         <Link href='/stars' className='!no-underline capitalize rounded-lg' >
-                                          <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
-                                        </Link>      
+                                            <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
+                                        </Link>
                                     </li>
                                 )}
                                 <button
@@ -386,8 +387,33 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <ul className="flex justify-center items-center md:gap-4">
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-4 for desktop header icons */}
+                                <li className='relative hidden md:inline-flex'>
                                 {/* Language globe icon menu button - Desktop */}
-
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Globe size={20} className='dark:text-white text-gray-500 cursor-pointer' />
+                                        </PopoverTrigger>
+                                        <PopoverContent className='md:w-30 w-full border-none bg-white dark:bg-[#211F21] shadow-none list-none'>
+                                            {langPairList.map((langPair, index) => (
+                                                <li
+                                                    id={`li-${langPair.code}`}
+                                                    key={index}
+                                                    className='cursor-pointer flex justify-center items-center'
+                                                >
+                                                    <Link
+                                                        href="#"
+                                                        onClick={(event) => handleLanguageChange(event, langPair.code as Language)}
+                                                        className={`
+                                                           md:hover:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 px-4 py-2
+                                                            ${highlightLanguage[langPair.code as Language] ? '!text-[#DB2777] dark:!text-[#DB2777]' : 'dark:text-white dark:hover:text-black'}`}
+                                                    >
+                                                        {langPair.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </PopoverContent>
+                                    </Popover>
+                                </li>
                                 <li className="relative hidden md:inline-flex">
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -400,7 +426,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 </li>
                                 {!isLoggedIn ? (
                                     <li className="relative hidden md:inline-flex">
-                                        <Link href="/signin" className='inline-flex justify-center  items-center text-gray-500 dark:text-white'>
+                                        <Link href="/signin" className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
                                             <span className='text-sm !break-keep'>{phrase(dictionary, "login", language)}</span>
                                         </Link>
                                     </li>
@@ -534,7 +560,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
                                                           hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
-                                                <CircleHelp size={20} className='dark:text-white text-gray-500' /> 
+                                                <CircleHelp size={20} className='dark:text-white text-gray-500' />
                                             </div>
                                             <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "help", language)}

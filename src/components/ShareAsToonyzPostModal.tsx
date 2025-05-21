@@ -199,7 +199,7 @@ export default function ShareAsToonyzPostModal({
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >
-                <ScrollArea className="relative flex flex-col md:h-full h-screen">
+                <ScrollArea className="relative flex flex-col justify-evenly md:h-full h-screen">
                     <DialogHeader className="text-md p-4">
                         <DialogTitle className="text-md">
                             <DictionaryPhrase phraseVar="shareAsToonyzPost" />

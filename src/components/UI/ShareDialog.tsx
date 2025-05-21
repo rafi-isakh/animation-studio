@@ -39,7 +39,7 @@ export default function ShareDialog({
 
     return (
         <DialogContent
-            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md'
+            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-[90vh] select-none text-md'
             showCloseButton={true}
             onOpenAutoFocus={(e) => e.preventDefault()}
         >
@@ -70,9 +70,9 @@ export default function ShareDialog({
                             </div>
                         ) : mediaType === 'video' ? (
                             <div className="rounded-lg ">
-                                <video src={getVideoUrl(shareImage)} playsInline muted loop autoPlay className="object-contain rounded-lg" />
+                                <video src={getVideoUrl(shareImage)} width={400} height={190} playsInline muted loop autoPlay className="object-contain rounded-lg" />
                             </div>
-                        ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
+                        ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={400} height={400} className="object-contain rounded-lg" />
                     )}
                     <div className="w-full flex flex-row gap-2 text-md">
                         <Label htmlFor="link" className="sr-only">
@@ -98,7 +98,7 @@ export default function ShareDialog({
                 </div>) : mode === "shareToSocialMedia" ? (
                     <div className="flex items-center space-x-2 p-4 overflow-y-auto h-full text-md">
                         {shareImage && (
-                            <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
+                            <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-72 h-80 mx-auto group">
                                 <Image
                                     src={`data:image/png;base64,${shareImage}`}
                                     alt={`Generated image`}

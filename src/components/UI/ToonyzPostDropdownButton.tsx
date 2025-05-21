@@ -61,7 +61,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
         description: "Your post has been deleted",
         variant: "success",
       });
-      router.push("/feeds");
+      router.push("/feed");
     } catch (error) {
       setIsLoading(false);
       console.error("Error deleting post", error);

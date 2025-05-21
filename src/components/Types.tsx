@@ -207,6 +207,8 @@ export interface CourseBook {
   textColor?: string;
   description?: string;
   description_en?: string;
+  file_url_ko?: string;
+  file_url_en?: string;
 }
 
 export interface FaqItem {

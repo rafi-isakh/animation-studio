@@ -25,6 +25,6 @@ export async function DELETE(request: NextRequest) {
     }
     return NextResponse.json({ 
         message: "Toonyz post deleted",
-        redirect: "/feeds" 
+        redirect: "/feed" 
     });
 }

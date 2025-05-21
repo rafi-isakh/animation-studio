@@ -90,7 +90,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             {/* header fixed */}
             <div className="fixed top-0 z-[99] w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
                 <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
-                    <Link href="/feeds" className="self-start my-5 flex flex-row items-center gap-2">
+                    <Link href="/feed" className="self-start my-5 flex flex-row items-center gap-2">
                         <MoveLeft size={20} className='dark:text-white text-gray-500' />
                         <p className="text-sm  font-bold font-base">{phrase(dictionary, "back", language)}</p>
                     </Link>
@@ -122,7 +122,10 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                 shareImage={post.image || post.video}
                                 mediaType={post.image ? 'image' : post.video ? 'video' : undefined}
                                 url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} 
-                                description={`Share this post with your friends and family.`} />
+                                description={`Share this post with your friends and family.`} 
+                                webnovelTitle={webnovel?.title}
+                                chapterTitle={chapterTitle}
+                                />
                         </Dialog>
                     </div>
                 </div>

@@ -81,15 +81,107 @@ export default function WatermarkedImage({
             }
         }
 
-        // Preload the image to ensure CORS is handled properly
-        preloadImage(processedImageUrl).then(finalUrl => {
-            img.src = finalUrl;
-            console.log("Loading image from:", finalUrl);
-        });
-
-        img.onload = () => {
+        // Create a single function to handle all canvas operations
+        const drawCanvas = () => {
+            if (!ctx) return;
+            
+            // Clear the canvas first
+            ctx.clearRect(0, 0, width, height);
+            
             // Draw the main image
-            ctx.drawImage(img, 0, 0, width, height)
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Add text overlays if provided
+            if (webnovelTitle || chapterTitle || quote) {
+                ctx.fillStyle = titleColor
+                // Set blend mode to difference
+                ctx.globalCompositeOperation = 'difference'
+
+                // Set text alignment based on position
+                if (titlePosition === "centerLeft") {
+                    ctx.textAlign = "left"
+                } else if (titlePosition === "centerRight") {
+                    ctx.textAlign = "right"
+                } else {
+                    ctx.textAlign = "center"
+                }
+
+                // Calculate x coordinate based on position
+                let x = width / 2;
+                if (titlePosition === "centerLeft") {
+                    x = 50; // Margin from left edge
+                } else if (titlePosition === "centerRight") {
+                    x = width - 50; // Margin from right edge
+                }
+
+                // Calculate y coordinate based on position
+                let y = titlePosition === "top" ? 40 : height - 40;
+                if (titlePosition === "centerLeft" || titlePosition === "centerRight") {
+                    y = height / 2; // Center vertically
+                }
+
+                if (webnovelTitle) {
+                    ctx.font = `bold ${titleFontSize}px Arial`
+                    ctx.fillText(webnovelTitle, x, y - (titlePosition === "bottom" ? 30 :
+                        (titlePosition === "centerLeft" || titlePosition === "centerRight") ? 15 : 0))
+                }
+
+                if (chapterTitle) {
+                    ctx.font = `${chapterFontSize}px Arial`
+                    ctx.fillText(chapterTitle, x, (titlePosition === "top") ? y + 30 :
+                        (titlePosition === "centerLeft" || titlePosition === "centerRight") ? y + 15 : y)
+                }
+
+                if (quote) {
+                    // Set the font first
+                    ctx.font = `${quoteFontSize}px Arial`;
+
+                    // Measure text width
+                    const metrics = ctx.measureText(quote);
+                    const textWidth = metrics.width;
+
+                    // Calculate text height (approximation based on font size)
+                    const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+                    const approxTextHeight = quoteFontSize * 1.2;
+
+                    // Calculate position based on dimensions
+                    let textX = x;
+                    let textY = y;
+
+                    // Adjust positions based on alignment
+                    if (quotePosition === "bottom") {
+                        textX = x + 20;
+                        textY = y + height - approxTextHeight - 20;
+                    } else if (quotePosition === "top") {
+                        textX = x + (width - textWidth) / 2;
+                        textY = y + (height - approxTextHeight) / 2;
+                    }
+
+                    // For multi-line prose text
+                    const lineHeight = approxTextHeight * 1.2;
+                    const words = quote.split(' ');
+                    let line = '';
+                    let yOffset = 0;
+
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = line + words[i] + ' ';
+                        const metrics = ctx.measureText(testLine);
+
+                        if (metrics.width > width - 40 && i > 0) {
+                            ctx.fillText(line, textX, textY + yOffset);
+                            line = words[i] + ' ';
+                            yOffset += lineHeight;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    ctx.fillText(line, textX, textY + yOffset);
+                }
+                // Reset blend mode back to normal
+                ctx.globalCompositeOperation = 'source-over'
+                // We set globalCompositeOperation = 'difference' to apply the difference blend mode to the text
+                // After we finish rendering all the text (webnovelTitle, chapterTitle, and quote), we need to reset it back to 'source-over' (the default blend mode) before we render the watermark
+            }
 
             // Load the watermark SVG
             const watermarkImg = new window.Image()
@@ -104,8 +196,6 @@ export default function WatermarkedImage({
                 let y = 0
                 const wWidth = 120 // Fixed width of 100px
                 const wHeight = 30 // Fixed height of 20px
-                // const wWidth = width / 3
-                // const wHeight = (watermarkImg.height / watermarkImg.width) * wWidth
 
                 switch (watermarkPosition) {
                     case "center":
@@ -145,97 +235,6 @@ export default function WatermarkedImage({
                 ctx.drawImage(watermarkImg, x, y, wWidth, wHeight)
                 ctx.globalAlpha = 1.0
 
-                // Add text overlays if provided
-                if (webnovelTitle || chapterTitle || quote) {
-                    ctx.fillStyle = titleColor
-
-                    // Set text alignment based on position
-                    if (titlePosition === "centerLeft") {
-                        ctx.textAlign = "left"
-                    } else if (titlePosition === "centerRight") {
-                        ctx.textAlign = "right"
-                    } else {
-                        ctx.textAlign = "center"
-                    }
-
-                    // Calculate x coordinate based on position
-                    let x = width / 2;
-                    if (titlePosition === "centerLeft") {
-                        x = 50; // Margin from left edge
-                    } else if (titlePosition === "centerRight") {
-                        x = width - 50; // Margin from right edge
-                    }
-
-                    // Calculate y coordinate based on position
-                    let y = titlePosition === "top" ? 40 : height - 40;
-                    if (titlePosition === "centerLeft" || titlePosition === "centerRight") {
-                        y = height / 2; // Center vertically
-                    }
-
-                    if (webnovelTitle) {
-                        ctx.font = `bold ${titleFontSize}px Arial`
-                        ctx.fillText(webnovelTitle, x, y - (titlePosition === "bottom" ? 30 :
-                            (titlePosition === "centerLeft" || titlePosition === "centerRight") ? 15 : 0))
-                    }
-
-                    if (chapterTitle) {
-                        ctx.font = `${chapterFontSize}px Arial`
-                        ctx.fillText(chapterTitle, x, (titlePosition === "top") ? y + 30 :
-                            (titlePosition === "centerLeft" || titlePosition === "centerRight") ? y + 15 : y)
-                    }
-
-                    if (quote) {
-                        // Set the font first
-                        ctx.font = `${quoteFontSize}px Arial`;
-
-                        // Measure text width
-                        const metrics = ctx.measureText(quote);
-                        const textWidth = metrics.width;
-
-                        // Calculate text height (approximation based on font size)
-                        // This is more accurate than just using fontSize
-                        const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-
-                        // Alternative height calculation if the above isn't supported in all browsers
-                        const approxTextHeight = quoteFontSize * 1.2; // 1.2 is a common line-height multiplier
-
-                        // Calculate position based on dimensions
-                        let textX = x;
-                        let textY = y;
-
-                        // Adjust positions based on alignment
-                        if (quotePosition === "bottom") {
-                            textX = x + 20; // Left-aligned with 20px padding from left edge
-                            textY = y + height - approxTextHeight - 20; // Position at bottom with 20px padding
-                        } else if (quotePosition === "top") {
-                            textX = x + (width - textWidth) / 2; // Center horizontally
-                            textY = y + (height - approxTextHeight) / 2; // Center vertically
-                        }
-
-                        // For multi-line prose text (if needed)
-                        const lineHeight = approxTextHeight * 1.2;
-                        const words = quote.split(' ');
-                        let line = '';
-                        let yOffset = 0;
-
-                        for (let i = 0; i < words.length; i++) {
-                            const testLine = line + words[i] + ' ';
-                            const metrics = ctx.measureText(testLine);
-
-                            if (metrics.width > width - 40 && i > 0) {
-                                // Draw the line and move to next line
-                                ctx.fillText(line, textX, textY + yOffset);
-                                line = words[i] + ' ';
-                                yOffset += lineHeight;
-                            } else {
-                                line = testLine;
-                            }
-                        }
-                        // Draw the last line
-                        ctx.fillText(line, textX, textY + yOffset);
-                    }
-                }
-
                 // Convert canvas to data URL
                 const dataUrl = canvas.toDataURL("image/jpeg", 0.9)
                 setDataUrl(dataUrl)
@@ -247,6 +246,14 @@ export default function WatermarkedImage({
                 setIsLoading(false)
             }
         }
+
+        // Preload the image and then draw the canvas
+        preloadImage(processedImageUrl).then(finalUrl => {
+            img.src = finalUrl;
+            console.log("Loading image from:", finalUrl);
+        });
+
+        img.onload = drawCanvas;
 
         img.onerror = () => {
             if (fallbackUrl && img.src !== fallbackUrl) {
@@ -277,15 +284,12 @@ export default function WatermarkedImage({
         <div className={`relative ${className}`}>
             {/* Hidden canvas for processing */}
             <canvas ref={canvasRef} style={{ display: "none" }} />
-
             {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
                 </div>
             )}
-
             {error && <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-500">{error}</div>}
-
             {dataUrl && !isLoading && (
                 <Image
                     src={dataUrl || "/placeholder.svg"}

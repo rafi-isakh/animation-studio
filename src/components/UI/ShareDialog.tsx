@@ -19,7 +19,9 @@ export default function ShareDialog({
     description = "Share the link with your friends and family.",
     mode = "share",
     shareImage,
-    mediaType
+    mediaType,
+    webnovelTitle,
+    chapterTitle
 }: {
     url?: string;
     title?: string;
@@ -27,6 +29,8 @@ export default function ShareDialog({
     mode?: "share" | "shareToSocialMedia";
     shareImage?: string;
     mediaType?: 'image' | 'video';
+    webnovelTitle?: string;
+    chapterTitle?: string;
 }) {
     const { toast } = useToast();
     const copyToClipboard = useCopyToClipboard();
@@ -55,6 +59,8 @@ export default function ShareDialog({
                                     watermarkUrl="/toonyz_logo_white.svg"
                                     width={400}
                                     height={400}
+                                    webnovelTitle={webnovelTitle}
+                                    chapterTitle={chapterTitle}
                                     watermarkOpacity={0.2}
                                     watermarkPosition="bottomRight"
                                     titlePosition="top"

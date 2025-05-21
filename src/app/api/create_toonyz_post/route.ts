@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request: NextRequest) {
     const { title, content, quote, fileName, type, tags, link, webnovel_id, chapter_id } = await request.json();
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
             'Provider': session.provider,
         }
     });
+    revalidateTag("/toonyz_posts");
     if (!response.ok) {
         return NextResponse.json({ error: response.statusText }, { status: response.status });
     }

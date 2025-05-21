@@ -23,7 +23,6 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import DictionaryPhrase from "./DictionaryPhrase"
 import { useCreateMedia } from "@/contexts/CreateMediaContext"
 import { useRouter } from "next/navigation";
-import { revalidateTag } from "next/cache";
 import { cn } from "@/lib/utils";
 
 export default function ShareAsToonyzPostModal({
@@ -146,7 +145,6 @@ export default function ShareAsToonyzPostModal({
                 title: "Success",
                 description: "Post created successfully"
             });
-            revalidateTag("/toonyz_posts");
             setShowShareAsPostModal(false);
             setIsLoading(false);
         } catch (error) {
@@ -154,7 +152,7 @@ export default function ShareAsToonyzPostModal({
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "An unexpected error occurred"
+                description: "An unexpected error occurred: " + error
             });
         } finally {
             setIsLoading(false);

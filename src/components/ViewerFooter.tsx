@@ -184,24 +184,24 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
             {/* Dialogs for last and first chapter */}
             <Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent
-                    className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
+                    className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none text-md'
                     showCloseButton={true}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                    <DialogHeader className='p-4'>
-                        <DialogTitle>
+                    <DialogHeader className='text-md p-4'>
+                        <DialogTitle className='text-md'>
                             {phrase(dictionary, "isLastChapter", language)}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className='text-md'>
                             <div className='flex flex-col space-y-4'>
                                 <p>{phrase(dictionary, "isLastChapter", language)}</p>
                             </div>
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                         <Button
                             onClick={() => setShowIsLastChapterModal(false)}
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
 
                         >
                             {phrase(dictionary, "ok", language)}
@@ -211,24 +211,24 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
             </Dialog >
             <Dialog open={showIsFirstChapterModal} onOpenChange={setShowIsFirstChapterModal}>
                 <DialogContent
-                    className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
+                    className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none text-md'
                     showCloseButton={true}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                    <DialogHeader className='p-4'>
-                        <DialogTitle>
+                    <DialogHeader className='text-md p-4'>
+                        <DialogTitle className='text-md'>
                             {phrase(dictionary, "isFirstChapter", language)}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className='text-md'>
                             <div className='flex flex-col space-y-4'>
                                 <p>{phrase(dictionary, "isFirstChapter", language)}</p>
                             </div>
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                         <Button
                             onClick={() => setShowIsFirstChapterModal(false)}
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                         >
                             {phrase(dictionary, "ok", language)}
                         </Button>

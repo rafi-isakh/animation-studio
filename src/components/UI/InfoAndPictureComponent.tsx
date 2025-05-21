@@ -408,7 +408,6 @@ export default function InfoAndPictureComponent({
                                     classParams="text-sm text-gray-800 dark:text-white"
                                 />
                             </div>
-
                             {/* Action Buttons */}
                             <div className="flex flex-col w-full">
                                 <div className="flex flex-row gap-2 py-5 w-full">

@@ -6,13 +6,21 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
-import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material } from '@/utils/webnovelUtils';
+import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelToShow } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { useUser } from '@/contexts/UserContext';
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy, title, genre, is_adult_material = false, mode = 'sub_page', version = 'premium' }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string, genre?: string, is_adult_material?: boolean, mode?: 'main_page' | 'sub_page', version?: string }) => {
+const WebnovelsCardListByNew = ({ searchParams, sortBy, title, genre, is_adult_material, mode = 'sub_page', version }: { 
+    searchParams: { [key: string]: string | string[] | undefined }, 
+    sortBy: SortBy, 
+    title: string, 
+    genre?: string, 
+    is_adult_material?: boolean | null, 
+    mode?: 'main_page' | 'sub_page', 
+    version?: string 
+}) => {
     // const genre = searchParams.genre as string | undefined;
-    //const version = searchParams.version as string | undefined;
+    // const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -22,12 +30,8 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title, genre, is_adult_m
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
-        let _webnovelsToShow = webnovels
-            .filter(item => filter_by_genre(item, genre))
-            .filter(item => filter_by_version(item, version))
-            .filter(item => filter_by_adult_material(item, is_adult_material))
-            .filter(item => item.chapters_length > 0)
-            .sort((a, b) => sortByFn(a, b, sortBy, genres))
+        let _version = version || searchParams.version as string | undefined;
+        let _webnovelsToShow = getWebnovelToShow(webnovels, sortBy, genres, genre, _version, is_adult_material)
 
         if (isMobile) {
             if (mode === 'main_page') {
@@ -50,6 +54,10 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title, genre, is_adult_m
     } else if (Array.isArray(genre)) {
         throw new Error("there should be only one genre param")
     } else {
+    }
+
+    if (webnovelsToShow.length === 0) {
+        return <></>
     }
 
     return (

@@ -6,7 +6,7 @@ import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
 import { auth } from '@/auth';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
-import MainPageWrapper from '@/components/UI/MainPageWrappter';
+import MainPageWrapper from '@/components/UI/MainPageWrapper';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {

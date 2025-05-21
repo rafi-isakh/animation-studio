@@ -32,6 +32,7 @@ export const filter_by_version = (item: Webnovel, version: string | null | undef
 };
 
 export const filter_by_adult_material = (item: Webnovel, is_adult_material: boolean | null | undefined) => {
+    if (is_adult_material === null) return true;
     if (!is_adult_material) return !item.is_adult_material;
     else return item.is_adult_material;
 };
@@ -85,6 +86,25 @@ export const calculateIndex = (rowIndex: number, colIndex: number, columns: Webn
         }
     }
 
+
+export const getWebnovelToShow = (webnovels: Webnovel[], sortBy: SortBy, genres: { [key: string]: boolean } | null = null, genre: string | null = null, version: string | null = null, is_adult_material: boolean | null = null) => {
+    let _webnovelsToShow = webnovels
+        .filter(item => filter_by_genre(item, genre))
+        .filter(item => {
+            if (version === "community") {
+                return !item.premium;
+            } else if (version === "premium") {
+                return item.premium;
+            } else {
+                return true;
+            }
+        })
+        .filter(item => filter_by_adult_material(item, is_adult_material))
+        .filter(item => item.chapters_length > 0)
+        .sort((a, b) => sortByFn(a, b, sortBy, genres));
+
+    return _webnovelsToShow;
+}
 
 export const getColumnLayout = (webnovels: Webnovel[], numColumns: number, isMobile: boolean) => {
     const columns: Webnovel[][] = Array.from({ length: numColumns }, () => []);

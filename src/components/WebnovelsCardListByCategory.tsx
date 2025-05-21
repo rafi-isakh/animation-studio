@@ -4,13 +4,13 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import WebnovelPictureComponent from "@/components/WebnovelPictureComponent"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material } from '@/utils/webnovelUtils';
+import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelToShow } from '@/utils/webnovelUtils';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
-const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title, version = 'premium', is_adult_material = false }: 
-    { searchParams: { [key: string]: string | string[] | undefined }, genre: string | undefined, sortBy: SortBy, title: string, version?: string, is_adult_material?: boolean }) => {
+const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title, version = 'premium', is_adult_material }: 
+    { searchParams: { [key: string]: string | string[] | undefined }, genre: string | undefined, sortBy: SortBy, title: string, version?: string, is_adult_material?: boolean | null }) => {
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -18,12 +18,7 @@ const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title, versi
     const { webnovels } = useWebnovels();
 
     useEffect(() => {
-        const _webnovelsToShow = webnovels
-            .filter(item => filter_by_genre(item, genre))
-            .filter(item => filter_by_version(item, version))
-            .filter(item => filter_by_adult_material(item, is_adult_material))
-            .filter(item => item.chapters_length > 0)
-            .sort((a, b) => sortByFn(a, b, sortBy))
+        const _webnovelsToShow = getWebnovelToShow(webnovels, sortBy, null, genre, version, is_adult_material)
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

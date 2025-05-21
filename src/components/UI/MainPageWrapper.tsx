@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useState } from 'react';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcnUI/Tabs"
 import WebnovelsCards from '@/components/WebnovelsCards';
@@ -7,9 +8,12 @@ import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategor
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
+import { getWebnovelToShow } from '@/utils/webnovelUtils';
+import { useWebnovels } from '@/contexts/WebnovelsContext';
 
 const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: any[] }) => {
     const { dictionary, language } = useLanguage();
+    const { webnovels } = useWebnovels();
 
     const LargeGap = () => {
         return (
@@ -23,38 +27,45 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
         )
     }
 
+    const mainTabConfigs = [
+        { name: 'home', value: 'home', key: 'home' },
+        { name: 'romance', value: 'romance', key: 'romance', is_adult_material: false },
+        { name: 'romanceFantasy', value: 'romanceFantasy', key: 'romanceFantasy', is_adult_material: false },
+        { name: 'community', value: 'all', key: 'community_series', version: 'community' },
+        { name: 'fantasy', value: 'fantasy', key: 'fantasy', is_adult_material: false },
+        { name: 'orientalFantasy', value: 'orientalFantasy', key: 'orientalFantasy', is_adult_material: false },
+        { name: 'bl', value: 'bl', key: 'bl', is_adult_material: false },
+        { name: 'action', value: 'action', key: 'action', is_adult_material: false },
+        { name: 'adult', value: 'all', key: 'adult_series', is_adult_material: true } // it's adult_material tab
+    ];
+
+    // Filter out tabs that have no webnovels
+    const filteredTabConfigs = mainTabConfigs.filter(tab => {
+        if (tab.value === 'home') return true; // Always show home tab
+        const _webnovels = getWebnovelToShow(webnovels, 'recommendation', null, tab.value, tab.version, tab.is_adult_material);
+        console.log(`Tab ${tab.value} has ${_webnovels.length} webnovels, is_adult_material: ${tab.is_adult_material}, version: ${tab.version}`);
+        return _webnovels.length > 0;
+    });
 
     return (
         <div className="relative w-full">
             <Tabs defaultValue="home" className="w-full flex flex-col justify-center items-center mx-auto">
                 <TabsList className="flex justify-start w-full md:max-w-screen-xl bg-transparent md:h-12 h-8 overflow-x-auto !no-scrollbar" >
-                    <TabsTrigger value="home" className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white  px-4 py-1">
-                        {phrase(dictionary, 'home', language)}
-                    </TabsTrigger>
-                    <TabsTrigger value="romance" className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1">
-                        {phrase(dictionary, 'romance', language)}
-                    </TabsTrigger>
-                    <TabsTrigger value="romanceFantasy" className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1">
-                        {phrase(dictionary, 'romanceFantasy', language)}
-                    </TabsTrigger>
-                    <TabsTrigger value="community" className={"md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1"}>
-                        {phrase(dictionary, 'community_series', language)}
-                    </TabsTrigger>
-                    <TabsTrigger value="adult" className={`${language === 'ko' ? '' : 'hidden'} md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1`}>
-                        {phrase(dictionary, 'adult_series', language)}
-                    </TabsTrigger>
-                    <TabsTrigger value="action" className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1">
-                        {phrase(dictionary, 'action', language)}
-                    </TabsTrigger>
-                    <TabsTrigger value="bl" className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1">
-                        {phrase(dictionary, 'bl', language)}
-                    </TabsTrigger>
+                    {filteredTabConfigs.map((tab) => (
+                        <TabsTrigger 
+                            key={tab.key}
+                            value={tab.name} 
+                            className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1"
+                        >
+                            {phrase(dictionary, tab.key, language)}
+                        </TabsTrigger>
+                    ))}
                 </TabsList>
                 <TabsContent value="home" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
-                        {/*    The side bar width is 72px  md:pl-[72px]  */}
-                        {/* Side bar/Bottom Navigation are in layout.tsx */}
-                        {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
+                            {/*    The side bar width is 72px  md:pl-[72px]  */}
+                            {/* Side bar/Bottom Navigation are in layout.tsx */}
+                            {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
                         <CarouselComponentShadcn items={items} />
                         <SmallGap />
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
@@ -64,7 +75,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                             {/*smallGap()/*}
                             {/*WebnovelsCardListByCategory has smallGap in the bottom*/}
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"  />
                             <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" mode="main_page" />
                             <LargeGap />
                             <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
@@ -83,9 +94,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
                             <WebnovelsCards searchParams={searchParams} genre="romance" sortBy="recommendation" title="romanceWebnovels" />
-                            <LargeGap />
                         </div>
                     </div>
                 </TabsContent>
@@ -93,33 +102,31 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
                             <WebnovelsCards searchParams={searchParams} genre="romanceFantasy" sortBy="recommendation" title="romanceFantasyWebnovels" />
-                            <LargeGap />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="community" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" version="community" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" version="community"  />
                             <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedCommunityWebnovels" version="community" />
                         </div>
                     </div>
                 </TabsContent>
-                <TabsContent value="adult" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
+                <TabsContent value="fantasy" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" is_adult_material={true} />
-                            <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedAdultWebnovels" is_adult_material={true} />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="" />
+                            <WebnovelsCards searchParams={searchParams} genre="fantasy" sortBy="recommendation" title="fantasyWebnovels" />
                         </div>
                     </div>
                 </TabsContent>
-                <TabsContent value="action" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
+                <TabsContent value="orientalFantasy" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="" />
+                            <WebnovelsCards searchParams={searchParams} genre="orientalFantasy" sortBy="recommendation" title="orientalFantasyWebnovels" />
                         </div>
                     </div>
                 </TabsContent>
@@ -127,6 +134,23 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title=""  />
+                            <WebnovelsCards searchParams={searchParams} genre="bl" sortBy="recommendation" title="recommendedBLWebnovels" />
+                        </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="action" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
+                    <div className='w-full'>
+                        <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="action" sortBy='date' title=""  />
+                            <WebnovelsCards searchParams={searchParams} genre="action" sortBy="recommendation" title="actionWebnovels" />
+                        </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="adult" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
+                    <div className='w-full'>
+                        <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="communityAdultWebnovels" is_adult_material={true} version={undefined}/>
+                            <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedCommunityAdultWebnovels" is_adult_material={true} version={undefined} />
                         </div>
                     </div>
                 </TabsContent>

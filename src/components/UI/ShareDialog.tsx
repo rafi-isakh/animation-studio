@@ -35,18 +35,18 @@ export default function ShareDialog({
 
     return (
         <DialogContent
-            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none'
+            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md'
             showCloseButton={true}
             onOpenAutoFocus={(e) => e.preventDefault()}
         >
-            <DialogHeader className='p-4'>
-                <DialogTitle className='text-lg'>{title}</DialogTitle>
-                <DialogDescription className='text-sm'>
+            <DialogHeader className='text-md p-4'>
+                <DialogTitle className='text-md'>{title}</DialogTitle>
+                <DialogDescription className='text-md'>
                     {description}
                 </DialogDescription>
             </DialogHeader>
             {mode === "share" && url ? (
-                <div className="flex flex-col items-center gap-2 p-4 overflow-y-auto">
+                <div className="flex flex-col items-center gap-2 p-4 overflow-y-auto text-md">
                     {shareImage && (
                         mediaType === 'image' ? (
                             <div className="rounded-lg">
@@ -68,7 +68,7 @@ export default function ShareDialog({
                             </div>
                         ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
                     )}
-                    <div className="w-full flex flex-row gap-2">
+                    <div className="w-full flex flex-row gap-2 text-md">
                         <Label htmlFor="link" className="sr-only">
                             Link
                         </Label>
@@ -90,7 +90,7 @@ export default function ShareDialog({
                         </Button>
                     </div>
                 </div>) : mode === "shareToSocialMedia" ? (
-                    <div className="flex items-center space-x-2 p-4 overflow-y-auto h-full">
+                    <div className="flex items-center space-x-2 p-4 overflow-y-auto h-full text-md">
                         {shareImage && (
                             <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
                                 <Image
@@ -105,7 +105,7 @@ export default function ShareDialog({
                     </div>
                 ) : <></>
             }
-            <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+            <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                 {mode === "share" && url && <Button
                     onClick={() => { 
                         if (url) {
@@ -114,7 +114,7 @@ export default function ShareDialog({
                             setTimeout(() => setCopied(false), 2000);
                         }
                     }}
-                    className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                    className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                 >
                     {copied
                             ? phrase(dictionary, "copied", language)
@@ -123,7 +123,7 @@ export default function ShareDialog({
                 </Button>}
                 <DialogClose asChild>
                     <Button
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                     >
                         {phrase(dictionary, "close", language)}
                     </Button>

@@ -195,14 +195,16 @@ export default function ShareAsToonyzPostModal({
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
-                className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none'
+                className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md'
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >
                 <ScrollArea className="relative flex flex-col md:h-full h-screen">
-                    <DialogHeader className="p-4">
-                        <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
-                        <DialogDescription>
+                    <DialogHeader className="text-md p-4">
+                        <DialogTitle className="text-md">
+                            <DictionaryPhrase phraseVar="shareAsToonyzPost" />
+                        </DialogTitle>
+                        <DialogDescription className="text-md">
                             {image && (<>
                                 <div className="relative w-full aspect-[9/16] pt-4">
                                     <Image
@@ -283,10 +285,10 @@ export default function ShareAsToonyzPostModal({
                             />
                         </div>
                     </div>
-                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                         <Button
                             disabled={isLoading}
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                             onClick={() => handleShareAsPost()}>
                             {isLoading ? (
                                 <>
@@ -301,7 +303,7 @@ export default function ShareAsToonyzPostModal({
                             }
                         </Button>
                         <Button
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                             onClick={() => setShowShareAsPostModal(false)}>
                             {phrase(dictionary, "cancel", language)}
                         </Button>

@@ -200,16 +200,14 @@ export function LanguageSettingDialogRaw({ openLanguageDialog, setOpenLanguageDi
 
     return (
         <Dialog open={openLanguageDialog} onOpenChange={setOpenLanguageDialog}>
-            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none' showCloseButton>
-                <DialogHeader className='p-4'>
-                    <DialogTitle>{phrase(dictionary, 'language', language)}</DialogTitle>
-                    <DialogDescription>
-                        <p className='text-sm text-gray-500 dark:text-white'>
-                            {phrase(dictionary, 'setting_language_description', language)}
-                        </p>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md' showCloseButton>
+                <DialogHeader className='text-md p-4'>
+                    <DialogTitle className='text-md'>{phrase(dictionary, 'language', language)}</DialogTitle>
+                    <DialogDescription className='text-md'>
+                        <p> {phrase(dictionary, 'setting_language_description', language)}</p>
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex flex-col px-4 pb-4">
+                <div className="flex flex-col px-4 pb-4 text-md">
                     <RadioGroup
                         ref={radioGroupRef}
                         aria-label="Language"
@@ -238,16 +236,16 @@ export function LanguageSettingDialogRaw({ openLanguageDialog, setOpenLanguageDi
                         ))}
                     </RadioGroup>
                 </div>
-                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                     <Button
                         onClick={handleOk}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                     >
                         {phrase(dictionary, 'ok', language)}
                     </Button>
                     <Button
                         onClick={handleCancel}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
 
                     >
                         {phrase(dictionary, 'cancel', language)}

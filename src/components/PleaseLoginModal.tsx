@@ -20,28 +20,28 @@ export default function PleaseLoginModal({ open, setOpen }: { open: boolean, set
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent
-                className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
+                className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none text-md'
                 showCloseButton={true}
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
-                <DialogHeader className='p-4'>
-                    <DialogTitle>
+                <DialogHeader className='text-md p-4'>
+                    <DialogTitle className='text-md'>
                         <p>{phrase(dictionary, "pleaseLogin", language)}</p>
                     </DialogTitle>
-                    <DialogDescription className='text-sm'>
+                    <DialogDescription className='text-md'>
                         <p> {phrase(dictionary, "pleaseLoginDescription", language)}</p>
                     </DialogDescription>
                 </DialogHeader>
-                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                     <Button
                         onClick={() => router.push('/signin')}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                     >
                         {phrase(dictionary, "ok", language)}
                     </Button>
                     <Button
                         onClick={() => setOpen(false)}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                     >
                         {phrase(dictionary, "cancel", language)}
                     </Button>

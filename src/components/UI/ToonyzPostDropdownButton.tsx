@@ -215,15 +215,15 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
                 </DialogTrigger>
                 {/* delete modal */}
                 <DialogContent
-                  className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton
+                  className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton
                   onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                  <DialogHeader className='p-4'>
+                  <DialogHeader className='text-md p-4'>
                     <DialogTitle>{phrase(dictionary, "deletePost", language)}</DialogTitle>
                   </DialogHeader>
-                  <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                  <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                     <Button
-                      className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                      className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                       onClick={() => {
                         handleDeletePost(postId);
                         setShowDeleteModal(false);
@@ -231,7 +231,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
                       {isLoading ? <Loader2 size={16} className="animate-spin" /> : phrase(dictionary, "delete", language)}
                     </Button>
                     <Button
-                      className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                      className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                       onClick={() => {
                         setShowDeleteModal(false);
                       }}>

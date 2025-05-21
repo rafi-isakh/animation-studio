@@ -146,10 +146,10 @@ export default function Home() {
               <DialogDescription className="w-full h-full">
                 <ContactForm />
               </DialogDescription>
-              <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+              <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                 <Button
                   onClick={() => setInquiryDialogOpen(false)}
-                  className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                  className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                 >
                   {phrase(dictionary, "close", language)}
                 </Button>

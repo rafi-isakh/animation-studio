@@ -2,7 +2,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Check, Info, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/shadcnUI/Dialog"
 import { Language } from "@/components/Types";
 import { Button } from "@/components/shadcnUI/Button";
 import { BookCard } from "@/components/UI/writingClass/ui/BookCard";

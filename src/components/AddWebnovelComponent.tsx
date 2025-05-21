@@ -26,6 +26,7 @@ import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogD
 import { Label } from "@/components/shadcnUI/Label"
 import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from '@/lib/utils';
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
@@ -177,14 +178,16 @@ const AddWebnovelComponent = () => {
                     </Link>
                 </div>
             ) : (
-                <div className='md:w-[720px] md:p-6 p-1 w-full flex md:flex-row flex-col justify-center mx-auto'>
-                    <div className='flex flex-col md:border md:border-gray-300 md:dark:border-[#2F2F2F] rounded-xl p-2 md:p-4 md:px-10 md:w-[1200px]'>
+                <div className='md:max-w-screen-md p-6 w-full flex md:flex-row flex-col justify-center mx-auto'>
+                    <div className='flex flex-col border-none w-full'>
                         {/* Mui dark theme color code : divider [#2F2F2F] */}
                         <form onSubmit={handleAddWebnovel}>
-                            <p className={`text-2xl mt-2 mb-4 font-bold ${styles.korean}`}>{phrase(dictionary, "uploadNewWebnovel", language)}</p>
-                            <div className="mt-10 md:w-[500px] w-full">
+                            <p className={`text-2xl font-bold ${styles.korean} mb-10`}>
+                                {phrase(dictionary, "uploadNewWebnovel", language)}
+                            </p>
+                            <div className="md:w-[500px] w-full">
                                 <>
-                                    <label htmlFor="author" className='text-sm ml-2'>
+                                    <label htmlFor="author" className='text-sm'>
                                         <div className='flex flex-row gap-1 items-center'>
                                             {/* 커버등록 */}
                                             {phrase(dictionary, "uploadCoverArt", language)}
@@ -305,11 +308,11 @@ const AddWebnovelComponent = () => {
                                             </span>
                                         </p>
                                         <div className="flex flex-col gap-2 mt-2">
-                                            <RadioGroup 
+                                            <RadioGroup
                                                 onValueChange={(value) => {
                                                     setIsAdultMaterial(value === "adultContent");
                                                     console.log("is adult?", value === "adultContent");
-                                                }} 
+                                                }}
                                                 defaultValue="allContent"
                                                 className="text-[#DB2777]"
                                             >
@@ -385,24 +388,24 @@ const AddWebnovelComponent = () => {
                                             ref={buttonRef}
                                             type="submit"
                                             disabled={isSubmitting}
-                                            className="whitespace-nowrap px-4 py-2 transition-all duration-300
+                                            className="whitespace-nowrap w-full transition-all duration-300
                                               bg-pink-200 hover:bg-[#DB2777] hover:text-white
                                               dark:bg-gray-800 border-0
                                               dark:hover:bg-gray-700
                                                ">
                                             {/*Spinny wheel when submitting*/}
-                                            <CloudUpload size={16} className='mr-2' />
+                                            <CloudUpload size={16} />
                                             {isSubmitting ?
                                                 <CircularProgress size="1rem" color='secondary' />
-                                                :
-                                                phrase(dictionary, "save", language)}
+                                                : phrase(dictionary, "save", language)
+                                            }
                                         </Button>
                                     </div>
                                 </div>
                                 {/* modal for input all info */}
                                 <Dialog open={openModal} onOpenChange={setOpenModal}>
-                                    <DialogContent className='bg-white dark:bg-black flex flex-col justify-center items-center'>
-                                        <DialogHeader>
+                                    <DialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none" showCloseButton={true}>
+                                        <DialogHeader className='p-4'>
                                             <DialogTitle>
                                                 <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200 text-center" />
                                                 <p className='text-2xl font-bold text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
@@ -411,12 +414,12 @@ const AddWebnovelComponent = () => {
                                                 <p className='text-base text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <DialogFooter>
-                                            <div className="flex justify-center gap-4">
-                                                <Button color='primary' variant='outline' className='border-0 bg-black text-white dark:text-black dark:bg-white dark:hover:opacity-80' onClick={() => setOpenModal(false)}>
-                                                    {phrase(dictionary, "ok", language)}
-                                                </Button>
-                                            </div>
+                                        <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
+                                            <Button
+                                                className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                                                onClick={() => setOpenModal(false)}>
+                                                {phrase(dictionary, "ok", language)}
+                                            </Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>

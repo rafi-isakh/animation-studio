@@ -3,6 +3,8 @@ import withPWA from 'next-pwa';
 
 const nextConfig = {
     webpack: (config) => {
+        // This is to handle the PDF.js worker
+        config.resolve.alias.canvas = false;
         // Add rule for Lottie JSON files
         config.module.rules.push({
             test: /\.lottie$/,

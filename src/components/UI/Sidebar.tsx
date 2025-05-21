@@ -49,10 +49,10 @@ export function GlobalSidebar() {
       />
       <SidebarItem
         icon={<LayoutGrid />}
-        text={phrase(dictionary, "sidebar_feeds", language)}
-        active={pathname.startsWith('/feeds')}
+        text={phrase(dictionary, "sidebar_feed", language)}
+        active={pathname.startsWith('/feed')}
         alert={false}
-        href="/feeds"
+        href="/feed"
         type="link"
       />
       <SidebarItem

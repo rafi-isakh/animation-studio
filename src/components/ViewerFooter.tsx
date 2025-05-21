@@ -115,9 +115,9 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
 
 
     const getNextChapterId = (currentChapterId: number) => {
-        const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
-        if (index === webnovel.chapters_length - 1) {
-            return currentChapterId; // Stay on the same chapter if it's the last one
+        const index = chapters.findIndex(ch => ch.id === currentChapterId);
+        if (index === -1 || index >= chapters.length - 1) {
+            return currentChapterId; // Stay on the same chapter if it's the last one or not found
         }
         return chapters[index + 1].id;
     }

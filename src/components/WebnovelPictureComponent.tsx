@@ -46,7 +46,7 @@ const WebnovelPictureComponent = React.memo(
                             />
                         }
                         {/* Author and Genre */}
-                        <p className="text-xs md:text-sm line-clamp-2 w-full truncate text-gray-500 flex flex-row">
+                        <div className="text-xs line-clamp-2 w-full truncate text-gray-500 flex flex-col">
                             {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
                             <span className="mr-1">{language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}</span>
                             <span className="flex flex-row items-center gap-1">
@@ -57,7 +57,7 @@ const WebnovelPictureComponent = React.memo(
                                 </svg>
                                 {webnovel.upvotes}
                             </span>
-                        </p>
+                        </div>
                     </div>
                 </div>
             </Link>

@@ -48,7 +48,7 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                                 onMouseLeave={() => setActiveIndex(null)}
                             >
                                 <Card
-                                    className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none ${activeIndex === index ? "shadow-none scale-110" : ""
+                                    className={`bg-transparent overflow-hidden transition-all duration-300 ease-out border-none shadow-none rounded-sm ${activeIndex === index ? "shadow-none scale-110" : ""
                                         }`}
                                 >
                                     {renderItem(item, index)}

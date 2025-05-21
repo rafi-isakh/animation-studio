@@ -30,15 +30,16 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
     return (
         <div className={`relative  w-full mx-auto group overflow-hidden ${className}`}>
             <div>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
-                    {title}
-                </h1>
+                {title && <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
+                             {title}
+                          </h1>}
 
                 <div className="relative">
                     {/* Desktop layout with fixed 6 cards */}
                     <div
                         ref={scrollRef}
-                        className="hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 py-8"
+                        className={`${title ? "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 py-8" 
+                                            : "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 pb-8"}`}
                     >
                         {webnovels.map((item, index) => (
                             <div

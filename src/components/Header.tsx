@@ -312,7 +312,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     return (
         <>
-            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
+            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:pt-2 md:pb-0 pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row w-full flex-wrap md:flex-nowrap items-center mx-auto justify-between">

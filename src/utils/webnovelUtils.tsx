@@ -1,6 +1,4 @@
 import { Webnovel, SortBy} from '@/components/Types';
-import moment from 'moment';
-
 
 export const getNumberOfLikes = (novels: Webnovel[]) => {
     let likes = 0;
@@ -31,6 +29,11 @@ export const filter_by_version = (item: Webnovel, version: string | null | undef
     if (!version) return item.premium;
     else if (version === "community") return !item.premium;
     else return item.premium;
+};
+
+export const filter_by_adult_material = (item: Webnovel, is_adult_material: boolean | null | undefined) => {
+    if (!is_adult_material) return !item.is_adult_material;
+    else return item.is_adult_material;
 };
 
 const genre_recommendation_score = (a: Webnovel, b: Webnovel, genres: { [key: string]: boolean }): number => {

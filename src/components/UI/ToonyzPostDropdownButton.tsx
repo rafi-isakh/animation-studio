@@ -1,23 +1,12 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/shadcnUI/Dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter, DialogTrigger } from "@/components/shadcnUI/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/shadcnUI/Popover";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/shadcnUI/AlertDialog"
 import { Button } from "@/components/shadcnUI/Button";
 import { Label } from "@/components/shadcnUI/Label";
 import { Input } from "@/components/shadcnUI/Input";
 import { Textarea } from "@/components/shadcnUI/Textarea";
 import Link from "next/link";
-import { Copy, Share2, EllipsisVertical, Flag, Trash, Pencil, X } from "lucide-react";
+import { Copy, Share2, EllipsisVertical, Flag, Trash, Pencil, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from '@/contexts/UserContext';
 import { createEmailHash } from '@/utils/cryptography'
@@ -32,6 +21,8 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { ScrollArea } from "@/components/shadcnUI/ScrollArea";
 import ReportButton from "./ReportButton";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import { AlertDialogAction, AlertDialogContent, AlertDialogHeader } from "../shadcnUI/AlertDialog";
 
 const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { email: string, isAuthor?: boolean, user: User, postId: string, post: ToonyzPost }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -47,9 +38,13 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
   const [content, setContent] = useState(post.content || "");
   const [tags, setTags] = useState<string[]>(post.tags ? post.tags.split(',') : []);
   const [tagInput, setTagInput] = useState("");
-
+  const [isSharing, setIsSharing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const handleDeletePost = async (postId: string) => {
+    // TODO: Toonyz post delete doesn't work
+    // TODO: review this
     try {
+      setIsLoading(true);
       const response = await fetch(`/api/delete_toonyz_post?id=${postId}`, {
         method: 'DELETE',
       });
@@ -68,15 +63,17 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
       });
       router.push("/feeds");
     } catch (error) {
+      setIsLoading(false);
       console.error("Error deleting post", error);
       toast({
         title: "Error deleting post",
         description: "Please try again",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   }
-
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
@@ -131,9 +128,9 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
       console.log(data);
 
       const sessionKey2 = `toonyz_post.${postId}.${language}.title`;
-      console.log(localStorage.getItem(sessionKey2)); 
+      console.log(localStorage.getItem(sessionKey2));
       localStorage.removeItem(sessionKey2);
-      console.log(localStorage.getItem(sessionKey2)); 
+      console.log(localStorage.getItem(sessionKey2));
 
 
 
@@ -146,7 +143,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
       setShowEditModal(false);
       router.push(`/toonyz_posts/${postId}`);
       router.refresh();
-      
+
     } catch (error) {
       console.error("Error editing post", error);
       toast({
@@ -154,6 +151,26 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
         description: "Please try again",
         variant: "destructive",
       });
+    }
+  }
+
+  const handleShareClick = async () => {
+    if (isSharing) return; // Prevent multiple simultaneous share attempt
+    if (navigator.share) {
+      try {
+        setIsSharing(true);
+        await navigator.share({
+          title: title,
+          text: phrase(dictionary, "share_post", language),
+          url: `${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${postId}`
+        });
+      } catch (error) {
+        console.log('Share failed:', error);
+      } finally {
+        setIsSharing(false);
+      }
+    } else {
+      setShowShareDialog(true);
     }
   }
 
@@ -172,7 +189,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setShowShareDialog(true);
+                handleShareClick();
               }}
               className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
               <Share2 size={10} className="dark:text-white text-gray-500" />
@@ -180,10 +197,10 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
             </Link>
 
             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} mode="toonyzPost_page" />}
-             
+
             {createEmailHash(email) === user.email_hash &&
-              <AlertDialog>
-                <AlertDialogTrigger asChild >
+              <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                <DialogTrigger asChild >
                   <Link
                     href="#"
                     key="delete"
@@ -195,26 +212,33 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
                     <Trash size={10} className="dark:text-white text-gray-500" />
                     {phrase(dictionary, "delete", language)}
                   </Link>
-                </AlertDialogTrigger>
-
+                </DialogTrigger>
                 {/* delete modal */}
-                <AlertDialogContent className="dark:bg-[#211F21] bg-white">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{phrase(dictionary, "deletePost", language)}</AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>
-                      {phrase(dictionary, "cancel", language)}
-                    </AlertDialogCancel>
-                    <AlertDialogAction
+                <DialogContent
+                  className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <DialogHeader className='p-4'>
+                    <DialogTitle>{phrase(dictionary, "deletePost", language)}</DialogTitle>
+                  </DialogHeader>
+                  <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <Button
+                      className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                       onClick={() => {
                         handleDeletePost(postId);
                         setShowDeleteModal(false);
                       }}>
-                      {phrase(dictionary, "delete", language)}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
+                      {isLoading ? <Loader2 size={16} className="animate-spin" /> : phrase(dictionary, "delete", language)}
+                    </Button>
+                    <Button
+                      className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                      onClick={() => {
+                        setShowDeleteModal(false);
+                      }}>
+                      {phrase(dictionary, "cancel", language)}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
 
                 {/* edit modal */}
                 {/* <AlertDialog open={showEditModal} onOpenChange={setShowEditModal}>
@@ -335,7 +359,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog> */}
-              </AlertDialog>
+              </Dialog>
             }
           </PopoverContent>
         </Popover>

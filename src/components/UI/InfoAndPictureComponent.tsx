@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
-import { useMediaQuery, Skeleton, Tooltip } from "@mui/material";
+import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft, Pause, Play } from "lucide-react"
+import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -39,8 +40,6 @@ import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
-import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
-import { cn } from '@/lib/utils';
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -505,52 +504,48 @@ export default function InfoAndPictureComponent({
                                         </Button>
                                     </div>
                                 }
-                                {isJongmin() &&
-                                    <div className="pb-5 w-full">
-                                        <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
-                                    </div>
-                                }
-                                {/* Delete & Write a chapter button */}
-                                {(isAuthor() || isJongmin()) &&
-                                    <>
-                                        <div className='flex flex-col gap-5 w-full justify-center items-center pb-5'>
-                                            <UploadNewChapterButton onNewChapter={onNewChapter} />
-                                            <Button
-                                                color='gray'
-                                                variant='outline'
-                                                onClick={() => setShowDeleteModal(true)}
-                                                className='w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                            >
-                                                <span className='inline-flex gap-2 items-center text-black dark:text-white  hover:text-[#DB2777]'>
-                                                    <Trash className='hover:text-[#DB2777]' size={18} />{phrase(dictionary, "deleteWebnovel", language)}
-                                                </span>
-                                            </Button>
-                                        </div>
-                                        <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                                            <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none">
-                                                <AlertDialogHeader className='p-4'>
-                                                    <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
-                                                    <Button
-                                                        onClick={onDelete}
-                                                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
-                                                    >
-                                                        {phrase(dictionary, "yes", language)}
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => setShowDeleteModal(false)}
-                                                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
-
-                                                    >
-                                                        {phrase(dictionary, "no", language)}
-                                                    </Button>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </>
-                                }
                             </div>
+                            {isJongmin() &&
+                                <div className="pb-5 w-full">
+                                    <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
+                                </div>
+                            }
+                            {/* writing button */}
+                            {(isAuthor() || isJongmin()) &&
+                                <>
+                                    <div className='flex flex-row gap-4 w-full justify-center items-center pb-5'>
+                                        <Button
+                                            color='gray'
+                                            variant='outline'
+                                            onClick={onNewChapter}
+                                            className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                        >
+                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
+                                        </Button>
+                                        <Button
+                                            color='gray'
+                                            variant='outline'
+                                            onClick={() => setShowDeleteModal(true)}
+                                            className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                        >
+                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
+                                        </Button>
+                                    </div>
+
+                                    <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter className='flex flex-row gap-2 items-center justify-center'>
+                                                <Button color='destructive' variant='outline' className='' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
+                                                <Button color='gray' variant='outline' className='' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </>
+                            }
+                            {/* Premium Info */}
                             <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
                                 <Button variant="link" className="!no-underline font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent shadow-none">
                                     <div className="flex flex-row gap-2 items-center cursor-pointer">
@@ -573,6 +568,7 @@ export default function InfoAndPictureComponent({
                             />
                             {/* Not Enough Stars Modal */}
                             <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
+
                         </div>
                     </div>
                 </div>

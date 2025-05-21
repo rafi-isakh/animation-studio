@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
+    DialogFooter,
 } from "@/components/shadcnUI/Dialog";
 import { Button } from "@/components/shadcnUI/Button";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,6 +19,7 @@ import {
     ChevronLeft,
     ChevronRight,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
     { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
@@ -33,7 +35,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     const [lastScrollY, setLastScrollY] = useState(0); // Track the last scroll position
     const { scrollType, setPage } = useReader();
     const [openMenu, setOpenMenu] = useState(false)
-    const menuContentRef = useRef<HTMLDivElement>(null);
     const [allowClose, setAllowClose] = useState(false);
     const [scrollPercent, setScrollPercent] = useState(0);
 
@@ -96,7 +97,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         window.addEventListener('scroll', handleScroll);
         return () => {
             window.removeEventListener('scroll', handleScroll);
-            clearTimeout(timeoutId); 
+            clearTimeout(timeoutId);
         };
     }, [scrollType, lastScrollY, openMenu]);
 
@@ -144,8 +145,8 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
 
     const handleToggleMenu = () => {
         setOpenMenu(prevState => !prevState);
-        setAllowClose(!openMenu); 
-    }    
+        setAllowClose(!openMenu);
+    }
 
     // Function to close the menu
     const handleCloseMenu = () => {
@@ -181,46 +182,57 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
 
             </div>
             {/* Dialogs for last and first chapter */}
-            < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
+            <Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent
-                    className="sm:max-w-[425px] select-none dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
-                    onClick={(e) => e.stopPropagation()}
+                    className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
                     showCloseButton={true}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                    <DialogHeader>
+                    <DialogHeader className='p-4'>
                         <DialogTitle>
                             {phrase(dictionary, "isLastChapter", language)}
                         </DialogTitle>
+                        <DialogDescription>
+                            <div className='flex flex-col space-y-4'>
+                                <p>{phrase(dictionary, "isLastChapter", language)}</p>
+                            </div>
+                        </DialogDescription>
                     </DialogHeader>
-                    <DialogDescription>
-                        <div className='flex flex-col space-y-4'>
-                            <p>{phrase(dictionary, "isLastChapter", language)}</p>
-                            <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsLastChapterModal(false)}>
-                                {phrase(dictionary, "ok", language)}
-                            </Button>
-                        </div>
-                    </DialogDescription>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                        <Button
+                            onClick={() => setShowIsLastChapterModal(false)}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+
+                        >
+                            {phrase(dictionary, "ok", language)}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog >
             <Dialog open={showIsFirstChapterModal} onOpenChange={setShowIsFirstChapterModal}>
                 <DialogContent
-                    className="sm:max-w-[425px] select-none dark:bg-[#211F21] bg-white rounded-lg no-scrollbar"
-                    onClick={(e) => e.stopPropagation()}
+                    className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
                     showCloseButton={true}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                    <DialogHeader>
+                    <DialogHeader className='p-4'>
                         <DialogTitle>
                             {phrase(dictionary, "isFirstChapter", language)}
                         </DialogTitle>
+                        <DialogDescription>
+                            <div className='flex flex-col space-y-4'>
+                                <p>{phrase(dictionary, "isFirstChapter", language)}</p>
+                            </div>
+                        </DialogDescription>
                     </DialogHeader>
-                    <DialogDescription>
-                        <div className='flex flex-col space-y-4'>
-                            <p>{phrase(dictionary, "isFirstChapter", language)}</p>
-                            <Button color="gray" variant="outline" className='border-0 text-white w-full bg-[#DE2B74]' onClick={() => setShowIsFirstChapterModal(false)}>
-                                {phrase(dictionary, "ok", language)}
-                            </Button>
-                        </div>
-                    </DialogDescription>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                        <Button
+                            onClick={() => setShowIsFirstChapterModal(false)}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        >
+                            {phrase(dictionary, "ok", language)}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </>

@@ -26,7 +26,38 @@ import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogTitle, DialogD
 import { Label } from "@/components/shadcnUI/Label"
 import { RadioGroup, RadioGroupItem } from "@/components/shadcnUI/RadioGroup"
 import { useToast } from "@/hooks/use-toast"
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils"
+import { Language } from '@/components/Types';
+
+
+export const WarningModal = ({ mode, open, onOpenChange, dictionary, language }: { mode: 'addWebnovel' | 'agreeToTerms', open: boolean, onOpenChange: (open: boolean) => void, dictionary: any, language: Language }) => {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="z-[2700] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none" showCloseButton={true}>
+                <DialogHeader className='p-4'>
+                    <DialogTitle>
+                        <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200 text-center" />
+                        {mode === 'addWebnovel' ? <p className='text-2xl font-bold text-center'>{phrase(dictionary, "inputAllInfo", language)}</p> :
+                         mode === 'agreeToTerms' ? <p className='text-2xl font-bold text-center'>{phrase(dictionary, "pleaseAgreeToTerms", language)}</p>
+                                : <></>
+                        }
+                    </DialogTitle>
+                    <DialogDescription>
+                        <p className='text-base text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
+                    <Button
+                        className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        onClick={() => onOpenChange(false)}>
+                        {phrase(dictionary, "ok", language)}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 const AddWebnovelComponent = () => {
     const [title, setTitle] = useState('');
@@ -41,7 +72,7 @@ const AddWebnovelComponent = () => {
     const router = useRouter();
     const [buttonSize, setButtonSize] = useState({ width: 'auto', height: 'auto' })
     const [currText, setCurrText] = useState(0);
-    const [openModal, setOpenModal] = useState(false);
+    const [openWarningModal, setOpenWarningModal] = useState(false);
     const [showCoverArtModal, setShowCoverArtModal] = useState(false);
     const [showTermsOfServiceModal, setShowTermsOfServiceModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,7 +102,7 @@ const AddWebnovelComponent = () => {
 
         // Check if all required fields are filled
         if (!title || !description || !coverArt || !genre || !novelLanguage) {
-            setOpenModal(true);
+            setOpenWarningModal(true);
             return;
         }
 
@@ -403,26 +434,13 @@ const AddWebnovelComponent = () => {
                                     </div>
                                 </div>
                                 {/* modal for input all info */}
-                                <Dialog open={openModal} onOpenChange={setOpenModal}>
-                                    <DialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none" showCloseButton={true}>
-                                        <DialogHeader className='p-4'>
-                                            <DialogTitle>
-                                                <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200 text-center" />
-                                                <p className='text-2xl font-bold text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
-                                            </DialogTitle>
-                                            <DialogDescription>
-                                                <p className='text-base text-center'>{phrase(dictionary, "inputAllInfo", language)}</p>
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end'>
-                                            <Button
-                                                className={cn("!rounded-none w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
-                                                onClick={() => setOpenModal(false)}>
-                                                {phrase(dictionary, "ok", language)}
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
+                                <WarningModal
+                                    mode='addWebnovel'
+                                    dictionary={dictionary}
+                                    language={language}
+                                    open={openWarningModal}
+                                    onOpenChange={setOpenWarningModal}
+                                />
                                 {/* modal for cover art upload */}
                                 <CoverArtModal
                                     coverArt={coverArt}

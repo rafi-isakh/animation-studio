@@ -12,6 +12,7 @@ import { Button } from "@/components/shadcnUI/Button"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 const youtubeVideoList = [
     {
@@ -98,9 +99,9 @@ export function EmailSignupPage() {
                             <span className="bg-gradient-to-r from-[#DE2B74] to-[#FF6CAB] bg-clip-text text-transparent">
                                 BookTok Creator Invitation
                             </span>
-                           
+
                         </h2>
-                     
+
                     </div>
                     <div>
                         <p className="text-lg  text-black mb-2">
@@ -298,11 +299,11 @@ export function EmailSignupPage() {
                 </div>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-4xl" showCloseButton={true}>
-                    <DialogHeader>
-                        <DialogTitle>{selectedVideoItem.title_en}</DialogTitle>
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md' showCloseButton={true}>
+                    <DialogHeader className='text-md p-4'>
+                        <DialogTitle className='text-md'>{selectedVideoItem.title_en}</DialogTitle>
                     </DialogHeader>
-                    <div className="aspect-video w-full">
+                    <div className="aspect-video w-full p-4">
                         <iframe
                             width="100%"
                             height="100%"
@@ -313,10 +314,14 @@ export function EmailSignupPage() {
                             allowFullScreen
                         ></iframe>
                     </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="outline">Close</Button>
-                        </DialogClose>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
+
+                        <Button
+                            onClick={() => setIsDialogOpen(false)}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+
+                        >Close</Button>
+
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -7,6 +7,7 @@ import { Info, ImageUp } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import CoverArtPreview from './CoverArtPreview';
+import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import { cn } from '@/lib/utils';
 
 const CoverArtModal = ({
@@ -46,12 +47,12 @@ const CoverArtModal = ({
     return (
         <Dialog open={showCoverArtModal} onOpenChange={setShowCoverArtModal}>
             <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-screen' showCloseButton={true}>
-                <div className='w-full h-full overflow-y-auto p-4'>
-                    <DialogHeader className='flex flex-row justify-start items-center my-2 w-full'>
-                        <DialogTitle className='text-lg font-bold text-black dark:text-white text-center'>
-                            <p>{phrase(dictionary, "coverArtRegister", language)}</p>
-                        </DialogTitle>
-                    </DialogHeader>
+                <DialogHeader className='p-4'>
+                    <DialogTitle className='text-lg font-bold text-black dark:text-white'>
+                        <p>{phrase(dictionary, "coverArtRegister", language)}</p>
+                    </DialogTitle>
+                </DialogHeader>
+                <ScrollArea className='w-full h-full p-4'>
                     <DialogDescription className='flex md:flex-row flex-col md:space-x-4 justify-center'>
                         <div className='flex flex-col space-y-4'>
                             <CoverArtPreview coverArt={coverArt} handleCoverArtUploadModal={handleCoverArtUploadModal} />
@@ -65,8 +66,8 @@ const CoverArtModal = ({
                                 {phrase(dictionary, "upload", language)}
                             </Button>
                         </div>
-                        <div className='flex flex-col md:py-0 py-4 md:space-y-4 space-y-4'>
-                            <p className={`text-sm text-black font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
+                        <div className='flex flex-col md:py-0 py-2 md:space-y-4 space-y-2'>
+                            <p className={`text-sm text-black dark:text-white font-bold ${language == 'ko' ? 'break-keep' : ''}`}>
                                 {/* Please upload the cover art for your webnovel. */}
                                 {phrase(dictionary, "pleaseUploadTheCoverArt", language)}
                             </p>
@@ -124,7 +125,7 @@ const CoverArtModal = ({
                             </div>
                         </div>
                     </DialogDescription>
-                </div>
+                </ScrollArea>
                 <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
                     <Button
                         onClick={handleConfirm}

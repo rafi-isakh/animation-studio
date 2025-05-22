@@ -6,7 +6,7 @@ import { DialogProps } from "@mui/material";
 import { phrase } from "@/utils/phrases";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-
+import { cn } from "@/lib/utils";
 
 export default function PleaseLoginModal({ open, setOpen }: { open: boolean, setOpen: (open: boolean) => void }) {
     const { dictionary, language } = useLanguage();
@@ -20,20 +20,29 @@ export default function PleaseLoginModal({ open, setOpen }: { open: boolean, set
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent
-                className="md:max-w-md select-none no-scrollbar bg-white dark:bg-[#211F21]"
-                onClick={(e) => e.stopPropagation()}
+                className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none'
                 showCloseButton={true}
+                onOpenAutoFocus={(e) => e.preventDefault()}
             >
-                <DialogHeader>
+                <DialogHeader className='p-4'>
                     <DialogTitle>
-                        {phrase(dictionary, "pleaseLogin", language)}
+                        <p>{phrase(dictionary, "pleaseLogin", language)}</p>
                     </DialogTitle>
+                    <DialogDescription className='text-sm'>
+                        <p> {phrase(dictionary, "pleaseLoginDescription", language)}</p>
+                    </DialogDescription>
                 </DialogHeader>
-                <DialogFooter className="flex flex-row space-x-4 md:justify-end justify-center">
-                    <Button variant="outline" className="text-white bg-[#DE2B74]" onClick={() => router.push('/signin')}>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <Button
+                        onClick={() => router.push('/signin')}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                    >
                         {phrase(dictionary, "ok", language)}
                     </Button>
-                    <Button variant="outline" color="gray" onClick={() => setOpen(false)}>
+                    <Button
+                        onClick={() => setOpen(false)}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                    >
                         {phrase(dictionary, "cancel", language)}
                     </Button>
                 </DialogFooter>

@@ -5,7 +5,6 @@ import { Heart, Share2, MoreHorizontal, Trash, Flag } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
 import { Button } from "@/components/shadcnUI/Button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/shadcnUI/Card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/shadcnUI/DropdownMenu"
 import { ToonyzPost, Webnovel, User } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import { formatRelativeTime } from "@/utils/formatTime"
@@ -18,8 +17,6 @@ import Link from "next/link"
 import { Dialog, DialogTrigger } from "@/components/shadcnUI/Dialog"
 import ShareDialog from "@/components/UI/ShareDialog"
 import { useUser } from '@/contexts/UserContext';
-import { createEmailHash } from '@/utils/cryptography'
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/shadcnUI/AlertDialog"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import CommentToggleButton from "@/components/UI/CommentToggleButton";
@@ -31,6 +28,28 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
     const { id, email_hash } = useUser();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { dictionary, language } = useLanguage();
+    const [isSharing, setIsSharing] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+
+    const handleShareClick = async () => {
+        if (isSharing) return; // Prevent multiple simultaneous share attempt
+        if (navigator.share) {
+            try {
+                setIsSharing(true);
+                await navigator.share({
+                    title: post.user.nickname,
+                    text: phrase(dictionary, "share_post", language),
+                    url: `${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`
+                });
+            } catch (error) {
+                console.log('Share failed:', error);
+            } finally {
+                setIsSharing(false);
+            }
+        } else {
+            setShowShareModal(true);
+        }
+    }
 
     return (
         <Card key={post.id} className="max-w-xl w-full mx-auto p-2 shadow-none">
@@ -46,17 +65,12 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                     </p>
                 </div>
                 <div className="ml-auto">
-                    
-
-
                     <ToonyzPostDropdownButton
-                                email={email ?? ""}
-                                // isAuthor={isAuthor ?? false}
-                                user={post.user}
-                                postId={post.id.toString()}
-                                post={post}
-                         />
-
+                        email={email ?? ""}
+                        user={post.user}
+                        postId={post.id.toString()}
+                        post={post}
+                    />
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-0">
@@ -78,12 +92,10 @@ export default function ToonyzPostCard({ post, webnovel, user, email }: { post: 
                         {post.upvotes > 0 ? `${post.upvotes} ${phrase(dictionary, "likes", language)}` : "Like"}
                     </Button>
                     <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="inline-flex items-center gap-1">
-                                <Share2 className="h-4 w-4" />
-                                {phrase(dictionary, "share", language)}
-                            </Button>
-                        </DialogTrigger>
+                        <Button variant="ghost" size="sm" className="inline-flex items-center gap-1" onClick={handleShareClick}>
+                            <Share2 className="h-4 w-4" />
+                            {phrase(dictionary, "share", language)}
+                        </Button>
                         <ShareDialog url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id}`} description={`Share this post with your friends and family.`} />
                     </Dialog>
                 </div>

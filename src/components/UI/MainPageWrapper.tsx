@@ -50,7 +50,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
     return (
         <div className="relative w-full">
             <Tabs defaultValue="home" className="w-full flex flex-col justify-center items-center mx-auto">
-                <TabsList className="flex justify-start w-full md:max-w-screen-xl bg-transparent md:h-12 h-8 overflow-x-auto !no-scrollbar" >
+                <TabsList className="flex justify-start w-full md:max-w-screen-xl bg-transparent md:h-12 h-8 overflow-x-auto overflow-y-hidden !no-scrollbar" >
                     {filteredTabConfigs.map((tab) => (
                         <TabsTrigger 
                             key={tab.key}

@@ -35,14 +35,14 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
-                <DialogHeader className="p-4">
-                    <DialogTitle>
-                        <p className='text-center'>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}>
+                <DialogHeader className='text-md p-4'>
+                    <DialogTitle className='text-md text-center'>
+                        <p>{phrase(dictionary, "deleteAccountConfirm", language)}</p>
                     </DialogTitle>
                 </DialogHeader>
-                <DialogDescription className='flex flex-col items-center justify-center gap-4 p-4'>
-                    <p className='text-sm text-gray-500'>{phrase(dictionary, "deleteAccountReason", language)}</p>
+                <DialogDescription className='flex flex-col items-center justify-center gap-4 p-4 text-md'>
+                    <p className='text-md text-gray-500'>{phrase(dictionary, "deleteAccountReason", language)}</p>
                     <div className="flex flex-col gap-2 mt-2 w-full">
                         <RadioGroup
                             onValueChange={async (value: string) => {
@@ -61,7 +61,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                                     id="forDeleteAccountReasonType_1"
                                     className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                 />
-                                <Label htmlFor="forDeleteAccountReasonType_1" className="text-sm text-gray-500">
+                                <Label htmlFor="forDeleteAccountReasonType_1" className="text-md text-gray-500">
                                     {phrase(dictionary, "deleteAccountReasonType_1", language)}
                                 </Label>
                             </div>
@@ -71,7 +71,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                                     id="forDeleteAccountReasonType_2"
                                     className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                 />
-                                <Label htmlFor="forDeleteAccountReasonType_2" className="text-sm text-gray-500">
+                                <Label htmlFor="forDeleteAccountReasonType_2" className="text-md text-gray-500">
                                     {phrase(dictionary, "deleteAccountReasonType_2", language)}
                                 </Label>
                             </div>
@@ -81,7 +81,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                                     id="forDeleteAccountReasonType_3"
                                     className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                 />
-                                <Label htmlFor="forDeleteAccountReasonType_3" className="text-sm text-gray-500">
+                                <Label htmlFor="forDeleteAccountReasonType_3" className="text-md text-gray-500">
                                     {phrase(dictionary, "deleteAccountReasonType_3", language)}
                                 </Label>
                             </div>
@@ -91,7 +91,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                                     id="forDeleteAccountReasonType_4"
                                     className="border-gray-300 data-[state=checked]:bg-[#DB2777] data-[state=checked]:text-white"
                                 />
-                                <Label htmlFor="forDeleteAccountReasonType_4" className="text-sm text-gray-500">
+                                <Label htmlFor="forDeleteAccountReasonType_4" className="text-md text-gray-500">
                                     {phrase(dictionary, "deleteAccountReasonType_4", language)}
                                 </Label>
                             </div>
@@ -105,16 +105,16 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                         placeholder={phrase(dictionary, "deleteAccountReason_subtitle", language)}
                     />
                 </DialogDescription>
-                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                     <Button
                         onClick={onConfirm}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                     >
                         {isLoading ? <Loader2 className="animate-spin" /> : phrase(dictionary, "yes", language)}
                     </Button>
                     <Button
                         onClick={onClose}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                     >
                         {phrase(dictionary, "no", language)}
                     </Button>

@@ -25,22 +25,23 @@ const ChapterPurchaseDialog = ({
 
     return (
         <Dialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
-                <DialogHeader className='p-4'>
-                    <DialogTitle>
-                        <p className="text-lg font-bold text-center">
-                            {phrase(dictionary, "purchaseChapter", language)}
-                        </p>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}>
+                <DialogHeader className='text-md p-4'>
+                    <DialogTitle className="text-md font-bold text-center">
+                        <p>{phrase(dictionary, "purchaseChapter", language)}</p>
                     </DialogTitle>
-                    <DialogDescription className="flex flex-col justify-center items-center p-4">
-                        <p className='text-sm text-gray-500 py-2'> {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}</p>
-                        <p>{language === "ko" ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
+                    <DialogDescription className="flex flex-col justify-center items-center p-4 text-md">
+                        <p className='text-md text-gray-500 py-2'> {phrase(dictionary, "wouldYouLikeToPurchaseChapter", language)}</p>
+                        <p>{language === "ko" 
+                                ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span> 
+                                : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}
+                        </p>
                     </DialogDescription>
                 </DialogHeader>
-                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                     <Button
                         onClick={() => handleChapterPurchase(chapter)}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                     >
                         <MdStars className="text-xl text-white" />
                         {language === "ko" ? <span className="text-white dark:text-white inline-flex gap-1"> {content.price_korean} </span> 
@@ -49,7 +50,7 @@ const ChapterPurchaseDialog = ({
                     </Button>
                     <Button
                         onClick={() => setShowPurchaseModal(false)}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                     >
                         {phrase(dictionary, "cancel", language)}
                     </Button>

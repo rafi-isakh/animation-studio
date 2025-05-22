@@ -31,16 +31,16 @@ export default function ReportModal({
     return (
         <>
             <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
-                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                 >
-                    <DialogHeader className='p-4'>
-                        <DialogTitle>
-                            <p className="text-center">{phrase(dictionary, "report", language)}</p>
+                    <DialogHeader className='text-md p-4'>
+                        <DialogTitle className="text-md text-center">
+                            <p>{phrase(dictionary, "report", language)}</p>
                         </DialogTitle>
                     </DialogHeader>
-                    <DialogDescription className='flex flex-col items-center justify-center gap-4 p-4'>
-                        <p className='text-lg font-bold'>{phrase(dictionary, "wouldYouLikeToReport", language)}</p>
+                    <DialogDescription className='flex flex-col items-center justify-center gap-4 p-4 text-md'>
+                        <p className='text-md font-bold'>{phrase(dictionary, "wouldYouLikeToReport", language)}</p>
                         <Textarea
                             rows={4}
                             className='w-full p-4'
@@ -49,16 +49,16 @@ export default function ReportModal({
                             onChange={(e) => setReportMessage(e.target.value)}
                         />
                     </DialogDescription>
-                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                         <Button
                             onClick={onSubmit}
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                         >
                             {phrase(dictionary, "report", language)}
                         </Button>
                         <Button
                             onClick={() => setShowReportModal(false)}
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                         >
                             {phrase(dictionary, "cancel", language)}
                         </Button>
@@ -66,17 +66,17 @@ export default function ReportModal({
                 </DialogContent>
             </Dialog>
             <Dialog open={showReportSuccessModal} onOpenChange={setShowReportSuccessModal}>
-                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
-                    <DialogHeader className='p-4'>
-                        <DialogTitle>
+                <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}>
+                    <DialogHeader className='text-md p-4'>
+                        <DialogTitle className="text-md">
                             <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200 text-center" />
                             <p className="text-center">{phrase(dictionary, "reportSuccess", language)}</p>
                         </DialogTitle>
                     </DialogHeader>
-                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                         <Button
                             onClick={() => setShowReportSuccessModal(false)}
-                            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                         >
                             {phrase(dictionary, "close", language)}
                         </Button>

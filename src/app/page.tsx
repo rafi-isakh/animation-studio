@@ -72,10 +72,9 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
             <div className='flex-1 w-full md:max-w-screen-xl overflow-hidden'>
                 {/*    The side bar width is 72px  md:pl-[72px]  */}
                 {/* Side bar/Bottom Navigation are in layout.tsx */}
-                {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
                 <CarouselComponentShadcn items={items} />
                 <SmallGap />
-                <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
+                <div className='w-max-screen-xl justify-center items-center w-full mx-auto px-1'>
                     {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
                     {/*{smallGap()}*/}
                     {/*<MyReadingListComponent library={library} />*/}
@@ -84,7 +83,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"/>
                     <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
-                    <LargeGap />
+                    <SmallGap />
                     <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
                     <SmallGap />
                     <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />

@@ -22,6 +22,7 @@ import { useUser } from '@/contexts/UserContext';
 import { createEmailHash } from '@/utils/cryptography'
 import ReportButton from '@/components/UI/ReportButton';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 export default function CommentsDropdownButton({
     comment,
@@ -72,21 +73,27 @@ export default function CommentsDropdownButton({
                                     <Trash size={10} className="dark:text-white text-gray-500" />
                                     {phrase(dictionary, "delete", language)}
                                 </Link>
-
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="dark:bg-[#211F21] bg-white">
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>{phrase(dictionary, "confirmDeleteComments", language)}</AlertDialogTitle>
+                            <AlertDialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md'>
+                                <AlertDialogHeader className="text-md p-4">
+                                    <AlertDialogTitle className="text-md text-center">
+                                        {phrase(dictionary, "confirmDeleteComments", language)}
+                                    </AlertDialogTitle>
                                 </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>
+                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
+                                    <AlertDialogCancel
+                                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                                    >
                                         {phrase(dictionary, "cancel", language)}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                         onClick={() => {
                                             handleDeleteComment(comment.id.toString());
                                             setShowDeleteModal(false);
-                                        }}>
+                                        }}
+                                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+
+                                    >
                                         {phrase(dictionary, "delete", language)}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>

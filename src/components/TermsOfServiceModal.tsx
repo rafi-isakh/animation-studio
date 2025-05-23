@@ -37,27 +37,27 @@ const TermsOfServiceModal = ({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-screen" showCloseButton={true}>
-                <DialogHeader className='flex w-full p-4'>
-                    <DialogTitle className='text-lg font-bold text-black dark:text-white'>
-                        <p className=''>{phrase(dictionary, "guideToRegisteringYourWork", language)}</p>
+            <DialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-screen text-md" showCloseButton={true}>
+                <DialogHeader className='flex w-full text-md p-4'>
+                    <DialogTitle className='text-md font-bold text-black dark:text-white'>
+                        <p>{phrase(dictionary, "guideToRegisteringYourWork", language)}</p>
                     </DialogTitle>
                 </DialogHeader>
-                <div className='flex flex-col space-y-4 text-xs p-4'>
+                <div className='flex flex-col space-y-4 text-md p-4'>
                     {/* Terms content */}
                     <div className="flex flex-col">
-                        <div className="max-h-[400px] overflow-y-auto p-4 bg-gray-50 rounded-lg text-sm">
+                        <div className="max-h-[400px] overflow-y-auto p-4 bg-gray-50 rounded-lg text-md">
                             <p className="whitespace-pre-line leading-6 text-gray-700">
                                 {/* Terms content */}
                                 {language === "en" ? replaceSmartQuotes(WebnovelTerms_en) : replaceSmartQuotes(WebnovelTerms)}
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-col dark:text-black text-black p-4">
+                    <div className="flex flex-col dark:text-black text-black p-4 text-md">
                         <FormControlLabel
                             required
-                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' } }}
-                            className='text-black dark:text-white'
+                            // sx={{ '& .MuiFormControlLabel-label': { fontSize: '16px' } }}
+                            className='text-black dark:text-white text-md'
                             control={
                                 <Checkbox
                                     required
@@ -75,8 +75,8 @@ const TermsOfServiceModal = ({
                         />
                         <FormControlLabel
                             required
-                            sx={{ '& .MuiFormControlLabel-label': { fontSize: '12px' } }}
-                            className='text-black dark:text-white'
+                            // sx={{ '& .MuiFormControlLabel-label': { fontSize: '16px' } }}
+                            className='text-black dark:text-white text-md'
                             control={
                                 <Checkbox
                                     required
@@ -94,11 +94,11 @@ const TermsOfServiceModal = ({
                         />
                     </div>
                 </div>
-                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                     >
                         {isSubmitting ?
                             <CircularProgress size="1rem" color='secondary' />
@@ -106,7 +106,7 @@ const TermsOfServiceModal = ({
                     </Button>
                     <Button
                         onClick={onClose}
-                        className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
                     >
                         {phrase(dictionary, "cancel", language)}
                     </Button>

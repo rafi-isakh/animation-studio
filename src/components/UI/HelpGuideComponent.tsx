@@ -20,7 +20,7 @@ import {
 } from "@/components/shadcnUI/Carousel"
 import Autoplay from "embla-carousel-autoplay"
 import Image from "next/image"
-
+import { cn } from "@/lib/utils"
 // Helper function to convert YouTube URLs to embed format
 const getYoutubeEmbedUrl = (url: string) => {
     if (url.includes('youtube.com/embed/')) {
@@ -202,7 +202,7 @@ export default function HelpGuideComponent() {
                                         dictionary={dictionary}
                                     />
                                 </Dialog>
-                                }
+                            }
                         </li>
                     ))}
                 </ul>
@@ -216,11 +216,11 @@ const VideoModal = ({ id, isOpen, onClose, header, video, language, dictionary }
     const embedUrl = getYoutubeEmbedUrl(video);
 
     return (
-        <DialogContent key={id} showCloseButton={true} className="max-w-[600px] bg-white dark:bg-black">
-            <DialogHeader>
-                <DialogTitle>{header}</DialogTitle>
+        <DialogContent key={id} className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}>
+            <DialogHeader className='text-md p-4'>
+                <DialogTitle className='text-md'>{header}</DialogTitle>
             </DialogHeader>
-            <DialogDescription className="w-full mx-auto">
+            <DialogDescription className="w-full mx-auto text-md">
                 <iframe
                     width="100%"
                     height="315"
@@ -230,8 +230,11 @@ const VideoModal = ({ id, isOpen, onClose, header, video, language, dictionary }
                     referrerPolicy="strict-origin-when-cross-origin"
                     allowFullScreen
                 ></iframe>
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
+                    <Button
+                        onClick={onClose}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                    >
                         {phrase(dictionary, "close", language)}
                     </Button>
                 </DialogFooter>

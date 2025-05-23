@@ -170,45 +170,45 @@ export function EditProfileButton({ nickname, setDisplayNickname, setDisplayBio 
           </Tooltip>
         </TooltipProvider>
       </DialogTrigger>
-      <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
-        <DialogHeader className='p-4'>
-          <DialogTitle>{phrase(dictionary, "editProfile", language)}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto text-md' showCloseButton={true}>
+        <DialogHeader className='text-md p-4'>
+          <DialogTitle className='text-md'>{phrase(dictionary, "editProfile", language)}</DialogTitle>
+          <DialogDescription className='text-md'>
             {phrase(dictionary, "editProfileDescription", language)}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 p-4 mb-4">
+        <div className="grid gap-4 p-4 mb-4 text-md">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-left">
+            <Label htmlFor="name" className="text-left text-md">
               {phrase(dictionary, "nickname", language)}
             </Label>
-            <Input id="name" value={changedNickname} className="col-span-3" disabled />
+            <Input id="name" value={changedNickname} className="col-span-3 text-md" disabled />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="username" className="text-left">
+          <div className="grid grid-cols-4 items-center gap-4 text-md">
+            <Label htmlFor="username" className="text-left text-md">
               {phrase(dictionary, "newNickname", language)}
             </Label>
-            <Input id="username" value={value} className="col-span-3" onChange={(e) => setValue(e.target.value)} />
+            <Input id="username" value={value} className="col-span-3 text-md" onChange={(e) => setValue(e.target.value)} />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="bio" className="text-left">
+          <div className="grid grid-cols-4 items-center gap-4 text-md">
+            <Label htmlFor="bio" className="text-left text-md">
               {phrase(dictionary, "edit_bio", language)}
             </Label>
-            <Textarea id="bio" value={userBio} className="col-span-3" placeholder={bio} onChange={(e) => setUserBio(e.target.value)} />
+            <Textarea id="bio" value={userBio} className="col-span-3 text-md" placeholder={bio} onChange={(e) => setUserBio(e.target.value)} />
           </div>
         </div>
-        <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end'>
+        <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
           <Button
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
-            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
           >
             {isLoading ? <Loader2 className="animate-spin" /> : phrase(dictionary, "saveChanges", language)}
           </Button>
           <Button
             onClick={() => setOpen(false)}
-            className={cn("!rounded-none flex-1 w-full py-6 text-lg font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
           >
             {phrase(dictionary, "cancel", language)}
           </Button>

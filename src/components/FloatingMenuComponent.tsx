@@ -430,11 +430,11 @@ const FloatingMenu: React.FC<{
             </Dialog>
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none text-md">
                     <DialogHeader>
                         <DialogTitle>{phrase(dictionary, "confirmGeneration", language)}</DialogTitle>
                         <DialogDescription>
-                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
+                            <p className='text-md text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
                             {/* Your stars  */}
                             <AIPromotionComponent />
                         </DialogDescription>

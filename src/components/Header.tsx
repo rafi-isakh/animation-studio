@@ -350,6 +350,16 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div>
 
                             <div ref={hamburgerRef}>
+                                <li className='md:hidden inline-flex items-center justify-center mr-4'>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
+                                        </PopoverTrigger>
+                                        <PopoverContent className='md:w-[350px] w-full border-none bg-transparent shadow-none'>
+                                            <HelpGuidComponent />
+                                        </PopoverContent>
+                                    </Popover>
+                                </li>
                                 {!isLoggedIn ? (
                                     <li className='md:hidden inline-flex absolute top-2 right-14'>
                                         <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
@@ -359,7 +369,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </Link>
                                     </li>
                                 ) : (
-                                    <li className='md:hidden inline-flex items-center justify-center mr-2'>
+                                    <li className='md:hidden inline-flex items-center justify-center mr-1'>
                                         <Link href='/stars' className='!no-underline capitalize rounded-lg' >
                                             <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
                                         </Link>
@@ -388,7 +398,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-4 for desktop header icons */}
                                 <li className='relative hidden md:inline-flex'>
-                                {/* Language globe icon menu button - Desktop */}
+                                    {/* Language globe icon menu button - Desktop */}
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Globe size={20} className='dark:text-white text-gray-500 cursor-pointer' />

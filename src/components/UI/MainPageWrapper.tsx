@@ -13,7 +13,7 @@ import { useWebnovels } from '@/contexts/WebnovelsContext';
 
 const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: any[] }) => {
     const { dictionary, language } = useLanguage();
-    const { webnovels } = useWebnovels();
+    const { webnovels, restricted } = useWebnovels();
 
     const LargeGap = () => {
         return (
@@ -36,7 +36,6 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
         { name: 'orientalFantasy', value: 'orientalFantasy', key: 'orientalFantasy', is_adult_material: false },
         { name: 'bl', value: 'bl', key: 'bl', is_adult_material: false },
         { name: 'action', value: 'action', key: 'action', is_adult_material: false },
-        { name: 'adult', value: 'all', key: 'adult_series', is_adult_material: true } // it's adult_material tab
     ];
 
     // Filter out tabs that have no webnovels
@@ -47,14 +46,27 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
         return _webnovels.length > 0;
     });
 
+    console.log('restricted:', restricted)
+
+
+    if (restricted) {
+
+        return (
+            <div className='relative w-full max-w-screen-xl mx-auto'>
+                <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" is_adult_material={true} />
+                <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="BLWebnovels"  is_adult_material={true} />
+            </div>
+        )
+    }
+
     return (
         <div className="relative w-full">
             <Tabs defaultValue="home" className="w-full flex flex-col justify-center items-center mx-auto">
                 <TabsList className="flex justify-start w-full md:max-w-screen-xl bg-transparent md:h-12 h-8 overflow-x-auto overflow-y-hidden !no-scrollbar" >
                     {filteredTabConfigs.map((tab) => (
-                        <TabsTrigger 
+                        <TabsTrigger
                             key={tab.key}
-                            value={tab.name} 
+                            value={tab.name}
                             className="md:text-lg text-base font-bold rounded-full data-[state=active]:bg-[#DB2777] data-[state=active]:text-white px-4 py-1"
                         >
                             {phrase(dictionary, tab.key, language)}
@@ -63,9 +75,9 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                 </TabsList>
                 <TabsContent value="home" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
-                            {/*    The side bar width is 72px  md:pl-[72px]  */}
-                            {/* Side bar/Bottom Navigation are in layout.tsx */}
-                            {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
+                        {/*    The side bar width is 72px  md:pl-[72px]  */}
+                        {/* Side bar/Bottom Navigation are in layout.tsx */}
+                        {/* <CarouselComponentReactSlick items={items} centerMode={true} centerPadding={{ desktop: '10px', mobile: '30px' }} /> */}
                         <CarouselComponentShadcn items={items} />
                         <SmallGap />
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
@@ -75,7 +87,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                             {/*smallGap()/*}
                             {/*WebnovelsCardListByCategory has smallGap in the bottom*/}
                             <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"  />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" />
                             <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" mode="main_page" />
                             <LargeGap />
                             <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
@@ -109,7 +121,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                 <TabsContent value="community" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" version="community"  />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" version="community" />
                             <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedCommunityWebnovels" version="community" />
                         </div>
                     </div>
@@ -133,7 +145,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                 <TabsContent value="bl" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title=""  />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="" />
                             <WebnovelsCards searchParams={searchParams} genre="bl" sortBy="recommendation" title="recommendedBLWebnovels" />
                         </div>
                     </div>
@@ -141,16 +153,8 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                 <TabsContent value="action" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="action" sortBy='date' title=""  />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="action" sortBy='date' title="" />
                             <WebnovelsCards searchParams={searchParams} genre="action" sortBy="recommendation" title="actionWebnovels" />
-                        </div>
-                    </div>
-                </TabsContent>
-                <TabsContent value="adult" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
-                    <div className='w-full'>
-                        <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="communityAdultWebnovels" is_adult_material={true} version={undefined}/>
-                            <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedCommunityAdultWebnovels" is_adult_material={true} version={undefined} />
                         </div>
                     </div>
                 </TabsContent>

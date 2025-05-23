@@ -127,7 +127,6 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             <body className={`antialiased dark`}>
                 <GoogleAnalytics />
                 <RegisterSW />
-
                 <ToastProvider>
                     <LanguageProvider>
                         <LanguageSetter />

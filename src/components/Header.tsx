@@ -24,7 +24,6 @@ import {
     Book,
     CircleHelp,
     Gift,
-    Info,
 } from 'lucide-react';
 import {
     Popover,
@@ -38,7 +37,8 @@ import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserProfileButton from '@/components/UI/UserProfileButton';
-import HelpGuidComponent from './UI/HelpGuideComponent';
+import HelpGuidComponent from '@/components/UI/HelpGuideComponent';
+import { ContentRatingSwitch } from '@/components/UI/ContentRatingSwitch';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -74,7 +74,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelById, restricted = false } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
 
     useEffect(() => {
@@ -387,6 +387,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <ul className="flex justify-center items-center md:gap-4">
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-4 for desktop header icons */}
+                                <li className='relative hidden md:inline-flex'>
+                                    <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted} />
+                                </li>
                                 <li className='relative hidden md:inline-flex'>
                                 {/* Language globe icon menu button - Desktop */}
                                     <Popover>

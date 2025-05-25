@@ -350,43 +350,45 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             </div>
 
                             <div ref={hamburgerRef}>
-                                <li className='md:hidden inline-flex items-center justify-center mr-4'>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
-                                        </PopoverTrigger>
-                                        <PopoverContent className='md:w-[350px] w-full border-none bg-transparent shadow-none'>
-                                            <HelpGuidComponent />
-                                        </PopoverContent>
-                                    </Popover>
-                                </li>
-                                {!isLoggedIn ? (
-                                    <li className='md:hidden inline-flex absolute top-2 right-14'>
-                                        <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
-                                            <span className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]'>
-                                                {phrase(dictionary, "login", language)}
-                                            </span>
-                                        </Link>
+                                <ul className="md:hidden flex flex-row justify-center gap-2">
+                                    <li className='md:hidden inline-flex items-center justify-center'>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
+                                            </PopoverTrigger>
+                                            <PopoverContent className='md:w-[350px] w-full border-none bg-transparent shadow-none'>
+                                                <HelpGuidComponent />
+                                            </PopoverContent>
+                                        </Popover>
                                     </li>
-                                ) : (
-                                    <li className='md:hidden inline-flex items-center justify-center mr-1'>
-                                        <Link href='/stars' className='!no-underline capitalize rounded-lg' >
-                                            <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
-                                        </Link>
-                                    </li>
-                                )}
-                                <button
-                                    id="mobile-hamburger"
-                                    onClick={() => handleMobileMenuClick()}
-                                    type="button"
-                                    className="inline-flex items-center w-10 h-10 
-                                               justify-center text-sm 
-                                               rounded-xl text-black md:hidden
-                                               focus:outline-none dark:text-black "
-                                    aria-controls="navbar-dropdown"
-                                    aria-expanded="false">
-                                    <Menu size={20} className='dark:text-white text-gray-500' />
-                                </button>
+                                    {!isLoggedIn ? (
+                                        <li className='ml-2 md:hidden inline-flex items-center justify-center'>
+                                            <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
+                                                <span className=' text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]'>
+                                                    {phrase(dictionary, "login", language)}
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ) : (
+                                        <li className='ml-2 md:hidden inline-flex items-center justify-center'>
+                                            <Link href='/stars' className='!no-underline capitalize rounded-lg' >
+                                                <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
+                                            </Link>
+                                        </li>
+                                    )}
+                                    <Button
+                                        id="mobile-hamburger"
+                                        variant="link"
+                                        type="button"
+                                        size="icon"
+                                        onClick={() => handleMobileMenuClick()}
+                                        className="md:hidden inline-flex items-center !no-underline
+                                                   justify-center text-sm rounded-xl"
+                                        aria-controls="navbar-dropdown"
+                                        aria-expanded="false">
+                                        <Menu size={20} className='dark:text-white text-gray-500' />
+                                    </Button>
+                                </ul>
                             </div>
                         </div>
                         <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2 ">

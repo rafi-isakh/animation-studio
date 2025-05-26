@@ -6,10 +6,11 @@ import WebnovelsCards from '@/components/WebnovelsCards';
 import WebnovelsByRank from '@/components/WebnovelsByRank';
 import { auth } from '@/auth';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
+import MainPageWrapper from '@/components/UI/MainPageWrapper';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
-        next: { tags: ['carousel'] } 
+        next: { tags: ['carousel'] }
     })
     const data = await response.json();
     if (!response.ok) {
@@ -55,46 +56,9 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     // let posts = await getToonyzPosts();
     //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
 
-    const LargeGap = () => {
-        return (
-            <div className='md:h-[3rem] h-[2rem]' />
-        )
-    }
-
-    const SmallGap = () => {
-        return (
-            <div className='md:h-[2rem] h-[1rem]' />
-        )
-    }
-
     return (
         <div className='relative flex flex-col justify-center items-center w-full'>
-            <div className='flex-1 w-full md:max-w-screen-xl overflow-hidden'>
-                {/*    The side bar width is 72px  md:pl-[72px]  */}
-                {/* Side bar/Bottom Navigation are in layout.tsx */}
-                <CarouselComponentShadcn items={items} />
-                <SmallGap />
-                <div className='w-max-screen-xl justify-center items-center w-full mx-auto px-1'>
-                    {/* justify-center items-center w-full mx-auto for putting the contents in the center */}
-                    {/*{smallGap()}*/}
-                    {/*<MyReadingListComponent library={library} />*/}
-                    {/*smallGap()/*}
-                    {/*WebnovelsCardListByCategory has smallGap in the bottom*/} 
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community"/>
-                    <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" />
-                    <SmallGap />
-                    <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
-                    <SmallGap />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
-                    <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
-                    <ToonyzPostCards />
-                    <SmallGap />
-                </div>
-            </div>
+            <MainPageWrapper searchParams={searchParams} items={items} />
             <Footer />
         </div>
     );

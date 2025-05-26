@@ -26,15 +26,18 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
     return (
         <div className={`relative w-full group ${className} `}>
             <div>
-                <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
-                    {title}
-                </h1>
+                {title && <h1 className="flex flex-row justify-between text-xl font-extrabold md:mb-0 mb-3">
+                             {title}
+                         </h1>}
 
                 <div className="relative">
                     {/* Desktop layout with fixed 6 cards */}
                     <div
                         ref={scrollRef}
-                        className="hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 py-8"
+                        // {`${title ? "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 py-8" 
+                        // : "hidden md:grid md:grid-cols-6 grid-cols-3 overflow-x-auto no-scrollbar gap-1 pb-8"}`}
+                        className={`${title ? "hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 py-8" 
+                                            : "hidden md:grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 py-4"}`}
                     >
                         {webnovels.map((item, index) => (
                             <div
@@ -58,7 +61,8 @@ const WebnovelsCardList: React.FC<WebnovelsCardListProps> = ({
                     </div>
 
                     {/* Mobile horizontal scroll */}
-                    <div className="md:hidden grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1">
+                    {/* Mobile view, py-2 for top padding */}
+                    <div className="md:hidden grid grid-flow-col auto-cols-[160px] overflow-x-auto no-scrollbar gap-1 md:py-0 py-2">
                         {webnovels.map((item, index) => (
                             <div key={item.id || index} className="flex-none">
                                 {renderItem(item, index)}

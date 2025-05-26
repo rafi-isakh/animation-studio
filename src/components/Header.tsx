@@ -24,7 +24,6 @@ import {
     Book,
     CircleHelp,
     Gift,
-    Info,
 } from 'lucide-react';
 import {
     Popover,
@@ -38,7 +37,8 @@ import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserProfileButton from '@/components/UI/UserProfileButton';
-import HelpGuidComponent from './UI/HelpGuideComponent';
+import HelpGuidComponent from '@/components/UI/HelpGuideComponent';
+import { ContentRatingSwitch } from '@/components/UI/ContentRatingSwitch';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -74,7 +74,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelById, restricted = false } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
 
     useEffect(() => {
@@ -312,7 +312,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     return (
         <>
-            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
+            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:pt-2 md:pb-0 pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row w-full flex-wrap md:flex-nowrap items-center mx-auto justify-between">
@@ -348,10 +348,13 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <div className="relative hidden md:inline-flex w-full ">
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
                             </div>
-
-                            <div ref={hamburgerRef}>
+                            {/* mobile header */}
+                            <div ref={hamburgerRef}> 
                                 <ul className="md:hidden flex flex-row justify-center gap-2">
                                     <li className='md:hidden inline-flex items-center justify-center'>
+                                        <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted} />
+                                    </li>
+                                    <li className='ml-3 md:hidden inline-flex items-center justify-center'>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
@@ -400,6 +403,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-4 for desktop header icons */}
                                 <li className='relative hidden md:inline-flex'>
+                                    <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted} />
+                                </li >
+                                <li className='relative hidden md:inline-flex'>
                                     {/* Language globe icon menu button - Desktop */}
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -436,17 +442,19 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </PopoverContent>
                                     </Popover>
                                 </li>
-                                {!isLoggedIn ? (
-                                    <li className="relative hidden md:inline-flex">
-                                        <Link href="/signin" className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
-                                            <span className='text-sm !break-keep'>{phrase(dictionary, "login", language)}</span>
-                                        </Link>
-                                    </li>
-                                ) : (
-                                    <li className="relative hidden md:inline-flex">
-                                        <UserProfileButton mode='header' className='text-gray-500 dark:text-white' />
-                                    </li>
-                                )}
+                                {
+                                    !isLoggedIn ? (
+                                        <li className="relative hidden md:inline-flex">
+                                            <Link href="/signin" className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
+                                                <span className='text-sm !break-keep'>{phrase(dictionary, "login", language)}</span>
+                                            </Link>
+                                        </li>
+                                    ) : (
+                                        <li className="relative hidden md:inline-flex">
+                                            <UserProfileButton mode='header' className='text-gray-500 dark:text-white' />
+                                        </li>
+                                    )
+                                }
                                 <li className="relative hidden md:inline-flex">
                                     {/* Site map icon */}
                                     <button onClick={handleSitemapClick} className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
@@ -580,9 +588,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </Link>
                                     </div>
                                 </li>
-                            </ul>
-                        </div>
-                    </div>
+                            </ul >
+                        </div >
+                    </div >
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
                     {/* <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-3">
                         <Link href="/?version=premium" prefetch={false} >
@@ -594,9 +602,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
                     </div> */}
-                </div>
+                </div >
                 <hr className='md:hidden block border-gray-300 dark:border-[#2F2F2F]' />
-            </nav>
+            </nav >
         </>
     )
 };

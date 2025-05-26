@@ -65,6 +65,17 @@ export async function POST(req: NextRequest, res: NextResponse) {
             }
         }
 
+        let purchase_type = "";
+        if (payment.response.name?.includes("투니즈 별")) {
+            purchase_type = "ko";
+        }
+        else if (payment.response.name?.includes("투니즈 티켓")) {
+            purchase_type = "tix";
+        }
+        else {
+            throw new Error("Invalid purchase type");
+        }
+
         switch (payment.response.status) {
             case "paid": {
                 // 모든 금액을 지불했습니다! 완료 시 원하는 로직을 구성하세요.
@@ -73,6 +84,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
                     transaction_id: merchant_uid,
                     transaction_pg: 'inicis',
                     email: payment.response.buyer_email,
+                    purchase_type: purchase_type,
                     stars: stars,
                     english_stars: english_stars,
                     free_stars: additional_stars,

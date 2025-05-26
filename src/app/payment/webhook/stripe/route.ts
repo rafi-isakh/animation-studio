@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_price_krw, stars_name_to_price_usd, tickets_name_to_price_krw, tickets_name_to_price_usd } from "@/utils/stars";
+import { stars_name_to_free_stars_krw, stars_name_to_price_krw, stars_name_to_price_usd, tickets_name_to_price_krw, tickets_name_to_price_usd } from "@/utils/stars";
 import crypto from "crypto";
 import Stripe from "stripe";
 
@@ -95,6 +95,20 @@ export async function POST(req: NextRequest) {
                         }
                     }
                 }
+
+                const purchase_type = paymentIntent.metadata.purchase_type;
+                let stars = 0
+                let english_stars = 0
+                let tickets = 0
+                if (purchase_type == 'en') {
+                    english_stars = value
+                }
+                else if (purchase_type == 'ko') {
+                    stars = value
+                }
+                else if (purchase_type == 'tix') {
+                    tickets = value
+                }
                 // Create transaction record
                 const requestPayload = {
                     currency: paymentIntent.currency.toUpperCase(),
@@ -102,8 +116,10 @@ export async function POST(req: NextRequest) {
                     transaction_pg: 'stripe',
                     email: paymentIntent.metadata.email || '',
                     // TODO: change to 별 덤
-                    purchase_type: paymentIntent.metadata.purchase_type,
-                    value: value,
+                    purchase_type: purchase_type,
+                    stars: stars,
+                    english_stars: english_stars,
+                    tickets: tickets,
                     price: paymentIntent.currency == 'usd' ? paymentIntent.amount / 100 : paymentIntent.amount,
                     date: new Date().toISOString()
                 };

@@ -109,8 +109,6 @@ export default function PurchaseStarsKGInicisComponent() {
                     body: JSON.stringify({
                         imp_uid: response.imp_uid,
                         merchant_uid: response.merchant_uid,
-                        email: email,
-                        stars: numTickets,
                     })
                 });
                 if (completeResponse.ok) {

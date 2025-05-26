@@ -47,15 +47,24 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-sm font-pretendard flex flex-col gap-2">
 
-                            {language === 'ko' ? isLoggedIn ? <>별 (한국어) <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
-                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Korean Stars</> : "Please Login"}
-                            {language === 'ko' ? isLoggedIn ? <>별 (영어) <span className="font-bold text-[#DE2B74]">{english_stars.toLocaleString()}</span> 개</> : "로그인 하세요"
-                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{english_stars.toLocaleString()}</span> English Stars</> : "Please Login"}
-                            {language === 'ko' ? isLoggedIn ? <>티켓 <span className="font-bold text-[#DE2B74]">{tickets.toLocaleString()}</span> 개</> : "로그인 하세요"
-                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{tickets.toLocaleString()}</span> Tickets</> : "Please Login"}
-                        </div>
+                        {language == "ko" ?
+                            isLoggedIn ?
+                                <div className="text-sm font-pretendard flex flex-col gap-2">
+                                    <div>별 (한국어) <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</div>
+                                    <div>별 (영어) <span className="font-bold text-[#DE2B74]">{english_stars.toLocaleString()}</span> 개</div>
+                                    <div>티켓 <span className="font-bold text-[#DE2B74]">{tickets.toLocaleString()}</span> 개</div>
+                                </div>
+                            : "로그인 하세요"
+                        : isLoggedIn ?
+                            <div className="text-sm font-pretendard flex flex-col gap-2">
+                                <div><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Korean Stars</div>
+                                <div><span className="font-bold text-[#DE2B74]">{english_stars.toLocaleString()}</span> English Stars</div>
+                                <div><span className="font-bold text-[#DE2B74]">{tickets.toLocaleString()}</span> Tickets</div>
+                            </div>
+                            : "Please Login"
+                        }
+
                     </CardContent>
                 </Card>
                 <Link href="/stars/transactions">

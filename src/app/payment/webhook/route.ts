@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_free_stars_krw, stars_name_to_price_krw } from "@/utils/stars";
+import { stars_name_to_free_stars_krw, stars_name_to_price_krw, tickets_name_to_price_krw } from "@/utils/stars";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest, res: NextResponse) {
@@ -34,17 +34,37 @@ export async function POST(req: NextRequest, res: NextResponse) {
         if (!paymentResponse.ok)
             throw new Error(`paymentResponse is not ok: imp_uid: ${imp_uid}, merchant_uid: ${merchant_uid}`);
         const payment = await paymentResponse.json();
-        const starsMatch = payment.response.name?.match(/\d+/);
-        const additional_stars = stars_name_to_free_stars_krw[payment.response.name] || 0;
-        const stars = starsMatch ? parseInt(starsMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
-        if (stars === -1) {
-            return NextResponse.json({ message: "Payment failed: invalid amount of stars. Check if the name of the purchased item has a number." }, { status: 400 });
+        let stars = 0;
+        let english_stars = 0;
+        let tickets = 0;
+        let additional_stars = 0;
+        // validation for tickets
+        if (payment.response.name?.includes("투니즈 티켓")) {
+            const ticketsMatch = payment.response.name?.match(/\d+/);
+            tickets = ticketsMatch ? parseInt(ticketsMatch[0], 10) : -1;
+            if (tickets === -1) {
+                return NextResponse.json({ message: "Payment failed: invalid amount of tickets. Check if the name of the purchased item has a number." }, { status: 400 });
+            }
+            if (tickets_name_to_price_krw[payment.response.name] !== payment.response.amount) {
+                console.error("Possible forge attempt! Payment failed: invalid payment amount.", payment.response.buyer_email, payment.response.name, payment.response.amount);
+                return NextResponse.json({ message: "Payment failed: invalid payment amount." }, { status: 400 });
+            }
         }
 
-        if (stars_name_to_price_krw[payment.response.name] !== payment.response.amount) {
-            console.error("Possible forge attempt! Payment failed: invalid payment amount.", payment.response.buyer_email, payment.response.name, payment.response.amount);
-            return NextResponse.json({ message: "Payment failed: invalid payment amount." }, { status: 400 });
+        // validation for stars
+        if (payment.response.name?.includes("투니즈 별")) {
+            const starsMatch = payment.response.name?.match(/\d+/);
+            additional_stars = stars_name_to_free_stars_krw[payment.response.name] || 0;
+            stars = starsMatch ? parseInt(starsMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
+            if (stars === -1) {
+                return NextResponse.json({ message: "Payment failed: invalid amount of stars. Check if the name of the purchased item has a number." }, { status: 400 });
+            }
+            if (stars_name_to_price_krw[payment.response.name] !== payment.response.amount) {
+                console.error("Possible forge attempt! Payment failed: invalid payment amount.", payment.response.buyer_email, payment.response.name, payment.response.amount);
+                return NextResponse.json({ message: "Payment failed: invalid payment amount." }, { status: 400 });
+            }
         }
+
         switch (payment.response.status) {
             case "paid": {
                 // 모든 금액을 지불했습니다! 완료 시 원하는 로직을 구성하세요.
@@ -54,7 +74,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
                     transaction_pg: 'inicis',
                     email: payment.response.buyer_email,
                     stars: stars,
+                    english_stars: english_stars,
                     free_stars: additional_stars,
+                    tickets: tickets,
                     price: payment.response.amount,
                     date: new Date().toISOString()
                 };

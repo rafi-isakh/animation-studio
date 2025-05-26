@@ -1,6 +1,4 @@
-import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_price_krw } from "@/utils/stars";
 
 export async function POST(req: NextRequest, res: NextResponse) {
     const { imp_uid, merchant_uid } = await req.json();
@@ -27,10 +25,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
         if (!paymentResponse.ok)
             throw new Error(`paymentResponse: ${await paymentResponse.json()}`);
         const payment = await paymentResponse.json();
-        console.log("payment", payment);
-        const starsMatch = payment.response.name?.match(/\d+/);
-        const stars = starsMatch ? parseInt(starsMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
-        if (stars === -1) {
+        const starsOrTixMatch = payment.response.name?.match(/\d+/);
+        const starsOrTix = starsOrTixMatch ? parseInt(starsOrTixMatch[0], 10) : -1 // "투니즈 별 150개" 에서 "150" 가져오기
+        if (starsOrTix === -1) {
             return NextResponse.json({ message: "Payment failed: invalid amount of stars. Check if the name of the purchased item has a number." }, { status: 400 });
         }
         switch (payment.response.status) {

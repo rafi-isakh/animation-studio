@@ -20,7 +20,7 @@ export function ContentRatingSwitch({ language, onToggle, defaultRestrictedCheck
         setRestricted(newState)
         onToggle?.(newState)
     }
-    
+
     useEffect(() => {
         console.log('ContentRatingSwitch - restricted state changed to:', restricted)
     }, [restricted])
@@ -32,12 +32,18 @@ export function ContentRatingSwitch({ language, onToggle, defaultRestrictedCheck
                     id="pg-19-content"
                     checked={!restricted}
                     onCheckedChange={handleToggle}
-                    className="h-6 rounded-full bg-gray-200 data-[state=checked]:bg-gray-200 "
+                    className="h-6 rounded-full bg-gray-200 data-[state=checked]:bg-gray-200"
                 />
                 <div
-                    className={`absolute top-0.5 left-0.5 flex h-5 w-5 items-center justify-center rounded-full transition-transform duration-200 
+                    onClick={() => 
+                        {
+                            setRestricted(!restricted)
+                            onToggle?.(!restricted)
+                        }
+                    }
+                    className={`absolute top-0.5 left-0.5 flex h-5 w-5 items-center justify-center rounded-full transition-transform duration-200 cursor-pointer
                         ${!restricted ? "translate-x-4 bg-green-400 data-[state=checked]:bg-transparent"
-                                      : "bg-white border-2 border-red-500"
+                            : "bg-white border-2 border-red-500"
                         }`}
                 >
                     {!restricted ? (

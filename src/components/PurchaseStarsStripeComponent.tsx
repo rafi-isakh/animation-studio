@@ -2,13 +2,14 @@
 import { Alert, AlertTitle, Button, Snackbar, SnackbarCloseReason } from "@mui/material";
 
 import { MdStars } from "react-icons/md";
+import { BsFillTicketPerforatedFill } from "react-icons/bs";
 import Image from 'next/image';
 import StripeComponent from "@/components/StripeComponent";
 import { useRouter } from "next/navigation";
 import DictionaryPhrase from "@/components/DictionaryPhrase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { starsOptionsUSD, calculateOrderAmount, starsString, starsPriceWithCurrencyString, nominalDiscountFactorsUSD } from "@/utils/stars";
+import { starsOptionsUSD, calculateOrderAmount, starsString, starsPriceWithCurrencyString, nominalDiscountFactorsUSD, ticketsOptions, ticketsString, ticketsPriceWithCurrencyString } from "@/utils/stars";
 import { useLanguage } from "@/contexts/LanguageContext";
 export default function PurchaseStarsStripeComponent() {
     const router = useRouter();
@@ -30,7 +31,7 @@ export default function PurchaseStarsStripeComponent() {
         setTotalPrice(calculateOrderAmount(starsOptionsUSD[parseInt(selectedPackage)], language));
     }, [selectedPackage])
 
-    const StarsToPurchase = ({ event }: { event: boolean }) => {
+    const StarsToPurchase = () => {
         return (
             <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
                             from-indigo-500/10 from-10% via-sky-500/10 via-30% to-emerald-500/10 to-90%">
@@ -68,13 +69,66 @@ export default function PurchaseStarsStripeComponent() {
                                     <MdStars className="text-xl text-[#D92979]" />
                                     <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
                                         {starsString(stars, language)}
-                                        {event && <span className="text-[10px] text-black dark:text-[#D92979] self-center font-bold">Save {nominalDiscountFactorsUSD[index]}%</span>}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center">
                                 <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
                                     {starsPriceWithCurrencyString(stars, language)}
+                                </h1>
+                            </div>
+                        </div>
+                    </Button>
+                ))}
+            </div>
+        )
+    }
+
+
+    const TicketsToPurchase = () => {
+        return (
+            <div className="flex flex-col w-full rounded-md p-2 bg-gradient-to-r
+                            from-indigo-500/10 from-10% via-sky-500/10 via-30% to-emerald-500/10 to-90%">
+                <h1 className="text-md font-base py-3 px-2 text-left">
+                    <DictionaryPhrase phraseVar="regular_bundles" />
+                </h1>
+                {ticketsOptions.map((tickets, index) => (
+                    <Button
+                        key={index}
+                        onClick={() => {
+                            setSelectedPackage(index.toString());
+                            //TODO: TEMPORARILY DISABLED
+                            //setIsPaying(true);
+                        }}
+                        variant="text"
+                        sx={{
+                            borderBottom: 1,
+                            '&:last-child': {
+                                borderBottom: 0
+                            },
+                            borderColor: '#9ca3af',
+                            borderRadius: 0,
+                            padding: '15px 10px',
+                            margin: 0,
+                            color: '#9ca3af ',
+                            '&:hover': {
+                                backgroundColor: 'transparent',
+                            }
+                        }}
+                        className="text-xl flex items-center justify-between w-full text-gray-500 ">
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex flex-col  ">
+
+                                <div className="flex flex-row items-center justify-center space-x-2">
+                                    <BsFillTicketPerforatedFill className="text-xl text-[#D92979]" />
+                                    <div className="text-xl flex flex-row items-center justify-center space-x-2 gap-2">
+                                        {ticketsString(tickets, language)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center">
+                                <h1 className="text-sm rounded-lg bg-[#FFF0EE] px-3 py-1 min-w-[90px] text-center">
+                                    {ticketsPriceWithCurrencyString(tickets, language)}
                                 </h1>
                             </div>
                         </div>
@@ -106,8 +160,8 @@ export default function PurchaseStarsStripeComponent() {
                 </div>
             ) : (
                 <div className="flex flex-col md:w-[360px] w-full gap-2 pt-5">
-                    <StarsToPurchase event={true} />
-                    <StarsToPurchase event={false} />
+                    <StarsToPurchase />
+                    <TicketsToPurchase />
                 </div>
             )}
         </div>

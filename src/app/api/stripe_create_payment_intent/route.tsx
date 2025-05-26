@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
     }
     try {
-        const { selectedPackage, language } = await request.json();
+        const { selectedPackage, language, purchase_type } = await request.json();
         const stars = starsOptions[parseInt(selectedPackage)];
 
         // Create a PaymentIntent with the order amount and currency
@@ -30,8 +30,10 @@ export async function POST(request: Request) {
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             metadata: {
-                stars: stars.toString(),
-                email: email
+                value: stars.toString(),
+                email: email,
+                language: language,
+                purchase_type: purchase_type,
             },
             currency: currency,
             automatic_payment_methods: {

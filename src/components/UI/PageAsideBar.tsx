@@ -13,7 +13,7 @@ import { MdStars } from 'react-icons/md';
 import { UserStripped } from "@/components/Types";
 
 export default function PageAsideBar({ user, email, mode }: { user?: UserStripped, email?: string, mode: "starShop" | "viewProfile" }) {
-    const { id, stars, email_hash, } = useUser();
+    const { id, stars, email_hash, english_stars, tickets } = useUser();
     const { dictionary, language } = useLanguage();
     const pathname = usePathname();
     const { logout, isLoggedIn } = useAuth();
@@ -47,10 +47,14 @@ export default function PageAsideBar({ user, email, mode }: { user?: UserStrippe
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-sm font-pretendard">
+                        <div className="text-sm font-pretendard flex flex-col gap-2">
 
-                            {language === 'ko' ? isLoggedIn ? <>별 <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
-                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Stars</> : "Please Login"}
+                            {language === 'ko' ? isLoggedIn ? <>별 (한국어) <span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> 개</> : "로그인 하세요"
+                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{stars.toLocaleString()}</span> Korean Stars</> : "Please Login"}
+                            {language === 'ko' ? isLoggedIn ? <>별 (영어) <span className="font-bold text-[#DE2B74]">{english_stars.toLocaleString()}</span> 개</> : "로그인 하세요"
+                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{english_stars.toLocaleString()}</span> English Stars</> : "Please Login"}
+                            {language === 'ko' ? isLoggedIn ? <>티켓 <span className="font-bold text-[#DE2B74]">{tickets.toLocaleString()}</span> 개</> : "로그인 하세요"
+                                : isLoggedIn ? <><span className="font-bold text-[#DE2B74]">{tickets.toLocaleString()}</span> Tickets</> : "Please Login"}
                         </div>
                     </CardContent>
                 </Card>

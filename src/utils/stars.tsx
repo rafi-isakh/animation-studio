@@ -9,6 +9,10 @@ interface StarsNameToPrice {
     [key: string]: number;
 }
 
+interface TicketsNameToPrice {
+    [key: string]: number;
+}
+
 export const stars_name_to_price_krw: StarsNameToPrice = {
     "투니즈 별 20개": 2000,
     "투니즈 별 50개": 5000,
@@ -40,8 +44,32 @@ export const stars_name_to_price_usd: StarsNameToPrice = {
     "투니즈 별 62개": 29.99,
 }
 
+export const tickets_name_to_price_krw: TicketsNameToPrice = {
+    "투니즈 티켓 20장": 2000,
+    "투니즈 티켓 50장": 5000,
+    "투니즈 티켓 100장": 10000,
+    "투니즈 티켓 200장": 20000,
+    "투니즈 티켓 300장": 30000,
+    "투니즈 티켓 500장": 50000,
+    "투니즈 티켓 700장": 70000,
+    "투니즈 티켓 1000장": 100000,
+}
+
+export const tickets_name_to_price_usd: TicketsNameToPrice = {
+    "투니즈 티켓 20장": 1.5,
+    "투니즈 티켓 50장": 3.5,
+    "투니즈 티켓 100장": 7.5,
+    "투니즈 티켓 200장": 14.5,
+    "투니즈 티켓 300장": 22,
+    "투니즈 티켓 500장": 36.5,
+    "투니즈 티켓 700장": 51.5,
+    "투니즈 티켓 1000장": 73.5,
+}
+
+
 export const starsOptions = [20, 50, 100, 200, 300, 500, 700, 1000]
 export const starsOptionsUSD = [2, 8, 20, 30, 50, 62]
+export const ticketsOptions = [20, 50, 100, 200, 300, 500, 700, 1000]
 
 export const calculateOrderAmount = (numStars: number, language: string) => {
     if (language === 'ko') {
@@ -56,6 +84,14 @@ export const starsString = (numStars: number, language: string) => {
         return `별 ${numStars}개`;
     } else {
         return `${numStars} stars`;
+    }
+}
+
+export const ticketsString = (numTickets: number, language: string) => {
+    if (language === 'ko') {
+        return `티켓 ${numTickets}장`;
+    } else {
+        return `${numTickets} tickets`;
     }
 }
 
@@ -80,6 +116,7 @@ export const starsPriceWithCurrencyString = (numStars: number, language: string)
         }
     }
     else if (language === 'en') {
+        
         if (numStars === 2) {
             return "$0.99"
         } else if (numStars === 8) {
@@ -92,6 +129,49 @@ export const starsPriceWithCurrencyString = (numStars: number, language: string)
             return "$23.99"
         } else if (numStars === 62) {
             return "$29.99"
+        }
+    }
+}
+
+export const ticketsPriceWithCurrencyString = (numTickets: number, language: string) => {
+    if (language === 'ko') {
+        if (numTickets === 20) {
+            return "2,000원"
+        } else if (numTickets === 50) {
+            return "5,000원"
+        } else if (numTickets === 100) {
+            return "10,000원"
+        } else if (numTickets === 200) {
+            return "20,000원"
+        } else if (numTickets === 300) {
+            return "30,000원"
+        } else if (numTickets === 500) {
+            return "50,000원"
+        } else if (numTickets === 700) {
+            return "70,000원"
+        } else if (numTickets === 1000) {
+            return "100,000원"
+        }
+    }
+    else if (language === 'en') {
+        if (numTickets === 20) {
+            return "$1.5"
+        } else if (numTickets === 50) {
+            return "$3.5"
+        } else if (numTickets === 100) {
+            return "$7.5"
+        } else if (numTickets === 200) {
+            return "$14.5"
+        } else if (numTickets === 500) {
+            return "$36.5"
+        } else if (numTickets === 300) {
+            return "$22"
+        } else if (numTickets === 500) {
+            return "$36.5"
+        } else if (numTickets === 700) {
+            return "$51.5"
+        } else if (numTickets === 1000) {
+            return "$73.5"
         }
     }
 }

@@ -36,7 +36,10 @@ export interface User {
   bio: string;
   picture: string;
   stars: number;
+  english_stars: number;
   free_stars: number;
+  free_english_stars: number;
+  tickets: number;
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
   created_at: Date;

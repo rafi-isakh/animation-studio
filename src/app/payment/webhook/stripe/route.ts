@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stars_name_to_price_krw, stars_name_to_price_usd } from "@/utils/stars";
+import { stars_name_to_price_krw, stars_name_to_price_usd, tickets_name_to_price_krw, tickets_name_to_price_usd } from "@/utils/stars";
 import crypto from "crypto";
 import Stripe from "stripe";
 
@@ -46,36 +46,53 @@ export async function POST(req: NextRequest) {
                 console.log('PaymentIntent was successful!', paymentIntent.id);
 
                 // Extract metadata from the payment - assuming you store stars info in metadata
-                const stars = paymentIntent.metadata?.stars ?
-                    parseInt(paymentIntent.metadata.stars, 10) : -1;
+                const value = paymentIntent.metadata?.value ?
+                    parseInt(paymentIntent.metadata.value, 10) : -1;
 
-                if (stars === -1) {
+                if (value === -1) {
                     return NextResponse.json(
-                        { message: "Payment failed: invalid amount of stars." },
+                        { message: "Payment failed: invalid amount of value." },
                         { status: 400 }
                     );
                 }
 
                 // Verify payment amount matches expected price
-                let expectedAmount = stars_name_to_price_krw[`투니즈 별 ${stars}개`] || 0;
-                if (paymentIntent.currency == 'krw') {
-                    if (expectedAmount !== paymentIntent.amount) { 
-                        console.error("Possible forge attempt! Payment amount does not match stars.",
-                            paymentIntent.receipt_email, stars, paymentIntent.amount);
-                        return NextResponse.json(
-                            { message: "Payment failed: invalid payment amount." },
-                            { status: 400 }
-                        );
+                if (paymentIntent.metadata.purchase_type == 'en' || paymentIntent.metadata.purchase_type == 'ko') {
+                    let expectedAmount = stars_name_to_price_krw[`투니즈 별 ${value}개`] || 0;
+                    if (paymentIntent.currency == 'krw') {
+                        if (expectedAmount !== paymentIntent.amount) {
+                            console.error("Possible forge attempt! Payment amount does not match stars.",
+                                paymentIntent.receipt_email, value, paymentIntent.amount);
+                            return NextResponse.json(
+                                { message: "Payment failed: invalid payment amount." },
+                                { status: 400 }
+                            );
+                        }
+                    } else if (paymentIntent.currency == 'usd') {
+                        expectedAmount = stars_name_to_price_usd[`투니즈 별 ${value}개`] * 100 || 0;  // Stripe amounts are in cents
+                        if (expectedAmount !== paymentIntent.amount) {
+                            console.error("Possible forge attempt! Payment amount does not match stars.",
+                                paymentIntent.receipt_email, value, paymentIntent.amount);
+                            return NextResponse.json(
+                                { message: "Payment failed: invalid payment amount." },
+                                { status: 400 }
+                            );
+                        }
                     }
-                } else if (paymentIntent.currency == 'usd') {
-                    expectedAmount = stars_name_to_price_usd[`투니즈 별 ${stars}개`] * 100 || 0;  // Stripe amounts are in cents
-                    if (expectedAmount !== paymentIntent.amount) {
-                        console.error("Possible forge attempt! Payment amount does not match stars.",
-                            paymentIntent.receipt_email, stars, paymentIntent.amount);
-                        return NextResponse.json(
-                            { message: "Payment failed: invalid payment amount." },
-                            { status: 400 }
-                        );
+                }
+                else if (paymentIntent.metadata.purchase_type == 'tix') {
+                    let expectedAmount = tickets_name_to_price_krw[`투니즈 티켓 ${value}개`] || 0;
+                    if (paymentIntent.currency == 'krw') {
+                        if (expectedAmount !== paymentIntent.amount) {
+                            console.error("Possible forge attempt! Payment amount does not match tickets.",
+                                paymentIntent.receipt_email, value, paymentIntent.amount);
+                        }
+                    } else if (paymentIntent.currency == 'usd') {
+                        expectedAmount = tickets_name_to_price_usd[`투니즈 티켓 ${value}개`] * 100 || 0;  // Stripe amounts are in cents
+                        if (expectedAmount !== paymentIntent.amount) {
+                            console.error("Possible forge attempt! Payment amount does not match tickets.",
+                                paymentIntent.receipt_email, value, paymentIntent.amount);
+                        }
                     }
                 }
                 // Create transaction record
@@ -85,8 +102,9 @@ export async function POST(req: NextRequest) {
                     transaction_pg: 'stripe',
                     email: paymentIntent.metadata.email || '',
                     // TODO: change to 별 덤
-                    stars: stars,
-                    price: paymentIntent.currency == 'usd' ? paymentIntent.amount / 100: paymentIntent.amount, 
+                    purchase_type: paymentIntent.metadata.purchase_type,
+                    value: value,
+                    price: paymentIntent.currency == 'usd' ? paymentIntent.amount / 100 : paymentIntent.amount,
                     date: new Date().toISOString()
                 };
 

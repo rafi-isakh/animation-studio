@@ -335,6 +335,7 @@ authorWorkList,작가의 다른 작품,,Author's Other Works
 starShop,별 충전,,Star Shop
 apple_signin,애플로 로그인,,Continue with Apple
 star,별,,Stars
+ticket,티켓,,Tickets
 starShop_title,보유한 별,,Your Stars
 requestAccountDeletion,계정 삭제 요청,,Request Account Deletion
 requestAccountDeletionDescription,계정 삭제를 요청하려면 다음 버튼을 눌러주세요. 로그인 후 사용하실 수 있습니다.,,Request account deletion by clicking the button below. You must be logged in to request account deletion.
@@ -354,8 +355,9 @@ action,액션,,Action
 orientalFantasy,무협,,Oriental Fantasy
 commentSubmit,등록,,Submit
 buyStars,별 구매하기,,Buy Stars
+buyTickets,티켓 구매하기,,Buy Tickets
 buyStars_promotion,투니즈 포스트를 마음껏 즐겨보세요,,Enjoy Toonyz post with no hassle
-deduct,별 사용,,Use stars
+deduct,티켓 사용,,Use tickets
 payment_success,결제가 완료되었습니다.,Payment completed.,Payment completed.
 payment_processing,결제가 처리 중입니다.,Payment is processing.,Payment is processing.
 payment_failed,결제가 실패했습니다.,Payment failed.,Payment failed.
@@ -407,12 +409,14 @@ bringStoriesToLife,이야기를 현실로 만드세요,,Bring Stories to Life,,
 selectTextAndLetAI,텍스트를 드래그해서 선택하고 AI로 멋진 이미지\, 비디오\, 슬라이드쇼를 만들어 보세요,,Drag text to select it and let AI generate stunning images\, videos\, and slideshows,,
 letAIGenerateForFull,투니즈 AI 미스릴을 사용해 웹소설을 멋진 이미지\, 비디오\, 슬라이드쇼로 만들어 보세요.,,Let Toonyz's AI\, Mithril\, generate stunning images\, videos\, and slideshows of the webnovel.,,
 confirmGeneration,정말로 이미지를 생성하시겠습니까?,,Are you sure you want to generate images?,,
-confirmGenerationDescription20Stars,이 작업은 별 15개를 소모합니다.,,This will use 15 stars.,,
+confirmGenerationDescription2Tickets,이 작업은 티켓 2장을 소모합니다.,,This will use 2 tickets.,,
 generateButton,생성하기,,Generate,,
 shareAsToonyzPost,투니즈 포스트로 공유하기,,Share as Toonyz Post,,
 ICreatedVisualizations,선택하신 내용으로 그림을 그려보았습니다.,,I created visualizations for you by transforming the selected text into a vivid interpretation of the scene.,,
 notEnoughStars,별이 부족합니다.,,You don't have enough stars.,,
+notEnoughTickets,티켓이 부족합니다.,,You don't have enough tickets.,,
 count,개,,,,
+countTickets,장,,,,
 languageNotAvailable,이 웹소설은 이 언어로 제공되지 않습니다.,,This webnovel is not available in this language.,,
 engaged,반응,,engaged,,
 editProfile,프로필 수정,,Edit Profile,,

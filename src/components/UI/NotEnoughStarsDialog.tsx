@@ -29,7 +29,7 @@ const NotEnoughStarsDialog = ({ showNotEnoughStarsModal, setShowNotEnoughStarsMo
                         <div className="flex flex-col items-center gap-2 mt-2">
                             <p>{language === "ko"
                              ? <span className="text-black dark:text-white inline-flex gap-1">보유한 별 <MdStars className="text-xl text-[#D92979]" /> {stars} </span>
-                             : <span className="text-black dark:text-white inline-flex gap-1">You have owned <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
+                             : <span className="text-black dark:text-white inline-flex gap-1">You have <MdStars className="text-xl text-[#D92979]" /> {stars} </span>}</p>
                             {(() => {
                                 if (createMediaPrice) {
                                     return (

@@ -1,9 +1,9 @@
 import { Language } from "@/components/Types";
 import { loadStripe } from "@stripe/stripe-js";
 
-export const make_video_price = 35; // per video
-export const generate_pictures_price = 15; // four pictures
-export const generate_trailer_price = 20; // six pictures
+export const make_video_price = 4; // per video
+export const generate_pictures_price = 2; // four pictures
+export const generate_trailer_price = 3; // six pictures
 
 interface StarsNameToPrice {
     [key: string]: number;

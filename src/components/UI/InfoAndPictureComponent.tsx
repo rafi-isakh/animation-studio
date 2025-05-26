@@ -61,7 +61,7 @@ export default function InfoAndPictureComponent({
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
+    const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
     const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
@@ -239,8 +239,8 @@ export default function InfoAndPictureComponent({
     }
 
     const handleGenerateTrailer = () => {
-        if (stars < 20) {
-            setCreateMediaPrice(20)
+        if (tickets < 2) {
+            setCreateMediaPrice(2)
             setShowNotEnoughStarsModal(true);
             return;
         }

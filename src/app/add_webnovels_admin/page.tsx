@@ -210,11 +210,10 @@ export default function UploadWebnovelsAdmin() {
             for (let i = 0; i < chapterEpubObjs.length; i++) {
                 const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                for (const section of epubObj.sections.slice(3, epubObj.sections.length)) {
-                // for (const section of epubObj.sections) {
-                    // if (section.id.startsWith('Section')) {
+                for (const section of epubObj.sections) {
+                    if (section.id.startsWith('Section')) {
                         htmlString += section.htmlString.replaceAll("ebook", "");
-                    // }
+                    }
                 }
                 text = parseHtmlToText(htmlString!);
                 title = epubObj.info?.title;
@@ -344,7 +343,7 @@ export default function UploadWebnovelsAdmin() {
             <Checkbox checked={okayToCreateVideos} onClick={() => setOkayToCreateVideos(!okayToCreateVideos)} />
         </div>
         <Button color='gray' variant='contained' onClick={handleAddWebnovel}>Add Webnovel</Button>
-        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => {setWebnovelId(e.target.value); setTitleOfEnteredId(webnovels.find((webnovel: Webnovel) => webnovel.id === Number(e.target.value))?.title || "")}} />
+        <TextField className='w-[50%]' label="Webnovel ID" type="text" value={webnovelId || ""} onChange={(e) => { setWebnovelId(e.target.value); setTitleOfEnteredId(webnovels.find((webnovel: Webnovel) => webnovel.id === Number(e.target.value))?.title || "") }} />
         <p>{titleOfEnteredId}</p>
         <div className='flex flex-row space-x-4'>
             <p>Chapter Files</p>

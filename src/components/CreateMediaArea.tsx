@@ -28,6 +28,8 @@ import {
 import { make_video_price, generate_pictures_price, generate_trailer_price } from "@/utils/stars";
 import { MdStars } from "react-icons/md";
 import CreateMediaHistoryContents from "@/components/UI/CreateMediaHistoryContents";
+import { useUser } from "@/contexts/UserContext";
+import { BsFillTicketPerforatedFill } from "react-icons/bs";
 // 
 export default function CreateMediaArea({
     // TODO: refactor these props; don't need them, because I can just do useCreateMedia()
@@ -46,7 +48,6 @@ export default function CreateMediaArea({
     promotionBannerRef,
     source,
     initialNarrations,
-    stars,
 }:
     {
         isLoading: boolean,
@@ -64,13 +65,13 @@ export default function CreateMediaArea({
         promotionBannerRef: React.MutableRefObject<React.JSX.Element>,
         source: 'webnovel' | 'chapter',
         initialNarrations: string[],
-        stars: number,
     }) { // source: Whether it's from the webnovel view page with all chapters or the chapter view page with short quote
     const { toast } = useToast();
     const { makeVideo, makeSlideshow, showShareAsPostModal, shareType, setShareType, setLoadingVideoGeneration, setPictures, setShowShareAsPostModal, videoFileName, setVideoFileName, loadingVideoGeneration, narrations, setNarrations, openHistory, setOpenHistory } = useCreateMedia();
     const { getWebnovelIdWithChapterMetadata } = useWebnovels();
     const { dictionary, language } = useLanguage();
     const [webnovel, setWebnovel] = useState<Webnovel>();
+    const { tickets, stars } = useUser();
 
     useEffect(() => {
         if (webnovel_id) {
@@ -102,9 +103,9 @@ export default function CreateMediaArea({
                                 <div className="flex items-center justify-center gap-2">
                                     <h1 className="md:text-xl text-md font-medium uppercase">Toonyz Post</h1>
                                     <h1 className="md:text-xl text-md text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                                        <MdStars className="text-lg md:text-xl text-[#D92979]" />
-                                        <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "star", language)}</span>
-                                        <span className="text-gray-700 dark:text-gray-300">{stars}{phrase(dictionary, "count", language)}</span>
+                                        <BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />
+                                        <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "ticket", language)}</span>
+                                        <span className="text-gray-700 dark:text-gray-300">{tickets}{phrase(dictionary, "countTickets", language)}</span>
                                     </h1>
                                 </div>
                             </div>
@@ -248,7 +249,7 @@ export default function CreateMediaArea({
                                                     }}
                                                 >
                                                     {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : <Video className="w-4 h-4" />}
-                                                    {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><MdStars className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
+                                                    {phrase(dictionary, "makeVideo", language)} <p className="text-sm flex flex-row gap-1 items-center"><BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />{pictures.length * make_video_price}</p>
                                                 </Button>
                                                 <div className='relative'>
                                                     <Link href="#"
@@ -351,7 +352,7 @@ export default function CreateMediaArea({
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center h-full">
-                                    <CreateMediaDefaultContents stars={stars} source={source} webnovelId={webnovel_id} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
+                                    <CreateMediaDefaultContents source={source} webnovelId={webnovel_id} chapterIds={webnovel?.chapters.map((chapter) => chapter.id)} />
                                 </div>
                             )}
                         </div>

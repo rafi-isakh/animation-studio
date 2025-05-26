@@ -109,7 +109,7 @@ export const LibraryPromotionComponent: React.FC = () => {
 export const AIPromotionComponent: React.FC = () => {
   const isDesktop = useMediaQuery({ query: '(min-width: 768px)' });
   const { dictionary, language } = useLanguage()
-  const { stars } = useUser();
+  const { tickets } = useUser();
 
   const handleImageLoad = useCallback(() => {
     console.log('Image loaded successfully');
@@ -148,13 +148,13 @@ export const AIPromotionComponent: React.FC = () => {
               <div className='flex flex-row gap-2 items-start justify-start' >
                 <button disabled className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
                   <span className="text-sm">
-                    {stars} stars
+                    {tickets} tickets
                   </span>
                 </button>
                 <button className="flex justify-center items-center gap-1 border-black text-black border-2 px-2 py-0 rounded-xl text-sm font-pretendard ">
                   <span className="text-sm">
                     {/* 지금 신청하기 */}
-                    {phrase(dictionary, "buyStars", language)}
+                    {phrase(dictionary, "buyTickets", language)}
                   </span>
                   <ArrowRight className="w-4 h-4 text-black" />
                 </button>

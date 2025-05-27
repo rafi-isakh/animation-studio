@@ -24,6 +24,7 @@ export interface Chapter {
   views: number;
   shown_views: number;
   upvotes: number;
+  last_edited: Date;
   free: boolean;
   other_translations: OtherTranslation[];
 }
@@ -110,6 +111,7 @@ export interface Webnovel {
   genre: string;
   user: User;
   author: Author;
+  publisher: Publisher;
   upvotes: number;
   language: string;
   views: number;
@@ -219,4 +221,10 @@ export interface FaqItem {
   question_en: string;
   answer_ko: string | ReactNode;
   answer_en: string | ReactNode;
+}
+
+export interface Publisher {
+  id: number;
+  name_korean: string;
+  name_english: string;
 }

@@ -32,23 +32,22 @@ export function ContentRatingSwitch({ language, onToggle, defaultRestrictedCheck
                     id="pg-19-content"
                     checked={!restricted}
                     onCheckedChange={handleToggle}
-                    className="h-6 rounded-full bg-gray-200 data-[state=checked]:bg-gray-200"
+                    className="h-6 rounded-full data-[state=unchecked]:bg-red-700 data-[state=checked]:bg-gray-200 duration-300 ease-in-out transition-colors"
                 />
                 <div
-                    onClick={() => 
-                        {
-                            setRestricted(!restricted)
-                            onToggle?.(!restricted)
-                        }
+                    onClick={() => {
+                        setRestricted(!restricted)
+                        onToggle?.(!restricted)
+                    }
                     }
                     className={`absolute top-0.5 left-0.5 flex h-5 w-5 items-center justify-center rounded-full transition-transform duration-200 cursor-pointer
-                        ${!restricted ? "translate-x-4 bg-green-400 data-[state=checked]:bg-transparent"
-                            : "bg-white border-2 border-red-500"
+                        ${!restricted ? "translate-x-4 text-red-500 border-2 border-red-500 bg-white data-[state=checked]:bg-white"
+                                      : "bg-white border-2 border-red-500"
                         }`}
                 >
                     {!restricted ? (
-                        <span className="text-xs font-bold text-white">
-                            All
+                        <span className="text-xs font-bold text-red-500">
+                            {language === 'ko' ? '19' : 'R'}
                         </span>
                     ) : (
                         <span className="text-xs font-bold text-red-500">

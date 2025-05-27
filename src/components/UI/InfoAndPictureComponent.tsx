@@ -363,7 +363,10 @@ export default function InfoAndPictureComponent({
                                             :
                                             "fiance"
                                         :
-                                        content.user.nickname
+                                        language == 'ko' ?
+                                            content.publisher.name_korean
+                                            :
+                                            content.publisher.name_english
                                     }
                                 </p>
                             }

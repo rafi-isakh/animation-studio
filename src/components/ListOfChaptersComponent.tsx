@@ -3,8 +3,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
-import { Button, Modal, Box } from "@mui/material";
+import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, Lock, BarChart3 } from "lucide-react";
+import { Button } from "@/components/shadcnUI/Button";
+import { Card, CardContent } from "@/components/shadcnUI/Card";
+import { Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
@@ -43,14 +45,45 @@ const ListOfChaptersComponent = ({
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
-
     const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+    const RANGE_SIZE = 50; // Number of chapters per pagination tab
+
+    const paginationRanges = (totalChapters: number) => {
+        if (totalChapters <= 0) {
+            const noChaptersLabel = language === 'ko' ? "챕터 없음" : "No Chapters";
+            return [{ label: noChaptersLabel, start: 0, end: 0, isActive: true }];
+        }
+
+        const ranges = [];
+        const numRanges = Math.ceil(totalChapters / RANGE_SIZE);
+
+        for (let i = 0; i < numRanges; i++) {
+            const startChapter = i * RANGE_SIZE + 1;
+            const endChapter = Math.min((i + 1) * RANGE_SIZE, totalChapters);
+            
+            let label = `${startChapter}-${endChapter}`;
+            if (endChapter === totalChapters) {
+                label += language === 'ko' ? "(완결)" : "(End)";
+            }
+
+            ranges.push({
+                label: label,
+                start: startChapter,
+                end: endChapter,
+                isActive: i === 0 // First range is active by default
+            });
+        }
+        return ranges;
+    }
+    
+    const [selectedRange, setSelectedRange] = useState(paginationRanges(webnovel?.chapters.length || 0)[0]);
 
     useEffect(() => {
         setImageSrc(getImageUrl(webnovel?.cover_art));
         if (language == 'en' && webnovel?.en_cover_art) {
             setImageSrc(getImageUrl(webnovel?.en_cover_art));
-        } 
+        }
     }, [webnovel, language]);
 
     const loadMoreChapters = () => {
@@ -143,6 +176,23 @@ const ListOfChaptersComponent = ({
 
     return (
         <>
+            {/* Pagination Tabs */}
+            <div className="flex gap-4">
+                {paginationRanges(webnovel?.chapters.length || 0).map((range) => (
+                    <Button
+                        key={range.label}
+                        variant="ghost"
+                        onClick={() => setSelectedRange(range)}
+                        className={`px-0 py-2 text-lg font-medium border-b-2 rounded-none hover:bg-transparent ${selectedRange.label === range.label
+                                ? "text-pink-500 border-pink-500"
+                                : "text-gray-500 border-transparent hover:text-gray-300"
+                            }`}
+                    >
+                        {range.label}
+                    </Button>
+                ))}
+            </div>
+
             <div className="w-full">
                 <div className="overflow-y-auto rounded-md">
                     {displayedChapters.map((chapter, index) => (
@@ -151,19 +201,19 @@ const ListOfChaptersComponent = ({
                             key={`chapter-${chapter.id}`}
                             className={`w-full block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
                            `}
-                           // ${!chapter.free ? 'opacity-50' : ''} 
+                        // ${!chapter.free ? 'opacity-50' : ''} 
                         >
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-3 items-center">
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
                                     <div className="min-w-[50px] max-w-[50px]">
-                                    <Image
-                                        src={imageSrc || ""}
-                                        alt={webnovel?.title || ""}
-                                        width={50}
-                                        height={50}
-                                        className="rounded-lg object-cover w-full"
-                                    />
+                                        <Image
+                                            src={imageSrc || ""}
+                                            alt={webnovel?.title || ""}
+                                            width={50}
+                                            height={50}
+                                            className="rounded-lg object-cover w-full"
+                                        />
                                     </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row">
@@ -171,10 +221,10 @@ const ListOfChaptersComponent = ({
                                                 language == 'en' ?
                                                     <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">Episode {index + 1}</p>
                                                     :
-                                                    language == 'ja'?
-                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">第{index + 1}話</p>
-                                                    :
-                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
+                                                    language == 'ja' ?
+                                                        <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">第{index + 1}話</p>
+                                                        :
+                                                        <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
 
                                             }
                                             {/* <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" /> */}
@@ -227,14 +277,14 @@ const ListOfChaptersComponent = ({
                             {phrase(dictionary, "deleteChapterConfirm", language)}
                         </p>
                         <Button
-                            variant="contained"
+                            variant="outline"
                             color="error"
                             onClick={() => handleChapterDelete(deleteChapterId!)}
                         >
                             {phrase(dictionary, "yes", language)}
                         </Button>
                         <Button
-                            variant="outlined"
+                            variant="outline"
                             onClick={() => setShowDeleteModal(false)}
                         >
                             {phrase(dictionary, "no", language)}

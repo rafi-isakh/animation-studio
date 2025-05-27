@@ -35,6 +35,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     language: language as string
   };
 
+  console.log("data", data);
+
   const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/edit_chapter`, {
     method: 'POST',
     headers: {
@@ -45,6 +47,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
     body: JSON.stringify(data),
   });
   if (!response.ok) {
+    const error = await response.text();
+    console.error("error", error);
     return NextResponse.json({
         message: "Edit chapter failed",
     }, {

@@ -3,9 +3,6 @@ import EditChapterComponent from "@/components/EditChapterComponent";
 async function EditChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const id = searchParams.id;
     const novelLanguage = searchParams.novelLanguage;
-    const webnovelTitle = searchParams.webnovelTitle;
-    const webnovelContent = searchParams.webnovelContent;
-    const lastEdited = searchParams.lastEdited;
 
     if (typeof id === 'string') {
     // Handle single string value
@@ -34,9 +31,6 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
         return (
             <EditChapterComponent 
                 webnovelId={id as string} 
-                webnovelTitle={webnovelTitle as string} 
-                webnovelContent={webnovelContent as string} 
-                lastEdited={lastEdited as string} 
                 novelLanguage={novelLanguage as 'ko' | 'en'}
             />
         );

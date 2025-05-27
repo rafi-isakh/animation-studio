@@ -19,15 +19,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/shadcnUI/Button';
 
-const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, lastEdited, novelLanguage }: { 
+const EditChapterComponent = ({ webnovelId, novelLanguage }: { 
     webnovelId: string, 
-    webnovelTitle: string, 
-    webnovelContent: string, 
-    lastEdited: string, 
     novelLanguage: 'ko' | 'en'  // or whatever your Language type is
 }) => {
-    const [title, setTitle] = useState(webnovelTitle || '');
-    const [content, setContent] = useState(webnovelContent || '');
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
     const { email, nickname } = useUser();
     const { language, dictionary } = useLanguage();
     const router = useRouter();
@@ -45,6 +42,7 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
     const clicked = useRef(false);
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
+    const [lastEdited, setLastEdited] = useState('');
 
     useEffect(() => {
         const fetchChapter = async () => {
@@ -52,10 +50,12 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
             try {
                 const chapter = await fetch(`/api/get_chapter_by_id?id=${webnovelId}`).then(res => res.json());
                 if (chapter) {
+                    console.log("chapter", chapter);
                     setChapter(chapter);
                     if (chapter.title) {
                         setTitle(chapter.title);
                         setContent(chapter.content);
+                        setLastEdited(chapter.last_edited);
                     } else {
                         toast({
                             title: "Error",
@@ -128,7 +128,6 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
             formData.append('webnovel_id', webnovelId);
             formData.append('last_edited', lastEdited);
             formData.append('language', novelLanguage);
-            formData.append('webnovel_title', webnovelTitle);
             if (!maxExceeded) {
                 let resPromise;
                 if (!clicked.current) {
@@ -195,7 +194,6 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
                                 theme="bubble"
                                 value={title}
                                 onChange={setTitle}
-                                placeholder={webnovelTitle}
                                 className="title-editor" />
                         </div>
 
@@ -208,9 +206,8 @@ const EditChapterComponent = ({ webnovelId, webnovelTitle, webnovelContent, last
                                 <ReactQuill
                                     ref={contentRef}
                                     theme="bubble"
-                                    value={content}
+                                    value={content.replace(/\n/g, "<br/>")}
                                     onChange={setContent}
-                                    placeholder={chapter?.content || webnovelContent}
                                     className="content-editor" />
                             </div>
 

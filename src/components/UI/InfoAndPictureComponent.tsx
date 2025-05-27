@@ -357,20 +357,12 @@ export default function InfoAndPictureComponent({
                                 </Link>
                             </p>
 
-                            {/*TEMPORARY FIX FOR SHOWING THE NAME OF THE PUBLISHER. DOING THIS BECAUSE
-                            THE USER IS THE CONTENT PROVIDER, BUT THE CP MAY HAVE MANY DIFFERENT PUBLISHERS*/}
                             {content.publisher &&
                                 <p className="text-center">
-                                    {content.title == '여주와 남주의 아이들을 키우게 되었습니다' || content.title == '맛있는 스캔들' || content.title == "마성의 신입사원" ?
-                                        language == 'ko' ?
-                                            "피앙세"
-                                            :
-                                            "fiance"
+                                    {language == 'ko' ?
+                                        content.publisher.name_korean
                                         :
-                                        language == 'ko' ?
-                                            content.publisher.name_korean
-                                            :
-                                            content.publisher.name_english
+                                        content.publisher.name_english
                                     }
                                 </p>
                             }

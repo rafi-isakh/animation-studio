@@ -210,10 +210,10 @@ export default function UploadWebnovelsAdmin() {
             for (let i = 0; i < chapterEpubObjs.length; i++) {
                 const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                for (const section of epubObj.sections.slice(1, 3)) {
-                    // if (section.id.startsWith('Section')) {
+                for (const section of epubObj.sections) {
+                    if (section.id.startsWith('Section')) {
                         htmlString += section.htmlString.replaceAll("ebook", "");
-                    // }
+                    }
                 }
                 text = parseHtmlToText(htmlString!);
                 title = epubObj.info?.title;

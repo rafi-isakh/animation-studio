@@ -15,7 +15,6 @@ import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useAuth } from "@/contexts/AuthContext";
 const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { webnovel_id: string }, children: React.ReactNode }) => {
     // Define state variables directly instead of from useCreateMedia
-    const { stars } = useUser();
     const router = useRouter();
     const pathname = usePathname();
     const { webnovels } = useWebnovels();
@@ -106,7 +105,6 @@ const ViewWebnovelsLayout = ({ params: { webnovel_id }, children }: { params: { 
                 chapter_id={chapter_id}
                 source={"webnovel"}
                 initialNarrations={[]}
-                stars={stars}
             />
         </div>
     )

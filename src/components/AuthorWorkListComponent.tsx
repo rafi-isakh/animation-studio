@@ -20,9 +20,9 @@ const AuthorWorkListComponent = ({ webnovels, nickname }:
 
     return (
         <div className="relative w-full">
-            <div className="flex flex-row gap-1 overflow-x-auto no-scrollbar">
+            <div className="flex flex-row md:flex-wrap gap-1 overflow-x-auto no-scrollbar">
                 {webnovels?.map((webnovel, index) => (
-                    <div key={index} className="flex-shrink-1">
+                    <div key={index} className="flex-shrink-0">
                         <Link
                             href={`/view_webnovels/${webnovel.id}`}
                             className="cursor-pointer block py-2 min-w-[150px] max-w-[150px] mx-2 first:ml-0 last:mr-0"

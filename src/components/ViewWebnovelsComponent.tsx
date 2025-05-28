@@ -124,9 +124,9 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             return (
                 <div className='md:max-w-screen-xl mx-auto w-full min-h-screen'>
                     <div className="flex md:flex-row flex-col justify-between items-start">
-                        <div className="md:w-1/3 max-auto w-full flex-grow-0">
-                            <div className="md:max-w-[360px] w-full mx-auto mt-4">
-                                <Link href="/" className={`items-center gap-1 text-black dark:text-white hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden z-[999]`}>
+                        <div className="md:w-1/3 mx-auto w-full flex-grow-0 flex-shrink-0">
+                            <div className="md:max-w-[360px] w-full mx-auto ">
+                                <Link href="/" className={`items-center gap-1 text-black dark:text-white hover:text-gray-700 transition-colors mb-4 ml-2 self-start flex md:hidden z-[999]`}>
                                     <MoveLeft size={20} className='dark:text-white text-black ' />
                                     <p className="text-sm font-base">Back</p>
                                 </Link>
@@ -139,7 +139,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                                 />
                             </div>
                         </div>
-                        <div className='flex-1 md:w-2/3 w-full'>
+                        <div className='flex-1 w-full md:w-2/3'>
                             <ContentChapterListComponent
                                 content={webnovel as Webnovel}
                                 relatedContent={webnovels}

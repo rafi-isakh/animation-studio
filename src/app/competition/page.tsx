@@ -10,9 +10,9 @@ const CompetitionPage = () => {
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
 
-            <div className="flex flex-col items-center justify-center bg-[#FFCCD7]  w-full h-full border-y-8 border-[#FF8197]">
+            <div className="flex flex-col items-center justify-center bg-[#FFCCD7]  w-full h-full border-b-8 border-[#FF8197]">
                 <Image
-                    src={getImageUrl('toonyz_2025_contest_header.webp')}
+                    src={getImageUrl('toonyz_2025_onepick_header.webp')}
                     alt="Contest Header"
                     width={900}
                     height={500}
@@ -20,45 +20,53 @@ const CompetitionPage = () => {
                 />
 
                 <div className="flex flex-col gap-10 w-full md:px-10 md:pb-10 gowun-batang">
-                    <div className="w-full h-full md:p-20 p-10 flex flex-col items-center justify-center border-4 border-white bg-white rounded-xl ">
-
-                        <div className="md:w-[900px] w-full flex flex-col justify-evenly gap-6">
+                    <div className="md:w-[900px] mx-auto w-full h-full md:p-20 p-10 flex flex-col items-center justify-center border-4 border-white bg-white rounded-xl ">
+                        <div className="md:w-[700px] w-full flex flex-col justify-center gap-6">
                             {/* Left Column */}
-                            <div className='md:w-[900px] w-full flex md:flex-row flex-col justify-evenly gap-6'>
+                            <div className='md:w-[900px] w-full flex flex-col justify-center gap-6'>
+                                <p>
+                                    투니즈 글로벌 웹소설 공모전 <br/>
+                                    지금, 당신의 새로운 이야기가 세상에 나올 차례입니다.
+                                </p>
                                 <div className="flex flex-col gap-4">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded text-center md:w-[350px] w-full text-xl">공모전 기간</div>
-                                    <div className="text-gray-800 text-center text-lg">
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">1. 공모전 기간</div>
+                                    <div className="text-gray-800 text-left text-lg w-fit pl-4">
                                         <p>5월 29일(목) 09:00시</p>
                                         <p>~ 7월 31일(목) 18:00시</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded text-center mt-2 md:w-[350px] w-full text-xl">참가 자격</div>
-                                    <div className="text-gray-800 text-lg md:px-10">
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">2. 결과 발표</div>
+                                    <div className="text-gray-800 text-left text-lg w-fit pl-4">
+                                        <p>8월 18일(월) 09:00시</p>
+                                        <p>toonyz.com 홈페이지에서 확인</p>
+                                    </div>
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full text-xl">3. 참가 자격</div>
+                                    <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[550px]">
                                         <p>누구나 참여할 수 있습니다.</p>
                                         <p>신작만 응모 가능합니다.</p>
-                                        <p>- 글과 그림이 제출되지 않은 작품</p>
-                                        <p>- 유료로 공개된 이력이 없는 작품</p>
-                                        <p>- 정글 제한 없음</p>
-                                        <p>(로맨스, 판타지, 무협, SF, 공포, BL,</p>
-                                        <p>19금 등 모든 장르 환영)</p>
+                                        <p className='text-gray-500'>- 글과 그림이 제출되지 않은 작품</p>
+                                        <p className='text-gray-500'>- 유료로 공개된 이력이 없는 작품</p>
+                                        <p className='text-gray-500'>- 정글 제한 없음</p>
+                                        <p className='text-gray-500'>(로맨스, 판타지, 무협, SF, 공포, BL, 19금 등 모든 장르 환영)</p>
+                                        <p></p>
                                     </div>
-                                </div>
 
-                                {/* Middle - Pixel Art */}
-                                <div className="flex items-center justify-center">
-                                    <div className="relative w-full">
-
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[350px] w-full text-xl">4. 참여 방법</div>
+                                    <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[550px]">
+                                        <p>투니즈에서 공모기간 동안 [새 작품 등록하기]를 통해 <br/>
+                                        자유 연재 시작 기존 연재 작품은 어렵습니다. 삭제 후 재 업로드 해주셔야 합니다.</p>
+                                        <p className='text-gray-500'>- 공모전 참가 신청' 후 10화 이상 연재 시 심사 대상에 포함</p>
+                                        <p className='text-gray-500'>- 1인 1작품 심사</p>
+                                        <p className='text-gray-500'>- 선정된 작품은 개별 연락 후, 정식 계약 체결</p>
+                                        <p className='text-gray-500'>- 참가 신청 필수(참가 신청 방법 )</p>
+                                        
                                     </div>
                                 </div>
 
                                 {/* Right Column */}
                                 <div className="flex flex-col gap-4">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded text-center md:w-[350px] w-full  text-xl">결과 발표</div>
-                                    <div className="text-gray-800 text-center text-lg">
-                                        <p>8월 18일(월) 09:00시</p>
-                                        <p>toonyz.com 홈페이지에서 확인</p>
-                                    </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded text-center mt-2 md:w-[350px] w-full  text-xl">상금</div>
-                                    <div className="flex flex-col justify-center items-center mt-2 text-lg">
+
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full  text-xl">5. 상금</div>
+                                    <div className="w-full md:w-[350px] flex flex-col justify-center items-center mt-2 text-lg">
                                         <div className="grid grid-cols-3 items-center w-full">
                                             <div className="text-center">
                                                 <span className="font-bold text-black dark:text-black">대상 </span>
@@ -97,16 +105,18 @@ const CompetitionPage = () => {
                             </div>
 
                             {/*  Benefits */}
-                            <div className="mb-6">
-                                <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">
-                                   6. 참가 혜택
-                                </div>
-                                <div className="pt-4 space-y-2">
-                                    <p>1) 영어 번역 검수(개약 이후, 타언어 번역 확장 가능)</p>
-                                    <p>2) 해외 유명 플랫폼 런칭 ex)아마존, webnovel, 타파스 등</p>
-                                    <p>3) 유명 작가 피드백</p>
-                                    <p>4) 단행본 출판 가능</p>
-                                    <p>5) 웹툰화 가능</p>
+                            <div className="flex flex-row gap-4">
+                                <div className="mb-6">
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">
+                                        6. 참가 혜택
+                                    </div>
+                                    <div className="pt-4 pl-4 space-y-2">
+                                        <p>1) 영어 번역 검수(개약 이후, 타언어 번역 확장 가능)</p>
+                                        <p>2) 해외 유명 플랫폼 런칭 ex)아마존, webnovel, 타파스 등</p>
+                                        <p>3) 유명 작가 피드백</p>
+                                        <p>4) 단행본 출판 가능</p>
+                                        <p>5) 웹툰화 가능</p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -179,7 +189,7 @@ const CompetitionPage = () => {
 
                     </div>
 
-                    <div className="w-full h-full bg-[#FF8197] py-10 rounded-xl text-white dark:text-white">
+                    <div className="md:w-[900px] mx-auto w-full h-full bg-[#FF8197] py-10 rounded-xl text-white dark:text-white">
                         <div className="relative flex flex-col md:flex-row items-start gap-6">
                             <div className="flex-1 space-y-4 text-xl leading-relaxed px-10 break-keep z-10">
                                 <p>
@@ -223,7 +233,7 @@ const CompetitionPage = () => {
                         </div>
                     </div>
 
-                    <div className="relative flex justify-between items-center bg-white text-center rounded-xl" >
+                    <div className="relative md:w-[900px] w-full mx-auto flex justify-between items-center bg-white text-center rounded-xl" >
                         <div className="flex-1 z-10 py-20 px-10 flex flex-col items-center justify-center">
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 자세한 사항은</p>
                             <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>

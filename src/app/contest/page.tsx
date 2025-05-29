@@ -56,35 +56,35 @@ const ContestPage = () => {
                                 <div className="flex flex-col justify-center items-center mt-2 text-lg">
                                     <div className="grid grid-cols-3 items-center w-full">
                                         <div className="text-center">
-                                            <span className="font-bold">대상 </span>
+                                            <span className="font-bold text-black dark:text-black">대상 </span>
                                         </div>
                                         <div className="text-center">
-                                            <span className=''>1명</span>
+                                            <span className='text-black dark:text-black'>1명</span>
                                         </div>
                                         <div className="bg-pink-200 rounded-lg p-2 text-center">
-                                            <p className="font-bold">100만원</p>
+                                            <p className="font-bold text-black dark:text-black">100만원</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 items-center w-full mt-2 ">
+                                        <div className="text-center">
+                                            <span className="font-bold text-black dark:text-black">최우수상 </span>
+                                        </div>
+                                        <div className="text-center">
+                                            <span className='text-black dark:text-black'>2명</span>
+                                        </div>
+                                        <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <p className="font-bold text-black dark:text-black">각 50만원</p>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-3 items-center w-full mt-2">
                                         <div className="text-center">
-                                            <span className="font-bold">최우수상 </span>
+                                            <span className="font-bold text-black dark:text-black">우수상 </span>
                                         </div>
                                         <div className="text-center">
-                                            <span className=''>2명</span>
+                                            <span className='text-black dark:text-black'>4명</span>
                                         </div>
                                         <div className="bg-pink-200 rounded-lg p-2 text-center">
-                                            <p className="font-bold">각 50만원</p>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-3 items-center w-full mt-2">
-                                        <div className="text-center">
-                                            <span className="font-bold">우수상 </span>
-                                        </div>
-                                        <div className="text-center">
-                                            <span className=''>4명</span>
-                                        </div>
-                                        <div className="bg-pink-200 rounded-lg p-2 text-center">
-                                            <p className="font-bold">각 30만원</p>
+                                            <p className="font-bold text-black dark:text-black">각 30만원</p>
                                         </div>
                                     </div>
                                 </div>
@@ -147,13 +147,15 @@ const ContestPage = () => {
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">
-                        <Image
-                            src={getImageUrl('toonyz_2025_contest_button.webp')}
-                            alt="Contest Applying Button"
-                            width={400}
-                            height={200}
-                            className="cursor-pointer mx-auto"
-                        />
+                        <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfAj9NjXVLrTScaVA6YOoe7DpmG_qwo_MDZNAVSA67Ch10WxQ/viewform" target="_blank">
+                            <Image
+                                src={getImageUrl('toonyz_2025_contest_button.webp')}
+                                alt="Contest Applying Button"
+                                width={400}
+                                height={200}
+                                className="cursor-pointer mx-auto"
+                            />
+                        </Link>
                     </div>
                 </div>
             </div>

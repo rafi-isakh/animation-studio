@@ -24,7 +24,7 @@ const CompetitionPage = () => {
                         <div className="md:w-[700px] w-full flex flex-col justify-center gap-6">
                             {/* Left Column */}
                             <div className='md:w-[900px] w-full flex flex-col justify-center gap-6'>
-                                <p>
+                                <p className='text-gray-800'>
                                     투니즈 글로벌 웹소설 공모전 <br/>
                                     지금, 당신의 새로운 이야기가 세상에 나올 차례입니다.
                                 </p>
@@ -110,7 +110,7 @@ const CompetitionPage = () => {
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">
                                         6. 참가 혜택
                                     </div>
-                                    <div className="pt-4 pl-4 space-y-2">
+                                    <div className="pt-4 pl-4 space-y-2 text-gray-800">
                                         <p>1) 영어 번역 검수(개약 이후, 타언어 번역 확장 가능)</p>
                                         <p>2) 해외 유명 플랫폼 런칭 ex)아마존, webnovel, 타파스 등</p>
                                         <p>3) 유명 작가 피드백</p>
@@ -126,7 +126,7 @@ const CompetitionPage = () => {
                                 <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">
                                     7. 유의사항
                                 </div>
-                                <div className="pt-4 pl-4 space-y-4">
+                                <div className="pt-4 pl-4 space-y-4 text-gray-800">
                                     <p>응모 전 반드시 확인해주세요.</p>
 
                                     <div>

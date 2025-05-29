@@ -153,8 +153,9 @@ const CompetitionPage = () => {
                                 /> */}
                         {/* </div> */}
 
+
                         <p className="text-2xl text-black dark:text-black font-bold"> 자세한 사항은</p>
-                        <p className="text-2xl bg-[#FF8197]rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
+                        <p className="text-2xl bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
                         <p className="text-2xl text-black dark:text-black font-bold">에서 확인할 수 있습니다</p>
                         <p className="text-2xl text-black dark:text-black font-bold"> 문의: hello@stelland.co.kr</p>
                     </div>

@@ -95,15 +95,14 @@ const CompetitionPage = () => {
 
                     <div className="w-full h-full bg-[#FF8197] py-10 rounded-xl">
                         <div className="flex flex-col md:flex-row items-start gap-6">
-                            <div className="flex-1 space-y-4 text-xl leading-relaxed px-10">
+                            <div className="flex-1 space-y-4 text-xl leading-relaxed px-10 break-keep ">
                                 <p>
                                     투니즈는 좋은 이야기들이 많아질수록 플랫폼은 더욱 견고해지고,
                                     <br />그 안에 머무는 작가와 독자도 자연스럽게 늘어난다는 사실을 믿습니다.
                                 </p>
 
                                 <p>
-                                    저희가 정말 찾게하고 싶은 콘텐츠를 찾고,
-                                    <br />
+                                    저희가 정말 찾게하고 싶은 콘텐츠를 찾고, <br />
                                     그에 걸맞은 정당한 보상으로 작가님의 성장을 응원하고 싶어서 공모전을 기획하게 되었습니다.
                                 </p>
 
@@ -134,7 +133,7 @@ const CompetitionPage = () => {
                         </div>
                     </div>
 
-                    <div className="w-full h-full bg-transparent py-10">
+                    <div className="w-full h-full bg-transparent py-10 text-center">
                         {/* <div className="relative w-full h-full"
                             style={{
                                 backgroundImage: `url(${getImageUrl('toonyz_2025_contest_footer.webp')})`,
@@ -154,8 +153,10 @@ const CompetitionPage = () => {
                                 /> */}
                         {/* </div> */}
 
-                        <p>자세한 사항은</p>
-                        
+                        <p className="text-2xl text-black dark:text-black font-bold"> 자세한 사항은</p>
+                        <p className="text-2xl bg-[#FF8197]rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
+                        <p className="text-2xl text-black dark:text-black font-bold">에서 확인할 수 있습니다</p>
+                        <p className="text-2xl text-black dark:text-black font-bold"> 문의: hello@stelland.co.kr</p>
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">

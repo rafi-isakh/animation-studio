@@ -23,11 +23,20 @@ const CompetitionPage = () => {
                     <div className="md:w-[900px] mx-auto w-full h-full md:p-20 p-10 flex flex-col items-center justify-center border-4 border-white bg-white rounded-xl ">
                         <div className="md:w-[700px] w-full flex flex-col justify-center gap-6">
                             {/* Left Column */}
-                            <div className='md:w-[900px] w-full flex flex-col justify-center gap-6'>
-                                <p className='text-gray-800'>
-                                    투니즈 글로벌 웹소설 공모전 <br/>
-                                    지금, 당신의 새로운 이야기가 세상에 나올 차례입니다.
-                                </p>
+                            <div className='md:w-[700px] w-full flex flex-col justify-center gap-6'>
+                                <div className='text-gray-800 relative z-10'>
+                                    <div className="text-gray-800 text-left text-lg w-fit z-10">
+                                        투니즈 글로벌 웹소설 공모전 <br />
+                                        지금, 작가님의 새로운 이야기가 세상에 나올 차례입니다.
+                                    </div>
+                                    <Image
+                                        src={getImageUrl('toonyz_2025_onepick_icon4.webp')}
+                                        alt='stelland star logo'
+                                        width={isDesktop ? 100 : 30}
+                                        height={isDesktop ? 100 : 30}
+                                        className="absolute right-1 top-1 -z-10 "
+                                    />
+                                </div >
                                 <div className="flex flex-col gap-4">
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">1. 공모전 기간</div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
@@ -40,7 +49,7 @@ const CompetitionPage = () => {
                                         <p>toonyz.com 홈페이지에서 확인</p>
                                     </div>
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full text-xl">3. 참가 자격</div>
-                                    <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[550px]">
+                                    <div className="relative text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
                                         <p>누구나 참여할 수 있습니다.</p>
                                         <p>신작만 응모 가능합니다.</p>
                                         <p className='text-gray-500'>- 글과 그림이 제출되지 않은 작품</p>
@@ -48,25 +57,32 @@ const CompetitionPage = () => {
                                         <p className='text-gray-500'>- 정글 제한 없음</p>
                                         <p className='text-gray-500'>(로맨스, 판타지, 무협, SF, 공포, BL, 19금 등 모든 장르 환영)</p>
                                         <p></p>
+                                        <Image
+                                            src={getImageUrl('toonyz_2025_onepick_icon2.webp')}
+                                            alt='stelland star logo'
+                                            width={isDesktop ? 150 : 100}
+                                            height={isDesktop ? 150 : 100}
+                                            className="absolute right-1 top-1 -z-5  md:block hidden"
+                                        />
                                     </div>
 
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[350px] w-full text-xl">4. 참여 방법</div>
-                                    <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[550px]">
-                                        <p>투니즈에서 공모기간 동안 [새 작품 등록하기]를 통해 <br/>
-                                        자유 연재 시작 기존 연재 작품은 어렵습니다. 삭제 후 재 업로드 해주셔야 합니다.</p>
+                                    <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
+                                        <p>투니즈에서 공모기간 동안 [새 작품 등록하기]를 통해  자유 연재 <br />
+                                            시작 기존 연재 작품은 어렵습니다. 삭제 후 재 업로드 해주셔야 합니다.</p>
                                         <p className='text-gray-500'>- 공모전 참가 신청 후 10화 이상 연재 시 심사 대상에 포함</p>
+                                        <p className='text-gray-500'>- 회차별 분량은 공백 포함 5,000자 기준, 10화 50,000자 이상 작성 필수</p>
                                         <p className='text-gray-500'>- 1인 1작품 심사</p>
                                         <p className='text-gray-500'>- 선정된 작품은 개별 연락 후, 정식 계약 체결</p>
                                         <p className='text-gray-500'>- 참가 신청 필수(참가 신청 방법 )</p>
-                                        
+
                                     </div>
                                 </div>
 
                                 {/* Right Column */}
                                 <div className="flex flex-col gap-4">
-
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full  text-xl">5. 상금</div>
-                                    <div className="w-full md:w-[350px] flex flex-col justify-center items-center mt-2 text-lg">
+                                    <div className=" bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full  text-xl">5. 상금</div>
+                                    <div className="relative  w-full md:w-[350px] flex flex-col justify-center items-center mt-2 text-lg">
                                         <div className="grid grid-cols-3 items-center w-full">
                                             <div className="text-center">
                                                 <span className="font-bold text-black dark:text-black">대상 </span>
@@ -100,6 +116,13 @@ const CompetitionPage = () => {
                                                 <p className="font-bold text-black dark:text-black">각 30만원</p>
                                             </div>
                                         </div>
+                                        <Image
+                                            src={getImageUrl('toonyz_2025_onepick_icon1.webp')}
+                                            alt='stelland star logo'
+                                            width={isDesktop ? 150 : 100}
+                                            height={isDesktop ? 150 : 100}
+                                            className="absolute -right-40 top-1 -z-5 md:block hidden"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -108,10 +131,10 @@ const CompetitionPage = () => {
                             <div className="flex flex-row gap-4">
                                 <div className="mb-6">
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">
-                                        6. 참가 혜택
+                                        6. 수상자 혜택
                                     </div>
                                     <div className="pt-4 pl-4 space-y-2 text-gray-800">
-                                        <p>1) 영어 번역 검수(개약 이후, 타언어 번역 확장 가능)</p>
+                                        <p>1) 영어 번역 검수(계약 이후, 타언어 번역 확장 가능)</p>
                                         <p>2) 해외 유명 플랫폼 런칭 ex)아마존, webnovel, 타파스 등</p>
                                         <p>3) 유명 작가 피드백</p>
                                         <p>4) 단행본 출판</p>
@@ -123,10 +146,18 @@ const CompetitionPage = () => {
 
                             {/* Second Section - Important Notices */}
                             <div className="mb-6">
-                                <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">
+                                <div className="relative bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">
                                     7. 유의사항
+
                                 </div>
-                                <div className="pt-4 pl-4 space-y-4 text-gray-800">
+                                <div className="relative pt-4 pl-4 space-y-4 text-gray-800">
+                                    <Image
+                                            src={getImageUrl('toonyz_2025_onepick_icon3.webp')}
+                                            alt='stelland star logo'
+                                            width={isDesktop ? 150 : 50}
+                                            height={isDesktop ? 150 : 50}
+                                            className="absolute right-1 top-1 -z-5 "
+                                        />
                                     <p>응모 전 반드시 확인해주세요.</p>
 
                                     <div>
@@ -218,7 +249,7 @@ const CompetitionPage = () => {
                                 </p>
 
                                 <p className="font-bold">
-                                    이제, 당신의 이야 기로 세상을 놀라게 해보세요.
+                                    이제, 작가님의 이야기로 세상을 놀라게 해보세요.
                                     <br />
                                     투니즈는 언제나 작가님을 기다리고 있습니다.
                                 </p>

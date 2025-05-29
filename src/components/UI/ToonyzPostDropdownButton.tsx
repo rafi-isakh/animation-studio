@@ -198,7 +198,7 @@ const ToonyzPostDropdownButton = ({ email, isAuthor, user, postId, post }: { ema
 
             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} mode="toonyzPost_page" />}
 
-            {createEmailHash(email) === user.email_hash &&
+            {createEmailHash(email) == user.email_hash || email == "jongminbaek@stelland.io" &&
               <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
                 <DialogTrigger asChild >
                   <Link

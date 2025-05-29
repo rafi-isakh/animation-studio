@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { getImageUrl } from "@/utils/urls"
 
-const ContestPage = () => {
+const CompetitionPage = () => {
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
 
@@ -130,20 +130,32 @@ const ContestPage = () => {
 
 
                             </div>
-                            <div className="relative bottom-0 right-0">
-                                <Image
+
+                        </div>
+                    </div>
+
+                    <div className="w-full h-full bg-transparent py-10">
+                        {/* <div className="relative w-full h-full"
+                            style={{
+                                backgroundImage: `url(${getImageUrl('toonyz_2025_contest_footer.webp')})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat',
+                                width: '100%',
+                                height: '100%',
+                            }}
+                        >
+                            <Image
                                     src={getImageUrl('toonyz_2025_contest_footer.webp')}
                                     alt="Contest Footer"
                                     width={900}
                                     height={500}
                                     className="absolute top-0 left-0"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                                /> */}
+                        {/* </div> */}
 
-                    <div className="w-full h-full bg-white py-10">
-                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Architecto, optio, voluptatem magni voluptate, ducimus repellat quo numquam delectus aut vitae maiores. Consectetur, nemo fugiat tempora fugit officiis aperiam placeat veritatis.
+                        <p>자세한 사항은</p>
+                        
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">
@@ -163,4 +175,4 @@ const ContestPage = () => {
     )
 }
 
-export default ContestPage
+export default CompetitionPage

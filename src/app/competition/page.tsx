@@ -269,7 +269,7 @@ const CompetitionPage = () => {
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 자세한 사항은</p>
                             <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold">에서 확인할 수 있습니다</p>
-                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 문의: hello@stelland.co.kr</p>
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 문의: hello@stelland.io</p>
                         </div>
                         <Image
                             src='/stelland_logo.svg'

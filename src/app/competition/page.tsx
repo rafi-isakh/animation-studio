@@ -54,7 +54,7 @@ const CompetitionPage = () => {
                                     <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[550px]">
                                         <p>투니즈에서 공모기간 동안 [새 작품 등록하기]를 통해 <br/>
                                         자유 연재 시작 기존 연재 작품은 어렵습니다. 삭제 후 재 업로드 해주셔야 합니다.</p>
-                                        <p className='text-gray-500'>- 공모전 참가 신청' 후 10화 이상 연재 시 심사 대상에 포함</p>
+                                        <p className='text-gray-500'>- 공모전 참가 신청 후 10화 이상 연재 시 심사 대상에 포함</p>
                                         <p className='text-gray-500'>- 1인 1작품 심사</p>
                                         <p className='text-gray-500'>- 선정된 작품은 개별 연락 후, 정식 계약 체결</p>
                                         <p className='text-gray-500'>- 참가 신청 필수(참가 신청 방법 )</p>
@@ -137,7 +137,7 @@ const CompetitionPage = () => {
                                     <div>
                                         <p>2) 작가 당 1편 심사</p>
                                         <p className="pl-4">- 한 명의 작가는 여러 작품을 올릴 수 있지만, 심사는 1인 1작품만 심사가 진행됩니다.</p>
-                                        <p className="pl-4">- 공모전에 응모하려면 '공모전 참여하기' 버튼을 눌러 참가 신청까지 완료하셔야 정식 접수됩니다.</p>
+                                        <p className="pl-4">- 공모전에 응모하려면 &apos;공모전 참여하기&apos; 버튼을 눌러 참가 신청까지 완료하셔야 정식 접수됩니다.</p>
                                     </div>
 
                                     <div>

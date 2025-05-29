@@ -51,10 +51,10 @@ const CompetitionPage = () => {
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full text-xl">3. 참가 자격</div>
                                     <div className="relative text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
                                         <p>누구나 참여할 수 있습니다.</p>
-                                        <p>신작만 응모 가능합니다.</p>
-                                        <p className='text-gray-500'>- 글과 그림이 제출되지 않은 작품</p>
+                                        <p>계약한 적 없는 작품만 응모 가능합니다.</p>
+                                        <p className='text-gray-500'>- 출판 계약이 체결된 적 없는 작품</p>
                                         <p className='text-gray-500'>- 유료로 공개된 이력이 없는 작품</p>
-                                        <p className='text-gray-500'>- 정글 제한 없음</p>
+                                        <p className='text-gray-500'>- 장르 제한 없음</p>
                                         <p className='text-gray-500'>(로맨스, 판타지, 무협, SF, 공포, BL, 19금 등 모든 장르 환영)</p>
                                         <p></p>
                                         <Image

@@ -1,8 +1,12 @@
+'use client'
 import Image from "next/image"
 import Link from "next/link"
 import { getImageUrl } from "@/utils/urls"
+import { useMediaQuery } from "@mui/material"
 
 const CompetitionPage = () => {
+    const isDesktop = useMediaQuery('(min-width: 768px)');
+
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
 
@@ -93,9 +97,9 @@ const CompetitionPage = () => {
 
                     </div>
 
-                    <div className="w-full h-full bg-[#FF8197] py-10 rounded-xl">
-                        <div className="flex flex-col md:flex-row items-start gap-6">
-                            <div className="flex-1 space-y-4 text-xl leading-relaxed px-10 break-keep ">
+                    <div className="w-full h-full bg-[#FF8197] py-10 rounded-xl text-white dark:text-white">
+                        <div className="relative flex flex-col md:flex-row items-start gap-6">
+                            <div className="flex-1 space-y-4 text-xl leading-relaxed px-10 break-keep z-10">
                                 <p>
                                     투니즈는 좋은 이야기들이 많아질수록 플랫폼은 더욱 견고해지고,
                                     <br />그 안에 머무는 작가와 독자도 자연스럽게 늘어난다는 사실을 믿습니다.
@@ -126,38 +130,31 @@ const CompetitionPage = () => {
                                     <br />
                                     투니즈는 언제나 작가님을 기다리고 있습니다.
                                 </p>
-
-
                             </div>
-
+                            <Image
+                                src={getImageUrl('toonyz_2025_contest_star.webp')}
+                                alt="Contest Author"
+                                width={200}
+                                height={200}
+                                className="absolute bottom-0 right-0 -z-1"
+                            />
                         </div>
                     </div>
 
-                    <div className="w-full h-full bg-transparent py-10 text-center">
-                        {/* <div className="relative w-full h-full"
-                            style={{
-                                backgroundImage: `url(${getImageUrl('toonyz_2025_contest_footer.webp')})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                backgroundRepeat: 'no-repeat',
-                                width: '100%',
-                                height: '100%',
-                            }}
-                        >
-                            <Image
-                                    src={getImageUrl('toonyz_2025_contest_footer.webp')}
-                                    alt="Contest Footer"
-                                    width={900}
-                                    height={500}
-                                    className="absolute top-0 left-0"
-                                /> */}
-                        {/* </div> */}
-
-
-                        <p className="text-2xl text-black dark:text-black font-bold"> 자세한 사항은</p>
-                        <p className="text-2xl bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
-                        <p className="text-2xl text-black dark:text-black font-bold">에서 확인할 수 있습니다</p>
-                        <p className="text-2xl text-black dark:text-black font-bold"> 문의: hello@stelland.co.kr</p>
+                    <div className="relative flex justify-between items-center bg-white text-center rounded-xl" >
+                        <div className="flex-1 z-10 py-20 px-10 flex flex-col items-center justify-center">
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 자세한 사항은</p>
+                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold">에서 확인할 수 있습니다</p>
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 문의: hello@stelland.co.kr</p>
+                        </div>
+                        <Image
+                            src='/stelland_logo.svg' 
+                            alt='stelland star logo'
+                            width={isDesktop ? 150 : 100}
+                            height={isDesktop ? 150 : 100}
+                            className="absolute right-5 -z-5" 
+                        />
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">

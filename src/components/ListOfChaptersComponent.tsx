@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, Lock, BarChart3 } from "lucide-react";
+import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, Lock, Unlock, BarChart3 } from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button";
 import { Card, CardContent } from "@/components/shadcnUI/Card";
 import { Modal, Box } from "@mui/material";
@@ -205,7 +205,7 @@ const ListOfChaptersComponent = ({
             </div>
             <div className="w-full">
                 {/* Episode Grid */}
-                <div className="grid md:grid-cols-5 grid-cols-5 gap-3">
+                <div className="grid md:grid-cols-5 grid-cols-4 gap-3">
                     {episodes.map((episode, index) => (
                         <Card
                             key={episode?.id}
@@ -213,25 +213,39 @@ const ListOfChaptersComponent = ({
                                
                             `}
                         >
-                            <CardContent className="p-0">
+                            <CardContent className="p-0 group">
                                 <Button
                                     variant='ghost'
                                     onClick={() => handleChapterClick(episode!)}
                                     className="relative aspect-square flex flex-col items-center justify-center w-full h-full">
-                                    <span className="text-2xl font-bold text-black dark:text-white">{selectedRange.start + index}</span>
+                                    <span className="text-lg font-bold text-black dark:text-white group-hover:hidden">
+                                        {selectedRange.start + index}
+                                    </span>
                                     {
                                         episode?.free ? (
-                                            <div className="absolute top-1 right-1 bg-pink-500 text-white text-xs px-1 py-0.5 rounded font-medium">
-                                                {phrase(dictionary, "readingForFree", language)}
-                                            </div>
+                                            <>
+                                                <div className="absolute top-1 right-1 bg-pink-500 text-white text-xs px-1 py-0.5 rounded font-medium">
+                                                    {phrase(dictionary, "readingForFree", language)}
+                                                </div>
+                                                <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
+                                                    {selectedRange.start + index}
+                                                </span>
+                                            </>
                                         ) : (
-                                            isPurchasedChapter(purchased_webnovel_chapters, episode?.id!, language) ? <BadgeCheck size={11} />
+                                            isPurchasedChapter(purchased_webnovel_chapters, episode?.id!, language) ? <>
+                                                <BadgeCheck size={11} className="text-green-500 absolute top-1 right-1" />
+                                                <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
+                                                    {selectedRange.start + index}
+                                                </span>
+                                            </>
                                                 :
                                                 <>
-                                                    {!episode?.free ? <Lock size={2} className="absolute top-1 right-1 text-gray-300" /> : <></>}
-                                                    <div className="flex flex-row gap-1 items-center">
-                                                        <MdStars className="text-sm text-[#D92979]" />
-                                                        {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                                                    {!episode?.free ? <Lock className="w-2 h-2 absolute top-1 right-1 text-gray-300" /> : <></>}
+                                                    <div className="hidden group-hover:flex flex-row gap-1 items-center text-lg font-bold">
+                                                        <MdStars className="text-lg text-[#D92979]" />
+                                                        <span className="text-black dark:text-white">
+                                                            {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                                                        </span>
                                                     </div>
                                                 </>
                                         )

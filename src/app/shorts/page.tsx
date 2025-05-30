@@ -284,6 +284,18 @@ export default function InstagramReels() {
                                 loop={true}
                                 playsInline={true}
                             />
+                            
+                            {/* Swipe hint for first time users - positioned over video */}
+                            {!isMobile && currentIndex === 0 && index === 0 && (
+                                <div className="absolute inset-0 flex items-center justify-center z-30">
+                                    <div className="bg-transparent px-4 py-2 rounded-lg">
+                                        <p className="text-white text-sm opacity-70 animate-bounce text-center">
+                                            {phrase(dictionary, "toonyz_shorts_help", language)}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            
                             <div className="absolute bottom-0 w-full flex-1 flex flex-col justify-end px-10 pb-20 z-50">
                                 <div className="space-y-3">
 
@@ -336,7 +348,7 @@ export default function InstagramReels() {
                             <div className="flex-1 flex flex-col justify-end p-4 pb-20">
                             </div>
                             {/* Right side - Action buttons */}
-                            <div className="flex flex-col items-center justify-end gap-6 pr-1 pb-52">
+                            <div className="flex flex-col items-center justify-end gap-6 pr-1 md:pb-72 pb-64">
                                 {/* Like button */}
                                 <div className="flex flex-col items-center gap-1">
                                     <Button
@@ -414,7 +426,7 @@ export default function InstagramReels() {
             </div>
 
             {/* Progress indicators */}
-            <div className="absolute bottom-20 right-2 z-20">
+            <div className="absolute md:bottom-20 bottom-40 right-2 z-20">
                 <div className='flex flex-col items-center'>
                     {/* Navigation buttons section */}
                     <div className="flex flex-col gap-2">
@@ -453,13 +465,6 @@ export default function InstagramReels() {
                     ))}
                 </div>
             </div>
-
-            {/* Swipe hint for first time users */}
-            {!isMobile && currentIndex === 0 && (
-                <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20 text-white text-sm opacity-70 animate-bounce">
-                    Swipe up or scroll down for next reel
-                </div>
-            )}
 
             <SharingModal
                 isOpen={showShareModal}

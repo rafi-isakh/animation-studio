@@ -15,7 +15,7 @@ import 'react-quill/dist/quill.snow.css';
 import '@/styles/quill-custom.css'; // Add this import
 import Link from 'next/link';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/shadcnUI/Dialog';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import { cn } from '@/lib/utils';
@@ -37,6 +37,7 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const clicked = useRef(false);
     const [plainTitleText, setPlainTitleText] = useState('');
     const [plainContentText, setPlainContentText] = useState('');
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const fetchWebnovel = async () => {
@@ -93,6 +94,8 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
         if (!maxExceeded) {
             let resPromise;
             if (!clicked.current) {
+
+                setUploading(true);
                 resPromise = fetch('/api/add_chapter', {
                     method: 'POST',
                     body: formData,
@@ -172,8 +175,9 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                                 type="submit"
                                 variant="outline"
                                 color="gray"
+                                disabled={uploading}
                                 className='whitespace-nowrap hover:border-[#DB2777] hover:bg-[#DB2777] hover:text-white'
-                            >{phrase(dictionary, "publish", language)}</Button>
+                            >{uploading ? <Loader2 className='animate-spin' /> : phrase(dictionary, "publish", language)}</Button>
                             {/* <Button variant="contained" color="bw" onClick={handleClickAIEditor}>{phrase(dictionary, "aieditor", language)}</Button> */}
                             <Button
                                 type="button"

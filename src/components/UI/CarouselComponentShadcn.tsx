@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent } from "@/components/shadcnUI/Card"
 import Image from "next/image"
 import Link from "next/link"
@@ -20,6 +20,7 @@ interface CarouselProps {
 }
 
 const CarouselComponentShadcn = ({ items }: CarouselProps) => {
+  const isMobile = useMediaQuery("(max-width: 768px)")
   const { language, dictionary } = useLanguage()
   const { webnovels } = useWebnovels()
   const [api, setApi] = useState<any>(null)
@@ -90,7 +91,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                     <Link href={getHref(item.webnovel_id)}>
                       <Image
                         className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"
-                        src={getImageUrl(item.image) || "/placeholder.svg"}
+                        src={getImageUrl(isMobile && item.image_mobile ? item.image_mobile : item.image) || "/placeholder.svg"}
                         fill
                         sizes="(max-width: 768px) 100vw, 50vw"
                         alt={item.title}

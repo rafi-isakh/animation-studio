@@ -50,7 +50,11 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
   }
 
   function getGenre(index: number) {
-    return [webnovels.find((novel: Webnovel) => novel.id === items[index].webnovel_id)?.genre || ""]
+    if (items[index].webnovel_id) {
+      return [webnovels.find((novel: Webnovel) => novel.id === items[index].webnovel_id)?.genre || ""]
+    } else {
+      return [items[index].genre]
+    }
   }
 
   function breakKeepOrNot() {
@@ -83,12 +87,12 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
         }}
       >
         <CarouselContent className="-ml-4">
-          {items.map((item, index) => (
+          {items.slice().reverse().map((item, index) => (
             <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
               <div className="p-1">
                 <Card>
                   <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
-                    <Link href={getHref(item.webnovel_id)}>
+                    <Link href={item.webnovel_id ? getHref(item.webnovel_id) : item.link}>
                       <Image
                         className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"
                         src={getImageUrl(isMobile && item.image_mobile ? item.image_mobile : item.image) || "/placeholder.svg"}
@@ -113,20 +117,22 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
                           />
 
                           <div className="flex flex-wrap gap-2 mt-1">
-                            {getGenre(index).map((el: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="
-                                    bg-white/20 
-                                    px-2 py-1 
-                                    rounded-xl
-                                    text-xs 
-                                    uppercase 
-                                    tracking-wider
-                                  "
-                              >
-                                {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
-                              </span>
+                            { getGenre(index)?.map((el: string, idx: number) => (
+                               el && (
+                                 <span
+                                  key={idx}
+                                  className="
+                                      bg-white/20 
+                                      px-2 py-1 
+                                      rounded-xl
+                                      text-xs 
+                                      uppercase 
+                                      tracking-wider
+                                    "
+                                >
+                                  {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
+                                </span>
+                               )
                             ))}
                           </div>
 

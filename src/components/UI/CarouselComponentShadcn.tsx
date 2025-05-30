@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent } from "@/components/shadcnUI/Card"
 import Image from "next/image"
 import Link from "next/link"
@@ -20,6 +20,7 @@ interface CarouselProps {
 }
 
 const CarouselComponentShadcn = ({ items }: CarouselProps) => {
+  const isMobile = useMediaQuery("(max-width: 768px)")
   const { language, dictionary } = useLanguage()
   const { webnovels } = useWebnovels()
   const [api, setApi] = useState<any>(null)
@@ -49,7 +50,11 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
   }
 
   function getGenre(index: number) {
-    return [webnovels.find((novel: Webnovel) => novel.id === items[index].webnovel_id)?.genre || ""]
+    if (items[index].webnovel_id) {
+      return [webnovels.find((novel: Webnovel) => novel.id === items[index].webnovel_id)?.genre || ""]
+    } else {
+      return [items[index].genre]
+    }
   }
 
   function breakKeepOrNot() {
@@ -82,73 +87,83 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
         }}
       >
         <CarouselContent className="-ml-4">
-          {items.map((item, index) => (
-            <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
-              <div className="p-1">
-                <Card>
-                  <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
-                    <Link href={getHref(item.webnovel_id)}>
-                      <Image
-                        className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"
-                        src={getImageUrl(item.image) || "/placeholder.svg"}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        alt={item.title}
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
-                      />
-                      {/* Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 md:p-8 rounded-md overflow-hidden">
-                        <div className="flex flex-col justify-end">
-                          <OtherTranslateComponent
-                            element={item}
-                            key={`title-${index}-${language}`}
-                            content={item.title}
-                            elementId={item.id.toString()}
-                            classParams={`${breakKeepOrNot()} text-lg md:text-xl lg:text-2xl font-extrabold`}
-                            elementType={"carouselItem"}
-                            elementSubtype="title"
-                            showLoading={false}
+          {items.map((item, index) => {
+            if (language === "en" && index === 2) {
+              return (
+                null
+              )
+            } else {
+              return (
+                <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
+                  <div className="p-1">
+                    <Card>
+                      <CardContent className="flex lg:aspect-[16/9] aspect-square items-center justify-center p-6 relative">
+                        <Link href={item.webnovel_id ? getHref(item.webnovel_id) : item.link}>
+                          <Image
+                            className="object-cover object-center transition-all duration-300 w-full h-full rounded-md"
+                            src={getImageUrl(isMobile && item.image_mobile ? item.image_mobile : item.image) || "/placeholder.svg"}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            alt={item.title}
+                            placeholder="blur"
+                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
                           />
+                          {/* Overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white p-4 md:p-8 rounded-md overflow-hidden">
+                            <div className="flex flex-col justify-end">
+                              <OtherTranslateComponent
+                                element={item}
+                                key={`title-${index}-${language}`}
+                                content={item.title}
+                                elementId={item.id.toString()}
+                                classParams={`${breakKeepOrNot()} text-lg md:text-xl lg:text-2xl font-extrabold`}
+                                elementType={"carouselItem"}
+                                elementSubtype="title"
+                                showLoading={false}
+                              />
 
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {getGenre(index).map((el: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="
-                                    bg-white/20 
-                                    px-2 py-1 
-                                    rounded-xl
-                                    text-xs 
-                                    uppercase 
-                                    tracking-wider
-                                  "
-                              >
-                                {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
-                              </span>
-                            ))}
-                          </div>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {getGenre(index)?.map((el: string, idx: number) => (
+                                  el && (
+                                    <span
+                                      key={idx}
+                                      className="
+                                          bg-white/20 
+                                          px-2 py-1 
+                                          rounded-xl
+                                          text-xs 
+                                          uppercase 
+                                          tracking-wider
+                                        "
+                                    >
+                                      {idx === 0 ? `#${el}` : phrase(dictionary, el, language)}
+                                    </span>
+                                  )
+                                ))}
+                              </div>
 
-                          <div className="text-sm md:text-base line-clamp-2 mt-2">
-                            <OtherTranslateComponent
-                              element={item}
-                              key={`hook-${index}-${language}`}
-                              content={item.hook}
-                              elementId={item.id.toString()}
-                              classParams={`${breakKeepOrNot()}`}
-                              elementType={"carouselItem"}
-                              elementSubtype="hook"
-                              showLoading={false}
-                            />
+                              <div className="text-sm md:text-base line-clamp-2 mt-2">
+                                <OtherTranslateComponent
+                                  element={item}
+                                  key={`hook-${index}-${language}`}
+                                  content={item.hook}
+                                  elementId={item.id.toString()}
+                                  classParams={`${breakKeepOrNot()}`}
+                                  elementType={"carouselItem"}
+                                  elementSubtype="hook"
+                                  showLoading={false}
+                                />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </div>
-            </CarouselItem>
-          ))}
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              )
+            }
+          })}
         </CarouselContent>
         {isDesktop && (
           <>

@@ -34,7 +34,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [openPreviewDialog, setOpenPreviewDialog] = useState(false);
     const { getWebnovelById } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-    const { invalidateCache } = useWebnovels();
     const clicked = useRef(false);
     const [plainTitleText, setPlainTitleText] = useState('');
     const [plainContentText, setPlainContentText] = useState('');
@@ -101,7 +100,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                 clicked.current = true;
             }
             Promise.resolve(resPromise).then(() => {
-                invalidateCache();
                 router.push(`/view_webnovels/${webnovelId}`)
                 router.refresh();
             })

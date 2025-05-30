@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { existsSync } from "fs";
-import fs from "fs/promises";
-import path from "path";
+import { revalidateTag } from 'next/cache';
 
 export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
@@ -46,6 +44,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
         status: response.status
     });
   }
+
+  revalidateTag('webnovels');
 
   return NextResponse.json({
         message: "Success",

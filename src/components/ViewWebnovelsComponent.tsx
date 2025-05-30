@@ -29,7 +29,6 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [content, setContent] = useState<Webnovel | null>(null);
-    const { invalidateCache } = useWebnovels();
 
     const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
@@ -73,7 +72,6 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                 console.error("Delete webnovel failed");
                 return;
             }
-            invalidateCache();
             // Filter out the deleted webnovel
             const webnovels_after_deletion = webnovels.filter((w: Webnovel) => w.id.toString() != webnovel_id)
             setWebnovels(webnovels_after_deletion)

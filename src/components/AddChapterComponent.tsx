@@ -73,6 +73,13 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
 
     const handleAddChapter = async (event: React.FormEvent) => {
         event.preventDefault();
+        if (maxExceeded) {
+            return;
+        }
+        if (clicked.current) {
+            return;
+        }
+        clicked.current = true;
         const formData = new FormData();
 
         // Get plain text from title editor
@@ -85,27 +92,27 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
 
         formData.append('title', titleText);
         formData.append('content', contentText);
+        formData.append('webnovel_id', webnovelId);
 
         if (!titleText || !contentText) {
             return;
         }
 
-        formData.append('webnovel_id', webnovelId);
-        if (!maxExceeded) {
-            let resPromise;
-            if (!clicked.current) {
-
-                setUploading(true);
-                resPromise = fetch('/api/add_chapter', {
-                    method: 'POST',
-                    body: formData,
-                });
-                clicked.current = true;
-            }
-            Promise.resolve(resPromise).then(() => {
+        try {
+            setUploading(true)
+            const response = await fetch('/api/add_chapter', {
+                method: 'POST',
+                body: formData,
+            });
+            if (response.ok) {
                 router.push(`/view_webnovels/${webnovelId}`)
-                router.refresh();
-            })
+            } else {
+                console.error(response.statusText);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -206,14 +213,14 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                             <div className='flex flex-col space-y-4 min-h-[50vh]'>
                                 <div className='inline-flex flex-col gap-2 text-md '>
                                     <h1 className='text-md font-bold'> {phrase(dictionary, "chapterTitle", language)} </h1>
-                                    {titleRef.current?.getEditor()?.getText().trim() ? 
+                                    {titleRef.current?.getEditor()?.getText().trim() ?
                                         <p className="w-full text-md font-bold"> {plainTitleText} </p> :
                                         <p className="w-full text-md font-bold"> {phrase(dictionary, "new_chapter_preview_noTitle", language)} </p>
                                     }
                                 </div>
                                 <div className='inline-flex flex-col gap-2 text-md'>
                                     <h1 className='text-md font-bold'>{phrase(dictionary, "content", language)}</h1>
-                                    {contentRef.current?.getEditor()?.getText().trim() ? 
+                                    {contentRef.current?.getEditor()?.getText().trim() ?
                                         <p className="w-full prose dark:prose-invert text-md"> {plainContentText} </p> :
                                         <p className="w-full prose dark:prose-invert text-"> {phrase(dictionary, "new_chapter_preview_noContent", language)} </p>
                                     }

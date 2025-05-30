@@ -86,7 +86,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
         }}
       >
         <CarouselContent className="-ml-4">
-          {items.slice().reverse().map((item, index) => (
+          {items.map((item, index) => (
             <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/2">
               <div className="p-1">
                 <Card>

@@ -38,17 +38,17 @@ const CompetitionPage = () => {
                                     />
                                 </div >
                                 <div className="flex flex-col gap-4">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">1. 공모전 기간</div>
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">1. 공모전 기간</div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
                                         <p>5월 29일(목) 09:00시</p>
                                         <p>~ 7월 31일(목) 18:00시</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">2. 결과 발표</div>
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">2. 결과 발표</div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
                                         <p>8월 18일(월) 09:00시</p>
                                         <p>toonyz.com 홈페이지에서 확인</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full text-xl">3. 참가 자격</div>
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl">3. 참가 자격</div>
                                     <div className="relative text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
                                         <p>누구나 참여할 수 있습니다.</p>
                                         <p>계약한 적 없는 작품만 응모 가능합니다.</p>
@@ -66,7 +66,7 @@ const CompetitionPage = () => {
                                         />
                                     </div>
 
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[350px] w-full text-xl">4. 참여 방법</div>
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[280px] w-full text-xl">4. 참여 방법</div>
                                     <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
                                         <p>투니즈에서 공모기간 동안 <Link href='/new_webnovel' className="text-[#FF8197] font-semibold">[새 작품 등록하기]</Link>를 통해  자유 연재 <br />
                                             시작 기존 연재 작품은 어렵습니다. 삭제 후 재 업로드 해주셔야 합니다.</p>
@@ -81,8 +81,8 @@ const CompetitionPage = () => {
 
                                 {/* Right Column */}
                                 <div className="flex flex-col gap-4">
-                                    <div className=" bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[350px] w-full  text-xl">5. 상금</div>
-                                    <div className="relative  w-full md:w-[350px] flex flex-col justify-center items-center mt-2 text-lg">
+                                    <div className=" bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full  text-xl">5. 상금</div>
+                                    <div className="relative  w-full md:w-[280px] flex flex-col justify-center items-center mt-2 text-lg">
                                         <div className="grid grid-cols-3 items-center w-full">
                                             <div className="text-center">
                                                 <span className="font-bold text-black dark:text-black">대상 </span>
@@ -130,7 +130,7 @@ const CompetitionPage = () => {
                             {/*  Benefits */}
                             <div className="flex flex-row gap-4">
                                 <div className="mb-6">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full text-xl">
+                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
                                         6. 수상자 혜택
                                     </div>
                                     <div className="pt-4 pl-4 space-y-2 text-gray-800">
@@ -146,7 +146,7 @@ const CompetitionPage = () => {
 
                             {/* Second Section - Important Notices */}
                             <div className="mb-6">
-                                <div className="relative bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[350px] w-full  text-xl">
+                                <div className="relative bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
                                     7. 유의사항
 
                                 </div>

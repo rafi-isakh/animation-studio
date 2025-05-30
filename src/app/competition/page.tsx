@@ -40,7 +40,7 @@ const CompetitionPage = () => {
                                 <div className="flex flex-col gap-4">
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">1. 공모전 기간</div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                        <p>5월 29일(목) 09:00시</p>
+                                        <p>5월 30일(금) 09:00시</p>
                                         <p>~ 7월 31일(목) 18:00시</p>
                                     </div>
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">2. 결과 발표</div>

@@ -10,7 +10,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
-import useSWR from "swr";
 import { MoveLeft } from 'lucide-react';
 import { Skeleton } from '@/components/shadcnUI/Skeleton';
 

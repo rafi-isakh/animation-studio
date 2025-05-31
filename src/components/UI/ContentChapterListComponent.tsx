@@ -27,6 +27,7 @@ import { getImageUrl } from "@/utils/urls";
 import MyLibraryToonyzPostCard from "@/components/UI/MyLibraryToonyzPostCard";
 import AskAuthorPageWrapper from "./AskAuthorPageWrapper";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
+import ActiveUserAvatar from "./ActiveUserAvatar";
 
 interface ContentChapterListComponentProps {
     content: Webnovel;
@@ -112,7 +113,8 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                         <div className="flex flex-col w-full md:w-1/2 flex-shrink-0 flex-grow-0 md:px-10 p-4">
                                             <div className="flex flex-col gap-4 justify-center items-center md:min-w-[300px] w-full">
                                                 <div className="flex flex-col gap-2 items-center justify-center w-full">
-                                                    <Avatar className="w-32 h-32">
+                                                    <ActiveUserAvatar user={content.user} author={content.author} language={language} />
+                                                    {/* <Avatar className="w-32 h-32">
                                                         <AvatarImage src={getImageUrl(content.user.picture)} alt="author" />
                                                         <AvatarFallback className="dark:bg-gray-500">
                                                             <span className="text-gray-900 dark:text-gray-300">
@@ -126,7 +128,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                                                     }
                                                             </span>
                                                         </AvatarFallback>
-                                                    </Avatar>
+                                                    </Avatar> */}
 
                                                     <div className="flex flex-col gap-2 pb-4">
                                                         <p className="md:text-xl text-md font-bold text-center">

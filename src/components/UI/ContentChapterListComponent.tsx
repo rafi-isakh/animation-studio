@@ -72,23 +72,23 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
 
     return (
         <div className="flex flex-col w-full ">
-            <Tabs defaultValue="1" className="w-full">
+            <Tabs value={tabValue} defaultValue="1" className="w-full" onValueChange={(value) => { setTabValue(value) }}>
                 <TabsList className='bg-white dark:bg-black md:my-4 my-0 md:p-0 p-4 gap-4'>
-                    <TabsTrigger value="1" className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full">
+                    <TabsTrigger value="1" onClick={() => { setTabValue('1') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full">
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <AlignLeft size={16} />
                             {phrase(dictionary, "episodes", language)}{' '}
                             {chapterCount}
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="2" className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
+                    <TabsTrigger value="2" onClick={() => { setTabValue('2') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <MessageCircle size={16} />
                             {phrase(dictionary, "post", language)}{' '}
                             {postCount}
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="3" className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
+                    <TabsTrigger value="3" onClick={() => { setTabValue('3') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <MailQuestion size={16} />
                             {phrase(dictionary, "askToAuthor", language)}{''}
@@ -138,15 +138,19 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                                     </div>
 
                                                     <div className="w-full flex flex-col gap-4 justify-center items-center ">
-                                                        {isAuthor() ? <></> : <Button
-                                                            variant="default"
-                                                            className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                                            onClick={() => { }}
-                                                        >
-                                                            <p>
-                                                                {phrase(dictionary, "view_webnovels_askToAuthor", language)}
-                                                            </p>
-                                                        </Button>}
+                                                        {isAuthor() ? <></> :
+                                                            <Button
+                                                                variant="default"
+                                                                className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                                                onClick={() => {
+                                                                    setTabValue('3')
+                                                                }}
+                                                            >
+                                                                <p>
+                                                                    {phrase(dictionary, "view_webnovels_askToAuthor", language)}
+                                                                </p>
+                                                            </Button>
+                                                        }
 
                                                         <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
                                                             {id !== content.user.id.toString() ? (

@@ -12,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Webnovel, Chapter, ToonyzPost } from "@/components/Types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/shadcnUI/Avatar";
-import { MessageCircle, FileText, AlignLeft, ChevronRightIcon, PenLine, MailQuestion } from "lucide-react";
+import { MessageCircle, AlignLeft, ChevronRightIcon, PenLine, MailQuestion } from "lucide-react";
 import Image from "next/image";
 import moment from "moment";
 import { CommentList } from "@/components/CommentList";
@@ -24,6 +24,7 @@ import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import Link from "next/link";
 import { useMediaQuery } from "@mui/material";
 import { getImageUrl } from "@/utils/urls";
+import MyLibraryToonyzPostCard from "@/components/UI/MyLibraryToonyzPostCard";
 
 interface ContentChapterListComponentProps {
     content: Webnovel;
@@ -58,7 +59,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
     const isMobile = useMediaQuery('(max-width: 768px)');
-    
+
     return (
         <div className="flex flex-col w-full ">
             <Tabs defaultValue="1" className="w-full">
@@ -225,6 +226,17 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <Skeleton variant="rectangular" height={40} width="85%" />
                                 </div>
                             )}
+
+                            <div className="flex flex-col w-full gap-2 overflow-y-auto md:p-0 p-4">
+                                {posts && posts.length > 0 && (
+                                    <>
+                                        <h2 className="text-base font-bold text-left mb-1">
+                                            {phrase(dictionary, "relatedToonyzPosts", language)}
+                                        </h2>
+                                        <MyLibraryToonyzPostCard toonyzPosts={posts} webnovel_id={content.id} mode="view_webnovels" />
+                                    </>
+                                )}
+                            </div>
 
                             {content && content.chapters_length > 0 ? (
                                 <CommentList

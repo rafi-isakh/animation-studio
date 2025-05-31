@@ -7,6 +7,8 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import useSWR from 'swr';
+import LottieLoader from '@/components/LottieLoader';
+import animationData from '@/assets/N_logo_with_heart.json';
 
 const fetcher = async (url: string) => {
     const response = await fetch(url);
@@ -19,7 +21,7 @@ const fetcher = async (url: string) => {
 
 export default function ViewAuthor({ params: { id } }: { params: { id: string } }) {
     const { data: novelsData, error: novelsError, isLoading: novelsLoading } = useSWR(
-        id ? `${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata_by_author_id?author_id=${id}` : null, 
+        id ? `${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata_by_author_id?author_id=${id}` : null,
         fetcher
     );
 
@@ -47,9 +49,16 @@ export default function ViewAuthor({ params: { id } }: { params: { id: string } 
     }, [novelsData, novelsError]);
 
     if (novelsLoading) {
-        return <div>Loading...</div>;
+        return <div role="status" className={`flex items-center justify-center min-h-screen`}>
+            <LottieLoader
+                animationData={animationData}
+                width="w-40"
+                centered={true}
+                pulseEffect={true}
+            />
+        </div>;
     }
-    
+
     if (novelsError) {
         console.error('Error fetching data:', { novelsError });
         return <EmptyProfileComponent />;
@@ -58,7 +67,6 @@ export default function ViewAuthor({ params: { id } }: { params: { id: string } 
     if (user && novels !== null) {
         return (
             <div className="md:max-w-screen-xl w-full mx-auto flex flex-col md:flex-row">
-                {/* <PageAsideBar mode="viewProfile" user={author} /> */}
                 <div className="flex-1 w-full flex-shrink-0">
                     <ProfileComponent user={user} novels={novels} mode="view_author" />
                 </div>

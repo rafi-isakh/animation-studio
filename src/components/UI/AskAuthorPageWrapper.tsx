@@ -30,7 +30,7 @@ export default function AskAuthorPageWrapper({ author, content }: { author: User
             {/* Author Quote */}
             <div className="mb-8">
                 <span className="text-lg text-gray-700 dark:text-gray-300">
-                    &quot;Hi everyone. I'm answering questions!&quot;
+                    &quot;Hi everyone. I&apos;m answering questions!&quot;
                 </span>
                 <span className="text-lg text-[#DE2B74] font-medium ml-2">
                     {

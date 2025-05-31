@@ -67,6 +67,9 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
         return id === content.user.id.toString()
     };
 
+    const view_profile_href = content.user.email_hash == content.author.email_hash ?
+        `/view_profile/${content.user.id}` : `/view_author/${content.author.id}`;
+
     return (
         <div className="flex flex-col w-full ">
             <Tabs defaultValue="1" className="w-full">
@@ -114,25 +117,10 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                             <div className="flex flex-col gap-4 justify-center items-center md:min-w-[300px] w-full">
                                                 <div className="flex flex-col gap-2 items-center justify-center w-full">
                                                     <ActiveUserAvatar user={content.user} author={content.author} language={language} />
-                                                    {/* <Avatar className="w-32 h-32">
-                                                        <AvatarImage src={getImageUrl(content.user.picture)} alt="author" />
-                                                        <AvatarFallback className="dark:bg-gray-500">
-                                                            <span className="text-gray-900 dark:text-gray-300">
-                                                                    {content.author.nickname === 'Anonymous' ? '' :
-                                                                        language == 'ko' ?
-                                                                            content.author.nickname :
-                                                                            koreanToEnglishAuthorName[content.author.nickname as string] ?
-                                                                                koreanToEnglishAuthorName[content.author.nickname as string].charAt(0).toUpperCase() + koreanToEnglishAuthorName[content.author.nickname as string].charAt(1).toUpperCase()
-                                                                                :
-                                                                                content.author.nickname.charAt(0).toUpperCase() + content.author.nickname.charAt(1).toUpperCase()
-                                                                    }
-                                                            </span>
-                                                        </AvatarFallback>
-                                                    </Avatar> */}
 
                                                     <div className="flex flex-col gap-2 pb-4">
-                                                        <p className="md:text-xl text-md font-bold text-center">
-                                                            {/* {content.user.nickname} */}
+
+                                                        <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
                                                             {
                                                                 content.author.nickname === 'Anonymous' ? '' :
                                                                     language == 'ko' ?
@@ -142,7 +130,8 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                                                             :
                                                                             content.author.nickname
                                                             }
-                                                        </p>
+                                                        </Link>
+
                                                         <p className="text-sm text-gray-500 text-center">
                                                             {content.user.bio}
                                                         </p>

@@ -58,6 +58,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
     const isMobile = useMediaQuery('(max-width: 768px)');
+    
     return (
         <div className="flex flex-col w-full ">
             <Tabs defaultValue="1" className="w-full">

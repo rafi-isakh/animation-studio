@@ -2,8 +2,14 @@ import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
-import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, Lock, Unlock, BarChart3 } from "lucide-react";
+import {
+    ChevronDownIcon,
+    Eye,
+    MessageCircle,
+    BadgeCheck,
+    ChevronUpIcon,
+    LockKeyhole,
+} from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button";
 import { Card, CardContent } from "@/components/shadcnUI/Card";
 import { Modal, Box } from "@mui/material";
@@ -40,7 +46,6 @@ const ListOfChaptersComponent = ({
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
     const CHAPTERS_PER_PAGE = 100; // Number of chapters to show per click
-
     const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
@@ -224,7 +229,7 @@ const ListOfChaptersComponent = ({
                                     {
                                         episode?.free ? (
                                             <>
-                                                <div className="absolute top-1 right-1 bg-pink-500 text-white text-xs px-1 py-0.5 rounded font-medium">
+                                                <div className="absolute top-1 right-1 text-pink-500 text-xs px-1 py-0.5 rounded font-medium">
                                                     {phrase(dictionary, "readingForFree", language)}
                                                 </div>
                                                 <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
@@ -240,7 +245,7 @@ const ListOfChaptersComponent = ({
                                             </>
                                                 :
                                                 <>
-                                                    {!episode?.free ? <Lock className="w-2 h-2 absolute top-1 right-1 text-gray-300" /> : <></>}
+                                                    {!episode?.free ? <LockKeyhole className="w-2 h-2 absolute top-1 right-1 text-gray-300" /> : <></>}
                                                     <div className="hidden group-hover:flex flex-row gap-1 items-center text-lg font-bold">
                                                         <MdStars className="text-lg text-[#D92979]" />
                                                         <span className="text-black dark:text-white">
@@ -258,33 +263,14 @@ const ListOfChaptersComponent = ({
                 {/* Show message if no episodes in range */}
                 {episodes.length === 0 && (
                     <div className="text-center py-12">
-                        <p className="text-gray-400 text-lg">이 범위에는 에피소드가 없습니다.</p>
+                        <p className="text-gray-400 text-lg">
+                            {language === "ko" ? "이 범위에는 에피소드가 없습니다." : "No episodes in this range."}
+                        </p>
                     </div>
                 )}
             </div>
             {/* </div > */}
-            <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
-                        <p className="text-lg font-bold">
-                            {phrase(dictionary, "deleteChapterConfirm", language)}
-                        </p>
-                        <Button
-                            variant="outline"
-                            color="error"
-                            onClick={() => handleChapterDelete(deleteChapterId!)}
-                        >
-                            {phrase(dictionary, "yes", language)}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowDeleteModal(false)}
-                        >
-                            {phrase(dictionary, "no", language)}
-                        </Button>
-                    </div>
-                </Box>
-            </Modal>
+           
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}

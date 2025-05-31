@@ -10,16 +10,19 @@ const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
 import animationData from '@/assets/N_logo_with_heart.json';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: string } }) => {
     const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
     const [userWebnovels, setUserWebnovels] = useState<Webnovel[] | null>(null);
-    const [loading, setLoading] = useState(true);
     const [loadingUsersOtherWebnovels, setLoadingUsersOtherWebnovels] = useState(true);
     const { isLoggedIn } = useAuth();
     const { getWebnovelIdWithChapterMetadata, getWebnovelsMetadataByAuthorId } = useWebnovels();
     const searchParams = useSearchParams();
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
+    const { data, error, isLoading } = useSWR('/api/get_toonyz_posts', fetcher);
 
     useEffect(() => {
         const setData = async () => {
@@ -27,7 +30,6 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
             let author_id = "";
             if (webnovel) {
                 setWebnovel(webnovel);
-                setLoading(false);
                 author_id = webnovel.author.id.toString();
             }
             if (author_id) {
@@ -35,19 +37,18 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
                 setUserWebnovels(userWebnovels);
                 setLoadingUsersOtherWebnovels(false);
             }
-                
+
             const response = await fetch('/api/get_toonyz_posts');
             if (!response.ok) {
                 throw new Error('Failed to fetch posts');
             }
-            
+
             const data = await response.json();
-            const filteredPosts = data.filter((post: any) => 
+            const filteredPosts = data.filter((post: any) =>
                 post.webnovel_id === webnovel?.id
             );
-            
+
             setPosts(filteredPosts);
-            setLoading(false);
             if (isLoggedIn) {
                 fetch(`/api/add_to_library?webnovel_id=${webnovel_id}`)
             }
@@ -55,22 +56,29 @@ const ViewWebnovels = ({ params: { webnovel_id } }: { params: { webnovel_id: str
         setData();
     }, [searchParams])
 
+    if (isLoading) {
+        return (
+            <div role="status" className={`flex items-center justify-center min-h-screen`}>
+                <LottieLoader
+                    animationData={animationData}
+                    width="w-40"
+                    centered={true}
+                    pulseEffect={true}
+                />
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p>Error: {error.message}</p>
+            </div>
+        )
+    }
+
     return (
-        <>
-            {loading ? (
-                <div role="status" className={`flex items-center justify-center min-h-screen`}>
-                    <LottieLoader
-                        animationData={animationData}
-                        width="w-40"
-                        centered={true}
-                        pulseEffect={true}
-                    />
-                </div>
-            ) : (
-                <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
-            )
-            }
-        </>
+        <ViewWebnovelsComponent webnovel_id={webnovel_id} webnovel={webnovel} userWebnovels={userWebnovels} loadingUsersOtherWebnovels={loadingUsersOtherWebnovels} posts={posts} />
     )
 }
 

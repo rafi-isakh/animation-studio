@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import Image from "next/image"
-import { ToonyzPost, Webnovel, Language } from "@/components/Types"
+import { ToonyzPost, Webnovel, Language, Dictionary } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/shadcnUI/Card"
 import { Heart, MessageCircle, Share, Share2, Film } from "lucide-react"
@@ -10,18 +10,15 @@ import Link from "next/link"
 import { useWebnovels } from "@/contexts/WebnovelsContext"
 import { truncateText } from "@/utils/truncateText"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 
-export function Pin({ post, language }: { post: ToonyzPost, language: Language }) {
+export function Pin({ post, language, dictionary }: { post: ToonyzPost, language: Language, dictionary: Dictionary }) {
   const { getWebnovelById } = useWebnovels()
   const videoRef = useRef<HTMLVideoElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
   const [webnovelTitle, setWebnovelTitle] = useState<string>('');
   const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const { dictionary } = useLanguage();
 
   useEffect(() => {
     const fetchWebnovelTitle = async () => {
@@ -52,22 +49,22 @@ export function Pin({ post, language }: { post: ToonyzPost, language: Language }
   const handleShareClick = async () => {
     if (isSharing) return;
     if (navigator.share) {
-        try {
-            setIsSharing(true);
-            await navigator.share({
-                title: post.title,
-                text: phrase(dictionary, "share_post", language),
-                url: ``
-            });
-        } catch (error) {
-            console.log('Share failed:', error);
-        } finally {
-            setIsSharing(false);
-        }
+      try {
+        setIsSharing(true);
+        await navigator.share({
+          title: post.title,
+          text: phrase(dictionary, "share_post", language),
+          url: ``
+        });
+      } catch (error) {
+        console.log('Share failed:', error);
+      } finally {
+        setIsSharing(false);
+      }
     } else {
-        setShowShareModal(true);
+      setShowShareModal(true);
     }
-}
+  }
 
   return (
     <Link
@@ -119,7 +116,22 @@ export function Pin({ post, language }: { post: ToonyzPost, language: Language }
               </Link>
             </div>
             <div className="flex flex-col text-xs text-white">
-              <p className='truncate text-ellipsis'>{webnovel?.title}</p>
+              <p className='truncate text-ellipsis'>
+                {webnovel ? (
+                  <OtherTranslateComponent
+                    element={webnovel}
+                    elementId={post.webnovel_id.toString()}
+                    content={webnovelTitle || ''}
+                    elementType='webnovel'
+                    elementSubtype="title"
+                    classParams={language === 'ko'
+                      ? "break-keep korean"
+                      : "break-words"}
+                  />
+                ) : (
+                  webnovelTitle
+                )}
+              </p>
               <p>{webnovel?.author?.nickname}</p>
             </div>
           </div>
@@ -139,16 +151,20 @@ export function Pin({ post, language }: { post: ToonyzPost, language: Language }
           {/* Post Title */}
           <CardTitle className="text-sm font-bold mb-2 line-clamp-2">
             <div className="flex items-center justify-between">
-              <OtherTranslateComponent
-                element={post}
-                content={post.title}
-                elementId={post.webnovel_id.toString()}
-                elementType='webnovel'
-                elementSubtype="title"
-                classParams={language === 'ko'
+              {post.title ? (
+                <OtherTranslateComponent
+                  element={post}
+                  content={post.title}
+                  elementId={post.webnovel_id.toString()}
+                  elementType='webnovel'
+                  elementSubtype="title"
+                  classParams={language === 'ko'
                   ? "break-keep korean"
-                  : "break-words"}
-              />
+                    : "break-words"}
+                />
+              ) : (
+                post.id
+              )}
               <Button
                 className="rounded-full bg-[#DE2B74] p-1 text-white"
                 variant="ghost"
@@ -166,7 +182,20 @@ export function Pin({ post, language }: { post: ToonyzPost, language: Language }
           {/* Webnovel Title */}
           <CardDescription className="text-xs text-muted-foreground mb-3">
             <Link href={`/view_webnovels/${post.webnovel_id}`} className="hover:underline">
-              {truncateText(webnovelTitle, 30)}
+              {webnovel ? (
+                <OtherTranslateComponent
+                  element={webnovel}
+                  elementId={post.webnovel_id.toString()}
+                  content={webnovelTitle || ''}
+                  elementType='webnovel'
+                  elementSubtype="title"
+                  classParams={language === 'ko'
+                    ? "break-keep korean"
+                    : "break-words"}
+                />
+              ) : (
+                webnovelTitle
+              )}
             </Link>
           </CardDescription>
 

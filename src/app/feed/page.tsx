@@ -4,12 +4,13 @@ import { ToonyzPost } from "@/components/Types"
 import { Pin } from "@/components/UI/Pin"
 import useSWR from "swr"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { Skeleton } from "@/components/shadcnUI/Skeleton"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 const PAGE_SIZE = 10;
 
 export default function ToonyzPosts() {
-    const { language } = useLanguage()
+    const { dictionary, language } = useLanguage()
     const { data: allPosts, error, isLoading } = useSWR('/api/get_toonyz_posts', fetcher)
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -39,13 +40,21 @@ export default function ToonyzPosts() {
     }, [allPosts, visibleCount, hasMore]);
 
     if (error) return <div>Error: {error}</div>
-    if (isLoading) return <div>Loading...</div>
+    if (isLoading) return (
+        <div className='md:max-w-screen-xl w-full flex flex-row justify-center mx-auto'>
+            <div className='w-full h-full flex flex-col justify-start items-start gap-2'>
+                <Skeleton className='w-[150px] h-[20px]' />
+                <Skeleton className='w-[250px] h-[20px]' />
+                <Skeleton className='w-[450px] h-[20px]' />
+            </div>
+        </div>
+    );
 
     return (
         <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen flex flex-col items-center justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full place-items-center">
                 {visiblePosts.map((post: ToonyzPost) => (
-                    <Pin key={post.id} post={post} language={language} />
+                    <Pin key={post.id} post={post} language={language} dictionary={dictionary} />
                 ))}
             </div>
             <div ref={loadMoreRef as React.RefObject<HTMLDivElement>} />

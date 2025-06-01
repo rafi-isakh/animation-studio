@@ -1,25 +1,40 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import Image from "next/image"
+import { ToonyzPost, Webnovel, Language } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/shadcnUI/Card"
 import { Heart, MessageCircle, Share, Share2, Film } from "lucide-react"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/shadcnUI/Dialog"
 import { Button } from "@/components/shadcnUI/Button"
 import Link from "next/link"
 import { useWebnovels } from "@/contexts/WebnovelsContext"
 import { truncateText } from "@/utils/truncateText"
-import ShareToSocialMediaCard from "@/components/UI/ShareToSocialMediaCard"
+import OtherTranslateComponent from "@/components/OtherTranslateComponent";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
 
-interface PinProps {
-  post: any
-}
-
-export function Pin({ post }: PinProps) {
-  const aspectRatio = post.height / post.width
+export function Pin({ post, language }: { post: ToonyzPost, language: Language }) {
   const { getWebnovelById } = useWebnovels()
   const videoRef = useRef<HTMLVideoElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [webnovelTitle, setWebnovelTitle] = useState<string>("");
+  const [webnovelTitle, setWebnovelTitle] = useState<string>('');
+  const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const { dictionary } = useLanguage();
+
+  useEffect(() => {
+    const fetchWebnovelTitle = async () => {
+      const webnovel = await getWebnovelById(post.webnovel_id);
+      setWebnovelTitle(webnovel?.title || '');
+    };
+    const fetchWebnovel = async () => {
+      const webnovel = await getWebnovelById(post.webnovel_id);
+      setWebnovel(webnovel || null);
+    };
+    fetchWebnovelTitle();
+    fetchWebnovel();
+  }, [post.webnovel_id, getWebnovelById]);
 
   const handleMouseEnter = () => {
     if (videoRef.current) {
@@ -34,117 +49,177 @@ export function Pin({ post }: PinProps) {
     }
   };
 
-  const MemoizedShareToSocialMediaCard = React.memo(ShareToSocialMediaCard);
-
-  const handleDialogOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShareDialogOpen(true);
-  }
-
-  const handleDialogClose = useCallback(() => {
-    setShareDialogOpen(false);
-  }, []);
-
-
-  const WebnovelTitle = getWebnovelById(post.webnovel_id).then(webnovel => webnovel?.title) 
+  const handleShareClick = async () => {
+    if (isSharing) return;
+    if (navigator.share) {
+        try {
+            setIsSharing(true);
+            await navigator.share({
+                title: post.title,
+                text: phrase(dictionary, "share_post", language),
+                url: ``
+            });
+        } catch (error) {
+            console.log('Share failed:', error);
+        } finally {
+            setIsSharing(false);
+        }
+    } else {
+        setShowShareModal(true);
+    }
+}
 
   return (
-    <div className="relative group shadow-sm">
-      <div ref={pinRef} className="mb-4 break-inside-avoid">
-        <Link href={`/toonyz_posts/${post.id}`} onClick={() => { console.log("") }} className="block" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-          <div className="relative group overflow-hidden rounded-xl" style={{ paddingBottom: `${aspectRatio * 100}%` }}>
-            <div className="absolute inset-0">
-              {
-                post.image ?
+    <Link
+      key={post.id}
+      href={`/toonyz_posts/${post.id}`}
+      className="inline-flex"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <Card className="group w-[300px] overflow-hidden">
+        {/* Main Image/Video Section */}
+        <div className="relative aspect-square w-full">
+          {
+            post.image ?
+              <Image
+                src={getImageUrl(post.image) || "/placeholder.svg"}
+                alt={post.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 300px"
+                className="object-cover transition-transform duration-200 group-hover:scale-105"
+              />
+              :
+              <div className="relative w-full h-full">
+                <video
+                  ref={videoRef}
+                  src={getVideoUrl(post.video)}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay={false}
+                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  poster="/placeholder.svg"
+                />
+                <Film size={20} className="absolute top-2 right-2 text-white z-10" />
+              </div>
+          }
+
+          {/* Webnovel thumbnail overlay */}
+          <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
+            <div className="w-12 h-12 rounded-md overflow-hidden relative flex-shrink-0">
+              <Link href={`/view_webnovels/${post.webnovel_id}`}>
+                <Image
+                  src={getImageUrl(webnovel?.cover_art || "") || "/placeholder.svg"}
+                  alt={webnovel?.title || ""}
+                  width={48}
+                  height={48}
+                  className="object-cover"
+                />
+              </Link>
+            </div>
+            <div className="flex flex-col text-xs text-white">
+              <p className='truncate text-ellipsis'>{webnovel?.title}</p>
+              <p>{webnovel?.author?.nickname}</p>
+            </div>
+          </div>
+
+          {/* Quote overlay */}
+          {post.quote && (
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+              <p className="text-white text-sm font-bold text-center max-w-[85%] break-words px-4">
+                "{truncateText(post.quote, 50)}"
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Section with Description and User Info */}
+        <CardContent className="p-4">
+          {/* Post Title */}
+          <CardTitle className="text-sm font-bold mb-2 line-clamp-2">
+            <div className="flex items-center justify-between">
+              <OtherTranslateComponent
+                element={post}
+                content={post.title}
+                elementId={post.webnovel_id.toString()}
+                elementType='webnovel'
+                elementSubtype="title"
+                classParams={language === 'ko'
+                  ? "break-keep korean"
+                  : "break-words"}
+              />
+              <Button
+                className="rounded-full bg-[#DE2B74] p-1 text-white"
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleShareClick()
+                }}>
+                <Share2 size={10} className="w-6 h-6 text-white" />
+              </Button>
+            </div>
+          </CardTitle>
+
+          {/* Webnovel Title */}
+          <CardDescription className="text-xs text-muted-foreground mb-3">
+            <Link href={`/view_webnovels/${post.webnovel_id}`} className="hover:underline">
+              {truncateText(webnovelTitle, 30)}
+            </Link>
+          </CardDescription>
+
+          {/* User Info and Stats */}
+          <div className="flex items-center justify-between">
+            {/* User Info */}
+            <div className="flex items-center gap-2">
+              {post.user.picture ? (
+                <div className="w-6 h-6 rounded-full overflow-hidden">
                   <Image
-                    src={getImageUrl(post.image) || "/placeholder.svg"}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 300px"
-                    className="object-cover scale-125 transition-transform duration-200 group-hover:scale-[1.35]"
+                    src={getImageUrl(post.user.picture)}
+                    alt={post.user.nickname || 'User'}
+                    width={24}
+                    height={24}
+                    className='object-cover'
                   />
-                  :
-                  <div className="relative w-full h-full">
-                    <video
-                    ref={videoRef}
-                    src={getVideoUrl(post.video)}
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    className="w-full h-full object-cover max-h-[50vh] md:max-h-none scale-100 md:scale-125 transition-transform duration-200 md:group-hover:scale-[1.35]"
-                    poster="/video-placeholder.jpg" // Optional placeholder image
-                    />
-                    <Film size={20} className="absolute top-2 left-2 text-white z-50" />
-                  </div>
-              }
+                </div>
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 text-gray-500 dark:text-gray-300"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                  </svg>
+                </div>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {truncateText(post.user.nickname || 'Anonymous', 15)}
+              </span>
             </div>
 
-            <div className="absolute inset-0 flex flex-col justify-end
-                        opacity-0 group-hover:opacity-100
-                        transition-opacity duration-200
-                        bg-gradient-to-t from-black/60 to-transparent ">
-              {post.quote && (
-                <p
-                  // style={{ paddingBottom: `${aspectRatio * 100}%` }}
-                  className="absolute left-1/2 top-[25%] -translate-x-1/2 text-sm font-extrabold text-white text-center w-fit max-w-[85%] break-keep">
-                  {/* */}
-                  {truncateText(post.quote, 15)}
-                </p>
-              )}
-
-              <div className="absolute right-5 bottom-[4.3rem] z-50">
-                {post.user.picture ? (
-                  <div className="dark:bg-[#211F21] bg-white rounded-full w-8 h-8 flex items-center justify-center overflow-hidden">
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={getImageUrl(post.user.picture)}
-                        alt={post.user.nickname || 'User'}
-                        fill
-                        className='object-cover'
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white dark:bg-[#211F21] rounded-full w-8 h-8 flex items-center justify-center">
-                    <svg
-                      className="w-8 h-8 text-gray-500 dark:text-gray-200 rounded-full"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                    </svg>
-                  </div>
-                )}
+            {/* Stats */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Heart size={12} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {post.upvotes || 0}
+                </span>
               </div>
-
-              <div className="bg-white dark:bg-[#211F21] rounded-b-xl p-4 z-30">
-                <h3 className="mb-1 text-sm font-bold text-black dark:text-white line-clamp-2">
-                  {truncateText(post.title, 10)}
-                </h3>
-                <div className="flex flex-col items-center justify-between text-white">
-                  {/* <p className="text-sm text-gray-500">{truncateText(webnovelTitle, 10)}</p> */}
-                  <div className="flex flex-row space-x-2 text-gray-500">
-                    <div className="flex flex-row items-center space-x-2 text-sm">
-                      <Heart size={14} className="" />
-                      <span>{post.upvotes ? post.upvotes : 0}</span>
-                    </div>
-                    <div className="flex flex-row items-center space-x-2 text-sm">
-                      <MessageCircle size={14} className="" />
-                      <span>{post.comments ? post.comments.length : 0}</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500">{post.user.nickname}</p>
-                </div>
-
+              <div className="flex items-center gap-1">
+                <MessageCircle size={12} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {post.comments?.length || 0}
+                </span>
               </div>
             </div>
           </div>
-        </Link >
-      </div >
-    </div >
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
 

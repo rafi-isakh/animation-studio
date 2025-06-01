@@ -1,57 +1,55 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ToonyzPost } from "@/components/Types"
 import { Pin } from "@/components/UI/Pin"
-import Masonry from "react-masonry-css"
+import useSWR from "swr"
+import { useLanguage } from "@/contexts/LanguageContext"
 
-function getRandomDimensions() {
-    const widths = [900, 1000, 1200]
-    const heights = [1000, 1200, 1400, 1600]  
-    return {
-        width: widths[Math.floor(Math.random() * widths.length)],
-        height: heights[Math.floor(Math.random() * heights.length)],
-    }
-}
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+const PAGE_SIZE = 10;
 
 export default function ToonyzPosts() {
-    const [posts, setPosts] = useState<ToonyzPost[]>([]);
+    const { language } = useLanguage()
+    const { data: allPosts, error, isLoading } = useSWR('/api/get_toonyz_posts', fetcher)
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    const loadMoreRef = useRef<HTMLDivElement>(null);
 
+    const visiblePosts = allPosts ? allPosts.slice(0, visibleCount) : [];
+    const hasMore = allPosts && visibleCount < allPosts.length;
 
     useEffect(() => {
-        fetch('/api/get_toonyz_posts')
-            .then(res => res.json())
-            .then(data => {
-                // Add random dimensions to each post
-                const postsWithDimensions = data.map((post: ToonyzPost) => ({
-                    ...post,
-                    ...getRandomDimensions()
-                }));
-                setPosts(postsWithDimensions);
-            });
-    }, []);
+        if (!allPosts) return;
 
-    const breakpointColumnsObj = {
-        default: 5,
-        1280: 4,
-        1024: 3,
-        768: 2,
-        640: 2,
-    }
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && hasMore) {
+                setVisibleCount(prevCount => prevCount + PAGE_SIZE);
+            }
+        }, { threshold: 0.1 });
 
+        const currentRef = loadMoreRef.current;
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        }
+    }, [allPosts, visibleCount, hasMore]);
+
+    if (error) return <div>Error: {error}</div>
+    if (isLoading) return <div>Loading...</div>
 
     return (
-        <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
-            <main className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
-                <Masonry
-                    breakpointCols={breakpointColumnsObj}
-                    className="my-masonry-grid flex w-auto -ml-4 gap-5"
-                    columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
-                >
-                    {posts.map((post: any) => (
-                        <Pin key={post.id} post={post} />
-                    ))}
-                </Masonry>
-            </main>
+        <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen flex flex-col items-center justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full place-items-center">
+                {visiblePosts.map((post: ToonyzPost) => (
+                    <Pin key={post.id} post={post} language={language} />
+                ))}
+            </div>
+            <div ref={loadMoreRef as React.RefObject<HTMLDivElement>} />
+            {!hasMore && <p>No more posts to load</p>}
         </div>
     )
 }

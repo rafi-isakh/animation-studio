@@ -14,6 +14,7 @@ import {
     ChevronDown,
     ChevronUp,
 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcnUI/Tabs"
 import { useMediaQuery } from "@mui/material"
 import { Webnovel } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
@@ -245,16 +246,19 @@ export default function InstagramReels() {
 
     return (
         <div className="relative w-full h-screen bg-white dark:bg-black overflow-hidden select-none">
+            <Tabs defaultValue="trailer">
             {/* Header */}
             <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
                 <div className="flex items-center gap-4">
                     <h1 className="text-white text-xl font-semibold">Toonyz Shorts</h1>
-                    <Link href="#" className="text-white text-sm font-semibold underline">
-                        Trailer
-                    </Link>
-                    <Link href="/feed" className="text-white text-sm font-semibold hover:underline hover:text-gray-500">
-                        Feed
-                    </Link>
+                    <TabsList className='bg-transparent '>
+                        <TabsTrigger value="trailer" className="rounded-full text-white text-sm font-semibold data-[state=active]:bg-[#DB2777] data-[state=active]:text-white">
+                            Trailer
+                        </TabsTrigger>
+                        <TabsTrigger value="feed" className="rounded-full text-white text-sm font-semibold data-[state=active]:bg-[#DB2777] data-[state=active]:text-white">
+                            Feed
+                        </TabsTrigger>
+                    </TabsList>
                 </div>
                 {/* <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
@@ -266,6 +270,7 @@ export default function InstagramReels() {
                 </div> */}
             </div>
 
+            <TabsContent value="trailer">
             {/* Main Content */}
             <div
                 ref={containerRef}
@@ -281,7 +286,7 @@ export default function InstagramReels() {
                 {allWebnovels && allWebnovels.map((shortVideo, index) => (
                     <div key={shortVideo.id} className="relative w-full h-screen flex-shrink-0 flex justify-center items-center">
                         {/* Video Background */}
-                        <div className="md:w-[600px] w-full h-full absolute inset-0 top-2  dark:bg-black flex flex-col items-center justify-center mx-auto p-4">
+                        <div className="md:w-[600px] w-full h-full absolute inset-0  dark:bg-black flex flex-col items-center justify-center mx-auto p-4">
                             <video
                                 src={getVideoUrl(allWebnovels[index].en_video_cover) || "/placeholder.svg"}
                                 className="w-full h-full object-cover object-center rounded-lg"
@@ -473,6 +478,7 @@ export default function InstagramReels() {
                     ))}
                 </div>
             </div>
+            </TabsContent>
 
             <SharingModal
                 isOpen={showShareModal}
@@ -480,6 +486,7 @@ export default function InstagramReels() {
                 onConfirm={() => { setShowShareModal(false) }}
                 onCancel={() => { setShowShareModal(false) }}
             />
+            </Tabs>
         </div>
     )
 }

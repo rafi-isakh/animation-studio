@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
-import { ToonyzPost } from "@/components/Types";
+import { ToonyzPost, Language, Dictionary } from "@/components/Types";
 import dynamic from "next/dynamic";
 const LottieLoader = dynamic(() => import("@/components/LottieLoader"), {
     ssr: false,
@@ -19,7 +19,7 @@ function getRandomDimensions() {
 }
 
 
-export default function ToonyzPosts() {
+export default function ToonyzPosts({ language, dictionary }: { language: Language, dictionary: Dictionary }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [additionalPosts, setAdditionalPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function ToonyzPosts() {
                         {error}
                     </div>
                 ) : (
-                    <ToonyzPostGrid posts={initialPosts} />
+                    <ToonyzPostGrid posts={initialPosts} language={language} dictionary={dictionary} />
                 )}
             </main>
         </div>

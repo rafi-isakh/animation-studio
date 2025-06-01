@@ -15,7 +15,6 @@ import {
     ChevronUp,
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcnUI/Tabs"
-import { useMediaQuery } from "@mui/material"
 import { Webnovel } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import { truncateText } from "@/utils/truncateText"
@@ -29,8 +28,30 @@ import ReportButton from "@/components/UI/ReportButton"
 import useSWR from "swr";
 import LottieLoader from "@/components/LottieLoader";
 import animationData from "@/assets/N_logo_with_heart.json";
+import dynamic from 'next/dynamic'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+// Custom hook for media query that's SSR-safe
+const useSSRSafeMediaQuery = (query: string) => {
+    const [matches, setMatches] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+        if (typeof window !== 'undefined') {
+            const mediaQuery = window.matchMedia(query)
+            setMatches(mediaQuery.matches)
+            
+            const handler = (event: MediaQueryListEvent) => setMatches(event.matches)
+            mediaQuery.addEventListener('change', handler)
+            
+            return () => mediaQuery.removeEventListener('change', handler)
+        }
+    }, [query])
+
+    return mounted ? matches : false
+}
 
 export default function InstagramReels() {
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -38,7 +59,7 @@ export default function InstagramReels() {
     const [startY, setStartY] = useState(0)
     const [isDragging, setIsDragging] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
-    const isMobile = useMediaQuery("(max-width: 768px)")
+    const isMobile = useSSRSafeMediaQuery("(max-width: 768px)")
     const [allWebnovels, setAllWebnovels] = useState<Array<Webnovel>>([]);
     const { dictionary, language } = useLanguage()
     const [isSharing, setIsSharing] = useState(false)

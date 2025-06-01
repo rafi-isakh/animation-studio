@@ -4,7 +4,6 @@ import { ToonyzPost, Webnovel, Language, Dictionary } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/shadcnUI/Card"
 import { Heart, MessageCircle, Share, Share2, Film } from "lucide-react"
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/shadcnUI/Dialog"
 import { Button } from "@/components/shadcnUI/Button"
 import Link from "next/link"
 import { useWebnovels } from "@/contexts/WebnovelsContext"
@@ -140,7 +139,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
           {post.quote && (
             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
               <p className="text-white text-sm font-bold text-center max-w-[85%] break-words px-4">
-                "{truncateText(post.quote, 50)}"
+                &quot;{truncateText(post.quote, 50)}&quot;
               </p>
             </div>
           )}

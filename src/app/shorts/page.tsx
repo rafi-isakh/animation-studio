@@ -1,5 +1,4 @@
 "use client"
-
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
@@ -10,8 +9,10 @@ import {
     Send,
     Bookmark,
     MoreHorizontal,
-    Music,
-    Search, Plus, ChevronDown, ChevronUp,
+    Search,
+    Plus,
+    ChevronDown,
+    ChevronUp,
 } from "lucide-react"
 import { useMediaQuery } from "@mui/material"
 import { Webnovel } from "@/components/Types"
@@ -24,6 +25,11 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import SharingModal from '@/components/UI/SharingModal';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcnUI/Popover"
 import ReportButton from "@/components/UI/ReportButton"
+import useSWR from "swr";
+import LottieLoader from "@/components/LottieLoader";
+import animationData from "@/assets/N_logo_with_heart.json";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function InstagramReels() {
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -36,33 +42,18 @@ export default function InstagramReels() {
     const { dictionary, language } = useLanguage()
     const [isSharing, setIsSharing] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
+    const { data, error, isLoading } = useSWR('/api/get_webnovels_metadata', fetcher);
 
     useEffect(() => {
-        const fetchWebnovels = async () => {
-            const response = await fetch("/api/get_webnovels_metadata",
-                {
-                    next: {
-                        tags: ['webnovels']
-                    }
-                }
-            );
-            if (!response.ok) {
-                console.error("Failed to fetch webnovels metadata", response.status);
-                return [];
-            }
-            const data = await response.json();
+        if (data) {
             const filteredData = data.filter((webnovel: Webnovel) => webnovel.en_video_cover);
-            console.log(filteredData)
             setAllWebnovels(filteredData);
         }
-        fetchWebnovels()
-    }, [])
+    }, [data]);
 
-    // Add useEffect for touch and wheel event listeners
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-
         let scrollTimeout: NodeJS.Timeout;
         let isScrolling = false;
 
@@ -140,6 +131,8 @@ export default function InstagramReels() {
         }
     }, [isDragging, startY, currentIndex, allWebnovels.length])
 
+
+
     const formatNumber = (num: number) => {
         if (num >= 1000000) {
             return (num / 1000000).toFixed(1) + "M"
@@ -159,6 +152,21 @@ export default function InstagramReels() {
             return total + (chapter.comments ? chapter.comments.length : 0)
         }, 0)
     }
+
+
+    if (isLoading) {
+        return (
+            <div className="loader-container flex justify-center items-center h-48">
+                <LottieLoader width="w-40" centered={true} animationData={animationData} />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <div>Error: {error.message}</div>;
+    }
+
+
 
     const handleShareClick = async (shortVideo: Webnovel) => {
         if (isSharing) return; // Prevent multiple simultaneous share attempt
@@ -235,8 +243,6 @@ export default function InstagramReels() {
         setIsDragging(false)
     }
 
-    const currentReel = allWebnovels[currentIndex]
-
     return (
         <div className="relative w-full h-screen bg-white dark:bg-black overflow-hidden select-none">
             {/* Header */}
@@ -284,7 +290,7 @@ export default function InstagramReels() {
                                 loop={true}
                                 playsInline={true}
                             />
-                            
+
                             {/* Swipe hint for first time users - positioned over video */}
                             {!isMobile && currentIndex === 0 && index === 0 && (
                                 <div className="absolute inset-0 flex items-center justify-center z-30">
@@ -295,7 +301,7 @@ export default function InstagramReels() {
                                     </div>
                                 </div>
                             )}
-                            
+
                             <div className="absolute bottom-0 w-full flex-1 flex flex-col justify-end px-10 pb-20 z-50">
                                 <div className="space-y-3">
 
@@ -324,10 +330,12 @@ export default function InstagramReels() {
                                             size="sm"
                                             className="h-6 px-3 text-xs border-white text-white bg-transparent hover:bg-white hover:text-black"
                                         >
-                                            {phrase(dictionary, "viewWebnovels", language)}
+                                            <Link href={`/view_webnovels/${shortVideo.id}`}>
+                                                {phrase(dictionary, "viewWebnovels", language)}
+                                            </Link>
                                         </Button>
                                     </div>
-                                    {/* Description */}
+                                    {/* Description - TODO: truncate text */}
                                     <p className="text-white text-sm leading-relaxed max-w-xs">
                                         {/* <OtherTranslateComponent
                                             element={shortVideo}
@@ -413,7 +421,7 @@ export default function InstagramReels() {
                                         </PopoverTrigger>
                                         <PopoverContent className='w-30'>
                                             <ul>
-                                                <li> <ReportButton user={shortVideo.user}  mode="toonyzPost_page" /> </li>
+                                                <li> <ReportButton user={shortVideo.user} mode="toonyzPost_page" /> </li>
                                             </ul>
                                         </PopoverContent>
                                     </Popover>

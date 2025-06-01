@@ -53,7 +53,8 @@ const useSSRSafeMediaQuery = (query: string) => {
     return mounted ? matches : false
 }
 
-export default function InstagramReels() {
+function InstagramReelsComponent() {
+    const { data, error, isLoading } = useSWR('/api/get_webnovels_metadata', fetcher);
     const [currentIndex, setCurrentIndex] = useState(0)
     const [shortVideos, setShortVideos] = useState<Array<Webnovel>>([]);
     const [startY, setStartY] = useState(0)
@@ -64,7 +65,6 @@ export default function InstagramReels() {
     const { dictionary, language } = useLanguage()
     const [isSharing, setIsSharing] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
-    const { data, error, isLoading } = useSWR('/api/get_webnovels_metadata', fetcher);
 
     useEffect(() => {
         if (data) {
@@ -153,8 +153,6 @@ export default function InstagramReels() {
         }
     }, [isDragging, startY, currentIndex, allWebnovels.length])
 
-
-
     const formatNumber = (num: number) => {
         if (num >= 1000000) {
             return (num / 1000000).toFixed(1) + "M"
@@ -175,7 +173,6 @@ export default function InstagramReels() {
         }, 0)
     }
 
-
     if (isLoading) {
         return (
             <div className="loader-container flex justify-center items-center h-48">
@@ -187,8 +184,6 @@ export default function InstagramReels() {
     if (error) {
         return <div>Error: {error.message}</div>;
     }
-
-
 
     const handleShareClick = async (shortVideo: Webnovel) => {
         if (isSharing) return; // Prevent multiple simultaneous share attempt
@@ -511,3 +506,7 @@ export default function InstagramReels() {
         </div>
     )
 }
+
+export default dynamic(() => Promise.resolve(InstagramReelsComponent), {
+    ssr: false,
+})

@@ -30,7 +30,11 @@ import LottieLoader from "@/components/LottieLoader";
 import animationData from "@/assets/N_logo_with_heart.json";
 import dynamic from 'next/dynamic'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url, {
+    next: {
+        tags: ['webnovels']
+    }
+}).then((res) => res.json());
 
 // Custom hook for media query that's SSR-safe
 const useSSRSafeMediaQuery = (query: string) => {
@@ -69,6 +73,7 @@ function InstagramReelsComponent() {
     useEffect(() => {
         if (data) {
             const filteredData = data.filter((webnovel: Webnovel) => webnovel.en_video_cover);
+            
             setAllWebnovels(filteredData);
         }
     }, [data]);
@@ -173,17 +178,17 @@ function InstagramReelsComponent() {
         }, 0)
     }
 
-    if (isLoading) {
-        return (
-            <div className="loader-container flex justify-center items-center h-48">
-                <LottieLoader width="w-40" centered={true} animationData={animationData} />
-            </div>
-        );
-    }
+    // if (isLoading) {
+    //     return (
+    //         <div className="loader-container flex justify-center items-center h-48">
+    //             <LottieLoader width="w-40" centered={true} animationData={animationData} />
+    //         </div>
+    //     );
+    // }
 
-    if (error) {
-        return <div>Error: {error.message}</div>;
-    }
+    // if (error) {
+    //     return <div>Error: {error.message}</div>;
+    // }
 
     const handleShareClick = async (shortVideo: Webnovel) => {
         if (isSharing) return; // Prevent multiple simultaneous share attempt
@@ -495,14 +500,18 @@ function InstagramReelsComponent() {
                 </div>
             </div>
             </TabsContent>
-
+            <TabsContent value="feed">
+                <div>
+                    <h1>Feed</h1>
+                </div>
+            </TabsContent>
+            </Tabs>
             <SharingModal
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}
                 onConfirm={() => { setShowShareModal(false) }}
                 onCancel={() => { setShowShareModal(false) }}
             />
-            </Tabs>
         </div>
     )
 }

@@ -26,16 +26,16 @@ const ToonyzPostGrid = ({
     500: 1
   },
   renderItem = (post: ToonyzPost) => <Pin key={post.id} post={post} language={language || 'ko' || 'en'} dictionary={dictionary || {}} />,
-  className = "my-masonry-grid flex w-auto -ml-4 gap-5",
+  className = "my-masonry-grid flex w-auto gap-5",
   containerClassName = "relative md:max-w-screen-xl mx-auto w-full min-h-screen"
 }: ToonyzPostGridProps) => {
   return (
     <div className={containerClassName}>
-      <main className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
+      <main className="relative md:max-w-screen-xl w-full mx-auto">
         <Masonry
           breakpointCols={breakpointCols}
           className={className}
-          columnClassName="my-masonry-grid_column pl-4 bg-clip-padding"
+          columnClassName="my-masonry-grid_column bg-clip-padding"
         >
           {posts.map((post, index) => renderItem(post, index))}
         </Masonry>

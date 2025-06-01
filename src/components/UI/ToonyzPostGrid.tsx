@@ -4,8 +4,8 @@ import { ToonyzPost, Language, Dictionary } from "@/components/Types";
 
 interface ToonyzPostGridProps {
   posts: ToonyzPost[];
-  language: Language;
-  dictionary: Dictionary;
+  language?: Language;
+  dictionary?: Dictionary;
   breakpointCols?: {
     default: number;
     [key: number]: number;
@@ -25,7 +25,7 @@ const ToonyzPostGrid = ({
     700: 2,
     500: 1
   },
-  renderItem = (post: ToonyzPost) => <Pin key={post.id} post={post} language={language} dictionary={dictionary} />,
+  renderItem = (post: ToonyzPost) => <Pin key={post.id} post={post} language={language || 'ko' || 'en'} dictionary={dictionary || {}} />,
   className = "my-masonry-grid flex w-auto -ml-4 gap-5",
   containerClassName = "relative md:max-w-screen-xl mx-auto w-full min-h-screen"
 }: ToonyzPostGridProps) => {

@@ -53,7 +53,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
         await navigator.share({
           title: post.title,
           text: phrase(dictionary, "share_post", language),
-          url: ``
+          url: `/toonyz_posts/${post.id}`
         });
       } catch (error) {
         console.log('Share failed:', error);
@@ -93,7 +93,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
                   muted
                   loop
                   playsInline
-                  autoPlay={false}
+                  autoPlay={true}
                   className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                   poster="/placeholder.svg"
                 />

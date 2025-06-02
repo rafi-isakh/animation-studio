@@ -88,7 +88,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
       >
         <CarouselContent className="-ml-4">
           {items.map((item, index) => {
-            if (language === "en" && index === 2) {
+            if (language === "en" && index === 0) {
               return (
                 null
               )

@@ -46,10 +46,10 @@ const useSSRSafeMediaQuery = (query: string) => {
         if (typeof window !== 'undefined') {
             const mediaQuery = window.matchMedia(query)
             setMatches(mediaQuery.matches)
-            
+
             const handler = (event: MediaQueryListEvent) => setMatches(event.matches)
             mediaQuery.addEventListener('change', handler)
-            
+
             return () => mediaQuery.removeEventListener('change', handler)
         }
     }, [query])
@@ -73,7 +73,7 @@ function InstagramReelsComponent() {
     useEffect(() => {
         if (data) {
             const filteredData = data.filter((webnovel: Webnovel) => webnovel.en_video_cover);
-            
+
             setAllWebnovels(filteredData);
         }
     }, [data]);
@@ -267,19 +267,14 @@ function InstagramReelsComponent() {
 
     return (
         <div className="relative w-full h-screen bg-white dark:bg-black overflow-hidden select-none">
-            <Tabs defaultValue="trailer">
+
             {/* Header */}
             <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
                 <div className="flex items-center gap-4">
                     <h1 className="text-white text-xl font-semibold">Toonyz Shorts</h1>
-                    <TabsList className='bg-transparent '>
-                        <TabsTrigger value="trailer" className="rounded-full text-white text-sm font-semibold data-[state=active]:bg-[#DB2777] data-[state=active]:text-white">
-                            Trailer
-                        </TabsTrigger>
-                        <TabsTrigger value="feed" className="rounded-full text-white text-sm font-semibold data-[state=active]:bg-[#DB2777] data-[state=active]:text-white">
-                            Feed
-                        </TabsTrigger>
-                    </TabsList>
+                    <Button variant='ghost' className="rounded-full text-white text-sm font-semibold bg-[#DB2777]">
+                        Trailer
+                    </Button>
                 </div>
                 {/* <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
@@ -291,7 +286,6 @@ function InstagramReelsComponent() {
                 </div> */}
             </div>
 
-            <TabsContent value="trailer">
             {/* Main Content */}
             <div
                 ref={containerRef}
@@ -329,7 +323,7 @@ function InstagramReelsComponent() {
                             )}
 
                             <div className="absolute bottom-0 w-full flex-1 flex flex-col justify-end px-10 pb-20 z-50">
-                                <div className="space-y-3">
+                                <div className="space-y-3  max-h-60 overflow-hidden">
 
                                     <div className="flex items-center gap-3">
                                         <Avatar className="w-10 h-10 border-2 border-white rounded-sm">
@@ -357,21 +351,20 @@ function InstagramReelsComponent() {
                                             className="h-6 px-3 text-xs border-white text-white bg-transparent hover:bg-white hover:text-black"
                                         >
                                             <Link href={`/view_webnovels/${shortVideo.id}`}>
-                                                {phrase(dictionary, "viewWebnovels", language)}
+                                                {phrase(dictionary, "viewWebnovel", language)}
                                             </Link>
                                         </Button>
                                     </div>
                                     {/* Description - TODO: truncate text */}
-                                    <p className="text-white text-sm leading-relaxed max-w-xs">
-                                        {/* <OtherTranslateComponent
+                                    <p className="text-white text-sm leading-relaxed  w-full">
+                                        <OtherTranslateComponent
                                             element={shortVideo}
-                                            content={truncateText(shortVideo.description, 100)}
+                                            content={shortVideo.description}
                                             elementId={shortVideo.id.toString()}
                                             elementType="webnovel"
                                             elementSubtype="description"
-                                            classParams=""
-                                        /> */}
-                                        {truncateText(shortVideo.description, 100)}
+                                            classParams="truncate"
+                                        />
                                     </p>
                                 </div>
                             </div>
@@ -488,8 +481,8 @@ function InstagramReelsComponent() {
                 </div>
             </div>
 
-            <div className="absolute top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-                {/* Progress indicators section */}
+            {/* Progress indicators section */}
+            {/* <div className="absolute top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
                 <div className="flex flex-row gap-1">
                     {allWebnovels.map((_, index) => (
                         <div
@@ -498,14 +491,8 @@ function InstagramReelsComponent() {
                         />
                     ))}
                 </div>
-            </div>
-            </TabsContent>
-            <TabsContent value="feed">
-                <div>
-                    <h1>Feed</h1>
-                </div>
-            </TabsContent>
-            </Tabs>
+            </div> */}
+
             <SharingModal
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}

@@ -20,6 +20,7 @@ interface CarouselProps {
 }
 
 const CarouselComponentShadcn = ({ items }: CarouselProps) => {
+  console.log(items)
   const isMobile = useMediaQuery("(max-width: 768px)")
   const { language, dictionary } = useLanguage()
   const { webnovels } = useWebnovels()

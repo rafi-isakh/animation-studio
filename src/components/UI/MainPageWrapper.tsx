@@ -15,6 +15,17 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
     const { dictionary, language } = useLanguage();
     const { webnovels, restricted } = useWebnovels();
 
+    // Log context values and derived filter
+    console.log('[MainPageWrapper] Render triggered. Context values:', { webnovels, restricted });
+    const effectiveAdultFilter = restricted ? null : false;
+    console.log('[MainPageWrapper] Effective adult filter:', effectiveAdultFilter);
+
+    useEffect(() => {
+        // This effect runs when webnovels or restricted change
+        console.log('[MainPageWrapper] useEffect triggered due to webnovels or restricted change:', { webnovels, restricted });
+    }, [webnovels, restricted]);
+    
+    
     const LargeGap = () => {
         return (
             <div className='md:h-[3rem] h-[2rem]' />
@@ -27,37 +38,26 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
         )
     }
 
+    // mainTabConfigs defined directly
     const mainTabConfigs = [
-        { name: 'home', value: 'home', key: 'home' },
-        { name: 'romance', value: 'romance', key: 'romance', is_adult_material: false },
-        { name: 'romanceFantasy', value: 'romanceFantasy', key: 'romanceFantasy', is_adult_material: false },
-        { name: 'community', value: 'all', key: 'community_series', version: 'community' },
-        { name: 'fantasy', value: 'fantasy', key: 'fantasy', is_adult_material: false },
-        { name: 'orientalFantasy', value: 'orientalFantasy', key: 'orientalFantasy', is_adult_material: false },
-        { name: 'bl', value: 'bl', key: 'bl', is_adult_material: false },
-        { name: 'action', value: 'action', key: 'action', is_adult_material: false },
+        { name: 'home', value: 'home', key: 'home', is_adult_material: restricted },
+        { name: 'romance', value: 'romance', key: 'romance', is_adult_material: restricted },
+        { name: 'romanceFantasy', value: 'romanceFantasy', key: 'romanceFantasy', is_adult_material: restricted },
+        { name: 'community', value: 'all', key: 'community_series', version: 'community', is_adult_material: restricted },
+        { name: 'fantasy', value: 'fantasy', key: 'fantasy', is_adult_material: restricted },
+        { name: 'orientalFantasy', value: 'orientalFantasy', key: 'orientalFantasy', is_adult_material: restricted },
+        { name: 'bl', value: 'bl', key: 'bl', is_adult_material: restricted },
+        { name: 'action', value: 'action', key: 'action', is_adult_material: restricted },
     ];
 
-    // Filter out tabs that have no webnovels
+    // filteredTabConfigs defined directly
     const filteredTabConfigs = mainTabConfigs.filter(tab => {
-        if (tab.value === 'home') return true; // Always show home tab
-        const _webnovels = getWebnovelToShow(webnovels, 'recommendation', null, tab.value, tab.version, tab.is_adult_material);
-        console.log(`Tab ${tab.value} has ${_webnovels.length} webnovels, is_adult_material: ${tab.is_adult_material}, version: ${tab.version}`);
+        if (tab.value === 'home') return true;
+        const _webnovels = getWebnovelToShow(webnovels, 'recommendation', null, tab.value, tab.version, effectiveAdultFilter);
+        console.log(`[MainPageWrapper] Tab ${tab.value} processing: Has ${_webnovels.length} webnovels. (Filter used: is_adult_material: ${String(effectiveAdultFilter)}), version: ${tab.version}`);
         return _webnovels.length > 0;
     });
-
-    console.log('restricted:', restricted)
-
-
-    if (restricted) {
-
-        return (
-            <div className='relative w-full max-w-screen-xl mx-auto'>
-                <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" is_adult_material={true} />
-                <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="BLWebnovels"  is_adult_material={true} />
-            </div>
-        )
-    }
+    console.log('[MainPageWrapper] Final filteredTabConfigs:', filteredTabConfigs);
 
     return (
         <div className="relative w-full">
@@ -73,7 +73,7 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                         </TabsTrigger>
                     ))}
                 </TabsList>
-                <TabsContent value="home" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
+               <TabsContent value="home" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         {/*    The side bar width is 72px  md:pl-[72px]  */}
                         {/* Side bar/Bottom Navigation are in layout.tsx */}
@@ -86,17 +86,17 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                             {/*<MyReadingListComponent library={library} />*/}
                             {/*smallGap()/*}
                             {/*WebnovelsCardListByCategory has smallGap in the bottom*/}
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" />
-                            <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" mode="main_page" />
-                            <LargeGap />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="newReleasesWebnovels" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='views' title="communityWebnovels" version="community" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} sortBy="recommendation" title="recommendedWebnovels" mode="main_page" is_adult_material={effectiveAdultFilter} />
+                            <LargeGap /> 
                             <WebnovelsByRank searchParams={searchParams} sortBy='views' title="TOP_SEVEN_WEBNOVELS" />
                             <SmallGap />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" />
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="romanceWebnovels" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="fantasyWebnovels" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="BLWebnovels" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="orientalFantasyWebnovels" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="romanceFantasyWebnovels" is_adult_material={effectiveAdultFilter} />
                             <ToonyzPostCards />
                             <SmallGap />
                         </div>
@@ -105,56 +105,56 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
                 <TabsContent value="romance" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="" />
-                            <WebnovelsCards searchParams={searchParams} genre="romance" sortBy="recommendation" title="romanceWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romance" sortBy='date' title="" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="romance" sortBy="recommendation" title="romanceWebnovels" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="romanceFantasy" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="" />
-                            <WebnovelsCards searchParams={searchParams} genre="romanceFantasy" sortBy="recommendation" title="romanceFantasyWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="romanceFantasy" sortBy='date' title="" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="romanceFantasy" sortBy="recommendation" title="romanceFantasyWebnovels" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="community" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" version="community" />
-                            <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedCommunityWebnovels" version="community" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="all" sortBy='date' title="" version="community" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="all" sortBy="recommendation" title="recommendedCommunityWebnovels" version="community" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="fantasy" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="" />
-                            <WebnovelsCards searchParams={searchParams} genre="fantasy" sortBy="recommendation" title="fantasyWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="fantasy" sortBy='date' title="" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="fantasy" sortBy="recommendation" title="fantasyWebnovels" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="orientalFantasy" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="" />
-                            <WebnovelsCards searchParams={searchParams} genre="orientalFantasy" sortBy="recommendation" title="orientalFantasyWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="orientalFantasy" sortBy='date' title="" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="orientalFantasy" sortBy="recommendation" title="orientalFantasyWebnovels" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="bl" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="" />
-                            <WebnovelsCards searchParams={searchParams} genre="bl" sortBy="recommendation" title="recommendedBLWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="bl" sortBy='date' title="" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="bl" sortBy="recommendation" title="recommendedBLWebnovels" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="action" className="flex-1 w-full md:max-w-screen-xl overflow-hidden">
                     <div className='w-full'>
                         <div className='px-2 w-max-screen-xl justify-center items-center w-full mx-auto'>
-                            <WebnovelsCardListByCategory searchParams={searchParams} genre="action" sortBy='date' title="" />
-                            <WebnovelsCards searchParams={searchParams} genre="action" sortBy="recommendation" title="actionWebnovels" />
+                            <WebnovelsCardListByCategory searchParams={searchParams} genre="action" sortBy='date' title="" is_adult_material={effectiveAdultFilter} />
+                            <WebnovelsCards searchParams={searchParams} genre="action" sortBy="recommendation" title="actionWebnovels" is_adult_material={effectiveAdultFilter} />
                         </div>
                     </div>
                 </TabsContent>

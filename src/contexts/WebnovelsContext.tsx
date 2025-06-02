@@ -13,7 +13,7 @@ interface WebnovelsContextState {
     getWebnovelsMetadataByUserId: (userId: string) => Promise<Array<Webnovel>>;
     getWebnovelsMetadataByAuthorId: (authorId: string) => Promise<Array<Webnovel>>;
     getWebnovelMetadataById: (id: string) => Promise<Webnovel | undefined>;
-    restricted: boolean;
+    restricted: boolean | null;
     setRestricted: (restricted: boolean) => void;
 }
 

@@ -87,7 +87,7 @@ export const calculateIndex = (rowIndex: number, colIndex: number, columns: Webn
     }
 
 
-export const getWebnovelToShow = (webnovels: Webnovel[], sortBy: SortBy, genres: { [key: string]: boolean } | null = null, genre: string | null = null, version: string | null = null, is_adult_material: boolean | null = null) => {
+export const getWebnovelToShow = (webnovels: Webnovel[], sortBy: SortBy, genres: { [key: string]: boolean } | null = null, genre: string | null = null, version: string | null = null, is_adult_material: boolean | null  = null ) => {
     let _webnovelsToShow = webnovels
         .filter(item => filter_by_genre(item, genre))
         .filter(item => {

@@ -16,7 +16,7 @@ async function getCarouselItems() {
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    return data;
+    return data.reverse();
 }
 
 async function getLibrary() {
@@ -52,6 +52,7 @@ async function getToonyzPosts() {
 
 export default async function Home({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     let items = await getCarouselItems();
+    items = items.reverse();
     //let library = await getLibrary() || [];
     // let posts = await getToonyzPosts();
     //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));

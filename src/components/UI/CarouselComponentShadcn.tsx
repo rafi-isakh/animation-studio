@@ -20,7 +20,6 @@ interface CarouselProps {
 }
 
 const CarouselComponentShadcn = ({ items }: CarouselProps) => {
-  console.log(items)
   const isMobile = useMediaQuery("(max-width: 768px)")
   const { language, dictionary } = useLanguage()
   const { webnovels } = useWebnovels()
@@ -89,7 +88,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
       >
         <CarouselContent className="-ml-4">
           {items.map((item, index) => {
-            if (language === "en" && index === 0) {
+            if (language === "en" && index === 3) {
               return (
                 null
               )

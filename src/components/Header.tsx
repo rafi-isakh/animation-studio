@@ -74,7 +74,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
-    const { getWebnovelById, restricted = false } = useWebnovels();
+    const { getWebnovelById, restricted } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
 
     useEffect(() => {
@@ -352,7 +352,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <div ref={hamburgerRef}> 
                                 <ul className="md:hidden flex flex-row justify-center gap-2">
                                     <li className='md:hidden inline-flex items-center justify-center'>
-                                        <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted} />
+                                        <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted ?? null} />
                                     </li>
                                     <li className='ml-3 md:hidden inline-flex items-center justify-center'>
                                         <Popover>
@@ -403,7 +403,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-4 for desktop header icons */}
                                 <li className='relative hidden md:inline-flex'>
-                                    <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted} />
+                                    <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted ?? null} />
                                 </li >
                                 <li className='relative hidden md:inline-flex'>
                                     {/* Language globe icon menu button - Desktop */}

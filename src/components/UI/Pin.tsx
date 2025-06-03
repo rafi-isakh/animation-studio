@@ -73,7 +73,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <Card className="group w-[300px] overflow-hidden">
+      <Card className="group w-[300px] overflow-hidden border-none">
         {/* Main Image/Video Section */}
         <div className="relative aspect-square w-full">
           {
@@ -101,40 +101,6 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
               </div>
           }
 
-          {/* Webnovel thumbnail overlay */}
-          <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
-            <div className="w-12 h-12 rounded-md overflow-hidden relative flex-shrink-0">
-              <Link href={`/view_webnovels/${post.webnovel_id}`}>
-                <Image
-                  src={getImageUrl(webnovel?.cover_art || "") || "/placeholder.svg"}
-                  alt={webnovel?.title || ""}
-                  width={48}
-                  height={48}
-                  className="object-cover"
-                />
-              </Link>
-            </div>
-            <div className="flex flex-col text-xs text-white">
-              <p className='truncate text-ellipsis'>
-                {webnovel ? (
-                  <OtherTranslateComponent
-                    element={webnovel}
-                    elementId={post.webnovel_id.toString()}
-                    content={webnovelTitle || ''}
-                    elementType='webnovel'
-                    elementSubtype="title"
-                    classParams={language === 'ko'
-                      ? "break-keep korean"
-                      : "break-words"}
-                  />
-                ) : (
-                  webnovelTitle
-                )}
-              </p>
-              <p>{webnovel?.author?.nickname}</p>
-            </div>
-          </div>
-
           {/* Quote overlay */}
           {post.quote && (
             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
@@ -146,24 +112,42 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
         </div>
 
         {/* Bottom Section with Description and User Info */}
+        {/* Webnovel thumbnail overlay */}
         <CardContent className="p-4">
-          {/* Post Title */}
-          <CardTitle className="text-sm font-bold mb-2 line-clamp-2">
-            <div className="flex items-center justify-between">
-              {post.title ? (
-                <OtherTranslateComponent
-                  element={post}
-                  content={post.title}
-                  elementId={post.webnovel_id.toString()}
-                  elementType='webnovel'
-                  elementSubtype="title"
-                  classParams={language === 'ko'
-                  ? "break-keep korean"
-                    : "break-words"}
-                />
-              ) : (
-                post.id
-              )}
+          <Link href={`/view_webnovels/${post.webnovel_id}`} className="">
+            <div className="relative flex flex-row justify-between items-center gap-2 z-10">
+              <div className="flex flex-row items-center gap-2">
+                <div className="w-12 h-12 rounded-md overflow-hidden relative flex-shrink-0">
+                  <Link href={`/view_webnovels/${post.webnovel_id}`}>
+                    <Image
+                      src={getImageUrl(webnovel?.cover_art || "") || "/placeholder.svg"}
+                      alt={webnovel?.title || ""}
+                      width={48}
+                      height={48}
+                      className="object-cover"
+                    />
+                  </Link>
+                </div>
+                <div className="flex flex-col text-xs text-black dark:text-white">
+                  <p className='truncate text-ellipsis'>
+                    {webnovel ? (
+                      <OtherTranslateComponent
+                        element={webnovel}
+                        elementId={post.webnovel_id.toString()}
+                        content={webnovelTitle || ''}
+                        elementType='webnovel'
+                        elementSubtype="title"
+                        classParams={language === 'ko'
+                          ? "break-keep korean"
+                          : "break-words"}
+                      />
+                    ) : (
+                      webnovelTitle
+                    )}
+                  </p>
+                  <p>{webnovel?.author?.nickname}</p>
+                </div>
+              </div>
               <Button
                 className="rounded-full bg-[#DE2B74] p-1 text-white"
                 variant="ghost"
@@ -176,16 +160,16 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
                 <Share2 size={10} className="w-6 h-6 text-white" />
               </Button>
             </div>
-          </CardTitle>
+          </Link>
 
-          {/* Webnovel Title */}
-          <CardDescription className="text-xs text-muted-foreground mb-3">
-            <Link href={`/view_webnovels/${post.webnovel_id}`} className="hover:underline">
-              {webnovel ? (
+       {/* Post Title */}
+          <CardTitle className="text-sm font-bold py-4 line-clamp-2">
+            <div className="flex items-center justify-between">
+              {post.title ? (
                 <OtherTranslateComponent
-                  element={webnovel}
+                  element={post}
+                  content={post.title}
                   elementId={post.webnovel_id.toString()}
-                  content={webnovelTitle || ''}
                   elementType='webnovel'
                   elementSubtype="title"
                   classParams={language === 'ko'
@@ -193,10 +177,11 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
                     : "break-words"}
                 />
               ) : (
-                webnovelTitle
+                post.id
               )}
-            </Link>
-          </CardDescription>
+            </div>
+          </CardTitle>
+
 
           {/* User Info and Stats */}
           <div className="flex items-center justify-between">

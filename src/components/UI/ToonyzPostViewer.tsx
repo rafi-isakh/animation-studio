@@ -1,9 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
-import { ToonyzPost } from "@/components/Types";
-import { Pin } from "@/components/UI/Pin";
-import Masonry from "react-masonry-css";
+import { ToonyzPost, Language, Dictionary } from "@/components/Types";
 import { ScrollArea, ScrollBar } from "@/components/shadcnUI/ScrollArea";
 
 
@@ -16,7 +14,7 @@ function getRandomDimensions() {
     }
 }
 
-const ToonyzPostViewer = ({ posts }: { posts: ToonyzPost[] }) => {
+const ToonyzPostViewer = ({ posts, language, dictionary }: { posts: ToonyzPost[], language: Language, dictionary: Dictionary }) => {
     const [toonyzPosts, setToonyzPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -55,7 +53,7 @@ const ToonyzPostViewer = ({ posts }: { posts: ToonyzPost[] }) => {
                 ) : (
                     <ScrollArea className="w-full h-screen overflow-y-auto whitespace-nowrap">
                         <div className="flex gap-2 p-2">
-                            <ToonyzPostGrid posts={toonyzPosts}  />
+                            <ToonyzPostGrid posts={toonyzPosts} language={language} dictionary={dictionary} />
                         </div>
                         <ScrollBar orientation="horizontal" />
                     </ScrollArea>

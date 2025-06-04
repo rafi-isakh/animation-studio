@@ -55,7 +55,7 @@ export default function ToonyzPosts() {
         );
     }
     return (
-        <div className="relative md:max-w-screen-xl mx-auto w-full min-h-screen">
+        <div className="relative md:max-w-screen-xl mx-auto w-full">
             <ToonyzPostGrid posts={initialPosts} language={language} dictionary={dictionary} />
         </div>
     );

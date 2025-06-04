@@ -81,8 +81,17 @@ promotion,프로모션 코드가 있으세요?,,Promotion Code,
 emailExists,같은 이메일로 등록된 계정이 이미 존재합니다,,An account registered with this email already exists,
 characters,캐릭터,,Characters
 analyze,분석,,Analyze
+sort_theFirstChapter,첫화부터 보기,,Sort the first
+sort_theLastChapter,최신화부터 보기,,Sort the latest
 nextChapter,다음화,,Next
 prevChapter,이전화,,Prev
+prevButton,이전,,Prev
+tableOfContents,목차,,Table of Contents
+viewProfile,프로필 보기,,View Profile
+shareThisWebnovel,이 웹소설을 공유 해보세요,,Share this webnovel
+showLess,간단히 보기,,Show less
+readMore,더 보기,,Read more
+nextButton,다음,,Next
 isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
 isLastChapter,마지막 화입니다.,,You are at the last chapter.
 studio,스튜디오,スタジオ,STUDIO
@@ -235,7 +244,9 @@ viewAnotherWorks,다른 작품 보기,,View More Works by the Author
 peopleAlsoLike,추천 작품,,People Also Like
 episodes,에피소드,,Episodes
 start_to_read_episode_1,첫 화 보기,,Read Episode 1
+total_chapters,총 회차,,Total Chapters
 readingForFree,무료,,Free
+chapter_list,회차 목록,,Chapter List
 toonyzOnly,오리지널,,Toonyz Only
 event,이벤트,,Event
 toonyzCut,투니즈컷,,TOONYZ CUT 
@@ -330,7 +341,7 @@ applyCreator,투니즈의 크리에이터가 되어보세요!,,Join Toonyz as an
 applyCreator_button,지금 신청하기,,Apply Now
 starsTransaction,충전 내역,,Transactions
 purchase,구매하기,,Purchase,
-buy_more_stars,달라진 스타샵을 둘러보세요! 오늘 구매하면 보너스를 드려요!,,Buy more stars! Today's purchase comes with a bonus!
+buy_more_stars,달라진 스타샵을 둘러보세요!,,Buy more stars! Comes with a bonus!
 buy_more_stars_mobile,더 많은 별을 구매하세요!,,Buy more stars today!
 authorWorkList,작가의 다른 작품,,Author's Other Works
 starShop,별 충전,,Star Shop
@@ -516,3 +527,7 @@ pleaseLoginDescription,로그인 후 이용할 수 있습니다.,,Login to use i
 sidebar_shorts,투니즈 쇼츠,,Toonyz Shorts
 toonyz_shorts,쇼츠,,Shorts
 toonyz_shorts_help,위 아래로 화면을 이동해 보세요,,Swipe up or scroll down for next video
+askToAuthor,질문하기,,Ask the author
+relatedToonyzPosts,이 작품의 관련 투니즈 포스트,,Related Toonyz Posts
+view_webnovels_learnMore,더보기,,Learn More
+view_webnovels_askToAuthor,이 작가에게 질문하기,,Ask the author

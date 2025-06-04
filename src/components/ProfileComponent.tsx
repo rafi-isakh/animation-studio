@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Webnovel, UserStripped, ToonyzPost } from '@/components/Types';
+import { Webnovel, UserStripped, ToonyzPost, Author } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -35,7 +35,7 @@ import { EditProfileButton } from '@/components/UI/EditProfileButton';
 import ToonyzPostCardList from '@/components/UI/ToonyzPostCardList';
 import DeleteAccountButton from './UI/DeleteAccountButton';
 
-const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
+const ProfileComponent = ({ user, novels, mode = 'view_profile' }: { user: UserStripped, novels: Webnovel[], mode: 'view_profile' | 'view_author' }) => {
     const { language, dictionary } = useLanguage();
     const introRef = useRef<HTMLDivElement>(null);
     const novelsRef = useRef<HTMLDivElement>(null);
@@ -314,13 +314,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                                     <Book size={15} />
                                                     <p className='text-sm capitalize'>{phrase(dictionary, "works", language)}</p>
                                                     <p className='text-sm text-center text-gray-500'>{novels.length}</p>
-                                                </p>
-                                            </div>
-                                            <div className='flex flex-col justify-center items-center md:pr-6 pr-2 border-r border-gray-300'>
-                                                <p className='flex flex-row justify-center items-center gap-1 text-sm'>
-                                                    <Eye size={15} />
-                                                    <p className='text-sm capitalize'>{phrase(dictionary, "views", language)}</p>
-                                                    <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.shown_views, 0)}</p>
                                                 </p>
                                             </div>
                                             <div className='flex flex-col justify-center items-center'>

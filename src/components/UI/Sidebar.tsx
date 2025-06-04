@@ -8,12 +8,12 @@ import { phrase } from '@/utils/phrases'
 import {
   LibraryBig,
   LayoutGrid,
-  SquarePlus,
   Bell,
   Gift,
   ChevronFirst,
   Home,
   TvMinimalPlay,
+  PencilLine,
 } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
@@ -65,7 +65,7 @@ export function GlobalSidebar() {
         type="link"
       />
       <SidebarItem
-        icon={<SquarePlus />}
+        icon={<PencilLine />}
         text={phrase(dictionary, "sidebar_create", language)}
         active={pathname.startsWith('/new_webnovel')}
         alert={false}

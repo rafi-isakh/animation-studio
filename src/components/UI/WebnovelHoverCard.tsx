@@ -101,7 +101,6 @@ export function WebnovelCard({
                         {showDetailInfo && (
                             <div className="text-gray-700 dark:text-gray-200 text-sm mb-1 flex gap-1 items-center">
                                <Heart className="w-3 h-3 text-gray-400" /> <p className="inline-flex gap-1 text-center">  {webnovel.upvotes}</p>
-                               <Eye className="w-3 h-3 text-gray-400" />  <p className="inline-flex gap-1 text-center">  {webnovel.shown_views}</p>
                             </div>
                         )}
 
@@ -173,10 +172,6 @@ export function WebnovelCard({
                         <div className="text-center">
                             <div className="text-xl font-bold text-gray-800 dark:text-gray-200">{webnovel.upvotes}</div>
                             <div className="text-gray-500 text-sm">Likes</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-xl font-bold text-gray-800 dark:text-gray-200">{webnovel.shown_views}</div>
-                            <div className="text-gray-500 text-sm">Views</div>
                         </div>
                         {/* <div className="text-center">
                             <div className="text-xl font-bold text-gray-800 dark:text-gray-200">1024</div>

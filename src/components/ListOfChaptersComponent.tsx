@@ -182,9 +182,6 @@ const ListOfChaptersComponent = ({
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                <Eye size={11} /> {chapter.shown_views}
-                                            </div>
-                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                                 {/* <Heart size={11} /> */}
                                                 {/* heart icon */}
                                                 <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">

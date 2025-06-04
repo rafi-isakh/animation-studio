@@ -313,16 +313,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                 <hr />
 
                                 <p className="text-sm text-black dark:text-white font-bold">
-                                    {/* 조회수 */}
-                                    {phrase(dictionary, "views", language)}
-                                </p>
-
-                                <p className="text-sm capitalize">
-                                    {content.shown_views}
-                                </p>
-                                <hr />
-
-                                <p className="text-sm text-black dark:text-white font-bold">
                                     {/* 좋아요수 */}
                                     {phrase(dictionary, "likes", language)}
                                 </p>

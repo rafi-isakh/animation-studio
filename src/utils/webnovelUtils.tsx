@@ -69,8 +69,8 @@ export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [ke
     } else if (sortBy === 'likes') {
         return b.upvotes - a.upvotes;
     } else if (sortBy === 'date') {
-        let dateA = new Date(a.last_update);
-        let dateB = new Date(b.last_update);
+        let dateA = new Date(a.created_at);
+        let dateB = new Date(b.created_at);
         return dateB.getTime() - dateA.getTime();
     } else {
         return 0;

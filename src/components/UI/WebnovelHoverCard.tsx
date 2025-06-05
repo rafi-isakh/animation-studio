@@ -165,10 +165,7 @@ export function WebnovelCard({
             {
                 showEngagementStats && (
                     <div className="grid grid-cols-2 py-4 border-b border-gray-200 dark:border-gray-700 justify-center">
-                        <div className="text-center">
-                            <div className="text-xl font-bold text-gray-800 dark:text-gray-200">{webnovel.upvotes}</div>
-                            <div className="text-gray-500 text-sm">Likes</div>
-                        </div>
+                      
                         {/* <div className="text-center">
                             <div className="text-xl font-bold text-gray-800 dark:text-gray-200">1024</div>
                             <div className="text-gray-500 text-sm">Readers</div>

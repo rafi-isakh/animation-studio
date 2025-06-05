@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const token = generateJWT();
     console.log(token)
     const response = await axios.get(
-      `https://api.storekit.itunes.apple.com/inApps/v1/transactions/${transactionId}`,
+      `https://api.storekit-sandbox.itunes.apple.com/inApps/v1/transactions/${transactionId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -270,7 +270,7 @@ const ListOfChaptersComponent = ({
                 )}
             </div>
             {/* </div > */}
-           
+
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}

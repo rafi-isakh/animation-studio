@@ -8,7 +8,7 @@ import WebnovelsCardListByCategory from '@/components/WebnovelsCardListByCategor
 import CarouselComponentShadcn from '@/components/UI/CarouselComponentShadcn';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
-import { getWebnovelToShow } from '@/utils/webnovelUtils';
+import { getWebnovelsToShow } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 
 const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string]: string | string[] | undefined }, items: any[] }) => {
@@ -59,9 +59,8 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
     ];
 
     const filteredTabConfigs = mainTabConfigs.filter(tab => {
-        if (tab.value === 'home') return true;
-        const _webnovels = getWebnovelToShow(webnovels, 'recommendation', null, tab.value, tab.version, effectiveAdultFilter);
-        console.log(`[MainPageWrapper] Tab ${tab.value} processing: Has ${_webnovels.length} webnovels. (Filter used: is_adult_material: ${String(effectiveAdultFilter)}), version: ${tab.version}`);
+        if (tab.value === 'home') return true; // Always show home tab
+        const _webnovels = getWebnovelsToShow(webnovels, 'recommendation', null, tab.value, tab.version, effectiveAdultFilter);
         return _webnovels.length > 0;
     });
 

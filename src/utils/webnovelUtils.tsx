@@ -69,8 +69,8 @@ export const sortByFn = (a: Webnovel, b: Webnovel, sortBy: SortBy, genres: { [ke
     } else if (sortBy === 'likes') {
         return b.upvotes - a.upvotes;
     } else if (sortBy === 'date') {
-        let dateA = new Date(a.last_update);
-        let dateB = new Date(b.last_update);
+        let dateA = new Date(a.created_at);
+        let dateB = new Date(b.created_at);
         return dateB.getTime() - dateA.getTime();
     } else {
         return 0;
@@ -87,19 +87,11 @@ export const calculateIndex = (rowIndex: number, colIndex: number, columns: Webn
     }
 
 
-export const getWebnovelToShow = (webnovels: Webnovel[], sortBy: SortBy, genres: { [key: string]: boolean } | null = null, genre: string | null = null, version: string | null = null, is_adult_material: boolean | null  = null ) => {
+export const getWebnovelsToShow = (webnovels: Webnovel[], sortBy: SortBy, genres: { [key: string]: boolean } | null = null, genre: string | null = null, version: string | null = null, is_adult_material: boolean | null = null) => {
     let _webnovelsToShow = webnovels
         .filter(item => filter_by_genre(item, genre))
-        .filter(item => {
-            if (version === "community") {
-                return !item.premium;
-            } else if (version === "premium") {
-                return item.premium;
-            } else {
-                return true;
-            }
-        })
         .filter(item => filter_by_adult_material(item, is_adult_material))
+        .filter(item => filter_by_version(item, version))
         .filter(item => item.chapters_length > 0)
         .sort((a, b) => sortByFn(a, b, sortBy, genres));
 

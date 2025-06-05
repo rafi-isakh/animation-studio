@@ -42,7 +42,6 @@ const MainPageWrapper = ({ searchParams, items }: { searchParams: { [key: string
     const filteredTabConfigs = mainTabConfigs.filter(tab => {
         if (tab.value === 'home') return true; // Always show home tab
         const _webnovels = getWebnovelsToShow(webnovels, 'recommendation', null, tab.value, tab.version, tab.is_adult_material);
-        console.log(`Tab ${tab.value} has ${_webnovels.length} webnovels, is_adult_material: ${tab.is_adult_material}, version: ${tab.version}`);
         return _webnovels.length > 0;
     });
 

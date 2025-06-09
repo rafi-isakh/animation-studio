@@ -88,12 +88,12 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             {postCount}
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="3" onClick={() => { setTabValue('3') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
+                    {/* <TabsTrigger value="3" onClick={() => { setTabValue('3') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <MailQuestion size={16} />
                             {phrase(dictionary, "askToAuthor", language)}{''}
                         </span>
-                    </TabsTrigger>
+                    </TabsTrigger> */}
                 </TabsList>
                 <TabsContent value="1">
                     <div className="flex flex-col self-start justify-start">
@@ -296,11 +296,11 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                         )}
                     </div>
                 </TabsContent>
-                <TabsContent value="3">
+                {/* <TabsContent value="3">
                     <div className="flex flex-col self-start justify-start gap-4 space-y-4 h-[20vh]">
                         <AskAuthorPageWrapper author={content.user} content={content} />
                     </div>
-                </TabsContent>
+                </TabsContent> */}
             </Tabs>
         </div>
     );

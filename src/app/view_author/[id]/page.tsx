@@ -21,10 +21,10 @@ const fetcher = async (url: string) => {
 
 export default function ViewAuthor({ params: { id } }: { params: { id: string } }) {
     const { data: novelsData, error: novelsError, isLoading: novelsLoading } = useSWR(
-        id ? `${process.env.NEXT_PUBLIC_HOST}/api/get_webnovels_metadata_by_author_id?author_id=${id}` : null,
+        id ? `/api/get_webnovels_metadata_by_author_id?author_id=${id}` : null,
         fetcher
     );
-
+    // const { getWebnovelsMetadataByAuthorId } = useWebnovels();
     const [novels, setNovels] = useState<Webnovel[] | null>(null);
     const [user, setUser] = useState<UserStripped | null>(null);
 

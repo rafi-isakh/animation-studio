@@ -6,7 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { phrase } from '@/utils/phrases'
-import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser, CircleUserRound } from 'lucide-react';
+import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser, CircleUserRound, PencilLine } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
@@ -120,7 +120,7 @@ const UserProfileButton = ({ expanded, className, mode }: { expanded?: boolean, 
                             </Link>
                             <Link href="/new_webnovel" onClick={() => handleClose()}>
                                 <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
-                                    <SquarePen size={18} className='dark:text-white text-black inline-flex items-center' />
+                                    <PencilLine size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "newWebnovel", language)}</span>
                                 </li>
                             </Link>

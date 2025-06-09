@@ -233,6 +233,10 @@ function InstagramReelsComponent() {
     }
 
     const handleLikeClick = async (webnovelId: number) => {
+        if (!isLoggedIn) {
+            setShowPleaseLogin(true);
+            return;
+        } else {
         setAllWebnovels(prev =>
             prev.map(w => {
                 if (w.id === webnovelId && w.firstChapter) {
@@ -281,7 +285,7 @@ function InstagramReelsComponent() {
             );
         }
     }
-
+   }
 
 
     const goToNext = () => {

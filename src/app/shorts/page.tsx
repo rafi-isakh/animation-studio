@@ -9,15 +9,11 @@ import {
     Send,
     Bookmark,
     MoreHorizontal,
-    Search,
-    Plus,
     ChevronDown,
     ChevronUp,
 } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/shadcnUI/Tabs"
-import { Webnovel } from "@/components/Types"
+import { Chapter, Webnovel } from "@/components/Types"
 import { getImageUrl, getVideoUrl } from "@/utils/urls"
-import { truncateText } from "@/utils/truncateText"
 import Link from "next/link"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { phrase } from "@/utils/phrases"
@@ -26,9 +22,12 @@ import SharingModal from '@/components/UI/SharingModal';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcnUI/Popover"
 import ReportButton from "@/components/UI/ReportButton"
 import useSWR from "swr";
-import LottieLoader from "@/components/LottieLoader";
-import animationData from "@/assets/N_logo_with_heart.json";
 import dynamic from 'next/dynamic'
+import { useAuth } from "@/contexts/AuthContext"
+import { useUser } from "@/contexts/UserContext"
+import { useWebnovels } from "@/contexts/WebnovelsContext"
+import PleaseLoginModal from "@/components/PleaseLoginModal"
+
 
 const fetcher = (url: string) => fetch(url, {
     next: {
@@ -57,6 +56,10 @@ const useSSRSafeMediaQuery = (query: string) => {
     return mounted ? matches : false
 }
 
+type WebnovelWithChapter = Webnovel & {
+    firstChapter: Chapter;
+}
+
 function InstagramReelsComponent() {
     const { data, error, isLoading } = useSWR('/api/get_webnovels_metadata', fetcher);
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -65,18 +68,48 @@ function InstagramReelsComponent() {
     const [isDragging, setIsDragging] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
     const isMobile = useSSRSafeMediaQuery("(max-width: 768px)")
-    const [allWebnovels, setAllWebnovels] = useState<Array<Webnovel>>([]);
+    const [allWebnovels, setAllWebnovels] = useState<Array<WebnovelWithChapter>>([]);
     const { dictionary, language } = useLanguage()
     const [isSharing, setIsSharing] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
+    const [showPleaseLogin, setShowPleaseLogin] = useState(false)
+    const [likeToggle, setLikeToggle] = useState(false)
+    const [upvotes, setUpvotes] = useState(0)
+    const { isLoggedIn } = useAuth()
+    const { email } = useUser()
+    const [chapter, setChapter] = useState<Chapter | null>(null);
+    const [chapterData, setChapterData] = useState<Array<Webnovel>>([]);
+    const { getWebnovelIdWithChapterMetadata, chaptersLikelyNeededWebnovel } = useWebnovels()
 
     useEffect(() => {
         if (data) {
-            const filteredData = data.filter((webnovel: Webnovel) => webnovel.en_video_cover);
+            const filteredData = data.filter((webnovel: WebnovelWithChapter) => webnovel.en_video_cover);
 
-            setAllWebnovels(filteredData);
+            Promise.all(
+                filteredData.map(async (webnovel: WebnovelWithChapter) => {
+                    const webnovelWithChapter = await getWebnovelIdWithChapterMetadata(webnovel.id.toString());
+                    // Attach the first chapter info directly to the webnovel object
+                    return {
+                        ...webnovel,
+                        firstChapter: webnovelWithChapter?.chapters?.[0] || null,
+
+                    };
+                })
+            ).then((webnovelsWithChapters) => {
+                setAllWebnovels(webnovelsWithChapters);
+            });
         }
     }, [data]);
+
+
+    useEffect(() => {
+        console.log("allWebnovels updated:", allWebnovels);
+    }, [allWebnovels]);
+
+    useEffect(() => {
+        console.log("chapterData updated:", chapterData);
+    }, [chapterData]);
+
 
     useEffect(() => {
         const container = containerRef.current;
@@ -178,17 +211,6 @@ function InstagramReelsComponent() {
         }, 0)
     }
 
-    // if (isLoading) {
-    //     return (
-    //         <div className="loader-container flex justify-center items-center h-48">
-    //             <LottieLoader width="w-40" centered={true} animationData={animationData} />
-    //         </div>
-    //     );
-    // }
-
-    // if (error) {
-    //     return <div>Error: {error.message}</div>;
-    // }
 
     const handleShareClick = async (shortVideo: Webnovel) => {
         if (isSharing) return; // Prevent multiple simultaneous share attempt
@@ -210,19 +232,57 @@ function InstagramReelsComponent() {
         }
     }
 
-    const handleLike = (reelId: string) => {
-        setShortVideos((prev) =>
-            prev.map((shortVideo) =>
-                shortVideo.id.toString() === reelId
-                    ? {
-                        ...shortVideo,
-                        isLiked: !shortVideo.upvotes,
-                        likes: shortVideo.upvotes ? shortVideo.upvotes - 1 : shortVideo.upvotes + 1,
+    const handleLikeClick = async (webnovelId: number) => {
+        setAllWebnovels(prev =>
+            prev.map(w => {
+                if (w.id === webnovelId && w.firstChapter) {
+                    // Optimistic update
+                    const isLiked = w.firstChapter.upvotes ?? false;
+                    const upvotes = w.firstChapter.upvotes ?? 0;
+                    return {
+                        ...w,
+                        firstChapter: {
+                            ...w.firstChapter,
+                            upvotes: isLiked ? upvotes - 1 : upvotes + 1,
+                            isLiked: !isLiked,
+                        }
+                    };
+                }
+                return w;
+            })
+        );
+
+        // Find the chapter id
+        const webnovel = allWebnovels.find(w => w.id === webnovelId);
+        const chapter = webnovel?.firstChapter;
+        if (!chapter) return;
+
+        // API call
+        const url = `/api/upvote_chapter?chapter_id=${chapter.id}&user_email=${email}` + ((chapter.upvotes ?? false) ? "&undo=set" : "");
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Update with real upvotes from server if needed
+        if (data.status === 200) {
+            setAllWebnovels(prev =>
+                prev.map(w => {
+                    if (w.id === webnovelId && w.firstChapter) {
+                        return {
+                            ...w,
+                            firstChapter: {
+                                ...w.firstChapter,
+                                upvotes: data.upvotes,
+                                isLiked: !w.firstChapter.upvotes,
+                            }
+                        };
                     }
-                    : shortVideo,
-            ),
-        )
+                    return w;
+                })
+            );
+        }
     }
+
+
 
     const goToNext = () => {
         if (currentIndex < allWebnovels.length - 1) {
@@ -276,14 +336,6 @@ function InstagramReelsComponent() {
                         Trailer
                     </Button>
                 </div>
-                {/* <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        <Search className="w-6 h-6" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        <Plus className="w-6 h-6" />
-                    </Button>
-                </div> */}
             </div>
 
             {/* Main Content */}
@@ -382,15 +434,17 @@ function InstagramReelsComponent() {
                                         variant="ghost"
                                         size="icon"
                                         className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
-                                        onClick={() => handleLike(shortVideo.id.toString())}
+                                        onClick={() => handleLikeClick(shortVideo.id)}
                                     >
-                                        <Heart className={`w-7 h-7 ${shortVideo.upvotes ? "fill-red-500 text-red-500" : ""}`} />
+                                        <Heart className={`w-7 h-7 ${shortVideo.firstChapter?.isLiked ? "fill-red-500 text-red-500" : ""}`} />
                                     </Button>
-                                    <span className="dark:text-white text-black text-xs font-medium">{formatNumber(shortVideo.upvotes)}</span>
+                                    <span className="dark:text-white text-black text-xs font-medium">
+                                        {formatNumber(shortVideo.firstChapter?.upvotes || 0)}
+                                    </span>
                                 </div>
 
                                 {/* Comment button */}
-                                <div className="flex flex-col items-center gap-1">
+                                {/* <div className="flex flex-col items-center gap-1">
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -401,7 +455,7 @@ function InstagramReelsComponent() {
                                     <span className="dark:text-white text-black text-xs font-medium">
                                         {formatNumber(getTotalComments(shortVideo))}
                                     </span>
-                                </div>
+                                </div> */}
 
                                 {/* Share button */}
                                 <div className="flex flex-col items-center gap-1">
@@ -414,17 +468,6 @@ function InstagramReelsComponent() {
                                         <Send className="w-7 h-7" />
                                     </Button>
                                 </div>
-
-                                {/* Save button */}
-                                {/* <div className="flex flex-col items-center gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
-                                    >
-                                        <Bookmark className="w-7 h-7" />
-                                    </Button>
-                                </div> */}
 
                                 {/* More options */}
                                 <div className="flex flex-col items-center gap-1">
@@ -498,6 +541,10 @@ function InstagramReelsComponent() {
                 onClose={() => setShowShareModal(false)}
                 onConfirm={() => { setShowShareModal(false) }}
                 onCancel={() => { setShowShareModal(false) }}
+            />
+            <PleaseLoginModal
+                open={showPleaseLogin}
+                setOpen={setShowPleaseLogin}
             />
         </div>
     )

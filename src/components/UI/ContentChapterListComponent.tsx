@@ -12,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Webnovel, Chapter, ToonyzPost } from "@/components/Types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/shadcnUI/Avatar";
-import { MessageCircle, FileText, AlignLeft, ChevronRightIcon, PenLine, MailQuestion } from "lucide-react";
+import { MessageCircle, AlignLeft, ChevronRightIcon, PenLine, MailQuestion } from "lucide-react";
 import Image from "next/image";
 import moment from "moment";
 import { CommentList } from "@/components/CommentList";
@@ -24,6 +24,10 @@ import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import Link from "next/link";
 import { useMediaQuery } from "@mui/material";
 import { getImageUrl } from "@/utils/urls";
+import MyLibraryToonyzPostCard from "@/components/UI/MyLibraryToonyzPostCard";
+import AskAuthorPageWrapper from "./AskAuthorPageWrapper";
+import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
+import ActiveUserAvatar from "./ActiveUserAvatar";
 
 interface ContentChapterListComponentProps {
     content: Webnovel;
@@ -58,28 +62,36 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
     const isMobile = useMediaQuery('(max-width: 768px)');
+
+    const isAuthor = (): boolean => {
+        return id === content.user.id.toString()
+    };
+
+    const view_profile_href = content.user.email_hash == content.author.email_hash ?
+        `/view_profile/${content.user.id}` : `/view_author/${content.author.id}`;
+
     return (
         <div className="flex flex-col w-full ">
-            <Tabs defaultValue="1" className="w-full">
+            <Tabs value={tabValue} defaultValue="1" className="w-full" onValueChange={(value) => { setTabValue(value) }}>
                 <TabsList className='bg-white dark:bg-black md:my-4 my-0 md:p-0 p-4 gap-4'>
-                    <TabsTrigger value="1" className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full">
+                    <TabsTrigger value="1" onClick={() => { setTabValue('1') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full">
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <AlignLeft size={16} />
-                            {phrase(dictionary, "episodes", language)}
+                            {phrase(dictionary, "episodes", language)}{' '}
                             {chapterCount}
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="2" className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
+                    <TabsTrigger value="2" onClick={() => { setTabValue('2') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <MessageCircle size={16} />
-                            {phrase(dictionary, "post", language)}
+                            {phrase(dictionary, "post", language)}{' '}
                             {postCount}
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="3" className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
+                    <TabsTrigger value="3" onClick={() => { setTabValue('3') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <MailQuestion size={16} />
-                            {phrase(dictionary, "askToAuthor", language)}
+                            {phrase(dictionary, "askToAuthor", language)}{''}
                         </span>
                     </TabsTrigger>
                 </TabsList>
@@ -104,32 +116,41 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                         <div className="flex flex-col w-full md:w-1/2 flex-shrink-0 flex-grow-0 md:px-10 p-4">
                                             <div className="flex flex-col gap-4 justify-center items-center md:min-w-[300px] w-full">
                                                 <div className="flex flex-col gap-2 items-center justify-center w-full">
-                                                    <Avatar className="w-32 h-32">
-                                                        <AvatarImage src={getImageUrl(content.user.picture)} alt="author" />
-                                                        <AvatarFallback>
-                                                            {content.user.nickname.charAt(0)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
+                                                    <ActiveUserAvatar user={content.user} author={content.author} language={language} />
 
                                                     <div className="flex flex-col gap-2 pb-4">
-                                                        <p className="md:text-xl text-md font-bold text-center">
-                                                            {content.user.nickname}
-                                                        </p>
+
+                                                        <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
+                                                            {
+                                                                content.author.nickname === 'Anonymous' ? '' :
+                                                                    language == 'ko' ?
+                                                                        content.author.nickname :
+                                                                        koreanToEnglishAuthorName[content.author.nickname as string] ?
+                                                                            koreanToEnglishAuthorName[content.author.nickname as string]
+                                                                            :
+                                                                            content.author.nickname
+                                                            }
+                                                        </Link>
+
                                                         <p className="text-sm text-gray-500 text-center">
                                                             {content.user.bio}
                                                         </p>
                                                     </div>
 
                                                     <div className="w-full flex flex-col gap-4 justify-center items-center ">
-                                                        <Button
-                                                            variant="default"
-                                                            className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                                            onClick={() => { }}
-                                                        >
-                                                            <p>
-                                                                Ask to Author
-                                                            </p>
-                                                        </Button>
+                                                        {isAuthor() ? <></> :
+                                                            <Button
+                                                                variant="default"
+                                                                className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                                                onClick={() => {
+                                                                    setTabValue('3')
+                                                                }}
+                                                            >
+                                                                <p>
+                                                                    {phrase(dictionary, "view_webnovels_askToAuthor", language)}
+                                                                </p>
+                                                            </Button>
+                                                        }
 
                                                         <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
                                                             {id !== content.user.id.toString() ? (
@@ -186,9 +207,12 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                                 {content && content.user && relatedContent && relatedContent.length > 0 ? (
                                                     id !== content.user.id.toString() ? (
                                                         <div className="flex flex-col justify-start min-w-[300px] w-full">
-                                                            <h1 className="text-base font-bold text-left">
-                                                                {phrase(dictionary, "authorWorkList", language)}
-                                                            </h1>
+                                                            <div className="flex flex-row justify-between items-center text-base font-bold text-left">
+                                                                <p> {phrase(dictionary, "authorWorkList", language)} </p>
+                                                                <p className="text-gray-600 text-[10px] flex-shrink-0 ">
+                                                                    {phrase(dictionary, "view_webnovels_learnMore", language)}
+                                                                </p>
+                                                            </div>
                                                             <div className="relative flex flex-col w-full overflow-hidden no-scrollbar">
                                                                 <AuthorWorkListComponent
                                                                     webnovels={relatedContent as Webnovel[]}
@@ -224,6 +248,17 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <Skeleton variant="rectangular" height={40} width="85%" />
                                 </div>
                             )}
+
+                            <div className="flex flex-col w-full gap-2 overflow-y-auto md:p-0 p-4 md:pt-10 pt-0">
+                                {posts && posts.length > 0 && (
+                                    <>
+                                        <h2 className="text-base font-bold text-left mb-1">
+                                            {phrase(dictionary, "relatedToonyzPosts", language)}
+                                        </h2>
+                                        <MyLibraryToonyzPostCard toonyzPosts={posts} webnovel_id={content.id} mode="view_webnovels" />
+                                    </>
+                                )}
+                            </div>
 
                             {content && content.chapters_length > 0 ? (
                                 <CommentList
@@ -263,7 +298,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                 </TabsContent>
                 <TabsContent value="3">
                     <div className="flex flex-col self-start justify-start gap-4 space-y-4 h-[20vh]">
-
+                        <AskAuthorPageWrapper author={content.user} content={content} />
                     </div>
                 </TabsContent>
             </Tabs>

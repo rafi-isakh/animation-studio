@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
-import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
+import { Skeleton } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play } from "lucide-react"
+import { VolumeOff, Volume2, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -62,7 +62,6 @@ export default function InfoAndPictureComponent({
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
     const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
-    const isMediumScreen = useMediaQuery('(min-width:768px)');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
     const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
@@ -70,7 +69,6 @@ export default function InfoAndPictureComponent({
     const [videoExists, setVideoExists] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [showPlayButton, setShowPlayButton] = useState(false);
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const { isLoggedIn } = useAuth();
@@ -116,7 +114,7 @@ export default function InfoAndPictureComponent({
     }, [videoSrc])
 
     const view_profile_href = content.user.email_hash == content.author.email_hash ?
-        `/view_profile/${content.user.id}` : '#';
+        `/view_profile/${content.user.id}` : `/view_author/${content.author.id}`;
 
     const handleMouseEnter = useCallback(() => {
         showPlayButtonRef.current = true;
@@ -167,14 +165,22 @@ export default function InfoAndPictureComponent({
             // TODO: tell user if there's not enough stars
             if (!response.ok) {
                 console.error('Failed to purchase chapter');
-                alert("Failed to purchase chapter");
+                toast({
+                    title: "Failed to purchase chapter",
+                    description: "Please try again",
+                    variant: "destructive"
+                })
             } else {
                 const data = await response.json();
                 if (data.success) {
                     setInvokeCheckUser(prev => !prev);
                     router.push(`/view_webnovels/${content.id}/chapter_view/${chapter.id}`);
                 } else {
-                    alert(data.message);
+                    toast({
+                        title: "Failed to purchase chapter",
+                        description: data.message,
+                        variant: "destructive"
+                    })
                 }
             }
         }

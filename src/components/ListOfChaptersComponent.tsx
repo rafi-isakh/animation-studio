@@ -2,8 +2,14 @@ import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
-import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, Lock, BarChart3 } from "lucide-react";
+import {
+    ChevronDownIcon,
+    Eye,
+    MessageCircle,
+    BadgeCheck,
+    ChevronUpIcon,
+    LockKeyhole,
+} from "lucide-react";
 import { Button } from "@/components/shadcnUI/Button";
 import { Card, CardContent } from "@/components/shadcnUI/Card";
 import { Modal, Box } from "@mui/material";
@@ -40,7 +46,6 @@ const ListOfChaptersComponent = ({
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
     const CHAPTERS_PER_PAGE = 100; // Number of chapters to show per click
-
     const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
     const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
     const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
@@ -205,7 +210,7 @@ const ListOfChaptersComponent = ({
             </div>
             <div className="w-full">
                 {/* Episode Grid */}
-                <div className="grid md:grid-cols-5 grid-cols-5 gap-3">
+                <div className="grid md:grid-cols-5 grid-cols-4 gap-3">
                     {episodes.map((episode, index) => (
                         <Card
                             key={episode?.id}
@@ -213,25 +218,39 @@ const ListOfChaptersComponent = ({
                                
                             `}
                         >
-                            <CardContent className="p-0">
+                            <CardContent className="p-0 group">
                                 <Button
                                     variant='ghost'
                                     onClick={() => handleChapterClick(episode!)}
                                     className="relative aspect-square flex flex-col items-center justify-center w-full h-full">
-                                    <span className="text-2xl font-bold text-black dark:text-white">{selectedRange.start + index}</span>
+                                    <span className="text-lg font-bold text-black dark:text-white group-hover:hidden">
+                                        {selectedRange.start + index}
+                                    </span>
                                     {
                                         episode?.free ? (
-                                            <div className="absolute top-1 right-1 bg-pink-500 text-white text-xs px-1 py-0.5 rounded font-medium">
-                                                {phrase(dictionary, "readingForFree", language)}
-                                            </div>
+                                            <>
+                                                <div className="absolute top-1 right-1 text-pink-500 text-xs px-1 py-0.5 rounded font-medium">
+                                                    {phrase(dictionary, "readingForFree", language)}
+                                                </div>
+                                                <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
+                                                    {selectedRange.start + index}
+                                                </span>
+                                            </>
                                         ) : (
-                                            isPurchasedChapter(purchased_webnovel_chapters, episode?.id!, language) ? <BadgeCheck size={11} />
+                                            isPurchasedChapter(purchased_webnovel_chapters, episode?.id!, language) ? <>
+                                                <BadgeCheck size={11} className="text-green-500 absolute top-1 right-1" />
+                                                <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
+                                                    {selectedRange.start + index}
+                                                </span>
+                                            </>
                                                 :
                                                 <>
-                                                    {!episode?.free ? <Lock size={2} className="absolute top-1 right-1 text-gray-300" /> : <></>}
-                                                    <div className="flex flex-row gap-1 items-center">
-                                                        <MdStars className="text-sm text-[#D92979]" />
-                                                        {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                                                    {!episode?.free ? <LockKeyhole className="w-2 h-2 absolute top-1 right-1 text-gray-300" /> : <></>}
+                                                    <div className="hidden group-hover:flex flex-row gap-1 items-center text-lg font-bold">
+                                                        <MdStars className="text-lg text-[#D92979]" />
+                                                        <span className="text-black dark:text-white">
+                                                            {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                                                        </span>
                                                     </div>
                                                 </>
                                         )
@@ -244,33 +263,14 @@ const ListOfChaptersComponent = ({
                 {/* Show message if no episodes in range */}
                 {episodes.length === 0 && (
                     <div className="text-center py-12">
-                        <p className="text-gray-400 text-lg">이 범위에는 에피소드가 없습니다.</p>
+                        <p className="text-gray-400 text-lg">
+                            {language === "ko" ? "이 범위에는 에피소드가 없습니다." : "No episodes in this range."}
+                        </p>
                     </div>
                 )}
             </div>
             {/* </div > */}
-            <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                <Box sx={useModalStyle}>
-                    <div className="flex flex-col space-y-4 items-center justify-center">
-                        <p className="text-lg font-bold">
-                            {phrase(dictionary, "deleteChapterConfirm", language)}
-                        </p>
-                        <Button
-                            variant="outline"
-                            color="error"
-                            onClick={() => handleChapterDelete(deleteChapterId!)}
-                        >
-                            {phrase(dictionary, "yes", language)}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowDeleteModal(false)}
-                        >
-                            {phrase(dictionary, "no", language)}
-                        </Button>
-                    </div>
-                </Box>
-            </Modal>
+
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}

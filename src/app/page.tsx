@@ -16,7 +16,7 @@ async function getCarouselItems() {
     if (!response.ok) {
         throw new Error("Failed to fetch carousel items", { cause: response.status });
     }
-    return data.reverse();
+    return data;
 }
 
 async function getLibrary() {

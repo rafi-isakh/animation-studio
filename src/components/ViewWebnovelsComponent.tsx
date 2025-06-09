@@ -11,6 +11,7 @@ import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { MoveLeft } from 'lucide-react';
+import { Skeleton } from '@/components/shadcnUI/Skeleton';
 
 const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     webnovel_id: string,
@@ -151,8 +152,12 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             )
         } else {
             return (
-                <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
-                    <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
+                <div className='md:max-w-screen-xl w-full flex flex-row justify-center mx-auto'>
+                    <div className='w-full h-full flex flex-col justify-start items-start gap-2'>
+                        <Skeleton className='w-[150px] h-[20px]' />
+                        <Skeleton className='w-[250px] h-[20px]' />
+                        <Skeleton className='w-[450px] h-[20px]' />
+                    </div>
                 </div>
             )
         }

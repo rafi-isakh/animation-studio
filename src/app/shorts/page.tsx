@@ -436,10 +436,14 @@ function InstagramReelsComponent() {
                                         className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
                                         onClick={() => handleLikeClick(shortVideo.id)}
                                     >
-                                        <Heart className={`w-7 h-7 ${shortVideo.firstChapter?.isLiked ? "fill-red-500 text-red-500" : ""}`} />
+                                        <Heart className={`w-7 h-7 ${shortVideo.firstChapter?.upvotes ? "fill-red-500 text-red-500" : ""}`} />
                                     </Button>
                                     <span className="dark:text-white text-black text-xs font-medium">
-                                        {formatNumber(shortVideo.firstChapter?.upvotes || 0)}
+                                        {formatNumber(
+                                            shortVideo.firstChapter?.upvotes ??
+                                            shortVideo.chapters?.[0]?.upvotes ??
+                                            0
+                                        )}
                                     </span>
                                 </div>
 

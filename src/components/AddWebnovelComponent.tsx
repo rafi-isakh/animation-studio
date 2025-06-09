@@ -76,7 +76,6 @@ const AddWebnovelComponent = () => {
     const [showCoverArtModal, setShowCoverArtModal] = useState(false);
     const [showTermsOfServiceModal, setShowTermsOfServiceModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { invalidateCache } = useWebnovels();
     const { isLoggedIn } = useAuth();
     const isLoggedInAndRegistered = !!(isLoggedIn && email);
     const [isAdultMaterial, setIsAdultMaterial] = useState(false);
@@ -142,7 +141,6 @@ const AddWebnovelComponent = () => {
                 description: "Please wait for the webnovel to be approved",
             })
             const data = await res.json();
-            invalidateCache();
             router.push(`/view_webnovels/${data["id"]}`);
             console.log("webnovel added", data);
         } catch (error) {

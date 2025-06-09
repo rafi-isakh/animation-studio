@@ -6,7 +6,7 @@ import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
-import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelToShow } from '@/utils/webnovelUtils';
+import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelsToShow } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { useUser } from '@/contexts/UserContext';
 
@@ -31,7 +31,7 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title, genre, is_adult_m
 
     useEffect(() => {
         let _version = version || searchParams.version as string | undefined;
-        let _webnovelsToShow = getWebnovelToShow(webnovels, sortBy, genres, genre, _version, is_adult_material)
+        let _webnovelsToShow = getWebnovelsToShow(webnovels, sortBy, genres, genre, _version, is_adult_material)
 
         if (isMobile) {
             if (mode === 'main_page') {

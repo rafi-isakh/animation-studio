@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     if (!text || !context) {
         return NextResponse.json({ error: 'Text and context are required' }, { status: 400 });
     }
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'production') {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/generate_pictures`, {
             method: 'POST',
             body: JSON.stringify({ text, context, n, language }),
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         const data = await response.json()
         return NextResponse.json(data)
     }
-    else if (process.env.NODE_ENV === 'production') {
+    else if (process.env.NODE_ENV === 'development') {
         const images = ["https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739847713252.png",
             "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739848305012.png",
             "https://toonyzbucket.s3.ap-northeast-2.amazonaws.com/0-1739850897741.png",

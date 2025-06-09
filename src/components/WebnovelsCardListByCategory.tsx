@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import WebnovelPictureComponent from "@/components/WebnovelPictureComponent"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelToShow } from '@/utils/webnovelUtils';
+import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelsToShow } from '@/utils/webnovelUtils';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsCardList from '@/components/WebnovelsCardList';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
@@ -18,7 +18,7 @@ const WebnovelsCardListByCategory = ({ searchParams, genre, sortBy, title, versi
     const { webnovels } = useWebnovels();
 
     useEffect(() => {
-        const _webnovelsToShow = getWebnovelToShow(webnovels, sortBy, null, genre, version, is_adult_material)
+        const _webnovelsToShow = getWebnovelsToShow(webnovels, sortBy, null, genre, version, is_adult_material)
 
         setWebnovelsToShow(_webnovelsToShow);
     }, [version, genre, webnovels, sortBy]);

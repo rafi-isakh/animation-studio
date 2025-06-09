@@ -29,30 +29,36 @@ const WebnovelPictureComponent = React.memo(
                     <div className="flex flex-col">
                         {
                             // If translation exists, use it; if it doesn't, invoke OtherTranslateComponent
-                            webnovel.other_translations?.find(
-                                translation => translation.language === language
-                                    && translation.element_type === "webnovel"
-                                    && translation.element_subtype === "title"
-                                    && translation.webnovel_id == webnovel.id.toString()
-                            )?.text && (
+                            webnovel.language === language ? (
                                 <p className="text-sm md:text-base font-medium break-keep overflow-hidden whitespace-nowrap text-ellipsis">
-                                    {webnovel.other_translations.find(
-                                        translation => translation.language === language
-                                            && translation.element_type === "webnovel"
-                                            && translation.element_subtype === "title"
-                                            && translation.webnovel_id == webnovel.id.toString()
-                                    )?.text}
+                                    {webnovel.title}
                                 </p>
+                            ) : (
+                                webnovel.other_translations?.find(
+                                    translation => translation.language === language
+                                        && translation.element_type === "webnovel"
+                                        && translation.element_subtype === "title"
+                                        && translation.webnovel_id == webnovel.id.toString()
+                                )?.text && (
+                                    <p className="text-sm md:text-base font-medium break-keep overflow-hidden whitespace-nowrap text-ellipsis">
+                                        {webnovel.other_translations.find(
+                                            translation => translation.language === language
+                                                && translation.element_type === "webnovel"
+                                                && translation.element_subtype === "title"
+                                                && translation.webnovel_id == webnovel.id.toString()
+                                        )?.text}
+                                    </p>
+                                )
+                                ||
+                                <OtherTranslateComponent
+                                    element={webnovel}
+                                    content={webnovel.title}
+                                    elementId={webnovel.id.toString()}
+                                    elementType="webnovel"
+                                    elementSubtype="title"
+                                    classParams="text-sm md:text-base font-medium break-keep overflow-hidden whitespace-nowrap text-ellipsis"
+                                />
                             )
-                            ||
-                            <OtherTranslateComponent
-                                element={webnovel}
-                                content={webnovel.title}
-                                elementId={webnovel.id.toString()}
-                                elementType="webnovel"
-                                elementSubtype="title"
-                                classParams="text-sm md:text-base font-medium break-keep overflow-hidden whitespace-nowrap text-ellipsis"
-                            />
                         }
                         {/* Author and Genre */}
                         <div className="text-xs line-clamp-2 w-full truncate text-gray-500 flex flex-col">

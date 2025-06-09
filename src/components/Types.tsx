@@ -99,6 +99,8 @@ export interface SlickCarouselItem {
   webnovel: Webnovel;
   parsed_tags: string[];
   other_translations: OtherTranslation[];
+  link: string;
+  genre: string;
 }
 
 export interface Webnovel {

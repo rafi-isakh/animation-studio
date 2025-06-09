@@ -50,7 +50,7 @@ const ListOfChaptersComponent = ({
         setImageSrc(getImageUrl(webnovel?.cover_art));
         if (language == 'en' && webnovel?.en_cover_art) {
             setImageSrc(getImageUrl(webnovel?.en_cover_art));
-        } 
+        }
     }, [webnovel, language]);
 
     const loadMoreChapters = () => {
@@ -151,19 +151,19 @@ const ListOfChaptersComponent = ({
                             key={`chapter-${chapter.id}`}
                             className={`w-full block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
                            `}
-                           // ${!chapter.free ? 'opacity-50' : ''} 
+                        // ${!chapter.free ? 'opacity-50' : ''} 
                         >
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-3 items-center">
                                     {/* <p className="text-sm self-center">{index + 1}</p> */}
                                     <div className="min-w-[50px] max-w-[50px]">
-                                    <Image
-                                        src={imageSrc || ""}
-                                        alt={webnovel?.title || ""}
-                                        width={50}
-                                        height={50}
-                                        className="rounded-lg object-cover w-full"
-                                    />
+                                        <Image
+                                            src={imageSrc || ""}
+                                            alt={webnovel?.title || ""}
+                                            width={50}
+                                            height={50}
+                                            className="rounded-lg object-cover w-full"
+                                        />
                                     </div>
                                     <div className="flex flex-col text-sm">
                                         <div className="flex flex-row">
@@ -171,10 +171,10 @@ const ListOfChaptersComponent = ({
                                                 language == 'en' ?
                                                     <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">Episode {index + 1}</p>
                                                     :
-                                                    language == 'ja'?
-                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">第{index + 1}話</p>
-                                                    :
-                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
+                                                    language == 'ja' ?
+                                                        <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">第{index + 1}話</p>
+                                                        :
+                                                        <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
 
                                             }
                                             {/* <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" /> */}
@@ -182,13 +182,11 @@ const ListOfChaptersComponent = ({
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                <Eye size={11} /> {chapter.shown_views}
-                                            </div>
-                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                                 {/* <Heart size={11} /> */}
                                                 {/* heart icon */}
-                                                <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                                <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
+                                                    <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
+                                                        fill="#DE2B74" />
                                                 </svg>
                                                 {chapter.upvotes}
                                             </div>

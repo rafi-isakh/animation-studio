@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { existsSync } from "fs";
 import fs from "fs/promises";
 import path from "path";
+import { revalidateTag } from 'next/cache';
 
 export async function POST(req: NextRequest, res: NextResponse) {
   const session = await auth();
@@ -26,13 +27,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
     body: JSON.stringify(data),
   });
 
-  console.log(response)
   if (!response.ok) {
     return NextResponse.json({
         message: response.statusText,
     }, {
         status: response.status
     });
+  }
+
+  if (data.webnovel_or_post) { // webnovel_or_post is true when adding a comment to a post
+    revalidateTag("toonyz_posts")
   }
 
   return NextResponse.json({

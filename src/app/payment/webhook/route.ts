@@ -93,7 +93,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
                     date: new Date().toISOString()
                 };
 
-                if (!process.env.PORTONE_ACCESS_TOKEN) {
+                if (!process.env.PORTONE_ACCESS_TOKEN) { // This isn't actually portone's. It's used by payments in general.
                     throw new Error("PORTONE_ACCESS_TOKEN is not set");
                 }
                 if (!process.env.PORTONE_BACKEND_SECRET) {

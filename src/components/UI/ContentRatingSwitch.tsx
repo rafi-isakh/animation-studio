@@ -6,7 +6,7 @@ import { useWebnovels } from "@/contexts/WebnovelsContext"
 interface ContentRatingSwitchProps {
     language: string
     onToggle?: (enabled: boolean) => void
-    defaultRestrictedChecked?: boolean
+    defaultRestrictedChecked?: boolean | null
     className?: string
 }
 
@@ -14,16 +14,10 @@ export function ContentRatingSwitch({ language, onToggle, defaultRestrictedCheck
     const { restricted, setRestricted } = useWebnovels()
 
     const handleToggle = (prev: boolean) => {
-        console.log('ContentRatingSwitch - Toggle clicked, previous state:', prev)
         const newState = !prev
-        console.log('ContentRatingSwitch - Setting new state to:', newState)
         setRestricted(newState)
         onToggle?.(newState)
     }
-
-    useEffect(() => {
-        console.log('ContentRatingSwitch - restricted state changed to:', restricted)
-    }, [restricted])
 
     return (
         <div className={`flex items-center space-x-4 ${className}`}>

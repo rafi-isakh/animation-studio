@@ -1,22 +1,22 @@
 "use client"
-import { User, ToonyzPost, Webnovel } from "@/components/Types";
+import { User, ToonyzPost, Webnovel, Chapter } from "@/components/Types";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
-import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import { Dialog } from "@/components/shadcnUI/Dialog";
-import { MoveLeft, Heart, MessageCircle, Share2, Film, Clock4, Eye, Copy, Bookmark } from "lucide-react";
+import { MoveLeft, Heart, MessageCircle, Share2, Send, } from "lucide-react";
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import CommentsComponent from "@/components/CommentsComponent";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import WatermarkedImage from "@/utils/watermark";
 import ToonyzPostDropdownButton from "@/components/UI/ToonyzPostDropdownButton";
-import ToonyzPostGrid from "@/components/UI/ToonyzPostGrid";
 import { WebnovelHoverCard, WebnovelCard } from "@/components/UI/WebnovelHoverCard";
 import ToonyzPostQuoteToggle from "@/components/UI/ToonyzPostQuoteToggle";
 import { useUser } from '@/contexts/UserContext';
 import UserInfoCard from "@/components/UI/UserInfoCard";
-import { truncateText } from "@/utils/truncateText";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
+import { Button } from "@/components/shadcnUI/Button"
+import { Card, CardContent } from "@/components/shadcnUI/Card"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from "@/utils/phrases";
 import { useMediaQuery } from "@mui/material";
@@ -58,7 +58,7 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
             if (post?.webnovel_id) {
                 const novel = await getWebnovelIdWithChapterMetadata(post.webnovel_id);
                 setWebnovel(novel);
-                const chapter = novel?.chapters.find(chapter => chapter.id.toString() === post.chapter_id.toString());
+                const chapter = novel?.chapters.find((chapter: Chapter) => chapter.id.toString() === post.chapter_id.toString());
                 setChapterTitle(chapter?.title);
             }
         };
@@ -86,26 +86,91 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
     const isAuthor = currentUserEmail === post.user.email_hash;
 
     return (
-        <div className="flex flex-col mx-auto w-full min-h-screen pb-20 ">
-            {/* header fixed */}
-            <div className="fixed top-0 z-[99] w-full mx-auto bg-background backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
-                <div className="flex flex-row items-center justify-between gap-2 md:px-5 px-4 md:max-w-screen-xl mx-auto">
-                    <Link href="/feed" className="self-start my-5 flex flex-row items-center gap-2">
-                        <MoveLeft size={20} className='dark:text-white text-gray-500' />
-                        <p className="text-sm  font-bold font-base">{phrase(dictionary, "back", language)}</p>
-                    </Link>
+        <Card className="w-full h-full flex flex-col max-w-md mx-auto border-0 shadow-none">
+            {/* Header */}
+            <div className="w-full flex flex-row items-center justify-between gap-2 md:max-w-screen-xl mx-auto">
+                <Link href="/feed" className="self-start my-5 flex flex-row items-center gap-2">
+                    <MoveLeft size={20} className='dark:text-white text-gray-500' />
+                    <p className="text-sm  font-bold font-base">{phrase(dictionary, "back", language)}</p>
+                </Link>
+            </div>
 
-                   {/* views, comments likes and date */}
-                    <div className='flex flex-row flex-wrap gap-2 justify-center dark:text-white text-gray-500'>
-                        <div className="text-sm  flex flex-row items-center">
-                            <MessageCircle size={16} className="mr-2" />
-                            <span>{post.comments.length}</span>
+            <div className="flex flex-row items-center justify-between py-3 md:px-3 px-3">
+                <div className="flex items-center gap-3">
+                    <UserInfoCard post={post} />
+                    <div className="flex flex-col">
+                        {post.user.nickname && (
+                            <span className="text-sm font-extrabold flex flex-row items-center dark:text-white text-gray-500">
+                                {post.user.nickname}
+                            </span>
+                        )}
+                        {post.created_at && (
+                            <span className="text-sm flex flex-row items-center dark:text-white text-gray-500">
+                                {new Date(post.created_at).toLocaleDateString()}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <ToonyzPostDropdownButton
+                    email={currentUserEmail}
+                    isAuthor={isAuthor ?? false}
+                    user={post.user}
+                    postId={post.id.toString()}
+                    post={post}
+                />
+            </div>
+
+            {/* Image/Video Container  */}
+            <CardContent className="p-0">
+                <div className="w-full h-full bg-muted">
+                    {post.image ? (
+                        <div className="group h-full w-full">
+                            <WatermarkedImage
+                                imageUrl={getImageUrl(post.image)}
+                                watermarkUrl="/toonyz_logo_white.svg"
+                                webnovelTitle={webnovel?.title}
+                                chapterTitle={chapterTitle}
+                                width={imageDimensions?.width}
+                                height={imageDimensions?.height}
+                                watermarkOpacity={0.2}
+                                watermarkPosition="bottomRight"
+                                titlePosition="top"
+                                titleColor="white"
+                                className="object-cover overflow-hidden transition-all duration-300"
+                            />
                         </div>
-                        <div className="text-sm  flex flex-row items-center">
-                            <Heart size={16} className="mr-2" />
-                            <span>{post.upvotes}</span>
+                    ) : (
+                        <div className="group w-full h-full">
+                            <video
+                                src={getVideoUrl(post.video)}
+                                muted
+                                loop
+                                autoPlay
+                                playsInline
+                                className="object-cover overflow-hidden transition-transform duration-200 "
+                            />
                         </div>
-                        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                    )}
+                </div>
+            </CardContent>
+
+
+            {/* Actions */}
+            <div className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
+                    // onClick={() => setIsLiked(!isLiked)}
+                    >
+                        <Heart className={`h-6 w-6 
+                            
+                            `} />
+                    </Button>
+                    <Button variant="link" size="sm" className="h-8 w-8 p-0 !no-underline">
+                        <MessageCircle size={16} className="mr-2" />
+                        <span>{post.comments.length}</span>
+                    </Button>
+                    <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <Link
                                 href="#"
                                 onClick={(e) => {
@@ -114,156 +179,85 @@ const ToonyzPostPage = ({ params }: { params: { id: string } }) => {
                                     setShowShareDialog(true);
                                 }}
                                 className="text-sm font-base flex flex-row items-center gap-2 dark:text-white text-gray-500 ">
-                                <Share2 size={10} className="dark:text-white text-gray-500" />
-                                {phrase(dictionary, "share", language)}
+
+                                <Send className="h-6 w-6" />
                             </Link>
-                            {/* share dialog */}
-                            <ShareDialog 
-                                shareImage={post.image || post.video}
-                                mediaType={post.image ? 'image' : post.video ? 'video' : undefined}
-                                url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`} 
-                                description={`Share this post with your friends and family.`} 
-                                webnovelTitle={webnovel?.title}
-                                chapterTitle={chapterTitle}
-                                />
-                        </Dialog>
-                    </div>
+                        </Button>
+                        <ShareDialog
+                            shareImage={post.image || post.video}
+                            mediaType={post.image ? 'image' : post.video ? 'video' : undefined}
+                            url={`${process.env.NEXT_PUBLIC_HOST}/toonyz_posts/${post.id.toString()}`}
+                            description={`Share this post with your friends and family.`}
+                            webnovelTitle={webnovel?.title}
+                            chapterTitle={chapterTitle}
+                        />
+                    </Dialog>
                 </div>
             </div>
 
-            {/* Image/Video Container - simplified for mobile */}
-            <div className={`relative max-w-screen-sm mx-auto group
-                            ${post.image
-                            ? 'md:h-full h-[40vh] top-8 mt-8'
-                            : 'md:h-full md:top-16 md:mt-16'}`}>
-                {post.image ? (
-                    <div className="group h-full w-full">
-                        {/* <Image src={getImageUrl(post.image)} alt="Toonyz Post" width={300} height={300} className="object-cover overflow-hidden md:scale-125 scale-100 transition-all duration-300" /> */}
-                        <WatermarkedImage
-                            imageUrl={getImageUrl(post.image)}
-                            watermarkUrl="/toonyz_logo_white.svg"
-                            webnovelTitle={webnovel?.title}
-                            chapterTitle={chapterTitle}
-                            width={imageDimensions?.width}
-                            height={imageDimensions?.height}
-                            watermarkOpacity={0.2}
-                            watermarkPosition="bottomRight"
-                            titlePosition="top"
-                            titleColor="white"
-                            className="object-cover overflow-hidden transition-all duration-300"
-                        />
-                    </div>
-                ) : (
-                    <div className="relative group h-full">
-                        <video
-                            src={getVideoUrl(post.video)}
-                            muted
-                            loop
-                            autoPlay
-                            playsInline
-                            className="w-full h-full object-cover md:scale-110 scale-100 transition-transform duration-200 overflow-hidden"
-                        />
+            <hr className="w-full border-gray-200" />
+
+            {/* Caption */}
+            <div className="px-3 py-3">
+                <div className="text-sm font-bold py-3">
+                    <OtherTranslateComponent element={post} content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
+                </div>
+
+                <div className="text-sm ">
+                    {/* <span className="font-semibold mr-2"></span> */}
+                    {post.content && (<span className="text-black dark:text-white whitespace-pre-wrap py-3 text-start self-start"> <OtherTranslateComponent element={post} content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></span>)}
+                    {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
+                </div>
+            </div>
+
+            <div className="flex flex-row items-center justify-center gap-2">
+                {post.tags && (
+                    <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
+                        <span className="text-sm font-bold">Tags: </span>
+                        {(typeof post.tags === 'string'
+                            ? post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+                            : Array.isArray(post.tags)
+                                ? post.tags
+                                : []
+                        ).map((tag, index) => {
+                            const colors = [
+                                'bg-pink-200',
+                            ];
+                            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+                            return (
+                                <span
+                                    key={index}
+                                    className={`text-sm font-base text-gray-500 dark:text-gray-500 rounded-lg border-none ${randomColor} px-2 py-1`}
+                                >
+                                    {tag}
+                                </span>
+                            );
+                        })}
                     </div>
                 )}
             </div>
 
-            {/* Description Container - simplified for mobile */}
-            <div className={`w-full flex flex-col gap-4 bg-white dark:bg-[#211F21] relative z-10
-                            ${post.image ? 'p-4 md:mt-[2rem] mt-[2rem]' : 'p-4 md:mt-[8rem] mt-0'}`}>
-                <div className="md:max-w-screen-sm mx-auto w-full flex flex-col items-center gap-y-5 px-2 md:px-4">
-                    <div className="relative w-full flex flex-row justify-between">
-                        {/* user hover card */}
-                        <div className="flex flex-row gap-2">
-                            <UserInfoCard post={post} />
-                            <div className="flex flex-col">
-                                {post.user.nickname && (
-                                    <p className="text-sm font-extrabold flex flex-row items-center dark:text-white text-gray-500">
-                                        {post.user.nickname}
-                                    </p>
-                                )}
-                                {post.created_at && (
-                                    <p className="text-sm flex flex-row items-center dark:text-white text-gray-500">
-                                        {new Date(post.created_at).toLocaleDateString()}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                        <ToonyzPostDropdownButton
-                                email={currentUserEmail}
-                                isAuthor={isAuthor ?? false}
-                                user={post.user}
-                                postId={post.id.toString()}
-                                post={post}
-                         />
-                    </div>
-                    
-                        <hr className='w-full border-gray-200' />
+            <div className="px-3 py-3">
+                {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
+            </div>
 
-                        <p className="text-xl md:text-2xl font-bold">
-                            <OtherTranslateComponent element={post} content={post.title} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="title" />
-                        </p>
-
-                        {post.content && (<p className="text-blackdark:text-white whitespace-pre-wrap mb-2 text-start self-start"> <OtherTranslateComponent element={post} content={post.content} elementId={post.id.toString()} elementType="toonyz_post" elementSubtype="content" /></p>)}
-
-                        {post.quote && (<ToonyzPostQuoteToggle quote={post.quote} postId={post.id.toString()} />)}
-
-
-                        <div className="flex flex-row justify-between gap-2">
-                            {/* tags */}
-                            {post.tags && (
-                                <div className="flex flex-row flex-wrap gap-2 items-center justify-start">
-                                    <span className="text-sm font-bold">Tags: </span>
-                                    {(typeof post.tags === 'string'
-                                        ? post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-                                        : Array.isArray(post.tags)
-                                            ? post.tags
-                                            : []
-                                    ).map((tag, index) => {
-                                        const colors = [
-                                            'bg-pink-200',
-                                            'bg-blue-200',
-                                            'bg-green-200',
-                                            'bg-purple-200',
-                                            'bg-yellow-200',
-                                            'bg-orange-200',
-                                            'bg-red-200',
-                                            'bg-indigo-200',
-                                        ];
-                                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
-                                        return (
-                                            <span
-                                                key={index}
-                                                className={`text-sm font-base text-gray-500 dark:text-gray-500 rounded-lg border-none ${randomColor} px-2 py-1`}
-                                            >
-                                                {tag}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-
-                        {/* card for the webnovel */}
-                        {webnovel && (<WebnovelCard webnovel={webnovel} post={post} isHoverCard={false} showDetailInfo={false} />)}
-
-                        <hr className="w-full border-gray-200" />
-                        <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
-                </div>
-                <div className="h-[10vh]" />
-                <div className="relative md:max-w-screen-xl w-full mx-auto px-4 py-8">
-                        {/* reusable component for the feed */}
-                        {/* {allPosts && (
-                        <ToonyzPostGrid
-                            key={post.id.toString()}
-                            className="w-full"
-                            initialPosts={allPosts}
-                        />)} */}
+            {/* Add comment */}
+            <div className="px-3 py-3">
+                <div className="flex items-center gap-3">
+                    <CommentsComponent contentToAttachTo={post} webnovelOrPost={true} addCommentEnabled={true} />
                 </div>
             </div>
-        </div>
+
+        </Card>
     )
 }
 
 export default ToonyzPostPage;
+
+
+{/*
+
+
+
+</div> */}

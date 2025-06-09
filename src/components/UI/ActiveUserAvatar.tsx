@@ -15,7 +15,7 @@ export default function ActiveUserAvatar({ user, author, language }: { user: Use
   const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`
 
   //content.user.email_hash == content.author.email_hash ?
-
+  //  const view_profile_href = content.user.email_hash == content.author.email_hash ?
   if (user.email_hash !== author.email_hash) {
     return (
       <div className="flex flex-col items-center space-y-2">

@@ -132,10 +132,12 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                                 <AuthorAndWebnovelsAsideComponent
                                     webnovel={webnovel!}
                                     nickname={nickname}
+                                    relatedContent={webnovels}
                                     coverArt={webnovel?.cover_art || ""}
                                     onNewChapter={handleNewChapter}
                                     onDelete={handleDelete}
                                 />
+                                
                             </div>
                         </div>
                         <div className='flex-1 w-full md:w-2/3'>

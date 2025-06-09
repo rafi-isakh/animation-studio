@@ -21,7 +21,7 @@ const AuthorWorkListComponent = ({ webnovels, nickname }:
 
     return (
         <div className="relative w-full">
-            <div className="flex flex-row md:flex-wrap gap-1 overflow-x-auto no-scrollbar">
+            <div className="flex flex-row gap-1 overflow-x-auto no-scrollbar">
                 {webnovels?.length > 6 && isDesktop
                     ? webnovels.slice(0, 6).map((webnovel, index) => (
                         <>

@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
-import { Skeleton } from "@mui/material";
+import { Skeleton, useMediaQuery } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { VolumeOff, Volume2, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play } from "lucide-react"
+import { VolumeOff, Volume2, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play, ChevronRightIcon } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -41,6 +41,7 @@ import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUt
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import { cn } from '@/lib/utils';
+import ActiveUserAvatar from "@/components/UI/ActiveUserAvatar";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -48,13 +49,15 @@ interface InfoAndPictureProps {
     children?: React.ReactNode;
     onNewChapter?: () => void;
     onDelete?: () => void;
+    relatedContent?: Webnovel[];
 }
 
 export default function InfoAndPictureComponent({
     content,
     coverArt,
     onNewChapter,
-    onDelete
+    onDelete,
+    relatedContent
 }: InfoAndPictureProps) {
     const { language, dictionary } = useLanguage();
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
@@ -78,6 +81,8 @@ export default function InfoAndPictureComponent({
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
     const [imageSrc, setImageSrc] = useState<string | null>(null)
     const [videoSrc, setVideoSrc] = useState<string | null>(null)
+    const isMobile = useMediaQuery("(max-width: 768px)")
+    const { nickname } = useUser();
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -553,7 +558,7 @@ export default function InfoAndPictureComponent({
                                     </>
                                 }
                             </div>
-                            <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
+                            {/* <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
                                 <Button variant="link" className="!no-underline font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent shadow-none">
                                     <div className="flex flex-row gap-2 items-center cursor-pointer">
                                         <MdStars className="text-xl text-[#D92979]" />
@@ -563,7 +568,109 @@ export default function InfoAndPictureComponent({
                                     </div>
                                     <ChevronRight size={16} className="text-black dark:text-white" />
                                 </Button>
+                            </div> */}
+
+
+
+
+                            <div className="flex flex-col w-full md:max-w-[350px] min-w-[300px] flex-shrink-0 flex-grow-0 py-4">
+                                <div className="flex flex-col gap-4 justify-center items-center w-full">
+                                    <div className="flex flex-col gap-2 items-center justify-center w-full">
+                                    {/* const view_profile_href = content.user.email_hash == content.author.email_hash ? */}
+                                        <ActiveUserAvatar user={content.user} author={content.author} language={language} />
+                                        <div className="flex flex-col gap-2 pb-4">
+                                            <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
+                                                {
+                                                    content.author.nickname === 'Anonymous' ? '' :
+                                                        language == 'ko' ?
+                                                            content.author.nickname :
+                                                            koreanToEnglishAuthorName[content.author.nickname as string] ?
+                                                                koreanToEnglishAuthorName[content.author.nickname as string]
+                                                                :
+                                                                content.author.nickname
+                                                }
+                                            </Link>
+
+                                            <p className="text-sm text-gray-500 text-center">
+                                                {content.user.bio}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex flex-col gap-4 justify-center items-center w-full ">
+                                            {isAuthor() ? <></> :
+                                                <Button
+                                                    variant="default"
+                                                    className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                                    onClick={() => {
+                                                        // setTabValue('3')
+                                                    }}
+                                                >
+                                                    <Link href={view_profile_href}>
+                                                        view profile
+                                                    </Link>
+                                                </Button>
+                                            }
+
+                                            <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
+                                                {id !== content.user.id.toString() ? (
+                                                    <Button
+                                                        variant='outline'
+                                                        className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
+                                                        <Link href="/stars">
+                                                            <span className="text-sm flex flex-row items-center gap-2">
+                                                                <Image
+                                                                    src="/images/N_logo.svg"
+                                                                    alt="Toonyz Logo"
+                                                                    width={0}
+                                                                    height={0}
+                                                                    sizes="100vh"
+                                                                    style={{
+                                                                        height: '20px',
+                                                                        width: '20px',
+                                                                        padding: '2px',
+                                                                        justifyContent: 'center',
+                                                                        alignSelf: 'center',
+                                                                        borderRadius: '25%',
+                                                                        border: '1px solid #eee',
+                                                                        backgroundColor: 'white'
+                                                                    }}
+                                                                />
+                                                                {isMobile ? `${phrase(dictionary, "buy_more_stars_mobile", language)}`
+                                                                    : `${phrase(dictionary, "buy_more_stars", language)}`}
+                                                            </span>
+                                                        </Link>
+                                                    </Button>
+                                                ) : (
+                                                    content.chapters.length >= 1 && id === content.user.id.toString() ? (
+                                                        <Button
+                                                            variant='outline'
+                                                            onClick={onNewChapter}
+                                                            className="w-full flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
+                                                            <span className="text-sm flex flex-row items-center gap-2">
+                                                                <PenLine className='' size={18} />
+                                                                {!isMobile ? language === "ko" ? <>{nickname}님, {phrase(dictionary, "writeNewChapterToday", language)}</>
+                                                                    : <>Hi, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)} </>
+                                                                    : <>{phrase(dictionary, "writeNewChapterToday_mobile", language)}</>}
+
+                                                            </span>
+                                                            <ChevronRightIcon size={16} className="text-black dark:text-white" />
+                                                        </Button>
+                                                    ) : (
+                                                        <></>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
                             </div>
+
+
+
+
+
+
                             {/* Purchase Modal */}
                             <ChapterPurchaseDialog
                                 showPurchaseModal={showPurchaseModal}

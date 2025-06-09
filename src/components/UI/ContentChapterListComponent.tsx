@@ -98,12 +98,10 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                 <TabsContent value="1">
                     <div className="flex flex-col self-start justify-start">
                         <div className="flex flex-col w-full gap-3">
-
                             {content && content.chapters ? (
                                 content.chapters.length > 0 ? (
                                     <div className="flex md:flex-row flex-col w-full gap-2 justify-between ">
-                                        <div className="flex flex-col gap-2 w-full md:w-1/2 flex-shrink-0 flex-grow-0 md:p-0 p-4">
-
+                                        <div className="flex flex-col gap-2 w-full flex-shrink-0 flex-grow-0 md:p-0 p-4">
                                             <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
                                                 <ListOfChaptersComponent
                                                     webnovel={content as Webnovel}
@@ -111,125 +109,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                                     onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
                                                 />
                                             </div>
-                                        </div>
-
-                                        <div className="flex flex-col w-full md:w-1/2 flex-shrink-0 flex-grow-0 md:px-10 p-4">
-                                            <div className="flex flex-col gap-4 justify-center items-center md:min-w-[300px] w-full">
-                                                <div className="flex flex-col gap-2 items-center justify-center w-full">
-                                                    <ActiveUserAvatar user={content.user} author={content.author} language={language} />
-
-                                                    <div className="flex flex-col gap-2 pb-4">
-
-                                                        <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
-                                                            {
-                                                                content.author.nickname === 'Anonymous' ? '' :
-                                                                    language == 'ko' ?
-                                                                        content.author.nickname :
-                                                                        koreanToEnglishAuthorName[content.author.nickname as string] ?
-                                                                            koreanToEnglishAuthorName[content.author.nickname as string]
-                                                                            :
-                                                                            content.author.nickname
-                                                            }
-                                                        </Link>
-
-                                                        <p className="text-sm text-gray-500 text-center">
-                                                            {content.user.bio}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="w-full flex flex-col gap-4 justify-center items-center ">
-                                                        {isAuthor() ? <></> :
-                                                            <Button
-                                                                variant="default"
-                                                                className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                                                onClick={() => {
-                                                                    setTabValue('3')
-                                                                }}
-                                                            >
-                                                                <p>
-                                                                    {phrase(dictionary, "view_webnovels_askToAuthor", language)}
-                                                                </p>
-                                                            </Button>
-                                                        }
-
-                                                        <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
-                                                            {id !== content.user.id.toString() ? (
-                                                                <Button
-                                                                    variant='outline'
-                                                                    className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
-                                                                    <Link href="/stars">
-                                                                        <span className="text-sm flex flex-row items-center gap-2">
-                                                                            <Image
-                                                                                src="/images/N_logo.svg"
-                                                                                alt="Toonyz Logo"
-                                                                                width={0}
-                                                                                height={0}
-                                                                                sizes="100vh"
-                                                                                style={{
-                                                                                    height: '20px',
-                                                                                    width: '20px',
-                                                                                    padding: '2px',
-                                                                                    justifyContent: 'center',
-                                                                                    alignSelf: 'center',
-                                                                                    borderRadius: '25%',
-                                                                                    border: '1px solid #eee',
-                                                                                    backgroundColor: 'white'
-                                                                                }}
-                                                                            />
-                                                                            {isMobile ? `${phrase(dictionary, "buy_more_stars_mobile", language)}`
-                                                                                : `${phrase(dictionary, "buy_more_stars", language)}`}
-                                                                        </span>
-                                                                    </Link>
-                                                                </Button>
-                                                            ) : (
-                                                                content.chapters.length >= 1 && id === content.user.id.toString() ? (
-                                                                    <Button
-                                                                        variant='outline'
-                                                                        onClick={onNewChapter}
-                                                                        className="w-full flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
-                                                                        <span className="text-sm flex flex-row items-center gap-2">
-                                                                            <PenLine className='' size={18} />
-                                                                            {!isMobile ? language === "ko" ? <>{nickname}님, {phrase(dictionary, "writeNewChapterToday", language)}</>
-                                                                                : <>Hi, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)} </>
-                                                                                : <>{phrase(dictionary, "writeNewChapterToday_mobile", language)}</>}
-
-                                                                        </span>
-                                                                        <ChevronRightIcon size={16} className="text-black dark:text-white" />
-                                                                    </Button>
-                                                                ) : (
-                                                                    <></>
-                                                                )
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {/* author's other work list */}
-                                                {content && content.user && relatedContent && relatedContent.length > 0 ? (
-                                                    id !== content.user.id.toString() ? (
-                                                        <div className="flex flex-col justify-start min-w-[300px] w-full">
-                                                            <div className="flex flex-row justify-between items-center text-base font-bold text-left">
-                                                                <p> {phrase(dictionary, "authorWorkList", language)} </p>
-                                                                <p className="text-gray-600 text-[10px] flex-shrink-0 ">
-                                                                    {phrase(dictionary, "view_webnovels_learnMore", language)}
-                                                                </p>
-                                                            </div>
-                                                            <div className="relative flex flex-col w-full overflow-hidden no-scrollbar">
-                                                                <AuthorWorkListComponent
-                                                                    webnovels={relatedContent as Webnovel[]}
-                                                                    nickname={content.user.nickname}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ) : (<></>)
-                                                ) : (
-                                                    <div className="flex flex-row gap-2">
-                                                        <Skeleton variant="rectangular" height={200} width={150} />
-                                                        <Skeleton variant="rectangular" height={200} width={150} />
-                                                        <Skeleton variant="rectangular" height={200} width={150} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        </div>                                      
                                     </div>
                                 ) : (
                                     <div className="flex justify-center items-center w-full min-h-72 gap-2">
@@ -246,6 +126,31 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                     <Skeleton variant="rectangular" height={40} width="85%" />
                                     <Skeleton variant="rectangular" height={40} width="85%" />
                                     <Skeleton variant="rectangular" height={40} width="85%" />
+                                </div>
+                            )}
+                            {/* author's other work list */}
+                            {content && content.user && relatedContent && relatedContent.length > 0 ? (
+                                id !== content.user.id.toString() ? (
+                                    <div className="flex flex-col justify-start min-w-[300px] w-full md:pt-10 pt-0">
+                                        <div className="flex flex-row justify-between items-center text-base font-bold text-left">
+                                            <p> {phrase(dictionary, "authorWorkList", language)} </p>
+                                            <p className="text-gray-600 text-[10px] flex-shrink-0 ">
+                                                {phrase(dictionary, "view_webnovels_learnMore", language)}
+                                            </p>
+                                        </div>
+                                        <div className="relative flex w-full overflow-hidden no-scrollbar">
+                                            <AuthorWorkListComponent
+                                                webnovels={relatedContent as Webnovel[]}
+                                                nickname={content.user.nickname}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (<></>)
+                            ) : (
+                                <div className="flex flex-row gap-2">
+                                    <Skeleton variant="rectangular" height={200} width={150} />
+                                    <Skeleton variant="rectangular" height={200} width={150} />
+                                    <Skeleton variant="rectangular" height={200} width={150} />
                                 </div>
                             )}
 

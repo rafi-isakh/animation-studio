@@ -349,7 +349,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
                             </div>
                             {/* mobile header */}
-                            <div ref={hamburgerRef}> 
+                            <div ref={hamburgerRef}>
                                 <ul className="md:hidden flex flex-row justify-center gap-2">
                                     <li className='md:hidden inline-flex items-center justify-center'>
                                         <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted ?? null} />
@@ -364,6 +364,11 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             </PopoverContent>
                                         </Popover>
                                     </li>
+                                    <li className='ml-2 md:hidden inline-flex items-center justify-center'>
+                                        <Link href='/stars' className='!no-underline capitalize rounded-lg' >
+                                            <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
+                                        </Link>
+                                    </li>
                                     {!isLoggedIn ? (
                                         <li className='ml-2 md:hidden inline-flex items-center justify-center'>
                                             <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
@@ -373,11 +378,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             </Link>
                                         </li>
                                     ) : (
-                                        <li className='ml-2 md:hidden inline-flex items-center justify-center'>
-                                            <Link href='/stars' className='!no-underline capitalize rounded-lg' >
-                                                <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
-                                            </Link>
-                                        </li>
+                                        <></>
                                     )}
                                     <Button
                                         id="mobile-hamburger"

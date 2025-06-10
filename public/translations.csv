@@ -83,6 +83,9 @@ characters,캐릭터,,Characters
 analyze,분석,,Analyze
 nextChapter,다음화,,Next
 prevChapter,이전화,,Prev
+prevButton,이전,,Prev
+tableOfContents,목차,,Table of Contents
+nextButton,다음,,Next
 isFirstChapter,첫번째 화입니다.,,You are at the first chapter.
 isLastChapter,마지막 화입니다.,,You are at the last chapter.
 studio,스튜디오,スタジオ,STUDIO
@@ -237,6 +240,7 @@ episodes,에피소드,,Episodes
 start_to_read_episode_1,첫 화 보기,,Read Episode 1
 total_chapters,총 회차,,Total Chapters
 readingForFree,무료,,Free
+chapter_list,회차 목록,,Chapter List
 toonyzOnly,오리지널,,Toonyz Only
 event,이벤트,,Event
 toonyzCut,투니즈컷,,TOONYZ CUT 

@@ -1,9 +1,9 @@
-import { Chapter, Webnovel } from "@/components/Types";
+import { Chapter, Dictionary, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
+import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,8 @@ import { Button } from "@/components/shadcnUI/Button";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
+import { Menubar } from "@/components/shadcnUI/Menubar";
+import TableOfContents from "@/components/UI/TableOfContents";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -35,17 +37,12 @@ const ListOfChaptersComponent = ({
     const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
-    const CHAPTERS_PER_PAGE = 20; // Number of chapters to show per click
+    const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
     const [currentPage, setCurrentPage] = useState(1);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [sortToggle, setSortToggle] = useState(false);
-
-    // const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
-    // const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
-    // const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
-
 
     const sortedChapters = sortToggle
         ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
@@ -159,16 +156,67 @@ const ListOfChaptersComponent = ({
         }
     }
 
+
+    // const paginationRange = getPaginationRange(currentPage, totalPages);
+
+    const getPaginationRange = (current: number, total: number) => {
+        if (total <= 7) {
+            return Array.from({ length: total }, (_, i) => i + 1);
+        }
+
+        // Show first pages, ellipsis, and end
+        if (current <= 4) {
+            return [1, 2, 3, 4, 5, '...', total];
+        }
+
+        // Show start, ellipsis, and last pages
+        if (current >= total - 3) {
+            return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+        }
+
+        // Show start, ellipsis, current range, ellipsis, end
+        return [1, '...', current - 1, current, current + 1, '...', total];
+    }
+
+    const handlePageClick = (page: number) => {
+        if (typeof page === 'number') {
+            setCurrentPage(page);
+        }
+    };
+
     return (
         <>
-            <div className="flex flex-row gap-2 items-center justify-end ">
-                {/* <p className="text-sm text-gray-500 border-b-2 border-b-[#DE2B74]">
-                    {phrase(dictionary, "total_chapters", language)} {webnovel?.chapters.length}
-                </p> */}
-                <Button variant="outline" onClick={handleSortToggle} className='flex gap-2'>
-                    {sortToggle ? phrase(dictionary, "sort_latest", language) : phrase(dictionary, "sort_oldest", language)}
-                    {sortToggle ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
-                </Button>
+            <div className="flex flex-row gap-2 items-center justify-between ">
+                <p className="text-sm text-gray-500">
+                    {phrase(dictionary, "chapter_list", language)}
+                </p>
+
+                <div className="flex flex-row gap-2 items-center">
+                    <Menubar>
+                        <TableOfContents
+                            sortedChapters={sortedChapters || []}
+                            purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
+                                .filter((purchase) => purchase[1] === language)
+                                .map((purchase) => purchase[0])
+                            }
+                            language={language}
+                            chapter_id={displayedChapters[0]?.id.toString() || "0"}
+                            setChapterToPurchase={setChapterToPurchase}
+                            setShowPurchaseModal={setShowPurchaseModal}
+                            webnovel={webnovel!}
+                            // handleChapterClick={handleChapterClick}
+                            isPurchasedChapter={(purchasedChapters, chapterId) =>
+                                purchasedChapters.includes(chapterId)
+                            }
+                            phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
+                            dictionary={dictionary as Dictionary}
+                        />
+                    </Menubar>
+                    <Button variant="outline" onClick={handleSortToggle} className='flex gap-2'>
+                        {sortToggle ? phrase(dictionary, "sort_latest", language) : phrase(dictionary, "sort_oldest", language)}
+                        {sortToggle ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
+                    </Button>
+                </div>
             </div>
             <div className="w-full">
                 <div className="overflow-y-auto rounded-md">
@@ -207,17 +255,17 @@ const ListOfChaptersComponent = ({
                                                         ? (
                                                             <p className="text-md text-left  truncate whitespace-nowrap text-black dark:text-white">
                                                                 第{sortToggle
-                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
-                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
-                                                            }話
+                                                                    ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                    : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                                }話
                                                             </p>
                                                         )
                                                         : (
                                                             <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
                                                                 {sortToggle
-                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
-                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
-                                                            }화
+                                                                    ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                    : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                                }화
                                                             </p>
                                                         )
                                             }
@@ -240,40 +288,50 @@ const ListOfChaptersComponent = ({
                                     </div>
                                 </div>
                                 <div className="flex flex-row gap-2 items-center">
-                                    <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
+                                    <div className="text-gray-600 text-[10px] bg-transparent rounded-md px-1">
                                         {chapter.free ? phrase(dictionary, "readingForFree", language)
-                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} />
-                                                : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}</div>}
+                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} className="text-green-400 dark:text-green-400" />
+                                                : <div className="flex flex-row gap-1 items-center">
+                                                    <MdStars className="text-sm text-[#D92979]" />
+                                                    {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                                                </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </button>
                     ))}
                 </div>
-                <div className="flex justify-center items-center gap-2 mt-4">
+                <div className="flex justify-center items-center gap-2 mt-4 text-xs">
                     <Button
-                        variant="outline"
+                        variant="link"
                         disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(currentPage - 1)}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        className="text-xs p-1"
                     >
-                        Previous
+                        <ChevronLeft size={16} /> {phrase(dictionary, "prevButton", language)}
                     </Button>
-                    {[...Array(totalPages)].map((_, idx) => (
-                        <Button
-                            key={idx}
-                            variant={currentPage === idx + 1 ? "default" : "outline"}
-                            onClick={() => setCurrentPage(idx + 1)}
-                            className={currentPage === idx + 1 ? "font-bold" : ""}
-                        >
-                            {idx + 1}
-                        </Button>
-                    ))}
+                    {getPaginationRange(currentPage, totalPages).map((page, idx) =>
+                        page === '...' ? (
+                            <span key={`dot-${idx}`} className="px-2 self-center">...</span>
+                        ) : (
+                            <Button
+                                key={page}
+                                variant='link'
+                                onClick={() => handlePageClick(Number(page))}
+                                className={`!no-underline p-0 text-xs ${currentPage === page ? "font-bold text-[#DE2B74]" : ""}`}
+                            >
+                                {page}
+                            </Button>
+                        )
+                    )}
                     <Button
-                        variant="outline"
+                        variant="link"
                         disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(currentPage + 1)}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        className="text-xs p-1"
                     >
-                        Next
+                        {phrase(dictionary, "nextButton", language)} <ChevronRight size={16} />
                     </Button>
                 </div>
             </div>

@@ -5,7 +5,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
-const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language, chapter_id, setChapterToPurchase, setShowPurchaseModal, webnovel, isPurchasedChapter, phrase, dictionary }: { sortedChapters: Chapter[], purchased_webnovel_chapters: number[], language: string, chapter_id: string, setChapterToPurchase: (chapter: Chapter) => void, setShowPurchaseModal: (show: boolean) => void, webnovel: Webnovel, isPurchasedChapter: (purchased_webnovel_chapters: number[], chapter_id: number, language: string) => boolean, phrase: (dictionary: Dictionary, key: string, language: string) => string, dictionary: Dictionary }) => {
+const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language, chapter_id, setChapterToPurchase, setShowPurchaseModal, webnovel, isPurchasedChapter, phrase, dictionary, sortToggle }: { sortedChapters: Chapter[], purchased_webnovel_chapters: number[], language: string, chapter_id: string, setChapterToPurchase: (chapter: Chapter) => void, setShowPurchaseModal: (show: boolean) => void, webnovel: Webnovel, isPurchasedChapter: (purchased_webnovel_chapters: number[], chapter_id: number, language: string) => boolean, phrase: (dictionary: Dictionary, key: string, language: string) => string, dictionary: Dictionary, sortToggle?: boolean }) => {
     const { toast } = useToast();
     const router = useRouter();
 
@@ -29,55 +29,46 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
             setShowPurchaseModal(true);
         }
     }
-    
-    
+
+
     return (
-       
-            <MenubarMenu>
-                <MenubarTrigger className="rounded-sm p-2 data-[state=open]:bg-transparent bg-transparent cursor-pointer">
-                    <List className="h-5 w-5" />
-                    <span className="sr-only">{phrase(dictionary, "tableOfContents", language)}</span>
-                </MenubarTrigger>
-                <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
-                    <MenubarItem className="font-semibold" inset>
-                        {phrase(dictionary, "tableOfContents", language)}
+
+        <MenubarMenu>
+            <MenubarTrigger className="rounded-sm p-2 data-[state=open]:bg-transparent bg-transparent cursor-pointer">
+                <List className="h-5 w-5" />
+                <span className="sr-only">{phrase(dictionary, "tableOfContents", language)}</span>
+            </MenubarTrigger>
+            <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
+                <MenubarItem className="font-semibold" inset>
+                    {phrase(dictionary, "tableOfContents", language)}
+                </MenubarItem>
+                <MenubarSeparator />
+                {sortedChapters?.map((chapter, index) => (
+                    <MenubarItem
+                        key={chapter.id}
+                        onClick={() => {
+                            if (!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
+                                setChapterToPurchase(chapter);
+                                setShowPurchaseModal(true);
+                            } else {
+                                handleChapterClick(chapter);
+                            }
+                        }}
+                        className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? "opacity-50" : ""}`}
+                    // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
+                    >
+
+                        {language === 'en' && 'Episode'} { sortToggle ? sortedChapters.length - index : index + 1 } {language === 'ko' && '화'}{language === 'ja' && '話'}
+                        <MenubarShortcut className="flex flex-row items-center justify-start">
+                            {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
+                                <span className="ml-2">🔒</span>
+                            )}
+                        </MenubarShortcut>
                     </MenubarItem>
-                    <MenubarSeparator />
-                    {sortedChapters?.map((chapter, index) => (
-                        <MenubarItem
-                            key={chapter.id}
-                            onClick={() => {
-                                if (!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
-                                    setChapterToPurchase(chapter);
-                                    setShowPurchaseModal(true);
-                                } else {
-                                    handleChapterClick(chapter);
-                                }
-                            }}
-                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? "opacity-50" : ""}`}
-                        // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
-                        >
-                            <p className="text-sm">{index + 1}.</p>
-                            <MenubarShortcut className="flex flex-row items-center justify-start">
-                                {/* {chapter.title} */}
-                                {/* <OtherTranslateComponent
-                                    element={chapter}
-                                    content={chapter.title}
-                                    elementId={chapter.id.toString()}
-                                    elementType='chapter'
-                                    elementSubtype="title"
-                                    classParams="text-md mt-1 mb-1"
-                                /> */}
-                                {language === 'en' && 'Episode'} {index + 1} {language === 'ko' && '화'}{language === 'ja' && '話'}
-                                {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
-                                    <span className="ml-2">🔒</span>
-                                )}
-                            </MenubarShortcut>
-                        </MenubarItem>
-                    ))}
-                </MenubarContent>
-            </MenubarMenu>
-     
+                ))}
+            </MenubarContent>
+        </MenubarMenu>
+
     )
 }
 

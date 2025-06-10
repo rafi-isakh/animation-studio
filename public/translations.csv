@@ -81,6 +81,8 @@ promotion,프로모션 코드가 있으세요?,,Promotion Code,
 emailExists,같은 이메일로 등록된 계정이 이미 존재합니다,,An account registered with this email already exists,
 characters,캐릭터,,Characters
 analyze,분석,,Analyze
+sort_theFirstChapter,첫화부터 보기,,Sort the first
+sort_theLastChapter,최근화 보기,,Sort the last
 nextChapter,다음화,,Next
 prevChapter,이전화,,Prev
 prevButton,이전,,Prev

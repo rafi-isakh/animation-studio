@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDownIcon, MessageCircle, BadgeCheck, ChevronUpIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/shadcnUI/Dialog";
 import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
@@ -18,6 +18,15 @@ import { isPurchasedChapter } from "@/utils/webnovelUtils";
 import { Menubar } from "@/components/shadcnUI/Menubar";
 import TableOfContents from "@/components/UI/TableOfContents";
 import { useMediaQuery } from "@mui/material";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/shadcnUI/Pagination"
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -58,6 +67,7 @@ const ListOfChaptersComponent = ({
 
     const handleSortToggle = () => {
         setSortToggle(prev => !prev);
+        setCurrentPage(1);
     };
 
 
@@ -156,46 +166,34 @@ const ListOfChaptersComponent = ({
         }
     }
 
-
-    // const paginationRange = getPaginationRange(currentPage, totalPages);
-
     const getPaginationRange = (current: number, total: number) => {
         if (isMobile) {
             if (total <= 7) {
                 return Array.from({ length: total }, (_, i) => i + 1);
             }
-
-            // Show first pages, ellipsis, and end
             if (current <= 4) {
                 return [1, 2, 3, 4, 5, '...', total];
             }
-
-            // Show start, ellipsis, and last pages
             if (current >= total - 3) {
                 return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
             }
-
-            // Show start, ellipsis, current range, ellipsis, end
             return [1, '...', current - 1, current, current + 1, '...', total];
         } else {
             if (total <= 10) {
                 return Array.from({ length: total }, (_, i) => i + 1);
             }
-
             if (current <= 5) {
-                return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, '...', total];
+                return [1, 2, 3, 4, 5, 6, 7, 8, '...', total];
             }
-
-            if (current >= total - 3) {
-                return [1, '...', total - 9, total - 8, total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total];
+            if (current >= total - 4) {
+                return [1, '...', total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total];
             }
-
-            return [1, '...', current - 4, current - 3, current - 2, current - 1, current, current + 1, current + 2, current + 3, current + 4, '...', total];
+            return [1, '...', current - 2, current - 1, current, current + 1, current + 2, '...', total];
         }
     }
 
     const handlePageClick = (page: number) => {
-        if (typeof page === 'number') {
+        if (typeof page === 'number' && page > 0 && page <= totalPages) {
             setCurrentPage(page);
         }
     };
@@ -220,16 +218,16 @@ const ListOfChaptersComponent = ({
                             setChapterToPurchase={setChapterToPurchase}
                             setShowPurchaseModal={setShowPurchaseModal}
                             webnovel={webnovel!}
-                            // handleChapterClick={handleChapterClick}
                             isPurchasedChapter={(purchasedChapters, chapterId) =>
                                 purchasedChapters.includes(chapterId)
                             }
+                            sortToggle={sortToggle}
                             phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
                             dictionary={dictionary as Dictionary}
                         />
                     </Menubar>
                     <Button variant="outline" onClick={handleSortToggle} className='flex gap-2'>
-                        {sortToggle ? phrase(dictionary, "sort_latest", language) : phrase(dictionary, "sort_oldest", language)}
+                        {sortToggle ? phrase(dictionary, "sort_theFirstChapter", language) : phrase(dictionary, "sort_theLastChapter", language)}
                         {sortToggle ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
                     </Button>
                 </div>
@@ -319,36 +317,48 @@ const ListOfChaptersComponent = ({
                     ))}
                 </div>
                 <div className="flex justify-center items-center gap-1 mt-4 text-xs">
-                    <Button
-                        variant="link"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        className="text-xs p-1"
-                    >
-                        <ChevronLeft size={16} /> {!isMobile && phrase(dictionary, "prevButton", language)}
-                    </Button>
-                    {getPaginationRange(currentPage, totalPages).map((page, idx) =>
-                        page === '...' ? (
-                            <span key={`dot-${idx}`} className="px-0 self-center">...</span>
-                        ) : (
-                            <Button
-                                key={page}
-                                variant='link'
-                                onClick={() => handlePageClick(Number(page))}
-                                className={`!no-underline px-3 text-sm ${currentPage === page ? "font-bold text-[#DE2B74]" : ""}`}
-                            >
-                                {page}
-                            </Button>
-                        )
-                    )}
-                    <Button
-                        variant="link"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        className="text-xs p-1"
-                    >
-                        {!isMobile && phrase(dictionary, "nextButton", language)} <ChevronRight size={16} />
-                    </Button>
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageClick(currentPage - 1);
+                                    }}
+                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                />
+                            </PaginationItem>
+                            {getPaginationRange(currentPage, totalPages).map((page, index) => (
+                                <PaginationItem key={`${page}-${index}`}>
+                                    {page === '...' ? (
+                                        <PaginationEllipsis />
+                                    ) : (
+                                        <PaginationLink
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handlePageClick(page as number);
+                                            }}
+                                            isActive={currentPage === page}
+                                        >
+                                            {page}
+                                        </PaginationLink>
+                                    )}
+                                </PaginationItem>
+                            ))}
+                            <PaginationItem>
+                                <PaginationNext
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageClick(currentPage + 1);
+                                    }}
+                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
                 </div>
             </div>
             <Dialog open={showDeleteModal} onOpenChange={(open) => setShowDeleteModal(open)}>

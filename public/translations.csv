@@ -82,7 +82,7 @@ emailExists,같은 이메일로 등록된 계정이 이미 존재합니다,,An a
 characters,캐릭터,,Characters
 analyze,분석,,Analyze
 sort_theFirstChapter,첫화부터 보기,,Sort the first
-sort_theLastChapter,최근화 보기,,Sort the last
+sort_theLastChapter,최신화부터 보기,,Sort the latest
 nextChapter,다음화,,Next
 prevChapter,이전화,,Prev
 prevButton,이전,,Prev

@@ -11,7 +11,11 @@ import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { MoveLeft } from 'lucide-react';
-import { Skeleton } from '@/components/shadcnUI/Skeleton';
+import dynamic from 'next/dynamic';
+import animationData from '@/assets/N_logo_with_heart.json';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
 
 const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     webnovel_id: string,
@@ -154,13 +158,14 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             )
         } else {
             return (
-                <div className='md:max-w-screen-xl w-full flex flex-row justify-center mx-auto'>
-                    <div className='w-full h-full flex flex-col justify-start items-start gap-2'>
-                        <Skeleton className='w-[150px] h-[20px]' />
-                        <Skeleton className='w-[250px] h-[20px]' />
-                        <Skeleton className='w-[450px] h-[20px]' />
-                    </div>
-                </div>
+                <div role="status" className={`flex items-center justify-center min-h-screen`}>
+                <LottieLoader
+                    animationData={animationData}
+                    width="w-40"
+                    centered={true}
+                    pulseEffect={true}
+                />
+            </div>
             )
         }
     }

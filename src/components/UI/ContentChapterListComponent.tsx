@@ -101,7 +101,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                             <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
                                                 <ListOfChaptersComponent
                                                     webnovel={content as Webnovel}
-                                                  
                                                     onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
                                                 />
                                             </div>
@@ -128,13 +127,13 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             {content && content.user && relatedContent && relatedContent.length > 0 ? (
                                 id !== content.user.id.toString() ? (
                                     <div className="flex flex-col justify-start min-w-[300px] w-full md:pt-10 pt-0">
-                                        <div className="flex flex-row justify-between items-center text-base font-bold text-left">
+                                        <div className="flex flex-row justify-between items-center text-base font-bold text-left md:px-0 px-4">
                                             <p> {phrase(dictionary, "authorWorkList", language)} </p>
-                                            <p className="text-gray-600 text-[10px] flex-shrink-0 ">
+                                            {/* <p className="text-gray-600 text-[10px] flex-shrink-0 ">
                                                 {phrase(dictionary, "view_webnovels_learnMore", language)}
-                                            </p>
+                                            </p> */}
                                         </div>
-                                        <div className="relative flex w-full overflow-hidden no-scrollbar">
+                                        <div className="relative flex w-full overflow-hidden no-scrollbar md:p-0 p-4">
                                             <AuthorWorkListComponent
                                                 webnovels={relatedContent as Webnovel[]}
                                                 nickname={content.user.nickname}

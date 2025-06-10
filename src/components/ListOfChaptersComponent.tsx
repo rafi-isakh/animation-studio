@@ -4,8 +4,7 @@ import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
 import moment from 'moment';
 import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { Modal, Box } from "@mui/material";
-import { useModalStyle } from '@/styles/ModalStyles';
+import { Dialog, DialogContent } from "@/components/shadcnUI/Dialog";
 import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
@@ -18,6 +17,7 @@ import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
 import { Menubar } from "@/components/shadcnUI/Menubar";
 import TableOfContents from "@/components/UI/TableOfContents";
+import { useMediaQuery } from "@mui/material";
 
 const ListOfChaptersComponent = ({
     webnovel,
@@ -43,11 +43,11 @@ const ListOfChaptersComponent = ({
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [sortToggle, setSortToggle] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     const sortedChapters = sortToggle
         ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
         : [...(webnovel?.chapters || [])].sort((a, b) => a.id - b.id);
-
 
     const displayedChapters = sortedChapters?.slice(
         (currentPage - 1) * CHAPTERS_PER_PAGE,
@@ -160,22 +160,38 @@ const ListOfChaptersComponent = ({
     // const paginationRange = getPaginationRange(currentPage, totalPages);
 
     const getPaginationRange = (current: number, total: number) => {
-        if (total <= 7) {
-            return Array.from({ length: total }, (_, i) => i + 1);
-        }
+        if (isMobile) {
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
 
-        // Show first pages, ellipsis, and end
-        if (current <= 4) {
-            return [1, 2, 3, 4, 5, '...', total];
-        }
+            // Show first pages, ellipsis, and end
+            if (current <= 4) {
+                return [1, 2, 3, 4, 5, '...', total];
+            }
 
-        // Show start, ellipsis, and last pages
-        if (current >= total - 3) {
-            return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
-        }
+            // Show start, ellipsis, and last pages
+            if (current >= total - 3) {
+                return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+            }
 
-        // Show start, ellipsis, current range, ellipsis, end
-        return [1, '...', current - 1, current, current + 1, '...', total];
+            // Show start, ellipsis, current range, ellipsis, end
+            return [1, '...', current - 1, current, current + 1, '...', total];
+        } else {
+            if (total <= 10) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+
+            if (current <= 5) {
+                return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, '...', total];
+            }
+
+            if (current >= total - 3) {
+                return [1, '...', total - 9, total - 8, total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total];
+            }
+
+            return [1, '...', current - 4, current - 3, current - 2, current - 1, current, current + 1, current + 2, current + 3, current + 4, '...', total];
+        }
     }
 
     const handlePageClick = (page: number) => {
@@ -289,7 +305,7 @@ const ListOfChaptersComponent = ({
                                 </div>
                                 <div className="flex flex-row gap-2 items-center">
                                     <div className="text-gray-600 text-[10px] bg-transparent rounded-md px-1">
-                                        {chapter.free ? phrase(dictionary, "readingForFree", language)
+                                        {chapter.free ? <span className="uppercase">{phrase(dictionary, "readingForFree", language)}</span>
                                             : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} className="text-green-400 dark:text-green-400" />
                                                 : <div className="flex flex-row gap-1 items-center">
                                                     <MdStars className="text-sm text-[#D92979]" />
@@ -302,24 +318,24 @@ const ListOfChaptersComponent = ({
                         </button>
                     ))}
                 </div>
-                <div className="flex justify-center items-center gap-2 mt-4 text-xs">
+                <div className="flex justify-center items-center gap-1 mt-4 text-xs">
                     <Button
                         variant="link"
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         className="text-xs p-1"
                     >
-                        <ChevronLeft size={16} /> {phrase(dictionary, "prevButton", language)}
+                        <ChevronLeft size={16} /> {!isMobile && phrase(dictionary, "prevButton", language)}
                     </Button>
                     {getPaginationRange(currentPage, totalPages).map((page, idx) =>
                         page === '...' ? (
-                            <span key={`dot-${idx}`} className="px-2 self-center">...</span>
+                            <span key={`dot-${idx}`} className="px-0 self-center">...</span>
                         ) : (
                             <Button
                                 key={page}
                                 variant='link'
                                 onClick={() => handlePageClick(Number(page))}
-                                className={`!no-underline p-0 text-xs ${currentPage === page ? "font-bold text-[#DE2B74]" : ""}`}
+                                className={`!no-underline px-3 text-sm ${currentPage === page ? "font-bold text-[#DE2B74]" : ""}`}
                             >
                                 {page}
                             </Button>
@@ -331,12 +347,12 @@ const ListOfChaptersComponent = ({
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         className="text-xs p-1"
                     >
-                        {phrase(dictionary, "nextButton", language)} <ChevronRight size={16} />
+                        {!isMobile && phrase(dictionary, "nextButton", language)} <ChevronRight size={16} />
                     </Button>
                 </div>
             </div>
-            <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                <Box sx={useModalStyle}>
+            <Dialog open={showDeleteModal} onOpenChange={(open) => setShowDeleteModal(open)}>
+                <DialogContent className="p-4">
                     <div className="flex flex-col space-y-4 items-center justify-center">
                         <p className="text-lg font-bold">
                             {phrase(dictionary, "deleteChapterConfirm", language)}
@@ -355,8 +371,8 @@ const ListOfChaptersComponent = ({
                             {phrase(dictionary, "no", language)}
                         </Button>
                     </div>
-                </Box>
-            </Modal>
+                </DialogContent>
+            </Dialog>
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}

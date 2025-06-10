@@ -8,7 +8,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { VolumeOff, Volume2, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play, ChevronRightIcon } from "lucide-react"
+import { VolumeOff, Volume2, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -83,6 +83,8 @@ export default function InfoAndPictureComponent({
     const [videoSrc, setVideoSrc] = useState<string | null>(null)
     const isMobile = useMediaQuery("(max-width: 768px)")
     const { nickname } = useUser();
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -405,14 +407,30 @@ export default function InfoAndPictureComponent({
 
                             <div className="mt-2">
                                 {/* Description */}
-                                <OtherTranslateComponent
-                                    element={content}
-                                    content={content.description}
-                                    elementId={content.id.toString()}
-                                    elementType="webnovel"
-                                    elementSubtype="description"
-                                    classParams="text-sm text-gray-800 dark:text-white"
-                                />
+                                <div className={cn("text-sm text-gray-800 dark:text-white", {
+                                    "line-clamp-3": !isDescriptionExpanded,
+                                })}>
+                                    <OtherTranslateComponent
+                                        element={content}
+                                        content={content.description}
+                                        elementId={content.id.toString()}
+                                        elementType="webnovel"
+                                        elementSubtype="description"
+                                        classParams="text-sm"
+                                    />
+                                </div>
+                                {content.description.length > 100 && (
+                                    <Button
+                                        variant="link"
+                                        className="text-sm text-gray-800 dark:text-white p-0 !no-underline flex items-center gap-1"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setIsDescriptionExpanded(!isDescriptionExpanded);
+                                        }}>
+                                        <ChevronDownIcon size={16} className={`transition-transform ${isDescriptionExpanded ? 'rotate-180' : ''}`} />
+                                        {isDescriptionExpanded ? phrase(dictionary, "showLess", language) : phrase(dictionary, "readMore", language)}
+                                    </Button>
+                                )}
                             </div>
                             {/* Action Buttons */}
                             <div className="flex flex-col w-full">
@@ -438,14 +456,6 @@ export default function InfoAndPictureComponent({
                                         {phrase(dictionary, "start_to_read_episode_1", language)}
                                     </Button>
 
-                                    {/* Like Button */}
-                                    {/* <Button
-                                    size="icon"
-                                    className="flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
-                                >
-                                    <Heart size={20} className="text-white group-hover:text-white" />
-                                   </Button> */}
-
                                     {/* Share Button and Dropdown */}
                                     <div className="relative">
                                         <DropdownMenu>
@@ -459,7 +469,7 @@ export default function InfoAndPictureComponent({
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent className="flex flex-col justify-center items-center">
-                                                <DropdownMenuLabel>Share this webnovel</DropdownMenuLabel>
+                                                <DropdownMenuLabel>{phrase(dictionary, "shareThisWebnovel", language)}</DropdownMenuLabel>
                                                 <DropdownMenuSeparator />
                                                 <div className="flex flex-col items-center gap-2">
                                                     <div className="flex flex-row gap-2">
@@ -558,26 +568,12 @@ export default function InfoAndPictureComponent({
                                     </>
                                 }
                             </div>
-                            {/* <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
-                                <Button variant="link" className="!no-underline font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent shadow-none">
-                                    <div className="flex flex-row gap-2 items-center cursor-pointer">
-                                        <MdStars className="text-xl text-[#D92979]" />
-                                        <Link href={`/stars`}>
-                                            <span>{phrase(dictionary, "buyStars", language)}</span>
-                                        </Link>
-                                    </div>
-                                    <ChevronRight size={16} className="text-black dark:text-white" />
-                                </Button>
-                            </div> */}
-
-
-
 
                             <div className="flex flex-col w-full md:max-w-[350px] min-w-[300px] flex-shrink-0 flex-grow-0 py-4">
                                 <div className="flex flex-col gap-4 justify-center items-center w-full">
                                     <div className="flex flex-col gap-2 items-center justify-center w-full">
-                                    {/* const view_profile_href = content.user.email_hash == content.author.email_hash ? */}
-                                        <ActiveUserAvatar user={content.user} author={content.author} language={language} />
+                                        {/* const view_profile_href = content.user.email_hash == content.author.email_hash ? */}
+                                        <ActiveUserAvatar user={content.user} author={content.author} language={language} webnovel={content} />
                                         <div className="flex flex-col gap-2 pb-4">
                                             <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
                                                 {
@@ -606,7 +602,7 @@ export default function InfoAndPictureComponent({
                                                     }}
                                                 >
                                                     <Link href={view_profile_href}>
-                                                        view profile
+                                                        {phrase(dictionary, "viewProfile", language)}
                                                     </Link>
                                                 </Button>
                                             }
@@ -665,11 +661,6 @@ export default function InfoAndPictureComponent({
 
                                 </div>
                             </div>
-
-
-
-
-
 
                             {/* Purchase Modal */}
                             <ChapterPurchaseDialog

@@ -60,14 +60,15 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
                             <p className="text-sm">{index + 1}.</p>
                             <MenubarShortcut className="flex flex-row items-center justify-start">
                                 {/* {chapter.title} */}
-                                <OtherTranslateComponent
+                                {/* <OtherTranslateComponent
                                     element={chapter}
                                     content={chapter.title}
                                     elementId={chapter.id.toString()}
                                     elementType='chapter'
                                     elementSubtype="title"
                                     classParams="text-md mt-1 mb-1"
-                                />
+                                /> */}
+                                {language === 'en' && 'Episode'} {index + 1} {language === 'ko' && '화'}{language === 'ja' && '話'}
                                 {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
                                     <span className="ml-2">🔒</span>
                                 )}

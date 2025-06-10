@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/shadcnUI/Toast";
 import NotEnoughTicketsDialog from "@/components/UI/NotEnoughTicketsDialog";
 import { useUser } from "@/contexts/UserContext";
+import { BsFillTicketPerforatedFill } from "react-icons/bs"
 
 export default function CreateMediaDefaultContents({ source, webnovelId, chapterIds }: { source: 'webnovel' | 'chapter', webnovelId?: string, chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
@@ -101,7 +102,7 @@ export default function CreateMediaDefaultContents({ source, webnovelId, chapter
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" /> :
                                 null
                             }
-                            {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />20
+                            {phrase(dictionary, "generateButton", language)} <BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />2
                         </Button>
                     }
 

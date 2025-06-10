@@ -258,7 +258,7 @@ export default function MyLibraryToonyzPostCard({ library, toonyzPosts, webnovel
             <div className="rounded-xl absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
             <div className="rounded-xl relative aspect-square w-full h-[300px] sm:h-[300px] overflow-hidden">
               {post.image ? <Image src={getImageUrl(post.image) || ""} alt={post.title} fill priority className="object-cover transition-opacity duration-300 z-10" />
-                : <video src={getVideoUrl(post.video) || ""} autoPlay muted loop className="object-cover transition-opacity duration-300 z-10 " />}
+                : <video src={getVideoUrl(post.video) || ""} playsInline autoPlay muted loop className="object-cover transition-opacity duration-300 z-10 " />}
 
               {/* user card */}
               <div className="absolute top-1 left-1 w-full p-2 z-20">

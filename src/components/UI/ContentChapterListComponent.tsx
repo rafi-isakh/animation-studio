@@ -44,7 +44,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     posts = [],
     onNewChapter
 }) => {
-    const [isSortedByLatest, setIsSortedByLatest] = useState(false);
+
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');
@@ -54,10 +54,6 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
         ? moment(new Date(content.created_at)).format('MM/DD/YYYY')
         : '';
 
-
-    const handleSortToggle = () => {
-        setIsSortedByLatest(prev => !prev);
-    };
 
     const chapterCount = content?.chapters?.length || 0;
     const postCount = posts?.length || 0;
@@ -73,7 +69,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     return (
         <div className="flex flex-col w-full ">
             <Tabs value={tabValue} defaultValue="1" className="w-full" onValueChange={(value) => { setTabValue(value) }}>
-                <TabsList className='bg-white dark:bg-black md:my-4 my-0 md:p-0 p-4 gap-4'>
+                <TabsList className='bg-white dark:bg-black md:pt-4 pt-0 md:p-0 p-4 gap-4'>
                     <TabsTrigger value="1" onClick={() => { setTabValue('1') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full">
                         <span className="flex flex-row items-center gap-1 text-sm">
                             <AlignLeft size={16} />
@@ -105,7 +101,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                                             <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
                                                 <ListOfChaptersComponent
                                                     webnovel={content as Webnovel}
-                                                    sortToggle={isSortedByLatest}
+                                                  
                                                     onUpdate={onContentUpdate as (updatedContent: Webnovel) => void}
                                                 />
                                             </div>

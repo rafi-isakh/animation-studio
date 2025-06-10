@@ -2,16 +2,8 @@ import { Chapter, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
-import {
-    ChevronDownIcon,
-    Eye,
-    MessageCircle,
-    BadgeCheck,
-    ChevronUpIcon,
-    LockKeyhole,
-} from "lucide-react";
-import { Button } from "@/components/shadcnUI/Button";
-import { Card, CardContent } from "@/components/shadcnUI/Card";
+import moment from 'moment';
+import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
 import { Modal, Box } from "@mui/material";
 import { useModalStyle } from '@/styles/ModalStyles';
 import { useRouter } from 'next/navigation';
@@ -20,18 +12,16 @@ import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/shadcnUI/Button";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
-import Link from "next/link";
 
 const ListOfChaptersComponent = ({
     webnovel,
-    sortToggle,
     onUpdate
 }: {
     webnovel: Webnovel | undefined,
-    sortToggle: boolean,
     onUpdate?: (updatedContent: Webnovel) => void
 }) => {
     const { dictionary, language } = useLanguage();
@@ -45,55 +35,34 @@ const ListOfChaptersComponent = ({
     const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
-    const CHAPTERS_PER_PAGE = 100; // Number of chapters to show per click
-    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
-    const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
-    const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
+    const CHAPTERS_PER_PAGE = 20; // Number of chapters to show per click
+    const [currentPage, setCurrentPage] = useState(1);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
     const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [sortToggle, setSortToggle] = useState(false);
 
-    const RANGE_SIZE = 50; // Number of chapters per pagination tab
+    // const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
+    // const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
+    // const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
 
-    const paginationRanges = (totalChapters: number) => {
-        if (totalChapters <= 0) {
-            const noChaptersLabel = language === 'ko' ? "챕터 없음" : "No Chapters";
-            return [{ label: noChaptersLabel, start: 0, end: 0, isActive: true }];
-        }
 
-        const ranges = [];
-        const numRanges = Math.ceil(totalChapters / RANGE_SIZE);
+    const sortedChapters = sortToggle
+        ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
+        : [...(webnovel?.chapters || [])].sort((a, b) => a.id - b.id);
 
-        for (let i = 0; i < numRanges; i++) {
-            const startChapter = i * RANGE_SIZE + 1;
-            const endChapter = Math.min((i + 1) * RANGE_SIZE, totalChapters);
 
-            let label = `${startChapter}-${endChapter}`;
-            if (endChapter === totalChapters) {
-                label += language === 'ko' ? "(완결)" : "(End)";
-            }
+    const displayedChapters = sortedChapters?.slice(
+        (currentPage - 1) * CHAPTERS_PER_PAGE,
+        currentPage * CHAPTERS_PER_PAGE
+    ) || [];
 
-            ranges.push({
-                label: label,
-                start: startChapter,
-                end: endChapter,
-                isActive: i === 0 // First range is active by default
-            });
-        }
-        return ranges;
-    }
+    const totalPages = Math.ceil((sortedChapters?.length || 0) / CHAPTERS_PER_PAGE);
 
-    const [selectedRange, setSelectedRange] = useState(paginationRanges(webnovel?.chapters.length || 0)[0]);
+    const handleSortToggle = () => {
+        setSortToggle(prev => !prev);
+    };
 
-    const generateEpisodes = (start: number, end: number) => {
-        const episodes = [];
-        for (let i = start; i <= end; i++) {
-            episodes.push(webnovel?.chapters[i - 1]);
-        }
-        return episodes;
-    }
-
-    const episodes = generateEpisodes(selectedRange.start, selectedRange.end)
 
     useEffect(() => {
         setImageSrc(getImageUrl(webnovel?.cover_art));
@@ -192,109 +161,144 @@ const ListOfChaptersComponent = ({
 
     return (
         <>
-            <div className="flex flex-nowrap gap-4 overflow-x-auto no-scrollbar">
-                {paginationRanges(webnovel?.chapters.length || 0).map((range) => (
-                    <Button
-                        key={range.label}
-                        variant="ghost"
-                        onClick={() => setSelectedRange(range)}
-                        className={`px-0 py-2 text-xs font-medium border-b-2 rounded-none hover:bg-transparent 
-                            ${selectedRange.label === range.label
-                                ? "text-pink-500 border-pink-500"
-                                : "text-gray-500 border-transparent hover:text-gray-300"
-                            }`}
-                    >
-                        {range.label}
-                    </Button>
-                ))}
+            <div className="flex flex-row gap-2 items-center justify-end ">
+                {/* <p className="text-sm text-gray-500 border-b-2 border-b-[#DE2B74]">
+                    {phrase(dictionary, "total_chapters", language)} {webnovel?.chapters.length}
+                </p> */}
+                <Button variant="outline" onClick={handleSortToggle} className='flex gap-2'>
+                    {sortToggle ? phrase(dictionary, "sort_latest", language) : phrase(dictionary, "sort_oldest", language)}
+                    {sortToggle ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
+                </Button>
             </div>
             <div className="w-full">
-                {/* Episode List */}
-                <div className="flex flex-col gap-4">
-                    {episodes.map((episode, index) => {
-                        // const coverArt = getImageUrl(episode?.cover_art);
-                        return (
-                            <Card key={episode?.id} className={`group cursor-pointer border-0 w-full h-[40px] rounded-none`}>
-                                <CardContent className="p-0 group w-full h-[20px]">
-                                    <Link
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            handleChapterClick(episode!);
-                                        }}
-                                        className="relative flex flex-col items-start justify-center ">
-                                        <div className='flex flex-row gap-2 items-center'>
-                                            <Image src={imageSrc || ""} alt={episode?.id?.toString() || ""} width={40} height={40} className="w-10 h-10" />
-                                            <span className="text-left text-md font-bold text-black dark:text-white ">
-                                                {selectedRange.start + index} {language === "ko" ? "화" : "episode"}
-                                            </span>
-
-                                            <div className="flex flex-row space-x-2 text-sm">
-                                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                    {/* <Heart size={11} /> */}
-                                                    {/* heart icon */}
-                                                    <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
-                                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
-                                                            fill="#DE2B74" />
-                                                    </svg>
-                                                    {episode?.upvotes}
-                                                </div>
-                                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                    <MessageCircle size={11} /> {episode?.comments.length}
-                                                </div>
-                                            </div>
-
+                <div className="overflow-y-auto rounded-md">
+                    {displayedChapters.map((chapter, index) => (
+                        <button
+                            onClick={() => handleChapterClick(chapter)}
+                            key={`chapter-${chapter.id}`}
+                            className={`w-full block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
+                           `}
+                        >
+                            <div className="flex flex-row justify-between items-center">
+                                <div className="flex flex-row gap-3 items-center">
+                                    {/* <p className="text-sm self-center">{index + 1}</p> */}
+                                    <div className="min-w-[50px] max-w-[50px]">
+                                        <Image
+                                            src={imageSrc || ""}
+                                            alt={webnovel?.title || ""}
+                                            width={50}
+                                            height={50}
+                                            className="rounded-lg object-cover w-full"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col text-sm">
+                                        <div className="flex flex-row w-full items-start">
                                             {
-                                                episode?.free ? (
-                                                    <>
-                                                        <div className="absolute top-1 right-1 text-pink-500 text-xs px-1 py-0.5 rounded font-medium">
-                                                            {phrase(dictionary, "readingForFree", language)}
-                                                        </div>
-                                                        {/* <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
-                                                            {selectedRange.start + index}
-                                                        </span> */}
-                                                    </>
-                                                ) : (
-                                                    isPurchasedChapter(purchased_webnovel_chapters, episode?.id!, language) ? <>
-                                                        <BadgeCheck className="text-green-500 absolute top-1 right-1 w-5 h-5" />
-                                                        {/* <span className="hidden text-lg font-bold text-black dark:text-white group-hover:block">
-                                                            {selectedRange.start + index}
-                                                        </span> */}
-                                                    </>
-                                                        :
-                                                        <>
-                                                            {!episode?.free && (
-                                                                <>
-                                                                    <LockKeyhole className="w-5 h-5 absolute top-1 right-1 text-gray-300" />
-                                                                    <div className="hidden absolute top-1 right-1 group-hover:flex flex-row gap-1 items-center text-lg font-bold z-10 bg-white/80 dark:bg-black/80 px-1 rounded">
-                                                                        <MdStars className="text-lg text-[#D92979]" />
-                                                                        <span className="text-black dark:text-white">
-                                                                            {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
-                                                                        </span>
-                                                                    </div>
-                                                                </>
-                                                            )}
-                                                        </>
-                                                )
+                                                language == 'en'
+                                                    ? (
+                                                        <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                            Episode {sortToggle
+                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                            }
+                                                        </p>
+                                                    )
+                                                    : language == 'ja'
+                                                        ? (
+                                                            <p className="text-md text-left  truncate whitespace-nowrap text-black dark:text-white">
+                                                                第{sortToggle
+                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                            }話
+                                                            </p>
+                                                        )
+                                                        : (
+                                                            <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                                {sortToggle
+                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                            }화
+                                                            </p>
+                                                        )
                                             }
                                         </div>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        )
-                    })}
-                </div>
-                {/* Show message if no episodes in range */}
-                {episodes.length === 0 && (
-                    <div className="text-center py-12">
-                        <p className="text-gray-400 text-lg">
-                            {language === "ko" ? "이 범위에는 에피소드가 없습니다." : "No episodes in this range."}
-                        </p>
-                    </div>
-                )}
-            </div>
-            {/* </div > */}
+                                        <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
+                                        <div className="flex flex-row space-x-2 text-sm">
+                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
 
+                                                {/* heart icon */}
+                                                <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
+                                                    <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
+                                                        fill="#DE2B74" />
+                                                </svg>
+                                                {chapter.upvotes}
+                                            </div>
+                                            <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
+                                                <MessageCircle size={11} /> {chapter.comments.length}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-row gap-2 items-center">
+                                    <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
+                                        {chapter.free ? phrase(dictionary, "readingForFree", language)
+                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} />
+                                                : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}</div>}
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+                <div className="flex justify-center items-center gap-2 mt-4">
+                    <Button
+                        variant="outline"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                    >
+                        Previous
+                    </Button>
+                    {[...Array(totalPages)].map((_, idx) => (
+                        <Button
+                            key={idx}
+                            variant={currentPage === idx + 1 ? "default" : "outline"}
+                            onClick={() => setCurrentPage(idx + 1)}
+                            className={currentPage === idx + 1 ? "font-bold" : ""}
+                        >
+                            {idx + 1}
+                        </Button>
+                    ))}
+                    <Button
+                        variant="outline"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
+            <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                <Box sx={useModalStyle}>
+                    <div className="flex flex-col space-y-4 items-center justify-center">
+                        <p className="text-lg font-bold">
+                            {phrase(dictionary, "deleteChapterConfirm", language)}
+                        </p>
+                        <Button
+                            variant="outline"
+                            color="error"
+                            onClick={() => handleChapterDelete(deleteChapterId!)}
+                        >
+                            {phrase(dictionary, "yes", language)}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDeleteModal(false)}
+                        >
+                            {phrase(dictionary, "no", language)}
+                        </Button>
+                    </div>
+                </Box>
+            </Modal>
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}

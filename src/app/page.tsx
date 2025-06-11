@@ -10,7 +10,7 @@ import MainPageWrapper from '@/components/UI/MainPageWrapper';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
-        next: { tags: ['carousel'] }
+        next: { tags: ['carousel'], revalidate: 3600 }
     })
     const data = await response.json();
     if (!response.ok) {

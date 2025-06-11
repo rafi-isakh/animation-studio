@@ -324,14 +324,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                     {!nextChapter.free && !isPurchasedChapter(purchased_webnovel_chapters, nextChapter.id, language) && (
                                         <span className="mr-2">🔒</span>
                                     )}
-                                    <OtherTranslateComponent
-                                        element={nextChapter}
-                                        content={nextChapter.title}
-                                        elementId={nextChapter.id.toString()}
-                                        elementType='chapter'
-                                        elementSubtype="title"
-                                        classParams="text-md mt-1 mb-1"
-                                    />
+                                    {language == 'en' && <>Episode{' '}</>}
+                                    {webnovel.chapters.findIndex(ch => ch.id === nextChapter.id) !== undefined ? webnovel.chapters.findIndex(ch => ch.id === nextChapter.id) + 1 : ''}
+                                    {language == 'ko' && <>{' '}화</>}
                                 </div>
                             </div>
                         </div>

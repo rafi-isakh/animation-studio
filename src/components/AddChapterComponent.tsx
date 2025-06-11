@@ -47,6 +47,11 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
         fetchWebnovel();
     }, [webnovelId])
 
+
+    useEffect(() => {
+       console.log("webnovel", webnovel);
+    }, [webnovel])
+
     useEffect(() => {
         setCurrText(content.length);
         if (content.length > maxText) {
@@ -57,12 +62,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     }, [content])
 
     useEffect(() => {
-        if (titleRef.current) {
-            const quillEditor = titleRef.current.getEditor();
-            if (quillEditor) {
-                quillEditor.root.dataset.placeholder = phrase(dictionary, "chapterTitle", language);
-            }
-        }
         if (contentRef.current) {
             const quillEditor = contentRef.current.getEditor();
             if (quillEditor) {
@@ -83,8 +82,8 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
         const formData = new FormData();
 
         // Get plain text from title editor
-        const titleEditor = titleRef.current?.getEditor();
-        const titleText = titleEditor?.getText().trim() || "";
+        // const titleText = `Chapter ${webnovel?.chapters_length ? webnovel.chapters_length + 1 : 1}`;
+        const titleText = `Chapter ${webnovel?.chapters?.findIndex(ch => ch.id === webnovel?.chapters[0].id) !== undefined ? webnovel.chapters.findIndex(ch => ch.id === webnovel?.chapters[0].id) + 1 : ''}`;
 
         // Get plain text from content editor
         const contentEditor = contentRef.current?.getEditor();
@@ -145,27 +144,20 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                         </Link>
                         <h1 className='text-2xl font-bold'>{phrase(dictionary, "addChapter", language)}</h1>
                     </div>
-                    {/* <div>
-                        <Button color="gray" className='text-sm text-gray-400 px-0 py-0' onClick={() => setOpenModal(true)}>
-                        
-                            {phrase(dictionary, "draft", language)}
-                        </Button>
-                    </div> */}
                 </div>
                 <div className="mr-4 flex flex-col space-y-4 w-full">
                     <div className='flex flex-col space-y-4 items-start'>
-                        <p className='text-2xl font-bold'> {webnovel?.title} </p>
+                        {/* <p className='text-2xl font-bold'> {webnovel?.chapters?.findIndex(ch => ch.id === webnovel?.chapters[0].id) !== undefined ? webnovel.chapters.findIndex(ch => ch.id === webnovel?.chapters[0].id) + 1 : ''} </p> */}
                         <p className='text-sm'>
                             {/* 총 .. 화 : total */}
                             {phrase(dictionary, "total", language)}
-                            {' '}{webnovel?.chapters_length}
+                            {' '}{webnovel?.chapters_length ? webnovel.chapters_length + 1 : 1}
                             {language == 'ko' ? <>{' '}화</> : <>{' '}chapter(s)</>}
                         </p>
                     </div>
                     <hr />
-                    <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
-                        <ReactQuill ref={titleRef} theme="bubble" value={title} onChange={setTitle} className="title-editor" />
-                    </div>
+                    {/* <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
+                    </div> */}
                     <div className="flex flex-col space-y-4">
                         <div className="flex flex-row justify-between">
                             <h1 className='text-sm font-bold'>{phrase(dictionary, "content", language)}</h1>
@@ -211,13 +203,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     <ScrollArea className='h-full p-4'>
                         <DialogDescription className='text-md !p-0'>
                             <div className='flex flex-col space-y-4 min-h-[50vh]'>
-                                <div className='inline-flex flex-col gap-2 text-md '>
-                                    <h1 className='text-md font-bold'> {phrase(dictionary, "chapterTitle", language)} </h1>
-                                    {titleRef.current?.getEditor()?.getText().trim() ?
-                                        <p className="w-full text-md font-bold"> {plainTitleText} </p> :
-                                        <p className="w-full text-md font-bold"> {phrase(dictionary, "new_chapter_preview_noTitle", language)} </p>
-                                    }
-                                </div>
                                 <div className='inline-flex flex-col gap-2 text-md'>
                                     <h1 className='text-md font-bold'>{phrase(dictionary, "content", language)}</h1>
                                     {contentRef.current?.getEditor()?.getText().trim() ?

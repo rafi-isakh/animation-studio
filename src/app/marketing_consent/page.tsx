@@ -5,7 +5,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases';
 import { Button } from '@/components/shadcnUI/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcnUI/Card';
-import { Checkbox } from '@/components/shadcnUI/Checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Mail, Gift } from 'lucide-react';
 import Image from 'next/image';
@@ -14,7 +13,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import DictionaryPhrase from '@/components/DictionaryPhrase';
 
 export default function MarketingConsentPage() {
-    const [hasAgreed, setHasAgreed] = useState(false);
     const [showPromoCode, setShowPromoCode] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { language, dictionary } = useLanguage();
@@ -26,14 +24,6 @@ export default function MarketingConsentPage() {
     const handleAgree = async () => {
         if (!isLoggedIn) {
             router.push('/signin_marketing');
-            return;
-        }
-        if (!hasAgreed) {
-            toast({
-                title: phrase(dictionary, 'marketing_please_agree_title', language),
-                description: phrase(dictionary, 'marketing_checkbox_required', language),
-                variant: 'destructive',
-            });
             return;
         }
 
@@ -212,21 +202,6 @@ export default function MarketingConsentPage() {
                                     <li>• <DictionaryPhrase phraseVar="marketing_early_access" /></li>
                                 </ul>
                             </div>
-                            
-                            <div className="flex items-start space-x-3 p-4 border rounded-lg">
-                                <Checkbox
-                                    id="marketing-consent"
-                                    checked={hasAgreed}
-                                    onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
-                                    className="mt-1"
-                                />
-                                <label 
-                                    htmlFor="marketing-consent" 
-                                    className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer leading-relaxed"
-                                >
-                                    <DictionaryPhrase phraseVar="marketing_consent_text" />
-                                </label>
-                            </div>
                         </div>
                         
                         <div className="flex flex-col space-y-3">
@@ -235,7 +210,7 @@ export default function MarketingConsentPage() {
                                 disabled={isLoading}
                                 className="w-full bg-pink-600 hover:bg-pink-700 text-white"
                             >
-                                {isLoading ? <DictionaryPhrase phraseVar="marketing_processing" /> : <DictionaryPhrase phraseVar="marketing_sign_me_up" />}
+                                {isLoading ? <DictionaryPhrase phraseVar="marketing_processing" /> : <DictionaryPhrase phraseVar="marketing_consent_text" />}
                             </Button>
                             <Button 
                                 onClick={handleSkip} 

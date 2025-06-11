@@ -22,6 +22,7 @@ module.exports = {
         sans: ["Arial", "sans-serif"],
         "gowun-batang": ["Gowun Batang", "serif"],
         "nanum-gothic": ["Nanum Gothic", "sans-serif"],
+        oxanium: ["Oxanium", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

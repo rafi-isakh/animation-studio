@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils"
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { BsFillTicketPerforatedFill } from "react-icons/bs";
 import { Button } from "@/components/shadcnUI/Button"
 import {
     Dialog,
@@ -98,7 +99,7 @@ const FloatingMenu: React.FC<{
     } = useCreateMedia();
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { dictionary, language } = useLanguage();
-    const { stars, setInvokeCheckUser } = useUser();
+    const { stars, tickets, setInvokeCheckUser } = useUser();
     const [context, setContext] = useState<string>("");
     const [isSelecting, setIsSelecting] = useState(false);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
@@ -268,8 +269,8 @@ const FloatingMenu: React.FC<{
     const handleConfirmGeneration = async () => {
         setShowConfirmDialog(false);
         setOpenHistory(false);
-        if (stars < 15) {
-            setCreateMediaPrice(15);
+        if (tickets < 2) {
+            setCreateMediaPrice(2);
             setShowNotEnoughStarsModal(true);
             return;
         }
@@ -430,11 +431,11 @@ const FloatingMenu: React.FC<{
             </Dialog>
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none">
+                <DialogContent className="sm:max-w-md bg-gradient-to-r dark:from-black dark:to-blue-900/10 from-purple-100/50 to-blue-100/50 backdrop-blur-md select-none text-md">
                     <DialogHeader>
                         <DialogTitle>{phrase(dictionary, "confirmGeneration", language)}</DialogTitle>
                         <DialogDescription>
-                            <p className='text-sm text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription20Stars", language)}</p>
+                            <p className='text-md text-gray-500 py-2'>{phrase(dictionary, "confirmGenerationDescription2Tickets", language)}</p>
                             {/* Your stars  */}
                             <AIPromotionComponent />
                         </DialogDescription>
@@ -445,8 +446,8 @@ const FloatingMenu: React.FC<{
                                 onClick={handleConfirmGeneration}
                                 className="bg-black hover:bg-[#D92979]/50 text-white"
                             >
-                                <MdStars className="text-xl text-[#D92979]" />
-                                15 {phrase(dictionary, "deduct", language)}{' '}
+                                <BsFillTicketPerforatedFill className="text-xl text-[#D92979]" />
+                                2 {phrase(dictionary, "deduct", language)}{' '}
                                 {phrase(dictionary, "ok", language)}
                             </Button>
                             <Button

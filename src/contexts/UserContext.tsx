@@ -24,6 +24,9 @@ interface UserContextProps {
     isAdult: boolean;
     setIsAdult: (isAdult: boolean) => void;
     loggedIn: boolean;
+    english_stars: number;
+    free_english_stars: number;
+    tickets: number;
 }
 
 const userContext = createContext<UserContextProps | undefined>(undefined);
@@ -51,6 +54,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [loggedIn, setLoggedIn] = useState<boolean>(userFromServer?.loggedIn || false);
     const [invokeCheckUser, setInvokeCheckUser] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(false);
+    const [english_stars, setEnglishStars] = useState<number>(userFromServer?.english_stars || 0);
+    const [free_english_stars, setFreeEnglishStars] = useState<number>(userFromServer?.free_english_stars || 0);
+    const [tickets, setTickets] = useState<number>(userFromServer?.tickets || 0);
     const {loading} = useAuth();
     const pathname = usePathname();
 
@@ -78,6 +84,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
                 setGenres(JSON.parse(data.genres));
                 setIsAdult(data.is_adult);
                 setLoggedIn(data.loggedIn);
+                setEnglishStars(data.english_stars);
+                setFreeEnglishStars(data.free_english_stars);
+                setTickets(data.tickets);
                 setChecking(false);
             } catch (error) {
                 console.error('Error checking user:', error);
@@ -104,6 +113,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
             isAdult,
             setIsAdult,
             loggedIn,
+            english_stars,
+            free_english_stars,
+            tickets,
         }}>
             {children}
         </userContext.Provider>

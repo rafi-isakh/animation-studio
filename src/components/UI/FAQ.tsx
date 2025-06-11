@@ -8,8 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-
-
+import { Loader2 } from "lucide-react"
 
 interface FaqItem {
     question_ko: string
@@ -24,58 +23,64 @@ export const ContactForm = () => {
     const [email, setEmail] = useState("")
     const [userMessage, setUserMessage] = useState("")
     const { dictionary, language } = useLanguage()
+    const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast()
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        if (name === "" || email === "" || userMessage === "") {
+            toast({
+                title: "Please fill in all fields",
+                description: "Please fill in all fields",
+                variant: "destructive",
+            })
+            return
+        }
         sendMessage()
     }
 
-    function sendMessage() {
+    async function sendMessage() {
+        setIsLoading(true);
         const message = `Name: ${name} <br/> Email: ${email} <br/> Message: ${userMessage}`;
-        fetch("/api/send_email", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                staffEmail: 'dami@stelland.io, min@stelland.io, lisa@stelland.io',
-                message: message,
-                subject: "Report - FAQ",
-                templateType: 'report'
-            })
-        })
-            .then(response => {
-                // Check if the response was successful (status code 200-299)
-                if (!response.ok) {
-                    // If not OK, try to read error as text or throw a generic error
-                    return response.text().then(text => {
-                        throw new Error(text || `HTTP error! status: ${response.status}`);
-                    });
-                }
-                // If OK, read the response as TEXT since API sends "Email sent"
-                return response.text();
-            })
-            .then(data => {
-                toast({
-                    title: "Email sent",
-                    description: "We will get back to you as soon as possible.",
-                    variant: "success",
+        
+        try {
+            const response = await fetch("/api/send_email", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    staffEmail: 'dami@stelland.io, min@stelland.io, lisa@stelland.io',
+                    message: message,
+                    subject: "Report - FAQ",
+                    templateType: 'report'
                 })
-                console.log("Success:", data);
-                // Add any success handling logic here (e.g., show a success message to the user)
-            })
-            .catch(error => {
-                toast({
-                    title: "Error sending message",
-                    description: "Please try again.",
-                    variant: "destructive",
-                })
-                console.error("Error sending message:", error);
-                // Add any error handling logic here (e.g., show an error message to the user)
             });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.text();
+            toast({
+                title: "Email sent",
+                description: "We will get back to you as soon as possible.",
+                variant: "success",
+            });
+            console.log("Success:", data);
+        } catch (error) {
+            toast({
+                title: "Error sending message",
+                description: "Please try again.",
+                variant: "destructive",
+            });
+            console.error("Error sending message:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -93,6 +98,7 @@ export const ContactForm = () => {
                     <Input
                         placeholder="Name"
                         value={name}
+                        required
                         onChange={(e) => setName(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
@@ -100,20 +106,23 @@ export const ContactForm = () => {
                         placeholder="Email"
                         type="email"
                         value={email}
+                        required
                         onChange={(e) => setEmail(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Textarea
                         placeholder="Message"
                         value={userMessage}
+                        required
                         onChange={(e) => setUserMessage(e.target.value)}
                         className="bg-white/20 border-0 text-black placeholder:text-black/60 min-h-[120px] focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                     <Button
+                        type="submit"
                         onClick={(e) => handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)}
                         className="bg-white text-black hover:bg-white/90 rounded-full px-8 uppercase">
                         {/* SEND MESSAGE */}
-                        {phrase(dictionary, "sendMessage", language)}
+                        {isLoading ? <Loader2 className="animate-spin" /> : phrase(dictionary, "sendMessage", language)}
                     </Button>
                 </form>
             </div>
@@ -135,7 +144,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_ko: (
                 <div>
                     투니즈 포스트는 투니즈 회원들이 웹소설을 기반으로 이미지와 비디오를 자유롭게 창작하고 공유할 수 있는 포스트입니다.
-                    <Link href="https://www.toonyz.com/feeds">투니즈 피드</Link>는 투니즈 포스트를 공유하는 커뮤니티 공간입니다.
+                    <Link href="https://www.toonyz.com/feed">투니즈 피드</Link>는 투니즈 포스트를 공유하는 커뮤니티 공간입니다.
                     투니즈 포스트를 이용하시기 전에 튜토리얼을 보시려면 {' '}
                     <Link href="https://drive.google.com/file/d/1aTihIg4sKa5HqRMWMQalVx3vpWRW4KDr/view" target="_blank" className="text-[#DE2B74] underline">
                         여기
@@ -145,7 +154,7 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_en: (
                 <div>
                     A Toonyz Post is an image or video based on a webnovel, created by users. 
-                    {' '}<Link href="/feeds" className="text-[#DE2B74] underline">Toonyz Feeds</Link> is a community space where you can freely share Toonyz Posts.
+                    {' '}<Link href="/feed" className="text-[#DE2B74] underline">Toonyz Feed</Link> is a community space where you can freely share Toonyz Posts.
                     If you want to see the tutorial before creating a Toonyz Post, 
                     please click {' '}
                     <Link href="https://drive.google.com/file/d/1Ce2JA6MmJxZ5KFJPCwSYW68wj_FaPCBH/view?usp=drive_link" target="_blank" className="text-[#DE2B74] underline">
@@ -194,14 +203,14 @@ export default function FAQ({ faqItems }: { faqItems?: FaqItem[] }) {
             answer_ko: (
                 <>
                    투니즈 포스트에 이미지와 비디오 생성을 한 경우, 투니즈 피드 페이지에 공유가 가능하고 {' '}
-                   <Link href="https://www.toonyz.com/feeds" className="text-[#DE2B74] underline">투니즈 피드</Link>에서 투니즈 회원님들의 다양한 포스트를 볼 수 있습니다. 
+                   <Link href="https://www.toonyz.com/feed" className="text-[#DE2B74] underline">투니즈 피드</Link>에서 투니즈 회원님들의 다양한 포스트를 볼 수 있습니다. 
                    자유연재는<Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline"> 이곳</Link>에서 회원 가입 후 바로 글을 쓰고 투고할 수 있습니다. 
                    완성된 작품이 있으시다고요? lisa@stelland.io로 문의 주시면 검토 후 투니즈에서 프리미엄 연재 및 투고 방법을 안내해드립니다.
                 </>
             ),
             answer_en: (
                 <>
-                    If you have generated images and videos on Toonyz Post, you can share the post to <Link href="https://www.toonyz.com/feeds" className="text-[#DE2B74] underline">Toonyz Feed</Link>. 
+                    If you have generated images and videos on Toonyz Post, you can share the post to <Link href="https://www.toonyz.com/feed" className="text-[#DE2B74] underline">Toonyz Feed</Link>. 
                     You can submit your story to the community <Link href="https://www.toonyz.com/new_webnovel" className="text-[#DE2B74] underline">here</Link>.
                     If you have a completed story, please contact lisa@stelland.io for feedback. We will help you publish your story as a Toonyz premium story and get more views and potentially monetization.
                 </>

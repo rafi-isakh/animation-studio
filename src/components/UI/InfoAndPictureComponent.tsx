@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Webnovel, ImageOrVideo, Chapter } from "@/components/Types";
-import { useMediaQuery, Modal, Box, Skeleton, Tooltip } from "@mui/material";
+import { Skeleton, useMediaQuery } from "@mui/material";
 import { Button } from "@/components/shadcnUI/Button";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/shadcnUI/AlertDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import Image from "next/image";
 import { phrase } from "@/utils/phrases";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { VolumeOff, Volume2, Heart, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, MoveLeft, Pause, Play } from "lucide-react"
+import { VolumeOff, Volume2, Share, Copy, ChevronRight, Trash, PenLine, Eye, Loader2, Pause, Play, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/shadcnUI/DropdownMenu";
 import Link from "next/link";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
@@ -40,6 +39,9 @@ import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
+import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
+import { cn } from '@/lib/utils';
+import ActiveUserAvatar from "@/components/UI/ActiveUserAvatar";
 
 interface InfoAndPictureProps {
     content: Webnovel;
@@ -47,21 +49,22 @@ interface InfoAndPictureProps {
     children?: React.ReactNode;
     onNewChapter?: () => void;
     onDelete?: () => void;
+    relatedContent?: Webnovel[];
 }
 
 export default function InfoAndPictureComponent({
     content,
     coverArt,
     onNewChapter,
-    onDelete
+    onDelete,
+    relatedContent
 }: InfoAndPictureProps) {
     const { language, dictionary } = useLanguage();
     const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
     const shareDropdownRef = useRef<HTMLDivElement>(null);
     const [currentPageUrl, setCurrentPageUrl] = useState('');
     const [tags, setTags] = useState([]);
-    const { id, email, stars, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
-    const isMediumScreen = useMediaQuery('(min-width:768px)');
+    const { id, email, stars, tickets, setInvokeCheckUser, purchased_webnovel_chapters } = useUser();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const copyToClipboard = useCopyToClipboard();
     const { setOpenDialog, setIsLoading, setChapterId, loadingVideoGeneration, generateTrailer } = useCreateMedia();
@@ -69,7 +72,6 @@ export default function InfoAndPictureComponent({
     const [videoExists, setVideoExists] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [showPlayButton, setShowPlayButton] = useState(false);
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const { isLoggedIn } = useAuth();
@@ -79,6 +81,10 @@ export default function InfoAndPictureComponent({
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
     const [imageSrc, setImageSrc] = useState<string | null>(null)
     const [videoSrc, setVideoSrc] = useState<string | null>(null)
+    const isMobile = useMediaQuery("(max-width: 768px)")
+    const { nickname } = useUser();
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -115,7 +121,7 @@ export default function InfoAndPictureComponent({
     }, [videoSrc])
 
     const view_profile_href = content.user.email_hash == content.author.email_hash ?
-        `/view_profile/${content.user.id}` : '#';
+        `/view_profile/${content.user.id}` : `/view_author/${content.author.id}`;
 
     const handleMouseEnter = useCallback(() => {
         showPlayButtonRef.current = true;
@@ -166,14 +172,22 @@ export default function InfoAndPictureComponent({
             // TODO: tell user if there's not enough stars
             if (!response.ok) {
                 console.error('Failed to purchase chapter');
-                alert("Failed to purchase chapter");
+                toast({
+                    title: "Failed to purchase chapter",
+                    description: "Please try again",
+                    variant: "destructive"
+                })
             } else {
                 const data = await response.json();
                 if (data.success) {
                     setInvokeCheckUser(prev => !prev);
                     router.push(`/view_webnovels/${content.id}/chapter_view/${chapter.id}`);
                 } else {
-                    alert(data.message);
+                    toast({
+                        title: "Failed to purchase chapter",
+                        description: data.message,
+                        variant: "destructive"
+                    })
                 }
             }
         }
@@ -238,8 +252,8 @@ export default function InfoAndPictureComponent({
     }
 
     const handleGenerateTrailer = () => {
-        if (stars < 20) {
-            setCreateMediaPrice(20)
+        if (tickets < 2) {
+            setCreateMediaPrice(2)
             setShowNotEnoughStarsModal(true);
             return;
         }
@@ -348,25 +362,20 @@ export default function InfoAndPictureComponent({
                                         content.author.nickname === 'Anonymous' ? '' :
                                             language == 'ko' ?
                                                 content.author.nickname :
-                                                koreanToEnglishAuthorName[content.author.nickname as string]
+                                                koreanToEnglishAuthorName[content.author.nickname as string] ?
+                                                    koreanToEnglishAuthorName[content.author.nickname as string]
+                                                    :
+                                                    content.author.nickname
                                     }
                                 </Link>
                             </p>
 
-                            {/*TEMPORARY FIX FOR SHOWING THE NAME OF THE PUBLISHER. DOING THIS BECAUSE
-                            THE USER IS THE CONTENT PROVIDER, BUT THE CP MAY HAVE MANY DIFFERENT PUBLISHERS*/}
-                            {content.user.nickname && content.user.email_hash !== content.author.email_hash &&
+                            {content.publisher &&
                                 <p className="text-center">
-                                    {content.title == '여주와 남주의 아이들을 키우게 되었습니다' || content.title == '맛있는 스캔들' || content.title == "마성의 신입사원" ?
-                                        language == 'ko' ?
-                                            "피앙세"
-                                            :
-                                            "fiance"
+                                    {language == 'ko' ?
+                                        content.publisher.name_korean
                                         :
-                                        language == 'ko' ?
-                                            content.publisher.name_korean
-                                            :
-                                            content.publisher.name_english
+                                        content.publisher.name_english
                                     }
                                 </p>
                             }
@@ -387,9 +396,6 @@ export default function InfoAndPictureComponent({
                             {/* miscellanous */}
                             <div className="flex flex-row space-x-2 text-sm">
                                 <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                    <Eye size={11} /> {content.shown_views}
-                                </div>
-                                <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
                                     {/* heart icon - gray #6B7280 */}
                                     <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
                                         <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
@@ -401,167 +407,259 @@ export default function InfoAndPictureComponent({
 
                             <div className="mt-2">
                                 {/* Description */}
-                                <OtherTranslateComponent
-                                    element={content}
-                                    content={content.description}
-                                    elementId={content.id.toString()}
-                                    elementType="webnovel"
-                                    elementSubtype="description"
-                                    classParams="text-sm text-gray-800 dark:text-white"
-                                />
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex flex-row gap-2 pt-5 pb-5 w-full">
-                                {/* Read Button */}
-                                <Button
-                                    variant="default"
-                                    className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                    onClick={() => {
-                                        const firstChapter = content.chapters[0];
-                                        if (!firstChapter) return;
-
-                                        // Check if user has already purchased the chapter
-                                        const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
-
-                                        if (content.premium && !firstChapter.free && !hasPurchased) {
-                                            setShowPurchaseModal(true);
-                                        } else {
-                                            router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
-                                        }
-                                    }}
-                                >
-                                    {phrase(dictionary, "start_to_read_episode_1", language)}
-                                </Button>
-
-                                {/* Like Button */}
-                                <Button
-                                    size="icon"
-                                    className="flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
-                                >
-                                    <Heart size={20} className="text-white group-hover:text-white" />
-                                </Button>
-
-                                {/* Share Button and Dropdown */}
-                                <div className="relative">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                size="icon"
-                                                className="z-[99] flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
-                                                onClick={(e) => e.stopPropagation()}>
-
-                                                <Share size={20} className="text-white group-hover:text-white" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent className="flex flex-col justify-center items-center">
-                                            <DropdownMenuLabel>Share this webnovel</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="flex flex-row gap-2">
-                                                    <TwitterShareButton url={currentPageUrl}>
-                                                        <TwitterIcon size={22} round={true} />
-                                                    </TwitterShareButton>
-                                                    <WhatsappShareButton url={currentPageUrl}>
-                                                        <WhatsappIcon size={22} round={true} />
-                                                    </WhatsappShareButton>
-                                                    <TelegramShareButton url={currentPageUrl}>
-                                                        <TelegramIcon size={22} round={true} />
-                                                    </TelegramShareButton>
-                                                    <PinterestShareButton url={currentPageUrl} media={getImageUrl(content.cover_art)}>
-                                                        <PinterestIcon size={22} round={true} />
-                                                    </PinterestShareButton>
-                                                    <LinkedinShareButton url={currentPageUrl}>
-                                                        <LinkedinIcon size={22} round={true} />
-                                                    </LinkedinShareButton>
-                                                </div>
-                                                <div className='flex flex-row gap-2 text-center px-1'>
-                                                    <p className="text-[10px] self-center text-gray-500">{currentPageUrl}</p>
-                                                    <Button
-                                                        onClick={() => copyToClipboard(currentPageUrl.toString())}
-                                                        variant="link"
-                                                        size='icon'
-                                                        className="!no-underline p-0"
-                                                    >
-                                                        <span className="sr-only">Copy</span>
-                                                        <Copy size={10} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
+                                <div className={cn("text-sm text-gray-800 dark:text-white", {
+                                    "line-clamp-3": !isDescriptionExpanded,
+                                })}>
+                                    <OtherTranslateComponent
+                                        element={content}
+                                        content={content.description}
+                                        elementId={content.id.toString()}
+                                        elementType="webnovel"
+                                        elementSubtype="description"
+                                        classParams="text-sm"
+                                    />
                                 </div>
+                                {content.description.length > 100 && (
+                                    <Button
+                                        variant="link"
+                                        className="text-sm text-gray-800 dark:text-white p-0 !no-underline flex items-center gap-1"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setIsDescriptionExpanded(!isDescriptionExpanded);
+                                        }}>
+                                        <ChevronDownIcon size={16} className={`transition-transform ${isDescriptionExpanded ? 'rotate-180' : ''}`} />
+                                        {isDescriptionExpanded ? phrase(dictionary, "showLess", language) : phrase(dictionary, "readMore", language)}
+                                    </Button>
+                                )}
                             </div>
-
-                            <div className="pb-5 w-full">
-                                {content.okay_to_create_videos &&
+                            {/* Action Buttons */}
+                            <div className="flex flex-col w-full">
+                                <div className="flex flex-row gap-2 py-5 w-full">
+                                    {/* Read Button */}
                                     <Button
                                         variant="default"
                                         className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
-                                        disabled={loadingVideoGeneration}
-                                        onClick={handleGenerateTrailer}
+                                        onClick={() => {
+                                            const firstChapter = content.chapters[0];
+                                            if (!firstChapter) return;
+
+                                            // Check if user has already purchased the chapter
+                                            const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
+
+                                            if (content.premium && !firstChapter.free && !hasPurchased) {
+                                                setShowPurchaseModal(true);
+                                            } else {
+                                                router.push(`/view_webnovels/${content.id}/chapter_view/${firstChapter.id}`);
+                                            }
+                                        }}
                                     >
-                                        <p>
-                                            {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
-                                        </p>
+                                        {phrase(dictionary, "start_to_read_episode_1", language)}
                                     </Button>
+
+                                    {/* Share Button and Dropdown */}
+                                    <div className="relative">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    size="icon"
+                                                    className="z-[99] flex-shrink-0  bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white dark:text-white rounded-md flex items-center justify-center group"
+                                                    onClick={(e) => e.stopPropagation()}>
+
+                                                    <Share size={20} className="text-white group-hover:text-white" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent className="flex flex-col justify-center items-center">
+                                                <DropdownMenuLabel>{phrase(dictionary, "shareThisWebnovel", language)}</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="flex flex-row gap-2">
+                                                        <TwitterShareButton url={currentPageUrl}>
+                                                            <TwitterIcon size={22} round={true} />
+                                                        </TwitterShareButton>
+                                                        <WhatsappShareButton url={currentPageUrl}>
+                                                            <WhatsappIcon size={22} round={true} />
+                                                        </WhatsappShareButton>
+                                                        <TelegramShareButton url={currentPageUrl}>
+                                                            <TelegramIcon size={22} round={true} />
+                                                        </TelegramShareButton>
+                                                        <PinterestShareButton url={currentPageUrl} media={getImageUrl(content.cover_art)}>
+                                                            <PinterestIcon size={22} round={true} />
+                                                        </PinterestShareButton>
+                                                        <LinkedinShareButton url={currentPageUrl}>
+                                                            <LinkedinIcon size={22} round={true} />
+                                                        </LinkedinShareButton>
+                                                    </div>
+                                                    <div className='flex flex-row gap-2 text-center px-1'>
+                                                        <p className="text-[10px] self-center text-gray-500">{currentPageUrl}</p>
+                                                        <Button
+                                                            onClick={() => copyToClipboard(currentPageUrl.toString())}
+                                                            variant="link"
+                                                            size='icon'
+                                                            className="!no-underline p-0"
+                                                        >
+                                                            <span className="sr-only">Copy</span>
+                                                            <Copy size={10} />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </div>
+                                {content.okay_to_create_videos &&
+                                    <div className="pb-5 w-full">
+                                        <Button
+                                            variant="default"
+                                            className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                            disabled={loadingVideoGeneration}
+                                            onClick={handleGenerateTrailer}
+                                        >
+                                            <p>
+                                                {loadingVideoGeneration ? <Loader2 className="h-24 w-24 animate-spin text-pink-600" /> : phrase(dictionary, "createVideo", language)}
+                                            </p>
+                                        </Button>
+                                    </div>
+                                }
+                                {isJongmin() &&
+                                    <div className="pb-5 w-full">
+                                        <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
+                                    </div>
+                                }
+                                {/* Delete & Write a chapter button */}
+                                {(isAuthor() || isJongmin()) &&
+                                    <>
+                                        <div className='flex flex-col gap-5 w-full justify-center items-center pb-5'>
+                                            <UploadNewChapterButton onNewChapter={onNewChapter} />
+                                            <Button
+                                                color='gray'
+                                                variant='outline'
+                                                onClick={() => setShowDeleteModal(true)}
+                                                className='w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
+                                            >
+                                                <span className='inline-flex gap-2 items-center text-black dark:text-white  hover:text-[#DB2777]'>
+                                                    <Trash className='hover:text-[#DB2777]' size={18} />{phrase(dictionary, "deleteWebnovel", language)}
+                                                </span>
+                                            </Button>
+                                        </div>
+                                        <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                                            <AlertDialogContent className="z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none text-md">
+                                                <AlertDialogHeader className='text-md p-4'>
+                                                    <AlertDialogTitle className="text-md font-bold text-black dark:text-white">
+                                                        <p>{phrase(dictionary, "deleteWebnovelConfirm", language)}</p>
+                                                    </AlertDialogTitle>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 self-end text-md'>
+                                                    <Button
+                                                        onClick={onDelete}
+                                                        className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                                                    >
+                                                        {phrase(dictionary, "yes", language)}
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => setShowDeleteModal(false)}
+                                                        className={cn("!rounded-none w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+
+                                                    >
+                                                        {phrase(dictionary, "no", language)}
+                                                    </Button>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </>
                                 }
                             </div>
-                            {isJongmin() &&
-                                <div className="pb-5 w-full">
-                                    <TranslateWebnovelAllButton language={language} webnovel={content as Webnovel} />
-                                </div>
-                            }
-                            {/* writing button */}
-                            {(isAuthor() || isJongmin()) &&
-                                <>
-                                    <div className='flex flex-row gap-4 w-full justify-center items-center pb-5'>
-                                        <Button
-                                            color='gray'
-                                            variant='outline'
-                                            onClick={onNewChapter}
-                                            className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                        >
-                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "uploadNewChapter", language)}</p> : (<> <PenLine className='hover:text-[#DB2777]' size={18} /> </>)}
-                                        </Button>
-                                        <Button
-                                            color='gray'
-                                            variant='outline'
-                                            onClick={() => setShowDeleteModal(true)}
-                                            className='px-4 flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]'
-                                        >
-                                            {isMediumScreen ? <p className='text-black dark:text-white  hover:text-[#DB2777]'>{phrase(dictionary, "deleteWebnovel", language)}</p> : (<> <Trash className='hover:text-[#DB2777]' size={18} /> </>)}
-                                        </Button>
+
+                            <div className="flex flex-col w-full md:max-w-[350px] min-w-[300px] flex-shrink-0 flex-grow-0 py-4">
+                                <div className="flex flex-col gap-4 justify-center items-center w-full">
+                                    <div className="flex flex-col gap-2 items-center justify-center w-full">
+                                        {/* const view_profile_href = content.user.email_hash == content.author.email_hash ? */}
+                                        <ActiveUserAvatar user={content.user} author={content.author} language={language} webnovel={content} />
+                                        <div className="flex flex-col gap-2 pb-4">
+                                            <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
+                                                {
+                                                    content.author.nickname === 'Anonymous' ? '' :
+                                                        language == 'ko' ?
+                                                            content.author.nickname :
+                                                            koreanToEnglishAuthorName[content.author.nickname as string] ?
+                                                                koreanToEnglishAuthorName[content.author.nickname as string]
+                                                                :
+                                                                content.author.nickname
+                                                }
+                                            </Link>
+
+                                            <p className="text-sm text-gray-500 text-center">
+                                                {content.user.bio}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex flex-col gap-4 justify-center items-center w-full ">
+                                            {isAuthor() ? <></> :
+                                                <Button
+                                                    variant="default"
+                                                    className="w-full mx-auto bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
+                                                    onClick={() => {
+                                                        // setTabValue('3')
+                                                    }}
+                                                >
+                                                    <Link href={view_profile_href}>
+                                                        {phrase(dictionary, "viewProfile", language)}
+                                                    </Link>
+                                                </Button>
+                                            }
+
+                                            <div className="flex flex-col gap-2 flex-shrink-0 flex-grow-0 w-full">
+                                                {id !== content.user.id.toString() ? (
+                                                    <Button
+                                                        variant='outline'
+                                                        className="w-full flex-1 flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
+                                                        <Link href="/stars">
+                                                            <span className="text-sm flex flex-row items-center gap-2">
+                                                                <Image
+                                                                    src="/images/N_logo.svg"
+                                                                    alt="Toonyz Logo"
+                                                                    width={0}
+                                                                    height={0}
+                                                                    sizes="100vh"
+                                                                    style={{
+                                                                        height: '20px',
+                                                                        width: '20px',
+                                                                        padding: '2px',
+                                                                        justifyContent: 'center',
+                                                                        alignSelf: 'center',
+                                                                        borderRadius: '25%',
+                                                                        border: '1px solid #eee',
+                                                                        backgroundColor: 'white'
+                                                                    }}
+                                                                />
+                                                                {isMobile ? `${phrase(dictionary, "buy_more_stars_mobile", language)}`
+                                                                    : `${phrase(dictionary, "buy_more_stars", language)}`}
+                                                            </span>
+                                                        </Link>
+                                                    </Button>
+                                                ) : (
+                                                    content.chapters.length >= 1 && id === content.user.id.toString() ? (
+                                                        <Button
+                                                            variant='outline'
+                                                            onClick={onNewChapter}
+                                                            className="w-full flex items-center justify-center hover:border-[#DB2777] text-black dark:text-white hover:text-[#DB2777]">
+                                                            <span className="text-sm flex flex-row items-center gap-2">
+                                                                <PenLine className='' size={18} />
+                                                                {!isMobile ? language === "ko" ? <>{nickname}님, {phrase(dictionary, "writeNewChapterToday", language)}</>
+                                                                    : <>Hi, {nickname}! {phrase(dictionary, "writeNewChapterToday", language)} </>
+                                                                    : <>{phrase(dictionary, "writeNewChapterToday_mobile", language)}</>}
+
+                                                            </span>
+                                                            <ChevronRightIcon size={16} className="text-black dark:text-white" />
+                                                        </Button>
+                                                    ) : (
+                                                        <></>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>{phrase(dictionary, "deleteWebnovelConfirm", language)}</AlertDialogTitle>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter className='flex flex-row gap-2 items-center justify-center'>
-                                                <Button color='destructive' variant='outline' className='' onClick={onDelete}>{phrase(dictionary, "yes", language)}</Button>
-                                                <Button color='gray' variant='outline' className='' onClick={() => setShowDeleteModal(false)}>{phrase(dictionary, "no", language)}</Button>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </>
-                            }
-                            {/* Premium Info */}
-                            <div className="flex flex-col gap-2 px-2 py-2 w-full bg-gray-100 dark:bg-gray-900 rounded-lg">
-                                <Button className="font-extrabold text-sm text-gray-500 dark:text-white flex flex-row gap-2 items-center justify-between bg-transparent hover:bg-white/90  dark:hover:bg-black/90 shadow-none">
-                                    <div className="flex flex-row gap-2 items-center cursor-pointer">
-                                        <MdStars className="text-xl text-[#D92979]" />
-                                        <Link href={`/stars`}>
-                                            <p>
-                                                {/* 별 구매하기  */}
-                                                {phrase(dictionary, "buyStars", language)}
-                                            </p>
-                                        </Link>
-                                    </div>
-                                    <ChevronRight size={16} className="text-black dark:text-white" />
-                                </Button>
+                                </div>
                             </div>
 
                             {/* Purchase Modal */}
@@ -573,10 +671,8 @@ export default function InfoAndPictureComponent({
                                 stars={stars}
                                 chapter={content.chapters[0]}
                             />
-
                             {/* Not Enough Stars Modal */}
                             <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={content} createMediaPrice={createMediaPrice} />
-
                         </div>
                     </div>
                 </div>

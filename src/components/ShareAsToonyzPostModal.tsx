@@ -23,7 +23,7 @@ import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import DictionaryPhrase from "./DictionaryPhrase"
 import { useCreateMedia } from "@/contexts/CreateMediaContext"
 import { useRouter } from "next/navigation";
-import { revalidateTag } from "next/cache";
+import { cn } from "@/lib/utils";
 
 export default function ShareAsToonyzPostModal({
     imageOrVideo,
@@ -145,7 +145,6 @@ export default function ShareAsToonyzPostModal({
                 title: "Success",
                 description: "Post created successfully"
             });
-            revalidateTag("/toonyz_posts");
             setShowShareAsPostModal(false);
             setIsLoading(false);
         } catch (error) {
@@ -153,7 +152,7 @@ export default function ShareAsToonyzPostModal({
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "An unexpected error occurred"
+                description: "An unexpected error occurred: " + error
             });
         } finally {
             setIsLoading(false);
@@ -194,17 +193,18 @@ export default function ShareAsToonyzPostModal({
     return (
         <Dialog open={showShareAsPostModal} onOpenChange={() => setShowShareAsPostModal(false)}>
             <DialogContent
-                className={`select-none no-scrollbar backdrop-blur-md z-[9999]
-                           ${isDesktop ? ' backdrop-blur-md  bg-gradient-to-r dark:from-blue-500/10 dark:to-blue-900/10  from-purple-100/50 to-blue-100/50' : 'bg-white dark:bg-[#211F21] max-h-screen'}`}
+                className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md'
                 onClick={(e) => e.stopPropagation()}
                 showCloseButton={true}
             >
-                <ScrollArea className="relative flex flex-col md:h-full h-screen">
-                    <DialogHeader>
-                        <DialogTitle><DictionaryPhrase phraseVar="shareAsToonyzPost" /></DialogTitle>
-                        <DialogDescription>
+                <ScrollArea className="relative flex flex-col justify-evenly md:h-full h-screen">
+                    <DialogHeader className="text-md p-4">
+                        <DialogTitle className="text-md">
+                            <DictionaryPhrase phraseVar="shareAsToonyzPost" />
+                        </DialogTitle>
+                        <DialogDescription className="text-md">
                             {image && (<>
-                                <div className="relative w-full aspect-[9/16] mb-4">
+                                <div className="relative w-full aspect-[9/16] pt-4">
                                     <Image
                                         src={`data:image/png;base64,${image}`}
                                         alt={`Generated image ${index + 1}`}
@@ -213,10 +213,10 @@ export default function ShareAsToonyzPostModal({
                                         className={`object-cover rounded-xl group-hover:scale-105 transition-all duration-300`}
                                     />
                                 </div>
-                               </>
+                            </>
                             )}
                             {videoFileName && (
-                                <>
+                                <div className="relative pt-4">
                                     <video
                                         src={getVideoUrl(videoFileName)}
                                         width={150}
@@ -227,65 +227,66 @@ export default function ShareAsToonyzPostModal({
                                         playsInline
                                         className='self-center object-cover rounded-xl border-none group-hover:opacity-50 transition-opacity duration-300'
                                     />
-                                </>
+                                </div>
                             )}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="items-center">
-                        <Label htmlFor="name" className="text-left text-sm">
-                            {phrase(dictionary, "title", language)}
-                        </Label>
-                        <Input
-                            placeholder={phrase(dictionary, "title", language)}
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="col-span-3"
-                        />
-                    </div>
-                    <div className="items-center">
-                        <Label htmlFor="tags" className="text-left text-sm">
-                            {phrase(dictionary, "tags", language)}
-                        </Label>
-                        <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 col-span-3">
-                            {tags.map((tag, i) => (
-                                <span
-                                    key={i}
-                                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm flex items-center"
-                                >
-                                    {tag}
-                                    <X
-                                        size={14}
-                                        className="ml-1 cursor-pointer"
-                                        onClick={() => removeTag(tag)}
-                                    />
-                                </span>
-                            ))}
+                    <div className="flex flex-col p-4">
+                        <div className="items-center">
+                            <Label htmlFor="name" className="text-left text-sm">
+                                {phrase(dictionary, "title", language)}
+                            </Label>
                             <Input
-                                placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags_placeholder", language)}
-                                value={tagInput}
-                                onChange={handleTagInput}
-                                onKeyDown={handleTagKeyDown}
-                                className="flex-grow shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-6 min-w-20"
+                                placeholder={phrase(dictionary, "title", language)}
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className="items-center">
+                            <Label htmlFor="tags" className="text-left text-sm">
+                                {phrase(dictionary, "tags", language)}
+                            </Label>
+                            <div className="flex flex-wrap items-center gap-2 border rounded-md p-2 col-span-3">
+                                {tags.map((tag, i) => (
+                                    <span
+                                        key={i}
+                                        className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm flex items-center"
+                                    >
+                                        {tag}
+                                        <X
+                                            size={14}
+                                            className="ml-1 cursor-pointer"
+                                            onClick={() => removeTag(tag)}
+                                        />
+                                    </span>
+                                ))}
+                                <Input
+                                    placeholder={tags.length > 0 ? "" : phrase(dictionary, "tags_placeholder", language)}
+                                    value={tagInput}
+                                    onChange={handleTagInput}
+                                    onKeyDown={handleTagKeyDown}
+                                    className="flex-grow shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-6 min-w-20"
+                                />
+                            </div>
+                        </div>
+                        <div className="items-center">
+                            <Label htmlFor="content" className="text-left text-sm">
+                                {phrase(dictionary, "content", language)}
+                            </Label>
+                            <Textarea
+                                placeholder={phrase(dictionary, "content_placeholder", language)}
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                className=""
+                                rows={2}
                             />
                         </div>
                     </div>
-                    <div className="items-center">
-                        <Label htmlFor="content" className="text-left text-sm">
-                            {phrase(dictionary, "content", language)}
-                        </Label>
-                        <Textarea
-                            placeholder={phrase(dictionary, "content_placeholder", language)}
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            className=""
-                            rows={2}
-                        />
-                    </div>
-                    <DialogFooter className='flex md:flex-row flex-col gap-2'>
+                    <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
                         <Button
                             disabled={isLoading}
-                            variant="outline"
-                            className="bg-[#DE2B74] hover:bg-pink-400 text-white"
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
                             onClick={() => handleShareAsPost()}>
                             {isLoading ? (
                                 <>
@@ -299,7 +300,11 @@ export default function ShareAsToonyzPostModal({
 
                             }
                         </Button>
-                        <Button variant="outline" color="gray" onClick={() => setShowShareAsPostModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
+                        <Button
+                            className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                            onClick={() => setShowShareAsPostModal(false)}>
+                            {phrase(dictionary, "cancel", language)}
+                        </Button>
                     </DialogFooter>
                 </ScrollArea>
             </DialogContent>

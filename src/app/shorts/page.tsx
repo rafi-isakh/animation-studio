@@ -1,0 +1,563 @@
+"use client"
+import type React from "react"
+import { useState, useRef, useEffect } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
+import { Button } from "@/components/shadcnUI/Button"
+import {
+    Heart,
+    MessageCircle,
+    Send,
+    Bookmark,
+    MoreHorizontal,
+    ChevronDown,
+    ChevronUp,
+} from "lucide-react"
+import { Chapter, Webnovel } from "@/components/Types"
+import { getImageUrl, getVideoUrl } from "@/utils/urls"
+import Link from "next/link"
+import OtherTranslateComponent from "@/components/OtherTranslateComponent"
+import { phrase } from "@/utils/phrases"
+import { useLanguage } from "@/contexts/LanguageContext"
+import SharingModal from '@/components/UI/SharingModal';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcnUI/Popover"
+import ReportButton from "@/components/UI/ReportButton"
+import useSWR from "swr";
+import dynamic from 'next/dynamic'
+import { useAuth } from "@/contexts/AuthContext"
+import { useUser } from "@/contexts/UserContext"
+import { useWebnovels } from "@/contexts/WebnovelsContext"
+import PleaseLoginModal from "@/components/PleaseLoginModal"
+
+
+const fetcher = (url: string) => fetch(url, {
+    next: {
+        tags: ['webnovels']
+    }
+}).then((res) => res.json());
+
+// Custom hook for media query that's SSR-safe
+const useSSRSafeMediaQuery = (query: string) => {
+    const [matches, setMatches] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+        if (typeof window !== 'undefined') {
+            const mediaQuery = window.matchMedia(query)
+            setMatches(mediaQuery.matches)
+
+            const handler = (event: MediaQueryListEvent) => setMatches(event.matches)
+            mediaQuery.addEventListener('change', handler)
+
+            return () => mediaQuery.removeEventListener('change', handler)
+        }
+    }, [query])
+
+    return mounted ? matches : false
+}
+
+type WebnovelWithChapter = Webnovel & {
+    firstChapter: Chapter;
+}
+
+function InstagramReelsComponent() {
+    const { data, error, isLoading } = useSWR('/api/get_webnovels_metadata', fetcher);
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [shortVideos, setShortVideos] = useState<Array<Webnovel>>([]);
+    const [startY, setStartY] = useState(0)
+    const [isDragging, setIsDragging] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const isMobile = useSSRSafeMediaQuery("(max-width: 768px)")
+    const [allWebnovels, setAllWebnovels] = useState<Array<WebnovelWithChapter>>([]);
+    const { dictionary, language } = useLanguage()
+    const [isSharing, setIsSharing] = useState(false)
+    const [showShareModal, setShowShareModal] = useState(false)
+    const [showPleaseLogin, setShowPleaseLogin] = useState(false)
+    const [likeToggle, setLikeToggle] = useState(false)
+    const [upvotes, setUpvotes] = useState(0)
+    const { isLoggedIn } = useAuth()
+    const { email } = useUser()
+    const [chapter, setChapter] = useState<Chapter | null>(null);
+    const [chapterData, setChapterData] = useState<Array<Webnovel>>([]);
+    const { getWebnovelIdWithChapterMetadata, chaptersLikelyNeededWebnovel } = useWebnovels()
+
+    useEffect(() => {
+        if (data) {
+            const filteredData = data.filter((webnovel: WebnovelWithChapter) => webnovel.en_video_cover);
+
+            Promise.all(
+                filteredData.map(async (webnovel: WebnovelWithChapter) => {
+                    const webnovelWithChapter = await getWebnovelIdWithChapterMetadata(webnovel.id.toString());
+                    // Attach the first chapter info directly to the webnovel object
+                    return {
+                        ...webnovel,
+                        firstChapter: webnovelWithChapter?.chapters?.[0] || null,
+
+                    };
+                })
+            ).then((webnovelsWithChapters) => {
+                setAllWebnovels(webnovelsWithChapters);
+            });
+        }
+    }, [data]);
+
+
+    useEffect(() => {
+        console.log("allWebnovels updated:", allWebnovels);
+    }, [allWebnovels]);
+
+    useEffect(() => {
+        console.log("chapterData updated:", chapterData);
+    }, [chapterData]);
+
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        let scrollTimeout: NodeJS.Timeout;
+        let isScrolling = false;
+
+        const handleTouchStart = (e: TouchEvent) => {
+            setStartY(e.touches[0].clientY)
+            setIsDragging(true)
+        }
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (!isDragging) return
+            e.preventDefault()
+        }
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            if (!isDragging) return
+
+            const endY = e.changedTouches[0].clientY
+            const deltaY = startY - endY
+            const threshold = 50
+
+            if (Math.abs(deltaY) > threshold) {
+                if (deltaY > 0) {
+                    // Swiped up - next reel
+                    goToNext()
+                } else {
+                    // Swiped down - previous reel
+                    goToPrevious()
+                }
+            }
+
+            setIsDragging(false)
+        }
+
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault()
+
+            if (isScrolling) return
+            isScrolling = true
+
+            // Clear existing timeout
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout)
+            }
+
+            // Debounce scroll events to prevent rapid page changes (increased to 200ms)
+            scrollTimeout = setTimeout(() => {
+                if (e.deltaY > 0) {
+                    // Scrolled down - next reel
+                    goToNext()
+                } else {
+                    // Scrolled up - previous reel
+                    goToPrevious()
+                }
+                // Reset scrolling flag after animation (increased to 800ms for longer cooldown)
+                setTimeout(() => {
+                    isScrolling = false
+                }, 800)
+            }, 500)
+        }
+
+        // Add event listeners with passive: false to allow preventDefault
+        container.addEventListener('touchstart', handleTouchStart, { passive: false })
+        container.addEventListener('touchmove', handleTouchMove, { passive: false })
+        container.addEventListener('touchend', handleTouchEnd, { passive: false })
+        container.addEventListener('wheel', handleWheel, { passive: false })
+
+        return () => {
+            container.removeEventListener('touchstart', handleTouchStart)
+            container.removeEventListener('touchmove', handleTouchMove)
+            container.removeEventListener('touchend', handleTouchEnd)
+            container.removeEventListener('wheel', handleWheel)
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout)
+            }
+        }
+    }, [isDragging, startY, currentIndex, allWebnovels.length])
+
+    const formatNumber = (num: number) => {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + "M"
+        }
+        if (num >= 1000) {
+            return (num / 1000).toFixed(1) + "K"
+        }
+        return num.toString()
+    }
+
+    // Function to calculate total comments across all chapters
+    const getTotalComments = (webnovel: Webnovel) => {
+        if (!webnovel.chapters || webnovel.chapters.length === 0) {
+            return 0
+        }
+        return webnovel.chapters.reduce((total: number, chapter: any) => {
+            return total + (chapter.comments ? chapter.comments.length : 0)
+        }, 0)
+    }
+
+
+    const handleShareClick = async (shortVideo: Webnovel) => {
+        if (isSharing) return; // Prevent multiple simultaneous share attempt
+        if (navigator.share) {
+            try {
+                setIsSharing(true);
+                await navigator.share({
+                    title: shortVideo.title,
+                    text: phrase(dictionary, "share", language),
+                    url: ``
+                });
+            } catch (error) {
+                console.log('Share failed:', error);
+            } finally {
+                setIsSharing(false);
+            }
+        } else {
+            setShowShareModal(true);
+        }
+    }
+
+    const handleLikeClick = async (webnovelId: number) => {
+        if (!isLoggedIn) {
+            setShowPleaseLogin(true);
+            return;
+        } else {
+        setAllWebnovels(prev =>
+            prev.map(w => {
+                if (w.id === webnovelId && w.firstChapter) {
+                    // Optimistic update
+                    const isLiked = w.firstChapter.upvotes ?? false;
+                    const upvotes = w.firstChapter.upvotes ?? 0;
+                    return {
+                        ...w,
+                        firstChapter: {
+                            ...w.firstChapter,
+                            upvotes: isLiked ? upvotes - 1 : upvotes + 1,
+                            isLiked: !isLiked,
+                        }
+                    };
+                }
+                return w;
+            })
+        );
+
+        // Find the chapter id
+        const webnovel = allWebnovels.find(w => w.id === webnovelId);
+        const chapter = webnovel?.firstChapter;
+        if (!chapter) return;
+
+        // API call
+        const url = `/api/upvote_chapter?chapter_id=${chapter.id}&user_email=${email}` + ((chapter.upvotes ?? false) ? "&undo=set" : "");
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Update with real upvotes from server if needed
+        if (data.status === 200) {
+            setAllWebnovels(prev =>
+                prev.map(w => {
+                    if (w.id === webnovelId && w.firstChapter) {
+                        return {
+                            ...w,
+                            firstChapter: {
+                                ...w.firstChapter,
+                                upvotes: data.upvotes,
+                                isLiked: !w.firstChapter.upvotes,
+                            }
+                        };
+                    }
+                    return w;
+                })
+            );
+        }
+    }
+   }
+
+
+    const goToNext = () => {
+        if (currentIndex < allWebnovels.length - 1) {
+            setCurrentIndex(currentIndex + 1)
+        }
+    }
+
+    const goToPrevious = () => {
+        if (currentIndex > 0) {
+            setCurrentIndex(currentIndex - 1)
+        }
+    }
+
+    // Mouse handlers for desktop testing
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setStartY(e.clientY)
+        setIsDragging(true)
+    }
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return
+        e.preventDefault()
+    }
+
+    const handleMouseUp = (e: React.MouseEvent) => {
+        if (!isDragging) return
+
+        const endY = e.clientY
+        const deltaY = startY - endY
+        const threshold = 50
+
+        if (Math.abs(deltaY) > threshold) {
+            if (deltaY > 0) {
+                goToNext()
+            } else {
+                goToPrevious()
+            }
+        }
+
+        setIsDragging(false)
+    }
+
+    return (
+        <div className="relative w-full h-screen bg-white dark:bg-black overflow-hidden select-none">
+
+            {/* Header */}
+            <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
+                <div className="flex items-center gap-4">
+                    <h1 className="text-white text-xl font-semibold">Toonyz Shorts</h1>
+                    <Button variant='ghost' className="rounded-full text-white text-sm font-semibold bg-[#DB2777]">
+                        Trailer
+                    </Button>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div
+                ref={containerRef}
+                className="relative w-full h-full cursor-grab active:cursor-grabbing"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                style={{
+                    transform: `translateY(-${currentIndex * 100}vh)`,
+                    transition: isDragging ? "none" : "transform 0.3s ease-out",
+                }}
+            >
+                {allWebnovels && allWebnovels.map((shortVideo, index) => (
+                    <div key={shortVideo.id} className="relative w-full h-screen flex-shrink-0 flex justify-center items-center">
+                        {/* Video Background */}
+                        <div className="md:w-[600px] w-full h-full absolute inset-0  dark:bg-black flex flex-col items-center justify-center mx-auto p-4">
+                            <video
+                                src={getVideoUrl(allWebnovels[index].en_video_cover) || "/placeholder.svg"}
+                                className="w-full h-full object-cover object-center rounded-lg"
+                                autoPlay={true}
+                                muted={true}
+                                loop={true}
+                                playsInline={true}
+                            />
+
+                            {/* Swipe hint for first time users - positioned over video */}
+                            {!isMobile && currentIndex === 0 && index === 0 && (
+                                <div className="absolute inset-0 flex items-center justify-center z-30">
+                                    <div className="bg-transparent px-4 py-2 rounded-lg">
+                                        <p className="text-white text-sm opacity-70 animate-bounce text-center">
+                                            {phrase(dictionary, "toonyz_shorts_help", language)}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="absolute bottom-0 w-full flex-1 flex flex-col justify-end px-10 pb-20 z-50">
+                                <div className="space-y-3  max-h-60 overflow-hidden">
+
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="w-10 h-10 border-2 border-white rounded-sm">
+                                            <AvatarImage
+                                                src={getImageUrl(shortVideo.cover_art)}
+                                                alt={shortVideo.title}
+                                                width={40}
+                                                height={40}
+                                            />
+                                            <AvatarFallback>{shortVideo.user.nickname[0].toUpperCase()}</AvatarFallback>
+                                        </Avatar>
+                                        <span className="text-white font-semibold text-sm">
+                                            <OtherTranslateComponent
+                                                element={shortVideo}
+                                                content={shortVideo.title}
+                                                elementId={shortVideo.id.toString()}
+                                                elementType="webnovel"
+                                                elementSubtype="title"
+                                                classParams=""
+                                            />
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-6 px-3 text-xs border-white text-white bg-transparent hover:bg-white hover:text-black"
+                                        >
+                                            <Link href={`/view_webnovels/${shortVideo.id}`}>
+                                                {phrase(dictionary, "viewWebnovel", language)}
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                    {/* Description - TODO: truncate text */}
+                                    <p className="text-white text-sm leading-relaxed  w-full">
+                                        <OtherTranslateComponent
+                                            element={shortVideo}
+                                            content={shortVideo.description}
+                                            elementId={shortVideo.id.toString()}
+                                            elementType="webnovel"
+                                            elementSubtype="description"
+                                            classParams="truncate"
+                                        />
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content Overlay */}
+                        <div className="absolute inset-0 flex">
+                            <div className="flex-1 flex flex-col justify-end p-4 pb-20">
+                            </div>
+                            {/* Right side - Action buttons */}
+                            <div className="flex flex-col items-center justify-end gap-6 pr-1 md:pb-72 pb-64">
+                                {/* Like button */}
+                                <div className="flex flex-col items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                                        onClick={() => handleLikeClick(shortVideo.id)}
+                                    >
+                                        <Heart className={`w-7 h-7 ${shortVideo.firstChapter?.upvotes ? "fill-red-500 text-red-500" : ""}`} />
+                                    </Button>
+                                    <span className="dark:text-white text-black text-xs font-medium">
+                                        {formatNumber(
+                                            shortVideo.firstChapter?.upvotes ??
+                                            shortVideo.chapters?.[0]?.upvotes ??
+                                            0
+                                        )}
+                                    </span>
+                                </div>
+
+                                {/* Comment button */}
+                                {/* <div className="flex flex-col items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                                    >
+                                        <MessageCircle className="w-7 h-7" />
+                                    </Button>
+                                    <span className="dark:text-white text-black text-xs font-medium">
+                                        {formatNumber(getTotalComments(shortVideo))}
+                                    </span>
+                                </div> */}
+
+                                {/* Share button */}
+                                <div className="flex flex-col items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                                        onClick={() => handleShareClick(shortVideo)}
+                                    >
+                                        <Send className="w-7 h-7" />
+                                    </Button>
+                                </div>
+
+                                {/* More options */}
+                                <div className="flex flex-col items-center gap-1">
+                                    <Popover >
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                                            >
+                                                <MoreHorizontal className="w-7 h-7" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-30'>
+                                            <ul>
+                                                <li> <ReportButton user={shortVideo.user} mode="toonyzPost_page" /> </li>
+                                            </ul>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Progress indicators */}
+            <div className="absolute md:bottom-20 bottom-40 right-2 z-20">
+                <div className='flex flex-col items-center'>
+                    {/* Navigation buttons section */}
+                    <div className="flex flex-col gap-2">
+                        <div className={`w-10 h-10 rounded-full border-2
+                                         ${currentIndex === 0 ? "border-gray-400" : "border-white"} overflow-hidden animate-spin-slow`}>
+                            <Button
+                                onClick={() => { goToPrevious() }}
+                                disabled={currentIndex === 0}
+                                className="w-full h-full object-cover"
+                            >
+                                <ChevronUp />
+                            </Button>
+                        </div>
+                        <div className={`w-10 h-10 rounded-full border-2
+                                         ${currentIndex === allWebnovels.length - 1 ? "border-gray-400" : "border-white"} overflow-hidden animate-spin-slow`}>
+                            <Button
+                                onClick={() => { goToNext() }}
+                                disabled={currentIndex === allWebnovels.length - 1}
+                                className="w-full h-full object-cover"
+                            >
+                                <ChevronDown />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Progress indicators section */}
+            {/* <div className="absolute top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+                <div className="flex flex-row gap-1">
+                    {allWebnovels.map((_, index) => (
+                        <div
+                            key={index}
+                            className={`w-1 h-1 rounded-full transition-colors ${index === currentIndex ? "bg-white" : "bg-white/30"}`}
+                        />
+                    ))}
+                </div>
+            </div> */}
+
+            <SharingModal
+                isOpen={showShareModal}
+                onClose={() => setShowShareModal(false)}
+                onConfirm={() => { setShowShareModal(false) }}
+                onCancel={() => { setShowShareModal(false) }}
+            />
+            <PleaseLoginModal
+                open={showPleaseLogin}
+                setOpen={setShowPleaseLogin}
+            />
+        </div>
+    )
+}
+
+export default dynamic(() => Promise.resolve(InstagramReelsComponent), {
+    ssr: false,
+})

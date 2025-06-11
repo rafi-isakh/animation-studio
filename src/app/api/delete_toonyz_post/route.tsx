@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from "next/cache";
 
 export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
@@ -23,8 +24,9 @@ export async function DELETE(request: NextRequest) {
     if (!response.ok) {
         return NextResponse.json({ error: "Failed to delete toonyz post" }, { status: 500 })
     }
+    revalidateTag("/toonyz_posts");
     return NextResponse.json({ 
         message: "Toonyz post deleted",
-        redirect: "/feeds" 
+        redirect: "/feed" 
     });
 }

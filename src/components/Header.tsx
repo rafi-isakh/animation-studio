@@ -37,7 +37,8 @@ import { useSearch } from '@/contexts/SearchContext';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import UserProfileButton from '@/components/UI/UserProfileButton';
-import HelpGuidComponent from './UI/HelpGuideComponent';
+import HelpGuidComponent from '@/components/UI/HelpGuideComponent';
+import { ContentRatingSwitch } from '@/components/UI/ContentRatingSwitch';
 
 export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const router = useRouter();
@@ -73,7 +74,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     const [open, setOpen] = useState(false); // toggleSearchDropdown
     const [activeTab, setActiveTab] = useState('premium');
     const [premiumWebnovelIds, setPremiumWebnovelIds] = useState<number[]>([]);
-    const { getWebnovelById } = useWebnovels();
+    const { getWebnovelById, restricted } = useWebnovels();
     const [webnovel, setWebnovel] = useState<Webnovel>();
 
     useEffect(() => {
@@ -282,6 +283,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         if (pathname.startsWith('/booktok')) {
             return "hidden"
         }
+        if (pathname.startsWith('/shorts')) {
+            return "hidden"
+        }
         return ""
     }
 
@@ -311,7 +315,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
 
     return (
         <>
-            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:py-2 md:pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
+            <nav className={`${hideHeaderInPages()} md:pl-[72px] md:pt-2 md:pb-0 pb-3 left-0 top-0 right-0 z-[99] mx-auto max-w-screen font-pretendard bg-white text-gray-500 font-bold dark:text-white dark:bg-black `}>
                 {/* py-2 pb-3 padding for the header  */}
                 <div className="max-w-screen-xl mx-auto">
                     <div id='above-header' className="flex flex-row w-full flex-wrap md:flex-nowrap items-center mx-auto justify-between">
@@ -347,35 +351,51 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <div className="relative hidden md:inline-flex w-full ">
                                 <SearchComponent mode="header" recentQueriesFetched={recentQueries} lastIndexFetched={lastIndex} />
                             </div>
-
+                            {/* mobile header */}
                             <div ref={hamburgerRef}>
-                                {!isLoggedIn ? (
-                                    <li className='md:hidden inline-flex absolute top-2 right-14'>
-                                        <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
-                                            <span className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]'>
-                                                {phrase(dictionary, "login", language)}
-                                            </span>
+                                <ul className="md:hidden flex flex-row justify-center gap-2">
+                                    <li className='md:hidden inline-flex items-center justify-center'>
+                                        <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted ?? null} />
+                                    </li>
+                                    <li className='ml-3 md:hidden inline-flex items-center justify-center'>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <CircleHelp size={20} className='text-gray-500 dark:text-white cursor-pointer' />
+                                            </PopoverTrigger>
+                                            <PopoverContent className='md:w-[350px] w-full border-none bg-transparent shadow-none'>
+                                                <HelpGuidComponent />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </li>
+                                    <li className='ml-2 md:hidden inline-flex items-center justify-center'>
+                                        <Link href='/stars' className='!no-underline capitalize rounded-lg' >
+                                            <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
                                         </Link>
                                     </li>
-                                ) : (
-                                    <li className='md:hidden inline-flex items-center justify-center mr-2'>
-                                        <Link href='/stars' className='!no-underline capitalize rounded-lg' >
-                                          <Gift size={20} className='text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]' />
-                                        </Link>      
-                                    </li>
-                                )}
-                                <button
-                                    id="mobile-hamburger"
-                                    onClick={() => handleMobileMenuClick()}
-                                    type="button"
-                                    className="inline-flex items-center w-10 h-10 
-                                               justify-center text-sm 
-                                               rounded-xl text-black md:hidden
-                                               focus:outline-none dark:text-black "
-                                    aria-controls="navbar-dropdown"
-                                    aria-expanded="false">
-                                    <Menu size={20} className='dark:text-white text-gray-500' />
-                                </button>
+                                    {!isLoggedIn ? (
+                                        <li className='ml-2 md:hidden inline-flex items-center justify-center'>
+                                            <Link href='/signin' className='!no-underline capitalize rounded-lg ' >
+                                                <span className=' text-gray-500 dark:text-white hover:text-[#DB2777] dark:hover:text-[#DB2777]'>
+                                                    {phrase(dictionary, "login", language)}
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ) : (
+                                        <></>
+                                    )}
+                                    <Button
+                                        id="mobile-hamburger"
+                                        variant="link"
+                                        type="button"
+                                        size="icon"
+                                        onClick={() => handleMobileMenuClick()}
+                                        className="md:hidden inline-flex items-center !no-underline
+                                                   justify-center text-sm rounded-xl"
+                                        aria-controls="navbar-dropdown"
+                                        aria-expanded="false">
+                                        <Menu size={20} className='dark:text-white text-gray-500' />
+                                    </Button>
+                                </ul>
                             </div>
                         </div>
                         <div id="menu" ref={menuRef} className="hidden items-center justify-between w-full md:flex md:w-auto md:order-2 ">
@@ -386,8 +406,36 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                             <ul className="flex justify-center items-center md:gap-4">
                                 {/* Mui dark theme color code : divider [#2F2F2F] */}
                                 {/* gap-4 for desktop header icons */}
-                                {/* Language globe icon menu button - Desktop */}
-
+                                <li className='relative hidden md:inline-flex'>
+                                    <ContentRatingSwitch language={language} defaultRestrictedChecked={restricted ?? null} />
+                                </li >
+                                <li className='relative hidden md:inline-flex'>
+                                    {/* Language globe icon menu button - Desktop */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Globe size={20} className='dark:text-white text-gray-500 cursor-pointer' />
+                                        </PopoverTrigger>
+                                        <PopoverContent className='md:w-30 w-full border-none bg-white dark:bg-[#211F21] shadow-none list-none'>
+                                            {langPairList.map((langPair, index) => (
+                                                <li
+                                                    id={`li-${langPair.code}`}
+                                                    key={index}
+                                                    className='cursor-pointer flex justify-center items-center'
+                                                >
+                                                    <Link
+                                                        href="#"
+                                                        onClick={(event) => handleLanguageChange(event, langPair.code as Language)}
+                                                        className={`
+                                                           md:hover:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 px-4 py-2
+                                                            ${highlightLanguage[langPair.code as Language] ? '!text-[#DB2777] dark:!text-[#DB2777]' : 'dark:text-white dark:hover:text-black'}`}
+                                                    >
+                                                        {langPair.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </PopoverContent>
+                                    </Popover>
+                                </li>
                                 <li className="relative hidden md:inline-flex">
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -398,17 +446,19 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </PopoverContent>
                                     </Popover>
                                 </li>
-                                {!isLoggedIn ? (
-                                    <li className="relative hidden md:inline-flex">
-                                        <Link href="/signin" className='inline-flex justify-center  items-center text-gray-500 dark:text-white'>
-                                            <span className='text-sm !break-keep'>{phrase(dictionary, "login", language)}</span>
-                                        </Link>
-                                    </li>
-                                ) : (
-                                    <li className="relative hidden md:inline-flex">
-                                        <UserProfileButton mode='header' className='text-gray-500 dark:text-white' />
-                                    </li>
-                                )}
+                                {
+                                    !isLoggedIn ? (
+                                        <li className="relative hidden md:inline-flex">
+                                            <Link href="/signin" className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
+                                                <span className='text-sm !break-keep'>{phrase(dictionary, "login", language)}</span>
+                                            </Link>
+                                        </li>
+                                    ) : (
+                                        <li className="relative hidden md:inline-flex">
+                                            <UserProfileButton mode='header' className='text-gray-500 dark:text-white' />
+                                        </li>
+                                    )
+                                }
                                 <li className="relative hidden md:inline-flex">
                                     {/* Site map icon */}
                                     <button onClick={handleSitemapClick} className='inline-flex justify-center items-center text-gray-500 dark:text-white'>
@@ -534,7 +584,7 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                             <div className='p-1 border border-gray-300 rounded-full flex justify-center items-center
                                                           hover:bg-gray-100 text-gray-500 min-w-10 min-h-10 
                                                            dark:hover:bg-gray-600 transition-all duration-150 ease-in-out'>
-                                                <CircleHelp size={20} className='dark:text-white text-gray-500' /> 
+                                                <CircleHelp size={20} className='dark:text-white text-gray-500' />
                                             </div>
                                             <p className='md:hidden text-xs text-center'>
                                                 {phrase(dictionary, "help", language)}
@@ -542,9 +592,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                         </Link>
                                     </div>
                                 </li>
-                            </ul>
-                        </div>
-                    </div>
+                            </ul >
+                        </div >
+                    </div >
                     {/* mobile webnovels, webtoons, tooyzcut bottom menu */}
                     {/* <div id="below-header" className="md:max-w-screen-lg mx-auto flex flex-row md:hidden w-full justify-start space-x-4 px-3">
                         <Link href="/?version=premium" prefetch={false} >
@@ -556,9 +606,9 @@ export const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
                                 {phrase(dictionary, "free", language)}</p>
                         </Link>
                     </div> */}
-                </div>
+                </div >
                 <hr className='md:hidden block border-gray-300 dark:border-[#2F2F2F]' />
-            </nav>
+            </nav >
         </>
     )
 };

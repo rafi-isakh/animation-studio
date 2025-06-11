@@ -10,6 +10,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { ToastAction } from '@/components/shadcnUI/Toast';
+import { make_video_price } from '@/utils/stars';
 // Define the type for the context data
 interface CreateMediaContextType {
     isLoading: boolean;
@@ -84,7 +85,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     const [selection, setSelection] = useState<string>("");
     const [position, setPosition] = useState<{ x: number; y: number; width?: number; height?: number }>({ x: 0, y: 0 });
     const { toast } = useToast();
-    const { stars, setInvokeCheckUser } = useUser();
+    const { tickets, setInvokeCheckUser } = useUser();
     const { dictionary, language } = useLanguage();
     const [picture, setPicture] = useState<string>("");
     const { getWebnovelById } = useWebnovels();
@@ -125,7 +126,7 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
             })
             return;
         }
-        if (stars < 20) {
+        if (tickets < 20) {
             toast({
                 title: "Error",
                 description: phrase(dictionary, "notEnoughStars", language),
@@ -230,12 +231,12 @@ export function CreateMediaProvider({ children }: CreateMediaProviderProps) {
     }
 
     const makeVideo = async () => {
-        if (stars < 35 * pictures.length) {
+        if (tickets < make_video_price * pictures.length) {
             toast({
                 title: "Error",
-                description: phrase(dictionary, "notEnoughStars", language),
+                description: phrase(dictionary, "notEnoughTickets", language),
                 variant: "destructive",
-                action: <ToastAction altText='Buy Stars'>Buy Stars</ToastAction>
+                action: <ToastAction altText='Buy Tickets'>Buy Tickets</ToastAction>
             })
             return;
         }

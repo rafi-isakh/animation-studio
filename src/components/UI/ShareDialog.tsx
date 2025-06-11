@@ -8,13 +8,20 @@ import { useCopyToClipboard } from "@/utils/copyToClipboard";
 import Image from "next/image";
 import { getImageUrl, getVideoUrl } from "@/utils/urls";
 import WatermarkedImage from "@/utils/watermark";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { phrase } from "@/utils/phrases";
+import { useState } from "react";
+
 export default function ShareDialog({
     url,
-    title = "Share link",
+    title = "Share",
     description = "Share the link with your friends and family.",
     mode = "share",
     shareImage,
-    mediaType
+    mediaType,
+    webnovelTitle,
+    chapterTitle
 }: {
     url?: string;
     title?: string;
@@ -22,32 +29,38 @@ export default function ShareDialog({
     mode?: "share" | "shareToSocialMedia";
     shareImage?: string;
     mediaType?: 'image' | 'video';
+    webnovelTitle?: string;
+    chapterTitle?: string;
 }) {
     const { toast } = useToast();
     const copyToClipboard = useCopyToClipboard();
+    const { dictionary, language } = useLanguage();
+    const [copied, setCopied] = useState(false);
 
     return (
         <DialogContent
+            className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-[90vh] select-none text-md'
             showCloseButton={true}
-            className="sm:max-w-md bg-white dark:bg-[#211F21] select-none"
             onOpenAutoFocus={(e) => e.preventDefault()}
         >
-            <DialogHeader>
-                <DialogTitle>{title}</DialogTitle>
-                <DialogDescription>
+            <DialogHeader className='text-md p-4'>
+                <DialogTitle className='text-md'>{title}</DialogTitle>
+                <DialogDescription className='text-md'>
                     {description}
                 </DialogDescription>
             </DialogHeader>
             {mode === "share" && url ? (
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-2 p-4 overflow-y-auto text-md">
                     {shareImage && (
                         mediaType === 'image' ? (
-                            <div className="overflow-hidden rounded-lg">
+                            <div className="rounded-lg">
                                 <WatermarkedImage
                                     imageUrl={getImageUrl(shareImage)}
                                     watermarkUrl="/toonyz_logo_white.svg"
                                     width={400}
                                     height={400}
+                                    webnovelTitle={webnovelTitle}
+                                    chapterTitle={chapterTitle}
                                     watermarkOpacity={0.2}
                                     watermarkPosition="bottomRight"
                                     titlePosition="top"
@@ -56,12 +69,12 @@ export default function ShareDialog({
                                 />
                             </div>
                         ) : mediaType === 'video' ? (
-                            <div className="overflow-hidden rounded-lg">
-                                <video src={getVideoUrl(shareImage)} playsInline muted loop autoPlay className="object-contain rounded-lg" />
+                            <div className="rounded-lg ">
+                                <video src={getVideoUrl(shareImage)} width={400} height={190} playsInline muted loop autoPlay className="object-contain rounded-lg" />
                             </div>
-                        ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={130} height={190} className="object-contain rounded-lg" />
+                        ) : <Image src={getImageUrl(shareImage)} alt="Share image" width={400} height={400} className="object-contain rounded-lg" />
                     )}
-                    <div className="w-full flex flex-row gap-2">
+                    <div className="w-full flex flex-row gap-2 text-md">
                         <Label htmlFor="link" className="sr-only">
                             Link
                         </Label>
@@ -83,9 +96,9 @@ export default function ShareDialog({
                         </Button>
                     </div>
                 </div>) : mode === "shareToSocialMedia" ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 p-4 overflow-y-auto h-full text-md">
                         {shareImage && (
-                            <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-full h-full group">
+                            <div className="relative aspect-[9/16] overflow-hidden rounded-xl w-72 h-80 mx-auto group">
                                 <Image
                                     src={`data:image/png;base64,${shareImage}`}
                                     alt={`Generated image`}
@@ -98,10 +111,27 @@ export default function ShareDialog({
                     </div>
                 ) : <></>
             }
-            <DialogFooter className="sm:justify-start">
+            <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
+                {mode === "share" && url && <Button
+                    onClick={() => { 
+                        if (url) {
+                            copyToClipboard(url);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                        }
+                    }}
+                    className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                >
+                    {copied
+                            ? phrase(dictionary, "copied", language)
+                            : phrase(dictionary, "copyLink", language)
+                        }
+                </Button>}
                 <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                        Close
+                    <Button
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+                    >
+                        {phrase(dictionary, "close", language)}
                     </Button>
                 </DialogClose>
             </DialogFooter>

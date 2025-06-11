@@ -1,19 +1,26 @@
 "use client"
 import { SortBy, Webnovel } from '@/components/Types'
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import WebnovelPictureCardWrapper from "@/components/UI/WebnovelPictureCardWrapper"
 import { phrase } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import WebnovelsAllCardWrapper from '@/components/UI/WebnovelsAllCardWrapper';
-import { filter_by_version, sortByFn } from '@/utils/webnovelUtils';
-import { filter_by_genre } from '@/utils/webnovelUtils';
+import { filter_by_genre, filter_by_version, sortByFn, filter_by_adult_material, getWebnovelsToShow } from '@/utils/webnovelUtils';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { useUser } from '@/contexts/UserContext';
 
-const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams: { [key: string]: string | string[] | undefined }, sortBy: SortBy, title: string }) => {
-    const genre = searchParams.genre as string | undefined;
-    const version = searchParams.version as string | undefined;
+const WebnovelsCardListByNew = ({ searchParams, sortBy, title, genre, is_adult_material, mode = 'sub_page', version }: { 
+    searchParams: { [key: string]: string | string[] | undefined }, 
+    sortBy: SortBy, 
+    title: string, 
+    genre?: string, 
+    is_adult_material?: boolean | null, 
+    mode?: 'main_page' | 'sub_page', 
+    version?: string 
+}) => {
+    // const genre = searchParams.genre as string | undefined;
+    // const version = searchParams.version as string | undefined;
     const { dictionary, language } = useLanguage();
     const [webnovelsToShow, setWebnovelsToShow] = useState<Webnovel[]>([])
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -23,16 +30,21 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams:
     // const currentSort = searchParams.get('sort') || 'latest';
 
     useEffect(() => {
-        let _webnovelsToShow = webnovels
-            .filter(item => filter_by_genre(item, genre))
-            .filter(item => filter_by_version(item, version))
-            .filter(item => item.chapters_length > 0)
-            .sort((a, b) => sortByFn(a, b, sortBy, genres))
+        let _version = version || searchParams.version as string | undefined;
+        let _webnovelsToShow = getWebnovelsToShow(webnovels, sortBy, genres, genre, _version, is_adult_material)
 
         if (isMobile) {
-            _webnovelsToShow = _webnovelsToShow.slice(0, 9)
+            if (mode === 'main_page') {
+                _webnovelsToShow = _webnovelsToShow.slice(0, 9)
+            } else {
+                _webnovelsToShow = _webnovelsToShow.slice(0, 24)
+            }
         } else {
-            _webnovelsToShow = _webnovelsToShow.slice(0, 12)
+            if (mode === 'main_page') {
+                _webnovelsToShow = _webnovelsToShow.slice(0, 12)
+            } else {
+                _webnovelsToShow = _webnovelsToShow.slice(0, 30)
+            }
         }
 
         setWebnovelsToShow(_webnovelsToShow);
@@ -42,6 +54,10 @@ const WebnovelsCardListByNew = ({ searchParams, sortBy, title }: { searchParams:
     } else if (Array.isArray(genre)) {
         throw new Error("there should be only one genre param")
     } else {
+    }
+
+    if (webnovelsToShow.length === 0) {
+        return <></>
     }
 
     return (

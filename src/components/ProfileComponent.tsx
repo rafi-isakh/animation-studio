@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Webnovel, UserStripped, ToonyzPost } from '@/components/Types';
+import { Webnovel, UserStripped, ToonyzPost, Author } from '@/components/Types';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -19,7 +19,6 @@ import {
     Eye,
     ChevronRight,
     ImageUp,
-    UserRoundX,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import WebnovelsCardList from '@/components/WebnovelsCardList';
@@ -36,8 +35,7 @@ import { EditProfileButton } from '@/components/UI/EditProfileButton';
 import ToonyzPostCardList from '@/components/UI/ToonyzPostCardList';
 import DeleteAccountButton from './UI/DeleteAccountButton';
 
-const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnovel[] }) => {
-
+const ProfileComponent = ({ user, novels, mode = 'view_profile' }: { user: UserStripped, novels: Webnovel[], mode: 'view_profile' | 'view_author' }) => {
     const { language, dictionary } = useLanguage();
     const introRef = useRef<HTMLDivElement>(null);
     const novelsRef = useRef<HTMLDivElement>(null);
@@ -56,7 +54,11 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     const [refreshBlockedUsers, setRefreshBlockedUsers] = useState<boolean>(false);
     const pathname = usePathname();
     const [displayNickname, setDisplayNickname] = useState<string>(user.nickname);
+    const [displayBio, setDisplayBio] = useState<string>(user.bio);
     const [posts, setPosts] = useState<ToonyzPost[]>([]);
+    const [deleteAccountReason, setDeleteAccountReason] = useState<string>("");
+    const [deleteAccountReasonType, setDeleteAccountReasonType] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         async function getBlockedUsers() {
@@ -122,6 +124,12 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     }, [email_hash]);
 
 
+    useEffect(() => {
+        if (user.bio !== displayBio) {
+            setDisplayBio(user.bio);
+        }
+    }, [user.bio]);
+
     // implementing utils function
     const handleProfilePictureUpload = () => {
         if (id === user.id.toString()) {
@@ -157,24 +165,30 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
     };
 
     const handleDeleteAccount = async () => {
+        setIsLoading(true);
         if (id !== user.id.toString()) {
             console.error("Deleting account failed");
             return
         }
-
         try {
             const response = await fetch(`/api/delete_account?email=${email}`);
             if (!response.ok) {
                 console.error("Deleting account failed");
                 return;
             }
-
+            const message = `Deleted user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Deleted at: ${new Date().toISOString()} <br/><br/> Content: ${deleteAccountReason} <br/><br/> Reason Type: ${deleteAccountReasonType}`;
+            fetch('/api/send_email', {
+                method: 'POST',
+                body: JSON.stringify({ message: message, email: email, templateType: 'report', subject: 'Survey - Account deletion', staffEmail: 'dami@stelland.io, min@stelland.io' })
+            })
             await logout(true, `/`);
         } catch (error) {
             console.error('Error signing out:', error);
+            setIsLoading(false);
         }
         finally {
             setShowDeleteAccountModal(false);
+            setIsLoading(false);
         }
     }
 
@@ -207,7 +221,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
         }
         return "";
     }
-
 
     return (
         <div className={`${id === user.id.toString() ? 'md:max-w-screen-md' : 'md:max-w-screen-xl'}  w-full mx-auto md:p-0 p-4 flex flex-col my-auto justify-center items-center`}>
@@ -287,7 +300,7 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                         }
                                         <p className="text-xl">{displayNickname}</p>
                                         <div className='flex flex-row gap-0 text-gray-600 dark:text-white'>
-                                            {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} />}
+                                            {isLoggedIn && user.id.toString() === id && <EditProfileButton nickname={user.nickname} setDisplayNickname={setDisplayNickname} setDisplayBio={setDisplayBio} />}
                                             <ProfileShareButton user={user} id={id} />
                                             {isLoggedIn && user.id.toString() !== id && <ReportButton user={user} />}
                                             {isLoggedIn && user.id.toString() !== id && <BlockButton user={user} setRefreshBlockedUsers={setRefreshBlockedUsers} />}
@@ -301,13 +314,6 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                                     <Book size={15} />
                                                     <p className='text-sm capitalize'>{phrase(dictionary, "works", language)}</p>
                                                     <p className='text-sm text-center text-gray-500'>{novels.length}</p>
-                                                </p>
-                                            </div>
-                                            <div className='flex flex-col justify-center items-center md:pr-6 pr-2 border-r border-gray-300'>
-                                                <p className='flex flex-row justify-center items-center gap-1 text-sm'>
-                                                    <Eye size={15} />
-                                                    <p className='text-sm capitalize'>{phrase(dictionary, "views", language)}</p>
-                                                    <p className='text-sm text-center text-gray-500'>{novels.reduce((acc: number, novel: Webnovel) => acc + novel.shown_views, 0)}</p>
                                                 </p>
                                             </div>
                                             <div className='flex flex-col justify-center items-center'>
@@ -350,9 +356,12 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                 {phrase(dictionary, "userBio", language)}
                             </h1>
                             <div>
-                                {user.bio ? (
+                                {displayBio ? displayBio : user.bio ? (
+                                    // TODO: this has to be reviewed by Min, because it's not the best way to do this
+                                    // doesn't work when changing bio, otherTranslateComponent doesn't rerender
                                     <>
                                         <OtherTranslateComponent
+                                            key={`bio-${user.bio}`}
                                             element={user}
                                             content={user.bio}
                                             elementId={user.id.toString()}
@@ -360,10 +369,13 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                                             classParams='text-base'
                                         />
                                     </>
-                                ) : user.bio === "" ? (<p className='text-base text-gray-500'>
-                                    {phrase(dictionary, "noBioYet", language)}
-                                </p>
-                                ) : (<></>)}
+                                ) : (
+                                    user.bio === "" ?
+                                        <p className='text-base text-gray-500'>
+                                            {phrase(dictionary, "noBioYet", language)}
+                                        </p>
+                                        : (<></>)
+                                )}
                             </div>
 
                             {novels.length > 0 ? (
@@ -394,6 +406,11 @@ const ProfileComponent = ({ user, novels }: { user: UserStripped, novels: Webnov
                 isOpen={showDeleteAccountModal}
                 onClose={() => setShowDeleteAccountModal(false)}
                 onConfirm={handleDeleteAccount}
+                deleteAccountReason={deleteAccountReason}
+                setDeleteAccountReason={setDeleteAccountReason}
+                deleteAccountReasonType={deleteAccountReasonType}
+                setDeleteAccountReasonType={setDeleteAccountReasonType}
+                isLoading={isLoading}
             />
         </div >
     );

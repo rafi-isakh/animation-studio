@@ -1,14 +1,14 @@
 import { phrase } from "@/utils/phrases";
 import { Button } from "@/components/shadcnUI/Button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
-import { Textarea } from "@/components/shadcnUI/Textarea";
 import { useState } from "react";
 import { UserStripped } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Flag } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+import ReportModal from "@/components/UI/ReportModal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ReportButton({ user, mode = "profile_page" }: { user: UserStripped, mode?: "profile_page" | "toonyzPost_page" | "comments" }) {
     const [showReportModal, setShowReportModal] = useState(false);
@@ -16,16 +16,31 @@ export default function ReportButton({ user, mode = "profile_page" }: { user: Us
     const { language, dictionary } = useLanguage();
     const [reportMessage, setReportMessage] = useState('');
     const { nickname: loggedInUser_nickname, id: loggedInUser_id } = useUser();
+    const { toast } = useToast();
 
     const handleSendReportEmail = async () => {
-        const message = `Reported user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Reported by: ${loggedInUser_nickname} <br/> Reported by ID: ${loggedInUser_id} <br/><br/> Report message: ${reportMessage}`;
-        await fetch('/api/send_email', {
-            method: 'POST',
-            body: JSON.stringify({  message: message, templateType: 'report', subject: 'Report', staffEmail: 'dami@stelland.io, min@stelland.io' })
-        });
-        setShowReportModal(false);
-        setShowReportSuccessModal(true);
+        try {
+            const message = `Reported user: ${user.nickname} <br/> User ID: ${user.id} <br/><br/> Reported by: ${loggedInUser_nickname} <br/> Reported by ID: ${loggedInUser_id} <br/><br/> Report message: ${reportMessage}`;
+            await fetch('/api/send_email', {
+                method: 'POST',
+            body: JSON.stringify({  message: message, templateType: 'report', subject: 'Report - general', staffEmail: 'dami@stelland.io, min@stelland.io' })
+            });
+            toast({
+                title: phrase(dictionary, "reportSuccess", language),
+                variant: "success",
+                description: phrase(dictionary, "reportSuccess_subtitle", language),
+            });
+            setShowReportModal(false);
+            setShowReportSuccessModal(true);
+        } catch (error) {
+            toast({
+                title: phrase(dictionary, "reportError", language),
+                variant: "destructive",
+                description: phrase(dictionary, "reportError_subtitle", language),
+            });
+        }
     }
+    
     return (
         <>
             <TooltipProvider delayDuration={0}>
@@ -51,30 +66,16 @@ export default function ReportButton({ user, mode = "profile_page" }: { user: Us
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
-            <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
-                <DialogContent showCloseButton={true} className="bg-white dark:bg-[#211F21]">
-                    <DialogHeader>
-                        <DialogTitle>{phrase(dictionary, "wouldYouLikeToReport", language)}</DialogTitle>
-                    </DialogHeader>
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        <Textarea rows={4} className='w-full p-4' placeholder={phrase(dictionary, "reportReason", language)} value={reportMessage} onChange={(e) => setReportMessage(e.target.value)} />
-                    </div>
-                    <DialogFooter className='flex flex-row justify-center items-center gap-4'>
-                        <Button variant='outline' className='' onClick={handleSendReportEmail}>{phrase(dictionary, "report", language)}</Button>
-                        <Button color='destructive' variant='outline' className='bg-[#DE2B74] text-white' onClick={() => setShowReportModal(false)}>{phrase(dictionary, "cancel", language)}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            <Dialog open={showReportSuccessModal} onOpenChange={setShowReportSuccessModal}>
-                <DialogContent showCloseButton={true} className="bg-white dark:bg-[#211F21]">
-                    <div className='flex flex-col space-y-4 items-center justify-center'>
-                        <p className='text-lg font-bold'>{phrase(dictionary, "reportSuccess", language)}</p>
-                    </div>
-                    <DialogFooter className='flex flex-row !justify-center !items-center gap-4'>
-                        <Button variant='outline' className='bg-[#DE2B74] text-white' onClick={() => setShowReportSuccessModal(false)}>{phrase(dictionary, "close", language)}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <ReportModal
+                showReportModal={showReportModal}
+                setShowReportModal={setShowReportModal}
+                showReportSuccessModal={showReportSuccessModal}
+                setShowReportSuccessModal={setShowReportSuccessModal}
+                user={user}
+                reportMessage={reportMessage}
+                setReportMessage={setReportMessage}
+                onSubmit={handleSendReportEmail}
+            />
         </>
     )
 }

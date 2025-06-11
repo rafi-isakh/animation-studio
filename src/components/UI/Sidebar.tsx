@@ -8,11 +8,12 @@ import { phrase } from '@/utils/phrases'
 import {
   LibraryBig,
   LayoutGrid,
-  SquarePlus,
   Bell,
   Gift,
   ChevronFirst,
   Home,
+  TvMinimalPlay,
+  PencilLine,
 } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "@/contexts/providers"
@@ -48,15 +49,23 @@ export function GlobalSidebar() {
         type="link"
       />
       <SidebarItem
-        icon={<LayoutGrid />}
-        text={phrase(dictionary, "sidebar_feeds", language)}
-        active={pathname.startsWith('/feeds')}
+        icon={<TvMinimalPlay />}
+        text={phrase(dictionary, "sidebar_shorts", language)}
+        active={pathname.startsWith('/shorts')}
         alert={false}
-        href="/feeds"
+        href="/shorts"
         type="link"
       />
       <SidebarItem
-        icon={<SquarePlus />}
+        icon={<LayoutGrid />}
+        text={phrase(dictionary, "sidebar_feed", language)}
+        active={pathname.startsWith('/feed')}
+        alert={false}
+        href="/feed"
+        type="link"
+      />
+      <SidebarItem
+        icon={<PencilLine />}
         text={phrase(dictionary, "sidebar_create", language)}
         active={pathname.startsWith('/new_webnovel')}
         alert={false}

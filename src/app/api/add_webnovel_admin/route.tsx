@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
-
+import { revalidateTag } from "next/cache";
 export async function POST(req: NextRequest, res: NextResponse) {
     const session = await auth();
     if (!session) {
@@ -100,6 +100,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
             status: 500
         });
     }
+
+    revalidateTag("webnovels");
 
     const data = await response.json();
     return NextResponse.json({

@@ -7,14 +7,11 @@ import {
     List,
     ListItemButton,
     ListItemText,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Dialog,
     RadioGroup,
     Radio,
     FormControlLabel
 } from '@mui/material';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/shadcnUI/Dialog';
 import { langPairList } from '@/utils/phrases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
@@ -27,6 +24,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
 import { Moon, Sun } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Setting({ isLoggedInAndRegistered, expanded, }
     : { isLoggedInAndRegistered: boolean, expanded: boolean, }) {
@@ -62,7 +60,7 @@ export default function Setting({ isLoggedInAndRegistered, expanded, }
     const id = open ? 'simple-popover' : undefined;
 
     return (
-        <div className="flex items-center justify-center ">
+        <div className="flex items-center justify-center">
             <Tooltip
                 arrow
                 title="Settings"
@@ -148,31 +146,28 @@ export default function Setting({ isLoggedInAndRegistered, expanded, }
                                 }}
                             />
                         </ListItemButton>
-                        {/* <ListItemButton
-                            color='gray'
-                            className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'
-                        >
-                            <ListItemText primary={phrase(dictionary, 'helpCenter', language)} />
-                        </ListItemButton> */}
-                        {!isLoggedInAndRegistered ? (<Link href="/signin" passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
-                            <ListItemButton
-                                color='gray'
-                            >
-                                <ListItemText primary={phrase(dictionary, 'login', language)} />
+                        <Link href="/faq" passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
+                            <ListItemButton color='gray'>
+                                <ListItemText primary={phrase(dictionary, 'helpCenter', language)} />
                             </ListItemButton>
-                        </Link>) : (<Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
-                            <ListItemButton
-                                color='gray'
-                            >
-                                <ListItemText primary={phrase(dictionary, 'logout', language)} />
-                            </ListItemButton>
-                        </Link>)
+                        </Link>
+                        {!isLoggedInAndRegistered ? (
+                            <Link href="/signin" passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
+                                <ListItemButton color='gray'>
+                                    <ListItemText primary={phrase(dictionary, 'login', language)} />
+                                </ListItemButton>
+                            </Link>
+                        ) : (
+                            <Link href="#" onClick={handleSignOut} passHref className='w-full hover:bg-gray-50 dark:hover:bg-[#272727] self-start text-left rounded-md'>
+                                <ListItemButton color='gray'>
+                                    <ListItemText primary={phrase(dictionary, 'logout', language)} />
+                                </ListItemButton>
+                            </Link>
+                        )
                         }
                         <LanguageSettingDialogRaw
-                            id="language-menu"
-                            keepMounted
-                            open={openLanguageDialog}
-                            onClose={handleCloseLanguageDialog}
+                            openLanguageDialog={openLanguageDialog}
+                            setOpenLanguageDialog={setOpenLanguageDialog}
                             onPopoverClose={handlePopoverClose}
                         />
                     </List>
@@ -182,17 +177,10 @@ export default function Setting({ isLoggedInAndRegistered, expanded, }
     )
 }
 
-export function LanguageSettingDialogRaw(props: {
-    id: string,
-    keepMounted: boolean,
-    open: boolean,
-    onClose: () => void,
-    onPopoverClose: () => void
-}) {
+export function LanguageSettingDialogRaw({ openLanguageDialog, setOpenLanguageDialog, onPopoverClose }: { openLanguageDialog: boolean, setOpenLanguageDialog: (open: boolean) => void, onPopoverClose: () => void }) {
     const radioGroupRef = useRef<HTMLElement>(null);
     const { dictionary, language, setLanguageOverride } = useLanguage();
     const { theme } = useTheme();
-    const { onClose, open, ...other } = props;
 
     const handleEntering = () => {
         if (radioGroupRef.current != null) {
@@ -201,64 +189,69 @@ export function LanguageSettingDialogRaw(props: {
     };
 
     const handleCancel = () => {
-        onClose();
+        setOpenLanguageDialog(false);
+        onPopoverClose();
     };
 
     const handleOk = () => {
-        onClose();
-        props.onPopoverClose();
+        setOpenLanguageDialog(false);
+        onPopoverClose();
     };
 
     return (
-        <Dialog
-            sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
-            maxWidth="xs"
-            TransitionProps={{ onEntering: handleEntering }}
-            open={props.open}
-            {...other}
-            className='dark:text-white'
-            PaperProps={{
-                className: "bg-white dark:bg-black dark:text-white" // or any dark color you prefer
-            }}
-        >
-            <DialogTitle>{phrase(dictionary, 'language', language)}</DialogTitle>
-            <DialogContent dividers>
-                <RadioGroup
-                    ref={radioGroupRef}
-                    aria-label="Language"
-                    name="Language"
-                    value={langPairList.find(langPair => langPair.code === language)?.name || 'English'}
-                    onChange={(event, value) => setLanguageOverride(langPairList.find(langPair => langPair.name === value)?.code as Language)}
-                    className='dark:text-white'
-                >
-                    {langPairList.map((langPair) => (
-                        <FormControlLabel
-                            value={langPair.name}
-                            key={langPair.code}
-                            control={
-                                <Radio
-                                    sx={{
-                                        color: `${theme === 'dark' ? 'rgb(156 163 175)' : 'rgb(229 231 235)'}`,  // gray-400 in light mode
-                                        '&.Mui-checked': {
-                                            color: `${theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(156 163 175)'}`,  // gray-200 in dark mode
-                                        },
-                                    }}
-                                />
-                            }
-                            label={langPair.name}
-                            className='dark:text-white'
-                        />
-                    ))}
-                </RadioGroup>
+        <Dialog open={openLanguageDialog} onOpenChange={setOpenLanguageDialog}>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-full select-none text-md' showCloseButton>
+                <DialogHeader className='text-md p-4'>
+                    <DialogTitle className='text-md'>{phrase(dictionary, 'language', language)}</DialogTitle>
+                    <DialogDescription className='text-md'>
+                        <p> {phrase(dictionary, 'setting_language_description', language)}</p>
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col px-4 pb-4 text-md">
+                    <RadioGroup
+                        ref={radioGroupRef}
+                        aria-label="Language"
+                        name="Language"
+                        value={langPairList.find(langPair => langPair.code === language)?.name || 'English'}
+                        onChange={(event, value) => setLanguageOverride(langPairList.find(langPair => langPair.name === value)?.code as Language)}
+                        className='dark:text-white'
+                    >
+                        {langPairList.map((langPair) => (
+                            <FormControlLabel
+                                value={langPair.name}
+                                key={langPair.code}
+                                control={
+                                    <Radio
+                                        sx={{
+                                            color: `${theme === 'dark' ? 'rgb(156 163 175)' : 'rgb(229 231 235)'}`,  // gray-400 in light mode
+                                            '&.Mui-checked': {
+                                                color: `${theme === 'dark' ? 'rgb(229 231 235)' : 'rgb(156 163 175)'}`,  // gray-200 in dark mode
+                                            },
+                                        }}
+                                    />
+                                }
+                                label={langPair.name}
+                                className='dark:text-white'
+                            />
+                        ))}
+                    </RadioGroup>
+                </div>
+                <DialogFooter className='flex flex-row !space-x-0 !p-0 !flex-grow-0 !flex-shrink-0 w-full self-end text-md'>
+                    <Button
+                        onClick={handleOk}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
+                    >
+                        {phrase(dictionary, 'ok', language)}
+                    </Button>
+                    <Button
+                        onClick={handleCancel}
+                        className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#b8c1d1] hover:bg-[#a9b2c2] text-white")}
+
+                    >
+                        {phrase(dictionary, 'cancel', language)}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button autoFocus onClick={handleCancel}>
-                    {phrase(dictionary, 'cancel', language)}
-                </Button>
-                <Button onClick={handleOk}>
-                    {phrase(dictionary, 'ok', language)}
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 }

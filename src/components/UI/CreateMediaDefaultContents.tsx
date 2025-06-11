@@ -13,17 +13,20 @@ import { phrase } from "@/utils/phrases";
 import { useCreateMedia } from "@/contexts/CreateMediaContext";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/shadcnUI/Toast";
-import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
+import NotEnoughTicketsDialog from "@/components/UI/NotEnoughTicketsDialog";
+import { useUser } from "@/contexts/UserContext";
+import { BsFillTicketPerforatedFill } from "react-icons/bs"
 
-export default function CreateMediaDefaultContents({ stars, source, webnovelId, chapterIds }: { stars: number, source: 'webnovel' | 'chapter', webnovelId?: string, chapterIds?: number[] }) {
+export default function CreateMediaDefaultContents({ source, webnovelId, chapterIds }: { source: 'webnovel' | 'chapter', webnovelId?: string, chapterIds?: number[] }) {
     const [initialPosts, setInitialPosts] = useState<ToonyzPost[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { dictionary, language } = useLanguage();
     const { setOpenDialog, loadingVideoGeneration, generateTrailer } = useCreateMedia();
     const { toast } = useToast();
-    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [showNotEnoughTicketsModal, setShowNotEnoughTicketsModal] = useState(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
+    const { tickets } = useUser();
 
     useEffect(() => {
         // TODO: refactor the backend to use webnovel_id
@@ -77,9 +80,9 @@ export default function CreateMediaDefaultContents({ stars, source, webnovelId, 
                             className="rounded-full bg-white text-black hover:bg-gray-200 px-8 py-6 font-medium text-base"
                             disabled={loadingVideoGeneration || !chapterIds || chapterIds.length === 0}
                             onClick={() => {
-                                if (stars < 20) {
-                                    setCreateMediaPrice(20)
-                                    setShowNotEnoughStarsModal(true);
+                                if (tickets < 2) {
+                                    setCreateMediaPrice(2)
+                                    setShowNotEnoughTicketsModal(true);
                                     return;
                                 }
                                 if (chapterIds && chapterIds.length > 0) {
@@ -99,7 +102,7 @@ export default function CreateMediaDefaultContents({ stars, source, webnovelId, 
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" /> :
                                 null
                             }
-                            {phrase(dictionary, "generateButton", language)} <MdStars className="text-lg md:text-xl text-[#D92979]" />20
+                            {phrase(dictionary, "generateButton", language)} <BsFillTicketPerforatedFill className="text-lg md:text-xl text-[#D92979]" />2
                         </Button>
                     }
 
@@ -164,7 +167,7 @@ export default function CreateMediaDefaultContents({ stars, source, webnovelId, 
                 </div>
             </div>
             <div className='h-[10vh]' />
-            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
+            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} Tickets={tickets} createMediaPrice={createMediaPrice} />
         </div >
     )
 }

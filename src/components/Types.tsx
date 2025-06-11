@@ -12,7 +12,7 @@ export type ElementType = 'webnovel' | 'chapter' | 'user' | 'comment' | 'carouse
 
 export type ElementSubtype = 'title' | 'description' | 'hook' | 'other' | 'quote' | 'content'
 
-export type SortBy = 'views' | 'likes' | 'date' | 'recommendation'
+export type SortBy = 'views' | 'likes' | 'date' | 'recommendation' | 'id'
 
 export interface Chapter {
   id: number;
@@ -37,7 +37,10 @@ export interface User {
   bio: string;
   picture: string;
   stars: number;
+  english_stars: number;
   free_stars: number;
+  free_english_stars: number;
+  tickets: number;
   purchased_webnovel_chapters: string;
   upvoted_comments: string;
   created_at: Date;
@@ -96,6 +99,8 @@ export interface SlickCarouselItem {
   webnovel: Webnovel;
   parsed_tags: string[];
   other_translations: OtherTranslation[];
+  link: string;
+  genre: string;
 }
 
 export interface Webnovel {
@@ -209,6 +214,8 @@ export interface CourseBook {
   textColor?: string;
   description?: string;
   description_en?: string;
+  file_url_ko?: string;
+  file_url_en?: string;
 }
 
 export interface FaqItem {

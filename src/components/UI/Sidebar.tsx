@@ -12,6 +12,7 @@ import {
   Gift,
   ChevronFirst,
   Home,
+  TvMinimalPlay,
   PencilLine,
 } from "lucide-react"
 import Image from "next/image"
@@ -45,6 +46,14 @@ export function GlobalSidebar() {
         active={pathname === '/'}
         alert={false}
         href="/"
+        type="link"
+      />
+      <SidebarItem
+        icon={<TvMinimalPlay />}
+        text={phrase(dictionary, "sidebar_shorts", language)}
+        active={pathname.startsWith('/shorts')}
+        alert={false}
+        href="/shorts"
         type="link"
       />
       <SidebarItem

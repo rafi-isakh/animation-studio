@@ -23,8 +23,8 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
     onClose: () => void,
     onConfirm: () => void,
     onCancel: () => void,
-    isProfileOwner: boolean,
-    user: UserStripped
+    isProfileOwner?: boolean,
+    user?: UserStripped
 }) => {
     const { language, dictionary } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('')
@@ -67,19 +67,19 @@ const SharingModal = ({ isOpen, onClose, onConfirm, onCancel, isProfileOwner, us
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-row justify-center items-center gap-2 p-4 mb-4 text-md">
-                    <TwitterShareButton url={currentPageUrl} title={user.nickname}>
+                    <TwitterShareButton url={currentPageUrl} title={user?.nickname || ""}>
                         <TwitterIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                     </TwitterShareButton>
 
-                    <TelegramShareButton url={currentPageUrl} title={user.nickname}>
+                    <TelegramShareButton url={currentPageUrl} title={user?.nickname || ""}>
                         <TelegramIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                     </TelegramShareButton>
 
-                    <WhatsappShareButton url={currentPageUrl} title={user.nickname}>
+                    <WhatsappShareButton url={currentPageUrl} title={user?.nickname || ""}>
                         <WhatsappIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                     </WhatsappShareButton>
 
-                    <PinterestShareButton url={currentPageUrl} title={user.nickname} media={user.picture || ""}>
+                    <PinterestShareButton url={currentPageUrl} title={user?.nickname || ""} media={user?.picture || ""}>
                         <PinterestIcon size={35} className="text-white rounded-full hover:opacity-80 transition duration-150 ease-in-out" />
                     </PinterestShareButton>
                 </div>

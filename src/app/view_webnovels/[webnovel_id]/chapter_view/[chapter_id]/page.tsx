@@ -35,6 +35,9 @@ import CommentsComponent from "@/components/CommentsComponent";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
+import { useToast } from "@/hooks/use-toast";
+import TableOfContents from "@/components/UI/TableOfContents";
+
 function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapter_id: string, webnovel_id: string } }) {
     const [webnovel, setWebnovel] = useState<Webnovel>();
     const [chapter, setChapter] = useState<Chapter>();
@@ -84,6 +87,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const [chapterToPurchase, setChapterToPurchase] = useState<Chapter>();
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -221,7 +225,11 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
 
     const handleChapterClick = (chapter: Chapter) => {
         if (!webnovel?.available_languages.includes(language)) {
-            alert(phrase(dictionary, "languageNotAvailable", language));
+            toast({
+                title: phrase(dictionary, "languageNotAvailable", language),
+                description: "Please select a different language",
+                variant: "destructive",
+            });
             return;
         }
         if (chapter.free) {
@@ -364,47 +372,28 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         </Button>
 
                         <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
-                            <MenubarMenu>
-                                <MenubarTrigger className="rounded-full p-2 data-[state=open]:bg-accent cursor-pointer">
-                                    <List className="h-5 w-5" />
-                                    <span className="sr-only">Table of Contents</span>
-                                </MenubarTrigger>
-                                <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
-                                    <MenubarItem className="font-semibold" inset>
-                                        Table of Contents
-                                    </MenubarItem>
-                                    <MenubarSeparator />
-                                    {sortedChapters?.map((chapter, index) => (
-                                        <MenubarItem
-                                            key={chapter.id}
-                                            onClick={() => {
-                                                if (!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language)) {
-                                                    setChapterToPurchase(chapter);
-                                                    setShowPurchaseModal(true);
-                                                } else {
-                                                    handleChapterClick(chapter);
-                                                }
-                                            }}
-
-                                            className={`${chapter.id === Number(chapter_id) ? "bg-accent" : ""} ${!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? "opacity-50" : ""}`}
-                                        // disabled={!chapter.free && !purchased_webnovel_chapters?.includes(chapter.id)}
-                                        >
-                                            <p className="text-sm">{index + 1}.</p>
-                                            <MenubarShortcut>
-                                                {chapter.title}
-                                                {!chapter.free && !isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) && (
-                                                    <span className="ml-2">🔒</span>
-                                                )}
-                                            </MenubarShortcut>
-                                        </MenubarItem>
-                                    ))}
-                                </MenubarContent>
-                            </MenubarMenu>
+                            <TableOfContents
+                                sortedChapters={sortedChapters || []}
+                                purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
+                                    .filter((purchase) => purchase[1] === language)
+                                    .map((purchase) => purchase[0])
+                                }
+                                language={language}
+                                chapter_id={chapter_id}
+                                setChapterToPurchase={setChapterToPurchase}
+                                setShowPurchaseModal={setShowPurchaseModal}
+                                webnovel={webnovel}
+                                isPurchasedChapter={(purchasedChapters, chapterId) =>
+                                    purchasedChapters.includes(chapterId)
+                                }
+                                phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
+                                dictionary={dictionary as Dictionary}
+                            />
                             {/* viewer settings */}
                             <MenubarMenu>
                                 <Button
                                     variant="ghost"
-                                    className="rounded-full"
+                                    className="rounded-sm"
                                     size="icon"
                                     onClick={(e) => {
                                         e.preventDefault();

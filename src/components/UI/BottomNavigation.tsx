@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import Paper from '@mui/material/Paper';
 import { useTheme } from "@/contexts/providers"
-import { Home, LayoutGrid, Search, User, Grip } from "lucide-react"
+import { Home, LayoutGrid, Search, User, Grip, TvMinimalPlay } from "lucide-react"
 import { useRouter } from 'next/navigation';
 import { useMobileMenu } from '@/contexts/MobileMenuContext';
 import { usePathname } from 'next/navigation';
@@ -35,17 +35,12 @@ export default function BottomNavigationBar() {
                 setIsMobileMenuOpen(false);
                 break;
             case 2:
-                router.push('/search');
+                router.push('/shorts');
                 setIsMobileMenuOpen(false);
                 break;
             case 3:
-                if (isLoggedIn) {
-                    router.push('/my_profile');
-                    setIsMobileMenuOpen(false);
-                } else {
-                    router.push('/signin');
-                    setIsMobileMenuOpen(false);
-                }
+                router.push('/search');
+                setIsMobileMenuOpen(false);
                 break;
             case 4:
                 router.push('/sitemap')
@@ -101,8 +96,8 @@ export default function BottomNavigationBar() {
             >
                 <BottomNavigationAction label={phrase(dictionary, "home", language)} icon={<Home />} />
                 <BottomNavigationAction label={phrase(dictionary, "feed", language)} icon={<LayoutGrid />} />
+                <BottomNavigationAction label={phrase(dictionary, "toonyz_shorts", language)} icon={<TvMinimalPlay />} />
                 <BottomNavigationAction label={phrase(dictionary, "search", language)} icon={<Search />} />
-                <BottomNavigationAction label={phrase(dictionary, "profile", language)} icon={<User />} />
                 <BottomNavigationAction label={phrase(dictionary, "allmenu", language)} icon={<Grip />} />
             </BottomNavigation>
         </Paper>

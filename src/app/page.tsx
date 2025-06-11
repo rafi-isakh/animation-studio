@@ -57,7 +57,6 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     //let library = await getLibrary() || [];
     // let posts = await getToonyzPosts();
     //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
-    redirect('/marketing_consent')
 
     return (
         <div className='relative flex flex-col justify-center items-center w-full'>

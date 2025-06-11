@@ -18,8 +18,11 @@ import { useReader } from '@/contexts/ReaderContext';
 import {
     ChevronLeft,
     ChevronRight,
+    Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import BlobButton from '@/components/UI/BlobButton';
+import { useCreateMedia } from '@/contexts/CreateMediaContext';
 
 const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts }:
     { webnovel: Webnovel, chapter: Chapter, selectedTextRef: React.MutableRefObject<string>, page: number, maxPage: number, posts: ToonyzPost[] }) => {
@@ -37,6 +40,27 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     const [openMenu, setOpenMenu] = useState(false)
     const [allowClose, setAllowClose] = useState(false);
     const [scrollPercent, setScrollPercent] = useState(0);
+
+    const {
+        isLoading,
+        setIsLoading,
+        progress,
+        savedPrompt,
+        prompts,
+        pictures,
+        openDialog,
+        setOpenDialog,
+        setSelection,
+        promotionBannerRef,
+        draggableNodeRef,
+        chapter_id,
+        // setWebnovelId,
+    } = useCreateMedia();
+
+    const handleToggleMenu = () => {
+        setOpenDialog((prevState: boolean) => !prevState);
+    }
+
 
     useEffect(() => {
         if (scrollType === 'horizontal') {
@@ -143,10 +167,10 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
     }
 
 
-    const handleToggleMenu = () => {
-        setOpenMenu(prevState => !prevState);
-        setAllowClose(!openMenu);
-    }
+    // const handleToggleMenu = () => {
+    //     setOpenMenu(prevState => !prevState);
+    //     setAllowClose(!openMenu);
+    // }
 
     // Function to close the menu
     const handleCloseMenu = () => {
@@ -168,6 +192,16 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                             </div>
                         </Link>
                     </div>
+
+                    <div className="fixed bottom-0 left-0 right-0 flex items-end justify-center pointer-events-none pb-4 z-[500]">
+                        <Button variant="link" onClick={handleToggleMenu} className="z-[500] !no-underline border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent pointer-events-auto">
+                            <div className="relative inline-flex group p-1 w-32 h-12 border-none" >
+                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
+                                <BlobButton text={<span className="flex items-center gap-2"><Sparkles size={20} /></span>} />
+                            </div>
+                        </Button>
+                    </div>
+
                     {/* view next and prev btn */}
                     <div>
                         <Link href={nextChapterLink} onClick={handleNextChapter}>
@@ -177,9 +211,7 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                             </div>
                         </Link>
                     </div>
-
                 </div >
-
             </div>
             {/* Dialogs for last and first chapter */}
             <Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >

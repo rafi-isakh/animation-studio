@@ -12,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import { Webnovel, Chapter, ToonyzPost } from "@/components/Types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/shadcnUI/Avatar";
-import { MessageCircle, AlignLeft, ChevronRightIcon, PenLine, MailQuestion } from "lucide-react";
+import { MessageCircle, AlignLeft, ChevronRightIcon, PenLine, MailQuestion, Sparkles } from "lucide-react";
 import Image from "next/image";
 import moment from "moment";
 import { CommentList } from "@/components/CommentList";
@@ -84,12 +84,12 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             {postCount}
                         </span>
                     </TabsTrigger>
-                    {/* <TabsTrigger value="3" onClick={() => { setTabValue('3') }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
+                    <TabsTrigger value="3" onClick={() => {  }} className="data-[state=active]:bg-[#DB2777] data-[state=active]:text-white rounded-lg px-4 py-2 w-full" >
                         <span className="flex flex-row items-center gap-1 text-sm">
-                            <MailQuestion size={16} />
-                            {phrase(dictionary, "askToAuthor", language)}{''}
+                            <Sparkles size={16} />
+                            투니즈 AI
                         </span>
-                    </TabsTrigger> */}
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="1">
                     <div className="flex flex-col self-start justify-start">

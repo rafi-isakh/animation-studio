@@ -70,8 +70,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     if (!response.ok) {
         console.error("Error updating user", response.status);
+        const error = await response.text();
         return NextResponse.json(
-            { error: "Failed to update user" },
+            { error: error },
             { status: response.status }
         );
     }

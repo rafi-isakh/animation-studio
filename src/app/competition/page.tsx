@@ -69,7 +69,7 @@ const CompetitionPage = () => {
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[280px] w-full text-xl">4. 참여 방법</div>
                                     <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
                                         <p>투니즈에서 공모기간 동안 <Link href='/new_webnovel' className="text-[#FF8197] font-semibold">[새 작품 등록하기]</Link>를 통해  자유 연재 <br />
-                                            시작 기존 연재 작품은 어렵습니다. 삭제 후 재 업로드 해주셔야 합니다.</p>
+                                        </p>
                                         <p className='text-[#696969]'>- 공모전 참가 신청 후 10화 이상 연재 시 심사 대상에 포함</p>
                                         <p className='text-[#696969]'>- 회차별 분량은 공백 포함 5,000자 기준, 10화 50,000자 이상 작성 필수</p>
                                         <p className='text-[#696969]'>- 1인 1작품 심사</p>

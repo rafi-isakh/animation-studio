@@ -58,7 +58,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
     const [free_english_stars, setFreeEnglishStars] = useState<number>(userFromServer?.free_english_stars || 0);
     const [tickets, setTickets] = useState<number>(userFromServer?.tickets || 0);
     const {loading} = useAuth();
-    const pathname = usePathname();
 
     useEffect(() => {
         const checkUser = async () => {
@@ -93,7 +92,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ userFromServer, chil
             }
         };
         checkUser();
-    }, [loading, invokeCheckUser, pathname]);
+    }, [loading, invokeCheckUser]);
 
     return (
         <userContext.Provider value={{

@@ -25,6 +25,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { headers } from 'next/headers';
 import UserProviderServer from "@/contexts/UserProviderServer";
 import WebnovelsProviderServer from "@/contexts/WebnovelsProviderServer";
+import { SessionProvider } from 'next-auth/react';
 
 interface RootLayoutProps {
     children: ReactNode;
@@ -127,7 +128,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             <body className={`antialiased dark`}>
                 <GoogleAnalytics />
                 <RegisterSW />
-                <ToastProvider>
+                <SessionProvider session={session}>
+                    <ToastProvider>
                     <LanguageProvider>
                         <LanguageSetter />
                         <WebnovelsProviderServer webnovelsMetadata={webnovelsMetadata}>
@@ -168,6 +170,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                         </WebnovelsProviderServer>
                     </LanguageProvider>
                 </ToastProvider>
+                </SessionProvider>
                 <script src="https://kit.fontawesome.com/ca5078bbee.js" crossOrigin="anonymous" async></script>
                 <script src="https://cdn.iamport.kr/v1/iamport.js" async></script>
             </body>

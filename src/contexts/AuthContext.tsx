@@ -1,17 +1,14 @@
 "use client"
-import { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { signIn, signOut } from 'next-auth/react';
-import { useUser } from './UserContext';
+import { createContext, useContext, ReactNode } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 interface AuthContextProps {
-    isLoggedIn: boolean | null;
-    setIsLoggedIn: (loggedIn: boolean | null) => void;
-    loading: boolean | null;
+    isLoggedIn: boolean;
+    loading: boolean;
     login: (provider: string, redirect: boolean, callbackUrl: string) => void;
     logout: (redirect: boolean, callbackUrl: string) => void;
     email: string | null;
-    setEmail: (email: string | null) => void;
+    session: any;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -21,76 +18,20 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-    const [email, setEmail] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [invokeAuthCheck, setInvokeAuthCheck] = useState(false);
-    const pathname = usePathname();
-    const isCheckingRef = useRef(false);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const checkAuth = useCallback(async () => {
-        // Prevent concurrent auth checks
-        if (isCheckingRef.current) {
-            return;
-        }
-
-        try {
-            isCheckingRef.current = true;
-            setLoading(true);
-            
-            const response = await fetch('/api/auth_session', {
-                cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache',
-                },
-            });
-            
-            if (!response.ok) {
-                throw new Error('Auth check failed');
-            }
-            
-            const data = await response.json();
-            setIsLoggedIn(data.loggedIn);
-            setEmail(data.email);
-            console.log('Auth check result:', data);
-        } catch (error) {
-            console.error('Error checking auth:', error);
-            // On error, assume not logged in
-            setIsLoggedIn(false);
-            setEmail(null);
-        } finally {
-            setLoading(false);
-            isCheckingRef.current = false;
-        }
-    }, []);
-
-    useEffect(() => {
-        // Clear any existing timeout
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
-        // Debounce the auth check to prevent rapid successive calls
-        timeoutRef.current = setTimeout(() => {
-            checkAuth();
-        }, 100);
-
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, [invokeAuthCheck, checkAuth]);
+    const { data: session, status } = useSession();
+    
+    const isLoggedIn = !!session?.user;
+    const loading = status === 'loading';
+    const email = session?.user?.email || null;
 
     async function login(provider: string, redirect: boolean, callbackUrl: string) {
         try {
-            await signIn(provider, { redirect: redirect, redirect_uri: callbackUrl, callbackUrl: callbackUrl, redirectTo: callbackUrl });
-            setIsLoggedIn(true);
-            // Use a small delay to allow the session to be established
-            setTimeout(() => {
-                setInvokeAuthCheck(prev => !prev);
-            }, 500);
+            await signIn(provider, { 
+                redirect: redirect, 
+                redirect_uri: callbackUrl, 
+                callbackUrl: callbackUrl, 
+                redirectTo: callbackUrl 
+            });
         } catch (error) {
             console.error('Login error:', error);
         }
@@ -98,20 +39,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     async function logout(redirect: boolean, callbackUrl: string) {
         try {
-            await signOut({ redirect: redirect, callbackUrl: callbackUrl });
-            setIsLoggedIn(false);
-            setEmail(null);
-            // Use a small delay to allow the session to be cleared
-            setTimeout(() => {
-                setInvokeAuthCheck(prev => !prev);
-            }, 500);
+            await signOut({ 
+                redirect: redirect, 
+                callbackUrl: callbackUrl 
+            });
         } catch (error) {
             console.error('Logout error:', error);
         }
     }
 
     return (
-        <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading, login, logout, email, setEmail }}>
+        <authContext.Provider value={{ 
+            isLoggedIn, 
+            loading, 
+            login, 
+            logout, 
+            email,
+            session
+        }}>
             {children}
         </authContext.Provider>
     );

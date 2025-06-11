@@ -13,24 +13,21 @@ export default function UserLoggedIn() {
     const searchParams = useSearchParams();
     const returnTo = searchParams.get('returnTo') || '/';
     const router = useRouter();
-    const { setIsLoggedIn } = useAuth();
+    const { isLoggedIn, loading } = useAuth();
 
     useEffect(() => {
         const handleRedirect = async () => {
-            // Give NextAuth time to establish the session
+            // Wait for auth session to be loaded
+            if (loading) return;
+            
+            // Give a small delay to ensure everything is ready
             await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Trigger auth context to refresh
-            setIsLoggedIn(true);
-            
-            // Small additional delay to ensure session is ready
-            await new Promise(resolve => setTimeout(resolve, 200));
             
             router.push(returnTo);
         };
 
         handleRedirect();
-    }, [returnTo, router, setIsLoggedIn]);
+    }, [returnTo, router, loading]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">

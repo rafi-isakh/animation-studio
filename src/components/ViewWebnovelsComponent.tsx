@@ -1,6 +1,6 @@
 "use client"
 import { Webnovel, ToonyzPost } from '@/components/Types'
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -34,6 +34,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [content, setContent] = useState<Webnovel | null>(null);
+    const webnovelLoadingRef = useRef(webnovel ? false : true);
 
     const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
@@ -56,7 +57,6 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
         let hasWebnovels = false;
         if (webnovel) {
             hasWebnovels = true;
-            setWebnovelLoading(false);
         }
         if (userWebnovels && userWebnovels.length > 0) {
             hasWebnovels = true;
@@ -64,7 +64,16 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             setUserWebnovelsLoading(false);
         }
         setAtLeastOneWebnovel(hasWebnovels);
+        webnovelLoadingRef.current = false;
     }, [webnovel, userWebnovels, deletedWebnovelId]);
+
+    useEffect(() => {
+        console.log("atLeastOneWebnovel", atLeastOneWebnovel);
+    }, [atLeastOneWebnovel])
+
+    useEffect(() => {
+        console.log("webnovelLoading", webnovelLoading);
+    }, [webnovelLoading])
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${webnovel_id}&novelLanguage=${webnovel?.language}`);
@@ -141,7 +150,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                                     onNewChapter={handleNewChapter}
                                     onDelete={handleDelete}
                                 />
-                                
+
                             </div>
                         </div>
                         <div className='flex-1 w-full md:w-2/3'>
@@ -157,16 +166,25 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                 </div>
             )
         } else {
-            return (
-                <div role="status" className={`flex items-center justify-center min-h-screen`}>
-                <LottieLoader
-                    animationData={animationData}
-                    width="w-40"
-                    centered={true}
-                    pulseEffect={true}
-                />
-            </div>
-            )
+            if (webnovelLoadingRef.current) {
+                return (
+                    <div role="status" className={`flex items-center justify-center min-h-screen`}>
+                        <LottieLoader
+                            animationData={animationData}
+                            width="w-40"
+                            centered={true}
+                            pulseEffect={true}
+                        />
+                    </div>
+                )
+            }
+            else {
+                return (
+                    <div className='md:max-w-screen-md w-full flex flex-row justify-center items-center mx-auto h-[80vh]'>
+                        <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
+                    </div>
+                )
+            }
         }
     }
 }

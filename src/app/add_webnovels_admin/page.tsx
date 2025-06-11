@@ -210,10 +210,48 @@ export default function UploadWebnovelsAdmin() {
             for (let i = 0; i < chapterEpubObjs.length; i++) {
                 const epubObj = chapterEpubObjs[i];
                 let htmlString = "";
-                for (const section of epubObj.sections) {
-                    if (section.id.startsWith('Section')) {
-                        htmlString += section.htmlString.replaceAll("ebook", "");
-                    }
+                
+                // slice(1, 4) for 1, 2, and 3
+                // slice(2, 4) for 2 and 3
+                // slice(1, 3) for 1 and 2
+                // slice(1, 2) for just section 1
+                // slice(3, 4) for just section 3
+                // slice(2, 3) for just section 2
+                // slice(0, 1) for just section 0
+                // slice(2, 20) 2-19
+                // slice(1, 5) for 1, 2, 3, 4
+                // slice(1, 7) for 1, 2, 3, 4, 5, 6
+                // slice(1, 11) for 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+                
+
+                for (const section of epubObj.sections.slice(1, 11)) {
+                    console.log('Processing section:', section.id); // Debug log
+                    
+                    // Create a temporary DOM element to parse the HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = section.htmlString;
+                    
+                    // Remove unwanted elements
+                    const elementsToRemove = tempDiv.querySelectorAll('style, script, meta, link');
+                    elementsToRemove.forEach(el => el.remove());
+                    
+                    // Process the HTML content with proper line breaks
+                    const cleanHtml = tempDiv.innerHTML
+                        .replaceAll("ebook", "") // Remove "ebook" text
+                        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "") // Remove style tags
+                        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "") // Remove script tags
+                        .replace(/<br\s*\/?>/gi, '\n') // Replace <br> with newline
+                        .replace(/<\/p>/gi, '\n\n') // Replace paragraph end with double newline
+                        .replace(/<div[^>]*>/gi, '\n') // Replace div start with newline
+                        .replace(/<\/div>/gi, '\n') // Replace div end with newline
+                        .replace(/<[^>]*>/g, '') // Remove remaining HTML tags
+                        .replace(/\n\s*\n\s*\n/g, '\n\n') // Replace multiple newlines with double newline
+                        .replace(/\n\s+/g, '\n') // Remove spaces after newlines
+                        .replace(/\s+\n/g, '\n') // Remove spaces before newlines
+                        .trim(); // Remove leading/trailing whitespace
+                    
+                    // Add the processed content with proper spacing
+                    htmlString += cleanHtml + '\n\n';
                 }
                 text = parseHtmlToText(htmlString!);
                 title = epubObj.info?.title;

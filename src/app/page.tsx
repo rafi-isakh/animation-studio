@@ -7,6 +7,7 @@ import WebnovelsByRank from '@/components/WebnovelsByRank';
 import { auth } from '@/auth';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 import MainPageWrapper from '@/components/UI/MainPageWrapper';
+import { redirect } from 'next/navigation';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
@@ -56,6 +57,7 @@ export default async function Home({ searchParams }: { searchParams: { [key: str
     //let library = await getLibrary() || [];
     // let posts = await getToonyzPosts();
     //library = library.filter((novel: Webnovel) => !temporarilyUnpublished.includes(novel.id));
+    redirect('/marketing_consent')
 
     return (
         <div className='relative flex flex-col justify-center items-center w-full'>

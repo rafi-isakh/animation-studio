@@ -116,7 +116,8 @@ export default function NewUser() {
         if (!res.ok) {
             throw new Error(`Failed to update user: ${res.statusText} ${res.status}`);
         }
-        router.push(returnTo || '/welcome');
+        console.log('returning to', returnTo);
+        router.push(pushTo);
     }
 
 
@@ -171,7 +172,6 @@ export default function NewUser() {
                 language: language,
             };
 
-            console.log(userData);
             const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/add_user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -181,7 +181,7 @@ export default function NewUser() {
             if (!res.ok) throw new Error("Failed to create user");
             await updateUser(formData2);
 
-            router.push(returnTo || '/welcome');
+            router.push(pushTo);
         } catch (error) {
             console.error("Error creating user:", error);
         }

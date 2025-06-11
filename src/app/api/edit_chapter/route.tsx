@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const last_edited = formData.get('last_edited')
   const language = formData.get('language')
 
-  if (!id || !title || !content || !webnovel_id || !last_edited || !language) {
+  if (!id || !content || !webnovel_id || !last_edited || !language) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 

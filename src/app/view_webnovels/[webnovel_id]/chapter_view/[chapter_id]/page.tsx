@@ -10,9 +10,8 @@ import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/shadcnUI/Dialog";
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger, MenubarShortcut } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Settings, Languages, Heart, List, Type } from 'lucide-react'
+import { Menubar, MenubarMenu } from "@/components/shadcnUI/Menubar";
+import { ChevronRight, ChevronLeft, Trash2, Heart, Type, Pencil } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -25,7 +24,6 @@ import { getImageUrl } from "@/utils/urls";
 import ProgressBar from '@/components/UI/ProgressBar';
 import { useWebnovels } from "@/contexts/WebnovelsContext";
 import ViewerSettingDialog from '@/components/UI/ViewerSettingDialog';
-import { cn } from "@/lib/utils";
 import dynamic from 'next/dynamic';
 import { createEmailHash } from '@/utils/cryptography';
 import DeleteChapterDialog from "@/components/UI/DeleteChapterDialog";
@@ -465,15 +463,6 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         {/* Title and content */}
                         <div className='flex flex-col space-y-4' >
                             <div id='translate-div'>
-                                <div className='flex justify-between px-4'>
-                                    <OtherTranslateComponent
-                                        element={chapter}
-                                        content={chapter.title}
-                                        elementId={chapter_id}
-                                        elementType='chapter'
-                                        elementSubtype="title"
-                                        classParams="text-2xl mt-2 mb-2" />
-                                </div>
                                 <div ref={webnovelViewRef} id="translated" className={`${scrollType == 'horizontal' ? 'h-fit' : ""}`}>
                                     <FloatingMenu selectedTextRef={selectedTextRef} webnovel={webnovel} chapter={chapter} webnovel_id={webnovel.id.toString()} chapter_id={chapter_id}>
                                         <WebnovelTranslateComponent availableLanguages={JSON.parse(webnovel.available_languages)} content={chapter.content} chapterId={chapter_id} webnovelId={webnovel.id.toString()} sourceLanguage={webnovel.language} />

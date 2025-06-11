@@ -35,10 +35,9 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
     const titleRef = useRef<ReactQuill>(null);
     const contentRef = useRef<ReactQuill>(null);
     const [openModal, setOpenModal] = useState(false);
-    const { getWebnovelById, getWebnovelIdWithChapterMetadata } = useWebnovels();
+    const { getWebnovelIdWithChapterMetadata } = useWebnovels();
     const [chapter, setChapter] = useState<Chapter | undefined>(undefined);
     const [webnovel, setWebnovel] = useState<Webnovel | undefined>(undefined);
-    const { invalidateCache } = useWebnovels();
     const clicked = useRef(false);
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
@@ -52,8 +51,9 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
                 if (chapter) {
                     console.log("chapter", chapter);
                     setChapter(chapter);
-                    if (chapter.title) {
-                        setTitle(chapter.title);
+                    if (chapter.id) {  // Check for chapter ID instead of title
+                        // let chapterIndex = webnovel?.chapters?.findIndex(ch => ch.id === chapter?.id) !== undefined ? webnovel?.chapters.findIndex(ch => ch.id === chapter?.id) + 1 : '';
+                        setTitle(`Chapter ${chapter.id}`);
                         setContent(chapter.content);
                         setLastEdited(chapter.last_edited);
                     } else {
@@ -91,19 +91,13 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
     }, [content])
 
     useEffect(() => {
-        if (titleRef.current) {
-            const quillEditor = titleRef.current.getEditor();
-            if (quillEditor) {
-                quillEditor.root.dataset.placeholder = phrase(dictionary, "chapterTitle", language);
-            }
-        }
         if (contentRef.current) {
             const quillEditor = contentRef.current.getEditor();
             if (quillEditor) {
                 quillEditor.root.dataset.placeholder = phrase(dictionary, "contentDescription", language);
             }
         }
-    }, [dictionary, language, titleRef.current, contentRef.current])
+    }, [dictionary, language, contentRef.current])
 
 
     const handleEditChapter = async (event: React.FormEvent) => {
@@ -112,8 +106,7 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
             setIsLoading(true);
             const formData = new FormData();
             // Get plain text from title editor
-            const titleEditor = titleRef.current?.getEditor();
-            const titleText = titleEditor?.getText().trim() || "";
+            const titleText =  `Chapter ${webnovel?.chapters?.findIndex(ch => ch.id === chapter?.id) !== undefined ? webnovel.chapters.findIndex(ch => ch.id === chapter?.id) + 1 : ''}`
 
             // Get plain text from content editor
             const contentEditor = contentRef.current?.getEditor();
@@ -121,7 +114,13 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
 
             formData.append('title', titleText);
             formData.append('content', contentText);
-            if (!titleText || !contentText) {
+            
+            // Debug: Log what we're sending
+            console.log('Sending titleText:', titleText);
+            console.log('Sending contentText:', contentText);
+            console.log('FormData title:', formData.get('title'));
+            
+            if (!contentText) {
                 return;
             }
             formData.append('id', chapter?.id.toString() || '');  // This is the chapter ID
@@ -138,8 +137,9 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
                     clicked.current = true;
                 }
                 const data = await Promise.resolve(resPromise);
+                const response = await data?.json();
+                console.log("API response:", response);
                 console.log("chapter updated?", data);
-                invalidateCache();
                 router.push(`/view_webnovels/${webnovelId}/chapter_view/${chapter?.id}`)
                 router.refresh();
             }
@@ -173,7 +173,6 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
                 <ThemeProvider theme={grayTheme}>
                     <div className="mr-4 flex flex-col space-y-4 w-full">
                         <div className='flex flex-col space-y-4 items-start'>
-                            <p className='text-2xl font-bold'> {chapter?.title} </p>
                             <p className='text-sm'>
                                 {language == 'ko' ?
                                     <>
@@ -188,14 +187,6 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
                             </p>
                         </div>
                         <hr />
-                        <div className="flex flex-col space-y-4 border border-gray-300 rounded-xl">
-                            <ReactQuill
-                                ref={titleRef}
-                                theme="bubble"
-                                value={title}
-                                onChange={setTitle}
-                                className="title-editor" />
-                        </div>
 
                         <div className="flex flex-col space-y-4">
                             <div className="flex flex-row justify-between">

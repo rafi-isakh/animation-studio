@@ -205,6 +205,7 @@ export default function MarketingConsentPage() {
                                     <DictionaryPhrase phraseVar="marketing_what_receive" />
                                 </h3>
                                 <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                    <li>• <DictionaryPhrase phraseVar="marketing_free_stars" /></li>
                                     <li>• <DictionaryPhrase phraseVar="marketing_chapter_notifications" /></li>
                                     <li>• <DictionaryPhrase phraseVar="marketing_exclusive_discounts" /></li>
                                     <li>• <DictionaryPhrase phraseVar="marketing_author_updates" /></li>

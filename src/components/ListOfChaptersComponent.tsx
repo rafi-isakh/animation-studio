@@ -1,28 +1,38 @@
-import { Chapter, Webnovel } from "@/components/Types";
+import { Chapter, Dictionary, Webnovel } from "@/components/Types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { phrase } from '@/utils/phrases';
 import { useEffect, useState } from "react";
 import moment from 'moment';
-import { ChevronDownIcon, Eye, MessageCircle, BadgeCheck, ChevronUpIcon } from "lucide-react";
-import { Button, Modal, Box } from "@mui/material";
-import { useModalStyle } from '@/styles/ModalStyles';
+import { ChevronDownIcon, MessageCircle, BadgeCheck, ChevronUpIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/shadcnUI/Dialog";
 import { useRouter } from 'next/navigation';
 import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import { getImageUrl } from "@/utils/urls";
 import { MdStars } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/shadcnUI/Button";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
 import { isPurchasedChapter } from "@/utils/webnovelUtils";
+import { Menubar } from "@/components/shadcnUI/Menubar";
+import TableOfContents from "@/components/UI/TableOfContents";
+import { useMediaQuery } from "@mui/material";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/shadcnUI/Pagination"
 
 const ListOfChaptersComponent = ({
     webnovel,
-    sortToggle,
     onUpdate
 }: {
     webnovel: Webnovel | undefined,
-    sortToggle: boolean,
     onUpdate?: (updatedContent: Webnovel) => void
 }) => {
     const { dictionary, language } = useLanguage();
@@ -36,15 +46,30 @@ const ListOfChaptersComponent = ({
     const { purchased_webnovel_chapters, setInvokeCheckUser, stars } = useUser();
     const { isLoggedIn } = useAuth();
     const [visibleChapters, setVisibleChapters] = useState(10); // Initial number of visible chapters
-    const CHAPTERS_PER_PAGE = 100; // Number of chapters to show per click
-
-    const sortedChapters = sortToggle ? webnovel?.chapters.sort((a, b) => b.id - a.id) : webnovel?.chapters.sort((a, b) => a.id - b.id);
-    const displayedChapters = sortedChapters?.slice(0, visibleChapters) || [];
-    const hasMoreChapters = sortedChapters ? sortedChapters.length > visibleChapters : false;
+    const CHAPTERS_PER_PAGE = 10; // Number of chapters to show per click
+    const [currentPage, setCurrentPage] = useState(1);
     const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
     const [savedValueOfVisibleChapters, setSavedValueOfVisibleChapters] = useState(10); // for switching back and forth between languages
-
     const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [sortToggle, setSortToggle] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 768px)');
+
+    const sortedChapters = sortToggle
+        ? [...(webnovel?.chapters || [])].sort((a, b) => b.id - a.id)
+        : [...(webnovel?.chapters || [])].sort((a, b) => a.id - b.id);
+
+    const displayedChapters = sortedChapters?.slice(
+        (currentPage - 1) * CHAPTERS_PER_PAGE,
+        currentPage * CHAPTERS_PER_PAGE
+    ) || [];
+
+    const totalPages = Math.ceil((sortedChapters?.length || 0) / CHAPTERS_PER_PAGE);
+
+    const handleSortToggle = () => {
+        setSortToggle(prev => !prev);
+        setCurrentPage(1);
+    };
+
 
     useEffect(() => {
         setImageSrc(getImageUrl(webnovel?.cover_art));
@@ -141,8 +166,72 @@ const ListOfChaptersComponent = ({
         }
     }
 
+    const getPaginationRange = (current: number, total: number) => {
+        if (isMobile) {
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+            if (current <= 4) {
+                return [1, 2, 3, 4, 5, '...', total];
+            }
+            if (current >= total - 3) {
+                return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+            }
+            return [1, '...', current - 1, current, current + 1, '...', total];
+        } else {
+            if (total <= 10) {
+                return Array.from({ length: total }, (_, i) => i + 1);
+            }
+            if (current <= 5) {
+                return [1, 2, 3, 4, 5, 6, 7, 8, '...', total];
+            }
+            if (current >= total - 4) {
+                return [1, '...', total - 7, total - 6, total - 5, total - 4, total - 3, total - 2, total - 1, total];
+            }
+            return [1, '...', current - 2, current - 1, current, current + 1, current + 2, '...', total];
+        }
+    }
+
+    const handlePageClick = (page: number) => {
+        if (typeof page === 'number' && page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+
     return (
         <>
+            <div className="flex flex-row gap-2 items-center justify-between ">
+                <p className="text-sm text-gray-500">
+                    {phrase(dictionary, "chapter_list", language)}
+                </p>
+
+                <div className="flex flex-row gap-2 items-center">
+                    <Menubar>
+                        <TableOfContents
+                            sortedChapters={sortedChapters || []}
+                            purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
+                                .filter((purchase) => purchase[1] === language)
+                                .map((purchase) => purchase[0])
+                            }
+                            language={language}
+                            chapter_id={displayedChapters[0]?.id.toString() || "0"}
+                            setChapterToPurchase={setChapterToPurchase}
+                            setShowPurchaseModal={setShowPurchaseModal}
+                            webnovel={webnovel!}
+                            isPurchasedChapter={(purchasedChapters, chapterId) =>
+                                purchasedChapters.includes(chapterId)
+                            }
+                            sortToggle={sortToggle}
+                            phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
+                            dictionary={dictionary as Dictionary}
+                        />
+                    </Menubar>
+                    <Button variant="outline" onClick={handleSortToggle} className='flex gap-2'>
+                        {sortToggle ? phrase(dictionary, "sort_theFirstChapter", language) : phrase(dictionary, "sort_theLastChapter", language)}
+                        {sortToggle ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
+                    </Button>
+                </div>
+            </div>
             <div className="w-full">
                 <div className="overflow-y-auto rounded-md">
                     {displayedChapters.map((chapter, index) => (
@@ -151,7 +240,6 @@ const ListOfChaptersComponent = ({
                             key={`chapter-${chapter.id}`}
                             className={`w-full block py-2 border-b border-gray-200 dark:border-gray-800 last:border-b-0 cursor-pointer
                            `}
-                        // ${!chapter.free ? 'opacity-50' : ''} 
                         >
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-3 items-center">
@@ -166,23 +254,40 @@ const ListOfChaptersComponent = ({
                                         />
                                     </div>
                                     <div className="flex flex-col text-sm">
-                                        <div className="flex flex-row">
+                                        <div className="flex flex-row w-full items-start">
                                             {
-                                                language == 'en' ?
-                                                    <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">Episode {index + 1}</p>
-                                                    :
-                                                    language == 'ja' ?
-                                                        <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">第{index + 1}話</p>
-                                                        :
-                                                        <p className="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white">{index + 1}화</p>
-
+                                                language == 'en'
+                                                    ? (
+                                                        <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                            Episode {sortToggle
+                                                                ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                            }
+                                                        </p>
+                                                    )
+                                                    : language == 'ja'
+                                                        ? (
+                                                            <p className="text-md text-left  truncate whitespace-nowrap text-black dark:text-white">
+                                                                第{sortToggle
+                                                                    ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                    : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                                }話
+                                                            </p>
+                                                        )
+                                                        : (
+                                                            <p className="text-md text-left truncate whitespace-nowrap text-black dark:text-white">
+                                                                {sortToggle
+                                                                    ? sortedChapters.length - ((currentPage - 1) * CHAPTERS_PER_PAGE + index)
+                                                                    : (currentPage - 1) * CHAPTERS_PER_PAGE + index + 1
+                                                                }화
+                                                            </p>
+                                                        )
                                             }
-                                            {/* <OtherTranslateComponent content={chapter.title} elementId={chapter.id.toString()} elementType="chapter" classParams="text-[14px]w-full truncate whitespace-nowrap text-black dark:text-white" /> */}
                                         </div>
                                         <p className="text-[11px] self-start text-gray-500">{moment(new Date(chapter.created_at)).format('YYYY/MM/DD')}</p>
                                         <div className="flex flex-row space-x-2 text-sm">
                                             <div className='flex flex-row gap-1 items-center text-[11px] text-gray-500 dark:text-white '>
-                                                {/* <Heart size={11} /> */}
+
                                                 {/* heart icon */}
                                                 <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">
                                                     <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z"
@@ -197,50 +302,87 @@ const ListOfChaptersComponent = ({
                                     </div>
                                 </div>
                                 <div className="flex flex-row gap-2 items-center">
-                                    <div className="text-gray-600 text-[10px] bg-gray-200 rounded-md px-1">
-                                        {chapter.free ? phrase(dictionary, "readingForFree", language)
-                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} />
-                                                : <div className="flex flex-row gap-1 items-center"> <MdStars className="text-sm text-[#D92979]" />{language === "ko" ? webnovel?.price_korean : webnovel?.price_english}</div>}
+                                    <div className="text-gray-600 text-[10px] bg-transparent rounded-md px-1">
+                                        {chapter.free ? <span className="uppercase">{phrase(dictionary, "readingForFree", language)}</span>
+                                            : isPurchasedChapter(purchased_webnovel_chapters, chapter.id, language) ? <BadgeCheck size={11} className="text-green-400 dark:text-green-400" />
+                                                : <div className="flex flex-row gap-1 items-center">
+                                                    <MdStars className="text-sm text-[#D92979]" />
+                                                    {language === "ko" ? webnovel?.price_korean : webnovel?.price_english}
+                                                </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </button>
                     ))}
                 </div>
-                {hasMoreChapters && (
-                    <button
-                        className="mt-4 w-full text-black dark:text-white rounded-xl p-2 text-sm flex flex-row gap-2 items-center justify-center"
-                        onClick={loadMoreChapters}
-                    >
-                        {/* 더보기 */}
-                        {showMoreChapters ? phrase(dictionary, "less", language) : phrase(dictionary, "more", language)}
-                        {showMoreChapters ? <ChevronUpIcon size={16} className="text-black dark:text-white" /> : <ChevronDownIcon size={16} className="text-black dark:text-white" />}
-                    </button>
-                )}
+                <div className="flex justify-center items-center gap-1 mt-4 text-xs">
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageClick(currentPage - 1);
+                                    }}
+                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                />
+                            </PaginationItem>
+                            {getPaginationRange(currentPage, totalPages).map((page, index) => (
+                                <PaginationItem key={`${page}-${index}`}>
+                                    {page === '...' ? (
+                                        <PaginationEllipsis />
+                                    ) : (
+                                        <PaginationLink
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handlePageClick(page as number);
+                                            }}
+                                            isActive={currentPage === page}
+                                        >
+                                            {page}
+                                        </PaginationLink>
+                                    )}
+                                </PaginationItem>
+                            ))}
+                            <PaginationItem>
+                                <PaginationNext
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageClick(currentPage + 1);
+                                    }}
+                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
             </div>
-            <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                <Box sx={useModalStyle}>
+            <Dialog open={showDeleteModal} onOpenChange={(open) => setShowDeleteModal(open)}>
+                <DialogContent className="p-4">
                     <div className="flex flex-col space-y-4 items-center justify-center">
                         <p className="text-lg font-bold">
                             {phrase(dictionary, "deleteChapterConfirm", language)}
                         </p>
                         <Button
-                            variant="contained"
+                            variant="outline"
                             color="error"
                             onClick={() => handleChapterDelete(deleteChapterId!)}
                         >
                             {phrase(dictionary, "yes", language)}
                         </Button>
                         <Button
-                            variant="outlined"
+                            variant="outline"
                             onClick={() => setShowDeleteModal(false)}
                         >
                             {phrase(dictionary, "no", language)}
                         </Button>
                     </div>
-                </Box>
-            </Modal>
-
+                </DialogContent>
+            </Dialog>
             {/* Purchase Modal */}
             <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
             {/* Not Enough Stars Modal */}

@@ -141,7 +141,7 @@ const LibraryComponent = ({ library, nickname, loading }: { library: Webnovel[],
                 }
                 <div className="w-full ">
                     <SmallGap/>
-                    <MyLibraryToonyzPostCard library={library} toonyzPosts={toonyzPosts} />
+                    <MyLibraryToonyzPostCard library={library} toonyzPosts={toonyzPosts} mode="library" />
                 </div>
             </div>
             <div className="h-[20vh]" />

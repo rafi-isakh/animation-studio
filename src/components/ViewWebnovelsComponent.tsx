@@ -1,6 +1,6 @@
 "use client"
 import { Webnovel, ToonyzPost } from '@/components/Types'
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AuthorAndWebnovelsAsideComponent from '@/components/AuthorAndWebnovelsAsideComponent';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,6 +11,11 @@ import Link from 'next/link';
 import ContentChapterListComponent from './UI/ContentChapterListComponent';
 import { useWebnovels } from '@/contexts/WebnovelsContext';
 import { MoveLeft } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import animationData from '@/assets/N_logo_with_heart.json';
+const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
+    ssr: false,
+});
 
 const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingUsersOtherWebnovels, posts }: {
     webnovel_id: string,
@@ -29,6 +34,7 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
     const [deletedWebnovelId, setDeletedWebnovelId] = useState<string | undefined>();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [content, setContent] = useState<Webnovel | null>(null);
+    const webnovelLoadingRef = useRef(webnovel ? false : true);
 
     const handleContentUpdate = (updatedContent: Webnovel) => {
         setContent(updatedContent);
@@ -51,7 +57,6 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
         let hasWebnovels = false;
         if (webnovel) {
             hasWebnovels = true;
-            setWebnovelLoading(false);
         }
         if (userWebnovels && userWebnovels.length > 0) {
             hasWebnovels = true;
@@ -59,7 +64,16 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             setUserWebnovelsLoading(false);
         }
         setAtLeastOneWebnovel(hasWebnovels);
+        webnovelLoadingRef.current = false;
     }, [webnovel, userWebnovels, deletedWebnovelId]);
+
+    useEffect(() => {
+        console.log("atLeastOneWebnovel", atLeastOneWebnovel);
+    }, [atLeastOneWebnovel])
+
+    useEffect(() => {
+        console.log("webnovelLoading", webnovelLoading);
+    }, [webnovelLoading])
 
     const handleNewChapter = () => {
         router.push(`/new_chapter?id=${webnovel_id}&novelLanguage=${webnovel?.language}`);
@@ -122,22 +136,24 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
             return (
                 <div className='md:max-w-screen-xl mx-auto w-full min-h-screen'>
                     <div className="flex md:flex-row flex-col justify-between items-start">
-                        <div className="md:w-1/3 max-auto w-full flex-grow-0">
-                            <div className="md:max-w-[360px] w-full mx-auto mt-4">
-                                <Link href="/" className={`items-center gap-1 text-black dark:text-white hover:text-gray-700 transition-colors mb-2 ml-2 self-start flex md:hidden z-[999]`}>
+                        <div className="md:w-1/3 mx-auto w-full flex-grow-0 flex-shrink-0">
+                            <div className="md:max-w-[360px] w-full mx-auto ">
+                                <Link href="/" className={`items-center gap-1 text-black dark:text-white hover:text-gray-700 transition-colors mb-4 ml-2 self-start flex md:hidden z-[999]`}>
                                     <MoveLeft size={20} className='dark:text-white text-black ' />
                                     <p className="text-sm font-base">Back</p>
                                 </Link>
                                 <AuthorAndWebnovelsAsideComponent
                                     webnovel={webnovel!}
                                     nickname={nickname}
+                                    relatedContent={webnovels}
                                     coverArt={webnovel?.cover_art || ""}
                                     onNewChapter={handleNewChapter}
                                     onDelete={handleDelete}
                                 />
+
                             </div>
                         </div>
-                        <div className='flex-1 md:w-2/3 w-full'>
+                        <div className='flex-1 w-full md:w-2/3'>
                             <ContentChapterListComponent
                                 content={webnovel as Webnovel}
                                 relatedContent={webnovels}
@@ -150,11 +166,25 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                 </div>
             )
         } else {
-            return (
-                <div className='md:max-w-screen-md w-full flex flex-row justify-center mx-auto h-[80vh]'>
-                    <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
-                </div>
-            )
+            if (webnovelLoadingRef.current) {
+                return (
+                    <div role="status" className={`flex items-center justify-center min-h-screen`}>
+                        <LottieLoader
+                            animationData={animationData}
+                            width="w-40"
+                            centered={true}
+                            pulseEffect={true}
+                        />
+                    </div>
+                )
+            }
+            else {
+                return (
+                    <div className='md:max-w-screen-md w-full flex flex-row justify-center items-center mx-auto h-[80vh]'>
+                        <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
+                    </div>
+                )
+            }
         }
     }
 }

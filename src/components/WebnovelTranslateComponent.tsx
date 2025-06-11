@@ -281,7 +281,7 @@ const WebnovelTranslateComponent = (
                 <>
                     {scrollType === 'vertical' &&
                         <div
-                            dangerouslySetInnerHTML={{ __html: textPostProcess(text, is_premium) }}
+                            dangerouslySetInnerHTML={{ __html: textPostProcess(text, is_premium, sourceLanguage, language) }}
                             style={{
                                 whiteSpace: 'pre-wrap',
                                 direction: `${isRtl}` as Direction,
@@ -333,7 +333,7 @@ const WebnovelTranslateComponent = (
                                             touchAction: 'manipulation',
                                             wordBreak: 'keep-all',
                                         }}
-                                        dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords, is_premium) }}
+                                        dangerouslySetInnerHTML={{ __html: textPostProcess(firstPageWords, is_premium, sourceLanguage, language) }}
                                         onContextMenu={(e) => e.preventDefault()}
                                         onTouchStart={(e) => e.stopPropagation()}>
                                     </div>
@@ -352,7 +352,7 @@ const WebnovelTranslateComponent = (
                                             touchAction: 'manipulation',
                                             wordBreak: 'keep-all',
                                         }}
-                                        dangerouslySetInnerHTML={{ __html: textPostProcess(secondPageWords, is_premium) }}
+                                        dangerouslySetInnerHTML={{ __html: textPostProcess(secondPageWords, is_premium, sourceLanguage, language) }}
                                         onContextMenu={(e) => e.preventDefault()}
                                         onTouchStart={(e) => e.stopPropagation()}>
                                     </div>

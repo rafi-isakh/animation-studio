@@ -276,13 +276,13 @@ const CompetitionPage = () => {
                                     하루하루 성실하게 써 내려간 연재, 그 노력 끝에 완성된 한 편의 작품이
                                     <br />
                                     플랫폼 전체를 바꾸는 힘이 될 수 있다고 믿습니다. </>
-                                    : <>We don’t want this to end with a single contract. <br/>
+                                    : <>We don&apos;t want this to end with a single contract. <br/>
                                      We believe that a story built through steady, sincere serialization has the power to transform an entire platform.
                                     </>}
                                 </p>
 
                                 <p>
-                                    {language === 'ko' ? <>작가님의 성장이 곧 투니즈의 성장입니다.<br/></> : <>Your growth is Toonyz\'s growth.</>}
+                                    {language === 'ko' ? <>작가님의 성장이 곧 투니즈의 성장입니다.<br/></> : <>Your growth is Toonyz&apos;s growth.</>}
                                     {language === 'ko' ? <>지속 가능한 창작 생태계를 함께 만들어가는 그 첫걸음을,
                                     <br />그 협업의 시작이 바로 이 공모전이 되길 바랍니다.
                                     </> : <>Together, let this contest become the first step toward a sustainable creative future. </>
@@ -324,13 +324,19 @@ const CompetitionPage = () => {
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">
                         <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfAj9NjXVLrTScaVA6YOoe7DpmG_qwo_MDZNAVSA67Ch10WxQ/viewform" target="_blank">
-                            <Image
+                            {language === 'ko' ? <Image
                                 src={getImageUrl('toonyz_2025_contest_button.webp')}
                                 alt="Contest Applying Button"
                                 width={400}
                                 height={200}
                                 className="cursor-pointer mx-auto"
-                            />
+                            /> : <Image
+                                src={getImageUrl('toonyz_2025_contest_button_en.webp')}
+                                alt="Contest Applying Button"
+                                width={400}
+                                height={200}
+                                className="cursor-pointer mx-auto"
+                            />}
                         </Link>
                     </div>
                 </div>

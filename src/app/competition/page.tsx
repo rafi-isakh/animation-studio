@@ -13,13 +13,19 @@ const CompetitionPage = () => {
         <div className="md:max-w-screen-xl w-full mx-auto">
 
             <div className="flex flex-col items-center justify-center bg-[#FFCCD7]  w-full h-full border-b-8 border-[#FF8197]">
-                <Image
+                {language === 'ko' ? <Image
                     src={getImageUrl('toonyz_2025_onepick_header.webp')}
                     alt="Contest Header"
                     width={900}
                     height={500}
                     className='pt-10'
-                />
+                /> : <Image
+                    src={getImageUrl('toonyz_2025_onepick_header_en.webp')}
+                    alt="Contest Header"
+                    width={900}
+                    height={500}
+                    className='pt-10'
+                />}
 
                 <div className="flex flex-col gap-10 w-full md:px-10 md:pb-10 gowun-batang">
                     <div className="md:w-[900px] mx-auto w-full h-full md:p-20 p-10 flex flex-col items-center justify-center border-4 border-white bg-white rounded-xl ">
@@ -71,7 +77,7 @@ const CompetitionPage = () => {
                                             alt='stelland star logo'
                                             width={isDesktop ? 150 : 100}
                                             height={isDesktop ? 150 : 100}
-                                            className="absolute right-1 top-8 -z-5  md:block hidden"
+                                            className="absolute right-1 top-10 -z-5 md:block hidden"
                                         />
                                     </div>
 
@@ -112,18 +118,22 @@ const CompetitionPage = () => {
                                                 <span className='text-black dark:text-black'>{language === 'ko' ? '1명' : '1 winner'}</span>
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
-                                                <p className="font-bold text-black dark:text-black">{language === 'ko' ? '100만원' : '₩1,000,000'}</p>
+                                                <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
+                                                    {language === 'ko' ? '100만원' : '₩1,000,000'}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-3 items-center w-full mt-2 ">
                                             <div className="text-center">
-                                                <span className="font-bold text-black dark:text-black">{language === 'ko' ? '최우수상' : 'Runner-Up'}</span>
+                                                <span className="font-bold text-black dark:text-black text-md">{language === 'ko' ? '최우수상' : 'Runner-Up'}</span>
                                             </div>
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>{language === 'ko' ? '2명' : '2 winners'}</span>
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
-                                                <p className="font-bold text-black dark:text-black">{language === 'ko' ? '각 50만원' : '₩500,000 each'}</p>
+                                                <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
+                                                    {language === 'ko' ? '각 50만원' : '₩500,000 each'}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-3 items-center w-full mt-2">
@@ -134,7 +144,9 @@ const CompetitionPage = () => {
                                                 <span className='text-black dark:text-black'>{language === 'ko' ? '4명' : '4 winners'}</span>
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
-                                                <p className="font-bold text-black dark:text-black">{language === 'ko' ? '각 30만원' : '₩300,000 each'}</p>
+                                                <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
+                                                    {language === 'ko' ? '각 30만원' : '₩300,000 each'}
+                                                </p>
                                             </div>
                                         </div>
                                         <Image
@@ -296,10 +308,10 @@ const CompetitionPage = () => {
 
                     <div className="relative md:w-[900px] w-full mx-auto flex justify-between items-center bg-white text-center rounded-xl" >
                         <div className="flex-1 z-10 py-20 px-10 flex flex-col items-center justify-center">
-                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 자세한 사항은</p>
-                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition</p>
-                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold">에서 확인할 수 있습니다</p>
-                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> 문의: hello@stelland.io</p>
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '자세한 사항은' : 'For more information, please visit'}</p>
+                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">{language === 'ko' ? 'toonyz.com/competition' : 'toonyz.com/competition'}</p>
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '에서 확인할 수 있습니다' : 'for more information.'}</p>
+                            <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '문의: hello@stelland.io' : 'Contact: hello@stelland.io'}</p>
                         </div>
                         <Image
                             src='/stelland_logo.svg'

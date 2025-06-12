@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         const fileContent = Buffer.from(await file.arrayBuffer());
 
         const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
-        fileName = await fileNameResponse.json();
+        fileName = await fileNameResponse.json() + ".webp";
         try {
             await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/upload_picture_to_s3`, {
                 method: 'POST',

@@ -178,13 +178,6 @@ const ViewWebnovelsComponent = ({ webnovel_id, webnovel, userWebnovels, loadingU
                     </div>
                 )
             }
-            else {
-                return (
-                    <div className='md:max-w-screen-md w-full flex flex-row justify-center items-center mx-auto h-[80vh]'>
-                        <p className='text-lg font-bold'>{phrase(dictionary, "noWebnovelsFound", language)}</p>
-                    </div>
-                )
-            }
         }
     }
 }

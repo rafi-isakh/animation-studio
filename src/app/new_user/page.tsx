@@ -12,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { phrase } from '@/utils/phrases'
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-
+import { useUser } from '@/contexts/UserContext';
 
 const LottieLoader = dynamic(() => import('@/components/LottieLoader'), {
     ssr: false,
@@ -50,6 +50,7 @@ export default function NewUser() {
         marketing: false,
     });
     const [step, setStep] = useState(1);
+    const { setInvokeCheckUser } = useUser();
 
     useEffect(() => {
         const checkUser = async () => {
@@ -116,7 +117,8 @@ export default function NewUser() {
         if (!res.ok) {
             throw new Error(`Failed to update user: ${res.statusText} ${res.status}`);
         }
-        router.push(returnTo || '/welcome');
+        console.log('returning to', pushTo);
+        router.push(pushTo);
     }
 
 
@@ -171,7 +173,6 @@ export default function NewUser() {
                 language: language,
             };
 
-            console.log(userData);
             const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/add_user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -181,7 +182,13 @@ export default function NewUser() {
             if (!res.ok) throw new Error("Failed to create user");
             await updateUser(formData2);
 
-            router.push(returnTo || '/welcome');
+            // Trigger user context refresh after successful registration
+            setInvokeCheckUser(prev => !prev);
+            
+            // Small delay to ensure user context is updated
+            setTimeout(() => {
+                router.push(pushTo);
+            }, 1000);
         } catch (error) {
             console.error("Error creating user:", error);
         }

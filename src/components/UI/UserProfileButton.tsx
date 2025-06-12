@@ -6,26 +6,19 @@ import { useUser } from '@/contexts/UserContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { phrase } from '@/utils/phrases'
-import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser, CircleUserRound } from 'lucide-react';
+import { User, Book, SquareLibrary, Sparkles, SquarePen, SquareUser, CircleUserRound, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getImageUrl } from "@/utils/urls";
 import { Popover } from '@mui/material';
-import { IconButton } from '@mui/material';
-import { X } from 'lucide-react';
-
-const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-};
+import { Button } from '@/components/shadcnUI/Button';
 
 const UserProfileButton = ({ expanded, className, mode }: { expanded?: boolean, className?: string, mode?: 'header' | 'sidebar' }) => {
     const { nickname, picture } = useUser();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [open, setOpen] = useState(false);
     const { dictionary, language } = useLanguage();
+    const { logout } = useAuth();
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -80,18 +73,6 @@ const UserProfileButton = ({ expanded, className, mode }: { expanded?: boolean, 
                 }}
             >
                 <div className="w-80 h-fit p-4 shadow-md dark:bg-black dark:text-white overflow-y-auto">
-                    <div className="flex flex-row justify-between items-center">
-                        <h3 className="text-lg font-semibold mb-2 self-center text-center">
-                            <Link href="/my_profile">
-                                {getTimeBasedGreeting()},{' '}
-                                {nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname}
-                            </Link>
-                        </h3>
-                        <IconButton onClick={handleClose} aria-label="close" className='p-0 self-center'>
-                            <X className='text-black dark:text-white' />
-                        </IconButton>
-                    </div>
-                    <hr className='my-2' />
                     <div className="space-y-2 text-base">
                         <ul className="flex flex-col gap-2">
                             <Link href="/my_profile" onClick={() => handleClose()}>
@@ -122,6 +103,12 @@ const UserProfileButton = ({ expanded, className, mode }: { expanded?: boolean, 
                                 <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
                                     <SquarePen size={18} className='dark:text-white text-black inline-flex items-center' />
                                     <span className='ml-2 text-center'>{phrase(dictionary, "newWebnovel", language)}</span>
+                                </li>
+                            </Link>
+                            <Link href="#" onClick={() => logout(true, '/')}>
+                                <li className="p-2 hover:bg-gray-100 dark:hover:bg-[#272727] rounded-lg">
+                                    <LogOut size={18} className='dark:text-white text-black inline-flex items-center' />
+                                    <span className='ml-2 text-center'>{phrase(dictionary, "logout", language)}</span>
                                 </li>
                             </Link>
                         </ul>

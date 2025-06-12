@@ -32,13 +32,12 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
 
 
     return (
-
-        <MenubarMenu>
+        <MenubarMenu >
             <MenubarTrigger className="rounded-sm p-2 data-[state=open]:bg-transparent bg-transparent cursor-pointer">
                 <List className="h-5 w-5" />
                 <span className="sr-only">{phrase(dictionary, "tableOfContents", language)}</span>
             </MenubarTrigger>
-            <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto ">
+            <MenubarContent align="center" className="max-h-[60vh] overflow-y-auto bg-white dark:bg-[#211F21] bg-transparent border-none">
                 <MenubarItem className="font-semibold" inset>
                     {phrase(dictionary, "tableOfContents", language)}
                 </MenubarItem>
@@ -68,7 +67,6 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
                 ))}
             </MenubarContent>
         </MenubarMenu>
-
     )
 }
 

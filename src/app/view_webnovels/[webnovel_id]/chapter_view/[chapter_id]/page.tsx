@@ -343,10 +343,10 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 <ProgressBar page={page} maxPage={maxPage} scrollType={scrollType} />
                 {/* Top bar: */}
                 <header
-                    className="w-full fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
+                    className="w-full h-16 fixed top-0 left-0 right-0 z-[99] py-2 transition-all duration-300 ease-in-out
                     bg-white/10 dark:bg-black/10 backdrop-blur-sm"
                 >
-                    <div className={`md:max-w-screen-md w-full mx-auto flex flex-row items-center justify-between select-none`}>
+                    <div className={`md:max-w-screen-md w-full mx-auto flex flex-row items-center justify-between select-none h-full`}>
                         <Button  variant='ghost' onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}>
                             <div className="flex flex-row space-x-1 items-center">
                                 <ChevronLeft size={18} />
@@ -367,8 +367,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                 }
                             </div>
                         </Button>
-
-                        <Menubar className="flex flex-row gap-3 items-center list-none bg-transparent border-none shadow-none">
+                        <Menubar className="flex flex-row gap-2 items-center list-none bg-transparent border-none shadow-none">
                             <TableOfContents
                                 sortedChapters={sortedChapters || []}
                                 purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
@@ -389,19 +388,20 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                             {/* viewer settings */}
                             <MenubarMenu>
                                 <Button
-                                    variant="ghost"
-                                    className="rounded-sm"
+                                    variant="link"
+                                    className="rounded-sm flex flex-col items-center justify-center !no-underline"
                                     size="icon"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         handleViewSettings();
                                     }}>
                                     <Type className="h-5 w-5" />
+                                    {phrase(dictionary, "chapter_view_viewer_settings", language)}
                                 </Button>
                             </MenubarMenu>
                             {/* like button */}
                             <MenubarMenu>
-                                <div className="text-center flex flex-row items-center md:pr-0 pr-[15px]">
+                                <div className="text-center flex flex-col items-center gap-1">
                                     {likeToggle ? (
                                         <Link href='#' className='p-0'
                                             onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
@@ -417,34 +417,41 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                         </Link>
                                     )
                                     }
-                                    <p className='ml-1 self-center text-sm'>{upvotes}</p>
+                                    <span className='text-center text-sm'>{upvotes}</span>
                                 </div>
                             </MenubarMenu>
                             {/* Delete chapter button */}
                             {isAuthor && (
-                                <>
+                                <div className="ml-2 flex flex-row gap-4 items-center">
                                 <MenubarMenu>
-                                    <Button color='gray' variant='ghost' onClick={(e) => {
+                                    <Button 
+                                    variant='link' 
+                                    className="p-0 !no-underline flex flex-col items-center justify-center"
+                                    onClick={(e) => {
                                         e.stopPropagation();
                                         setShowDeleteModal(true);
                                         setDeleteChapterId(chapter.id);
-                                        //    handleChapterDelete(Number(id))
-                                    }}>
-                                        <Trash2 className="h-5 w-5 text-gray-500" />
+                                    }}
+                                    >
+                                        <Trash2 className="h-5 w-5 text-black dark:text-white" />
                                         <span className="text-sm self-center">
                                             {phrase(dictionary, "delete", language)}
                                         </span>
                                     </Button>
                                 </MenubarMenu>
                                 <MenubarMenu>
-                                    <Button color='gray' variant='ghost' onClick={handleEditChapter}>
-                                        <Pencil className="h-5 w-5 text-gray-500" />
+                                    <Button 
+                                    variant='link' 
+                                    className="p-0 !no-underline flex flex-col items-center justify-center"
+                                    onClick={handleEditChapter}
+                                    >
+                                        <Pencil className="h-5 w-5 text-black dark:text-white" />
                                         <span className="text-sm self-center">
                                             {phrase(dictionary, "edit", language)}
                                         </span>
                                     </Button>
                                 </MenubarMenu>
-                                </>
+                                </div>
                             )
                             }
                         </Menubar>

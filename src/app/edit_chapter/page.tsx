@@ -1,4 +1,5 @@
 import EditChapterComponent from "@/components/EditChapterComponent";
+import { langPairList } from "@/utils/phrases";
 
 async function EditChapter({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const id = searchParams.id;
@@ -16,8 +17,8 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
 
     if (typeof novelLanguage === 'string') {
         // Handle single string value
-        if (novelLanguage !== 'ko' && novelLanguage !== 'en') {
-            throw new Error("novelLanguage must be either 'ko' or 'en'")
+        if (!langPairList.some(lang => lang.code === novelLanguage)) {
+            throw new Error("novelLanguage must be one of the following: " + langPairList.map(lang => lang.code).join(', '))
         }
         } else if (Array.isArray(novelLanguage)) {
         // Handle array of strings

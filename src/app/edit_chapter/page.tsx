@@ -30,7 +30,7 @@ async function EditChapter({ searchParams }: { searchParams: { [key: string]: st
     if (id) {
         return (
             <EditChapterComponent 
-                webnovelId={id as string} 
+                chapterId={id as string} 
                 novelLanguage={novelLanguage as 'ko' | 'en'}
             />
         );

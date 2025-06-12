@@ -19,8 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/shadcnUI/Button';
 
-const EditChapterComponent = ({ webnovelId, novelLanguage }: { 
-    webnovelId: string, 
+const EditChapterComponent = ({ chapterId, novelLanguage }: { 
+    chapterId: string, 
     novelLanguage: 'ko' | 'en'  // or whatever your Language type is
 }) => {
     const [title, setTitle] = useState('');
@@ -42,12 +42,13 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [lastEdited, setLastEdited] = useState('');
+    const [webnovelId, setWebnovelId] = useState('');
 
     useEffect(() => {
         const fetchChapter = async () => {
             setIsLoading(true);
             try {
-                const chapter = await fetch(`/api/get_chapter_by_id?id=${webnovelId}`).then(res => res.json());
+                const chapter = await fetch(`/api/get_chapter_by_id?id=${chapterId}`).then(res => res.json());
                 if (chapter) {
                     console.log("chapter", chapter);
                     setChapter(chapter);
@@ -65,6 +66,7 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
                     }
                     // Fetch webnovel data to get chapters array
                     const webnovel = await getWebnovelIdWithChapterMetadata(chapter.webnovel_id.toString());
+                    setWebnovelId(chapter.webnovel_id);
                     setWebnovel(webnovel);
                 }
             } catch (error) {
@@ -79,7 +81,7 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
             }
         }
         fetchChapter();
-    }, [webnovelId])
+    }, [chapterId])
 
     useEffect(() => {
         setCurrText(content.length);
@@ -141,6 +143,7 @@ const EditChapterComponent = ({ webnovelId, novelLanguage }: {
                 console.log("API response:", response);
                 console.log("chapter updated?", data);
                 router.push(`/view_webnovels/${webnovelId}/chapter_view/${chapter?.id}`)
+                console.log('router push checking webnovelId', webnovelId)
                 router.refresh();
             }
         } catch (error) {

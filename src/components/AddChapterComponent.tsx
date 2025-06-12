@@ -149,8 +149,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
                     <div className='flex flex-col space-y-4 items-start'>
                         {/* <p className='text-2xl font-bold'> {webnovel?.chapters?.findIndex(ch => ch.id === webnovel?.chapters[0].id) !== undefined ? webnovel.chapters.findIndex(ch => ch.id === webnovel?.chapters[0].id) + 1 : ''} </p> */}
                         <p className='text-sm'>
-                            {/* 총 .. 화 : total */}
-                            {phrase(dictionary, "total", language)}
                             {' '}{webnovel?.chapters_length ? webnovel.chapters_length + 1 : 1}
                             {language == 'ko' ? <>{' '}화</> : <>{' '}chapter(s)</>}
                         </p>

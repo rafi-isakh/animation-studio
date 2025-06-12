@@ -88,7 +88,7 @@ const CarouselComponentShadcn = ({ items }: CarouselProps) => {
             >
                 <CarouselContent className="-ml-4">
                     {items.map((item, index) => {
-                        if ((language === "en" && index === 1) || (language === "ko" && index === 0)) { // hide english contest banner or korean banner accordingly
+                        if ((language === "en" && index === 2) || (language === "ko" && index === 0)) { // hide english contest banner or korean banner accordingly
                             return (
                                 null
                             )

@@ -19,6 +19,7 @@ import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/shadcnUI/Dialog';
 import { ScrollArea } from '@/components/shadcnUI/ScrollArea';
 import { cn } from '@/lib/utils';
+
 const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -46,11 +47,6 @@ const AddChapterComponent = ({ webnovelId }: { webnovelId: string }) => {
         }
         fetchWebnovel();
     }, [webnovelId])
-
-
-    useEffect(() => {
-       console.log("webnovel", webnovel);
-    }, [webnovel])
 
     useEffect(() => {
         setCurrText(content.length);

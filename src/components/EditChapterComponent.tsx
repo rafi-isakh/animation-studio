@@ -116,12 +116,6 @@ const EditChapterComponent = ({ chapterId, novelLanguage }: {
 
             formData.append('title', titleText);
             formData.append('content', contentText);
-            
-            // Debug: Log what we're sending
-            console.log('Sending titleText:', titleText);
-            console.log('Sending contentText:', contentText);
-            console.log('FormData title:', formData.get('title'));
-            
             if (!contentText) {
                 return;
             }
@@ -140,10 +134,7 @@ const EditChapterComponent = ({ chapterId, novelLanguage }: {
                 }
                 const data = await Promise.resolve(resPromise);
                 const response = await data?.json();
-                console.log("API response:", response);
-                console.log("chapter updated?", data);
                 router.push(`/view_webnovels/${webnovelId}/chapter_view/${chapter?.id}`)
-                console.log('router push checking webnovelId', webnovelId)
                 router.refresh();
             }
         } catch (error) {

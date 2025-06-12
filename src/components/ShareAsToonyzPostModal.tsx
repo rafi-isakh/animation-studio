@@ -75,8 +75,8 @@ export default function ShareAsToonyzPostModal({
                     return;
                 }
                 const fileBufferBase64 = Buffer.from(picture, 'base64').toString('base64');
-                const fileName = `${index}-${Date.now()}.png`;
-                const fileType = 'image/png';
+                const fileName = `${index}-${Date.now()}.webp`;
+                const fileType = 'image/webp';
                 const bucketName = 'toonyzbucket'
                 const [uploadResponse, createResponse] = await Promise.all([
                     fetch('/api/upload_picture_to_s3', {

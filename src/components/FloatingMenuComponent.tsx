@@ -41,6 +41,7 @@ import WatermarkedImage from '@/utils/watermark';
 import { getImageUrl } from '@/utils/urls';
 import NotEnoughStarsDialog from '@/components/UI/NotEnoughStarsDialog'
 import ShareDialog from "@/components/UI/ShareDialog";
+import NotEnoughTicketsDialog from './UI/NotEnoughTicketsDialog';
 
 type Position = {
     x: number;
@@ -102,7 +103,7 @@ const FloatingMenu: React.FC<{
     const { stars, tickets, setInvokeCheckUser } = useUser();
     const [context, setContext] = useState<string>("");
     const [isSelecting, setIsSelecting] = useState(false);
-    const [showNotEnoughStarsModal, setShowNotEnoughStarsModal] = useState(false);
+    const [showNotEnoughTicketsModal, setShowNotEnoughTicketsModal] = useState(false);
     const [createMediaPrice, setCreateMediaPrice] = useState(0);
     
     
@@ -271,7 +272,7 @@ const FloatingMenu: React.FC<{
         setOpenHistory(false);
         if (tickets < 2) {
             setCreateMediaPrice(2);
-            setShowNotEnoughStarsModal(true);
+            setShowNotEnoughTicketsModal(true);
             return;
         }
 
@@ -466,7 +467,7 @@ const FloatingMenu: React.FC<{
                 </DialogContent>
             </Dialog>
             {/* not enough stars modal */}
-            <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} createMediaPrice={createMediaPrice} />
+            <NotEnoughTicketsDialog showNotEnoughTicketsModal={showNotEnoughTicketsModal} setShowNotEnoughTicketsModal={setShowNotEnoughTicketsModal} Tickets={tickets} createMediaPrice={createMediaPrice} />
         </div >
     );
 }

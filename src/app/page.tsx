@@ -7,10 +7,11 @@ import WebnovelsByRank from '@/components/WebnovelsByRank';
 import { auth } from '@/auth';
 import { ToonyzPostCards } from '@/components/UI/CollectionGrid';
 import MainPageWrapper from '@/components/UI/MainPageWrapper';
+import { redirect } from 'next/navigation';
 
 async function getCarouselItems() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovel_carousel_items`, {
-        next: { tags: ['carousel'] }
+        next: { tags: ['carousel'], revalidate: 3600 }
     })
     const data = await response.json();
     if (!response.ok) {

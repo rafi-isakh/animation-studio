@@ -5,7 +5,8 @@ export async function GET() {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_webnovels_metadata`,
         {
             next: {
-                tags: ['webnovels']
+                tags: ['webnovels'],
+                revalidate: 3600
             }
         }
     )

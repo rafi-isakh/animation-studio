@@ -4,7 +4,8 @@ export async function GET(request: NextRequest) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_toonyz_posts`,
         {
             next: {
-                tags: ['toonyz_posts']
+                tags: ['toonyz_posts'],
+                revalidate: 3600
             }
         }
     )

@@ -1,16 +1,14 @@
 "use client"
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { signIn, signOut } from 'next-auth/react';
-import { useUser } from './UserContext';
+import { createContext, useContext, ReactNode } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
+
 interface AuthContextProps {
-    isLoggedIn: boolean | null;
-    setIsLoggedIn: (loggedIn: boolean | null) => void;
-    loading: boolean | null;
+    isLoggedIn: boolean;
+    loading: boolean;
     login: (provider: string, redirect: boolean, callbackUrl: string) => void;
     logout: (redirect: boolean, callbackUrl: string) => void;
     email: string | null;
-    setEmail: (email: string | null) => void;
+    session: any;
 }
 
 const authContext = createContext<AuthContextProps | undefined>(undefined);
@@ -20,45 +18,45 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-    const [email, setEmail] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [invokeAuthCheck, setInvokeAuthCheck] = useState(false);
-    const pathname = usePathname();
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch('/api/auth_session');
-                const data = await response.json();
-                setIsLoggedIn(data.loggedIn);
-                setEmail(data.email);
-            } catch (error) {
-                console.error('Error checking auth:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        checkAuth();
-    }, [pathname, invokeAuthCheck]);
-
+    const { data: session, status } = useSession();
+    
+    const isLoggedIn = !!session?.user;
+    const loading = status === 'loading';
+    const email = session?.user?.email || null;
 
     async function login(provider: string, redirect: boolean, callbackUrl: string) {
-        await signIn(provider, { redirect: redirect, redirect_uri: callbackUrl, callbackUrl: callbackUrl, redirectTo: callbackUrl });
-        setIsLoggedIn(true);
-        setInvokeAuthCheck(!invokeAuthCheck);
+        try {
+            await signIn(provider, { 
+                redirect: redirect, 
+                redirect_uri: callbackUrl, 
+                callbackUrl: callbackUrl, 
+                redirectTo: callbackUrl 
+            });
+        } catch (error) {
+            console.error('Login error:', error);
+        }
     }
 
     async function logout(redirect: boolean, callbackUrl: string) {
-        await signOut({ redirect: redirect, callbackUrl: callbackUrl });
-        setIsLoggedIn(false);
-        setEmail(null);
-        setInvokeAuthCheck(!invokeAuthCheck);
+        try {
+            await signOut({ 
+                redirect: redirect, 
+                callbackUrl: callbackUrl 
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
     }
 
     return (
-        <authContext.Provider value={{ isLoggedIn, setIsLoggedIn, loading, login, logout, email, setEmail }}>
+        <authContext.Provider value={{ 
+            isLoggedIn, 
+            loading, 
+            login, 
+            logout, 
+            email,
+            session
+        }}>
             {children}
         </authContext.Provider>
     );

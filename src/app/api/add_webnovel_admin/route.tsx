@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const fileContent = Buffer.from(await coverArt.arrayBuffer());
     const availableLanguages = formData.get('available_languages') as string;
     const fileNameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/get_random_filename`);
-    const fileName = await fileNameResponse.json();
+    const fileName = await fileNameResponse.json() + ".webp";
     const titleEnglish = formData.get('title_english')
     const okayToCreateVideos = formData.get('okay_to_create_videos') === 'true'
     const isAdultMaterial = formData.get('is_adult_material') === 'true'

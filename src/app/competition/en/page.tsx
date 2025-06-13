@@ -39,7 +39,7 @@ const CompetitionPage = () => {
                                 </div >
                                 <div className="flex flex-col gap-4">
                                     <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
-                                        Contest Period
+                                       1. Contest Period
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
                                         <p>From: Friday, May 30th, 09:00 (KST)</p>
@@ -103,7 +103,7 @@ const CompetitionPage = () => {
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black text-sm`}>
-                                                    ₩1,000,000
+                                                  $1000
                                                 </p>
                                             </div>
                                         </div>
@@ -116,7 +116,7 @@ const CompetitionPage = () => {
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black text-sm`}>
-                                                    ₩500,000 each
+                                                   $500 each
                                                 </p>
                                             </div>
                                         </div>
@@ -125,11 +125,11 @@ const CompetitionPage = () => {
                                                 <span className="font-bold text-black dark:text-black">Honorable Mention</span>
                                             </div>
                                             <div className="text-center">
-                                                <span className='text-black dark:text-black'>4 winners</span>
+                                                <span className='text-black dark:text-black'>2 winners</span>
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black text-sm`}>
-                                                    ₩300,000 each
+                                                   $200 each
                                                 </p>
                                             </div>
                                         </div>

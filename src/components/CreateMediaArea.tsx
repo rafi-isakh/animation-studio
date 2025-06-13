@@ -93,12 +93,11 @@ export default function CreateMediaArea({
                            dark:bg-[#2C2C2C] bg-[#F5F5F5]
                             rounded-lg no-scrollbar flex flex-col gap-0 transition-opacity duration-300
                             ${openDialog ? 'block z-[100]' : 'hidden'}`}
-                //  bg-gradient-to-r dark:from-gray-900/10 dark:to-blue-900/10 from-white/50 to-blue-100/50 backdrop-blur-md
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className='drag-handle flex-shrink-0'>
-                    <div className="flex flex-col p-4 justify-center">
-                        <div className="flex items-center justify-between border-b pb-2">
+                    <div className="flex flex-col justify-center">
+                        <div className="flex items-center justify-between border-b py-3 px-4 ">
                             <div className="flex items-center">
                                 <div className="flex items-center justify-center gap-2">
                                     <h1 className="md:text-xl text-md font-medium uppercase">Toonyz Post</h1>
@@ -132,7 +131,7 @@ export default function CreateMediaArea({
                                                                 setNarrations([]);
                                                                 setOpenHistory(false);
                                                             }}>
-                                                            <House  className="h-5 w-5" />
+                                                            <House className="h-5 w-5" />
                                                             <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "home", language)}</span>
                                                         </Button>
                                                         <Button
@@ -141,6 +140,15 @@ export default function CreateMediaArea({
                                                             onClick={handleClickHistory}>
                                                             <History className="h-5 w-5" />
                                                             <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "history", language)}</span>
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="w-full flex flex-row justify-start items-center"
+                                                        >
+                                                            <Link href="/stars" className='w-full flex flex-row justify-start items-center' >
+                                                                <MdStars className="h-5 w-5 mr-2" />
+                                                                <span className="text-gray-700 dark:text-gray-300">{phrase(dictionary, "stars", language)}</span>
+                                                            </Link>
                                                         </Button>
                                                     </ul>
                                                 </PopoverContent>
@@ -342,7 +350,7 @@ export default function CreateMediaArea({
                                                         webnovel_id={webnovel_id}
                                                         chapter_id={chapter_id}
                                                         quote={savedPrompt}
-                                                      
+
                                                     />
                                                 </div>
                                             )

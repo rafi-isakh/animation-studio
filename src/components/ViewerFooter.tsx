@@ -166,24 +166,10 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
         }
     }
 
-
-    // const handleToggleMenu = () => {
-    //     setOpenMenu(prevState => !prevState);
-    //     setAllowClose(!openMenu);
-    // }
-
-    // Function to close the menu
-    const handleCloseMenu = () => {
-        setAllowClose(true);
-        setOpenMenu(false);
-    }
-
-
     return (
         <>
-            <div className={`${isVisible ? 'z-[480] fixed left-0 bottom-1 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
-                <div className="md:w-[350px]  flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
-                    {/* bg-background/90 backdrop-blur-md */}
+            <div className={`${isVisible ? 'z-[480] fixed left-0 !bottom-0 w-full px-2 py-0 flex justify-center border-none bg-transparent animation-fade duration-300 select-none mx-auto' : 'hidden'}`}>
+                <div className="md:w-[350px] flex justify-between items-center rounded-xl px-3 py-3 select-none shadow-none w-full bg-white dark:bg-[#211F21]">
                     <div>
                         <Link href={prevChapterLink} onClick={handlePrevChapter} >
                             <div className='group hover:text-[#DB2777] flex flex-row items-center justify-center rounded-full p-2 data-[state=open]:bg-accent'>

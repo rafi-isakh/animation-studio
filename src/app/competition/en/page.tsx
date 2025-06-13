@@ -11,7 +11,7 @@ const CompetitionPage = () => {
 
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
-            <div className="flex flex-col items-center justify-center bg-[#FFCCD7]  w-full h-full border-b-8 border-[#FF8197]">
+            <div className={`flex flex-col items-center justify-center border-[#80D1F4] bg-[#BBEDFF] w-full h-full border-b-8 `}>
                 <Image
                     src={getImageUrl('toonyz_2025_onepick_header_en.webp')}
                     alt="Contest Header"
@@ -38,21 +38,21 @@ const CompetitionPage = () => {
                                     />
                                 </div >
                                 <div className="flex flex-col gap-4">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
+                                    <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
                                        1. Contest Period
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                        <p>From: Friday, May 30th, 09:00 (KST)</p>
-                                        <p>To: Thursday, July 31st, 18:00 (KST)</p>
+                                        <p>From: Friday June 13th, 9:00 (KST)</p>
+                                        <p>To: Thursday August 14st, 18:00 (KST)</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
+                                    <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
                                         2. Result Announcement
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
                                        <p>Monday, August 18, 09:00 (KST)</p>
                                        <p>Check toonyz.com for the results</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl">
+                                    <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl">
                                        3. Eligibility
                                     </div>
                                     <div className="relative text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
@@ -72,13 +72,13 @@ const CompetitionPage = () => {
                                         />
                                     </div>
 
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[280px] w-full text-xl">
+                                    <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[280px] w-full text-xl">
                                         4. How to Participate
                                     </div>
                                     <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
                                         <p>
                                             Publish your work on Toonyz during the contest period using the
-                                             <Link href='/new_webnovel' className="text-[#FF8197] font-semibold">[Submit New Story]</Link> button. <br />
+                                             <Link href='/new_webnovel' className="text-[#80D1F4] font-semibold">[Submit New Story]</Link> button. <br />
                                         </p>
                                         <p className='text-[#696969]'>- Only entries with a completed application and 10 or more chapters published will be considered.</p>
                                         <p className='text-[#696969]'>- Each chapter must be at least 5,000 characters (including spaces), totaling at least 50,000 characters across 10 chapters.</p>
@@ -90,7 +90,7 @@ const CompetitionPage = () => {
 
                                 {/* Right Column */}
                                 <div className="flex flex-col gap-4">
-                                    <div className=" bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full  text-xl">
+                                    <div className=" bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full  text-xl">
                                         5. Prizes
                                     </div>
                                     <div className="relative  w-full md:w-[280px] flex flex-col justify-center items-center mt-2 text-lg">
@@ -101,7 +101,7 @@ const CompetitionPage = () => {
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>1 winner</span>
                                             </div>
-                                            <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <div className="bg-[#BBEDFF] rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black text-sm`}>
                                                   $1000
                                                 </p>
@@ -114,7 +114,7 @@ const CompetitionPage = () => {
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>2 winners</span>
                                             </div>
-                                            <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <div className="bg-[#BBEDFF] rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black text-sm`}>
                                                    $500 each
                                                 </p>
@@ -127,7 +127,7 @@ const CompetitionPage = () => {
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>2 winners</span>
                                             </div>
-                                            <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <div className="bg-[#BBEDFF] rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black text-sm`}>
                                                    $200 each
                                                 </p>
@@ -147,7 +147,7 @@ const CompetitionPage = () => {
                             {/*  Benefits */}
                             <div className="flex flex-row gap-4">
                                 <div className="mb-6">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
+                                    <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
                                         6. Winner Benefits
                                     </div>
                                     <div className="pt-4 pl-4 space-y-2 text-gray-800">
@@ -163,7 +163,7 @@ const CompetitionPage = () => {
 
                             {/* Second Section - Important Notices */}
                             <div className="mb-6">
-                                <div className="relative bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
+                                <div className="relative bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
                                    7. Important Notes
 
                                 </div>
@@ -237,7 +237,7 @@ const CompetitionPage = () => {
 
                     </div>
 
-                    <div className="md:w-[900px] mx-auto w-full h-full bg-[#FF8197] py-10 rounded-xl text-white dark:text-white">
+                    <div className="md:w-[900px] mx-auto w-full h-full bg-[#80D1F4] py-10 rounded-xl text-white dark:text-white">
                         <div className="relative flex flex-col md:flex-row items-start gap-6">
                             <div className="flex-1 space-y-4 text-xl leading-relaxed px-10 break-keep z-10 font-semibold">
                                 <p>
@@ -279,7 +279,7 @@ const CompetitionPage = () => {
                     <div className="relative md:w-[900px] w-full mx-auto flex justify-between items-center bg-white text-center rounded-xl" >
                         <div className="flex-1 z-10 py-20 px-10 flex flex-col items-center justify-center">
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> For more information, please visit</p>
-                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition/en</p>
+                            <p className="md:text-2xl text-xs bg-[#80D1F4] rounded-lg p-2 font-bold w-fit mx-auto">toonyz.com/competition/en</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> for more information.</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> Contact: hello@stelland.io</p>
                         </div>

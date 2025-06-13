@@ -11,8 +11,7 @@ const CompetitionPage = () => {
 
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
-
-            <div className="flex flex-col items-center justify-center bg-[#FFCCD7]  w-full h-full border-b-8 border-[#FF8197]">
+            <div className={`flex flex-col items-center justify-center ${language === "ko" ? "bg-[#FFCCD7] border-[#80D1F4]" : "bg-[#BBEDFF] border-[#80D1F4]"} w-full h-full border-b-8 `}>
                 {language === 'ko' ? <Image
                     src={getImageUrl('toonyz_2025_onepick_header.webp')}
                     alt="Contest Header"
@@ -47,21 +46,21 @@ const CompetitionPage = () => {
                                     />
                                 </div >
                                 <div className="flex flex-col gap-4">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
+                                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl`}>
                                         {language === 'ko' ? '1. 공모전 기간' : '1. Contest Period:'}
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                        <p>{language === 'ko' ? '5월 30일(금) 09:00시 ~' : 'From: Friday, May 30th, 09:00 (KST)'}</p>
-                                        <p>{language === 'ko' ? '7월 31일(목) 18:00시' : 'To: Thursday, July 31st, 18:00 (KST)'}</p>
+                                        <p>{language === 'ko' ? '5월 30일(금) 09:00시 ~' : 'From: Friday June 13th, 9:00 (KST)'}</p>
+                                        <p>{language === 'ko' ? '7월 31일(목) 18:00시' : 'To: Thursday August 14st, 18:00 (KST)'}</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
+                                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl`}>
                                         {language === 'ko' ? '2. 결과 발표' : '2. Result Announcement:'}
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
                                         <p>{language === 'ko' ? '8월 18일(월) 09:00시' : 'Monday, August 18, 09:00 (KST)'}</p>
                                         <p>{language === 'ko' ? 'toonyz.com 홈페이지에서 확인' : 'Check toonyz.com for the results'}</p>
                                     </div>
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl">
+                                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl`}>
                                         {language === 'ko' ? '3. 참가 자격' : '3. Eligibility:'}
                                     </div>
                                     <div className="relative text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
@@ -81,7 +80,7 @@ const CompetitionPage = () => {
                                         />
                                     </div>
 
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[280px] w-full text-xl">
+                                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left  text-center mt-2 md:w-[280px] w-full text-xl`}>
                                         {language === 'ko' ? '4. 참여 방법' : '4. How to Participate:'}
                                     </div>
                                     <div className="text-gray-800 text-left text-lg md:px-10 w-fit md:w-[650px]">
@@ -89,7 +88,7 @@ const CompetitionPage = () => {
                                             {language === 'ko' ? <>투니즈에서 공모기간 동안
                                             <Link href='/new_webnovel' className="text-[#FF8197] font-semibold">[새 작품 등록하기]</Link>를 통해  자유 연재 <br /></>
                                              : <>Publish your work on Toonyz during the contest period using the
-                                             <Link href='/new_webnovel' className="text-[#FF8197] font-semibold">[Submit New Story]</Link> button. <br /></>}
+                                             <Link href='/new_webnovel' className="text-[#80D1F4] font-semibold">[Submit New Story]</Link> button. <br /></>}
                                         </p>
                                         <p className='text-[#696969]'>{language === 'ko' ? '- 공모전 참가 신청 후 10화 이상 연재 시 심사 대상에 포함' 
                                         : '- Only entries with a completed application and 10 or more chapters published will be considered.'}</p>
@@ -106,7 +105,7 @@ const CompetitionPage = () => {
 
                                 {/* Right Column */}
                                 <div className="flex flex-col gap-4">
-                                    <div className=" bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full  text-xl">
+                                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full  text-xl`}>
                                         {language === 'ko' ? '5. 상금' : '5. Prizes:'}
                                     </div>
                                     <div className="relative  w-full md:w-[280px] flex flex-col justify-center items-center mt-2 text-lg">
@@ -117,7 +116,7 @@ const CompetitionPage = () => {
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>{language === 'ko' ? '1명' : '1 winner'}</span>
                                             </div>
-                                            <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#BBEDFF]"} rounded-lg p-2 text-center`}>
                                                 <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
                                                     {language === 'ko' ? '100만원' : '$1000'}
                                                 </p>
@@ -130,7 +129,7 @@ const CompetitionPage = () => {
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>{language === 'ko' ? '2명' : '2 winners'}</span>
                                             </div>
-                                            <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#BBEDFF]"} rounded-lg p-2 text-center`}>
                                                 <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
                                                     {language === 'ko' ? '각 50만원' : '$500 each'}
                                                 </p>
@@ -143,7 +142,7 @@ const CompetitionPage = () => {
                                             <div className="text-center">
                                                 <span className='text-black dark:text-black'>{language === 'ko' ? '4명' : '2 winners'}</span>
                                             </div>
-                                            <div className="bg-pink-200 rounded-lg p-2 text-center">
+                                            <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#BBEDFF]"} rounded-lg p-2 text-center`}>
                                                 <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
                                                     {language === 'ko' ? '각 30만원' : '$200 each'}
                                                 </p>
@@ -163,7 +162,7 @@ const CompetitionPage = () => {
                             {/*  Benefits */}
                             <div className="flex flex-row gap-4">
                                 <div className="mb-6">
-                                    <div className="bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl">
+                                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full text-xl`}>
                                         {language === 'ko' ? '6. 수상자 혜택' : '6. Winner Benefits:'}
                                     </div>
                                     <div className="pt-4 pl-4 space-y-2 text-gray-800">
@@ -179,7 +178,7 @@ const CompetitionPage = () => {
 
                             {/* Second Section - Important Notices */}
                             <div className="mb-6">
-                                <div className="relative bg-[#FF8197] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
+                                <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} relative text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl`}>
                                    {language === 'ko' ? '7. 유의사항' : '7. Important Notes:'}
 
                                 </div>
@@ -254,7 +253,7 @@ const CompetitionPage = () => {
 
                     </div>
 
-                    <div className="md:w-[900px] mx-auto w-full h-full bg-[#FF8197] py-10 rounded-xl text-white dark:text-white">
+                    <div className={`${language === "ko" ? "bg-[#FF8197]" : "bg-[#80D1F4]"} md:w-[900px] mx-auto w-full h-full py-10 rounded-xl text-white dark:text-white`}>
                         <div className="relative flex flex-col md:flex-row items-start gap-6">
                             <div className="flex-1 space-y-4 text-xl leading-relaxed px-10 break-keep z-10 font-semibold">
                                 <p>
@@ -309,7 +308,7 @@ const CompetitionPage = () => {
                     <div className="relative md:w-[900px] w-full mx-auto flex justify-between items-center bg-white text-center rounded-xl" >
                         <div className="flex-1 z-10 py-20 px-10 flex flex-col items-center justify-center">
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '자세한 사항은' : 'For more information, please visit'}</p>
-                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">{language === 'ko' ? 'toonyz.com/competition' : 'toonyz.com/competition/en'}</p>
+                            <p className={`md:text-2xl text-xs ${language === 'ko' ? 'bg-[#FF8197]' : 'bg-[#80D1F4]'} rounded-lg p-2 font-bold w-fit mx-auto`}>{language === 'ko' ? 'toonyz.com/competition' : 'toonyz.com/competition/en'}</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '에서 확인할 수 있습니다' : 'for more information.'}</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '문의: hello@stelland.io' : 'Contact: hello@stelland.io'}</p>
                         </div>

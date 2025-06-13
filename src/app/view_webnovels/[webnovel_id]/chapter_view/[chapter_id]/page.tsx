@@ -375,8 +375,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                 className='!no-underline !p-0'
                                 onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}
                             >
-                                <div className="flex flex-row space-x-1 items-center w-32 overflow-hidden">
-                                    {/* <ChevronLeft size={18} className="flex-shrink-0" /> */}
+                                <div className="flex flex-row space-x-1 items-center md:w-fit w-24 overflow-hidden">
                                     <span className="truncate">
                                         {webnovel.other_translations?.find(
                                             translation =>

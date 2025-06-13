@@ -293,7 +293,7 @@ const CompetitionPage = () => {
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">
-                        <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfAj9NjXVLrTScaVA6YOoe7DpmG_qwo_MDZNAVSA67Ch10WxQ/viewform" target="_blank">
+                        <Link href="https://docs.google.com/forms/d/e/1FAIpQLSdOLO71dXNb-LBvkYKKlpG2UpImsjQtY2ktbE3AEhWXL00HWQ/viewform?usp=dialog" target="_blank">
                             <Image
                                 src={getImageUrl('toonyz_2025_contest_button_en.webp')}
                                 alt="Contest Applying Button"

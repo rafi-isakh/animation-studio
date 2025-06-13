@@ -11,7 +11,7 @@ const CompetitionPage = () => {
 
     return (
         <div className="md:max-w-screen-xl w-full mx-auto">
-            <div className={`flex flex-col items-center justify-center ${language === "ko" ? "bg-[#FFCCD7] border-[#80D1F4]" : "bg-[#BBEDFF] border-[#80D1F4]"} w-full h-full border-b-8 `}>
+            <div className={`flex flex-col items-center justify-center ${language === "ko" ? "bg-[#FFCCD7] border-[#FF8197]" : "bg-[#BBEDFF] border-[#80D1F4]"} w-full h-full border-b-8 `}>
                 {language === 'ko' ? <Image
                     src={getImageUrl('toonyz_2025_onepick_header.webp')}
                     alt="Contest Header"
@@ -322,7 +322,8 @@ const CompetitionPage = () => {
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-10 pb-40">
-                        <Link href="https://docs.google.com/forms/d/e/1FAIpQLSfAj9NjXVLrTScaVA6YOoe7DpmG_qwo_MDZNAVSA67Ch10WxQ/viewform" target="_blank">
+                        <Link href={language === 'ko' ? "https://docs.google.com/forms/d/e/1FAIpQLSfAj9NjXVLrTScaVA6YOoe7DpmG_qwo_MDZNAVSA67Ch10WxQ/viewform" 
+                                    : "https://docs.google.com/forms/d/e/1FAIpQLSdOLO71dXNb-LBvkYKKlpG2UpImsjQtY2ktbE3AEhWXL00HWQ/viewform?usp=dialog"} target="_blank">
                             {language === 'ko' ? <Image
                                 src={getImageUrl('toonyz_2025_contest_button.webp')}
                                 alt="Contest Applying Button"

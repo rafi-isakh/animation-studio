@@ -84,7 +84,7 @@ export default function InfoAndPictureComponent({
     const isMobile = useMediaQuery("(max-width: 768px)")
     const { nickname } = useUser();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    
+
 
     useEffect(() => {
         const imageSrc = getImageUrl(content.cover_art) // this one always exists
@@ -440,12 +440,19 @@ export default function InfoAndPictureComponent({
                                         variant="default"
                                         className="w-full bg-[#DE2B74] hover:bg-[#DE2B74]/80 text-white"
                                         onClick={() => {
-                                            const firstChapter = content.chapters[0];
+                                            if (!content.chapters || content.chapters.length === 0) {
+                                                return;
+                                            }
+                                            // 2. Create a sorted copy of the chapters array.
+                                            //    Replace 'chapter_number' with the actual property you use for ordering (e.g., 'id').
+                                            const sortedChapters = [...content.chapters].sort((a, b) => a.id - b.id);
+
+                                            // 3. The first chapter is now the first element of the sorted array.
+                                            const firstChapter = sortedChapters[0];
+
                                             if (!firstChapter) return;
-
-                                            // Check if user has already purchased the chapter
+                
                                             const hasPurchased = isPurchasedChapter(purchased_webnovel_chapters, firstChapter.id, language);
-
                                             if (content.premium && !firstChapter.free && !hasPurchased) {
                                                 setShowPurchaseModal(true);
                                             } else {

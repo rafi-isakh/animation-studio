@@ -309,7 +309,7 @@ const CompetitionPage = () => {
                     <div className="relative md:w-[900px] w-full mx-auto flex justify-between items-center bg-white text-center rounded-xl" >
                         <div className="flex-1 z-10 py-20 px-10 flex flex-col items-center justify-center">
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '자세한 사항은' : 'For more information, please visit'}</p>
-                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">{language === 'ko' ? 'toonyz.com/competition' : 'toonyz.com/competition'}</p>
+                            <p className="md:text-2xl text-xs bg-[#FF8197] rounded-lg p-2 font-bold w-fit mx-auto">{language === 'ko' ? 'toonyz.com/competition' : 'toonyz.com/competition/en'}</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '에서 확인할 수 있습니다' : 'for more information.'}</p>
                             <p className="md:text-2xl text-xs text-black dark:text-black font-bold"> {language === 'ko' ? '문의: hello@stelland.io' : 'Contact: hello@stelland.io'}</p>
                         </div>

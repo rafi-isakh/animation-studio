@@ -119,7 +119,7 @@ const CompetitionPage = () => {
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
-                                                    {language === 'ko' ? '100만원' : '₩1,000,000'}
+                                                    {language === 'ko' ? '100만원' : '$1000'}
                                                 </p>
                                             </div>
                                         </div>
@@ -132,7 +132,7 @@ const CompetitionPage = () => {
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
-                                                    {language === 'ko' ? '각 50만원' : '₩500,000 each'}
+                                                    {language === 'ko' ? '각 50만원' : '$500 each'}
                                                 </p>
                                             </div>
                                         </div>
@@ -141,11 +141,11 @@ const CompetitionPage = () => {
                                                 <span className="font-bold text-black dark:text-black">{language === 'ko' ? '우수상' : 'Honorable Mention'}</span>
                                             </div>
                                             <div className="text-center">
-                                                <span className='text-black dark:text-black'>{language === 'ko' ? '4명' : '4 winners'}</span>
+                                                <span className='text-black dark:text-black'>{language === 'ko' ? '4명' : '2 winners'}</span>
                                             </div>
                                             <div className="bg-pink-200 rounded-lg p-2 text-center">
                                                 <p className={`font-bold text-black dark:text-black ${language === 'ko' ? 'text-base' : 'text-sm'}`}>
-                                                    {language === 'ko' ? '각 30만원' : '₩300,000 each'}
+                                                    {language === 'ko' ? '각 30만원' : '$200 each'}
                                                 </p>
                                             </div>
                                         </div>

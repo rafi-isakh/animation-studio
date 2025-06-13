@@ -27,7 +27,7 @@ const CompetitionPage = () => {
                                 <div className='text-gray-800 relative z-10'>
                                     <div className="text-gray-800 text-left text-lg w-fit z-10">
                                         Global Top One Pick Web Novel Contest <br />
-                                        It\'s your turn. Let the world hear your story.
+                                        It&apos;s your turn. Let the world hear your story.
                                     </div>
                                     <Image
                                         src={getImageUrl('toonyz_2025_onepick_icon4.webp')}
@@ -195,7 +195,7 @@ const CompetitionPage = () => {
 
                                     <div>
                                         <p className="font-semibold">4) Prize payment and publication guidelines</p>
-                                        <p className="pl-4 text-[#696969]">- Winners must agree to Toonyz\'s terms of use and participate in an interview before receiving prize money.</p>
+                                        <p className="pl-4 text-[#696969]">- Winners must agree to Toonyz&apos;s terms of use and participate in an interview before receiving prize money.</p>
                                         <p className="pl-4 text-[#696969]">- All prizes are paid in cash. Taxes and fees are the responsibility of the recipient.</p>
                                     </div>
 
@@ -207,7 +207,7 @@ const CompetitionPage = () => {
                                         <ul className="pl-8 mt-2 space-y-1 text-gray-800">
                                             <li className="flex items-start">
                                                 <span className="mr-2">•</span>
-                                                <span>Derivative works using others\' IP</span>
+                                                <span>Derivative works using others&apos; IP</span>
                                             </li>
                                             <li className="flex items-start">
                                                 <span className="mr-2">•</span>

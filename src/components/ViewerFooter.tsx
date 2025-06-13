@@ -192,14 +192,22 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                             </div>
                         </Link>
                     </div>
+                    <div className="relative inline-flex group flex-shrink-0">
+                        <Button
+                            variant='link'
+                            onClick={handleToggleMenu}
+                            //  className="transtion group flex h-10 w-32 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-black dark:text-white duration-300 hover:bg-gradient-to-l hover:shadow-2xl hover:shadow-purple-600/30">
+                            className='group h-10 w-32 !no-underline bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-black dark:text-white duration-300 hover:bg-gradient-to-l hover:shadow-2xl hover:shadow-purple-600/30 rounded-full'
+                        >
 
-                    <div className="fixed bottom-0 left-0 right-0 flex items-end justify-center pointer-events-none pb-4 z-[500]">
-                        <Button variant="link" onClick={handleToggleMenu} className="z-[500] !no-underline border-none hover:bg-transparent dark:hover:bg-transparent focus:bg-transparent bg-transparent dark:bg-transparent pointer-events-auto">
-                            <div className="relative inline-flex group p-1 w-32 h-12 border-none" >
-                                <div className="absolute transitiona-all duration-1000 opacity-50 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-lg filter group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200"></div>
-                                <BlobButton text={<span className="flex items-center gap-2"><Sparkles size={20} /></span>} />
+                            <div className="flex h-full w-full items-center justify-center gap-1 rounded-full bg-white dark:bg-black transition duration-300 ease-in-out group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-black group-hover:to-purple-50 group-hover:transition group-hover:duration-300 group-hover:ease-in-out">
+                                <Sparkles className="w-4 h-4" />
+                                {phrase(dictionary, "toonyzAI", language)}
                             </div>
                         </Button>
+                        <span className="absolute -top-2 -right-2 bg-[#DB2777] text-white text-xs px-2 py-0 rounded-full">
+                            New
+                        </span>
                     </div>
 
                     {/* view next and prev btn */}
@@ -212,9 +220,9 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                         </Link>
                     </div>
                 </div >
-            </div>
+            </div >
             {/* Dialogs for last and first chapter */}
-            <Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
+            < Dialog open={showIsLastChapterModal} onOpenChange={setShowIsLastChapterModal} >
                 <DialogContent
                     className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto select-none text-md'
                     showCloseButton={true}
@@ -234,7 +242,6 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
                         <Button
                             onClick={() => setShowIsLastChapterModal(false)}
                             className={cn("!rounded-none flex-1 w-full py-6 text-md font-medium bg-[#DE2B74] hover:bg-[#DE2B74] text-white")}
-
                         >
                             {phrase(dictionary, "ok", language)}
                         </Button>

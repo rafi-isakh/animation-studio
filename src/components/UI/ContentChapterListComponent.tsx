@@ -101,33 +101,12 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     return (
         <div className="flex flex-col w-full ">
             <Tabs value={tabValue} defaultValue="1" className="w-full" onValueChange={(value) => { setTabValue(value) }}>
-                <div className="relative w-full md:px-0 md:py-5 py-5 px-4 ">
-                    {/* Left scroll button - only visible on mobile */}
-                    {isMobile && (
-                        <Button 
-                            size="icon" 
-                            onClick={scrollLeft}
-                            className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-black shadow-lg border md:hidden rounded-full"
-                        >
-                            <ArrowLeft size={16} />
-                        </Button>
-                    )}
-                    
-                    {/* Right scroll button - only visible on mobile */}
-                    {isMobile && (
-                        <Button 
-                            size="icon" 
-                            onClick={scrollRight}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-black shadow-lg border md:hidden rounded-full"
-                        >
-                            <ArrowRight size={16} />
-                        </Button>
-                    )}
-                    
+                <div className="relative w-full md:px-0 md:py-5 py-1 px-4">
                     <TabsList 
                         ref={tabsListRef}
-                        className={`bg-transparent gap-4 w-full md:pt-0 pt-10${
-                            isMobile ? 'overflow-x-auto overflow-y-hidden  no-scrollbar' : ''
+                        className={`bg-transparent gap-4 w-full md:py-0 py-8
+                            flex flex-row items-center justify-start
+                            ${isMobile ? 'overflow-x-auto overflow-y-hidden  no-scrollbar' : ''
                         }`}
                     >
                         <TabsTrigger
@@ -154,7 +133,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
                             <Button
                                 onClick={() => handleOpenToonyzAI()}
                                 className="transtion group flex h-10 w-32 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-black dark:text-white duration-300 hover:bg-gradient-to-l hover:shadow-2xl hover:shadow-purple-600/30">
-                                <div className="flex h-full w-full items-center justify-center gap-1 rounded-full bg-white dark:bg-black transition duration-300 ease-in-out group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-black  group-hover:to-purple-50 group-hover:transition group-hover:duration-300 group-hover:ease-in-out">
+                                <div className="flex h-full w-full items-center justify-center gap-1 rounded-full bg-white dark:bg-black transition duration-300 ease-in-out group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-black group-hover:to-purple-50 group-hover:transition group-hover:duration-300 group-hover:ease-in-out">
                                     <Sparkles className="w-4 h-4" />
                                     {phrase(dictionary, "toonyzAI", language)}
                                 </div>

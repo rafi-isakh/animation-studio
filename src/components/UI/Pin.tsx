@@ -10,6 +10,7 @@ import { useWebnovels } from "@/contexts/WebnovelsContext"
 import { truncateText } from "@/utils/truncateText"
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { phrase } from "@/utils/phrases";
+import { Skeleton } from "@/components/shadcnUI/Skeleton";
 
 export function Pin({ post, language, dictionary }: { post: ToonyzPost, language: Language, dictionary: Dictionary }) {
   const { getWebnovelById } = useWebnovels()
@@ -18,18 +19,24 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
   const [webnovel, setWebnovel] = useState<Webnovel | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchWebnovelTitle = async () => {
-      const webnovel = await getWebnovelById(post.webnovel_id);
-      setWebnovelTitle(webnovel?.title || '');
+    const fetchWebnovelData = async () => {
+      setIsLoading(true);
+      setIsImageLoaded(false);
+      try {
+        const webnovelData = await getWebnovelById(post.webnovel_id);
+        setWebnovel(webnovelData || null);
+        setWebnovelTitle(webnovelData?.title || '');
+      } catch (error) {
+        console.error('Error fetching webnovel:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    const fetchWebnovel = async () => {
-      const webnovel = await getWebnovelById(post.webnovel_id);
-      setWebnovel(webnovel || null);
-    };
-    fetchWebnovelTitle();
-    fetchWebnovel();
+    fetchWebnovelData();
   }, [post.webnovel_id, getWebnovelById]);
 
   const handleMouseEnter = () => {
@@ -79,7 +86,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
           {
             post.image ?
               <Image
-                src={getImageUrl(post.image) || "/placeholder.svg"}
+                src={getImageUrl(post.image) || "/curriculum/placeholder.png"}
                 alt={post.title}
                 fill
                 sizes="(max-width: 768px) 100vw, 300px"
@@ -95,7 +102,7 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
                   playsInline
                   autoPlay={true}
                   className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                  poster="/placeholder.svg"
+                  poster="/curriculum/placeholder.png"
                 />
                 <Film size={20} className="absolute top-2 right-2 text-white z-10" />
               </div>
@@ -119,13 +126,19 @@ export function Pin({ post, language, dictionary }: { post: ToonyzPost, language
               <div className="flex flex-row items-center gap-2">
                 <div className="w-12 h-12 rounded-md overflow-hidden relative flex-shrink-0">
                   <Link href={`/view_webnovels/${post.webnovel_id}`}>
-                    <Image
-                      src={getImageUrl(webnovel?.cover_art || "") || "/placeholder.svg"}
-                      alt={webnovel?.title || ""}
-                      width={48}
-                      height={48}
-                      className="object-cover"
-                    />
+                    {(isLoading || !isImageLoaded) && <Skeleton className="w-12 h-12 rounded-md" />}
+                    {!isLoading && (
+                      <Image
+                        src={getImageUrl(webnovel?.cover_art) || "/curriculum/placeholder.png"}
+                        alt={webnovel?.title || ""}
+                        width={48}
+                        height={48}
+                        priority={true}
+                        loading="eager"
+                        className={`object-cover ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
+                        onLoad={() => setIsImageLoaded(true)}
+                      />
+                    )}
                   </Link>
                 </div>
                 <div className="flex flex-col text-xs text-black dark:text-white">

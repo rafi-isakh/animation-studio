@@ -21,7 +21,7 @@ export const DeleteChapterDialog = ({
 }) => {
     return (
         <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
-            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-screen' showCloseButton={true}>
+            <DialogContent className='z-[2500] !gap-0 !p-0 overflow-hidden bg-white dark:bg-[#211F21] border-none shadow-none md:h-auto h-auto' showCloseButton={true}>
                 <DialogHeader className='p-4'>
                     <DialogTitle>{phrase(dictionary, "deleteChapterConfirm", language)}</DialogTitle>
                     <DialogDescription className='py-4'>

@@ -6,12 +6,13 @@ import { Chapter, Webnovel, Dictionary, Language } from "@/components/Types"
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext"
 import ViewerFooter from "@/components/ViewerFooter";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/shadcnUI/Tooltip";
 import WebnovelTranslateComponent from "@/components/WebnovelTranslateComponent";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OtherTranslateComponent from "@/components/OtherTranslateComponent";
 import { Button } from "@/components/shadcnUI/Button";
 import { Menubar, MenubarMenu } from "@/components/shadcnUI/Menubar";
-import { ChevronRight, ChevronLeft, Trash2, Heart, Type, Pencil, MessageCircle } from 'lucide-react'
+import { ChevronRight, ChevronLeft, MoveLeft, Trash2, Heart, Type, Pencil, MessageCircle } from 'lucide-react'
 import { usePathname, useRouter } from "next/navigation";
 import PleaseLoginModal from "@/components/PleaseLoginModal";
 import { phrase } from '@/utils/phrases';
@@ -91,6 +92,7 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
     const sortedChapters = webnovel?.chapters.sort((a, b) => a.id - b.id);
     const { toast } = useToast();
     const [showCommentsModal, setShowCommentsModal] = useState(false);
+    const commentsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (webnovel && !JSON.parse(webnovel?.available_languages || '[]').includes(language)) {
@@ -351,30 +353,12 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                 >
                     <div className={`md:max-w-screen-md w-full mx-auto flex flex-row items-center justify-between select-none h-full`}>
                         <div className="flex flex-row gap-0 items-center justify-center">
-                            <Menubar className="flex list-none border-none shadow-none">
-                                <TableOfContents
-                                    sortedChapters={sortedChapters || []}
-                                    purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
-                                        .filter((purchase) => purchase[1] === language)
-                                        .map((purchase) => purchase[0])
-                                    }
-                                    language={language}
-                                    chapter_id={chapter_id}
-                                    setChapterToPurchase={setChapterToPurchase}
-                                    setShowPurchaseModal={setShowPurchaseModal}
-                                    webnovel={webnovel}
-                                    isPurchasedChapter={(purchasedChapters, chapterId) =>
-                                        purchasedChapters.includes(chapterId)
-                                    }
-                                    phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
-                                    dictionary={dictionary as Dictionary}
-                                />
-                            </Menubar>
                             <Button
                                 variant='link'
-                                className='!no-underline !p-0'
+                                className='!no-underline !p-0 flex'
                                 onClick={() => router.push(`/view_webnovels/${webnovel.id}`)}
                             >
+                                 <MoveLeft size={20} className='dark:text-white text-gray-500' />
                                 <div className="flex flex-row space-x-1 items-center md:w-fit w-24 overflow-hidden">
                                     <span className="truncate">
                                         {webnovel.other_translations?.find(
@@ -397,88 +381,138 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                                 </div>
                             </Button>
                         </div>
-                        <Menubar className="flex flex-row gap-2 items-center list-none border-none shadow-none">
-                             {/* viewer settings */}
-                             <MenubarMenu>
-                                <Button
-                                    variant="link"
-                                    className="!no-underline !p-0 flex flex-col items-center justify-center "
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleViewSettings();
-                                    }}>
-                                    <Type className="h-5 w-5" />
-                                    {phrase(dictionary, "chapter_view_viewer_settings", language)}
-                                </Button>
-                            </MenubarMenu>
-                            {/* comment button */}
-                            <MenubarMenu>
-                                <Button
-                                    variant='link'
-                                    className='!no-underline !p-0 flex flex-col gap-2 items-center justify-center'
-                                    onClick={() => {
-                                        setShowCommentsModal(true);
-                                    }}
-                                >
-                                    <MessageCircle size={18} />
-                                    {chapter.comments.length}
-                                </Button>
-                            </MenubarMenu>
-                            {/* like button */}
-                            <MenubarMenu>
-                                <div className="text-center flex flex-col items-center">
-                                    <Button
-                                        variant='link'
-                                        className='!p-0 flex flex-col gap-2 items-center justify-center !no-underline'
-                                        onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
-                                        {likeToggle ? (
-                                            <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
-                                            </svg>
-                                        ) : (
-                                            <Heart strokeWidth={2} size={18} />
-                                        )
-                                        }
-                                        <span className='text-center text-sm'>{upvotes}</span>
-                                    </Button>
-                                </div>
-                            </MenubarMenu>
-                            
-                            {/* Delete chapter button */}
-                            {isAuthor && (
-                                <div className="ml-2 flex flex-row gap-3 items-center">
-                                    <MenubarMenu>
-                                        <Button
-                                            variant='link'
-                                            className="p-0 !no-underline flex flex-col items-center justify-center"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setShowDeleteModal(true);
-                                                setDeleteChapterId(chapter.id);
-                                            }}
-                                        >
-                                            <Trash2 className="h-5 w-5 text-black dark:text-white" />
-                                            <span className="text-sm self-center">
-                                                {phrase(dictionary, "delete", language)}
-                                            </span>
-                                        </Button>
-                                    </MenubarMenu>
-                                    <MenubarMenu>
-                                        <Button
-                                            variant='link'
-                                            className="p-0 !no-underline flex flex-col items-center justify-center"
-                                            onClick={handleEditChapter}
-                                        >
-                                            <Pencil className="h-5 w-5 text-black dark:text-white" />
-                                            <span className="text-sm self-center">
-                                                {phrase(dictionary, "edit", language)}
-                                            </span>
-                                        </Button>
-                                    </MenubarMenu>
-                                </div>
-                            )
-                            }
-                        </Menubar>
+                        <TooltipProvider delayDuration={0}>
+                            <Menubar className="flex flex-row gap-2 items-center list-none border-none shadow-none">
+                                <TableOfContents
+                                    sortedChapters={sortedChapters || []}
+                                    purchased_webnovel_chapters={(purchased_webnovel_chapters || [])
+                                        .filter((purchase) => purchase[1] === language)
+                                        .map((purchase) => purchase[0])
+                                    }
+                                    language={language}
+                                    chapter_id={chapter_id}
+                                    setChapterToPurchase={setChapterToPurchase}
+                                    setShowPurchaseModal={setShowPurchaseModal}
+                                    webnovel={webnovel}
+                                    isPurchasedChapter={(purchasedChapters, chapterId) =>
+                                        purchasedChapters.includes(chapterId)
+                                    }
+                                    phrase={phrase as (dictionary: Dictionary, key: string, language: string) => string}
+                                    dictionary={dictionary as Dictionary}
+                                />
+                                {/* viewer settings */}
+
+                                <MenubarMenu>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="link"
+                                                className="!no-underline !p-0 flex flex-col items-center justify-center "
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    handleViewSettings();
+                                                }}>
+                                                <Type className="h-5 w-5" />
+
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{phrase(dictionary, "chapter_view_viewer_settings", language)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </MenubarMenu>
+                                {/* comment button */}
+                                <MenubarMenu>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant='link'
+                                                className='!no-underline !p-0 flex flex-row gap-2 items-center justify-center'
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    commentsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                                }}
+                                            >
+                                                <MessageCircle size={18} />
+                                                {chapter.comments.length}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{phrase(dictionary, "comments", language)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </MenubarMenu>
+                                {/* like button */}
+                                <MenubarMenu>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant='link'
+                                                className='!no-underline !p-0 flex flex-row gap-2 items-center justify-center'
+                                                onClick={(e) => { e.preventDefault(); handleLikeClick() }} onTouchStart={handleLikeClick}>
+                                                {likeToggle ? (
+                                                    <svg width="1.25rem" height="1.25rem" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M8.48546 5.591C9.18401 4.9092 9.98235 4.03259 9.98235 2.96119C10.0521 2.36601 9.91388 1.76527 9.5901 1.25634C9.26632 0.747404 8.77594 0.360097 8.19844 0.157182C7.62094 -0.0457339 6.99015 -0.0523672 6.40831 0.138357C5.82646 0.32908 5.32765 0.705985 4.99271 1.20799C4.63648 0.744933 4.13753 0.405536 3.56912 0.239623C3.0007 0.0737095 2.39277 0.0900199 1.83455 0.286159C1.27634 0.482299 0.797245 0.847936 0.467611 1.32939C0.137977 1.81085 -0.0248358 2.38277 0.00307225 2.96119C0.00307225 4.12999 0.801414 4.9092 1.49996 5.6884L4.99271 9L8.48546 5.591Z" fill="#6B7280" />
+                                                    </svg>
+                                                ) : (
+                                                    <Heart strokeWidth={2} size={18} />
+                                                )
+                                                }
+                                                <span className='text-center text-sm'>{upvotes}</span>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{phrase(dictionary, "likes", language)}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </MenubarMenu>
+
+                                {/* Delete chapter button */}
+                                {isAuthor && (
+                                    <div className="ml-2 flex flex-row gap-3 items-center">
+                                        <MenubarMenu>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant='link'
+                                                        className="p-0 !no-underline flex flex-col items-center justify-center"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setShowDeleteModal(true);
+                                                            setDeleteChapterId(chapter.id);
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-5 w-5 text-black dark:text-white" />
+                                                    
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{phrase(dictionary, "delete", language)}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </MenubarMenu>
+                                        <MenubarMenu>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant='link'
+                                                        className="p-0 !no-underline flex flex-col items-center justify-center"
+                                                        onClick={handleEditChapter}
+                                                    >
+                                                        <Pencil className="h-5 w-5 text-black dark:text-white" />
+                                                    
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{phrase(dictionary, "edit", language)}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </MenubarMenu>
+                                    </div>
+                                )
+                                }
+                            </Menubar>
+                        </TooltipProvider>
                     </div>
                     {/* view settings modal */}
                     <ViewerSettingDialog showIsViewerModal={showIsViewerModal} setShowIsViewerModal={setShowIsViewerModal} />
@@ -520,7 +554,9 @@ function ChapterView({ params: { chapter_id, webnovel_id }, }: { params: { chapt
                         />
                     </div>
                 </div>
-                <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                <div ref={commentsRef}>
+                    <CommentsComponent contentToAttachTo={chapter} webnovelOrPost={false} addCommentEnabled={true} />
+                </div>
                 <div className="md:h-[10vh] h-[10vh]"></div>
                 <ChapterPurchaseDialog showPurchaseModal={showPurchaseModal} setShowPurchaseModal={setShowPurchaseModal} handleChapterPurchase={handleChapterPurchase} content={webnovel} stars={stars} chapter={chapterToPurchase!} />
                 <NotEnoughStarsDialog showNotEnoughStarsModal={showNotEnoughStarsModal} setShowNotEnoughStarsModal={setShowNotEnoughStarsModal} stars={stars} content={webnovel} />

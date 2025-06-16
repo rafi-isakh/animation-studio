@@ -33,7 +33,7 @@ const TableOfContents = ({ sortedChapters, purchased_webnovel_chapters, language
 
     return (
         <MenubarMenu >
-            <MenubarTrigger className="rounded-sm p-2 data-[state=open]:bg-white dark:data-[state=open]:bg-[#211F21] cursor-pointer">
+            <MenubarTrigger className="rounded-sm p-1 data-[state=open]:bg-white dark:data-[state=open]:bg-[#211F21] cursor-pointer">
                 <List className="h-5 w-5" />
                 <span className="sr-only">{phrase(dictionary, "tableOfContents", language)}</span>
             </MenubarTrigger>

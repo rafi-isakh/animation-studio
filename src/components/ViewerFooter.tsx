@@ -115,19 +115,21 @@ const ViewerFooter = ({ webnovel, chapter, selectedTextRef, page, maxPage, posts
 
 
     const getNextChapterId = (currentChapterId: number) => {
-        const index = chapters.findIndex(ch => ch.id === currentChapterId);
-        if (index === -1 || index >= chapters.length - 1) {
+        const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
+        if (index === -1 || index === webnovel.chapters_length - 1) {
             return currentChapterId; // Stay on the same chapter if it's the last one or not found
         }
-        return chapters[index + 1].id;
+        const nextChapter = chapters[index + 1];
+        return nextChapter ? nextChapter.id : currentChapterId;
     }
 
     const getPrevChapterId = (currentChapterId: number) => {
         const index = webnovel.chapters.findIndex(ch => ch.id === currentChapterId);
-        if (index === 0) {
-            return currentChapterId; // Stay on the same chapter if it's the first one
+        if (index <= 0) {
+            return currentChapterId; // Stay on the same chapter if it's the first one or not found
         }
-        return chapters[index - 1].id;
+        const prevChapter = chapters[index - 1];
+        return prevChapter ? prevChapter.id : currentChapterId;
     }
 
     const handleNextChapter = () => {

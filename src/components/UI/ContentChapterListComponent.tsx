@@ -20,6 +20,7 @@ import ListOfChaptersComponent from "@/components/ListOfChaptersComponent";
 import AuthorWorkListComponent from "@/components/AuthorWorkListComponent";
 import ToonyzPostCard from '@/components/UI/ToonyzPostCard';
 import { useUser } from '@/contexts/UserContext';
+import { createEmailHash } from '@/utils/cryptography';
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import Link from "next/link";
 import { useMediaQuery } from "@mui/material";
@@ -48,6 +49,7 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const [tabValue, setTabValue] = useState('1');
     const { dictionary, language } = useLanguage();
     const [currentPageUrl, setCurrentPageUrl] = useState('');
+    const [isAuthor, setIsAuthor] = useState(false);
     const { id, email, nickname } = useUser();
 
     const formattedDate = content?.created_at
@@ -59,12 +61,24 @@ const ContentChapterListComponent: React.FC<ContentChapterListComponentProps> = 
     const postCount = posts?.length || 0;
     const isMobile = useMediaQuery('(max-width: 768px)');
 
-    const isAuthor = (): boolean => {
-        return id === content.user.id.toString()
-    };
+    // const isAuthor = (): boolean => {
+    //     return id === content.user.id.toString()
+    // };
 
     const view_profile_href = content.user.email_hash == content.author.email_hash ?
         `/view_profile/${content.user.id}` : `/view_author/${content.author.id}`;
+
+
+    useEffect(() => {
+        // setup author status
+        if (email && content?.user?.email_hash) {
+            const userEmailHash = createEmailHash(email);
+            if (content.user.email_hash === userEmailHash) {
+                setIsAuthor(true);
+            }
+        }
+    }, [email, content])
+
 
     return (
         <div className="flex flex-col w-full ">

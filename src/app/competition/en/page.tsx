@@ -42,14 +42,14 @@ const CompetitionPage = () => {
                                        1. Contest Period
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                        <p>From: Friday June 13th, 9:00 (KST)</p>
-                                        <p>To: Thursday August 14st, 18:00 (KST)</p>
+                                        <p>From: Fri, June 13th, 9:00 (KST)</p>
+                                        <p>To: Thurs, Aug 14th, 18:00 (KST)</p>
                                     </div>
                                     <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center md:w-[280px] w-full  text-xl">
                                         2. Result Announcement
                                     </div>
                                     <div className="text-gray-800 text-left text-lg w-fit pl-4">
-                                       <p>Monday, August 18, 09:00 (KST)</p>
+                                       <p>Fri, Aug 29th, 09:00 (KST)</p>
                                        <p>Check toonyz.com for the results</p>
                                     </div>
                                     <div className="bg-[#80D1F4] text-white font-bold py-1 px-4 rounded md:text-left text-center mt-2 md:w-[280px] w-full text-xl">

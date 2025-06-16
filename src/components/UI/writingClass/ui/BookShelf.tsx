@@ -5,6 +5,7 @@ import { useState } from "react"
 import { CourseBook } from "@/components/Types"
 import { useLanguage } from "@/contexts/LanguageContext";
 import BookDetailDialog from "@/components/UI/writingClass/ui/BookDetailDialog"
+import Image from "next/image"
 
 export default function BookShelf({ isLoggedIn }: { isLoggedIn: boolean }) {
     const { language } = useLanguage();
@@ -147,7 +148,7 @@ export default function BookShelf({ isLoggedIn }: { isLoggedIn: boolean }) {
     )
 }
 
-function BookCover({ book }: { book: CourseBook }) {
+function BookCover({ book, mode = 'default' }: { book: CourseBook, mode?: 'default' | 'sbs' }) {
     const { language } = useLanguage();
     return (
         <div className="shrink-0 cursor-pointer transition-transform hover:scale-105">
@@ -159,7 +160,7 @@ function BookCover({ book }: { book: CourseBook }) {
                     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1)",
                 }}
             >
-                {/* {book.coverImage ? (
+                {book.coverImage && mode === 'sbs' ? (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-full h-full flex flex-col justify-between p-4 z-10">
                             <div>
@@ -173,7 +174,7 @@ function BookCover({ book }: { book: CourseBook }) {
                             className="object-cover z-0"
                         />
                     </div>
-                ) : ( */}
+                ) : (
                 <div key={book.id}>
                     <div>
                         <h3 className="font-bold text-lg break-keep">
@@ -185,7 +186,7 @@ function BookCover({ book }: { book: CourseBook }) {
                         <h4 className="text-center text-sm break-keep">{language === "en" ? book.subtitle_en : book.subtitle}</h4>
                     </div>
                 </div>
-                {/* )} */}
+                )}
             </div>
         </div>
     )

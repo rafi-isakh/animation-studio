@@ -19,9 +19,7 @@ import { useTheme } from "@/contexts/providers";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFiles } from "./data/downloadFiles";
-import dynamic from 'next/dynamic';
 
-const PDFviewer = dynamic(() => import("@/components/UI/writingClass/ui/PDFviewer"), { ssr: false });
 
 const file_url_en = `${downloadFiles[4].file_url_en}`;
 const file_url_ko = `${downloadFiles[4].file_url_ko}`;

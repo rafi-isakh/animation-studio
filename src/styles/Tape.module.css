@@ -1,0 +1,12 @@
+@keyframes move-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-move-left {
+  animation: move-left linear infinite;
+} 

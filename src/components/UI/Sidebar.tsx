@@ -153,6 +153,9 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith('/writing-class')) {
       return "hidden"
     }
+    if (pathname.startsWith('/writing-class/sbs')) {
+      return "hidden"
+    }
     return ""
   }
 

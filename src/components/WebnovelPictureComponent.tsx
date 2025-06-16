@@ -63,7 +63,22 @@ const WebnovelPictureComponent = React.memo(
                         {/* Author and Genre */}
                         <div className="text-xs line-clamp-2 w-full truncate text-gray-500 flex flex-col">
                             {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
-                            <span className="mr-1">{language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname}</span>
+                            <span className="mr-1">
+
+                                {
+                                    webnovel.premium ?
+                                        webnovel.author.nickname === 'Anonymous' ? '' :
+                                            language == 'ko' ?
+                                                webnovel.author.nickname :
+                                                koreanToEnglishAuthorName[webnovel.author.nickname as string] ?
+                                                    koreanToEnglishAuthorName[webnovel.author.nickname as string]
+                                                    :
+                                                    webnovel.author.nickname
+                                        : webnovel.user.nickname
+                                }
+
+                                {/* {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname} */}
+                            </span>
                             <span className="flex flex-row items-center gap-1">
                                 {/* heart icon */}
                                 <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">

@@ -9,7 +9,7 @@ import OtherTranslateComponent from "@/components/OtherTranslateComponent"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { phrase } from "@/utils/phrases"
 import { Pause, Play, TrendingUp, Volume2, VolumeOff } from "lucide-react"
-import { koreanToEnglishAuthorName, videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { koreanToEnglishAuthorName, videoDisallowedForKorean, getAuthorDisplayName } from "@/utils/webnovelUtils";
 import MainPagePictureOrVideoComponent from "./MainPagePictureOrVideoComponent"
 
 const WebnovelPictureComponent = React.memo(
@@ -65,17 +65,7 @@ const WebnovelPictureComponent = React.memo(
                             {/* TODO: DO THIS IN A SANE WAY, USING THE DB, INSTEAD OF THIS BESPOKE FUNCTION*/}
                             <span className="mr-1">
 
-                                {
-                                    webnovel.premium ?
-                                        webnovel.author.nickname === 'Anonymous' ? '' :
-                                            language == 'ko' ?
-                                                webnovel.author.nickname :
-                                                koreanToEnglishAuthorName[webnovel.author.nickname as string] ?
-                                                    koreanToEnglishAuthorName[webnovel.author.nickname as string]
-                                                    :
-                                                    webnovel.author.nickname
-                                        : webnovel.user.nickname
-                                }
+                               {getAuthorDisplayName({premium: webnovel.premium, author: webnovel.author, user: webnovel.user}, language)}
 
                                 {/* {language === "en" ? koreanToEnglishAuthorName[webnovel.author.nickname] || webnovel.author.nickname : webnovel.author.nickname} */}
                             </span>

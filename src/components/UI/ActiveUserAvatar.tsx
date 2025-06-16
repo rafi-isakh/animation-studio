@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcnUI/Avatar"
 import { User, UserStripped, Author, Webnovel } from "@/components/Types"
 import { Button } from "@/components/shadcnUI/Button"
-import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils"
+import {  getAuthorDisplayName } from "@/utils/webnovelUtils"
 import { useUser } from "@/contexts/UserContext"
 import { getImageUrl } from "@/utils/urls"
 
@@ -63,17 +63,7 @@ export default function ActiveUserAvatar({ user, author, language, webnovel }: {
                 <AvatarImage src={user.picture} alt={user.nickname} />
                 <AvatarFallback className="dark:bg-gray-500">
                   <span className="text-gray-400 text-xs">
-                    {
-                      webnovel?.premium ?
-                        author.nickname === 'Anonymous' ? '' :
-                          language == 'ko' ?
-                            author.nickname :
-                            koreanToEnglishAuthorName[webnovel?.author.nickname as string] ?
-                              koreanToEnglishAuthorName[webnovel?.author.nickname as string]
-                              :
-                              webnovel?.author.nickname
-                        : webnovel?.user.nickname
-                    }
+                    {getAuthorDisplayName({premium: webnovel?.premium || false, author: webnovel?.author || {nickname: ""}, user: webnovel?.user || {nickname: ""}}, language)}
                   </span>
                 </AvatarFallback>
               </Avatar>

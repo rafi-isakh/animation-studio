@@ -37,7 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import NotEnoughStarsDialog from "@/components/UI/NotEnoughStarsDialog";
 import ChapterPurchaseDialog from "@/components/UI/ChapterPurchaseDialog";
-import { isPurchasedChapter, videoDisallowedForKorean } from "@/utils/webnovelUtils";
+import { isPurchasedChapter, videoDisallowedForKorean, getAuthorDisplayName } from "@/utils/webnovelUtils";
 import { koreanToEnglishAuthorName } from "@/utils/webnovelUtils";
 import UploadNewChapterButton from "@/components/UI/UploadNewChapterButton";
 import { cn } from '@/lib/utils';
@@ -358,17 +358,7 @@ export default function InfoAndPictureComponent({
                             {/* TEMPORARY FIX WHILE I PUT AUTHOR'S ENGLISH NAME IN THE DB IN A SANE WAY.*/}
                             <p className="text-center">
                                 <Link href={view_profile_href}>
-                                    {
-                                        content.premium ?
-                                            content.author.nickname === 'Anonymous' ? '' :
-                                                language == 'ko' ?
-                                                    content.author.nickname :
-                                                    koreanToEnglishAuthorName[content.author.nickname as string] ?
-                                                        koreanToEnglishAuthorName[content.author.nickname as string]
-                                                        :
-                                                        content.author.nickname
-                                            : content.user.nickname
-                                    }
+                                    {getAuthorDisplayName(content, language)}
                                 </Link>
                             </p>
 
@@ -585,17 +575,7 @@ export default function InfoAndPictureComponent({
                                         <ActiveUserAvatar user={content.user} author={content.premium ? content.author : content.user} language={language} webnovel={content} />
                                         <div className="flex flex-col gap-2 pb-4">
                                             <Link href={view_profile_href} className="md:text-xl text-md font-bold text-center">
-                                                {
-                                                    content.premium ?
-                                                        content.author.nickname === 'Anonymous' ? '' :
-                                                            language == 'ko' ?
-                                                                content.author.nickname :
-                                                                koreanToEnglishAuthorName[content.author.nickname as string] ?
-                                                                    koreanToEnglishAuthorName[content.author.nickname as string]
-                                                                    :
-                                                                    content.author.nickname
-                                                        : content.user.nickname
-                                                }
+                                                {getAuthorDisplayName(content, language)}
                                             </Link>
 
                                             <p className="text-sm text-gray-500 text-center">

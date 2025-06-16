@@ -152,3 +152,23 @@ export const isPurchasedChapter = (purchased_webnovel_chapters: [number, string]
     if (purchased_webnovel_chapters.length === 0) return false;
     return purchased_webnovel_chapters.some(([chapterId, lang]) => chapterId === chapter_id && lang === language);
 }
+
+export const getAuthorDisplayName = (content: { 
+    premium: boolean; 
+    author: { nickname: string }; 
+    user: { nickname: string }; 
+}, language: string): string => {
+    if (!content.premium) {
+        return content.user.nickname;
+    }
+    
+    if (content.author.nickname === 'Anonymous') {
+        return '';
+    }
+    
+    if (language === 'ko') {
+        return content.author.nickname;
+    }
+    
+    return koreanToEnglishAuthorName[content.author.nickname] || content.author.nickname;
+}

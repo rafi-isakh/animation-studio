@@ -5,7 +5,7 @@ import OtherTranslateComponent from '@/components/OtherTranslateComponent';
 import { Button } from '@/components/shadcnUI/Button';
 import { Heart, Bookmark } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { koreanToEnglishAuthorName } from '@/utils/webnovelUtils';
+import { koreanToEnglishAuthorName, getAuthorDisplayName } from '@/utils/webnovelUtils';
 
 interface WebnovelsCardListProps {
     title: string;
@@ -73,15 +73,7 @@ const WebnovelsAllCardWrapper: React.FC<WebnovelsCardListProps> = ({
                                                 <div className="flex gap-2">
                                                     <p className="text-xs text-gray-500 flex flex-col items-center gap-1">
                                                         {
-                                                            item.premium ?
-                                                                item.author.nickname === 'Anonymous' ? '' :
-                                                                    language == 'ko' ?
-                                                                        item.author.nickname :
-                                                                        koreanToEnglishAuthorName[item.author.nickname as string] ?
-                                                                            koreanToEnglishAuthorName[item.author.nickname as string]
-                                                                            :
-                                                                            item.author.nickname
-                                                                : item.user.nickname
+                                                           getAuthorDisplayName({premium: item.premium, author: item.author, user: item.user}, language)
                                                         }
                                                         <span className="text-xs text-gray-500 flex flex-row items-center gap-1">
                                                             <svg width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#DE2B74] dark:text-[#DE2B74]">

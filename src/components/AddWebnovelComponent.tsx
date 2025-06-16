@@ -193,11 +193,21 @@ const AddWebnovelComponent = () => {
     }));
 
 
+    useEffect(() => {
+        if (!isLoggedInAndRegistered) {
+            toast({
+                title: phrase(dictionary, "pleaseLoginFirst", language),
+                description: phrase(dictionary, "pleaseLoginFirstDescription", language),
+                variant: "destructive",
+            })
+        }
+    }, [isLoggedInAndRegistered])
 
     return (
         <>
             {!isLoggedInAndRegistered ? (
                 <div className='flex flex-col items-center justify-center min-h-[50vh] gap-4'>
+                      <p className='text-lg'>{phrase(dictionary, "pleaseLoginFirst", language)}</p>
                     <SignInComponent redirectTo="/new_webnovel" />
                 </div>
             ) : (

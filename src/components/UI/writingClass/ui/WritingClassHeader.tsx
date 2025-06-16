@@ -73,7 +73,7 @@ export const UserAccountPopoverMenu = ({ language, setOpenPopover }: { language:
 }
 
 
-const WritingClassHeader = () => {
+const WritingClassHeader = ({ mode }: { mode?: "sbs" | "class" }) => {
     const { language, setLanguage } = useLanguage();
     const { isLoggedIn, logout } = useAuth();
     const { nickname } = useUser();
